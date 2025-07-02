@@ -60,9 +60,11 @@ namespace UiAutomationMcpServer.Tools
         [McpServerTool, Description("Take a screenshot of the desktop or specific window")]
         public async Task<object> TakeScreenshot(
             [Description("Title of the window to screenshot (optional, defaults to full screen)")] string? windowTitle = null,
-            [Description("Path to save the screenshot (optional)")] string? outputPath = null)
+            [Description("Path to save the screenshot (optional)")] string? outputPath = null,
+            [Description("Enable JPEG compression to reduce response size (default: false)")] bool enableCompression = false,
+            [Description("JPEG compression quality 1-100 (default: 75, only used when enableCompression is true)")] int compressionQuality = 75)
         {
-            return await _uiAutomationService.TakeScreenshotAsync(windowTitle, outputPath);
+            return await _uiAutomationService.TakeScreenshotAsync(windowTitle, outputPath, enableCompression, compressionQuality);
         }
 
         [McpServerTool, Description("Launch an application by executable path or name")]

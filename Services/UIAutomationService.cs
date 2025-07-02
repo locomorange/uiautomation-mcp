@@ -266,13 +266,18 @@ namespace UiAutomationMcpServer.Services
             }
         }
 
-        public Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null)
+        public Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, bool enableCompression = false, int compressionQuality = 75)
         {
             try
             {
-                _logger.LogInformation("Taking screenshot of window: {WindowTitle}", windowTitle);
+                _logger.LogInformation("Taking screenshot of window: {WindowTitle}, compression: {EnableCompression}, quality: {Quality}", 
+                    windowTitle, enableCompression, compressionQuality);
 
-                outputPath ??= Path.Combine(Path.GetTempPath(), $"screenshot_{DateTime.Now:yyyyMMdd_HHmmss}.png");
+                // Validate compression quality
+                compressionQuality = Math.Max(1, Math.Min(100, compressionQuality));
+                
+                var fileExtension = enableCompression ? "jpg" : "png";
+                outputPath ??= Path.Combine(Path.GetTempPath(), $"screenshot_{DateTime.Now:yyyyMMdd_HHmmss}.{fileExtension}");
 
                 Rectangle bounds;
 
@@ -294,12 +299,33 @@ namespace UiAutomationMcpServer.Services
                 using (var graphics = Graphics.FromImage(bitmap))
                 {
                     graphics.CopyFromScreen(bounds.X, bounds.Y, 0, 0, bounds.Size);
-                    bitmap.Save(outputPath, ImageFormat.Png);
+                    
+                    if (enableCompression)
+                    {
+                        // Save as JPEG with specified quality
+                        var jpegEncoder = GetEncoder(ImageFormat.Jpeg);
+                        if (jpegEncoder != null)
+                        {
+                            var encoderParameters = new EncoderParameters(1);
+                            encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, (long)compressionQuality);
+                            bitmap.Save(outputPath, jpegEncoder, encoderParameters);
+                        }
+                        else
+                        {
+                            bitmap.Save(outputPath, ImageFormat.Jpeg);
+                        }
+                    }
+                    else
+                    {
+                        bitmap.Save(outputPath, ImageFormat.Png);
+                    }
                 }
 
                 var base64Image = Convert.ToBase64String(File.ReadAllBytes(outputPath));
+                var fileSizeKB = new FileInfo(outputPath).Length / 1024;
 
-                _logger.LogInformation("Screenshot saved to: {OutputPath}", outputPath);
+                _logger.LogInformation("Screenshot saved to: {OutputPath}, size: {FileSizeKB}KB, format: {Format}", 
+                    outputPath, fileSizeKB, enableCompression ? "JPEG" : "PNG");
 
                 return Task.FromResult(new ScreenshotResult
                 {
@@ -448,6 +474,19 @@ namespace UiAutomationMcpServer.Services
         }
 
         #region Helper Methods
+
+        private static ImageCodecInfo? GetEncoder(ImageFormat format)
+        {
+            var codecs = ImageCodecInfo.GetImageEncoders();
+            foreach (var codec in codecs)
+            {
+                if (codec.FormatID == format.Guid)
+                {
+                    return codec;
+                }
+            }
+            return null;
+        }
 
         private static AutomationElement? FindWindowByTitle(string title)
         {
