@@ -24,29 +24,52 @@ namespace UiAutomationMcpServer.Services
             try
             {
                 var windows = new List<WindowInfo>();
-                var windowElements = AutomationElement.RootElement.FindAll(TreeScope.Children,
-                    new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window));
+                AutomationElementCollection? windowElements = null;
+                
+                try
+                {
+                    windowElements = AutomationElement.RootElement.FindAll(TreeScope.Children,
+                        new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window));
+                }
+                catch (Exception ex)
+                {
+                    return Task.FromResult(new OperationResult { Success = false, Error = $"Failed to find windows: {ex.Message}" });
+                }
+
+                if (windowElements == null)
+                {
+                    return Task.FromResult(new OperationResult { Success = true, Data = windows });
+                }
 
                 foreach (AutomationElement window in windowElements)
                 {
-                    if (!string.IsNullOrEmpty(window.Current.Name))
+                    try
                     {
-                        windows.Add(new WindowInfo
+                        var name = window?.Current.Name ?? "";
+                        if (!string.IsNullOrEmpty(name) && window != null)
                         {
-                            Name = window.Current.Name,
-                            AutomationId = window.Current.AutomationId,
-                            ProcessId = window.Current.ProcessId,
-                            ClassName = window.Current.ClassName,
-                            BoundingRectangle = new BoundingRectangle
+                            windows.Add(new WindowInfo
                             {
-                                X = window.Current.BoundingRectangle.X,
-                                Y = window.Current.BoundingRectangle.Y,
-                                Width = window.Current.BoundingRectangle.Width,
-                                Height = window.Current.BoundingRectangle.Height
-                            },
-                            IsEnabled = window.Current.IsEnabled,
-                            IsVisible = !window.Current.IsOffscreen
-                        });
+                                Name = name,
+                                AutomationId = window.Current.AutomationId ?? "",
+                                ProcessId = window.Current.ProcessId,
+                                ClassName = window.Current.ClassName ?? "",
+                                BoundingRectangle = new BoundingRectangle
+                                {
+                                    X = window.Current.BoundingRectangle.X,
+                                    Y = window.Current.BoundingRectangle.Y,
+                                    Width = window.Current.BoundingRectangle.Width,
+                                    Height = window.Current.BoundingRectangle.Height
+                                },
+                                IsEnabled = window.Current.IsEnabled,
+                                IsVisible = !window.Current.IsOffscreen
+                            });
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Skip this window and continue
+                        continue;
                     }
                 }
 
@@ -54,7 +77,7 @@ namespace UiAutomationMcpServer.Services
             }
             catch (Exception ex)
             {
-                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+                return Task.FromResult(new OperationResult { Success = false, Error = $"GetWindowInfo failed: {ex.Message}" });
             }
         }
 
@@ -81,7 +104,16 @@ namespace UiAutomationMcpServer.Services
                         condition = new PropertyCondition(AutomationElement.ControlTypeProperty, ctrlType);
                 }
 
-                var foundElements = searchRoot.FindAll(TreeScope.Descendants, condition);
+                AutomationElementCollection? foundElements = null;
+                try
+                {
+                    foundElements = searchRoot.FindAll(TreeScope.Descendants, condition);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error in GetElementInfo: FindAll failed");
+                    return Task.FromResult(new OperationResult { Success = false, Error = $"FindAll failed: {ex}" });
+                }
 
                 if (foundElements == null)
                 {
@@ -123,7 +155,8 @@ namespace UiAutomationMcpServer.Services
             }
             catch (Exception ex)
             {
-                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+                _logger.LogError(ex, "Error in GetElementInfo");
+                return Task.FromResult(new OperationResult { Success = false, Error = ex.ToString() });
             }
         }
 
@@ -359,8 +392,17 @@ namespace UiAutomationMcpServer.Services
                     (conditions.Count == 1 ? conditions[0] : new AndCondition(conditions.ToArray())) :
                     Condition.TrueCondition;
 
-                var foundElements = searchRoot.FindAll(TreeScope.Descendants, finalCondition);
                 var elements = new List<ElementInfo>();
+                AutomationElementCollection? foundElements = null;
+                try
+                {
+                    foundElements = searchRoot.FindAll(TreeScope.Descendants, finalCondition);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error in FindElements: FindAll failed");
+                    return Task.FromResult(new OperationResult { Success = false, Error = $"FindAll failed: {ex}" });
+                }
 
                 if (foundElements == null)
                 {
@@ -391,7 +433,6 @@ namespace UiAutomationMcpServer.Services
                     catch (Exception ex)
                     {
                         _logger.LogWarning("Failed to read element properties in FindElements: {Error}", ex.Message);
-                        // Skip this element and continue with the next one
                         continue;
                     }
                 }
@@ -401,8 +442,8 @@ namespace UiAutomationMcpServer.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error finding elements");
-                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+                _logger.LogError(ex, "Error in FindElements (outer)");
+                return Task.FromResult(new OperationResult { Success = false, Error = ex.ToString() });
             }
         }
 
@@ -410,8 +451,57 @@ namespace UiAutomationMcpServer.Services
 
         private static AutomationElement? FindWindowByTitle(string title)
         {
-            return AutomationElement.RootElement.FindFirst(TreeScope.Children,
-                new PropertyCondition(AutomationElement.NameProperty, title));
+            if (string.IsNullOrWhiteSpace(title)) return null;
+            var windows = AutomationElement.RootElement.FindAll(TreeScope.Children,
+                new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window));
+            foreach (AutomationElement window in windows)
+            {
+                try
+                {
+                    var name = window.Current.Name;
+                    if (!string.IsNullOrEmpty(name))
+                    {
+                        // Try exact match first
+                        if (string.Equals(name.Trim(), title.Trim(), StringComparison.OrdinalIgnoreCase))
+                        {
+                            return window;
+                        }
+                        // Then try contains match
+                        if (name.Trim().Contains(title.Trim(), StringComparison.OrdinalIgnoreCase))
+                        {
+                            return window;
+                        }
+                        // Try normalized string comparison for Japanese characters
+                        var normalizedName = NormalizeString(name);
+                        var normalizedTitle = NormalizeString(title);
+                        if (normalizedName.Contains(normalizedTitle))
+                        {
+                            return window;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[FindWindowByTitle] Error: {ex.Message}");
+                    continue;
+                }
+            }
+            return null;
+        }
+
+        // 文字列の正規化（小文字化・トリム・NFKC正規化）
+        private static string NormalizeString(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return string.Empty;
+            string trimmed = input.Trim().ToLowerInvariant();
+            try
+            {
+                return trimmed.Normalize(System.Text.NormalizationForm.FormKC);
+            }
+            catch
+            {
+                return trimmed;
+            }
         }
 
         private static AutomationElement? FindElementInWindow(AutomationElement window, string elementId)
