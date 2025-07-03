@@ -32,13 +32,6 @@ namespace UiAutomationMcpServer.Tools
             return await _uiAutomationService.GetElementInfoAsync(windowTitle, controlType, windowIndex);
         }
 
-        // [McpServerTool, Description("Click on a UI element by automation ID or name")]
-        // public async Task<object> ClickElement(
-        //     [Description("Automation ID or name of the element to click")] string elementId,
-        //     [Description("Title of the window containing the element (optional)")] string? windowTitle = null)
-        // {
-        //     return await _uiAutomationService.ClickElementAsync(elementId, windowTitle);
-        // }
 
         [McpServerTool, Description("Execute any UI Automation pattern on an element")]
         public async Task<object> ExecuteElementPattern(

@@ -218,55 +218,6 @@ namespace UiAutomationMcpServer.Services
             }
         }
 
-        public Task<OperationResult> ClickElementAsync(string elementId, string? windowTitle = null, int? windowIndex = null)
-        {
-            try
-            {
-                AutomationElement? element = null;
-
-                if (!string.IsNullOrEmpty(windowTitle))
-                {
-                    var window = FindWindowByTitle(windowTitle, windowIndex);
-                    if (window == null)
-                    {
-                        var errorMsg = windowIndex.HasValue 
-                            ? $"Window '{windowTitle}' (index {windowIndex}) not found"
-                            : $"Window '{windowTitle}' not found";
-                        return Task.FromResult(new OperationResult { Success = false, Error = errorMsg });
-                    }
-
-                    element = FindElementInWindow(window, elementId);
-                }
-                else
-                {
-                    element = AutomationElement.RootElement.FindFirst(TreeScope.Descendants,
-                        new OrCondition(
-                            new PropertyCondition(AutomationElement.AutomationIdProperty, elementId),
-                            new PropertyCondition(AutomationElement.NameProperty, elementId)
-                        ));
-                }
-
-                if (element == null)
-                    return Task.FromResult(new OperationResult { Success = false, Error = $"Element '{elementId}' not found" });
-
-                if (element.TryGetCurrentPattern(InvokePattern.Pattern, out object? invokePattern))
-                {
-                    ((InvokePattern)invokePattern).Invoke();
-                    return Task.FromResult(new OperationResult { Success = true, Data = new { method = "invoke" } });
-                }
-
-                var rect = element.Current.BoundingRectangle;
-                var centerX = rect.X + rect.Width / 2;
-                var centerY = rect.Y + rect.Height / 2;
-
-                // UI Automation fallback - try to use automation patterns only
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support Invoke pattern and mouse click functionality has been removed" });
-            }
-            catch (Exception ex)
-            {
-                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
-            }
-        }
 
         public Task<OperationResult> SendKeysAsync(string text, string? elementId = null, string? windowTitle = null, int? windowIndex = null)
         {
