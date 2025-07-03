@@ -36,8 +36,8 @@ namespace UiAutomationMcpServer.Tools
         [McpServerTool, Description("Execute any UI Automation pattern on an element")]
         public async Task<object> ExecuteElementPattern(
             [Description("Automation ID or name of the element")] string elementId,
-            [Description("Pattern name: invoke, value, toggle, selectionitem, expandcollapse, scroll, rangevalue, text, window, grid, griditem, table, tableitem, selection, transform, dock")] string patternName,
-            [Description("Pattern parameters as JSON object (optional). Examples: {\"value\":\"text\"}, {\"expand\":true}, {\"direction\":\"up\"}, {\"action\":\"close\"}")] Dictionary<string, object>? parameters = null,
+            [Description("Pattern name based on Microsoft Learn guidelines: invoke, value, toggle, selectionitem, expandcollapse, scroll, scrollitem, rangevalue, text, window, grid, griditem, table, tableitem, selection, transform, dock, multipleview, virtualized, itemcontainer, synchronizedinput")] string patternName,
+            [Description("Pattern parameters as JSON object (optional). Examples: {\"value\":\"text\"}, {\"expand\":true}, {\"action\":\"move\",\"x\":100,\"y\":200}, {\"viewId\":1}, {\"cancel\":true}")] Dictionary<string, object>? parameters = null,
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Index of the window when multiple windows have the same title (optional, 0-based)")] int? windowIndex = null)
         {

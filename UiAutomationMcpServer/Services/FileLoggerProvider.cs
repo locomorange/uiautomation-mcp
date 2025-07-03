@@ -16,7 +16,7 @@ namespace UiAutomationMcpServer.Services
 
         public ILogger CreateLogger(string categoryName)
         {
-            return _loggers.GetOrAdd(categoryName, name => new FileLogger(_filePath, name));
+            return _loggers.GetOrAdd(categoryName, name => new FileLogger(name, _filePath));
         }
 
         public void Dispose()
@@ -27,42 +27,46 @@ namespace UiAutomationMcpServer.Services
 
     public class FileLogger : ILogger
     {
-        private readonly string _filePath;
         private readonly string _categoryName;
-        private readonly object _lock = new object();
+        private readonly string _filePath;
+        private readonly object _lock = new();
 
-        public FileLogger(string filePath, string categoryName)
+        public FileLogger(string categoryName, string filePath)
         {
-            _filePath = filePath;
             _categoryName = categoryName;
+            _filePath = filePath;
         }
 
-        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+        {
+            return null;
+        }
 
-        public bool IsEnabled(LogLevel logLevel) => logLevel >= LogLevel.Information;
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            return logLevel >= LogLevel.Information;
+        }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
             if (!IsEnabled(logLevel))
                 return;
 
+            var logMessage = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{logLevel}] {_categoryName}: {formatter(state, exception)}";
+            if (exception != null)
+            {
+                logMessage += Environment.NewLine + exception.ToString();
+            }
+
             lock (_lock)
             {
                 try
                 {
-                    var message = formatter(state, exception);
-                    var logEntry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} [{logLevel}] {_categoryName}: {message}";
-                    
-                    if (exception != null)
-                        logEntry += Environment.NewLine + exception.ToString();
-                    
-                    logEntry += Environment.NewLine;
-                    
-                    File.AppendAllText(_filePath, logEntry);
+                    File.AppendAllText(_filePath, logMessage + Environment.NewLine);
                 }
                 catch
                 {
-                    // Ignore logging errors to prevent application failure
+                    // ログの書き込みに失敗してもアプリケーションを停止させない
                 }
             }
         }
