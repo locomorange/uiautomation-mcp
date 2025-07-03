@@ -31,12 +31,22 @@ namespace UiAutomationMcpServer.Tools
             return await _uiAutomationService.GetElementInfoAsync(windowTitle, controlType);
         }
 
-        [McpServerTool, Description("Click on a UI element by automation ID or name")]
-        public async Task<object> ClickElement(
-            [Description("Automation ID or name of the element to click")] string elementId,
+        // [McpServerTool, Description("Click on a UI element by automation ID or name")]
+        // public async Task<object> ClickElement(
+        //     [Description("Automation ID or name of the element to click")] string elementId,
+        //     [Description("Title of the window containing the element (optional)")] string? windowTitle = null)
+        // {
+        //     return await _uiAutomationService.ClickElementAsync(elementId, windowTitle);
+        // }
+
+        [McpServerTool, Description("Execute any UI Automation pattern on an element")]
+        public async Task<object> ExecuteElementPattern(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Pattern name: invoke, value, toggle, selectionitem, expandcollapse, scroll, rangevalue, text, window, grid, griditem, table, tableitem, selection, transform, dock")] string patternName,
+            [Description("Pattern parameters as JSON object (optional). Examples: {\"value\":\"text\"}, {\"expand\":true}, {\"direction\":\"up\"}, {\"action\":\"close\"}")] Dictionary<string, object>? parameters = null,
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null)
         {
-            return await _uiAutomationService.ClickElementAsync(elementId, windowTitle);
+            return await _uiAutomationService.ExecuteElementPatternAsync(elementId, patternName, parameters, windowTitle);
         }
 
         [McpServerTool, Description("Send text input to a UI element")]

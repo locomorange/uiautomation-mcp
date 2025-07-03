@@ -61,10 +61,9 @@ The application is structured as a modern .NET hosted service with proper separa
 Each UI automation capability is exposed as an MCP tool:
 - `GetWindowInfo` - Retrieve information about open windows
 - `GetElementInfo` - Get UI element details within windows
-- `ClickElement` - Click UI elements by AutomationId or Name
+- `ClickElement` - Click UI elements by AutomationId or Name (uses InvokePattern only)
 - `SendKeys` - Send keyboard input to elements
-- `MouseClick` - Perform mouse clicks at coordinates
-- `TakeScreenshot` - Capture desktop or window screenshots
+- `TakeScreenshot` - Capture desktop or window screenshots with token optimization
 - `LaunchApplication` - Launch applications with parameters
 - `FindElements` - Search for UI elements by criteria
 
@@ -100,17 +99,15 @@ Each MCP tool follows this pattern:
 3. Action execution (click, input, screenshot, etc.)
 4. Structured response with success/error status
 
-The server handles both element-based operations (using AutomationId/Name) and coordinate-based operations for flexibility.
+The server handles element-based operations using AutomationId/Name with Windows UI Automation patterns (InvokePattern, ValuePattern, etc.). Direct coordinate-based mouse operations have been removed to rely solely on accessible UI automation.
 
 ## Debugging
 
-Debug logging is enabled to `%TEMP%\mcp-server-debug.log` to track:
-- Server startup
-- Incoming MCP requests
-- Outgoing responses
-- Errors and exceptions
-
-This logging is essential for troubleshooting MCP protocol communication issues without interfering with the JSON-RPC communication on stdout/stdin.
+Console logging is disabled to prevent MCP protocol interference. For debugging:
+- Use Visual Studio debugger for step-through debugging
+- Temporarily enable file logging in Program.cs if needed
+- FileLogger implementation exists but is currently unused
+- All debugging output must avoid stdout/stdin to maintain MCP JSON-RPC protocol compliance
 
 ## Hook Configuration
 
@@ -147,10 +144,12 @@ Example hook for common .NET commands:
 - **Build warnings about UIAutomation assemblies**: Expected on some systems, doesn't prevent functionality
 - **MCP protocol interference**: Console logging is disabled to prevent interference with MCP JSON-RPC communication
 - **WSL compatibility**: All .NET commands must be executed through Windows cmd.exe wrapper
+- **Element clicking**: Only elements supporting InvokePattern can be clicked; mouse click functionality has been removed
 
-## Debugging
+## Screenshot Capabilities
 
-For debugging purposes, logging has been disabled to avoid interference with the MCP protocol. If debugging is needed:
-1. Temporarily enable file logging in Program.cs
-2. Use Visual Studio debugger for step-through debugging
-3. Add temporary console output only during development (remove before deployment)
+The TakeScreenshot tool includes advanced features:
+- **Token optimization**: Automatically scales image resolution based on maxTokens parameter
+- **JPEG compression**: Reduces file size while maintaining quality
+- **Base64 encoding**: Direct embedding in MCP responses for immediate use
+- **Window-specific capture**: Can capture specific windows or full desktop
