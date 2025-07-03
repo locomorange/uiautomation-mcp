@@ -300,20 +300,20 @@ namespace UiAutomationMcpServer.Services
                         return ExecuteDockPattern(element, parameters);
                              // Grid and Table Patterns (not yet implemented but referenced in switch)
             case "grid":
-                return Task.FromResult(new OperationResult { Success = false, Error = "GridPattern not yet implemented" });
+                return ExecuteGridPattern(element, parameters);
             
             case "griditem":
-                return Task.FromResult(new OperationResult { Success = false, Error = "GridItemPattern not yet implemented" });
+                return ExecuteGridItemPattern(element, parameters);
             
             case "table":
-                return Task.FromResult(new OperationResult { Success = false, Error = "TablePattern not yet implemented" });
+                return ExecuteTablePattern(element, parameters);
             
             case "tableitem":
-                return Task.FromResult(new OperationResult { Success = false, Error = "TableItemPattern not yet implemented" });
+                return ExecuteTableItemPattern(element, parameters);
             
-            // Selection Patterns (not yet implemented but referenced in switch)
+            // Selection Patterns 
             case "selection":
-                return Task.FromResult(new OperationResult { Success = false, Error = "SelectionPattern not yet implemented" });
+                return ExecuteSelectionPattern(element, parameters);
                     
                     // New patterns based on Microsoft guidance
                     case "multipleview":
@@ -676,18 +676,18 @@ namespace UiAutomationMcpServer.Services
             return null;
         }
 
-        private static AutomationElement? FindWindowByTitle(string title, int? processId = null)
+        private AutomationElement? FindWindowByTitle(string title, int? processId = null)
         {
             if (string.IsNullOrWhiteSpace(title)) return null;
             
             try
             {
-                Console.WriteLine($"[DEBUG] FindWindowByTitle called with title: '{title}', processId: {processId}");
+                _logger.LogDebug("FindWindowByTitle called with title: '{Title}', processId: {ProcessId}", title, processId);
                 
                 var windows = AutomationElement.RootElement.FindAll(TreeScope.Children,
                     new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window));
                 
-                Console.WriteLine($"[DEBUG] Found {windows.Count} total windows");
+                _logger.LogDebug("Found {WindowCount} total windows", windows.Count);
                 
                 var matchingWindows = new List<AutomationElement>();
                 
@@ -697,12 +697,12 @@ namespace UiAutomationMcpServer.Services
                     {
                         var name = window.Current.Name;
                         var windowProcessId = window.Current.ProcessId;
-                        Console.WriteLine($"[DEBUG] Checking window: '{name}' (ProcessId: {windowProcessId})");
+                        _logger.LogDebug("Checking window: '{Name}' (ProcessId: {ProcessId})", name, windowProcessId);
                         
                         // Filter by processId if specified
                         if (processId.HasValue && windowProcessId != processId.Value)
                         {
-                            Console.WriteLine($"[DEBUG] Skipping window with ProcessId {windowProcessId} (looking for {processId.Value})");
+                            _logger.LogDebug("Skipping window with ProcessId {WindowProcessId} (looking for {TargetProcessId})", windowProcessId, processId.Value);
                             continue;
                         }
                         
@@ -711,30 +711,30 @@ namespace UiAutomationMcpServer.Services
                             // Try exact match first (case insensitive)
                             if (string.Equals(name.Trim(), title.Trim(), StringComparison.OrdinalIgnoreCase))
                             {
-                                Console.WriteLine($"[DEBUG] Exact match found: '{name}' (ProcessId: {windowProcessId})");
+                                _logger.LogDebug("Exact match found: '{Name}' (ProcessId: {ProcessId})", name, windowProcessId);
                                 matchingWindows.Add(window);
                             }
                             // Try contains match for partial matching
                             else if (name.Contains(title, StringComparison.OrdinalIgnoreCase) || 
                                      title.Contains(name, StringComparison.OrdinalIgnoreCase))
                             {
-                                Console.WriteLine($"[DEBUG] Partial match found: '{name}' (ProcessId: {windowProcessId})");
+                                _logger.LogDebug("Partial match found: '{Name}' (ProcessId: {ProcessId})", name, windowProcessId);
                                 matchingWindows.Add(window);
                             }
                         }
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[DEBUG] Error reading window properties: {ex.Message}");
+                        _logger.LogWarning(ex, "Error reading window properties");
                         continue;
                     }
                 }
                 
-                Console.WriteLine($"[DEBUG] Found {matchingWindows.Count} matching windows");
+                _logger.LogDebug("Found {MatchingCount} matching windows", matchingWindows.Count);
                 
                 if (matchingWindows.Count == 0)
                 {
-                    Console.WriteLine($"[DEBUG] No matching windows found");
+                    _logger.LogDebug("No matching windows found for title: '{Title}'", title);
                     return null;
                 }
                 
@@ -742,7 +742,7 @@ namespace UiAutomationMcpServer.Services
                 if (processId.HasValue)
                 {
                     var selectedWindow = matchingWindows[0];
-                    Console.WriteLine($"[DEBUG] Selected window for processId {processId.Value}: '{selectedWindow.Current.Name}'");
+                    _logger.LogDebug("Selected window for processId {ProcessId}: '{Name}'", processId.Value, selectedWindow.Current.Name);
                     return selectedWindow;
                 }
                 
@@ -753,24 +753,25 @@ namespace UiAutomationMcpServer.Services
                     {
                         if (window.Current.IsEnabled && !window.Current.IsOffscreen)
                         {
-                            Console.WriteLine($"[DEBUG] Returning first visible/enabled window: '{window.Current.Name}' (ProcessId: {window.Current.ProcessId})");
+                            _logger.LogDebug("Returning first visible/enabled window: '{Name}' (ProcessId: {ProcessId})", window.Current.Name, window.Current.ProcessId);
                             return window;
                         }
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[DEBUG] Error checking window state: {ex.Message}");
+                        _logger.LogWarning(ex, "Error checking window state");
                         continue;
                     }
                 }
                 
                 // Return first matching window if no visible/enabled found
-                Console.WriteLine($"[DEBUG] Returning first matching window: '{matchingWindows[0].Current.Name}' (ProcessId: {matchingWindows[0].Current.ProcessId})");
-                return matchingWindows[0];
+                var firstWindow = matchingWindows[0];
+                _logger.LogDebug("Returning first matching window: '{Name}' (ProcessId: {ProcessId})", firstWindow.Current.Name, firstWindow.Current.ProcessId);
+                return firstWindow;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[DEBUG] Error in window search: {ex.Message}");
+                _logger.LogError(ex, "Error in window search for title: '{Title}'", title);
                 return null;
             }
         }
@@ -1043,24 +1044,157 @@ namespace UiAutomationMcpServer.Services
 
         private Task<OperationResult> ExecuteTextPattern(AutomationElement element, Dictionary<string, object>? parameters)
         {
-            if (element.TryGetCurrentPattern(TextPattern.Pattern, out object? textPattern))
+            try
             {
-                var pattern = (TextPattern)textPattern;
+                if (!element.TryGetCurrentPattern(TextPattern.Pattern, out object? textPatternObj))
+                {
+                    return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support TextPattern" });
+                }
+
+                var pattern = (TextPattern)textPatternObj;
                 
-                if (parameters != null && parameters.TryGetValue("text", out var textValue))
+                if (parameters != null)
                 {
-                    var text = textValue.ToString() ?? "";
-                    var range = pattern.DocumentRange;
-                    range.Select();
-                    return Task.FromResult(new OperationResult { Success = true, Data = new { pattern = "TextPattern", selectedText = text } });
+                    // Text search functionality
+                    if (parameters.ContainsKey("searchText"))
+                    {
+                        var searchText = parameters["searchText"].ToString() ?? "";
+                        var backward = parameters.ContainsKey("backward") && bool.Parse(parameters["backward"].ToString() ?? "false");
+                        var ignoreCase = parameters.ContainsKey("ignoreCase") && bool.Parse(parameters["ignoreCase"].ToString() ?? "false");
+                        
+                        var searchRange = pattern.DocumentRange;
+                        var foundRange = searchRange.FindText(searchText, backward, ignoreCase);
+                        
+                        if (foundRange != null)
+                        {
+                            foundRange.Select();
+                            return Task.FromResult(new OperationResult 
+                            { 
+                                Success = true, 
+                                Data = new 
+                                { 
+                                    pattern = "TextPattern", 
+                                    action = "search",
+                                    foundText = foundRange.GetText(-1),
+                                    startPoint = foundRange.GetBoundingRectangles().FirstOrDefault()
+                                } 
+                            });
+                        }
+                        else
+                        {
+                            return Task.FromResult(new OperationResult { Success = false, Error = $"Text '{searchText}' not found" });
+                        }
+                    }
+                    
+                    // Get text selection
+                    if (parameters.ContainsKey("getSelection"))
+                    {
+                        var selection = pattern.GetSelection();
+                        var selectionData = selection?.Select(s => new
+                        {
+                            Text = s.GetText(-1),
+                            BoundingRectangle = s.GetBoundingRectangles().FirstOrDefault()
+                        }).ToArray();
+                        
+                        return Task.FromResult(new OperationResult 
+                        { 
+                            Success = true, 
+                            Data = new { pattern = "TextPattern", action = "getSelection", selections = selectionData }
+                        });
+                    }
+                    
+                    // Range operations
+                    if (parameters.ContainsKey("selectRange"))
+                    {
+                        if (parameters.TryGetValue("startOffset", out var startObj) && 
+                            parameters.TryGetValue("endOffset", out var endObj) &&
+                            int.TryParse(startObj.ToString(), out var startOffset) &&
+                            int.TryParse(endObj.ToString(), out var endOffset))
+                        {
+                            var documentRange = pattern.DocumentRange;
+                            var rangeStart = documentRange.Clone();
+                            var rangeEnd = documentRange.Clone();
+                            
+                            rangeStart.Move(System.Windows.Automation.Text.TextUnit.Character, startOffset);
+                            rangeEnd.Move(System.Windows.Automation.Text.TextUnit.Character, endOffset);
+                            
+                            var selectedRange = rangeStart.Clone();
+                            selectedRange.MoveEndpointByRange(System.Windows.Automation.Text.TextPatternRangeEndpoint.End, rangeEnd, System.Windows.Automation.Text.TextPatternRangeEndpoint.Start);
+                            selectedRange.Select();
+                            
+                            return Task.FromResult(new OperationResult 
+                            { 
+                                Success = true, 
+                                Data = new 
+                                { 
+                                    pattern = "TextPattern", 
+                                    action = "selectRange",
+                                    selectedText = selectedRange.GetText(-1)
+                                }
+                            });
+                        }
+                        return Task.FromResult(new OperationResult { Success = false, Error = "startOffset and endOffset parameters required for selectRange" });
+                    }
+                    
+                    // Get text attributes
+                    if (parameters.ContainsKey("getAttributes"))
+                    {
+                        var documentRange = pattern.DocumentRange;
+                        var attributesData = new Dictionary<string, object>();
+                        
+                        try
+                        {
+                            attributesData["FontName"] = documentRange.GetAttributeValue(TextPattern.FontNameAttribute) ?? "";
+                            attributesData["FontSize"] = documentRange.GetAttributeValue(TextPattern.FontSizeAttribute) ?? "";
+                            attributesData["FontWeight"] = documentRange.GetAttributeValue(TextPattern.FontWeightAttribute) ?? "";
+                            attributesData["IsItalic"] = documentRange.GetAttributeValue(TextPattern.IsItalicAttribute) ?? false;
+                            attributesData["ForegroundColor"] = documentRange.GetAttributeValue(TextPattern.ForegroundColorAttribute) ?? "";
+                            attributesData["BackgroundColor"] = documentRange.GetAttributeValue(TextPattern.BackgroundColorAttribute) ?? "";
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning("Error getting text attributes: {Error}", ex.Message);
+                        }
+                        
+                        return Task.FromResult(new OperationResult 
+                        { 
+                            Success = true, 
+                            Data = new { pattern = "TextPattern", action = "getAttributes", attributes = attributesData }
+                        });
+                    }
+                    
+                    // Legacy text selection
+                    if (parameters.TryGetValue("text", out var textValue))
+                    {
+                        var text = textValue.ToString() ?? "";
+                        var range = pattern.DocumentRange;
+                        range.Select();
+                        return Task.FromResult(new OperationResult { Success = true, Data = new { pattern = "TextPattern", selectedText = text } });
+                    }
                 }
-                else
-                {
-                    var documentText = pattern.DocumentRange.GetText(-1);
-                    return Task.FromResult(new OperationResult { Success = true, Data = new { pattern = "TextPattern", documentText } });
-                }
+                
+                // Default: return document text and basic info
+                var documentText = pattern.DocumentRange.GetText(-1);
+                var supportedTextSelection = pattern.SupportedTextSelection;
+                
+                return Task.FromResult(new OperationResult 
+                { 
+                    Success = true, 
+                    Data = new 
+                    { 
+                        pattern = "TextPattern", 
+                        documentText = documentText,
+                        textLength = documentText.Length,
+                        supportedTextSelection = supportedTextSelection.ToString(),
+                        supportsTextSelection = supportedTextSelection != System.Windows.Automation.SupportedTextSelection.None
+                    }
+                });
             }
-            return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support TextPattern" });
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error executing TextPattern");
+                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+            }
         }
 
         private Task<OperationResult> ExecuteWindowPattern(AutomationElement element, Dictionary<string, object>? parameters)
@@ -1728,6 +1862,268 @@ namespace UiAutomationMcpServer.Services
 
         #endregion
 
+        #region Grid and Table Pattern Methods
+
+        private Task<OperationResult> ExecuteGridPattern(AutomationElement element, Dictionary<string, object>? parameters)
+        {
+            try
+            {
+                if (!element.TryGetCurrentPattern(GridPattern.Pattern, out var gridPatternObj))
+                {
+                    return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support GridPattern" });
+                }
+
+                var gridPattern = (GridPattern)gridPatternObj;
+                
+                if (parameters != null && parameters.ContainsKey("getItem"))
+                {
+                    if (parameters.TryGetValue("row", out var rowObj) && 
+                        parameters.TryGetValue("column", out var columnObj) &&
+                        int.TryParse(rowObj.ToString(), out var row) &&
+                        int.TryParse(columnObj.ToString(), out var column))
+                    {
+                        var item = gridPattern.GetItem(row, column);
+                        if (item != null)
+                        {
+                            return Task.FromResult(new OperationResult 
+                            { 
+                                Success = true, 
+                                Data = new
+                                {
+                                    Name = item.Current.Name ?? "",
+                                    AutomationId = item.Current.AutomationId ?? "",
+                                    ControlType = item.Current.ControlType?.ProgrammaticName ?? "",
+                                    Value = item.Current.IsContentElement ? (item.Current.Name ?? "") : "",
+                                    Row = row,
+                                    Column = column
+                                }
+                            });
+                        }
+                        else
+                        {
+                            return Task.FromResult(new OperationResult { Success = false, Error = $"Grid item at row {row}, column {column} not found" });
+                        }
+                    }
+                    return Task.FromResult(new OperationResult { Success = false, Error = "Row and column parameters required for getItem operation" });
+                }
+
+                // Default: return grid information
+                return Task.FromResult(new OperationResult 
+                { 
+                    Success = true, 
+                    Data = new
+                    {
+                        RowCount = gridPattern.Current.RowCount,
+                        ColumnCount = gridPattern.Current.ColumnCount
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error executing GridPattern");
+                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+            }
+        }
+
+        private Task<OperationResult> ExecuteGridItemPattern(AutomationElement element, Dictionary<string, object>? parameters)
+        {
+            try
+            {
+                if (!element.TryGetCurrentPattern(GridItemPattern.Pattern, out var gridItemPatternObj))
+                {
+                    return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support GridItemPattern" });
+                }
+
+                var gridItemPattern = (GridItemPattern)gridItemPatternObj;
+                
+                return Task.FromResult(new OperationResult 
+                { 
+                    Success = true, 
+                    Data = new
+                    {
+                        Row = gridItemPattern.Current.Row,
+                        Column = gridItemPattern.Current.Column,
+                        RowSpan = gridItemPattern.Current.RowSpan,
+                        ColumnSpan = gridItemPattern.Current.ColumnSpan,
+                        ContainingGrid = gridItemPattern.Current.ContainingGrid?.Current.Name ?? ""
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error executing GridItemPattern");
+                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+            }
+        }
+
+        private Task<OperationResult> ExecuteTablePattern(AutomationElement element, Dictionary<string, object>? parameters)
+        {
+            try
+            {
+                if (!element.TryGetCurrentPattern(TablePattern.Pattern, out var tablePatternObj))
+                {
+                    return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support TablePattern" });
+                }
+
+                var tablePattern = (TablePattern)tablePatternObj;
+                
+                if (parameters != null)
+                {
+                    if (parameters.ContainsKey("getColumnHeaders"))
+                    {
+                        var columnHeaders = tablePattern.Current.GetColumnHeaders();
+                        var headerData = columnHeaders?.Cast<AutomationElement>()
+                            .Select(h => new { 
+                                Name = h.Current.Name ?? "", 
+                                AutomationId = h.Current.AutomationId ?? "" 
+                            }).ToArray();
+                        
+                        return Task.FromResult(new OperationResult { Success = true, Data = headerData });
+                    }
+                    
+                    if (parameters.ContainsKey("getRowHeaders"))
+                    {
+                        var rowHeaders = tablePattern.Current.GetRowHeaders();
+                        var headerData = rowHeaders?.Cast<AutomationElement>()
+                            .Select(h => new { 
+                                Name = h.Current.Name ?? "", 
+                                AutomationId = h.Current.AutomationId ?? "" 
+                            }).ToArray();
+                        
+                        return Task.FromResult(new OperationResult { Success = true, Data = headerData });
+                    }
+                }
+
+                // Default: return table information
+                return Task.FromResult(new OperationResult 
+                { 
+                    Success = true, 
+                    Data = new
+                    {
+                        RowCount = tablePattern.Current.RowCount,
+                        ColumnCount = tablePattern.Current.ColumnCount,
+                        RowOrColumnMajor = tablePattern.Current.RowOrColumnMajor.ToString()
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error executing TablePattern");
+                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+            }
+        }
+
+        private Task<OperationResult> ExecuteTableItemPattern(AutomationElement element, Dictionary<string, object>? parameters)
+        {
+            try
+            {
+                if (!element.TryGetCurrentPattern(TableItemPattern.Pattern, out var tableItemPatternObj))
+                {
+                    return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support TableItemPattern" });
+                }
+
+                var tableItemPattern = (TableItemPattern)tableItemPatternObj;
+                
+                var data = new
+                {
+                    Row = tableItemPattern.Current.Row,
+                    Column = tableItemPattern.Current.Column,
+                    RowSpan = tableItemPattern.Current.RowSpan,
+                    ColumnSpan = tableItemPattern.Current.ColumnSpan,
+                    ContainingGrid = tableItemPattern.Current.ContainingGrid?.Current.Name ?? ""
+                };
+
+                if (parameters != null)
+                {
+                    if (parameters.ContainsKey("getColumnHeaderItems"))
+                    {
+                        var columnHeaders = tableItemPattern.Current.GetColumnHeaderItems();
+                        var headerData = columnHeaders?.Cast<AutomationElement>()
+                            .Select(h => new { 
+                                Name = h.Current.Name ?? "", 
+                                AutomationId = h.Current.AutomationId ?? "" 
+                            }).ToArray();
+                        
+                        return Task.FromResult(new OperationResult 
+                        { 
+                            Success = true, 
+                            Data = new { TableItem = data, ColumnHeaders = headerData }
+                        });
+                    }
+                    
+                    if (parameters.ContainsKey("getRowHeaderItems"))
+                    {
+                        var rowHeaders = tableItemPattern.Current.GetRowHeaderItems();
+                        var headerData = rowHeaders?.Cast<AutomationElement>()
+                            .Select(h => new { 
+                                Name = h.Current.Name ?? "", 
+                                AutomationId = h.Current.AutomationId ?? "" 
+                            }).ToArray();
+                        
+                        return Task.FromResult(new OperationResult 
+                        { 
+                            Success = true, 
+                            Data = new { TableItem = data, RowHeaders = headerData }
+                        });
+                    }
+                }
+
+                return Task.FromResult(new OperationResult { Success = true, Data = data });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error executing TableItemPattern");
+                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+            }
+        }
+
+        private Task<OperationResult> ExecuteSelectionPattern(AutomationElement element, Dictionary<string, object>? parameters)
+        {
+            try
+            {
+                if (!element.TryGetCurrentPattern(SelectionPattern.Pattern, out var selectionPatternObj))
+                {
+                    return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support SelectionPattern" });
+                }
+
+                var selectionPattern = (SelectionPattern)selectionPatternObj;
+                
+                if (parameters != null)
+                {
+                    if (parameters.ContainsKey("getSelection"))
+                    {
+                        var selection = selectionPattern.Current.GetSelection();
+                        var selectionData = selection?.Cast<AutomationElement>()
+                            .Select(s => new { 
+                                Name = s.Current.Name ?? "", 
+                                AutomationId = s.Current.AutomationId ?? "",
+                                ControlType = s.Current.ControlType?.ProgrammaticName ?? ""
+                            }).ToArray();
+                        
+                        return Task.FromResult(new OperationResult { Success = true, Data = selectionData });
+                    }
+                }
+
+                // Default: return selection container information
+                return Task.FromResult(new OperationResult 
+                { 
+                    Success = true, 
+                    Data = new
+                    {
+                        CanSelectMultiple = selectionPattern.Current.CanSelectMultiple,
+                        IsSelectionRequired = selectionPattern.Current.IsSelectionRequired,
+                        SelectionCount = selectionPattern.Current.GetSelection()?.Length ?? 0
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error executing SelectionPattern");
+                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+            }
+        }
+
+        #endregion
 
         #endregion
     }
