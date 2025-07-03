@@ -13,9 +13,11 @@ namespace UiAutomationMcpServer
         {
             var builder = Host.CreateApplicationBuilder(args);
 
-            // Configure logging for MCP (disable all logging to avoid interference with MCP protocol)
+            // Configure logging for MCP - temporarily enable file logging for debugging
             builder.Logging.ClearProviders();
-            builder.Logging.SetMinimumLevel(LogLevel.Critical);
+            var logPath = Path.Combine(Directory.GetCurrentDirectory(), "mcp_debug.log");
+            builder.Logging.AddProvider(new UiAutomationMcpServer.Services.FileLoggerProvider(logPath));
+            builder.Logging.SetMinimumLevel(LogLevel.Information);
 
             // Register services
             builder.Services.AddSingleton<IUIAutomationService, UIAutomationService>();

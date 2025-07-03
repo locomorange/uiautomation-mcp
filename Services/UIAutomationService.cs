@@ -111,9 +111,26 @@ namespace UiAutomationMcpServer.Services
 
                 if (!string.IsNullOrEmpty(controlType))
                 {
-                    var ctrlType = GetControlTypeFromString(controlType);
-                    if (ctrlType != null)
-                        conditions.Add(new PropertyCondition(AutomationElement.ControlTypeProperty, ctrlType));
+                    _logger.LogInformation("Processing controlType: {ControlType}", controlType);
+                    try
+                    {
+                        var ctrlType = GetControlTypeFromString(controlType);
+                        if (ctrlType != null)
+                        {
+                            _logger.LogInformation("Mapped controlType '{ControlType}' to {MappedType}", controlType, ctrlType.ProgrammaticName);
+                            conditions.Add(new PropertyCondition(AutomationElement.ControlTypeProperty, ctrlType));
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Unknown controlType: {ControlType}", controlType);
+                            return Task.FromResult(new OperationResult { Success = false, Error = $"Unknown control type: {controlType}" });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error mapping controlType: {ControlType}", controlType);
+                        return Task.FromResult(new OperationResult { Success = false, Error = $"Error processing control type '{controlType}': {ex.Message}" });
+                    }
                 }
 
                 Condition condition = conditions.Count > 0 ?
@@ -123,7 +140,7 @@ namespace UiAutomationMcpServer.Services
                 AutomationElementCollection? foundElements = null;
                 try
                 {
-                    _logger.LogInformation("Starting FindAll operation on searchRoot");
+                    _logger.LogInformation("Starting FindAll operation on searchRoot with condition type: {ConditionType}", condition.GetType().Name);
                     // Use Children scope first to avoid deep traversal issues
                     foundElements = searchRoot.FindAll(TreeScope.Children, condition);
                     _logger.LogInformation("FindAll (Children) completed, found {Count} elements", foundElements?.Count ?? 0);
@@ -138,7 +155,7 @@ namespace UiAutomationMcpServer.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error in GetElementInfo: FindAll failed");
+                    _logger.LogError(ex, "Error in GetElementInfo: FindAll failed with condition: {ConditionType}", condition?.GetType()?.Name ?? "Unknown");
                     return Task.FromResult(new OperationResult { Success = false, Error = $"FindAll failed: {ex.Message}" });
                 }
 
@@ -162,6 +179,7 @@ namespace UiAutomationMcpServer.Services
 
                     try
                     {
+                        var rect = element.Current.BoundingRectangle;
                         elements.Add(new ElementInfo
                         {
                             Name = element.Current.Name ?? "",
@@ -170,10 +188,10 @@ namespace UiAutomationMcpServer.Services
                             ClassName = element.Current.ClassName ?? "",
                             BoundingRectangle = new BoundingRectangle
                             {
-                                X = element.Current.BoundingRectangle.X,
-                                Y = element.Current.BoundingRectangle.Y,
-                                Width = element.Current.BoundingRectangle.Width,
-                                Height = element.Current.BoundingRectangle.Height
+                                X = double.IsInfinity(rect.X) || double.IsNaN(rect.X) ? 0 : rect.X,
+                                Y = double.IsInfinity(rect.Y) || double.IsNaN(rect.Y) ? 0 : rect.Y,
+                                Width = double.IsInfinity(rect.Width) || double.IsNaN(rect.Width) ? 0 : rect.Width,
+                                Height = double.IsInfinity(rect.Height) || double.IsNaN(rect.Height) ? 0 : rect.Height
                             },
                             IsEnabled = element.Current.IsEnabled,
                             IsVisible = !element.Current.IsOffscreen,
@@ -498,8 +516,8 @@ namespace UiAutomationMcpServer.Services
         {
             try
             {
-                _logger.LogInformation("Finding elements with searchText: {SearchText}, controlType: {ControlType}, window: {WindowTitle}", 
-                    searchText, controlType, windowTitle);
+                _logger.LogInformation("Finding elements with searchText: {SearchText}, controlType: {ControlType}, window: {WindowTitle}, windowIndex: {WindowIndex}", 
+                    searchText, controlType, windowTitle, windowIndex);
 
                 AutomationElement searchRoot = AutomationElement.RootElement;
 
@@ -509,6 +527,7 @@ namespace UiAutomationMcpServer.Services
                     if (window != null)
                     {
                         searchRoot = window;
+                        _logger.LogInformation("Found window for search: {WindowName}", window.Current.Name);
                     }
                     else
                     {
@@ -524,6 +543,7 @@ namespace UiAutomationMcpServer.Services
 
                 if (!string.IsNullOrEmpty(searchText))
                 {
+                    _logger.LogInformation("Adding search text condition: {SearchText}", searchText);
                     conditions.Add(new OrCondition(
                         new PropertyCondition(AutomationElement.NameProperty, searchText),
                         new PropertyCondition(AutomationElement.AutomationIdProperty, searchText)
@@ -532,9 +552,26 @@ namespace UiAutomationMcpServer.Services
 
                 if (!string.IsNullOrEmpty(controlType))
                 {
-                    var ctrlType = GetControlTypeFromString(controlType);
-                    if (ctrlType != null)
-                        conditions.Add(new PropertyCondition(AutomationElement.ControlTypeProperty, ctrlType));
+                    _logger.LogInformation("Processing controlType for FindElements: {ControlType}", controlType);
+                    try
+                    {
+                        var ctrlType = GetControlTypeFromString(controlType);
+                        if (ctrlType != null)
+                        {
+                            _logger.LogInformation("Mapped controlType '{ControlType}' to {MappedType}", controlType, ctrlType.ProgrammaticName);
+                            conditions.Add(new PropertyCondition(AutomationElement.ControlTypeProperty, ctrlType));
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Unknown controlType in FindElements: {ControlType}", controlType);
+                            return Task.FromResult(new OperationResult { Success = false, Error = $"Unknown control type: {controlType}" });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error mapping controlType in FindElements: {ControlType}", controlType);
+                        return Task.FromResult(new OperationResult { Success = false, Error = $"Error processing control type '{controlType}': {ex.Message}" });
+                    }
                 }
 
                 Condition finalCondition = conditions.Count > 0 ?
@@ -545,12 +582,14 @@ namespace UiAutomationMcpServer.Services
                 AutomationElementCollection? foundElements = null;
                 try
                 {
+                    _logger.LogInformation("Starting FindAll for FindElements with condition: {ConditionType}", finalCondition.GetType().Name);
                     foundElements = searchRoot.FindAll(TreeScope.Descendants, finalCondition);
+                    _logger.LogInformation("FindAll completed, found {Count} elements", foundElements?.Count ?? 0);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error in FindElements: FindAll failed");
-                    return Task.FromResult(new OperationResult { Success = false, Error = $"FindAll failed: {ex}" });
+                    _logger.LogError(ex, "Error in FindElements: FindAll failed with condition: {ConditionType}", finalCondition?.GetType()?.Name ?? "Unknown");
+                    return Task.FromResult(new OperationResult { Success = false, Error = $"FindAll failed: {ex.Message}" });
                 }
 
                 if (foundElements == null)
@@ -562,6 +601,7 @@ namespace UiAutomationMcpServer.Services
                 {
                     try
                     {
+                        var rect = element.Current.BoundingRectangle;
                         elements.Add(new ElementInfo
                         {
                             Name = element.Current.Name,
@@ -570,10 +610,10 @@ namespace UiAutomationMcpServer.Services
                             ClassName = element.Current.ClassName,
                             BoundingRectangle = new BoundingRectangle
                             {
-                                X = element.Current.BoundingRectangle.X,
-                                Y = element.Current.BoundingRectangle.Y,
-                                Width = element.Current.BoundingRectangle.Width,
-                                Height = element.Current.BoundingRectangle.Height
+                                X = double.IsInfinity(rect.X) || double.IsNaN(rect.X) ? 0 : rect.X,
+                                Y = double.IsInfinity(rect.Y) || double.IsNaN(rect.Y) ? 0 : rect.Y,
+                                Width = double.IsInfinity(rect.Width) || double.IsNaN(rect.Width) ? 0 : rect.Width,
+                                Height = double.IsInfinity(rect.Height) || double.IsNaN(rect.Height) ? 0 : rect.Height
                             },
                             IsEnabled = element.Current.IsEnabled,
                             IsVisible = !element.Current.IsOffscreen
@@ -873,13 +913,25 @@ namespace UiAutomationMcpServer.Services
                     "titlebar" => ControlType.TitleBar,
                     "toolbar" => ControlType.ToolBar,
                     "tooltip" => ControlType.ToolTip,
+                    "hyperlink" => ControlType.Hyperlink,
+                    "spinner" => ControlType.Spinner,
+                    "splitbutton" => ControlType.SplitButton,
+                    "custom" => ControlType.Custom,
+                    "dataitem" => ControlType.DataItem,
+                    "header" => ControlType.Header,
+                    "headeritem" => ControlType.HeaderItem,
+                    "menu" => ControlType.Menu,
+                    "menubar" => ControlType.MenuBar,
+                    "thumb" => ControlType.Thumb,
                     _ => null
                 };
 
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                // Log exception details if possible (though we can't access logger here)
+                System.Diagnostics.Debug.WriteLine($"GetControlTypeFromString error: {ex.Message}");
                 return null;
             }
         }
