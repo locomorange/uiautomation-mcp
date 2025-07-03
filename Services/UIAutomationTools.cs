@@ -26,9 +26,10 @@ namespace UiAutomationMcpServer.Tools
         [McpServerTool, Description("Get information about UI elements in a specific window")]
         public async Task<object> GetElementInfo(
             [Description("Title of the window to search in (optional)")] string? windowTitle = null,
-            [Description("Type of control to filter by (optional)")] string? controlType = null)
+            [Description("Type of control to filter by (optional)")] string? controlType = null,
+            [Description("Index of the window when multiple windows have the same title (optional, 0-based)")] int? windowIndex = null)
         {
-            return await _uiAutomationService.GetElementInfoAsync(windowTitle, controlType);
+            return await _uiAutomationService.GetElementInfoAsync(windowTitle, controlType, windowIndex);
         }
 
         // [McpServerTool, Description("Click on a UI element by automation ID or name")]
@@ -44,9 +45,10 @@ namespace UiAutomationMcpServer.Tools
             [Description("Automation ID or name of the element")] string elementId,
             [Description("Pattern name: invoke, value, toggle, selectionitem, expandcollapse, scroll, rangevalue, text, window, grid, griditem, table, tableitem, selection, transform, dock")] string patternName,
             [Description("Pattern parameters as JSON object (optional). Examples: {\"value\":\"text\"}, {\"expand\":true}, {\"direction\":\"up\"}, {\"action\":\"close\"}")] Dictionary<string, object>? parameters = null,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null)
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Index of the window when multiple windows have the same title (optional, 0-based)")] int? windowIndex = null)
         {
-            return await _uiAutomationService.ExecuteElementPatternAsync(elementId, patternName, parameters, windowTitle);
+            return await _uiAutomationService.ExecuteElementPatternAsync(elementId, patternName, parameters, windowTitle, windowIndex);
         }
 
         [McpServerTool, Description("Send text input to a UI element")]

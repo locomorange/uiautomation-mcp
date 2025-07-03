@@ -79,55 +79,95 @@ namespace UiAutomationMcpServer.Services
             }
         }
 
-        public Task<OperationResult> GetElementInfoAsync(string? windowTitle = null, string? controlType = null)
+        public Task<OperationResult> GetElementInfoAsync(string? windowTitle = null, string? controlType = null, int? windowIndex = null)
         {
             try
             {
+                _logger.LogInformation("GetElementInfo called with windowTitle: {WindowTitle}, controlType: {ControlType}, windowIndex: {WindowIndex}", 
+                    windowTitle, controlType, windowIndex);
+
                 AutomationElement searchRoot = AutomationElement.RootElement;
 
                 if (!string.IsNullOrEmpty(windowTitle))
                 {
-                    searchRoot = FindWindowByTitle(windowTitle) ?? searchRoot;
-                    if (searchRoot == AutomationElement.RootElement && !string.IsNullOrEmpty(windowTitle))
-                        return Task.FromResult(new OperationResult { Success = false, Error = $"Window '{windowTitle}' not found" });
+                    var window = FindWindowByTitle(windowTitle, windowIndex);
+                    if (window != null)
+                    {
+                        searchRoot = window;
+                        _logger.LogInformation("Found window: {WindowName}", window.Current.Name);
+                    }
+                    else
+                    {
+                        var message = windowIndex.HasValue 
+                            ? $"Window '{windowTitle}' (index {windowIndex}) not found, searching in all windows"
+                            : $"Window '{windowTitle}' not found, searching in all windows";
+                        _logger.LogWarning(message);
+                        // Continue with root element instead of failing
+                    }
                 }
 
                 var elements = new List<ElementInfo>();
-                Condition condition = Condition.TrueCondition;
+                var conditions = new List<Condition>();
 
                 if (!string.IsNullOrEmpty(controlType))
                 {
                     var ctrlType = GetControlTypeFromString(controlType);
                     if (ctrlType != null)
-                        condition = new PropertyCondition(AutomationElement.ControlTypeProperty, ctrlType);
+                        conditions.Add(new PropertyCondition(AutomationElement.ControlTypeProperty, ctrlType));
                 }
+
+                Condition condition = conditions.Count > 0 ?
+                    (conditions.Count == 1 ? conditions[0] : new AndCondition(conditions.ToArray())) :
+                    Condition.TrueCondition;
 
                 AutomationElementCollection? foundElements = null;
                 try
                 {
-                    foundElements = searchRoot.FindAll(TreeScope.Descendants, condition);
+                    _logger.LogInformation("Starting FindAll operation on searchRoot");
+                    // Use Children scope first to avoid deep traversal issues
+                    foundElements = searchRoot.FindAll(TreeScope.Children, condition);
+                    _logger.LogInformation("FindAll (Children) completed, found {Count} elements", foundElements?.Count ?? 0);
+                    
+                    // If no elements found with Children scope and we have a specific window, try Descendants with limited scope
+                    if ((foundElements == null || foundElements.Count == 0) && !string.IsNullOrEmpty(windowTitle))
+                    {
+                        _logger.LogInformation("No elements found with Children scope, trying Descendants");
+                        foundElements = searchRoot.FindAll(TreeScope.Descendants, condition);
+                        _logger.LogInformation("FindAll (Descendants) completed, found {Count} elements", foundElements?.Count ?? 0);
+                    }
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error in GetElementInfo: FindAll failed");
-                    return Task.FromResult(new OperationResult { Success = false, Error = $"FindAll failed: {ex}" });
+                    return Task.FromResult(new OperationResult { Success = false, Error = $"FindAll failed: {ex.Message}" });
                 }
 
-                if (foundElements == null)
+                if (foundElements == null || foundElements.Count == 0)
                 {
+                    _logger.LogInformation("No elements found, returning empty list");
                     return Task.FromResult(new OperationResult { Success = true, Data = elements });
                 }
 
+                // Limit the number of elements to avoid memory issues
+                int maxElements = 100;
+                int processedCount = 0;
+
                 foreach (AutomationElement element in foundElements)
                 {
+                    if (processedCount >= maxElements)
+                    {
+                        _logger.LogWarning("Reached maximum element limit of {MaxElements}, stopping processing", maxElements);
+                        break;
+                    }
+
                     try
                     {
                         elements.Add(new ElementInfo
                         {
-                            Name = element.Current.Name,
-                            AutomationId = element.Current.AutomationId,
-                            ControlType = element.Current.ControlType.ProgrammaticName,
-                            ClassName = element.Current.ClassName,
+                            Name = element.Current.Name ?? "",
+                            AutomationId = element.Current.AutomationId ?? "",
+                            ControlType = element.Current.ControlType?.ProgrammaticName ?? "",
+                            ClassName = element.Current.ClassName ?? "",
                             BoundingRectangle = new BoundingRectangle
                             {
                                 X = element.Current.BoundingRectangle.X,
@@ -137,9 +177,10 @@ namespace UiAutomationMcpServer.Services
                             },
                             IsEnabled = element.Current.IsEnabled,
                             IsVisible = !element.Current.IsOffscreen,
-                            HelpText = element.Current.HelpText,
-                            Value = GetElementValue(element)
+                            HelpText = element.Current.HelpText ?? "",
+                            Value = GetElementValue(element) ?? ""
                         });
+                        processedCount++;
                     }
                     catch (Exception ex)
                     {
@@ -149,16 +190,17 @@ namespace UiAutomationMcpServer.Services
                     }
                 }
 
+                _logger.LogInformation("Successfully processed {ProcessedCount} elements", processedCount);
                 return Task.FromResult(new OperationResult { Success = true, Data = elements });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in GetElementInfo");
-                return Task.FromResult(new OperationResult { Success = false, Error = ex.ToString() });
+                _logger.LogError(ex, "Error in GetElementInfo: {Message}", ex.Message);
+                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
             }
         }
 
-        public Task<OperationResult> ClickElementAsync(string elementId, string? windowTitle = null)
+        public Task<OperationResult> ClickElementAsync(string elementId, string? windowTitle = null, int? windowIndex = null)
         {
             try
             {
@@ -166,9 +208,14 @@ namespace UiAutomationMcpServer.Services
 
                 if (!string.IsNullOrEmpty(windowTitle))
                 {
-                    var window = FindWindowByTitle(windowTitle);
+                    var window = FindWindowByTitle(windowTitle, windowIndex);
                     if (window == null)
-                        return Task.FromResult(new OperationResult { Success = false, Error = $"Window '{windowTitle}' not found" });
+                    {
+                        var errorMsg = windowIndex.HasValue 
+                            ? $"Window '{windowTitle}' (index {windowIndex}) not found"
+                            : $"Window '{windowTitle}' not found";
+                        return Task.FromResult(new OperationResult { Success = false, Error = errorMsg });
+                    }
 
                     element = FindElementInWindow(window, elementId);
                 }
@@ -203,7 +250,7 @@ namespace UiAutomationMcpServer.Services
             }
         }
 
-        public Task<OperationResult> SendKeysAsync(string text, string? elementId = null, string? windowTitle = null)
+        public Task<OperationResult> SendKeysAsync(string text, string? elementId = null, string? windowTitle = null, int? windowIndex = null)
         {
             try
             {
@@ -216,9 +263,14 @@ namespace UiAutomationMcpServer.Services
                     AutomationElement searchRoot = AutomationElement.RootElement;
                     if (!string.IsNullOrEmpty(windowTitle))
                     {
-                        searchRoot = FindWindowByTitle(windowTitle) ?? AutomationElement.RootElement;
+                        searchRoot = FindWindowByTitle(windowTitle, windowIndex) ?? AutomationElement.RootElement;
                         if (searchRoot == AutomationElement.RootElement && !string.IsNullOrEmpty(windowTitle))
-                            return Task.FromResult(new OperationResult { Success = false, Error = $"Window '{windowTitle}' not found" });
+                        {
+                            var errorMsg = windowIndex.HasValue 
+                                ? $"Window '{windowTitle}' (index {windowIndex}) not found"
+                                : $"Window '{windowTitle}' not found";
+                            return Task.FromResult(new OperationResult { Success = false, Error = errorMsg });
+                        }
                     }
 
                     element = FindElementInWindow(searchRoot, elementId);
@@ -246,7 +298,7 @@ namespace UiAutomationMcpServer.Services
             }
         }
 
-        public Task<OperationResult> ExecuteElementPatternAsync(string elementId, string patternName, Dictionary<string, object>? parameters = null, string? windowTitle = null)
+        public Task<OperationResult> ExecuteElementPatternAsync(string elementId, string patternName, Dictionary<string, object>? parameters = null, string? windowTitle = null, int? windowIndex = null)
         {
             try
             {
@@ -257,9 +309,14 @@ namespace UiAutomationMcpServer.Services
 
                 if (!string.IsNullOrEmpty(windowTitle))
                 {
-                    var window = FindWindowByTitle(windowTitle);
+                    var window = FindWindowByTitle(windowTitle, windowIndex);
                     if (window == null)
-                        return Task.FromResult(new OperationResult { Success = false, Error = $"Window '{windowTitle}' not found" });
+                    {
+                        var errorMsg = windowIndex.HasValue 
+                            ? $"Window '{windowTitle}' (index {windowIndex}) not found"
+                            : $"Window '{windowTitle}' not found";
+                        return Task.FromResult(new OperationResult { Success = false, Error = errorMsg });
+                    }
 
                     element = FindElementInWindow(window, elementId);
                 }
@@ -337,7 +394,7 @@ namespace UiAutomationMcpServer.Services
             }
         }
 
-        public async Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0)
+        public Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int? windowIndex = null)
         {
             try
             {
@@ -348,9 +405,14 @@ namespace UiAutomationMcpServer.Services
                 Rectangle bounds;
                 if (!string.IsNullOrEmpty(windowTitle))
                 {
-                    var window = FindWindowByTitle(windowTitle);
+                    var window = FindWindowByTitle(windowTitle, windowIndex);
                     if (window == null)
-                        return new ScreenshotResult { Success = false, Error = $"Window '{windowTitle}' not found" };
+                    {
+                        var errorMsg = windowIndex.HasValue 
+                            ? $"Window '{windowTitle}' (index {windowIndex}) not found"
+                            : $"Window '{windowTitle}' not found";
+                        return Task.FromResult(new ScreenshotResult { Success = false, Error = errorMsg });
+                    }
 
                     var rect = window.Current.BoundingRectangle;
                     bounds = new Rectangle((int)rect.X, (int)rect.Y, (int)rect.Width, (int)rect.Height);
@@ -374,23 +436,23 @@ namespace UiAutomationMcpServer.Services
                     originalBitmap.Save(outputPath, System.Drawing.Imaging.ImageFormat.Png);
                     
                     var base64Image = Convert.ToBase64String(File.ReadAllBytes(outputPath));
-                    return new ScreenshotResult
+                    return Task.FromResult(new ScreenshotResult
                     {
                         Success = true,
                         OutputPath = outputPath,
                         Base64Image = base64Image,
                         Width = bounds.Width,
                         Height = bounds.Height
-                    };
+                    });
                 }
 
                 // Auto-optimize for token limit
-                return OptimizeScreenshotForTokenLimit(originalBitmap, outputPath, maxTokens, bounds.Width, bounds.Height);
+                return Task.FromResult(OptimizeScreenshotForTokenLimit(originalBitmap, outputPath, maxTokens, bounds.Width, bounds.Height));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error taking screenshot");
-                return new ScreenshotResult { Success = false, Error = ex.Message };
+                return Task.FromResult(new ScreenshotResult { Success = false, Error = ex.Message });
             }
         }
 
@@ -432,7 +494,7 @@ namespace UiAutomationMcpServer.Services
             }
         }
 
-        public Task<OperationResult> FindElementsAsync(string? searchText = null, string? controlType = null, string? windowTitle = null)
+        public Task<OperationResult> FindElementsAsync(string? searchText = null, string? controlType = null, string? windowTitle = null, int? windowIndex = null)
         {
             try
             {
@@ -443,9 +505,19 @@ namespace UiAutomationMcpServer.Services
 
                 if (!string.IsNullOrEmpty(windowTitle))
                 {
-                    searchRoot = FindWindowByTitle(windowTitle) ?? AutomationElement.RootElement;
-                    if (searchRoot == AutomationElement.RootElement && !string.IsNullOrEmpty(windowTitle))
-                        return Task.FromResult(new OperationResult { Success = false, Error = $"Window '{windowTitle}' not found" });
+                    var window = FindWindowByTitle(windowTitle, windowIndex);
+                    if (window != null)
+                    {
+                        searchRoot = window;
+                    }
+                    else
+                    {
+                        var message = windowIndex.HasValue 
+                            ? $"Window '{windowTitle}' (index {windowIndex}) not found, searching in all windows"
+                            : $"Window '{windowTitle}' not found, searching in all windows";
+                        _logger.LogWarning(message);
+                        // Continue with root element instead of failing
+                    }
                 }
 
                 var conditions = new List<Condition>();
@@ -637,48 +709,104 @@ namespace UiAutomationMcpServer.Services
             return null;
         }
 
-        private static AutomationElement? FindWindowByTitle(string title)
+        private static AutomationElement? FindWindowByTitle(string title, int? windowIndex = null)
         {
             if (string.IsNullOrWhiteSpace(title)) return null;
-            var windows = AutomationElement.RootElement.FindAll(TreeScope.Children,
-                new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window));
-            foreach (AutomationElement window in windows)
+            
+            try
             {
-                try
+                Console.WriteLine($"[DEBUG] FindWindowByTitle called with title: '{title}', windowIndex: {windowIndex}");
+                
+                var windows = AutomationElement.RootElement.FindAll(TreeScope.Children,
+                    new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window));
+                
+                Console.WriteLine($"[DEBUG] Found {windows.Count} total windows");
+                
+                var matchingWindows = new List<AutomationElement>();
+                
+                foreach (AutomationElement window in windows)
                 {
-                    var name = window.Current.Name;
-                    if (!string.IsNullOrEmpty(name))
+                    try
                     {
-                        // Try exact match first (case insensitive)
-                        if (string.Equals(name.Trim(), title.Trim(), StringComparison.OrdinalIgnoreCase))
-                            return window;
+                        var name = window.Current.Name;
+                        Console.WriteLine($"[DEBUG] Checking window: '{name}'");
                         
-                        // Try contains match for partial matching
-                        if (name.Contains(title, StringComparison.OrdinalIgnoreCase) || title.Contains(name, StringComparison.OrdinalIgnoreCase))
+                        if (!string.IsNullOrEmpty(name))
                         {
-                            return window;
+                            // Try exact match first (case insensitive)
+                            if (string.Equals(name.Trim(), title.Trim(), StringComparison.OrdinalIgnoreCase))
+                            {
+                                Console.WriteLine($"[DEBUG] Exact match found: '{name}'");
+                                matchingWindows.Add(window);
+                            }
+                            // Try contains match for partial matching
+                            else if (name.Contains(title, StringComparison.OrdinalIgnoreCase) || 
+                                     title.Contains(name, StringComparison.OrdinalIgnoreCase))
+                            {
+                                Console.WriteLine($"[DEBUG] Partial match found: '{name}'");
+                                matchingWindows.Add(window);
+                            }
                         }
-                        // Then try contains match
-                        if (name.Trim().Contains(title.Trim(), StringComparison.OrdinalIgnoreCase))
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[DEBUG] Error reading window properties: {ex.Message}");
+                        continue;
+                    }
+                }
+                
+                Console.WriteLine($"[DEBUG] Found {matchingWindows.Count} matching windows");
+                
+                if (matchingWindows.Count == 0)
+                {
+                    Console.WriteLine($"[DEBUG] No matching windows found");
+                    return null;
+                }
+                    
+                // If windowIndex is specified, use it
+                if (windowIndex.HasValue)
+                {
+                    Console.WriteLine($"[DEBUG] Using windowIndex: {windowIndex.Value}");
+                    if (windowIndex.Value >= 0 && windowIndex.Value < matchingWindows.Count)
+                    {
+                        var selectedWindow = matchingWindows[windowIndex.Value];
+                        Console.WriteLine($"[DEBUG] Selected window at index {windowIndex.Value}: '{selectedWindow.Current.Name}'");
+                        return selectedWindow;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[DEBUG] Index {windowIndex.Value} is out of range (0-{matchingWindows.Count - 1})");
+                        return null; // Index out of range
+                    }
+                }
+                
+                // If no index specified, prefer visible and enabled windows
+                foreach (var window in matchingWindows)
+                {
+                    try
+                    {
+                        if (window.Current.IsEnabled && !window.Current.IsOffscreen)
                         {
-                            return window;
-                        }
-                        // Try normalized string comparison for Japanese characters
-                        var normalizedName = NormalizeString(name);
-                        var normalizedTitle = NormalizeString(title);
-                        if (normalizedName.Contains(normalizedTitle))
-                        {
+                            Console.WriteLine($"[DEBUG] Returning first visible/enabled window: '{window.Current.Name}'");
                             return window;
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[DEBUG] Error checking window state: {ex.Message}");
+                        continue;
+                    }
                 }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[FindWindowByTitle] Error: {ex.Message}");
-                    continue;
-                }
+                
+                // Return first matching window if no visible/enabled found
+                Console.WriteLine($"[DEBUG] Returning first matching window: '{matchingWindows[0].Current.Name}'");
+                return matchingWindows[0];
             }
-            return null;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DEBUG] Error in window search: {ex.Message}");
+                return null;
+            }
         }
 
         // 文字列の正規化（小文字化・トリム・NFKC正規化）
@@ -710,39 +838,50 @@ namespace UiAutomationMcpServer.Services
             if (string.IsNullOrEmpty(controlTypeString))
                 return null;
 
-            return controlTypeString.ToLower() switch
+            try
             {
-                "button" => ControlType.Button,
-                "edit" => ControlType.Edit,
-                "text" => ControlType.Text,
-                "window" => ControlType.Window,
-                "menuitem" => ControlType.MenuItem,
-                "list" => ControlType.List,
-                "listitem" => ControlType.ListItem,
-                "tree" => ControlType.Tree,
-                "treeitem" => ControlType.TreeItem,
-                "checkbox" => ControlType.CheckBox,
-                "radiobutton" => ControlType.RadioButton,
-                "combobox" => ControlType.ComboBox,
-                "slider" => ControlType.Slider,
-                "progressbar" => ControlType.ProgressBar,
-                "calendar" => ControlType.Calendar,
-                "datagrid" => ControlType.DataGrid,
-                "document" => ControlType.Document,
-                "group" => ControlType.Group,
-                "image" => ControlType.Image,
-                "pane" => ControlType.Pane,
-                "scrollbar" => ControlType.ScrollBar,
-                "separator" => ControlType.Separator,
-                "statusbar" => ControlType.StatusBar,
-                "tab" => ControlType.Tab,
-                "tabitem" => ControlType.TabItem,
-                "table" => ControlType.Table,
-                "titlebar" => ControlType.TitleBar,
-                "toolbar" => ControlType.ToolBar,
-                "tooltip" => ControlType.ToolTip,
-                _ => null
-            };
+                var normalized = controlTypeString.Trim().ToLower();
+                
+                var result = normalized switch
+                {
+                    "button" => ControlType.Button,
+                    "edit" => ControlType.Edit,
+                    "text" => ControlType.Text,
+                    "window" => ControlType.Window,
+                    "menuitem" => ControlType.MenuItem,
+                    "list" => ControlType.List,
+                    "listitem" => ControlType.ListItem,
+                    "tree" => ControlType.Tree,
+                    "treeitem" => ControlType.TreeItem,
+                    "checkbox" => ControlType.CheckBox,
+                    "radiobutton" => ControlType.RadioButton,
+                    "combobox" => ControlType.ComboBox,
+                    "slider" => ControlType.Slider,
+                    "progressbar" => ControlType.ProgressBar,
+                    "calendar" => ControlType.Calendar,
+                    "datagrid" => ControlType.DataGrid,
+                    "document" => ControlType.Document,
+                    "group" => ControlType.Group,
+                    "image" => ControlType.Image,
+                    "pane" => ControlType.Pane,
+                    "scrollbar" => ControlType.ScrollBar,
+                    "separator" => ControlType.Separator,
+                    "statusbar" => ControlType.StatusBar,
+                    "tab" => ControlType.Tab,
+                    "tabitem" => ControlType.TabItem,
+                    "table" => ControlType.Table,
+                    "titlebar" => ControlType.TitleBar,
+                    "toolbar" => ControlType.ToolBar,
+                    "tooltip" => ControlType.ToolTip,
+                    _ => null
+                };
+
+                return result;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         private static string? GetElementValue(AutomationElement element)
