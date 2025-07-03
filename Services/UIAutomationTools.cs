@@ -61,10 +61,9 @@ namespace UiAutomationMcpServer.Tools
         public async Task<object> TakeScreenshot(
             [Description("Title of the window to screenshot (optional, defaults to full screen)")] string? windowTitle = null,
             [Description("Path to save the screenshot (optional)")] string? outputPath = null,
-            [Description("Enable JPEG compression to reduce response size (default: false)")] bool enableCompression = false,
-            [Description("JPEG compression quality 1-100 (default: 75, only used when enableCompression is true)")] int compressionQuality = 75)
+            [Description("Maximum tokens for Base64 response (0 = no limit, auto-optimizes resolution and compression)")] int maxTokens = 0)
         {
-            return await _uiAutomationService.TakeScreenshotAsync(windowTitle, outputPath, enableCompression, compressionQuality);
+            return await _uiAutomationService.TakeScreenshotAsync(windowTitle, outputPath, maxTokens);
         }
 
         [McpServerTool, Description("Launch an application by executable path or name")]
