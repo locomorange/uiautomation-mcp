@@ -219,54 +219,6 @@ namespace UiAutomationMcpServer.Services
         }
 
 
-        public Task<OperationResult> SendKeysAsync(string text, string? elementId = null, string? windowTitle = null, int? windowIndex = null)
-        {
-            try
-            {
-                _logger.LogInformation("Sending keys: {Text} to element: {ElementId}", text, elementId);
-
-                AutomationElement? element = null;
-
-                if (!string.IsNullOrEmpty(elementId))
-                {
-                    AutomationElement searchRoot = AutomationElement.RootElement;
-                    if (!string.IsNullOrEmpty(windowTitle))
-                    {
-                        searchRoot = FindWindowByTitle(windowTitle, windowIndex) ?? AutomationElement.RootElement;
-                        if (searchRoot == AutomationElement.RootElement && !string.IsNullOrEmpty(windowTitle))
-                        {
-                            var errorMsg = windowIndex.HasValue 
-                                ? $"Window '{windowTitle}' (index {windowIndex}) not found"
-                                : $"Window '{windowTitle}' not found";
-                            return Task.FromResult(new OperationResult { Success = false, Error = errorMsg });
-                        }
-                    }
-
-                    element = FindElementInWindow(searchRoot, elementId);
-                }
-
-                if (element != null)
-                {
-                    element.SetFocus();
-                    if (element.TryGetCurrentPattern(ValuePattern.Pattern, out object? valuePattern))
-                    {
-                        ((ValuePattern)valuePattern).SetValue(text);
-                        _logger.LogInformation("Text sent using ValuePattern");
-                        return Task.FromResult(new OperationResult { Success = true, Data = new { method = "value_pattern" } });
-                    }
-                }
-
-                System.Windows.Forms.SendKeys.SendWait(text);
-                _logger.LogInformation("Text sent using SendKeys");
-                return Task.FromResult(new OperationResult { Success = true, Data = new { method = "sendkeys" } });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error sending keys");
-                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
-            }
-        }
-
         public Task<OperationResult> ExecuteElementPatternAsync(string elementId, string patternName, Dictionary<string, object>? parameters = null, string? windowTitle = null, int? windowIndex = null)
         {
             try

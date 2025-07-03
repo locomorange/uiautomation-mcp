@@ -44,14 +44,6 @@ namespace UiAutomationMcpServer.Tools
             return await _uiAutomationService.ExecuteElementPatternAsync(elementId, patternName, parameters, windowTitle, windowIndex);
         }
 
-        [McpServerTool, Description("Send text input to a UI element")]
-        public async Task<object> SendKeys(
-            [Description("Text to send")] string text,
-            [Description("Automation ID or name of the element to send text to (optional)")] string? elementId = null,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null)
-        {
-            return await _uiAutomationService.SendKeysAsync(text, elementId, windowTitle);
-        }
 
 
         [McpServerTool, Description("Take a screenshot of the desktop or specific window")]
