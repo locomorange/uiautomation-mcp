@@ -2,9 +2,7 @@ using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
 using System.Windows.Automation;
-using System.Windows.Forms;
 using System.IO;
 using UiAutomationMcpServer.Models;
 
@@ -196,7 +194,8 @@ namespace UiAutomationMcpServer.Services
                 var centerX = rect.X + rect.Width / 2;
                 var centerY = rect.Y + rect.Height / 2;
 
-                PerformMouseClick((int)centerX, (int)centerY);
+                // UI Automation fallback - try to use automation patterns only
+                return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support Invoke pattern and mouse click functionality has been removed" });
 
                 return Task.FromResult(new OperationResult { Success = true, Data = new { method = "mouse_click", x = centerX, y = centerY } });
             }
@@ -249,22 +248,6 @@ namespace UiAutomationMcpServer.Services
             }
         }
 
-        public Task<OperationResult> MouseClickAsync(int x, int y, string button = "left")
-        {
-            try
-            {
-                _logger.LogInformation("Mouse click at ({X}, {Y}) with {Button} button", x, y, button);
-
-                PerformMouseClick(x, y, button);
-
-                return Task.FromResult(new OperationResult { Success = true, Data = new { x, y, button } });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error performing mouse click");
-                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
-            }
-        }
 
         public async Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0)
         {
@@ -690,33 +673,6 @@ namespace UiAutomationMcpServer.Services
             }
         }
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
-        private static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint cButtons, uint dwExtraInfo);
-
-        private const int MOUSEEVENTF_LEFTDOWN = 0x02;
-        private const int MOUSEEVENTF_LEFTUP = 0x04;
-        private const int MOUSEEVENTF_RIGHTDOWN = 0x08;
-        private const int MOUSEEVENTF_RIGHTUP = 0x10;
-        private const int MOUSEEVENTF_MIDDLEDOWN = 0x20;
-        private const int MOUSEEVENTF_MIDDLEUP = 0x40;
-
-        private static void PerformMouseClick(int x, int y, string button = "left")
-        {
-            Cursor.Position = new Point(x, y);
-
-            switch (button.ToLower())
-            {
-                case "left":
-                    mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, (uint)x, (uint)y, 0, 0);
-                    break;
-                case "right":
-                    mouse_event(MOUSEEVENTF_RIGHTDOWN | MOUSEEVENTF_RIGHTUP, (uint)x, (uint)y, 0, 0);
-                    break;
-                case "middle":
-                    mouse_event(MOUSEEVENTF_MIDDLEDOWN | MOUSEEVENTF_MIDDLEUP, (uint)x, (uint)y, 0, 0);
-                    break;
-            }
-        }
 
         #endregion
     }

@@ -48,14 +48,6 @@ namespace UiAutomationMcpServer.Tools
             return await _uiAutomationService.SendKeysAsync(text, elementId, windowTitle);
         }
 
-        [McpServerTool, Description("Perform mouse click at specific coordinates")]
-        public async Task<object> MouseClick(
-            [Description("X coordinate")] int x,
-            [Description("Y coordinate")] int y,
-            [Description("Mouse button (left, right, middle)")] string button = "left")
-        {
-            return await _uiAutomationService.MouseClickAsync(x, y, button);
-        }
 
         [McpServerTool, Description("Take a screenshot of the desktop or specific window")]
         public async Task<object> TakeScreenshot(
