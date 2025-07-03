@@ -79,18 +79,18 @@ namespace UiAutomationMcpServer.Services
             }
         }
 
-        public Task<OperationResult> GetElementInfoAsync(string? windowTitle = null, string? controlType = null, int? windowIndex = null)
+        public Task<OperationResult> GetElementInfoAsync(string? windowTitle = null, string? controlType = null, int? processId = null)
         {
             try
             {
-                _logger.LogInformation("GetElementInfo called with windowTitle: {WindowTitle}, controlType: {ControlType}, windowIndex: {WindowIndex}", 
-                    windowTitle, controlType, windowIndex);
+                _logger.LogInformation("GetElementInfo called with windowTitle: {WindowTitle}, controlType: {ControlType}, processId: {ProcessId}", 
+                    windowTitle, controlType, processId);
 
                 AutomationElement searchRoot = AutomationElement.RootElement;
 
                 if (!string.IsNullOrEmpty(windowTitle))
                 {
-                    var window = FindWindowByTitle(windowTitle, windowIndex);
+                    var window = FindWindowByTitle(windowTitle, processId);
                     if (window != null)
                     {
                         searchRoot = window;
@@ -98,8 +98,8 @@ namespace UiAutomationMcpServer.Services
                     }
                     else
                     {
-                        var message = windowIndex.HasValue 
-                            ? $"Window '{windowTitle}' (index {windowIndex}) not found, searching in all windows"
+                        var message = processId.HasValue 
+                            ? $"Window '{windowTitle}' (processId {processId}) not found, searching in all windows"
                             : $"Window '{windowTitle}' not found, searching in all windows";
                         _logger.LogWarning(message);
                         // Continue with root element instead of failing
@@ -219,7 +219,7 @@ namespace UiAutomationMcpServer.Services
         }
 
 
-        public Task<OperationResult> ExecuteElementPatternAsync(string elementId, string patternName, Dictionary<string, object>? parameters = null, string? windowTitle = null, int? windowIndex = null)
+        public Task<OperationResult> ExecuteElementPatternAsync(string elementId, string patternName, Dictionary<string, object>? parameters = null, string? windowTitle = null, int? processId = null)
         {
             try
             {
@@ -230,11 +230,11 @@ namespace UiAutomationMcpServer.Services
 
                 if (!string.IsNullOrEmpty(windowTitle))
                 {
-                    var window = FindWindowByTitle(windowTitle, windowIndex);
+                    var window = FindWindowByTitle(windowTitle, processId);
                     if (window == null)
                     {
-                        var errorMsg = windowIndex.HasValue 
-                            ? $"Window '{windowTitle}' (index {windowIndex}) not found"
+                        var errorMsg = processId.HasValue 
+                            ? $"Window '{windowTitle}' (processId {processId}) not found"
                             : $"Window '{windowTitle}' not found";
                         return Task.FromResult(new OperationResult { Success = false, Error = errorMsg });
                     }
@@ -339,7 +339,7 @@ namespace UiAutomationMcpServer.Services
             }
         }
 
-        public Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int? windowIndex = null)
+        public Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int? processId = null)
         {
             try
             {
@@ -350,11 +350,11 @@ namespace UiAutomationMcpServer.Services
                 Rectangle bounds;
                 if (!string.IsNullOrEmpty(windowTitle))
                 {
-                    var window = FindWindowByTitle(windowTitle, windowIndex);
+                    var window = FindWindowByTitle(windowTitle, processId);
                     if (window == null)
                     {
-                        var errorMsg = windowIndex.HasValue 
-                            ? $"Window '{windowTitle}' (index {windowIndex}) not found"
+                        var errorMsg = processId.HasValue 
+                            ? $"Window '{windowTitle}' (processId {processId}) not found"
                             : $"Window '{windowTitle}' not found";
                         return Task.FromResult(new ScreenshotResult { Success = false, Error = errorMsg });
                     }
@@ -439,18 +439,18 @@ namespace UiAutomationMcpServer.Services
             }
         }
 
-        public Task<OperationResult> FindElementsAsync(string? searchText = null, string? controlType = null, string? windowTitle = null, int? windowIndex = null)
+        public Task<OperationResult> FindElementsAsync(string? searchText = null, string? controlType = null, string? windowTitle = null, int? processId = null)
         {
             try
             {
-                _logger.LogInformation("Finding elements with searchText: {SearchText}, controlType: {ControlType}, window: {WindowTitle}, windowIndex: {WindowIndex}", 
-                    searchText, controlType, windowTitle, windowIndex);
+                _logger.LogInformation("Finding elements with searchText: {SearchText}, controlType: {ControlType}, window: {WindowTitle}, processId: {ProcessId}", 
+                    searchText, controlType, windowTitle, processId);
 
                 AutomationElement searchRoot = AutomationElement.RootElement;
 
                 if (!string.IsNullOrEmpty(windowTitle))
                 {
-                    var window = FindWindowByTitle(windowTitle, windowIndex);
+                    var window = FindWindowByTitle(windowTitle, processId);
                     if (window != null)
                     {
                         searchRoot = window;
@@ -458,8 +458,8 @@ namespace UiAutomationMcpServer.Services
                     }
                     else
                     {
-                        var message = windowIndex.HasValue 
-                            ? $"Window '{windowTitle}' (index {windowIndex}) not found, searching in all windows"
+                        var message = processId.HasValue 
+                            ? $"Window '{windowTitle}' (processId {processId}) not found, searching in all windows"
                             : $"Window '{windowTitle}' not found, searching in all windows";
                         _logger.LogWarning(message);
                         // Continue with root element instead of failing
@@ -676,13 +676,13 @@ namespace UiAutomationMcpServer.Services
             return null;
         }
 
-        private static AutomationElement? FindWindowByTitle(string title, int? windowIndex = null)
+        private static AutomationElement? FindWindowByTitle(string title, int? processId = null)
         {
             if (string.IsNullOrWhiteSpace(title)) return null;
             
             try
             {
-                Console.WriteLine($"[DEBUG] FindWindowByTitle called with title: '{title}', windowIndex: {windowIndex}");
+                Console.WriteLine($"[DEBUG] FindWindowByTitle called with title: '{title}', processId: {processId}");
                 
                 var windows = AutomationElement.RootElement.FindAll(TreeScope.Children,
                     new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window));
@@ -696,21 +696,29 @@ namespace UiAutomationMcpServer.Services
                     try
                     {
                         var name = window.Current.Name;
-                        Console.WriteLine($"[DEBUG] Checking window: '{name}'");
+                        var windowProcessId = window.Current.ProcessId;
+                        Console.WriteLine($"[DEBUG] Checking window: '{name}' (ProcessId: {windowProcessId})");
+                        
+                        // Filter by processId if specified
+                        if (processId.HasValue && windowProcessId != processId.Value)
+                        {
+                            Console.WriteLine($"[DEBUG] Skipping window with ProcessId {windowProcessId} (looking for {processId.Value})");
+                            continue;
+                        }
                         
                         if (!string.IsNullOrEmpty(name))
                         {
                             // Try exact match first (case insensitive)
                             if (string.Equals(name.Trim(), title.Trim(), StringComparison.OrdinalIgnoreCase))
                             {
-                                Console.WriteLine($"[DEBUG] Exact match found: '{name}'");
+                                Console.WriteLine($"[DEBUG] Exact match found: '{name}' (ProcessId: {windowProcessId})");
                                 matchingWindows.Add(window);
                             }
                             // Try contains match for partial matching
                             else if (name.Contains(title, StringComparison.OrdinalIgnoreCase) || 
                                      title.Contains(name, StringComparison.OrdinalIgnoreCase))
                             {
-                                Console.WriteLine($"[DEBUG] Partial match found: '{name}'");
+                                Console.WriteLine($"[DEBUG] Partial match found: '{name}' (ProcessId: {windowProcessId})");
                                 matchingWindows.Add(window);
                             }
                         }
@@ -729,32 +737,23 @@ namespace UiAutomationMcpServer.Services
                     Console.WriteLine($"[DEBUG] No matching windows found");
                     return null;
                 }
-                    
-                // If windowIndex is specified, use it
-                if (windowIndex.HasValue)
+                
+                // If processId is specified, return the first matching window (should be the only one)
+                if (processId.HasValue)
                 {
-                    Console.WriteLine($"[DEBUG] Using windowIndex: {windowIndex.Value}");
-                    if (windowIndex.Value >= 0 && windowIndex.Value < matchingWindows.Count)
-                    {
-                        var selectedWindow = matchingWindows[windowIndex.Value];
-                        Console.WriteLine($"[DEBUG] Selected window at index {windowIndex.Value}: '{selectedWindow.Current.Name}'");
-                        return selectedWindow;
-                    }
-                    else
-                    {
-                        Console.WriteLine($"[DEBUG] Index {windowIndex.Value} is out of range (0-{matchingWindows.Count - 1})");
-                        return null; // Index out of range
-                    }
+                    var selectedWindow = matchingWindows[0];
+                    Console.WriteLine($"[DEBUG] Selected window for processId {processId.Value}: '{selectedWindow.Current.Name}'");
+                    return selectedWindow;
                 }
                 
-                // If no index specified, prefer visible and enabled windows
+                // If no processId specified, prefer visible and enabled windows
                 foreach (var window in matchingWindows)
                 {
                     try
                     {
                         if (window.Current.IsEnabled && !window.Current.IsOffscreen)
                         {
-                            Console.WriteLine($"[DEBUG] Returning first visible/enabled window: '{window.Current.Name}'");
+                            Console.WriteLine($"[DEBUG] Returning first visible/enabled window: '{window.Current.Name}' (ProcessId: {window.Current.ProcessId})");
                             return window;
                         }
                     }
@@ -766,7 +765,7 @@ namespace UiAutomationMcpServer.Services
                 }
                 
                 // Return first matching window if no visible/enabled found
-                Console.WriteLine($"[DEBUG] Returning first matching window: '{matchingWindows[0].Current.Name}'");
+                Console.WriteLine($"[DEBUG] Returning first matching window: '{matchingWindows[0].Current.Name}' (ProcessId: {matchingWindows[0].Current.ProcessId})");
                 return matchingWindows[0];
             }
             catch (Exception ex)
@@ -1260,6 +1259,471 @@ namespace UiAutomationMcpServer.Services
                 return Task.FromResult(new OperationResult { Success = true, Data = new { pattern = "SynchronizedInputPattern", action = "ready", note = "Use cancel:true to cancel listening" } });
             }
             return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support SynchronizedInputPattern" });
+        }
+
+        #endregion
+
+        #region New Pattern-Specific Methods
+
+        // Core Interaction Patterns
+        public async Task<OperationResult> InvokeElementAsync(string elementId, string? windowTitle = null, int? processId = null)
+        {
+            return await ExecuteElementPatternAsync(elementId, "invoke", null, windowTitle, processId);
+        }
+
+        public async Task<OperationResult> SetElementValueAsync(string elementId, string value, string? windowTitle = null, int? processId = null)
+        {
+            var parameters = new Dictionary<string, object> { { "value", value } };
+            return await ExecuteElementPatternAsync(elementId, "value", parameters, windowTitle, processId);
+        }
+
+        public async Task<OperationResult> GetElementValueAsync(string elementId, string? windowTitle = null, int? processId = null)
+        {
+            return await ExecuteElementPatternAsync(elementId, "value", null, windowTitle, processId);
+        }
+
+        public async Task<OperationResult> ToggleElementAsync(string elementId, string? windowTitle = null, int? processId = null)
+        {
+            return await ExecuteElementPatternAsync(elementId, "toggle", null, windowTitle, processId);
+        }
+
+        public async Task<OperationResult> SelectElementAsync(string elementId, string? windowTitle = null, int? processId = null)
+        {
+            return await ExecuteElementPatternAsync(elementId, "selectionitem", null, windowTitle, processId);
+        }
+
+        // Layout and Navigation Patterns
+        public async Task<OperationResult> ExpandCollapseElementAsync(string elementId, bool? expand = null, string? windowTitle = null, int? processId = null)
+        {
+            var parameters = expand.HasValue ? new Dictionary<string, object> { { "expand", expand.Value } } : null;
+            return await ExecuteElementPatternAsync(elementId, "expandcollapse", parameters, windowTitle, processId);
+        }
+
+        public async Task<OperationResult> ScrollElementAsync(string elementId, string? direction = null, double? horizontal = null, double? vertical = null, string? windowTitle = null, int? processId = null)
+        {
+            var parameters = new Dictionary<string, object>();
+            if (!string.IsNullOrEmpty(direction))
+                parameters["direction"] = direction;
+            if (horizontal.HasValue)
+                parameters["horizontal"] = horizontal.Value;
+            if (vertical.HasValue)
+                parameters["vertical"] = vertical.Value;
+            
+            return await ExecuteElementPatternAsync(elementId, "scroll", parameters.Count > 0 ? parameters : null, windowTitle, processId);
+        }
+
+        public async Task<OperationResult> ScrollElementIntoViewAsync(string elementId, string? windowTitle = null, int? processId = null)
+        {
+            return await ExecuteElementPatternAsync(elementId, "scrollitem", null, windowTitle, processId);
+        }
+
+        // Value and Range Patterns
+        public async Task<OperationResult> SetRangeValueAsync(string elementId, double value, string? windowTitle = null, int? processId = null)
+        {
+            var parameters = new Dictionary<string, object> { { "value", value } };
+            return await ExecuteElementPatternAsync(elementId, "rangevalue", parameters, windowTitle, processId);
+        }
+
+        public async Task<OperationResult> GetRangeValueAsync(string elementId, string? windowTitle = null, int? processId = null)
+        {
+            return await ExecuteElementPatternAsync(elementId, "rangevalue", null, windowTitle, processId);
+        }
+
+        // Window Management Patterns
+        public async Task<OperationResult> WindowActionAsync(string elementId, string action, string? windowTitle = null, int? processId = null)
+        {
+            var parameters = new Dictionary<string, object> { { "action", action } };
+            return await ExecuteElementPatternAsync(elementId, "window", parameters, windowTitle, processId);
+        }
+
+        public async Task<OperationResult> TransformElementAsync(string elementId, string action, double? x = null, double? y = null, double? width = null, double? height = null, double? degrees = null, string? windowTitle = null, int? processId = null)
+        {
+            var parameters = new Dictionary<string, object> { { "action", action } };
+            if (x.HasValue) parameters["x"] = x.Value;
+            if (y.HasValue) parameters["y"] = y.Value;
+            if (width.HasValue) parameters["width"] = width.Value;
+            if (height.HasValue) parameters["height"] = height.Value;
+            if (degrees.HasValue) parameters["degrees"] = degrees.Value;
+            
+            return await ExecuteElementPatternAsync(elementId, "transform", parameters, windowTitle, processId);
+        }
+
+        public async Task<OperationResult> DockElementAsync(string elementId, string position, string? windowTitle = null, int? processId = null)
+        {
+            var parameters = new Dictionary<string, object> { { "position", position } };
+            return await ExecuteElementPatternAsync(elementId, "dock", parameters, windowTitle, processId);
+        }
+
+        // Advanced Patterns
+        public async Task<OperationResult> ChangeViewAsync(string elementId, int viewId, string? windowTitle = null, int? processId = null)
+        {
+            var parameters = new Dictionary<string, object> { { "viewId", viewId } };
+            return await ExecuteElementPatternAsync(elementId, "multipleview", parameters, windowTitle, processId);
+        }
+
+        public async Task<OperationResult> RealizeVirtualizedItemAsync(string elementId, string? windowTitle = null, int? processId = null)
+        {
+            return await ExecuteElementPatternAsync(elementId, "virtualized", null, windowTitle, processId);
+        }
+
+        public async Task<OperationResult> FindItemInContainerAsync(string elementId, string findText, string? windowTitle = null, int? processId = null)
+        {
+            var parameters = new Dictionary<string, object> { { "findText", findText } };
+            return await ExecuteElementPatternAsync(elementId, "itemcontainer", parameters, windowTitle, processId);
+        }
+
+        public async Task<OperationResult> CancelSynchronizedInputAsync(string elementId, string? windowTitle = null, int? processId = null)
+        {
+            var parameters = new Dictionary<string, object> { { "cancel", true } };
+            return await ExecuteElementPatternAsync(elementId, "synchronizedinput", parameters, windowTitle, processId);
+        }
+
+        // Text Pattern - Complex text operations
+        public async Task<OperationResult> GetTextAsync(string elementId, string? windowTitle = null, int? processId = null)
+        {
+            return await ExecuteElementPatternAsync(elementId, "text", null, windowTitle, processId);
+        }
+
+        public async Task<OperationResult> SelectTextAsync(string elementId, int startIndex, int length, string? windowTitle = null, int? processId = null)
+        {
+            var parameters = new Dictionary<string, object> 
+            { 
+                { "startIndex", startIndex },
+                { "length", length }
+            };
+            return await ExecuteElementPatternAsync(elementId, "text", parameters, windowTitle, processId);
+        }
+
+        public async Task<OperationResult> FindTextAsync(string elementId, string searchText, bool backward = false, bool ignoreCase = false, string? windowTitle = null, int? processId = null)
+        {
+            var parameters = new Dictionary<string, object> 
+            { 
+                { "searchText", searchText },
+                { "backward", backward },
+                { "ignoreCase", ignoreCase }
+            };
+            return await ExecuteElementPatternAsync(elementId, "text", parameters, windowTitle, processId);
+        }
+
+        public async Task<OperationResult> GetTextSelectionAsync(string elementId, string? windowTitle = null, int? processId = null)
+        {
+            var parameters = new Dictionary<string, object> { { "getSelection", true } };
+            return await ExecuteElementPatternAsync(elementId, "text", parameters, windowTitle, processId);
+        }
+
+        // Tree Navigation - New functionality
+        public Task<OperationResult> GetElementTreeAsync(string? windowTitle = null, string treeView = "control", int maxDepth = 3, int? processId = null)
+        {
+            try
+            {
+                _logger.LogInformation("Getting element tree for window: {WindowTitle}, view: {TreeView}, maxDepth: {MaxDepth}", 
+                    windowTitle, treeView, maxDepth);
+
+                AutomationElement searchRoot = AutomationElement.RootElement;
+
+                if (!string.IsNullOrEmpty(windowTitle))
+                {
+                    var window = FindWindowByTitle(windowTitle, processId);
+                    if (window != null)
+                    {
+                        searchRoot = window;
+                    }
+                    else
+                    {
+                        return Task.FromResult(new OperationResult { Success = false, Error = $"Window '{windowTitle}' not found" });
+                    }
+                }
+
+                var treeData = BuildElementTree(searchRoot, treeView, maxDepth, 0);
+                return Task.FromResult(new OperationResult { Success = true, Data = treeData });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting element tree");
+                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+            }
+        }
+
+        public Task<OperationResult> GetElementPropertiesAsync(string elementId, string? windowTitle = null, int? processId = null)
+        {
+            try
+            {
+                AutomationElement? element = null;
+
+                if (!string.IsNullOrEmpty(windowTitle))
+                {
+                    var window = FindWindowByTitle(windowTitle, processId);
+                    if (window == null)
+                    {
+                        return Task.FromResult(new OperationResult { Success = false, Error = $"Window '{windowTitle}' not found" });
+                    }
+                    element = FindElementInWindow(window, elementId);
+                }
+                else
+                {
+                    var condition = new OrCondition(
+                        new PropertyCondition(AutomationElement.AutomationIdProperty, elementId),
+                        new PropertyCondition(AutomationElement.NameProperty, elementId)
+                    );
+                    element = AutomationElement.RootElement.FindFirst(TreeScope.Descendants, condition);
+                }
+
+                if (element == null)
+                    return Task.FromResult(new OperationResult { Success = false, Error = $"Element '{elementId}' not found" });
+
+                var properties = GetDetailedElementProperties(element);
+                return Task.FromResult(new OperationResult { Success = true, Data = properties });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting element properties");
+                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+            }
+        }
+
+        public Task<OperationResult> GetElementPatternsAsync(string elementId, string? windowTitle = null, int? processId = null)
+        {
+            try
+            {
+                AutomationElement? element = null;
+
+                if (!string.IsNullOrEmpty(windowTitle))
+                {
+                    var window = FindWindowByTitle(windowTitle, processId);
+                    if (window == null)
+                    {
+                        return Task.FromResult(new OperationResult { Success = false, Error = $"Window '{windowTitle}' not found" });
+                    }
+                    element = FindElementInWindow(window, elementId);
+                }
+                else
+                {
+                    var condition = new OrCondition(
+                        new PropertyCondition(AutomationElement.AutomationIdProperty, elementId),
+                        new PropertyCondition(AutomationElement.NameProperty, elementId)
+                    );
+                    element = AutomationElement.RootElement.FindFirst(TreeScope.Descendants, condition);
+                }
+
+                if (element == null)
+                    return Task.FromResult(new OperationResult { Success = false, Error = $"Element '{elementId}' not found" });
+
+                var patterns = GetElementPatterns(element);
+                return Task.FromResult(new OperationResult { Success = true, Data = patterns });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting element patterns");
+                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+            }
+        }
+
+        #endregion
+
+        #region Helper Methods for New Functionality
+
+        private object? BuildElementTree(AutomationElement element, string treeView, int maxDepth, int currentDepth)
+        {
+            if (currentDepth >= maxDepth)
+                return null;
+
+            try
+            {
+                var elementData = new
+                {
+                    Name = element.Current.Name ?? "",
+                    AutomationId = element.Current.AutomationId ?? "",
+                    ControlType = element.Current.ControlType?.ProgrammaticName ?? "",
+                    ClassName = element.Current.ClassName ?? "",
+                    IsEnabled = element.Current.IsEnabled,
+                    IsVisible = !element.Current.IsOffscreen,
+                    Children = new List<object>()
+                };
+
+                TreeScope scope = treeView.ToLower() switch
+                {
+                    "raw" => TreeScope.Children,
+                    "control" => TreeScope.Children,
+                    "content" => TreeScope.Children,
+                    _ => TreeScope.Children
+                };
+
+                var condition = treeView.ToLower() switch
+                {
+                    "raw" => Condition.TrueCondition,
+                    "control" => new PropertyCondition(AutomationElement.IsControlElementProperty, true),
+                    "content" => new PropertyCondition(AutomationElement.IsContentElementProperty, true),
+                    _ => new PropertyCondition(AutomationElement.IsControlElementProperty, true)
+                };
+
+                try
+                {
+                    var children = element.FindAll(scope, condition);
+                    if (children != null)
+                    {
+                        var childList = (List<object>)elementData.Children;
+                        foreach (AutomationElement child in children)
+                        {
+                            var childData = BuildElementTree(child, treeView, maxDepth, currentDepth + 1);
+                            if (childData != null)
+                                childList.Add(childData);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning("Error getting children for element: {Error}", ex.Message);
+                }
+
+                return elementData;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Error building tree for element: {Error}", ex.Message);
+                return null;
+            }
+        }
+
+        private object GetDetailedElementProperties(AutomationElement element)
+        {
+            try
+            {
+                var rect = element.Current.BoundingRectangle;
+                return new
+                {
+                    // Basic Properties
+                    Name = element.Current.Name ?? "",
+                    AutomationId = element.Current.AutomationId ?? "",
+                    ControlType = element.Current.ControlType?.ProgrammaticName ?? "",
+                    LocalizedControlType = element.Current.LocalizedControlType ?? "",
+                    ClassName = element.Current.ClassName ?? "",
+                    
+                    // State Properties
+                    IsEnabled = element.Current.IsEnabled,
+                    IsVisible = !element.Current.IsOffscreen,
+                    IsKeyboardFocusable = element.Current.IsKeyboardFocusable,
+                    HasKeyboardFocus = element.Current.HasKeyboardFocus,
+                    IsControlElement = element.Current.IsControlElement,
+                    IsContentElement = element.Current.IsContentElement,
+                    
+                    // Layout Properties
+                    BoundingRectangle = new
+                    {
+                        X = double.IsInfinity(rect.X) || double.IsNaN(rect.X) ? 0 : rect.X,
+                        Y = double.IsInfinity(rect.Y) || double.IsNaN(rect.Y) ? 0 : rect.Y,
+                        Width = double.IsInfinity(rect.Width) || double.IsNaN(rect.Width) ? 0 : rect.Width,
+                        Height = double.IsInfinity(rect.Height) || double.IsNaN(rect.Height) ? 0 : rect.Height
+                    },
+                    
+                    // Additional Properties
+                    HelpText = element.Current.HelpText ?? "",
+                    AcceleratorKey = element.Current.AcceleratorKey ?? "",
+                    AccessKey = element.Current.AccessKey ?? "",
+                    ProcessId = element.Current.ProcessId,
+                    
+                    // Value (if available)
+                    Value = GetElementValue(element) ?? ""
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Error getting detailed properties: {Error}", ex.Message);
+                return new { Error = ex.Message };
+            }
+        }
+
+        private object GetElementPatterns(AutomationElement element)
+        {
+            var supportedPatterns = new List<string>();
+            var patternDetails = new Dictionary<string, object>();
+
+            // Check each pattern
+            var patterns = new[]
+            {
+                new { Name = "Invoke", Pattern = InvokePattern.Pattern },
+                new { Name = "Value", Pattern = ValuePattern.Pattern },
+                new { Name = "Toggle", Pattern = TogglePattern.Pattern },
+                new { Name = "SelectionItem", Pattern = SelectionItemPattern.Pattern },
+                new { Name = "ExpandCollapse", Pattern = ExpandCollapsePattern.Pattern },
+                new { Name = "Scroll", Pattern = ScrollPattern.Pattern },
+                new { Name = "ScrollItem", Pattern = ScrollItemPattern.Pattern },
+                new { Name = "RangeValue", Pattern = RangeValuePattern.Pattern },
+                new { Name = "Text", Pattern = TextPattern.Pattern },
+                new { Name = "Window", Pattern = WindowPattern.Pattern },
+                new { Name = "Transform", Pattern = TransformPattern.Pattern },
+                new { Name = "Dock", Pattern = DockPattern.Pattern },
+                new { Name = "MultipleView", Pattern = MultipleViewPattern.Pattern },
+                new { Name = "VirtualizedItem", Pattern = VirtualizedItemPattern.Pattern },
+                new { Name = "ItemContainer", Pattern = ItemContainerPattern.Pattern },
+                new { Name = "SynchronizedInput", Pattern = SynchronizedInputPattern.Pattern }
+            };
+
+            foreach (var patternInfo in patterns)
+            {
+                try
+                {
+                    if (element.TryGetCurrentPattern(patternInfo.Pattern, out var pattern))
+                    {
+                        supportedPatterns.Add(patternInfo.Name);
+                        
+                        // Add pattern-specific details
+                        switch (patternInfo.Name)
+                        {
+                            case "Value":
+                                var valuePattern = (ValuePattern)pattern;
+                                patternDetails[patternInfo.Name] = new
+                                {
+                                    IsReadOnly = valuePattern.Current.IsReadOnly,
+                                    Value = valuePattern.Current.Value
+                                };
+                                break;
+                            case "RangeValue":
+                                var rangePattern = (RangeValuePattern)pattern;
+                                patternDetails[patternInfo.Name] = new
+                                {
+                                    Value = rangePattern.Current.Value,
+                                    Minimum = rangePattern.Current.Minimum,
+                                    Maximum = rangePattern.Current.Maximum,
+                                    SmallChange = rangePattern.Current.SmallChange,
+                                    LargeChange = rangePattern.Current.LargeChange,
+                                    IsReadOnly = rangePattern.Current.IsReadOnly
+                                };
+                                break;
+                            case "Toggle":
+                                var togglePattern = (TogglePattern)pattern;
+                                patternDetails[patternInfo.Name] = new
+                                {
+                                    ToggleState = togglePattern.Current.ToggleState.ToString()
+                                };
+                                break;
+                            case "Window":
+                                var windowPattern = (WindowPattern)pattern;
+                                patternDetails[patternInfo.Name] = new
+                                {
+                                    CanMaximize = windowPattern.Current.CanMaximize,
+                                    CanMinimize = windowPattern.Current.CanMinimize,
+                                    IsModal = windowPattern.Current.IsModal,
+                                    WindowVisualState = windowPattern.Current.WindowVisualState.ToString(),
+                                    WindowInteractionState = windowPattern.Current.WindowInteractionState.ToString()
+                                };
+                                break;
+                            default:
+                                patternDetails[patternInfo.Name] = new { Available = true };
+                                break;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning("Error checking pattern {Pattern}: {Error}", patternInfo.Name, ex.Message);
+                }
+            }
+
+            return new
+            {
+                SupportedPatterns = supportedPatterns,
+                PatternDetails = patternDetails
+            };
         }
 
         #endregion

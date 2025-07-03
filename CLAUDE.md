@@ -61,8 +61,7 @@ The application is structured as a modern .NET hosted service with proper separa
 Each UI automation capability is exposed as an MCP tool:
 - `GetWindowInfo` - Retrieve information about open windows
 - `GetElementInfo` - Get UI element details within windows
-- `ClickElement` - Click UI elements by AutomationId or Name (uses InvokePattern only)
-- `SendKeys` - Send keyboard input to elements
+- `ExecuteElementPattern` - Execute UI Automation patterns (invoke, value, toggle, etc.)
 - `TakeScreenshot` - Capture desktop or window screenshots with token optimization
 - `LaunchApplication` - Launch applications with parameters
 - `FindElements` - Search for UI elements by criteria
@@ -96,10 +95,20 @@ Uses the official `ModelContextProtocol` NuGet package with:
 Each MCP tool follows this pattern:
 1. Parameter validation from the MCP client
 2. UI element discovery using AutomationElement APIs
-3. Action execution (click, input, screenshot, etc.)
+3. Action execution using Windows UI Automation patterns
 4. Structured response with success/error status
 
-The server handles element-based operations using AutomationId/Name with Windows UI Automation patterns (InvokePattern, ValuePattern, etc.). Direct coordinate-based mouse operations have been removed to rely solely on accessible UI automation.
+The server handles element-based operations using AutomationId/Name with Windows UI Automation patterns. Microsoft Learn guideline-compliant pattern support includes:
+- **invoke**: Button clicks and menu item execution
+- **value**: Text input and retrieval
+- **toggle**: Checkbox state changes
+- **expandcollapse**: Tree item expansion/collapse
+- **selection**: List item selection
+- **scroll**: Scrolling operations
+- **rangevalue**: Slider and progress bar manipulation
+- **transform**: Element movement and resizing
+- **multipleview**: View switching
+- **window**: Window state management
 
 ## Debugging
 
@@ -125,26 +134,11 @@ This project can benefit from Claude Code hooks to automatically use Windows com
 
 This hook automatically wraps bash commands with the Windows cmd.exe wrapper, allowing seamless .NET development from WSL.
 
-Example hook for common .NET commands:
-```json
-{
-  "hooks": {
-    "beforeToolUse": {
-      "bash": {
-        "dotnet *": "/mnt/c/Windows/System32/cmd.exe /c \"cd /d C:\\Users\\yksh\\source\\clones\\win-UIAutomation-mcp && dotnet $ARGS\"",
-        "msbuild *": "/mnt/c/Windows/System32/cmd.exe /c \"cd /d C:\\Users\\yksh\\source\\clones\\win-UIAutomation-mcp && msbuild $ARGS\""
-      }
-    }
-  }
-}
-```
-
 ## Common Issues
 
 - **Build warnings about UIAutomation assemblies**: Expected on some systems, doesn't prevent functionality
 - **MCP protocol interference**: Console logging is disabled to prevent interference with MCP JSON-RPC communication
 - **WSL compatibility**: All .NET commands must be executed through Windows cmd.exe wrapper
-- **Element clicking**: Only elements supporting InvokePattern can be clicked; mouse click functionality has been removed
 
 ## Screenshot Capabilities
 
