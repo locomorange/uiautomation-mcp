@@ -162,7 +162,7 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _layoutPatternService.ExpandCollapseElementAsync(elementId, expand, windowTitle, processId);
+            return await _advancedPatternService.ExpandCollapseElementAsync(elementId, expand, windowTitle, processId);
         }
 
         [McpServerTool, Description("Scroll an element using ScrollPattern")]
@@ -235,7 +235,7 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _layoutPatternService.TransformElementAsync(elementId, action, x, y, width, height, degrees, windowTitle, processId);
+            return await _advancedPatternService.TransformElementAsync(elementId, action, x, y, width, height, degrees, windowTitle, processId);
         }
 
         [McpServerTool, Description("Dock an element to a specific position using DockPattern")]
@@ -245,7 +245,7 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _layoutPatternService.DockElementAsync(elementId, position, windowTitle, processId);
+            return await _advancedPatternService.DockElementAsync(elementId, position, windowTitle, processId);
         }
 
         #endregion

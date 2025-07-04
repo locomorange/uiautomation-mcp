@@ -23,7 +23,7 @@ namespace UiAutomationMcpServer.Services.Windows
             _windowService = windowService;
         }
 
-        public Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int? processId = null)
+        public async Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int? processId = null)
         {
             try
             {
@@ -33,16 +33,17 @@ namespace UiAutomationMcpServer.Services.Windows
                 Rectangle bounds;
                 if (!string.IsNullOrEmpty(windowTitle))
                 {
-                    var window = _windowService.FindWindowByTitle(windowTitle, processId);
-                    if (window == null)
+                    var windowResult = await _windowService.FindWindowByTitleAsync(windowTitle, processId);
+                    if (!windowResult.Success || windowResult.Data == null)
                     {
                         var errorMsg = processId.HasValue 
                             ? $"Window '{windowTitle}' (processId {processId}) not found"
                             : $"Window '{windowTitle}' not found";
-                        return Task.FromResult(new ScreenshotResult { Success = false, Error = errorMsg });
+                        return new ScreenshotResult { Success = false, Error = errorMsg };
                     }
 
-                    var rect = window.Current.BoundingRectangle;
+                    var windowInfo = windowResult.Data;
+                    var rect = windowInfo.BoundingRectangle;
                     bounds = new Rectangle((int)rect.X, (int)rect.Y, (int)rect.Width, (int)rect.Height);
                 }
                 else
@@ -62,22 +63,22 @@ namespace UiAutomationMcpServer.Services.Windows
                     originalBitmap.Save(outputPath, ImageFormat.Png);
                     
                     var base64Image = Convert.ToBase64String(File.ReadAllBytes(outputPath));
-                    return Task.FromResult(new ScreenshotResult
+                    return new ScreenshotResult
                     {
                         Success = true,
                         OutputPath = outputPath,
                         Base64Image = base64Image,
                         Width = bounds.Width,
                         Height = bounds.Height
-                    });
+                    };
                 }
 
-                return Task.FromResult(OptimizeScreenshotForTokenLimit(originalBitmap, outputPath, maxTokens, bounds.Width, bounds.Height));
+                return OptimizeScreenshotForTokenLimit(originalBitmap, outputPath, maxTokens, bounds.Width, bounds.Height);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error taking screenshot");
-                return Task.FromResult(new ScreenshotResult { Success = false, Error = ex.Message });
+                return new ScreenshotResult { Success = false, Error = ex.Message };
             }
         }
 

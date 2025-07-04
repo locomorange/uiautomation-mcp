@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Text.Json;
-using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
 using UiAutomationMcp.Models;
 
@@ -10,7 +9,7 @@ namespace UiAutomationMcpServer.Services
     /// Worker service for executing UI Automation operations in a separate process
     /// to prevent main process from hanging due to COM/native API blocking
     /// </summary>
-    public interface IUIAutomationWorker
+    public interface IUIAutomationWorker : IDisposable
     {
         // Core subprocess execution methods
         Task<OperationResult<string>> ExecuteInProcessAsync(
@@ -121,6 +120,88 @@ namespace UiAutomationMcpServer.Services
             Func<T> operation,
             string operationName,
             T? defaultValue = default);
+
+        // 新しいパラメータベースのメソッド（UIAutomation依存なし）
+        Task<OperationResult<List<ElementInfo>>> FindAllElementsAsync(
+            ElementSearchParameters searchParams,
+            int timeoutSeconds = 60);
+
+        Task<OperationResult<ElementInfo?>> FindFirstElementAsync(
+            ElementSearchParameters searchParams,
+            int timeoutSeconds = 15);
+
+        Task<OperationResult<Dictionary<string, object>>> ExecuteAdvancedOperationAsync(
+            AdvancedOperationParameters operationParams);
+
+        // Range Value Pattern methods
+        Task<OperationResult<string>> SetRangeValueAsync(
+            string elementId,
+            double value,
+            string? windowTitle = null,
+            int? processId = null,
+            int timeoutSeconds = 20);
+
+        Task<OperationResult<Dictionary<string, object>>> GetRangeValueAsync(
+            string elementId,
+            string? windowTitle = null,
+            int? processId = null,
+            int timeoutSeconds = 20);
+
+        // Text Pattern methods
+        Task<OperationResult<string>> GetTextAsync(
+            string elementId,
+            string? windowTitle = null,
+            int? processId = null,
+            int timeoutSeconds = 20);
+
+        Task<OperationResult<string>> SelectTextAsync(
+            string elementId,
+            int startIndex,
+            int length,
+            string? windowTitle = null,
+            int? processId = null,
+            int timeoutSeconds = 20);
+
+        // Tree Operations
+        Task<OperationResult<Dictionary<string, object>>> GetElementTreeAsync(
+            string? windowTitle = null,
+            int? processId = null,
+            int maxDepth = 3,
+            int timeoutSeconds = 30);
+
+        Task<OperationResult<List<Dictionary<string, object>>>> GetElementChildrenAsync(
+            string elementId,
+            string? windowTitle = null,
+            int? processId = null,
+            int timeoutSeconds = 20);
+
+        // Window state operations  
+        Task<OperationResult<string>> SetWindowStateAsync(
+            string elementId,
+            string state,
+            string? windowTitle = null,
+            int? processId = null,
+            int timeoutSeconds = 20);
+
+        // Additional Text Pattern methods
+        Task<OperationResult<Dictionary<string, object>>> FindTextAsync(
+            string elementId,
+            string searchText,
+            bool backward = false,
+            bool ignoreCase = false,
+            string? windowTitle = null,
+            int? processId = null,
+            int timeoutSeconds = 20);
+
+        Task<OperationResult<List<Dictionary<string, object>>>> GetTextSelectionAsync(
+            string elementId,
+            string? windowTitle = null,
+            int? processId = null,
+            int timeoutSeconds = 20);
+
+        // Window service methods
+        Task<OperationResult<List<WindowInfo>>> GetWindowsAsync(
+            int timeoutSeconds = 30);
     }
 
     public class UIAutomationWorker : IUIAutomationWorker
@@ -239,15 +320,7 @@ namespace UiAutomationMcpServer.Services
             }
         }
 
-        public async Task<OperationResult<string>> InvokeElementAsync(
-            string elementId,
-            string? windowTitle = null,
-            int? processId = null,
-            int timeoutSeconds = 20)
-        {
-            return await ExecutePatternOperationAsync("invoke", elementId, null, windowTitle, processId, timeoutSeconds);
-        }
-
+        // Missing basic methods implementation
         public async Task<OperationResult<string>> SetElementValueAsync(
             string elementId,
             string value,
@@ -255,8 +328,23 @@ namespace UiAutomationMcpServer.Services
             int? processId = null,
             int timeoutSeconds = 20)
         {
-            var valueParameters = new Dictionary<string, object> { ["value"] = value };
-            return await ExecutePatternOperationAsync("setvalue", elementId, valueParameters, windowTitle, processId, timeoutSeconds);
+            var parameters = new AdvancedOperationParameters
+            {
+                Operation = "setelementvalue",
+                ElementId = elementId,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = timeoutSeconds,
+                Parameters = new Dictionary<string, object> { ["Value"] = value }
+            };
+
+            var result = await ExecuteAdvancedOperationAsync(parameters);
+            return new OperationResult<string>
+            {
+                Success = result.Success,
+                Data = result.Success ? $"Element value set to: {value}" : null,
+                Error = result.Error
+            };
         }
 
         public async Task<OperationResult<string>> GetElementValueAsync(
@@ -265,7 +353,48 @@ namespace UiAutomationMcpServer.Services
             int? processId = null,
             int timeoutSeconds = 20)
         {
-            return await ExecutePatternOperationAsync("get_value", elementId, null, windowTitle, processId, timeoutSeconds);
+            var parameters = new AdvancedOperationParameters
+            {
+                Operation = "getelementvalue",
+                ElementId = elementId,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = timeoutSeconds,
+                Parameters = new Dictionary<string, object>()
+            };
+
+            var result = await ExecuteAdvancedOperationAsync(parameters);
+            return new OperationResult<string>
+            {
+                Success = result.Success,
+                Data = result.Success && result.Data != null ? result.Data.ToString() : null,
+                Error = result.Error
+            };
+        }
+
+        public async Task<OperationResult<string>> InvokeElementAsync(
+            string elementId,
+            string? windowTitle = null,
+            int? processId = null,
+            int timeoutSeconds = 20)
+        {
+            var parameters = new AdvancedOperationParameters
+            {
+                Operation = "invokeelement",
+                ElementId = elementId,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = timeoutSeconds,
+                Parameters = new Dictionary<string, object>()
+            };
+
+            var result = await ExecuteAdvancedOperationAsync(parameters);
+            return new OperationResult<string>
+            {
+                Success = result.Success,
+                Data = result.Success ? "Element invoked successfully" : null,
+                Error = result.Error
+            };
         }
 
         public async Task<OperationResult<string>> ToggleElementAsync(
@@ -274,7 +403,23 @@ namespace UiAutomationMcpServer.Services
             int? processId = null,
             int timeoutSeconds = 20)
         {
-            return await ExecutePatternOperationAsync("toggle", elementId, null, windowTitle, processId, timeoutSeconds);
+            var parameters = new AdvancedOperationParameters
+            {
+                Operation = "toggleelement",
+                ElementId = elementId,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = timeoutSeconds,
+                Parameters = new Dictionary<string, object>()
+            };
+
+            var result = await ExecuteAdvancedOperationAsync(parameters);
+            return new OperationResult<string>
+            {
+                Success = result.Success,
+                Data = result.Success ? "Element toggled successfully" : null,
+                Error = result.Error
+            };
         }
 
         public async Task<OperationResult<string>> SelectElementAsync(
@@ -283,7 +428,23 @@ namespace UiAutomationMcpServer.Services
             int? processId = null,
             int timeoutSeconds = 20)
         {
-            return await ExecutePatternOperationAsync("select", elementId, null, windowTitle, processId, timeoutSeconds);
+            var parameters = new AdvancedOperationParameters
+            {
+                Operation = "selectelement",
+                ElementId = elementId,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = timeoutSeconds,
+                Parameters = new Dictionary<string, object>()
+            };
+
+            var result = await ExecuteAdvancedOperationAsync(parameters);
+            return new OperationResult<string>
+            {
+                Success = result.Success,
+                Data = result.Success ? "Element selected successfully" : null,
+                Error = result.Error
+            };
         }
 
         public async Task<OperationResult<string>> ExpandCollapseElementAsync(
@@ -293,12 +454,23 @@ namespace UiAutomationMcpServer.Services
             int? processId = null,
             int timeoutSeconds = 20)
         {
-            var parameters = new Dictionary<string, object>();
-            if (expand.HasValue)
+            var parameters = new AdvancedOperationParameters
             {
-                parameters["expand"] = expand.Value;
-            }
-            return await ExecutePatternOperationAsync("expandcollapse", elementId, parameters, windowTitle, processId, timeoutSeconds);
+                Operation = "expandcollapseelement",
+                ElementId = elementId,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = timeoutSeconds,
+                Parameters = new Dictionary<string, object> { ["Expand"] = expand ?? true }
+            };
+
+            var result = await ExecuteAdvancedOperationAsync(parameters);
+            return new OperationResult<string>
+            {
+                Success = result.Success,
+                Data = result.Success ? $"Element {(expand == true ? "expanded" : "collapsed")} successfully" : null,
+                Error = result.Error
+            };
         }
 
         public async Task<OperationResult<string>> ScrollElementAsync(
@@ -310,20 +482,28 @@ namespace UiAutomationMcpServer.Services
             int? processId = null,
             int timeoutSeconds = 20)
         {
-            var parameters = new Dictionary<string, object>();
-            if (!string.IsNullOrEmpty(direction))
+            var parameters = new AdvancedOperationParameters
             {
-                parameters["direction"] = direction;
-            }
-            if (horizontal.HasValue)
+                Operation = "scrollelement",
+                ElementId = elementId,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = timeoutSeconds,
+                Parameters = new Dictionary<string, object> 
+                { 
+                    ["Direction"] = direction ?? "down",
+                    ["Horizontal"] = horizontal ?? 0.0,
+                    ["Vertical"] = vertical ?? 0.0
+                }
+            };
+
+            var result = await ExecuteAdvancedOperationAsync(parameters);
+            return new OperationResult<string>
             {
-                parameters["horizontal"] = horizontal.Value;
-            }
-            if (vertical.HasValue)
-            {
-                parameters["vertical"] = vertical.Value;
-            }
-            return await ExecutePatternOperationAsync("scroll", elementId, parameters, windowTitle, processId, timeoutSeconds);
+                Success = result.Success,
+                Data = result.Success ? "Element scrolled successfully" : null,
+                Error = result.Error
+            };
         }
 
         public async Task<OperationResult<string>> ScrollElementIntoViewAsync(
@@ -332,7 +512,23 @@ namespace UiAutomationMcpServer.Services
             int? processId = null,
             int timeoutSeconds = 20)
         {
-            return await ExecutePatternOperationAsync("scrollintoview", elementId, null, windowTitle, processId, timeoutSeconds);
+            var parameters = new AdvancedOperationParameters
+            {
+                Operation = "scrollelementintoview",
+                ElementId = elementId,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = timeoutSeconds,
+                Parameters = new Dictionary<string, object>()
+            };
+
+            var result = await ExecuteAdvancedOperationAsync(parameters);
+            return new OperationResult<string>
+            {
+                Success = result.Success,
+                Data = result.Success ? "Element scrolled into view successfully" : null,
+                Error = result.Error
+            };
         }
 
         public async Task<OperationResult<string>> TransformElementAsync(
@@ -347,17 +543,31 @@ namespace UiAutomationMcpServer.Services
             int? processId = null,
             int timeoutSeconds = 20)
         {
-            var parameters = new Dictionary<string, object>
+            var parameters = new AdvancedOperationParameters
             {
-                ["action"] = action
+                Operation = "transformelement",
+                ElementId = elementId,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = timeoutSeconds,
+                Parameters = new Dictionary<string, object> 
+                { 
+                    ["Action"] = action,
+                    ["X"] = x ?? 0,
+                    ["Y"] = y ?? 0,
+                    ["Width"] = width ?? 0,
+                    ["Height"] = height ?? 0,
+                    ["Degrees"] = degrees ?? 0
+                }
             };
-            if (x.HasValue) parameters["x"] = x.Value;
-            if (y.HasValue) parameters["y"] = y.Value;
-            if (width.HasValue) parameters["width"] = width.Value;
-            if (height.HasValue) parameters["height"] = height.Value;
-            if (degrees.HasValue) parameters["degrees"] = degrees.Value;
-            
-            return await ExecutePatternOperationAsync("transform", elementId, parameters, windowTitle, processId, timeoutSeconds);
+
+            var result = await ExecuteAdvancedOperationAsync(parameters);
+            return new OperationResult<string>
+            {
+                Success = result.Success,
+                Data = result.Success ? $"Element transformed ({action}) successfully" : null,
+                Error = result.Error
+            };
         }
 
         public async Task<OperationResult<string>> DockElementAsync(
@@ -367,11 +577,23 @@ namespace UiAutomationMcpServer.Services
             int? processId = null,
             int timeoutSeconds = 20)
         {
-            var parameters = new Dictionary<string, object>
+            var parameters = new AdvancedOperationParameters
             {
-                ["position"] = position
+                Operation = "dockelement",
+                ElementId = elementId,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = timeoutSeconds,
+                Parameters = new Dictionary<string, object> { ["Position"] = position }
             };
-            return await ExecutePatternOperationAsync("dock", elementId, parameters, windowTitle, processId, timeoutSeconds);
+
+            var result = await ExecuteAdvancedOperationAsync(parameters);
+            return new OperationResult<string>
+            {
+                Success = result.Success,
+                Data = result.Success ? $"Element docked to {position}" : null,
+                Error = result.Error
+            };
         }
 
         public async Task<OperationResult<string>> ExecuteInProcessAsync(
@@ -501,7 +723,12 @@ namespace UiAutomationMcpServer.Services
             {
                 try
                 {
-                    workerProcess?.Kill(entireProcessTree: true);
+                    // Only kill if process is still running and didn't exit normally
+                    if (workerProcess != null && !workerProcess.HasExited)
+                    {
+                        _logger.LogWarning("[UIAutomationWorker] Worker process still running, terminating");
+                        workerProcess.Kill(entireProcessTree: true);
+                    }
                     workerProcess?.Dispose();
                 }
                 catch (Exception ex)
@@ -743,34 +970,32 @@ namespace UiAutomationMcpServer.Services
             }
         }
 
+        // 新しいパラメータベースのメソッド（UIAutomation依存なし）
         public async Task<OperationResult<List<ElementInfo>>> FindAllElementsAsync(
-            AutomationElement searchRoot,
-            TreeScope scope,
-            Condition condition,
+            ElementSearchParameters searchParams,
             int timeoutSeconds = 60)
         {
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            _logger.LogInformation("FindAllElementsAsync started via worker - SearchRoot: {SearchRootName} (ProcessId: {ProcessId}), Scope: {Scope}, Timeout: {TimeoutSeconds}s",
-                SafeGetElementName(searchRoot), SafeGetElementProcessId(searchRoot), scope, timeoutSeconds);
+            _logger.LogInformation("FindAllElementsAsync started with parameters - ElementId: {ElementId}, WindowTitle: {WindowTitle}, ProcessId: {ProcessId}, Timeout: {TimeoutSeconds}s",
+                searchParams.ElementId, searchParams.WindowTitle, searchParams.ProcessId, timeoutSeconds);
             
             try
             {
-                // AutomationElementとConditionをWorkerに渡すためにシリアライズ可能な形式に変換
                 var parameters = new Dictionary<string, object>
                 {
-                    ["SearchRootName"] = SafeGetElementName(searchRoot) ?? "",
-                    ["SearchRootAutomationId"] = SafeGetElementAutomationId(searchRoot) ?? "",
-                    ["SearchRootProcessId"] = SafeGetElementProcessId(searchRoot),
-                    ["Scope"] = scope.ToString(),
-                    ["ConditionType"] = condition.GetType().Name
+                    ["ElementId"] = searchParams.ElementId ?? "",
+                    ["WindowTitle"] = searchParams.WindowTitle ?? "",
+                    ["ProcessId"] = searchParams.ProcessId ?? 0,
+                    ["ControlType"] = searchParams.ControlType ?? "",
+                    ["TreeScope"] = searchParams.TreeScope ?? "descendants",
+                    ["SearchRootId"] = searchParams.SearchRootId ?? "",
+                    ["SearchText"] = searchParams.SearchText ?? "",
+                    ["Conditions"] = searchParams.Conditions ?? new Dictionary<string, object>()
                 };
-
-                // 条件の詳細を追加
-                AddConditionDetails(condition, parameters);
 
                 var operation = new
                 {
-                    Operation = "findall",
+                    Operation = "findall_advanced",
                     Parameters = parameters,
                     Timeout = timeoutSeconds
                 };
@@ -814,33 +1039,31 @@ namespace UiAutomationMcpServer.Services
         }
 
         public async Task<OperationResult<ElementInfo?>> FindFirstElementAsync(
-            AutomationElement searchRoot,
-            TreeScope scope,
-            Condition condition,
+            ElementSearchParameters searchParams,
             int timeoutSeconds = 15)
         {
             var startTime = DateTime.UtcNow;
-            var searchRootName = SafeGetElementName(searchRoot);
             
-            _logger.LogInformation("[UIAutomationWorker.FindFirstElementAsync] START: SearchRoot='{SearchRoot}', Scope={Scope}, Timeout={Timeout}s", 
-                searchRootName, scope, timeoutSeconds);
+            _logger.LogInformation("[UIAutomationWorker.FindFirstElementAsync] START: ElementId='{ElementId}', WindowTitle='{WindowTitle}', Timeout={Timeout}s", 
+                searchParams.ElementId, searchParams.WindowTitle, timeoutSeconds);
             
             try
             {
                 var parameters = new Dictionary<string, object>
                 {
-                    ["SearchRootName"] = searchRootName ?? "",
-                    ["SearchRootAutomationId"] = SafeGetElementAutomationId(searchRoot) ?? "",
-                    ["SearchRootProcessId"] = SafeGetElementProcessId(searchRoot),
-                    ["Scope"] = scope.ToString(),
-                    ["ConditionType"] = condition.GetType().Name
+                    ["ElementId"] = searchParams.ElementId ?? "",
+                    ["WindowTitle"] = searchParams.WindowTitle ?? "",
+                    ["ProcessId"] = searchParams.ProcessId ?? 0,
+                    ["ControlType"] = searchParams.ControlType ?? "",
+                    ["TreeScope"] = searchParams.TreeScope ?? "descendants",
+                    ["SearchRootId"] = searchParams.SearchRootId ?? "",
+                    ["SearchText"] = searchParams.SearchText ?? "",
+                    ["Conditions"] = searchParams.Conditions ?? new Dictionary<string, object>()
                 };
-
-                AddConditionDetails(condition, parameters);
 
                 var operation = new
                 {
-                    Operation = "findfirst",
+                    Operation = "findfirst_advanced",
                     Parameters = parameters,
                     Timeout = timeoutSeconds
                 };
@@ -947,79 +1170,384 @@ namespace UiAutomationMcpServer.Services
             }
         }
 
-        private string SafeGetElementName(AutomationElement element)
+        // 高度な操作を実行する汎用メソッド
+        public async Task<OperationResult<Dictionary<string, object>>> ExecuteAdvancedOperationAsync(
+            AdvancedOperationParameters operationParams)
         {
+            var startTime = DateTime.UtcNow;
+            
+            _logger.LogInformation("[UIAutomationWorker.ExecuteAdvancedOperationAsync] START: Operation='{Operation}', ElementId='{ElementId}', WindowTitle='{WindowTitle}'", 
+                operationParams.Operation, operationParams.ElementId, operationParams.WindowTitle);
+            
             try
             {
-                return element?.Current.Name ?? "";
-            }
-            catch
-            {
-                return "";
-            }
-        }
-
-        private string SafeGetElementAutomationId(AutomationElement element)
-        {
-            try
-            {
-                return element?.Current.AutomationId ?? "";
-            }
-            catch
-            {
-                return "";
-            }
-        }
-
-        private int SafeGetElementProcessId(AutomationElement element)
-        {
-            try
-            {
-                return element?.Current.ProcessId ?? 0;
-            }
-            catch
-            {
-                return 0;
-            }
-        }
-
-        private void AddConditionDetails(Condition condition, Dictionary<string, object> parameters)
-        {
-            try
-            {
-                switch (condition)
+                var parameters = new Dictionary<string, object>
                 {
-                    case PropertyCondition propCondition:
-                        parameters["PropertyName"] = propCondition.Property.ProgrammaticName;
-                        parameters["PropertyValue"] = propCondition.Value?.ToString() ?? "";
-                        break;
-                    case AndCondition andCondition:
-                        var andConditions = new List<Dictionary<string, object>>();
-                        foreach (var subCondition in andCondition.GetConditions())
-                        {
-                            var subParams = new Dictionary<string, object>();
-                            AddConditionDetails(subCondition, subParams);
-                            andConditions.Add(subParams);
-                        }
-                        parameters["SubConditions"] = andConditions;
-                        break;
-                    case OrCondition orCondition:
-                        var orConditions = new List<Dictionary<string, object>>();
-                        foreach (var subCondition in orCondition.GetConditions())
-                        {
-                            var subParams = new Dictionary<string, object>();
-                            AddConditionDetails(subCondition, subParams);
-                            orConditions.Add(subParams);
-                        }
-                        parameters["SubConditions"] = orConditions;
-                        break;
+                    ["ElementId"] = operationParams.ElementId ?? "",
+                    ["WindowTitle"] = operationParams.WindowTitle ?? "",
+                    ["ProcessId"] = operationParams.ProcessId ?? 0
+                };
+
+                // 追加パラメータをマージ
+                foreach (var param in operationParams.Parameters)
+                {
+                    parameters[param.Key] = param.Value;
                 }
+
+                var operation = new
+                {
+                    Operation = operationParams.Operation,
+                    Parameters = parameters,
+                    Timeout = operationParams.TimeoutSeconds
+                };
+
+                var operationJson = JsonSerializer.Serialize(operation);
+                var workerResult = await ExecuteInProcessAsync(operationJson, operationParams.TimeoutSeconds);
+
+                var elapsed = DateTime.UtcNow - startTime;
+
+                if (!workerResult.Success)
+                {
+                    _logger.LogWarning("[UIAutomationWorker.ExecuteAdvancedOperationAsync] FAILED after {ElapsedMs}ms: {Error}", 
+                        elapsed.TotalMilliseconds, workerResult.Error);
+                    return new OperationResult<Dictionary<string, object>>
+                    {
+                        Success = false,
+                        Error = workerResult.Error ?? "Worker operation failed"
+                    };
+                }
+
+                var resultData = new Dictionary<string, object>();
+                if (!string.IsNullOrEmpty(workerResult.Data))
+                {
+                    try
+                    {
+                        var parsedData = JsonSerializer.Deserialize<Dictionary<string, object>>(workerResult.Data);
+                        if (parsedData != null)
+                        {
+                            resultData = parsedData;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to parse worker result data as Dictionary");
+                        resultData["rawData"] = workerResult.Data;
+                    }
+                }
+
+                _logger.LogInformation("[UIAutomationWorker.ExecuteAdvancedOperationAsync] SUCCESS after {ElapsedMs}ms",
+                    elapsed.TotalMilliseconds);
+                return new OperationResult<Dictionary<string, object>>
+                {
+                    Success = true,
+                    Data = resultData
+                };
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to add condition details");
+                _logger.LogError(ex, "[UIAutomationWorker.ExecuteAdvancedOperationAsync] EXCEPTION: {Message}", ex.Message);
+                return new OperationResult<Dictionary<string, object>>
+                {
+                    Success = false,
+                    Error = $"Worker execution failed: {ex.Message}"
+                };
             }
         }
-    }
 
+        // Range Value Pattern methods implementation
+        public async Task<OperationResult<string>> SetRangeValueAsync(
+            string elementId,
+            double value,
+            string? windowTitle = null,
+            int? processId = null,
+            int timeoutSeconds = 20)
+        {
+            var parameters = new AdvancedOperationParameters
+            {
+                Operation = "setrangevalue",
+                ElementId = elementId,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = timeoutSeconds,
+                Parameters = new Dictionary<string, object> { ["Value"] = value }
+            };
+
+            var result = await ExecuteAdvancedOperationAsync(parameters);
+            return new OperationResult<string>
+            {
+                Success = result.Success,
+                Data = result.Success ? $"Range value set to {value}" : null,
+                Error = result.Error
+            };
+        }
+
+        public async Task<OperationResult<Dictionary<string, object>>> GetRangeValueAsync(
+            string elementId,
+            string? windowTitle = null,
+            int? processId = null,
+            int timeoutSeconds = 20)
+        {
+            var parameters = new AdvancedOperationParameters
+            {
+                Operation = "getrangevalue",
+                ElementId = elementId,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = timeoutSeconds,
+                Parameters = new Dictionary<string, object>()
+            };
+
+            return await ExecuteAdvancedOperationAsync(parameters);
+        }
+
+        // Text Pattern methods implementation
+        public async Task<OperationResult<string>> GetTextAsync(
+            string elementId,
+            string? windowTitle = null,
+            int? processId = null,
+            int timeoutSeconds = 20)
+        {
+            var parameters = new AdvancedOperationParameters
+            {
+                Operation = "gettext",
+                ElementId = elementId,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = timeoutSeconds,
+                Parameters = new Dictionary<string, object>()
+            };
+
+            var result = await ExecuteAdvancedOperationAsync(parameters);
+            return new OperationResult<string>
+            {
+                Success = result.Success,
+                Data = result.Success && result.Data != null ? result.Data.ToString() : null,
+                Error = result.Error
+            };
+        }
+
+        public async Task<OperationResult<string>> SelectTextAsync(
+            string elementId,
+            int startIndex,
+            int length,
+            string? windowTitle = null,
+            int? processId = null,
+            int timeoutSeconds = 20)
+        {
+            var parameters = new AdvancedOperationParameters
+            {
+                Operation = "selecttext",
+                ElementId = elementId,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = timeoutSeconds,
+                Parameters = new Dictionary<string, object> 
+                { 
+                    ["StartIndex"] = startIndex,
+                    ["Length"] = length
+                }
+            };
+
+            var result = await ExecuteAdvancedOperationAsync(parameters);
+            return new OperationResult<string>
+            {
+                Success = result.Success,
+                Data = result.Success ? "Text selected successfully" : null,
+                Error = result.Error
+            };
+        }
+
+        // Tree Operations implementation
+        public async Task<OperationResult<Dictionary<string, object>>> GetElementTreeAsync(
+            string? windowTitle = null,
+            int? processId = null,
+            int maxDepth = 3,
+            int timeoutSeconds = 30)
+        {
+            var parameters = new AdvancedOperationParameters
+            {
+                Operation = "getelementtree",
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = timeoutSeconds,
+                Parameters = new Dictionary<string, object> { ["MaxDepth"] = maxDepth }
+            };
+
+            return await ExecuteAdvancedOperationAsync(parameters);
+        }
+
+        public async Task<OperationResult<List<Dictionary<string, object>>>> GetElementChildrenAsync(
+            string elementId,
+            string? windowTitle = null,
+            int? processId = null,
+            int timeoutSeconds = 20)
+        {
+            var parameters = new AdvancedOperationParameters
+            {
+                Operation = "getelementchildren",
+                ElementId = elementId,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = timeoutSeconds,
+                Parameters = new Dictionary<string, object>()
+            };
+
+            var result = await ExecuteAdvancedOperationAsync(parameters);
+            return new OperationResult<List<Dictionary<string, object>>>
+            {
+                Success = result.Success,
+                Data = result.Success ? [result.Data ?? new Dictionary<string, object>()] : null,
+                Error = result.Error
+            };
+        }
+
+        // Window state operations implementation
+        public async Task<OperationResult<string>> SetWindowStateAsync(
+            string elementId,
+            string state,
+            string? windowTitle = null,
+            int? processId = null,
+            int timeoutSeconds = 20)
+        {
+            var parameters = new AdvancedOperationParameters
+            {
+                Operation = "setwindowstate",
+                ElementId = elementId,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = timeoutSeconds,
+                Parameters = new Dictionary<string, object> { ["State"] = state }
+            };
+
+            var result = await ExecuteAdvancedOperationAsync(parameters);
+            return new OperationResult<string>
+            {
+                Success = result.Success,
+                Data = result.Success ? $"Window state set to {state}" : null,
+                Error = result.Error
+            };
+        }
+
+        // Additional Text Pattern methods implementation
+        public async Task<OperationResult<Dictionary<string, object>>> FindTextAsync(
+            string elementId,
+            string searchText,
+            bool backward = false,
+            bool ignoreCase = false,
+            string? windowTitle = null,
+            int? processId = null,
+            int timeoutSeconds = 20)
+        {
+            var parameters = new AdvancedOperationParameters
+            {
+                Operation = "findtext",
+                ElementId = elementId,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = timeoutSeconds,
+                Parameters = new Dictionary<string, object> 
+                { 
+                    ["SearchText"] = searchText,
+                    ["Backward"] = backward,
+                    ["IgnoreCase"] = ignoreCase
+                }
+            };
+
+            return await ExecuteAdvancedOperationAsync(parameters);
+        }
+
+        public async Task<OperationResult<List<Dictionary<string, object>>>> GetTextSelectionAsync(
+            string elementId,
+            string? windowTitle = null,
+            int? processId = null,
+            int timeoutSeconds = 20)
+        {
+            var parameters = new AdvancedOperationParameters
+            {
+                Operation = "gettextselection",
+                ElementId = elementId,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = timeoutSeconds,
+                Parameters = new Dictionary<string, object>()
+            };
+
+            var result = await ExecuteAdvancedOperationAsync(parameters);
+            return new OperationResult<List<Dictionary<string, object>>>
+            {
+                Success = result.Success,
+                Data = result.Success ? [result.Data ?? new Dictionary<string, object>()] : null,
+                Error = result.Error
+            };
+        }
+
+        // Window service methods implementation
+        public async Task<OperationResult<List<WindowInfo>>> GetWindowsAsync(
+            int timeoutSeconds = 30)
+        {
+            var parameters = new AdvancedOperationParameters
+            {
+                Operation = "getwindows",
+                TimeoutSeconds = timeoutSeconds,
+                Parameters = new Dictionary<string, object>()
+            };
+
+            var result = await ExecuteAdvancedOperationAsync(parameters);
+            if (result.Success && result.Data != null)
+            {
+                try
+                {
+                    var windowsList = JsonSerializer.Deserialize<List<WindowInfo>>(
+                        JsonSerializer.Serialize(result.Data)) ?? new List<WindowInfo>();
+                    
+                    return new OperationResult<List<WindowInfo>>
+                    {
+                        Success = true,
+                        Data = windowsList
+                    };
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to deserialize windows data");
+                    return new OperationResult<List<WindowInfo>>
+                    {
+                        Success = false,
+                        Error = $"Failed to parse windows data: {ex.Message}"
+                    };
+                }
+            }
+
+            return new OperationResult<List<WindowInfo>>
+            {
+                Success = false,
+                Error = result.Error ?? "Unknown error getting windows"
+            };
+        }
+
+        #region IDisposable Implementation
+
+        private bool _disposed = false;
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // Cleanup managed resources if any
+                    _logger?.LogDebug("UIAutomationWorker disposed");
+                }
+
+                _disposed = true;
+            }
+        }
+
+        #endregion
+    }
 }

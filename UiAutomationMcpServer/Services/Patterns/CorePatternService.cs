@@ -1,8 +1,5 @@
 using Microsoft.Extensions.Logging;
-using System;
-using System.Windows.Automation;
 using UiAutomationMcp.Models;
-using UiAutomationMcpServer.Services.Windows;
 using UiAutomationMcpServer.Services;
 
 namespace UiAutomationMcpServer.Services.Patterns
@@ -19,13 +16,11 @@ namespace UiAutomationMcpServer.Services.Patterns
     public class CorePatternService : ICorePatternService
     {
         private readonly ILogger<CorePatternService> _logger;
-        private readonly IWindowService _windowService;
         private readonly IUIAutomationWorker _uiAutomationWorker;
 
-        public CorePatternService(ILogger<CorePatternService> logger, IWindowService windowService, IUIAutomationWorker uiAutomationWorker)
+        public CorePatternService(ILogger<CorePatternService> logger, IUIAutomationWorker uiAutomationWorker)
         {
             _logger = logger;
-            _windowService = windowService;
             _uiAutomationWorker = uiAutomationWorker;
         }
 

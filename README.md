@@ -123,6 +123,55 @@ dotnet build UiAutomationMcpServer.csproj --verbosity quiet --nologo
 - **ModelContextProtocol** - MCP サーバー実装
 - **Microsoft.Extensions.Hosting** - ホスティングとDI
 
-## ライセンス
+## プロジェクト構造
 
-MIT License - 詳細は [LICENSE](LICENSE) ファイルを参照してください。
+このプロジェクトは以下の2つの主要コンポーネントから構成されています：
+
+### UiAutomationMcpServer
+MCPサーバーのメイン実装。クライアントからのリクエストを処理し、ワーカープロセスとの通信を管理します。
+
+```
+UiAutomationMcpServer/
+├── Program.cs                 # MCPサーバーのエントリーポイント
+├── Services/
+│   ├── UIAutomationWorker.cs  # ワーカープロセス管理
+│   ├── UIAutomationTools.cs   # MCP公開ツール
+│   ├── Elements/             # UI要素関連サービス
+│   ├── Patterns/             # UIパターン実装
+│   └── Windows/              # ウィンドウ操作サービス
+└── Models/
+    └── McpModels.cs          # MCP固有のデータモデル
+```
+
+### UiAutomationWorker (新しい分割構造)
+UI Automation操作を実行する独立したワーカープロセス。メインプロセスがCOM/ネイティブAPIの呼び出しでブロックされることを防ぎます。
+
+```
+UiAutomationWorker/
+├── Program.cs                    # シンプルなエントリーポイント
+├── Configuration/
+│   ├── DependencyInjectionConfig.cs  # DI設定
+│   └── JsonSerializationConfig.cs    # JSON設定
+├── Core/
+│   └── WorkerApplicationHost.cs       # アプリケーション実行管理
+├── Services/
+│   ├── InputProcessor.cs             # 入力データ処理
+│   ├── OutputProcessor.cs            # 出力データ処理
+│   ├── OperationExecutor.cs          # 操作実行エンジン
+│   └── ElementSearchService.cs       # 要素検索サービス
+├── PatternExecutors/
+│   ├── CorePatternExecutor.cs        # 基本パターン実行
+│   └── LayoutPatternExecutor.cs      # レイアウトパターン実行
+└── Helpers/
+    ├── AutomationHelper.cs           # UI Automation ヘルパー
+    └── ElementInfoExtractor.cs       # 要素情報抽出
+```
+
+### 主な設計原則
+
+1. **責任の分離**: 各クラスが明確な単一責任を持つ
+2. **依存性注入**: すべてのサービスがDIコンテナで管理される
+3. **プロセス分離**: UI操作を別プロセスで実行してメインプロセスを保護
+4. **テスト可能性**: 各コンポーネントが独立してテスト可能
+5. **保守性**: 機能別にファイルを分割し、理解しやすい構造
+```

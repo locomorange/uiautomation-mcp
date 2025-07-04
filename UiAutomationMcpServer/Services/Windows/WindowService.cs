@@ -1,8 +1,6 @@
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Windows.Automation;
 using UiAutomationMcp.Models;
 using UiAutomationMcpServer.Services;
 
@@ -11,8 +9,9 @@ namespace UiAutomationMcpServer.Services.Windows
     public interface IWindowService
     {
         Task<OperationResult> GetWindowInfoAsync();
+        Task<OperationResult<List<WindowInfo>>> GetWindowsAsync();
         Task<ProcessResult> LaunchApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null);
-        AutomationElement? FindWindowByTitle(string title, int? processId = null);
+        Task<OperationResult<ElementInfo?>> FindWindowByTitleAsync(string title, int? processId = null);
     }
 
     public class WindowService : IWindowService
@@ -32,7 +31,6 @@ namespace UiAutomationMcpServer.Services.Windows
             {
                 _logger.LogInformation("Getting window info via UIAutomationWorker");
                 
-                // Use the UIAutomationWorker to get window information
                 var windowElementsResult = await _uiAutomationWorker.FindAllAsync(
                     windowTitle: null,
                     searchText: null,
@@ -48,45 +46,62 @@ namespace UiAutomationMcpServer.Services.Windows
                 
                 var elementInfos = windowElementsResult.Data ?? new List<ElementInfo>();
                 var windows = new List<WindowInfo>();
-
+                
                 foreach (var elementInfo in elementInfos)
                 {
-                    try
+                    var windowInfo = new WindowInfo
                     {
-                        if (!string.IsNullOrEmpty(elementInfo.Name))
-                        {
-                            windows.Add(new WindowInfo
-                            {
-                                Name = elementInfo.Name,
-                                AutomationId = elementInfo.AutomationId ?? "",
-                                ProcessId = elementInfo.ProcessId,
-                                ClassName = elementInfo.ClassName ?? "",
-                                BoundingRectangle = new BoundingRectangle
-                                {
-                                    X = elementInfo.BoundingRectangle?.X ?? 0,
-                                    Y = elementInfo.BoundingRectangle?.Y ?? 0,
-                                    Width = elementInfo.BoundingRectangle?.Width ?? 0,
-                                    Height = elementInfo.BoundingRectangle?.Height ?? 0
-                                },
-                                IsEnabled = elementInfo.IsEnabled,
-                                IsVisible = elementInfo.IsVisible
-                            });
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Error processing window element: {Name}", elementInfo.Name);
-                        continue;
-                    }
+                        Name = elementInfo.Name,
+                        AutomationId = elementInfo.AutomationId,
+                        ProcessId = elementInfo.ProcessId,
+                        ClassName = elementInfo.ClassName,
+                        BoundingRectangle = elementInfo.BoundingRectangle,
+                        IsEnabled = elementInfo.IsEnabled,
+                        IsVisible = elementInfo.IsVisible
+                    };
+                    
+                    windows.Add(windowInfo);
                 }
-
-                _logger.LogInformation("Successfully retrieved {Count} windows", windows.Count);
+                
+                _logger.LogInformation("Found {WindowCount} windows", windows.Count);
                 return new OperationResult { Success = true, Data = windows };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "GetWindowInfo failed");
-                return new OperationResult { Success = false, Error = $"GetWindowInfo failed: {ex.Message}" };
+                _logger.LogError(ex, "Error getting window info");
+                return new OperationResult { Success = false, Error = ex.Message };
+            }
+        }
+
+        public async Task<OperationResult<List<WindowInfo>>> GetWindowsAsync()
+        {
+            try
+            {
+                _logger.LogInformation("Getting all windows");
+                
+                var result = await _uiAutomationWorker.GetWindowsAsync();
+                
+                if (result.Success && result.Data != null)
+                {
+                    _logger.LogInformation("Found {Count} windows", result.Data.Count);
+                    return result;
+                }
+                
+                _logger.LogError("Failed to get windows: {Error}", result.Error);
+                return new OperationResult<List<WindowInfo>>
+                {
+                    Success = false,
+                    Error = result.Error ?? "Failed to get windows"
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting windows");
+                return new OperationResult<List<WindowInfo>>
+                {
+                    Success = false,
+                    Error = $"Error getting windows: {ex.Message}"
+                };
             }
         }
 
@@ -94,103 +109,34 @@ namespace UiAutomationMcpServer.Services.Windows
         {
             try
             {
-                _logger.LogInformation("Launching application: {ApplicationPath} with arguments: {Arguments}", 
-                    applicationPath, arguments);
+                _logger.LogInformation("Launching application: {ApplicationPath}", applicationPath);
 
-                // Check if this is a UWP app or URI scheme
-                var isUwpOrUri = applicationPath.StartsWith("ms-") || 
-                                applicationPath.Contains("shell:appsFolder") ||
-                                applicationPath.EndsWith(".appx") ||
-                                applicationPath.Contains("WindowsApps");
+                if (!File.Exists(applicationPath))
+                {
+                    return new ProcessResult { Success = false, Error = $"Application not found: {applicationPath}" };
+                }
 
-                ProcessStartInfo startInfo;
-                
-                if (isUwpOrUri)
+                var startInfo = new ProcessStartInfo
                 {
-                    // Use PowerShell to launch UWP apps or URI schemes
-                    var command = applicationPath.StartsWith("ms-") 
-                        ? $"Start-Process '{applicationPath}'"
-                        : $"Start-Process '{applicationPath}' {(string.IsNullOrEmpty(arguments) ? "" : $"-ArgumentList '{arguments}'")}";
-                    
-                    startInfo = new ProcessStartInfo
-                    {
-                        FileName = "powershell.exe",
-                        Arguments = $"-WindowStyle Hidden -Command \"{command}\"",
-                        UseShellExecute = true,
-                        CreateNoWindow = true,
-                        WindowStyle = ProcessWindowStyle.Hidden
-                    };
-                }
-                else
-                {
-                    // Traditional exe launch
-                    startInfo = new ProcessStartInfo
-                    {
-                        FileName = applicationPath,
-                        Arguments = arguments ?? "",
-                        WorkingDirectory = workingDirectory ?? Path.GetDirectoryName(applicationPath) ?? "",
-                        UseShellExecute = true
-                    };
-                }
+                    FileName = applicationPath,
+                    Arguments = arguments ?? "",
+                    WorkingDirectory = workingDirectory ?? Path.GetDirectoryName(applicationPath) ?? "",
+                    UseShellExecute = true
+                };
 
                 var process = Process.Start(startInfo);
                 if (process == null)
+                {
                     return new ProcessResult { Success = false, Error = "Failed to start process" };
-
-                // Wait longer for UWP apps to initialize
-                var waitTime = isUwpOrUri ? 3000 : 1000;
-                await Task.Delay(waitTime);
-
-                // Try to get process information safely
-                int processId = 0;
-                string processName = "";
-                bool hasExited = false;
-
-                try
-                {
-                    processId = process.Id;
-                    processName = process.ProcessName;
-                    hasExited = process.HasExited;
-                }
-                catch (InvalidOperationException)
-                {
-                    // Process information not available (common with UWP apps)
-                    _logger.LogInformation("Process information not available - likely UWP app launched successfully");
-                    
-                    // For UWP apps, try to find the actual app process by window title
-                    if (isUwpOrUri)
-                    {
-                        // Wait a bit more for the app window to appear
-                        await Task.Delay(2000);
-                        
-                        // Try to find common UWP app processes
-                        var commonAppNames = new[] { "Calculator", "WindowsAlarms", "Microsoft.Windows.Alarms", "ApplicationFrameHost" };
-                        foreach (var appName in commonAppNames)
-                        {
-                            try
-                            {
-                                var processes = Process.GetProcessesByName(appName);
-                                if (processes.Length > 0)
-                                {
-                                    var latestProcess = processes.OrderByDescending(p => p.StartTime).FirstOrDefault();
-                                    if (latestProcess != null)
-                                    {
-                                        processId = latestProcess.Id;
-                                        processName = latestProcess.ProcessName;
-                                        hasExited = latestProcess.HasExited;
-                                        break;
-                                    }
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogDebug("Could not check process {AppName}: {Error}", appName, ex.Message);
-                            }
-                        }
-                    }
                 }
 
-                _logger.LogInformation("Application launched - PID: {ProcessId}, Name: {ProcessName}, HasExited: {HasExited}", 
+                await Task.Delay(1000);
+
+                var hasExited = process.HasExited;
+                var processId = hasExited ? 0 : process.Id;
+                var processName = hasExited ? "" : process.ProcessName;
+
+                _logger.LogInformation("Application launched: ProcessId={ProcessId}, ProcessName={ProcessName}, HasExited={HasExited}",
                     processId, processName, hasExited);
 
                 return new ProcessResult
@@ -208,97 +154,80 @@ namespace UiAutomationMcpServer.Services.Windows
             }
         }
 
-        public AutomationElement? FindWindowByTitle(string title, int? processId = null)
+        public async Task<OperationResult<ElementInfo?>> FindWindowByTitleAsync(string title, int? processId = null)
         {
-            if (string.IsNullOrWhiteSpace(title)) return null;
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                return new OperationResult<ElementInfo?>
+                {
+                    Success = false,
+                    Error = "Window title cannot be empty"
+                };
+            }
             
             try
             {
-                _logger.LogDebug("FindWindowByTitle called with title: '{Title}', processId: {ProcessId}", title, processId);
+                _logger.LogDebug("FindWindowByTitleAsync called with title: '{Title}', processId: {ProcessId}", title, processId);
                 
-                var windows = AutomationElement.RootElement.FindAll(TreeScope.Children,
-                    new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window));
-                
-                _logger.LogDebug("Found {WindowCount} total windows", windows.Count);
-                
-                var matchingWindows = new List<AutomationElement>();
-                
-                foreach (AutomationElement window in windows)
+                var searchParams = new ElementSearchParameters
                 {
-                    try
+                    SearchText = title,
+                    ControlType = "Window",
+                    ProcessId = processId,
+                    TreeScope = "children"
+                };
+
+                var result = await _uiAutomationWorker.FindFirstElementAsync(searchParams, timeoutSeconds: 15);
+                
+                if (!result.Success || result.Data == null)
+                {
+                    _logger.LogDebug("Window not found with exact title. Trying with partial match...");
+                    
+                    var allWindowsResult = await _uiAutomationWorker.FindAllElementsAsync(new ElementSearchParameters
                     {
-                        var name = window.Current.Name;
-                        var windowProcessId = window.Current.ProcessId;
-                        _logger.LogDebug("Checking window: '{Name}' (ProcessId: {ProcessId})", name, windowProcessId);
+                        ControlType = "Window",
+                        ProcessId = processId,
+                        TreeScope = "children"
+                    }, timeoutSeconds: 15);
+                    
+                    if (allWindowsResult.Success && allWindowsResult.Data != null)
+                    {
+                        var matchingWindow = allWindowsResult.Data
+                            .Where(w => !string.IsNullOrEmpty(w.Name))
+                            .FirstOrDefault(w => 
+                                string.Equals(w.Name.Trim(), title.Trim(), StringComparison.OrdinalIgnoreCase) ||
+                                w.Name.Contains(title, StringComparison.OrdinalIgnoreCase) ||
+                                title.Contains(w.Name, StringComparison.OrdinalIgnoreCase));
                         
-                        if (processId.HasValue && windowProcessId != processId.Value)
+                        if (matchingWindow != null)
                         {
-                            _logger.LogDebug("Skipping window with ProcessId {WindowProcessId} (looking for {TargetProcessId})", windowProcessId, processId.Value);
-                            continue;
-                        }
-                        
-                        if (!string.IsNullOrEmpty(name))
-                        {
-                            if (string.Equals(name.Trim(), title.Trim(), StringComparison.OrdinalIgnoreCase))
+                            _logger.LogDebug("Partial match found: '{Name}' (ProcessId: {ProcessId})", matchingWindow.Name, matchingWindow.ProcessId);
+                            return new OperationResult<ElementInfo?>
                             {
-                                _logger.LogDebug("Exact match found: '{Name}' (ProcessId: {ProcessId})", name, windowProcessId);
-                                matchingWindows.Add(window);
-                            }
-                            else if (name.Contains(title, StringComparison.OrdinalIgnoreCase) || 
-                                     title.Contains(name, StringComparison.OrdinalIgnoreCase))
-                            {
-                                _logger.LogDebug("Partial match found: '{Name}' (ProcessId: {ProcessId})", name, windowProcessId);
-                                matchingWindows.Add(window);
-                            }
+                                Success = true,
+                                Data = matchingWindow
+                            };
                         }
                     }
-                    catch (Exception ex)
+                    
+                    return new OperationResult<ElementInfo?>
                     {
-                        _logger.LogWarning(ex, "Error reading window properties");
-                        continue;
-                    }
+                        Success = false,
+                        Error = $"Window with title '{title}' not found"
+                    };
                 }
                 
-                _logger.LogDebug("Found {MatchingCount} matching windows", matchingWindows.Count);
-                
-                if (matchingWindows.Count == 0)
-                {
-                    _logger.LogDebug("No matching windows found for title: '{Title}'", title);
-                    return null;
-                }
-                
-                if (processId.HasValue)
-                {
-                    var selectedWindow = matchingWindows[0];
-                    _logger.LogDebug("Selected window for processId {ProcessId}: '{Name}'", processId.Value, selectedWindow.Current.Name);
-                    return selectedWindow;
-                }
-                
-                foreach (var window in matchingWindows)
-                {
-                    try
-                    {
-                        if (window.Current.IsEnabled && !window.Current.IsOffscreen)
-                        {
-                            _logger.LogDebug("Returning first visible/enabled window: '{Name}' (ProcessId: {ProcessId})", window.Current.Name, window.Current.ProcessId);
-                            return window;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Error checking window state");
-                        continue;
-                    }
-                }
-                
-                var firstWindow = matchingWindows[0];
-                _logger.LogDebug("Returning first matching window: '{Name}' (ProcessId: {ProcessId})", firstWindow.Current.Name, firstWindow.Current.ProcessId);
-                return firstWindow;
+                _logger.LogDebug("Window found: '{Name}' (ProcessId: {ProcessId})", result.Data.Name, result.Data.ProcessId);
+                return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in window search for title: '{Title}'", title);
-                return null;
+                _logger.LogError(ex, "Error finding window by title: {Title}", title);
+                return new OperationResult<ElementInfo?>
+                {
+                    Success = false,
+                    Error = $"Error finding window: {ex.Message}"
+                };
             }
         }
     }

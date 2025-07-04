@@ -1,7 +1,5 @@
 using Microsoft.Extensions.Logging;
-using System.Windows.Automation;
 using UiAutomationMcp.Models;
-using UiAutomationMcpServer.Services.Windows;
 using UiAutomationMcpServer.Services;
 
 namespace UiAutomationMcpServer.Services.Patterns
@@ -15,110 +13,27 @@ namespace UiAutomationMcpServer.Services.Patterns
     public class RangePatternService : IRangePatternService
     {
         private readonly ILogger<RangePatternService> _logger;
-        private readonly IWindowService _windowService;
         private readonly IUIAutomationWorker _uiAutomationWorker;
 
-        public RangePatternService(ILogger<RangePatternService> logger, IWindowService windowService, IUIAutomationWorker uiAutomationWorker)
+        public RangePatternService(ILogger<RangePatternService> logger, IUIAutomationWorker uiAutomationWorker)
         {
             _logger = logger;
-            _windowService = windowService;
             _uiAutomationWorker = uiAutomationWorker;
         }
 
         public async Task<OperationResult> SetRangeValueAsync(string elementId, double value, string? windowTitle = null, int? processId = null)
         {
-            try
-            {
-                var elementResult = await FindElementAsync(elementId, windowTitle, processId);
-                if (!elementResult.Success || elementResult.Data == null)
-                {
-                    return new OperationResult { Success = false, Error = elementResult.Error ?? $"Element '{elementId}' not found" };
-                }
-                var element = elementResult.Data;
-
-                if (element.TryGetCurrentPattern(RangeValuePattern.Pattern, out var pattern) && pattern is RangeValuePattern rangeValuePattern)
-                {
-                    rangeValuePattern.SetValue(value);
-                    return new OperationResult { Success = true, Data = "Range value set successfully" };
-                }
-                
-                return new OperationResult { Success = false, Error = "Element does not support RangeValuePattern" };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error setting range value on element {ElementId}", elementId);
-                return new OperationResult { Success = false, Error = ex.Message };
-            }
+            var result = await _uiAutomationWorker.SetRangeValueAsync(elementId, value, windowTitle, processId);
+            return new OperationResult { Success = result.Success, Data = result.Data, Error = result.Error };
         }
 
         public async Task<OperationResult> GetRangeValueAsync(string elementId, string? windowTitle = null, int? processId = null)
         {
-            try
-            {
-                var elementResult = await FindElementAsync(elementId, windowTitle, processId);
-                if (!elementResult.Success || elementResult.Data == null)
-                {
-                    return new OperationResult { Success = false, Error = elementResult.Error ?? $"Element '{elementId}' not found" };
-                }
-                var element = elementResult.Data;
-
-                if (element.TryGetCurrentPattern(RangeValuePattern.Pattern, out var pattern) && pattern is RangeValuePattern rangeValuePattern)
-                {
-                    var rangeInfo = new
-                    {
-                        Value = double.IsInfinity(rangeValuePattern.Current.Value) ? 0 : rangeValuePattern.Current.Value,
-                        Minimum = double.IsInfinity(rangeValuePattern.Current.Minimum) ? 0 : rangeValuePattern.Current.Minimum,
-                        Maximum = double.IsInfinity(rangeValuePattern.Current.Maximum) ? 0 : rangeValuePattern.Current.Maximum,
-                        SmallChange = double.IsInfinity(rangeValuePattern.Current.SmallChange) ? 0 : rangeValuePattern.Current.SmallChange,
-                        LargeChange = double.IsInfinity(rangeValuePattern.Current.LargeChange) ? 0 : rangeValuePattern.Current.LargeChange,
-                        IsReadOnly = rangeValuePattern.Current.IsReadOnly
-                    };
-                    
-                    return new OperationResult { Success = true, Data = rangeInfo };
-                }
-                
-                return new OperationResult { Success = false, Error = "Element does not support RangeValuePattern" };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting range value from element {ElementId}", elementId);
-                return new OperationResult { Success = false, Error = ex.Message };
-            }
+            var result = await _uiAutomationWorker.GetRangeValueAsync(elementId, windowTitle, processId);
+            return new OperationResult { Success = result.Success, Data = result.Data, Error = result.Error };
         }
 
-        private async Task<OperationResult<AutomationElement?>> FindElementAsync(string elementId, string? windowTitle, int? processId)
-        {
-            try
-            {
-                AutomationElement? searchRoot = null;
-                if (!string.IsNullOrEmpty(windowTitle))
-                {
-                    searchRoot = _windowService.FindWindowByTitle(windowTitle, processId);
-                    if (searchRoot == null)
-                    {
-                        _logger.LogWarning("Window '{WindowTitle}' not found", windowTitle);
-                        return new OperationResult<AutomationElement?> { Success = false, Error = $"Window '{windowTitle}' not found" };
-                    }
-                }
-                else
-                {
-                    searchRoot = AutomationElement.RootElement;
-                }
-
-                var condition = new OrCondition(
-                    new PropertyCondition(AutomationElement.AutomationIdProperty, elementId),
-                    new PropertyCondition(AutomationElement.NameProperty, elementId)
-                );
-
-                // 暫定的に直接AutomationAPIを使用（理想的にはWorkerを使用したい）
-                var result = await Task.Run(() => searchRoot.FindFirst(TreeScope.Descendants, condition));
-                return new OperationResult<AutomationElement?> { Success = true, Data = result };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error finding element {ElementId}", elementId);
-                return new OperationResult<AutomationElement?> { Success = false, Error = ex.Message };
-            }
-        }
+        // All range value operations are now handled by the UIAutomationWorker subprocess
+        // to prevent main process hanging
     }
 }
