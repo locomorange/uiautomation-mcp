@@ -16,20 +16,21 @@ namespace UiAutomationMcpServer.Services.Elements
         private readonly ILogger<ElementDiscoveryService> _logger;
         private readonly IWindowService _windowService;
         private readonly IElementUtilityService _elementUtilityService;
+        private readonly IUIAutomationHelper _uiAutomationHelper;
 
-        public ElementDiscoveryService(ILogger<ElementDiscoveryService> logger, IWindowService windowService, IElementUtilityService elementUtilityService)
+        public ElementDiscoveryService(ILogger<ElementDiscoveryService> logger, IWindowService windowService, IElementUtilityService elementUtilityService, IUIAutomationHelper uiAutomationHelper)
         {
             _logger = logger;
             _windowService = windowService;
             _elementUtilityService = elementUtilityService;
+            _uiAutomationHelper = uiAutomationHelper;
         }
 
-        public Task<OperationResult> GetElementInfoAsync(string? windowTitle = null, string? controlType = null, int? processId = null)
+        public async Task<OperationResult> GetElementInfoAsync(string? windowTitle = null, string? controlType = null, int? processId = null)
         {
             try
             {
                 var elements = new List<ElementInfo>();
-                AutomationElementCollection? elementCollection = null;
 
                 AutomationElement? searchRoot = null;
                 if (!string.IsNullOrEmpty(windowTitle))
@@ -37,7 +38,7 @@ namespace UiAutomationMcpServer.Services.Elements
                     searchRoot = _windowService.FindWindowByTitle(windowTitle, processId);
                     if (searchRoot == null)
                     {
-                        return Task.FromResult(new OperationResult { Success = false, Error = $"Window '{windowTitle}' not found" });
+                        return new OperationResult { Success = false, Error = $"Window '{windowTitle}' not found" };
                     }
                 }
                 else
@@ -55,18 +56,16 @@ namespace UiAutomationMcpServer.Services.Elements
                     }
                 }
 
-                try
+                var findResult = await _uiAutomationHelper.FindAllAsync(searchRoot, TreeScope.Descendants, condition);
+                if (!findResult.Success)
                 {
-                    elementCollection = searchRoot.FindAll(TreeScope.Descendants, condition);
-                }
-                catch (Exception ex)
-                {
-                    return Task.FromResult(new OperationResult { Success = false, Error = $"Failed to find elements: {ex.Message}" });
+                    return new OperationResult { Success = false, Error = findResult.Error };
                 }
 
+                var elementCollection = findResult.Data;
                 if (elementCollection == null)
                 {
-                    return Task.FromResult(new OperationResult { Success = true, Data = elements });
+                    return new OperationResult { Success = true, Data = elements };
                 }
 
                 foreach (AutomationElement element in elementCollection)
@@ -105,15 +104,15 @@ namespace UiAutomationMcpServer.Services.Elements
                     }
                 }
 
-                return Task.FromResult(new OperationResult { Success = true, Data = elements });
+                return new OperationResult { Success = true, Data = elements };
             }
             catch (Exception ex)
             {
-                return Task.FromResult(new OperationResult { Success = false, Error = $"GetElementInfo failed: {ex.Message}" });
+                return new OperationResult { Success = false, Error = $"GetElementInfo failed: {ex.Message}" };
             }
         }
 
-        public Task<OperationResult> FindElementsAsync(string? searchText = null, string? controlType = null, string? windowTitle = null, int? processId = null)
+        public async Task<OperationResult> FindElementsAsync(string? searchText = null, string? controlType = null, string? windowTitle = null, int? processId = null)
         {
             try
             {
@@ -125,7 +124,7 @@ namespace UiAutomationMcpServer.Services.Elements
                     searchRoot = _windowService.FindWindowByTitle(windowTitle, processId);
                     if (searchRoot == null)
                     {
-                        return Task.FromResult(new OperationResult { Success = false, Error = $"Window '{windowTitle}' not found" });
+                        return new OperationResult { Success = false, Error = $"Window '{windowTitle}' not found" };
                     }
                 }
                 else
@@ -152,9 +151,15 @@ namespace UiAutomationMcpServer.Services.Elements
 
                 Condition searchCondition = conditions.Count > 0 ? new OrCondition(conditions.ToArray()) : Condition.TrueCondition;
 
-                try
+                var findResult = await _uiAutomationHelper.FindAllAsync(searchRoot, TreeScope.Descendants, searchCondition);
+                if (!findResult.Success)
                 {
-                    var elementCollection = searchRoot.FindAll(TreeScope.Descendants, searchCondition);
+                    return new OperationResult { Success = false, Error = findResult.Error };
+                }
+
+                var elementCollection = findResult.Data;
+                if (elementCollection != null)
+                {
 
                     foreach (AutomationElement element in elementCollection)
                     {
@@ -194,16 +199,12 @@ namespace UiAutomationMcpServer.Services.Elements
                         }
                     }
                 }
-                catch (Exception ex)
-                {
-                    return Task.FromResult(new OperationResult { Success = false, Error = $"Failed to search elements: {ex.Message}" });
-                }
 
-                return Task.FromResult(new OperationResult { Success = true, Data = elements });
+                return new OperationResult { Success = true, Data = elements };
             }
             catch (Exception ex)
             {
-                return Task.FromResult(new OperationResult { Success = false, Error = $"FindElements failed: {ex.Message}" });
+                return new OperationResult { Success = false, Error = $"FindElements failed: {ex.Message}" };
             }
         }
 

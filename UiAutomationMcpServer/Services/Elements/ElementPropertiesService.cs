@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using System.Windows.Automation;
 using UiAutomationMcpServer.Models;
 using UiAutomationMcpServer.Services.Windows;
+using UiAutomationMcpServer.Services;
 
 namespace UiAutomationMcpServer.Services.Elements
 {
@@ -16,23 +17,26 @@ namespace UiAutomationMcpServer.Services.Elements
         private readonly ILogger<ElementPropertiesService> _logger;
         private readonly IWindowService _windowService;
         private readonly IElementUtilityService _elementUtilityService;
+        private readonly IUIAutomationHelper _uiAutomationHelper;
 
-        public ElementPropertiesService(ILogger<ElementPropertiesService> logger, IWindowService windowService, IElementUtilityService elementUtilityService)
+        public ElementPropertiesService(ILogger<ElementPropertiesService> logger, IWindowService windowService, IElementUtilityService elementUtilityService, IUIAutomationHelper uiAutomationHelper)
         {
             _logger = logger;
             _windowService = windowService;
             _elementUtilityService = elementUtilityService;
+            _uiAutomationHelper = uiAutomationHelper;
         }
 
-        public Task<OperationResult> GetElementPropertiesAsync(string elementId, string? windowTitle = null, int? processId = null)
+        public async Task<OperationResult> GetElementPropertiesAsync(string elementId, string? windowTitle = null, int? processId = null)
         {
             try
             {
-                var element = FindElement(elementId, windowTitle, processId);
-                if (element == null)
+                var elementResult = await FindElementAsync(elementId, windowTitle, processId);
+                if (!elementResult.Success || elementResult.Data == null)
                 {
-                    return Task.FromResult(new OperationResult { Success = false, Error = $"Element '{elementId}' not found" });
+                    return new OperationResult { Success = false, Error = elementResult.Error ?? $"Element '{elementId}' not found" };
                 }
+                var element = elementResult.Data;
 
                 var availableActions = _elementUtilityService.GetAvailableActions(element);
                 
@@ -69,24 +73,25 @@ namespace UiAutomationMcpServer.Services.Elements
                     AvailableActions = availableActions
                 };
 
-                return Task.FromResult(new OperationResult { Success = true, Data = properties });
+                return new OperationResult { Success = true, Data = properties };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting element properties for {ElementId}", elementId);
-                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+                return new OperationResult { Success = false, Error = ex.Message };
             }
         }
 
-        public Task<OperationResult> GetElementPatternsAsync(string elementId, string? windowTitle = null, int? processId = null)
+        public async Task<OperationResult> GetElementPatternsAsync(string elementId, string? windowTitle = null, int? processId = null)
         {
             try
             {
-                var element = FindElement(elementId, windowTitle, processId);
-                if (element == null)
+                var elementResult = await FindElementAsync(elementId, windowTitle, processId);
+                if (!elementResult.Success || elementResult.Data == null)
                 {
-                    return Task.FromResult(new OperationResult { Success = false, Error = $"Element '{elementId}' not found" });
+                    return new OperationResult { Success = false, Error = elementResult.Error ?? $"Element '{elementId}' not found" };
                 }
+                var element = elementResult.Data;
 
                 var supportedPatterns = new List<string>();
                 var patternDetails = new Dictionary<string, object>();
@@ -139,12 +144,12 @@ namespace UiAutomationMcpServer.Services.Elements
                     PatternDetails = patternDetails
                 };
 
-                return Task.FromResult(new OperationResult { Success = true, Data = result });
+                return new OperationResult { Success = true, Data = result };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting element patterns for {ElementId}", elementId);
-                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+                return new OperationResult { Success = false, Error = ex.Message };
             }
         }
 
@@ -219,7 +224,7 @@ namespace UiAutomationMcpServer.Services.Elements
             }
         }
 
-        private AutomationElement? FindElement(string elementId, string? windowTitle, int? processId)
+        private async Task<OperationResult<AutomationElement?>> FindElementAsync(string elementId, string? windowTitle, int? processId)
         {
             try
             {
@@ -230,7 +235,7 @@ namespace UiAutomationMcpServer.Services.Elements
                     if (searchRoot == null)
                     {
                         _logger.LogWarning("Window '{WindowTitle}' not found", windowTitle);
-                        return null;
+                        return new OperationResult<AutomationElement?> { Success = false, Error = $"Window '{windowTitle}' not found" };
                     }
                 }
                 else
@@ -243,12 +248,12 @@ namespace UiAutomationMcpServer.Services.Elements
                     new PropertyCondition(AutomationElement.NameProperty, elementId)
                 );
 
-                return searchRoot.FindFirst(TreeScope.Descendants, condition);
+                return await _uiAutomationHelper.FindFirstAsync(searchRoot, TreeScope.Descendants, condition);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error finding element {ElementId}", elementId);
-                return null;
+                return new OperationResult<AutomationElement?> { Success = false, Error = ex.Message };
             }
         }
     }

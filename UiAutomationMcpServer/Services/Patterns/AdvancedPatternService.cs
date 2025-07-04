@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using System.Windows.Automation;
 using UiAutomationMcpServer.Models;
 using UiAutomationMcpServer.Services.Windows;
+using UiAutomationMcpServer.Services;
 
 namespace UiAutomationMcpServer.Services.Patterns
 {
@@ -17,72 +18,77 @@ namespace UiAutomationMcpServer.Services.Patterns
     {
         private readonly ILogger<AdvancedPatternService> _logger;
         private readonly IWindowService _windowService;
+        private readonly IUIAutomationHelper _uiAutomationHelper;
 
-        public AdvancedPatternService(ILogger<AdvancedPatternService> logger, IWindowService windowService)
+        public AdvancedPatternService(ILogger<AdvancedPatternService> logger, IWindowService windowService, IUIAutomationHelper uiAutomationHelper)
         {
             _logger = logger;
             _windowService = windowService;
+            _uiAutomationHelper = uiAutomationHelper;
         }
 
-        public Task<OperationResult> ChangeViewAsync(string elementId, int viewId, string? windowTitle = null, int? processId = null)
+        public async Task<OperationResult> ChangeViewAsync(string elementId, int viewId, string? windowTitle = null, int? processId = null)
         {
             try
             {
-                var element = FindElement(elementId, windowTitle, processId);
-                if (element == null)
+                var elementResult = await FindElementAsync(elementId, windowTitle, processId);
+                if (!elementResult.Success || elementResult.Data == null)
                 {
-                    return Task.FromResult(new OperationResult { Success = false, Error = $"Element '{elementId}' not found" });
+                    return new OperationResult { Success = false, Error = elementResult.Error ?? $"Element '{elementId}' not found" };
                 }
+                var element = elementResult.Data;
 
                 if (element.TryGetCurrentPattern(MultipleViewPattern.Pattern, out var pattern) && pattern is MultipleViewPattern multipleViewPattern)
                 {
                     multipleViewPattern.SetCurrentView(viewId);
-                    return Task.FromResult(new OperationResult { Success = true, Data = "View changed successfully" });
+                    return new OperationResult { Success = true, Data = "View changed successfully" };
                 }
                 
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support MultipleViewPattern" });
+                return new OperationResult { Success = false, Error = "Element does not support MultipleViewPattern" };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error changing view on element {ElementId}", elementId);
-                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+                return new OperationResult { Success = false, Error = ex.Message };
             }
         }
 
-        public Task<OperationResult> RealizeVirtualizedItemAsync(string elementId, string? windowTitle = null, int? processId = null)
+        public async Task<OperationResult> RealizeVirtualizedItemAsync(string elementId, string? windowTitle = null, int? processId = null)
         {
             try
             {
-                var element = FindElement(elementId, windowTitle, processId);
-                if (element == null)
+                var elementResult = await FindElementAsync(elementId, windowTitle, processId);
+                if (!elementResult.Success || elementResult.Data == null)
                 {
-                    return Task.FromResult(new OperationResult { Success = false, Error = $"Element '{elementId}' not found" });
+                    return new OperationResult { Success = false, Error = elementResult.Error ?? $"Element '{elementId}' not found" };
                 }
+                var element = elementResult.Data;
 
                 if (element.TryGetCurrentPattern(VirtualizedItemPattern.Pattern, out var pattern) && pattern is VirtualizedItemPattern virtualizedItemPattern)
                 {
                     virtualizedItemPattern.Realize();
-                    return Task.FromResult(new OperationResult { Success = true, Data = "Virtualized item realized successfully" });
+                    return new OperationResult { Success = true, Data = "Virtualized item realized successfully" };
                 }
                 
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support VirtualizedItemPattern" });
+                return new OperationResult { Success = false, Error = "Element does not support VirtualizedItemPattern" };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error realizing virtualized item {ElementId}", elementId);
-                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+                return new OperationResult { Success = false, Error = ex.Message };
             }
         }
 
-        public Task<OperationResult> FindItemInContainerAsync(string elementId, string findText, string? windowTitle = null, int? processId = null)
+        public async Task<OperationResult> FindItemInContainerAsync(string elementId, string findText, string? windowTitle = null, int? processId = null)
         {
             try
             {
-                var element = FindElement(elementId, windowTitle, processId);
-                if (element == null)
+                var elementResult = await FindElementAsync(elementId, windowTitle, processId);
+                if (!elementResult.Success || elementResult.Data == null)
                 {
-                    return Task.FromResult(new OperationResult { Success = false, Error = $"Element '{elementId}' not found" });
+                    return new OperationResult { Success = false, Error = elementResult.Error ?? $"Element '{elementId}' not found" };
                 }
+                var element = elementResult.Data;
 
                 if (element.TryGetCurrentPattern(ItemContainerPattern.Pattern, out var pattern) && pattern is ItemContainerPattern itemContainerPattern)
                 {
@@ -100,47 +106,48 @@ namespace UiAutomationMcpServer.Services.Patterns
                             BoundingRectangle = foundItem.Current.BoundingRectangle
                         };
                         
-                        return Task.FromResult(new OperationResult { Success = true, Data = itemInfo });
+                        return new OperationResult { Success = true, Data = itemInfo };
                     }
                     
-                    return Task.FromResult(new OperationResult { Success = false, Error = $"Item '{findText}' not found in container" });
+                    return new OperationResult { Success = false, Error = $"Item '{findText}' not found in container" };
                 }
                 
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support ItemContainerPattern" });
+                return new OperationResult { Success = false, Error = "Element does not support ItemContainerPattern" };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error finding item in container {ElementId}", elementId);
-                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+                return new OperationResult { Success = false, Error = ex.Message };
             }
         }
 
-        public Task<OperationResult> CancelSynchronizedInputAsync(string elementId, string? windowTitle = null, int? processId = null)
+        public async Task<OperationResult> CancelSynchronizedInputAsync(string elementId, string? windowTitle = null, int? processId = null)
         {
             try
             {
-                var element = FindElement(elementId, windowTitle, processId);
-                if (element == null)
+                var elementResult = await FindElementAsync(elementId, windowTitle, processId);
+                if (!elementResult.Success || elementResult.Data == null)
                 {
-                    return Task.FromResult(new OperationResult { Success = false, Error = $"Element '{elementId}' not found" });
+                    return new OperationResult { Success = false, Error = elementResult.Error ?? $"Element '{elementId}' not found" };
                 }
+                var element = elementResult.Data;
 
                 if (element.TryGetCurrentPattern(SynchronizedInputPattern.Pattern, out var pattern) && pattern is SynchronizedInputPattern synchronizedInputPattern)
                 {
                     synchronizedInputPattern.Cancel();
-                    return Task.FromResult(new OperationResult { Success = true, Data = "Synchronized input cancelled successfully" });
+                    return new OperationResult { Success = true, Data = "Synchronized input cancelled successfully" };
                 }
                 
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support SynchronizedInputPattern" });
+                return new OperationResult { Success = false, Error = "Element does not support SynchronizedInputPattern" };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error cancelling synchronized input on element {ElementId}", elementId);
-                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+                return new OperationResult { Success = false, Error = ex.Message };
             }
         }
 
-        private AutomationElement? FindElement(string elementId, string? windowTitle, int? processId)
+        private async Task<OperationResult<AutomationElement?>> FindElementAsync(string elementId, string? windowTitle, int? processId)
         {
             try
             {
@@ -151,7 +158,7 @@ namespace UiAutomationMcpServer.Services.Patterns
                     if (searchRoot == null)
                     {
                         _logger.LogWarning("Window '{WindowTitle}' not found", windowTitle);
-                        return null;
+                        return new OperationResult<AutomationElement?> { Success = false, Error = $"Window '{windowTitle}' not found" };
                     }
                 }
                 else
@@ -164,12 +171,12 @@ namespace UiAutomationMcpServer.Services.Patterns
                     new PropertyCondition(AutomationElement.NameProperty, elementId)
                 );
 
-                return searchRoot.FindFirst(TreeScope.Descendants, condition);
+                return await _uiAutomationHelper.FindFirstAsync(searchRoot, TreeScope.Descendants, condition);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error finding element {ElementId}", elementId);
-                return null;
+                return new OperationResult<AutomationElement?> { Success = false, Error = ex.Message };
             }
         }
     }

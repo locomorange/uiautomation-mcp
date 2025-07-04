@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Automation;
 using UiAutomationMcpServer.Models;
+using UiAutomationMcpServer.Services;
 
 namespace UiAutomationMcpServer.Services.Windows
 {
@@ -17,32 +18,36 @@ namespace UiAutomationMcpServer.Services.Windows
     public class WindowService : IWindowService
     {
         private readonly ILogger<WindowService> _logger;
+        private readonly IUIAutomationHelper _uiAutomationHelper;
 
-        public WindowService(ILogger<WindowService> logger)
+        public WindowService(ILogger<WindowService> logger, IUIAutomationHelper uiAutomationHelper)
         {
             _logger = logger;
+            _uiAutomationHelper = uiAutomationHelper;
         }
 
-        public Task<OperationResult> GetWindowInfoAsync()
+        public async Task<OperationResult> GetWindowInfoAsync()
         {
             try
             {
                 var windows = new List<WindowInfo>();
-                AutomationElementCollection? windowElements = null;
                 
-                try
+                var windowElementsResult = await _uiAutomationHelper.FindAllAsync(
+                    AutomationElement.RootElement,
+                    TreeScope.Children,
+                    new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window),
+                    30);
+                
+                if (!windowElementsResult.Success)
                 {
-                    windowElements = AutomationElement.RootElement.FindAll(TreeScope.Children,
-                        new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window));
+                    return new OperationResult { Success = false, Error = windowElementsResult.Error ?? "Failed to find windows" };
                 }
-                catch (Exception ex)
-                {
-                    return Task.FromResult(new OperationResult { Success = false, Error = $"Failed to find windows: {ex.Message}" });
-                }
+                
+                var windowElements = windowElementsResult.Data;
 
                 if (windowElements == null)
                 {
-                    return Task.FromResult(new OperationResult { Success = true, Data = windows });
+                    return new OperationResult { Success = true, Data = windows };
                 }
 
                 foreach (AutomationElement window in windowElements)
@@ -76,11 +81,11 @@ namespace UiAutomationMcpServer.Services.Windows
                     }
                 }
 
-                return Task.FromResult(new OperationResult { Success = true, Data = windows });
+                return new OperationResult { Success = true, Data = windows };
             }
             catch (Exception ex)
             {
-                return Task.FromResult(new OperationResult { Success = false, Error = $"GetWindowInfo failed: {ex.Message}" });
+                return new OperationResult { Success = false, Error = $"GetWindowInfo failed: {ex.Message}" };
             }
         }
 

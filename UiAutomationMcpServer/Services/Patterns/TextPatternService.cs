@@ -3,6 +3,7 @@ using System.Windows.Automation;
 using System.Windows.Automation.Text;
 using UiAutomationMcpServer.Models;
 using UiAutomationMcpServer.Services.Windows;
+using UiAutomationMcpServer.Services;
 
 namespace UiAutomationMcpServer.Services.Patterns
 {
@@ -18,49 +19,53 @@ namespace UiAutomationMcpServer.Services.Patterns
     {
         private readonly ILogger<TextPatternService> _logger;
         private readonly IWindowService _windowService;
+        private readonly IUIAutomationHelper _uiAutomationHelper;
 
-        public TextPatternService(ILogger<TextPatternService> logger, IWindowService windowService)
+        public TextPatternService(ILogger<TextPatternService> logger, IWindowService windowService, IUIAutomationHelper uiAutomationHelper)
         {
             _logger = logger;
             _windowService = windowService;
+            _uiAutomationHelper = uiAutomationHelper;
         }
 
-        public Task<OperationResult> GetTextAsync(string elementId, string? windowTitle = null, int? processId = null)
+        public async Task<OperationResult> GetTextAsync(string elementId, string? windowTitle = null, int? processId = null)
         {
             try
             {
-                var element = FindElement(elementId, windowTitle, processId);
-                if (element == null)
+                var elementResult = await FindElementAsync(elementId, windowTitle, processId);
+                if (!elementResult.Success || elementResult.Data == null)
                 {
-                    return Task.FromResult(new OperationResult { Success = false, Error = $"Element '{elementId}' not found" });
+                    return new OperationResult { Success = false, Error = elementResult.Error ?? $"Element '{elementId}' not found" };
                 }
+                var element = elementResult.Data;
 
                 if (element.TryGetCurrentPattern(TextPattern.Pattern, out var pattern) && pattern is TextPattern textPattern)
                 {
                     var documentRange = textPattern.DocumentRange;
                     var text = documentRange.GetText(-1);
                     
-                    return Task.FromResult(new OperationResult { Success = true, Data = text });
+                    return new OperationResult { Success = true, Data = text };
                 }
                 
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support TextPattern" });
+                return new OperationResult { Success = false, Error = "Element does not support TextPattern" };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting text from element {ElementId}", elementId);
-                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+                return new OperationResult { Success = false, Error = ex.Message };
             }
         }
 
-        public Task<OperationResult> SelectTextAsync(string elementId, int startIndex, int length, string? windowTitle = null, int? processId = null)
+        public async Task<OperationResult> SelectTextAsync(string elementId, int startIndex, int length, string? windowTitle = null, int? processId = null)
         {
             try
             {
-                var element = FindElement(elementId, windowTitle, processId);
-                if (element == null)
+                var elementResult = await FindElementAsync(elementId, windowTitle, processId);
+                if (!elementResult.Success || elementResult.Data == null)
                 {
-                    return Task.FromResult(new OperationResult { Success = false, Error = $"Element '{elementId}' not found" });
+                    return new OperationResult { Success = false, Error = elementResult.Error ?? $"Element '{elementId}' not found" };
                 }
+                var element = elementResult.Data;
 
                 if (element.TryGetCurrentPattern(TextPattern.Pattern, out var pattern) && pattern is TextPattern textPattern)
                 {
@@ -69,7 +74,7 @@ namespace UiAutomationMcpServer.Services.Patterns
                     
                     if (startIndex < 0 || startIndex >= selectionRange.Length)
                     {
-                        return Task.FromResult(new OperationResult { Success = false, Error = "Start index out of range" });
+                        return new OperationResult { Success = false, Error = "Start index out of range" };
                     }
                     
                     if (startIndex + length > selectionRange.Length)
@@ -83,30 +88,31 @@ namespace UiAutomationMcpServer.Services.Patterns
                     if (rangeToSelect != null)
                     {
                         rangeToSelect.Select();
-                        return Task.FromResult(new OperationResult { Success = true, Data = "Text selected successfully" });
+                        return new OperationResult { Success = true, Data = "Text selected successfully" };
                     }
                     
-                    return Task.FromResult(new OperationResult { Success = false, Error = "Could not create text range for selection" });
+                    return new OperationResult { Success = false, Error = "Could not create text range for selection" };
                 }
                 
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support TextPattern" });
+                return new OperationResult { Success = false, Error = "Element does not support TextPattern" };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error selecting text in element {ElementId}", elementId);
-                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+                return new OperationResult { Success = false, Error = ex.Message };
             }
         }
 
-        public Task<OperationResult> FindTextAsync(string elementId, string searchText, bool backward = false, bool ignoreCase = false, string? windowTitle = null, int? processId = null)
+        public async Task<OperationResult> FindTextAsync(string elementId, string searchText, bool backward = false, bool ignoreCase = false, string? windowTitle = null, int? processId = null)
         {
             try
             {
-                var element = FindElement(elementId, windowTitle, processId);
-                if (element == null)
+                var elementResult = await FindElementAsync(elementId, windowTitle, processId);
+                if (!elementResult.Success || elementResult.Data == null)
                 {
-                    return Task.FromResult(new OperationResult { Success = false, Error = $"Element '{elementId}' not found" });
+                    return new OperationResult { Success = false, Error = elementResult.Error ?? $"Element '{elementId}' not found" };
                 }
+                var element = elementResult.Data;
 
                 if (element.TryGetCurrentPattern(TextPattern.Pattern, out var pattern) && pattern is TextPattern textPattern)
                 {
@@ -123,30 +129,31 @@ namespace UiAutomationMcpServer.Services.Patterns
                             Found = true
                         };
                         
-                        return Task.FromResult(new OperationResult { Success = true, Data = result });
+                        return new OperationResult { Success = true, Data = result };
                     }
                     
-                    return Task.FromResult(new OperationResult { Success = true, Data = new { Found = false } });
+                    return new OperationResult { Success = true, Data = new { Found = false } };
                 }
                 
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support TextPattern" });
+                return new OperationResult { Success = false, Error = "Element does not support TextPattern" };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error finding text in element {ElementId}", elementId);
-                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+                return new OperationResult { Success = false, Error = ex.Message };
             }
         }
 
-        public Task<OperationResult> GetTextSelectionAsync(string elementId, string? windowTitle = null, int? processId = null)
+        public async Task<OperationResult> GetTextSelectionAsync(string elementId, string? windowTitle = null, int? processId = null)
         {
             try
             {
-                var element = FindElement(elementId, windowTitle, processId);
-                if (element == null)
+                var elementResult = await FindElementAsync(elementId, windowTitle, processId);
+                if (!elementResult.Success || elementResult.Data == null)
                 {
-                    return Task.FromResult(new OperationResult { Success = false, Error = $"Element '{elementId}' not found" });
+                    return new OperationResult { Success = false, Error = elementResult.Error ?? $"Element '{elementId}' not found" };
                 }
+                var element = elementResult.Data;
 
                 if (element.TryGetCurrentPattern(TextPattern.Pattern, out var pattern) && pattern is TextPattern textPattern)
                 {
@@ -162,19 +169,19 @@ namespace UiAutomationMcpServer.Services.Patterns
                         });
                     }
                     
-                    return Task.FromResult(new OperationResult { Success = true, Data = selectionInfo });
+                    return new OperationResult { Success = true, Data = selectionInfo };
                 }
                 
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support TextPattern" });
+                return new OperationResult { Success = false, Error = "Element does not support TextPattern" };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting text selection from element {ElementId}", elementId);
-                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+                return new OperationResult { Success = false, Error = ex.Message };
             }
         }
 
-        private AutomationElement? FindElement(string elementId, string? windowTitle, int? processId)
+        private async Task<OperationResult<AutomationElement?>> FindElementAsync(string elementId, string? windowTitle, int? processId)
         {
             try
             {
@@ -185,7 +192,7 @@ namespace UiAutomationMcpServer.Services.Patterns
                     if (searchRoot == null)
                     {
                         _logger.LogWarning("Window '{WindowTitle}' not found", windowTitle);
-                        return null;
+                        return new OperationResult<AutomationElement?> { Success = false, Error = $"Window '{windowTitle}' not found" };
                     }
                 }
                 else
@@ -198,12 +205,12 @@ namespace UiAutomationMcpServer.Services.Patterns
                     new PropertyCondition(AutomationElement.NameProperty, elementId)
                 );
 
-                return searchRoot.FindFirst(TreeScope.Descendants, condition);
+                return await _uiAutomationHelper.FindFirstAsync(searchRoot, TreeScope.Descendants, condition);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error finding element {ElementId}", elementId);
-                return null;
+                return new OperationResult<AutomationElement?> { Success = false, Error = ex.Message };
             }
         }
     }

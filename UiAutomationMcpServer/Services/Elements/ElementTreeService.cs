@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using System.Windows.Automation;
 using UiAutomationMcpServer.Models;
 using UiAutomationMcpServer.Services.Windows;
+using UiAutomationMcpServer.Services;
 
 namespace UiAutomationMcpServer.Services.Elements
 {
@@ -15,15 +16,17 @@ namespace UiAutomationMcpServer.Services.Elements
         private readonly ILogger<ElementTreeService> _logger;
         private readonly IWindowService _windowService;
         private readonly IElementUtilityService _elementUtilityService;
+        private readonly IUIAutomationHelper _uiAutomationHelper;
 
-        public ElementTreeService(ILogger<ElementTreeService> logger, IWindowService windowService, IElementUtilityService elementUtilityService)
+        public ElementTreeService(ILogger<ElementTreeService> logger, IWindowService windowService, IElementUtilityService elementUtilityService, IUIAutomationHelper uiAutomationHelper)
         {
             _logger = logger;
             _windowService = windowService;
             _elementUtilityService = elementUtilityService;
+            _uiAutomationHelper = uiAutomationHelper;
         }
 
-        public Task<OperationResult> GetElementTreeAsync(string? windowTitle = null, string treeView = "control", int maxDepth = 3, int? processId = null)
+        public async Task<OperationResult> GetElementTreeAsync(string? windowTitle = null, string treeView = "control", int maxDepth = 3, int? processId = null)
         {
             try
             {
@@ -34,7 +37,7 @@ namespace UiAutomationMcpServer.Services.Elements
                     rootElement = _windowService.FindWindowByTitle(windowTitle, processId);
                     if (rootElement == null)
                     {
-                        return Task.FromResult(new OperationResult { Success = false, Error = $"Window '{windowTitle}' not found" });
+                        return new OperationResult { Success = false, Error = $"Window '{windowTitle}' not found" };
                     }
                 }
                 else
@@ -43,14 +46,14 @@ namespace UiAutomationMcpServer.Services.Elements
                 }
 
                 var treeScope = GetTreeScope(treeView);
-                var tree = BuildElementTree(rootElement, treeScope, maxDepth, 0);
+                var tree = await BuildElementTreeAsync(rootElement, treeScope, maxDepth, 0);
 
-                return Task.FromResult(new OperationResult { Success = true, Data = tree });
+                return new OperationResult { Success = true, Data = tree };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting element tree");
-                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+                return new OperationResult { Success = false, Error = ex.Message };
             }
         }
 
@@ -65,7 +68,7 @@ namespace UiAutomationMcpServer.Services.Elements
             };
         }
 
-        private ElementTreeNode BuildElementTree(AutomationElement element, TreeScope scope, int maxDepth, int currentDepth)
+        private async Task<ElementTreeNode> BuildElementTreeAsync(AutomationElement element, TreeScope scope, int maxDepth, int currentDepth)
         {
             var node = new ElementTreeNode
             {
@@ -92,20 +95,27 @@ namespace UiAutomationMcpServer.Services.Elements
                 try
                 {
                     var childCondition = GetTreeViewCondition(scope);
-                    var children = element.FindAll(TreeScope.Children, childCondition);
+                    var childrenResult = await _uiAutomationHelper.FindAllAsync(element, TreeScope.Children, childCondition, 30);
 
-                    foreach (AutomationElement child in children)
+                    if (childrenResult.Success && childrenResult.Data != null)
                     {
-                        try
+                        foreach (AutomationElement child in childrenResult.Data)
                         {
-                            var childNode = BuildElementTree(child, scope, maxDepth, currentDepth + 1);
-                            node.Children.Add(childNode);
+                            try
+                            {
+                                var childNode = await BuildElementTreeAsync(child, scope, maxDepth, currentDepth + 1);
+                                node.Children.Add(childNode);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogWarning(ex, "Error processing child element");
+                                continue;
+                            }
                         }
-                        catch (Exception ex)
-                        {
-                            _logger.LogWarning(ex, "Error processing child element");
-                            continue;
-                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Error getting child elements: {Error}", childrenResult.Error);
                     }
                 }
                 catch (Exception ex)

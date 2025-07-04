@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using System.Windows.Automation;
 using UiAutomationMcpServer.Models;
 using UiAutomationMcpServer.Services.Windows;
+using UiAutomationMcpServer.Services;
 
 namespace UiAutomationMcpServer.Services.Patterns
 {
@@ -14,22 +15,25 @@ namespace UiAutomationMcpServer.Services.Patterns
     {
         private readonly ILogger<WindowPatternService> _logger;
         private readonly IWindowService _windowService;
+        private readonly IUIAutomationHelper _uiAutomationHelper;
 
-        public WindowPatternService(ILogger<WindowPatternService> logger, IWindowService windowService)
+        public WindowPatternService(ILogger<WindowPatternService> logger, IWindowService windowService, IUIAutomationHelper uiAutomationHelper)
         {
             _logger = logger;
             _windowService = windowService;
+            _uiAutomationHelper = uiAutomationHelper;
         }
 
-        public Task<OperationResult> WindowActionAsync(string elementId, string action, string? windowTitle = null, int? processId = null)
+        public async Task<OperationResult> WindowActionAsync(string elementId, string action, string? windowTitle = null, int? processId = null)
         {
             try
             {
-                var element = FindElement(elementId, windowTitle, processId);
-                if (element == null)
+                var elementResult = await FindElementAsync(elementId, windowTitle, processId);
+                if (!elementResult.Success || elementResult.Data == null)
                 {
-                    return Task.FromResult(new OperationResult { Success = false, Error = $"Element '{elementId}' not found" });
+                    return new OperationResult { Success = false, Error = elementResult.Error ?? $"Element '{elementId}' not found" };
                 }
+                var element = elementResult.Data;
 
                 if (element.TryGetCurrentPattern(WindowPattern.Pattern, out var pattern) && pattern is WindowPattern windowPattern)
                 {
@@ -37,31 +41,31 @@ namespace UiAutomationMcpServer.Services.Patterns
                     {
                         case "close":
                             windowPattern.Close();
-                            return Task.FromResult(new OperationResult { Success = true, Data = "Window closed successfully" });
+                            return new OperationResult { Success = true, Data = "Window closed successfully" };
                         case "minimize":
                             windowPattern.SetWindowVisualState(WindowVisualState.Minimized);
-                            return Task.FromResult(new OperationResult { Success = true, Data = "Window minimized successfully" });
+                            return new OperationResult { Success = true, Data = "Window minimized successfully" };
                         case "maximize":
                             windowPattern.SetWindowVisualState(WindowVisualState.Maximized);
-                            return Task.FromResult(new OperationResult { Success = true, Data = "Window maximized successfully" });
+                            return new OperationResult { Success = true, Data = "Window maximized successfully" };
                         case "normal":
                             windowPattern.SetWindowVisualState(WindowVisualState.Normal);
-                            return Task.FromResult(new OperationResult { Success = true, Data = "Window set to normal state successfully" });
+                            return new OperationResult { Success = true, Data = "Window set to normal state successfully" };
                         default:
-                            return Task.FromResult(new OperationResult { Success = false, Error = $"Unknown window action: {action}" });
+                            return new OperationResult { Success = false, Error = $"Unknown window action: {action}" };
                     }
                 }
                 
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support WindowPattern" });
+                return new OperationResult { Success = false, Error = "Element does not support WindowPattern" };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error executing window action {Action} on element {ElementId}", action, elementId);
-                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+                return new OperationResult { Success = false, Error = ex.Message };
             }
         }
 
-        private AutomationElement? FindElement(string elementId, string? windowTitle, int? processId)
+        private async Task<OperationResult<AutomationElement?>> FindElementAsync(string elementId, string? windowTitle, int? processId)
         {
             try
             {
@@ -72,7 +76,7 @@ namespace UiAutomationMcpServer.Services.Patterns
                     if (searchRoot == null)
                     {
                         _logger.LogWarning("Window '{WindowTitle}' not found", windowTitle);
-                        return null;
+                        return new OperationResult<AutomationElement?> { Success = false, Error = $"Window '{windowTitle}' not found" };
                     }
                 }
                 else
@@ -85,12 +89,12 @@ namespace UiAutomationMcpServer.Services.Patterns
                     new PropertyCondition(AutomationElement.NameProperty, elementId)
                 );
 
-                return searchRoot.FindFirst(TreeScope.Descendants, condition);
+                return await _uiAutomationHelper.FindFirstAsync(searchRoot, TreeScope.Descendants, condition);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error finding element {ElementId}", elementId);
-                return null;
+                return new OperationResult<AutomationElement?> { Success = false, Error = ex.Message };
             }
         }
     }

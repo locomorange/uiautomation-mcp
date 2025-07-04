@@ -5,6 +5,7 @@ using ModelContextProtocol.Server;
 using UiAutomationMcpServer.Services.Windows;
 using UiAutomationMcpServer.Services.Elements;
 using UiAutomationMcpServer.Services.Patterns;
+using UiAutomationMcpServer.Services;
 using System.IO;
 
 namespace UiAutomationMcpServer
@@ -24,6 +25,9 @@ namespace UiAutomationMcpServer
             // Register Windows services
             builder.Services.AddSingleton<IWindowService, WindowService>();
             builder.Services.AddSingleton<IScreenshotService, ScreenshotService>();
+            
+            // Register shared services
+            builder.Services.AddSingleton<IUIAutomationHelper, UIAutomationHelper>();
             
             // Register Element services
             builder.Services.AddSingleton<IElementUtilityService, ElementUtilityService>();
