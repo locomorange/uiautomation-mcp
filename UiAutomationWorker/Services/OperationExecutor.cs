@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Logging;
 using UiAutomationMcp.Models;
 using UiAutomationWorker.PatternExecutors;
-using UiAutomationWorker.Operations;
 
 namespace UiAutomationWorker.Services
 {
@@ -14,23 +13,20 @@ namespace UiAutomationWorker.Services
         private readonly ElementSearchService _elementSearchService;
         private readonly CorePatternExecutor _corePatternExecutor;
         private readonly LayoutPatternExecutor _layoutPatternExecutor;
-        private readonly PatternOperations _patternOperations;
-        private readonly TreeOperations _treeOperations;
+        private readonly TreePatternExecutor _treePatternExecutor;
 
         public OperationExecutor(
             ILogger<OperationExecutor> logger,
             ElementSearchService elementSearchService,
             CorePatternExecutor corePatternExecutor,
             LayoutPatternExecutor layoutPatternExecutor,
-            PatternOperations patternOperations,
-            TreeOperations treeOperations)
+            TreePatternExecutor treePatternExecutor)
         {
             _logger = logger;
             _elementSearchService = elementSearchService;
             _corePatternExecutor = corePatternExecutor;
             _layoutPatternExecutor = layoutPatternExecutor;
-            _patternOperations = patternOperations;
-            _treeOperations = treeOperations;
+            _treePatternExecutor = treePatternExecutor;
         }
 
         /// <summary>
@@ -46,46 +42,27 @@ namespace UiAutomationWorker.Services
                 {
                     // 要素検索操作
                     "findfirst" => await _elementSearchService.ExecuteFindFirstAsync(operation),
-                    "findfirst_advanced" => await ConvertToWorkerResult(_patternOperations.InvokeAsync(operation.Parameters)),
                     "findall" => await _elementSearchService.ExecuteFindAllAsync(operation),
-                    "findall_advanced" => await ConvertToWorkerResult(_patternOperations.InvokeAsync(operation.Parameters)),
                     "getproperties" => await _elementSearchService.ExecuteGetPropertiesAsync(operation),
-                    "get_properties" => await ConvertToWorkerResult(_patternOperations.InvokeAsync(operation.Parameters)),
-                    "get_patterns" => await ConvertToWorkerResult(_patternOperations.InvokeAsync(operation.Parameters)),
 
                     // Core Pattern Operations
-                    "invoke" => await ConvertToWorkerResult(_patternOperations.InvokeAsync(operation.Parameters)),
-                    "toggle" => await ConvertToWorkerResult(_patternOperations.ToggleAsync(operation.Parameters)),
-                    "setvalue" => await ConvertToWorkerResult(_patternOperations.SetValueAsync(operation.Parameters)),
-                    "getvalue" => await ConvertToWorkerResult(_patternOperations.GetValueAsync(operation.Parameters)),
-                    "selectitem" => await ConvertToWorkerResult(_patternOperations.SelectItemAsync(operation.Parameters)),
-                    "setwindowstate" => await ConvertToWorkerResult(_patternOperations.SetWindowStateAsync(operation.Parameters)),
-
-                    // Range Value Pattern Operations
-                    "setrangevalue" => await ConvertToWorkerResult(_patternOperations.SetRangeValueAsync(operation.Parameters)),
-                    "getrangevalue" => await ConvertToWorkerResult(_patternOperations.GetRangeValueAsync(operation.Parameters)),
-
-                    // Text Pattern Operations
-                    "gettext" => await ConvertToWorkerResult(_patternOperations.GetTextAsync(operation.Parameters)),
-                    "selecttext" => await ConvertToWorkerResult(_patternOperations.SelectTextAsync(operation.Parameters)),
-
-                    // Layout Pattern Operations
-                    "expandcollapse" => await ConvertToWorkerResult(_patternOperations.ExpandCollapseAsync(operation.Parameters)),
-                    "transform" => await ConvertToWorkerResult(_patternOperations.TransformAsync(operation.Parameters)),
-                    "dock" => await ConvertToWorkerResult(_patternOperations.DockAsync(operation.Parameters)),
-
-                    // Tree Operations
-                    "gettree" => await ConvertToWorkerResult(_treeOperations.GetTreeAsync(operation.Parameters)),
-                    "getchildren" => await ConvertToWorkerResult(_treeOperations.GetChildrenAsync(operation.Parameters)),
-
-                    // 既存のコアパターン操作（後方互換性のため）
-                    "value" => await _corePatternExecutor.ExecuteSetValueAsync(operation), // Alias for setvalue
-                    "get_value" => await _corePatternExecutor.ExecuteGetValueAsync(operation),
+                    "invoke" => await _corePatternExecutor.ExecuteInvokeAsync(operation),
+                    "setvalue" => await _corePatternExecutor.ExecuteSetValueAsync(operation),
+                    "getvalue" => await _corePatternExecutor.ExecuteGetValueAsync(operation),
+                    "toggle" => await _corePatternExecutor.ExecuteToggleAsync(operation),
                     "select" => await _corePatternExecutor.ExecuteSelectAsync(operation),
 
-                    // 既存のレイアウトパターン操作（後方互換性のため）
+                    // Layout Pattern Operations
                     "scroll" => await _layoutPatternExecutor.ExecuteScrollAsync(operation),
                     "scrollintoview" => await _layoutPatternExecutor.ExecuteScrollIntoViewAsync(operation),
+
+                    // Tree Operations - using TreePatternExecutor for legacy operations format
+                    "gettree" => await ConvertToWorkerResult(_treePatternExecutor.GetTreeAsync(ConvertOperationToParameters(operation))),
+                    "getchildren" => await ConvertToWorkerResult(_treePatternExecutor.GetChildrenAsync(ConvertOperationToParameters(operation))),
+
+                    // Aliases for backward compatibility
+                    "value" => await _corePatternExecutor.ExecuteSetValueAsync(operation),
+                    "get_value" => await _corePatternExecutor.ExecuteGetValueAsync(operation),
 
                     // 未知の操作
                     _ => new WorkerResult
@@ -93,8 +70,7 @@ namespace UiAutomationWorker.Services
                         Success = false,
                         Error = $"Unknown operation: {operation.Operation}. " +
                                 "Supported operations: findfirst, findall, getproperties, invoke, setvalue, getvalue, " +
-                                "toggle, selectitem, setwindowstate, setrangevalue, getrangevalue, gettext, selecttext, " +
-                                "expandcollapse, transform, dock, gettree, getchildren"
+                                "toggle, select, scroll, scrollintoview, gettree, getchildren"
                     }
                 };
             }
@@ -126,21 +102,11 @@ namespace UiAutomationWorker.Services
                 "setvalue",
                 "getvalue",
                 "toggle",
-                "selectitem",
-                "setwindowstate",
-
-                // Range Value Pattern Operations
-                "setrangevalue",
-                "getrangevalue",
-
-                // Text Pattern Operations
-                "gettext",
-                "selecttext",
+                "select",
 
                 // Layout Pattern Operations
-                "expandcollapse",
-                "transform",
-                "dock",
+                "scroll",
+                "scrollintoview",
 
                 // Tree Operations
                 "gettree",
@@ -148,10 +114,7 @@ namespace UiAutomationWorker.Services
 
                 // 後方互換性のためのエイリアス
                 "value", // setvalue のエイリアス
-                "get_value",
-                "select",
-                "scroll",
-                "scrollintoview"
+                "get_value"
             };
         }
 
@@ -186,10 +149,8 @@ namespace UiAutomationWorker.Services
             info["category"] = operationLower switch
             {
                 "findfirst" or "findall" or "getproperties" => "Element Search",
-                "invoke" or "setvalue" or "getvalue" or "value" or "get_value" or "toggle" or "select" or "selectitem" or "setwindowstate" => "Core Patterns",
-                "setrangevalue" or "getrangevalue" => "Range Value Patterns",
-                "gettext" or "selecttext" => "Text Patterns",
-                "expandcollapse" or "transform" or "dock" or "scroll" or "scrollintoview" => "Layout Patterns",
+                "invoke" or "setvalue" or "getvalue" or "value" or "get_value" or "toggle" or "select" => "Core Patterns",
+                "scroll" or "scrollintoview" => "Layout Patterns",
                 "gettree" or "getchildren" => "Tree Operations",
                 _ => "Unknown"
             };
@@ -247,7 +208,16 @@ namespace UiAutomationWorker.Services
         }
 
         /// <summary>
-        /// PatternOperationsやTreeOperationsの結果をWorkerResultに変換します
+        /// WorkerOperationをDictionary<string, object>に変換します
+        /// </summary>
+        private Dictionary<string, object> ConvertOperationToParameters(WorkerOperation operation)
+        {
+            // WorkerOperationのParametersをそのまま返す
+            return new Dictionary<string, object>(operation.Parameters);
+        }
+
+        /// <summary>
+        /// TreePatternExecutorの結果をWorkerResultに変換します
         /// </summary>
         private async Task<WorkerResult> ConvertToWorkerResult(Task<object> operationTask)
         {

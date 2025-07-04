@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using UiAutomationWorker.Services;
 using UiAutomationWorker.PatternExecutors;
 using UiAutomationWorker.Helpers;
-using UiAutomationWorker.Operations;
 
 namespace UiAutomationWorker.Configuration
 {
@@ -29,10 +28,7 @@ namespace UiAutomationWorker.Configuration
             // Register pattern executors
             services.AddSingleton<CorePatternExecutor>();
             services.AddSingleton<LayoutPatternExecutor>();
-
-            // Register new operation classes
-            services.AddSingleton<PatternOperations>();
-            services.AddSingleton<TreeOperations>();
+            services.AddSingleton<TreePatternExecutor>();
 
             // Register main services
             services.AddSingleton<ElementSearchService>();

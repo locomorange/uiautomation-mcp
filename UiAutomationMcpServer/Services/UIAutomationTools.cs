@@ -3,7 +3,7 @@ using ModelContextProtocol.Server;
 using System.ComponentModel;
 using UiAutomationMcpServer.Services.Windows;
 using UiAutomationMcpServer.Services.Elements;
-using UiAutomationMcpServer.Services.Patterns;
+using UiAutomationMcpServer.Services;
 
 namespace UiAutomationMcpServer.Tools
 {
@@ -14,12 +14,7 @@ namespace UiAutomationMcpServer.Tools
         private readonly IElementDiscoveryService _elementDiscoveryService;
         private readonly IElementTreeService _elementTreeService;
         private readonly IElementPropertiesService _elementPropertiesService;
-        private readonly ICorePatternService _corePatternService;
-        private readonly ILayoutPatternService _layoutPatternService;
-        private readonly IRangePatternService _rangePatternService;
-        private readonly IWindowPatternService _windowPatternService;
-        private readonly ITextPatternService _textPatternService;
-        private readonly IAdvancedPatternService _advancedPatternService;
+        private readonly IUIAutomationWorker _uiAutomationWorker;
         private readonly IScreenshotService _screenshotService;
         private readonly ILogger<UIAutomationTools> _logger;
 
@@ -28,12 +23,7 @@ namespace UiAutomationMcpServer.Tools
             IElementDiscoveryService elementDiscoveryService,
             IElementTreeService elementTreeService,
             IElementPropertiesService elementPropertiesService,
-            ICorePatternService corePatternService,
-            ILayoutPatternService layoutPatternService,
-            IRangePatternService rangePatternService,
-            IWindowPatternService windowPatternService,
-            ITextPatternService textPatternService,
-            IAdvancedPatternService advancedPatternService,
+            IUIAutomationWorker uiAutomationWorker,
             IScreenshotService screenshotService,
             ILogger<UIAutomationTools> logger)
         {
@@ -41,12 +31,7 @@ namespace UiAutomationMcpServer.Tools
             _elementDiscoveryService = elementDiscoveryService;
             _elementTreeService = elementTreeService;
             _elementPropertiesService = elementPropertiesService;
-            _corePatternService = corePatternService;
-            _layoutPatternService = layoutPatternService;
-            _rangePatternService = rangePatternService;
-            _windowPatternService = windowPatternService;
-            _textPatternService = textPatternService;
-            _advancedPatternService = advancedPatternService;
+            _uiAutomationWorker = uiAutomationWorker;
             _screenshotService = screenshotService;
             _logger = logger;
         }
@@ -111,7 +96,7 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _corePatternService.InvokeElementAsync(elementId, windowTitle, processId);
+            return await _uiAutomationWorker.InvokeElementAsync(elementId, windowTitle, processId);
         }
 
         [McpServerTool, Description("Set the value of an element (text input, etc.) using ValuePattern")]
@@ -121,7 +106,7 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _corePatternService.SetElementValueAsync(elementId, value, windowTitle, processId);
+            return await _uiAutomationWorker.SetElementValueAsync(elementId, value, windowTitle, processId);
         }
 
         [McpServerTool, Description("Get the current value of an element using ValuePattern")]
@@ -130,7 +115,7 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _corePatternService.GetElementValueAsync(elementId, windowTitle, processId);
+            return await _uiAutomationWorker.GetElementValueAsync(elementId, windowTitle, processId);
         }
 
         [McpServerTool, Description("Toggle an element (checkbox, toggle button) using TogglePattern")]
@@ -139,7 +124,7 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _corePatternService.ToggleElementAsync(elementId, windowTitle, processId);
+            return await _uiAutomationWorker.ToggleElementAsync(elementId, windowTitle, processId);
         }
 
         [McpServerTool, Description("Select an element (list item, tab item) using SelectionItemPattern")]
@@ -148,7 +133,7 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _corePatternService.SelectElementAsync(elementId, windowTitle, processId);
+            return await _uiAutomationWorker.SelectElementAsync(elementId, windowTitle, processId);
         }
 
         #endregion
@@ -162,7 +147,7 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _advancedPatternService.ExpandCollapseElementAsync(elementId, expand, windowTitle, processId);
+            return await _uiAutomationWorker.ExpandCollapseElementAsync(elementId, expand, windowTitle, processId);
         }
 
         [McpServerTool, Description("Scroll an element using ScrollPattern")]
@@ -174,7 +159,7 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _layoutPatternService.ScrollElementAsync(elementId, direction, horizontal, vertical, windowTitle, processId);
+            return await _uiAutomationWorker.ScrollElementAsync(elementId, direction, horizontal, vertical, windowTitle, processId);
         }
 
         [McpServerTool, Description("Scroll an element into view using ScrollItemPattern")]
@@ -183,7 +168,7 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _layoutPatternService.ScrollElementIntoViewAsync(elementId, windowTitle, processId);
+            return await _uiAutomationWorker.ScrollElementIntoViewAsync(elementId, windowTitle, processId);
         }
 
         #endregion
@@ -197,7 +182,7 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _rangePatternService.SetRangeValueAsync(elementId, value, windowTitle, processId);
+            return await _uiAutomationWorker.SetRangeValueAsync(elementId, value, windowTitle, processId);
         }
 
         [McpServerTool, Description("Get the current value and range information of a range control using RangeValuePattern")]
@@ -206,7 +191,7 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _rangePatternService.GetRangeValueAsync(elementId, windowTitle, processId);
+            return await _uiAutomationWorker.GetRangeValueAsync(elementId, windowTitle, processId);
         }
 
         #endregion
@@ -220,7 +205,7 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _windowPatternService.WindowActionAsync(elementId, action, windowTitle, processId);
+            return await _uiAutomationWorker.SetWindowStateAsync(elementId, action, windowTitle, processId);
         }
 
         [McpServerTool, Description("Transform an element (move, resize, rotate) using TransformPattern")]
@@ -235,7 +220,7 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _advancedPatternService.TransformElementAsync(elementId, action, x, y, width, height, degrees, windowTitle, processId);
+            return await _uiAutomationWorker.TransformElementAsync(elementId, action, x, y, width, height, degrees, windowTitle, processId);
         }
 
         [McpServerTool, Description("Dock an element to a specific position using DockPattern")]
@@ -245,50 +230,13 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _advancedPatternService.DockElementAsync(elementId, position, windowTitle, processId);
+            return await _uiAutomationWorker.DockElementAsync(elementId, position, windowTitle, processId);
         }
 
         #endregion
 
         #region Advanced Patterns
 
-        [McpServerTool, Description("Change the view of an element supporting multiple views using MultipleViewPattern")]
-        public async Task<object> ChangeView(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("View ID to switch to")] int viewId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null)
-        {
-            return await _advancedPatternService.ChangeViewAsync(elementId, viewId, windowTitle, processId);
-        }
-
-        [McpServerTool, Description("Realize a virtualized item using VirtualizedItemPattern")]
-        public async Task<object> RealizeVirtualizedItem(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null)
-        {
-            return await _advancedPatternService.RealizeVirtualizedItemAsync(elementId, windowTitle, processId);
-        }
-
-        [McpServerTool, Description("Find an item in a container using ItemContainerPattern")]
-        public async Task<object> FindItemInContainer(
-            [Description("Automation ID or name of the container element")] string elementId,
-            [Description("Text to search for in the container")] string findText,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null)
-        {
-            return await _advancedPatternService.FindItemInContainerAsync(elementId, findText, windowTitle, processId);
-        }
-
-        [McpServerTool, Description("Cancel synchronized input on an element using SynchronizedInputPattern")]
-        public async Task<object> CancelSynchronizedInput(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null)
-        {
-            return await _advancedPatternService.CancelSynchronizedInputAsync(elementId, windowTitle, processId);
-        }
 
         #endregion
 
@@ -300,7 +248,7 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _textPatternService.GetTextAsync(elementId, windowTitle, processId);
+            return await _uiAutomationWorker.GetTextAsync(elementId, windowTitle, processId);
         }
 
         [McpServerTool, Description("Select text in an element using TextPattern")]
@@ -311,7 +259,7 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _textPatternService.SelectTextAsync(elementId, startIndex, length, windowTitle, processId);
+            return await _uiAutomationWorker.SelectTextAsync(elementId, startIndex, length, windowTitle, processId);
         }
 
         [McpServerTool, Description("Find text within an element using TextPattern")]
@@ -323,7 +271,7 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _textPatternService.FindTextAsync(elementId, searchText, backward, ignoreCase, windowTitle, processId);
+            return await _uiAutomationWorker.FindTextAsync(elementId, searchText, backward, ignoreCase, windowTitle, processId);
         }
 
         [McpServerTool, Description("Get current text selection from an element using TextPattern")]
@@ -332,7 +280,7 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _textPatternService.GetTextSelectionAsync(elementId, windowTitle, processId);
+            return await _uiAutomationWorker.GetTextSelectionAsync(elementId, windowTitle, processId);
         }
 
         #endregion

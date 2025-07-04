@@ -2,13 +2,13 @@ using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
 using UiAutomationMcp.Models;
 
-namespace UiAutomationWorker.Operations
+namespace UiAutomationWorker.PatternExecutors
 {
-    public class TreeOperations
+    public class TreePatternExecutor
     {
-        private readonly ILogger<TreeOperations> _logger;
+        private readonly ILogger<TreePatternExecutor> _logger;
 
-        public TreeOperations(ILogger<TreeOperations> logger)
+        public TreePatternExecutor(ILogger<TreePatternExecutor> logger)
         {
             _logger = logger;
         }

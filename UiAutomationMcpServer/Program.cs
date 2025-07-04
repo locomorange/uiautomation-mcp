@@ -3,7 +3,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using UiAutomationMcpServer.Services.Windows;
 using UiAutomationMcpServer.Services.Elements;
-using UiAutomationMcpServer.Services.Patterns;
 using UiAutomationMcpServer.Services;
 
 namespace UiAutomationMcpServer
@@ -28,18 +27,10 @@ namespace UiAutomationMcpServer
             builder.Services.AddSingleton<IUIAutomationWorker, UIAutomationWorker>();
             
             // Register Element services
-            builder.Services.AddSingleton<IElementUtilityService, ElementUtilityService>();
             builder.Services.AddSingleton<IElementDiscoveryService, ElementDiscoveryService>();
             builder.Services.AddSingleton<IElementTreeService, ElementTreeService>();
             builder.Services.AddSingleton<IElementPropertiesService, ElementPropertiesService>();
             
-            // Register Pattern services
-            builder.Services.AddSingleton<ICorePatternService, CorePatternService>();
-            builder.Services.AddSingleton<ILayoutPatternService, LayoutPatternService>();
-            builder.Services.AddSingleton<IRangePatternService, RangePatternService>();
-            builder.Services.AddSingleton<IWindowPatternService, WindowPatternService>();
-            builder.Services.AddSingleton<ITextPatternService, TextPatternService>();
-            builder.Services.AddSingleton<IAdvancedPatternService, AdvancedPatternService>();
 
             // Configure MCP Server
             builder.Services
