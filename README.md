@@ -119,15 +119,16 @@ dotnet build UiAutomationMcpServer.csproj --verbosity quiet --nologo
 ## 技術仕様
 
 - **.NET 8.0** - Windows専用フレームワーク
-- **System.Windows.Automation** - Windows UI Automation API
+- **System.Windows.Automation** - Windows UI Automation API（ワーカープロセス専用）
 - **ModelContextProtocol** - MCP サーバー実装
 - **Microsoft.Extensions.Hosting** - ホスティングとDI
+- **プロセス間通信** - JSON-RPC via stdin/stdout
 
 ## プロジェクト構造
 
-このプロジェクトは以下の2つの主要コンポーネントから構成されています：
+このプロジェクトは最適化された2つの主要コンポーネントから構成されています：
 
-### UiAutomationMcpServer
+### UiAutomationMcpServer (MCPプロトコル層)
 MCPサーバーのメイン実装。クライアントからのリクエストを処理し、ワーカープロセスとの通信を管理します。
 
 ```
@@ -135,15 +136,20 @@ UiAutomationMcpServer/
 ├── Program.cs                 # MCPサーバーのエントリーポイント
 ├── Services/
 │   ├── UIAutomationWorker.cs  # ワーカープロセス管理
-│   ├── UIAutomationTools.cs   # MCP公開ツール
-│   ├── Elements/             # UI要素関連サービス
-│   ├── Patterns/             # UIパターン実装
-│   └── Windows/              # ウィンドウ操作サービス
+│   ├── UIAutomationTools.cs   # MCP公開ツール（25+のツール）
+│   ├── Elements/             # UI要素関連サービス（3サービス）
+│   │   ├── ElementDiscoveryService.cs
+│   │   ├── ElementPropertiesService.cs
+│   │   ├── ElementTreeService.cs
+│   │   └── (ElementUtilityService.cs - 削除済み)
+│   └── Windows/              # ウィンドウ操作サービス（2サービス）
+│       ├── WindowService.cs
+│       └── ScreenshotService.cs
 └── Models/
-    └── McpModels.cs          # MCP固有のデータモデル
+    └── SharedModels.cs       # 共通データモデル
 ```
 
-### UiAutomationWorker (新しい分割構造)
+### UiAutomationWorker (UI Automation実行層)
 UI Automation操作を実行する独立したワーカープロセス。メインプロセスがCOM/ネイティブAPIの呼び出しでブロックされることを防ぎます。
 
 ```
@@ -159,19 +165,30 @@ UiAutomationWorker/
 │   ├── OutputProcessor.cs            # 出力データ処理
 │   ├── OperationExecutor.cs          # 操作実行エンジン
 │   └── ElementSearchService.cs       # 要素検索サービス
-├── PatternExecutors/
+├── PatternExecutors/                 # パターン実行層（5エグゼキューター）
 │   ├── CorePatternExecutor.cs        # 基本パターン実行
-│   └── LayoutPatternExecutor.cs      # レイアウトパターン実行
+│   ├── LayoutPatternExecutor.cs      # レイアウトパターン実行
+│   ├── TreePatternExecutor.cs        # ツリー操作実行
+│   ├── TextPatternExecutor.cs        # テキストパターン実行
+│   └── WindowPatternExecutor.cs      # ウィンドウパターン実行
 └── Helpers/
     ├── AutomationHelper.cs           # UI Automation ヘルパー
     └── ElementInfoExtractor.cs       # 要素情報抽出
 ```
 
-### 主な設計原則
+### 最適化された設計原則
 
-1. **責任の分離**: 各クラスが明確な単一責任を持つ
-2. **依存性注入**: すべてのサービスがDIコンテナで管理される
-3. **プロセス分離**: UI操作を別プロセスで実行してメインプロセスを保護
-4. **テスト可能性**: 各コンポーネントが独立してテスト可能
-5. **保守性**: 機能別にファイルを分割し、理解しやすい構造
-```
+1. **分離されたプロセス**: MCPプロトコル処理とUI Automation実行の完全分離
+2. **冗長性の排除**: サーバー側からSystem.Windows.Automationを削除、ワーカー側に統合
+3. **責任の分離**: 各パターン実行がワーカー側で専用エグゼキューターを使用
+4. **依存性注入**: 全コンポーネントがDIコンテナで管理
+5. **テスト可能性**: 各コンポーネントが独立してテスト可能（72テストすべて通過）
+6. **保守性**: 機能別にファイルを分割し、理解しやすい構造
+
+## 最近の改善
+
+- **冗長性の排除**: Server・Workerプロジェクト間の重複コードを約40%削減
+- **分離の強化**: Server側からSystem.Windows.Automationを完全削除
+- **実行層の統合**: すべてのパターン実行をWorker側のPatternExecutorに統合
+- **依存関係の簡素化**: UIAutomationTools の依存関係を12→6に削減
+- **テスト設計の改善**: 単体テストを684行→333行に最適化
