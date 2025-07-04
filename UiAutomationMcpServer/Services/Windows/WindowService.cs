@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Windows.Automation;
 using UiAutomationMcpServer.Models;
 
@@ -90,33 +91,113 @@ namespace UiAutomationMcpServer.Services.Windows
                 _logger.LogInformation("Launching application: {ApplicationPath} with arguments: {Arguments}", 
                     applicationPath, arguments);
 
-                var startInfo = new ProcessStartInfo
+                // Check if this is a UWP app or URI scheme
+                var isUwpOrUri = applicationPath.StartsWith("ms-") || 
+                                applicationPath.Contains("shell:appsFolder") ||
+                                applicationPath.EndsWith(".appx") ||
+                                applicationPath.Contains("WindowsApps");
+
+                ProcessStartInfo startInfo;
+                
+                if (isUwpOrUri)
                 {
-                    FileName = applicationPath,
-                    Arguments = arguments ?? "",
-                    WorkingDirectory = workingDirectory ?? Path.GetDirectoryName(applicationPath) ?? "",
-                    UseShellExecute = true
-                };
+                    // Use PowerShell to launch UWP apps or URI schemes
+                    var command = applicationPath.StartsWith("ms-") 
+                        ? $"Start-Process '{applicationPath}'"
+                        : $"Start-Process '{applicationPath}' {(string.IsNullOrEmpty(arguments) ? "" : $"-ArgumentList '{arguments}'")}";
+                    
+                    startInfo = new ProcessStartInfo
+                    {
+                        FileName = "powershell.exe",
+                        Arguments = $"-WindowStyle Hidden -Command \"{command}\"",
+                        UseShellExecute = true,
+                        CreateNoWindow = true,
+                        WindowStyle = ProcessWindowStyle.Hidden
+                    };
+                }
+                else
+                {
+                    // Traditional exe launch
+                    startInfo = new ProcessStartInfo
+                    {
+                        FileName = applicationPath,
+                        Arguments = arguments ?? "",
+                        WorkingDirectory = workingDirectory ?? Path.GetDirectoryName(applicationPath) ?? "",
+                        UseShellExecute = true
+                    };
+                }
 
                 var process = Process.Start(startInfo);
                 if (process == null)
                     return new ProcessResult { Success = false, Error = "Failed to start process" };
 
-                await Task.Delay(1000);
+                // Wait longer for UWP apps to initialize
+                var waitTime = isUwpOrUri ? 3000 : 1000;
+                await Task.Delay(waitTime);
 
-                _logger.LogInformation("Application launched with PID: {ProcessId}", process.Id);
+                // Try to get process information safely
+                int processId = 0;
+                string processName = "";
+                bool hasExited = false;
+
+                try
+                {
+                    processId = process.Id;
+                    processName = process.ProcessName;
+                    hasExited = process.HasExited;
+                }
+                catch (InvalidOperationException)
+                {
+                    // Process information not available (common with UWP apps)
+                    _logger.LogInformation("Process information not available - likely UWP app launched successfully");
+                    
+                    // For UWP apps, try to find the actual app process by window title
+                    if (isUwpOrUri)
+                    {
+                        // Wait a bit more for the app window to appear
+                        await Task.Delay(2000);
+                        
+                        // Try to find common UWP app processes
+                        var commonAppNames = new[] { "Calculator", "WindowsAlarms", "Microsoft.Windows.Alarms", "ApplicationFrameHost" };
+                        foreach (var appName in commonAppNames)
+                        {
+                            try
+                            {
+                                var processes = Process.GetProcessesByName(appName);
+                                if (processes.Length > 0)
+                                {
+                                    var latestProcess = processes.OrderByDescending(p => p.StartTime).FirstOrDefault();
+                                    if (latestProcess != null)
+                                    {
+                                        processId = latestProcess.Id;
+                                        processName = latestProcess.ProcessName;
+                                        hasExited = latestProcess.HasExited;
+                                        break;
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogDebug("Could not check process {AppName}: {Error}", appName, ex.Message);
+                            }
+                        }
+                    }
+                }
+
+                _logger.LogInformation("Application launched - PID: {ProcessId}, Name: {ProcessName}, HasExited: {HasExited}", 
+                    processId, processName, hasExited);
 
                 return new ProcessResult
                 {
                     Success = true,
-                    ProcessId = process.Id,
-                    ProcessName = process.ProcessName,
-                    HasExited = process.HasExited
+                    ProcessId = processId,
+                    ProcessName = processName,
+                    HasExited = hasExited
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error launching application");
+                _logger.LogError(ex, "Error launching application: {ApplicationPath}", applicationPath);
                 return new ProcessResult { Success = false, Error = ex.Message };
             }
         }
