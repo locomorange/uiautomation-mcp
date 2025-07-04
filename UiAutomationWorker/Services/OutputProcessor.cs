@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using UiAutomationMcp.Models;
 using UiAutomationWorker.Configuration;
 
 namespace UiAutomationWorker.Services

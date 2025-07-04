@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Logging;
 using UiAutomationMcp.Models;
-using UiAutomationWorker.Services;
 using UiAutomationWorker.PatternExecutors;
 using UiAutomationWorker.Operations;
 

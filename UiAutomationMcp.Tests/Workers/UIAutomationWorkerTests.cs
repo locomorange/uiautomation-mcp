@@ -2,10 +2,8 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using UiAutomationMcp.Models;
 using UiAutomationMcp.Tests.Mocks;
-using UiAutomationMcpServer.Services;
-using Xunit;
 
-namespace UiAutomationMcp.Tests.Services
+namespace UiAutomationMcp.Tests.Workers
 {
     /// <summary>
     /// UIAutomationWorkerのユニットテスト

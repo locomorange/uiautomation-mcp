@@ -1,8 +1,5 @@
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using UiAutomationMcp.Models;
-using UiAutomationMcpServer.Services.Windows;
-using UiAutomationMcpServer.Services;
 
 namespace UiAutomationMcpServer.Services.Elements
 {

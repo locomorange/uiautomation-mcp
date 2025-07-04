@@ -1,6 +1,5 @@
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
-using UiAutomationMcp.Models;
 
 namespace UiAutomationWorker.Operations
 {

@@ -3,7 +3,6 @@ using Moq;
 using UiAutomationMcp.Models;
 using UiAutomationMcpServer.Services;
 using UiAutomationMcpServer.Services.Patterns;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace UiAutomationMcp.Tests.Patterns
@@ -146,14 +145,13 @@ namespace UiAutomationMcp.Tests.Patterns
         [InlineData("resize")]
         [InlineData("move")]
         [InlineData("")]
-        [InlineData(null)]
         public async Task WindowActionAsync_InvalidActions_ReturnsFailure(string action)
         {
             // Arrange
             var expectedResult = new OperationResult<string>
             {
                 Success = false,
-                Error = $"Invalid window action: {action ?? "null"}"
+                Error = $"Invalid window action: {action}"
             };
             _mockWorker.Setup(w => w.SetWindowStateAsync("windowElement", action, null, null, 20))
                       .ReturnsAsync(expectedResult);
@@ -163,8 +161,15 @@ namespace UiAutomationMcp.Tests.Patterns
 
             // Assert
             Assert.False(result.Success);
-            Assert.Equal($"Invalid window action: {action ?? "null"}", result.Error);
-            _output.WriteLine($"Invalid action '{action ?? "null"}' test passed: {result.Error}");
+            Assert.Equal($"Invalid window action: {action}", result.Error);
+            _output.WriteLine($"Invalid action '{action}' test passed: {result.Error}");
+        }
+
+        [Fact]
+        public async Task WindowActionAsync_NullAction_ReturnsFailure()
+        {
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _service.WindowActionAsync("windowElement", null!));
         }
 
         [Fact]

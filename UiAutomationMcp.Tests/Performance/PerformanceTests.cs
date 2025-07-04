@@ -2,7 +2,6 @@ using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using UiAutomationMcp.Models;
 using UiAutomationMcpServer.Services;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace UiAutomationMcp.Tests.Performance

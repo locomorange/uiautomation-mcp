@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Logging;
 using UiAutomationMcp.Models;
-using UiAutomationMcpServer.Services;
 
 namespace UiAutomationMcpServer.Services.Elements
 {

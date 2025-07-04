@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Logging;
 using UiAutomationMcp.Models;
 using UiAutomationMcpServer.Services;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace UiAutomationMcp.Tests.ErrorHandling

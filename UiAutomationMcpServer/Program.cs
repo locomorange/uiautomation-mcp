@@ -1,12 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using ModelContextProtocol.Server;
 using UiAutomationMcpServer.Services.Windows;
 using UiAutomationMcpServer.Services.Elements;
 using UiAutomationMcpServer.Services.Patterns;
 using UiAutomationMcpServer.Services;
-using System.IO;
 
 namespace UiAutomationMcpServer
 {

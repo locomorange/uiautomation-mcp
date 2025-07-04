@@ -1,8 +1,6 @@
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
-using System.IO;
 using UiAutomationMcp.Models;
-using UiAutomationMcpServer.Services;
 
 namespace UiAutomationMcpServer.Services.Windows
 {

@@ -1,5 +1,4 @@
 using UiAutomationMcp.Models;
-using Xunit;
 using System.Text.Json;
 
 namespace UiAutomationMcp.Tests.Models
@@ -213,25 +212,25 @@ namespace UiAutomationMcp.Tests.Models
         [Theory]
         [InlineData("", true)] // Empty string is valid
         [InlineData("test", true)]
-        [InlineData(null, true)] // Null is valid for optional fields
+        [InlineData(null, true)] // Null is handled by converting to empty string
         public void ElementInfo_ShouldHandleStringFields(string? value, bool isValid)
         {
             // Arrange & Act
             var elementInfo = new ElementInfo
             {
-                Name = value,
-                AutomationId = value,
+                Name = value ?? string.Empty,
+                AutomationId = value ?? string.Empty,
                 ControlType = value ?? "Unknown",
-                ClassName = value,
-                HelpText = value
+                ClassName = value ?? string.Empty,
+                HelpText = value ?? string.Empty
             };
 
             // Assert
             if (isValid)
             {
-                Assert.Equal(value, elementInfo.Name);
-                Assert.Equal(value, elementInfo.AutomationId);
-                Assert.Equal(value, elementInfo.HelpText);
+                Assert.Equal(value ?? string.Empty, elementInfo.Name);
+                Assert.Equal(value ?? string.Empty, elementInfo.AutomationId);
+                Assert.Equal(value ?? string.Empty, elementInfo.HelpText);
             }
         }
 

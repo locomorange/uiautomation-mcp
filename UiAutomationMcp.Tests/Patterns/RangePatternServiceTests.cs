@@ -3,9 +3,7 @@ using Moq;
 using UiAutomationMcp.Models;
 using UiAutomationMcpServer.Services;
 using UiAutomationMcpServer.Services.Patterns;
-using Xunit;
 using Xunit.Abstractions;
-using System.Collections.Generic;
 
 namespace UiAutomationMcp.Tests.Patterns
 {

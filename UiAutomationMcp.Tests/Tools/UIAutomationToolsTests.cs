@@ -1,14 +1,11 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using UiAutomationMcp.Models;
-using UiAutomationMcpServer.Services;
 using UiAutomationMcpServer.Services.Elements;
 using UiAutomationMcpServer.Services.Patterns;
 using UiAutomationMcpServer.Services.Windows;
 using UiAutomationMcpServer.Tools;
-using Xunit;
 using Xunit.Abstractions;
-using System.Collections.Generic;
 
 namespace UiAutomationMcp.Tests.Tools
 {

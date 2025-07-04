@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using UiAutomationMcp.Models;
 using UiAutomationWorker.Services;
 
 namespace UiAutomationWorker.Core

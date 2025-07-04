@@ -3,9 +3,8 @@ using Moq;
 using UiAutomationMcp.Models;
 using UiAutomationMcpServer.Services;
 using UiAutomationMcpServer.Services.Patterns;
-using Xunit;
 
-namespace UiAutomationMcp.Tests.Services.Patterns
+namespace UiAutomationMcp.Tests.Patterns
 {
     /// <summary>
     /// CorePatternServiceのユニットテスト

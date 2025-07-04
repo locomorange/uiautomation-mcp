@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Logging;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
 using System.Windows.Forms;
 using UiAutomationMcp.Models;
 

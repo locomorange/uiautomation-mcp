@@ -1,6 +1,4 @@
-using Xunit;
-
-namespace UiAutomationMcp.Tests
+namespace UiAutomationMcp.Tests.Infrastructure
 {
     /// <summary>
     /// テストコレクション - プロセスのクリーンアップを確実に行う
