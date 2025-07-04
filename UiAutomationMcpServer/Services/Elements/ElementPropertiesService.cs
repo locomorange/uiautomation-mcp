@@ -52,10 +52,10 @@ namespace UiAutomationMcpServer.Services.Elements
                     RuntimeId = element.GetRuntimeId(),
                     BoundingRectangle = new BoundingRectangle
                     {
-                        X = element.Current.BoundingRectangle.X,
-                        Y = element.Current.BoundingRectangle.Y,
-                        Width = element.Current.BoundingRectangle.Width,
-                        Height = element.Current.BoundingRectangle.Height
+                        X = double.IsInfinity(element.Current.BoundingRectangle.X) ? 0 : element.Current.BoundingRectangle.X,
+                        Y = double.IsInfinity(element.Current.BoundingRectangle.Y) ? 0 : element.Current.BoundingRectangle.Y,
+                        Width = double.IsInfinity(element.Current.BoundingRectangle.Width) ? 0 : element.Current.BoundingRectangle.Width,
+                        Height = double.IsInfinity(element.Current.BoundingRectangle.Height) ? 0 : element.Current.BoundingRectangle.Height
                     },
                     HelpText = element.Current.HelpText ?? "",
                     ItemStatus = element.Current.ItemStatus ?? "",
@@ -160,11 +160,11 @@ namespace UiAutomationMcpServer.Services.Elements
                     },
                     "RangeValue" when patternObj is RangeValuePattern rvp => new
                     {
-                        Value = rvp.Current.Value,
-                        Minimum = rvp.Current.Minimum,
-                        Maximum = rvp.Current.Maximum,
-                        SmallChange = rvp.Current.SmallChange,
-                        LargeChange = rvp.Current.LargeChange,
+                        Value = double.IsInfinity(rvp.Current.Value) ? 0 : rvp.Current.Value,
+                        Minimum = double.IsInfinity(rvp.Current.Minimum) ? 0 : rvp.Current.Minimum,
+                        Maximum = double.IsInfinity(rvp.Current.Maximum) ? 0 : rvp.Current.Maximum,
+                        SmallChange = double.IsInfinity(rvp.Current.SmallChange) ? 0 : rvp.Current.SmallChange,
+                        LargeChange = double.IsInfinity(rvp.Current.LargeChange) ? 0 : rvp.Current.LargeChange,
                         IsReadOnly = rvp.Current.IsReadOnly
                     },
                     "ExpandCollapse" when patternObj is ExpandCollapsePattern ecp => new
@@ -197,10 +197,10 @@ namespace UiAutomationMcpServer.Services.Elements
                     },
                     "Scroll" when patternObj is ScrollPattern sp => new
                     {
-                        HorizontalScrollPercent = sp.Current.HorizontalScrollPercent,
-                        VerticalScrollPercent = sp.Current.VerticalScrollPercent,
-                        HorizontalViewSize = sp.Current.HorizontalViewSize,
-                        VerticalViewSize = sp.Current.VerticalViewSize,
+                        HorizontalScrollPercent = double.IsInfinity(sp.Current.HorizontalScrollPercent) ? 0 : sp.Current.HorizontalScrollPercent,
+                        VerticalScrollPercent = double.IsInfinity(sp.Current.VerticalScrollPercent) ? 0 : sp.Current.VerticalScrollPercent,
+                        HorizontalViewSize = double.IsInfinity(sp.Current.HorizontalViewSize) ? 0 : sp.Current.HorizontalViewSize,
+                        VerticalViewSize = double.IsInfinity(sp.Current.VerticalViewSize) ? 0 : sp.Current.VerticalViewSize,
                         HorizontallyScrollable = sp.Current.HorizontallyScrollable,
                         VerticallyScrollable = sp.Current.VerticallyScrollable
                     },

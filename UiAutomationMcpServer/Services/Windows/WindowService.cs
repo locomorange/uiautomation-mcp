@@ -59,10 +59,10 @@ namespace UiAutomationMcpServer.Services.Windows
                                 ClassName = window.Current.ClassName ?? "",
                                 BoundingRectangle = new BoundingRectangle
                                 {
-                                    X = window.Current.BoundingRectangle.X,
-                                    Y = window.Current.BoundingRectangle.Y,
-                                    Width = window.Current.BoundingRectangle.Width,
-                                    Height = window.Current.BoundingRectangle.Height
+                                    X = double.IsInfinity(window.Current.BoundingRectangle.X) ? 0 : window.Current.BoundingRectangle.X,
+                                    Y = double.IsInfinity(window.Current.BoundingRectangle.Y) ? 0 : window.Current.BoundingRectangle.Y,
+                                    Width = double.IsInfinity(window.Current.BoundingRectangle.Width) ? 0 : window.Current.BoundingRectangle.Width,
+                                    Height = double.IsInfinity(window.Current.BoundingRectangle.Height) ? 0 : window.Current.BoundingRectangle.Height
                                 },
                                 IsEnabled = window.Current.IsEnabled,
                                 IsVisible = !window.Current.IsOffscreen

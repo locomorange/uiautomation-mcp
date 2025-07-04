@@ -86,10 +86,10 @@ namespace UiAutomationMcpServer.Services.Elements
                                 IsVisible = !(element?.Current.IsOffscreen ?? true),
                                 BoundingRectangle = element != null ? new BoundingRectangle
                                 {
-                                    X = element.Current.BoundingRectangle.X,
-                                    Y = element.Current.BoundingRectangle.Y,
-                                    Width = element.Current.BoundingRectangle.Width,
-                                    Height = element.Current.BoundingRectangle.Height
+                                    X = double.IsInfinity(element.Current.BoundingRectangle.X) ? 0 : element.Current.BoundingRectangle.X,
+                                    Y = double.IsInfinity(element.Current.BoundingRectangle.Y) ? 0 : element.Current.BoundingRectangle.Y,
+                                    Width = double.IsInfinity(element.Current.BoundingRectangle.Width) ? 0 : element.Current.BoundingRectangle.Width,
+                                    Height = double.IsInfinity(element.Current.BoundingRectangle.Height) ? 0 : element.Current.BoundingRectangle.Height
                                 } : new BoundingRectangle(),
                                 Value = GetElementValue(element)
                             });
@@ -173,10 +173,10 @@ namespace UiAutomationMcpServer.Services.Elements
                                     IsVisible = !(element?.Current.IsOffscreen ?? true),
                                     BoundingRectangle = element != null ? new BoundingRectangle
                                     {
-                                        X = element.Current.BoundingRectangle.X,
-                                        Y = element.Current.BoundingRectangle.Y,
-                                        Width = element.Current.BoundingRectangle.Width,
-                                        Height = element.Current.BoundingRectangle.Height
+                                        X = double.IsInfinity(element.Current.BoundingRectangle.X) ? 0 : element.Current.BoundingRectangle.X,
+                                        Y = double.IsInfinity(element.Current.BoundingRectangle.Y) ? 0 : element.Current.BoundingRectangle.Y,
+                                        Width = double.IsInfinity(element.Current.BoundingRectangle.Width) ? 0 : element.Current.BoundingRectangle.Width,
+                                        Height = double.IsInfinity(element.Current.BoundingRectangle.Height) ? 0 : element.Current.BoundingRectangle.Height
                                     } : new BoundingRectangle(),
                                     Value = GetElementValue(element)
                                 });
@@ -254,7 +254,8 @@ namespace UiAutomationMcpServer.Services.Elements
 
                 if (element.TryGetCurrentPattern(RangeValuePattern.Pattern, out var rangePattern) && rangePattern is RangeValuePattern rvp)
                 {
-                    return rvp.Current.Value.ToString();
+                    var value = double.IsInfinity(rvp.Current.Value) ? 0 : rvp.Current.Value;
+                    return value.ToString();
                 }
 
                 if (element.TryGetCurrentPattern(TogglePattern.Pattern, out var togglePattern) && togglePattern is TogglePattern tp)

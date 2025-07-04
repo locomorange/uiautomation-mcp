@@ -61,11 +61,11 @@ namespace UiAutomationMcpServer.Services.Patterns
                 {
                     var rangeInfo = new
                     {
-                        Value = rangeValuePattern.Current.Value,
-                        Minimum = rangeValuePattern.Current.Minimum,
-                        Maximum = rangeValuePattern.Current.Maximum,
-                        SmallChange = rangeValuePattern.Current.SmallChange,
-                        LargeChange = rangeValuePattern.Current.LargeChange,
+                        Value = double.IsInfinity(rangeValuePattern.Current.Value) ? 0 : rangeValuePattern.Current.Value,
+                        Minimum = double.IsInfinity(rangeValuePattern.Current.Minimum) ? 0 : rangeValuePattern.Current.Minimum,
+                        Maximum = double.IsInfinity(rangeValuePattern.Current.Maximum) ? 0 : rangeValuePattern.Current.Maximum,
+                        SmallChange = double.IsInfinity(rangeValuePattern.Current.SmallChange) ? 0 : rangeValuePattern.Current.SmallChange,
+                        LargeChange = double.IsInfinity(rangeValuePattern.Current.LargeChange) ? 0 : rangeValuePattern.Current.LargeChange,
                         IsReadOnly = rangeValuePattern.Current.IsReadOnly
                     };
                     

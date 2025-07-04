@@ -75,10 +75,10 @@ namespace UiAutomationMcpServer.Services.Elements
                 IsVisible = !element.Current.IsOffscreen,
                 BoundingRectangle = new BoundingRectangle
                 {
-                    X = element.Current.BoundingRectangle.X,
-                    Y = element.Current.BoundingRectangle.Y,
-                    Width = element.Current.BoundingRectangle.Width,
-                    Height = element.Current.BoundingRectangle.Height
+                    X = double.IsInfinity(element.Current.BoundingRectangle.X) ? 0 : element.Current.BoundingRectangle.X,
+                    Y = double.IsInfinity(element.Current.BoundingRectangle.Y) ? 0 : element.Current.BoundingRectangle.Y,
+                    Width = double.IsInfinity(element.Current.BoundingRectangle.Width) ? 0 : element.Current.BoundingRectangle.Width,
+                    Height = double.IsInfinity(element.Current.BoundingRectangle.Height) ? 0 : element.Current.BoundingRectangle.Height
                 },
                 Children = new List<ElementTreeNode>()
             };
