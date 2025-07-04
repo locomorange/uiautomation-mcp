@@ -86,13 +86,7 @@ namespace UiAutomationMcpServer.Services.Elements
                                 ProcessId = element?.Current.ProcessId ?? 0,
                                 IsEnabled = element?.Current.IsEnabled ?? false,
                                 IsVisible = !(element?.Current.IsOffscreen ?? true),
-                                BoundingRectangle = element != null ? new BoundingRectangle
-                                {
-                                    X = double.IsInfinity(element.Current.BoundingRectangle.X) ? 0 : element.Current.BoundingRectangle.X,
-                                    Y = double.IsInfinity(element.Current.BoundingRectangle.Y) ? 0 : element.Current.BoundingRectangle.Y,
-                                    Width = double.IsInfinity(element.Current.BoundingRectangle.Width) ? 0 : element.Current.BoundingRectangle.Width,
-                                    Height = double.IsInfinity(element.Current.BoundingRectangle.Height) ? 0 : element.Current.BoundingRectangle.Height
-                                } : new BoundingRectangle(),
+                                BoundingRectangle = element != null ? SafeGetBoundingRectangle(element) : new BoundingRectangle(),
                                 Value = _elementUtilityService.GetElementValue(element),
                                 AvailableActions = _elementUtilityService.GetAvailableActions(element)
                             });
@@ -149,7 +143,31 @@ namespace UiAutomationMcpServer.Services.Elements
                     }
                 }
 
-                Condition searchCondition = conditions.Count > 0 ? new OrCondition(conditions.ToArray()) : Condition.TrueCondition;
+                Condition searchCondition;
+                if (conditions.Count == 0)
+                {
+                    searchCondition = Condition.TrueCondition;
+                }
+                else if (conditions.Count == 1)
+                {
+                    searchCondition = conditions[0];
+                }
+                else
+                {
+                    // If we have both searchText and controlType, use AND condition
+                    // If we have only searchText with multiple conditions (name OR automationId), use OR condition
+                    if (!string.IsNullOrEmpty(searchText) && !string.IsNullOrEmpty(controlType))
+                    {
+                        var textConditions = conditions.Take(2).ToArray(); // name OR automationId
+                        var textCondition = textConditions.Length > 1 ? new OrCondition(textConditions) : textConditions[0];
+                        var controlTypeCondition = conditions.Last(); // controlType
+                        searchCondition = new AndCondition(textCondition, controlTypeCondition);
+                    }
+                    else
+                    {
+                        searchCondition = new OrCondition(conditions.ToArray());
+                    }
+                }
 
                 var findResult = await _uiAutomationHelper.FindAllAsync(searchRoot, TreeScope.Descendants, searchCondition);
                 if (!findResult.Success)
@@ -181,13 +199,7 @@ namespace UiAutomationMcpServer.Services.Elements
                                     ProcessId = element?.Current.ProcessId ?? 0,
                                     IsEnabled = element?.Current.IsEnabled ?? false,
                                     IsVisible = !(element?.Current.IsOffscreen ?? true),
-                                    BoundingRectangle = element != null ? new BoundingRectangle
-                                    {
-                                        X = double.IsInfinity(element.Current.BoundingRectangle.X) ? 0 : element.Current.BoundingRectangle.X,
-                                        Y = double.IsInfinity(element.Current.BoundingRectangle.Y) ? 0 : element.Current.BoundingRectangle.Y,
-                                        Width = double.IsInfinity(element.Current.BoundingRectangle.Width) ? 0 : element.Current.BoundingRectangle.Width,
-                                        Height = double.IsInfinity(element.Current.BoundingRectangle.Height) ? 0 : element.Current.BoundingRectangle.Height
-                                    } : new BoundingRectangle(),
+                                    BoundingRectangle = element != null ? SafeGetBoundingRectangle(element) : new BoundingRectangle(),
                                     Value = _elementUtilityService.GetElementValue(element),
                                     AvailableActions = _elementUtilityService.GetAvailableActions(element)
                                 });
@@ -246,6 +258,35 @@ namespace UiAutomationMcpServer.Services.Elements
                 "splitbutton" => ControlType.SplitButton,
                 _ => null
             };
+        }
+
+        private BoundingRectangle SafeGetBoundingRectangle(AutomationElement element)
+        {
+            try
+            {
+                var rect = element.Current.BoundingRectangle;
+                
+                // Check for invalid values that would cause JSON serialization issues
+                if (double.IsInfinity(rect.Left) || double.IsInfinity(rect.Top) ||
+                    double.IsInfinity(rect.Width) || double.IsInfinity(rect.Height) ||
+                    double.IsNaN(rect.Left) || double.IsNaN(rect.Top) ||
+                    double.IsNaN(rect.Width) || double.IsNaN(rect.Height))
+                {
+                    return new BoundingRectangle { X = 0, Y = 0, Width = 0, Height = 0 };
+                }
+                
+                return new BoundingRectangle
+                {
+                    X = rect.Left,
+                    Y = rect.Top,
+                    Width = rect.Width,
+                    Height = rect.Height
+                };
+            }
+            catch (Exception)
+            {
+                return new BoundingRectangle { X = 0, Y = 0, Width = 0, Height = 0 };
+            }
         }
     }
 }

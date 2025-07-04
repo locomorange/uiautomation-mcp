@@ -4,6 +4,8 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UiAutomationMcpServer", "UiAutomationMcpServer\\UiAutomationMcpServer.csproj", "{61D9B3F2-1CF4-10C1-5680-083BA069822C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UiAutomationWorker", "UiAutomationWorker\\UiAutomationWorker.csproj", "{87654321-4321-4321-4321-210987654321}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -14,6 +16,10 @@ Global
 		{61D9B3F2-1CF4-10C1-5680-083BA069822C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{61D9B3F2-1CF4-10C1-5680-083BA069822C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{61D9B3F2-1CF4-10C1-5680-083BA069822C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87654321-4321-4321-4321-210987654321}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87654321-4321-4321-4321-210987654321}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87654321-4321-4321-4321-210987654321}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87654321-4321-4321-4321-210987654321}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

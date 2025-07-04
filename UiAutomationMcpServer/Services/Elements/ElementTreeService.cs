@@ -72,20 +72,14 @@ namespace UiAutomationMcpServer.Services.Elements
         {
             var node = new ElementTreeNode
             {
-                Name = element.Current.Name ?? "",
-                AutomationId = element.Current.AutomationId ?? "",
-                ControlType = element.Current.ControlType.ProgrammaticName ?? "",
-                ClassName = element.Current.ClassName ?? "",
-                ProcessId = element.Current.ProcessId,
-                IsEnabled = element.Current.IsEnabled,
-                IsVisible = !element.Current.IsOffscreen,
-                BoundingRectangle = new BoundingRectangle
-                {
-                    X = double.IsInfinity(element.Current.BoundingRectangle.X) ? 0 : element.Current.BoundingRectangle.X,
-                    Y = double.IsInfinity(element.Current.BoundingRectangle.Y) ? 0 : element.Current.BoundingRectangle.Y,
-                    Width = double.IsInfinity(element.Current.BoundingRectangle.Width) ? 0 : element.Current.BoundingRectangle.Width,
-                    Height = double.IsInfinity(element.Current.BoundingRectangle.Height) ? 0 : element.Current.BoundingRectangle.Height
-                },
+                Name = SafeGetProperty(() => element.Current.Name) ?? "",
+                AutomationId = SafeGetProperty(() => element.Current.AutomationId) ?? "",
+                ControlType = SafeGetProperty(() => element.Current.ControlType.ProgrammaticName) ?? "",
+                ClassName = SafeGetProperty(() => element.Current.ClassName) ?? "",
+                ProcessId = SafeGetProperty(() => element.Current.ProcessId),
+                IsEnabled = SafeGetProperty(() => element.Current.IsEnabled),
+                IsVisible = SafeGetProperty(() => !element.Current.IsOffscreen, true),
+                BoundingRectangle = SafeGetBoundingRectangle(element),
                 AvailableActions = _elementUtilityService.GetAvailableActions(element),
                 Children = new List<ElementTreeNode>()
             };
@@ -132,6 +126,50 @@ namespace UiAutomationMcpServer.Services.Elements
             // For different tree views, we could filter different elements
             // For now, we'll use TrueCondition to get all elements
             return Condition.TrueCondition;
+        }
+
+        private T? SafeGetProperty<T>(Func<T> propertyGetter, T? defaultValue = default)
+        {
+            try
+            {
+                return propertyGetter();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug("Failed to get property: {Error}", ex.Message);
+                return defaultValue;
+            }
+        }
+
+        private BoundingRectangle SafeGetBoundingRectangle(AutomationElement element)
+        {
+            try
+            {
+                var rect = element.Current.BoundingRectangle;
+                
+                // Check for invalid values that would cause JSON serialization issues
+                if (double.IsInfinity(rect.Left) || double.IsInfinity(rect.Top) ||
+                    double.IsInfinity(rect.Width) || double.IsInfinity(rect.Height) ||
+                    double.IsNaN(rect.Left) || double.IsNaN(rect.Top) ||
+                    double.IsNaN(rect.Width) || double.IsNaN(rect.Height))
+                {
+                    _logger.LogDebug("Invalid BoundingRectangle values detected, using defaults");
+                    return new BoundingRectangle { X = 0, Y = 0, Width = 0, Height = 0 };
+                }
+                
+                return new BoundingRectangle
+                {
+                    X = rect.Left,
+                    Y = rect.Top,
+                    Width = rect.Width,
+                    Height = rect.Height
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug("Failed to get BoundingRectangle: {Error}", ex.Message);
+                return new BoundingRectangle { X = 0, Y = 0, Width = 0, Height = 0 };
+            }
         }
     }
 

@@ -28,6 +28,7 @@ namespace UiAutomationMcpServer
             
             // Register shared services
             builder.Services.AddSingleton<IUIAutomationHelper, UIAutomationHelper>();
+            builder.Services.AddSingleton<IUIAutomationWorker, UIAutomationWorker>();
             
             // Register Element services
             builder.Services.AddSingleton<IElementUtilityService, ElementUtilityService>();

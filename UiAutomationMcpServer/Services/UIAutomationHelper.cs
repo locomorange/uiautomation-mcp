@@ -48,7 +48,7 @@ namespace UiAutomationMcpServer.Services
             AutomationElement searchRoot,
             TreeScope scope,
             Condition condition,
-            int timeoutSeconds = 90)
+            int timeoutSeconds = 60) // Reduced from 90 to 60 seconds
         {
             try
             {
@@ -79,30 +79,86 @@ namespace UiAutomationMcpServer.Services
             AutomationElement searchRoot,
             TreeScope scope,
             Condition condition,
-            int timeoutSeconds = 30)
+            int timeoutSeconds = 15) // Reduced from 30 to 15 seconds
         {
+            var startTime = DateTime.UtcNow;
+            var searchRootName = SafeGetElementName(searchRoot);
+            
+            _logger.LogInformation("[UIAutomationHelper.FindFirstAsync] START: SearchRoot='{SearchRoot}', Scope={Scope}, Timeout={Timeout}s", 
+                searchRootName, scope, timeoutSeconds);
+            
             try
             {
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
-                var result = await Task.Run(() => searchRoot.FindFirst(scope, condition), cts.Token);
-                return new OperationResult<AutomationElement?> { Success = true, Data = result };
+                
+                _logger.LogInformation("[UIAutomationHelper.FindFirstAsync] Calling Task.Run with searchRoot.FindFirst...");
+                
+                // Try the operation with aggressive timeout
+                var findTask = Task.Run(() => {
+                    _logger.LogInformation("[UIAutomationHelper.FindFirstAsync] Inside Task.Run - calling searchRoot.FindFirst...");
+                    var findResult = searchRoot.FindFirst(scope, condition);
+                    _logger.LogInformation("[UIAutomationHelper.FindFirstAsync] searchRoot.FindFirst completed. Result: {HasResult}", findResult != null);
+                    return findResult;
+                }, cts.Token);
+
+                // Wait for the task with a timeout
+                var completedTask = await Task.WhenAny(findTask, Task.Delay(TimeSpan.FromSeconds(timeoutSeconds), cts.Token));
+                
+                if (completedTask == findTask)
+                {
+                    var result = await findTask;
+                    var elapsed = DateTime.UtcNow - startTime;
+                    _logger.LogInformation("[UIAutomationHelper.FindFirstAsync] COMPLETED in {ElapsedMs}ms. Found: {Found}", 
+                        elapsed.TotalMilliseconds, result != null);
+                    return new OperationResult<AutomationElement?> { Success = true, Data = result };
+                }
+                else
+                {
+                    cts.Cancel();
+                    var elapsed = DateTime.UtcNow - startTime;
+                    _logger.LogWarning("[UIAutomationHelper.FindFirstAsync] TIMEOUT after {ElapsedMs}ms (limit: {TimeoutSeconds}s)", 
+                        elapsed.TotalMilliseconds, timeoutSeconds);
+                    
+                    return new OperationResult<AutomationElement?>
+                    {
+                        Success = false,
+                        Error = $"FindFirst timeout after {timeoutSeconds} seconds. The UI element search may be encountering complex UI structures. Consider using more specific search criteria or checking if the target application is responsive."
+                    };
+                }
             }
             catch (OperationCanceledException)
             {
+                var elapsed = DateTime.UtcNow - startTime;
+                _logger.LogWarning("[UIAutomationHelper.FindFirstAsync] CANCELLED after {ElapsedMs}ms", elapsed.TotalMilliseconds);
+                
                 return new OperationResult<AutomationElement?>
                 {
                     Success = false,
-                    Error = $"Search timeout after {timeoutSeconds} seconds. Please narrow your search criteria by specifying windowTitle, controlType, or more specific search parameters to improve performance."
+                    Error = $"FindFirst operation was cancelled after {timeoutSeconds} seconds."
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "FindFirst operation failed");
+                var elapsed = DateTime.UtcNow - startTime;
+                _logger.LogError(ex, "[UIAutomationHelper.FindFirstAsync] ERROR after {ElapsedMs}ms: {Error}", elapsed.TotalMilliseconds, ex.Message);
+                
                 return new OperationResult<AutomationElement?>
                 {
                     Success = false,
                     Error = $"FindFirst operation failed: {ex.Message}"
                 };
+            }
+        }
+        
+        private string SafeGetElementName(AutomationElement element)
+        {
+            try
+            {
+                return element?.Current.Name ?? element?.Current.AutomationId ?? element?.Current.ClassName ?? "Unknown";
+            }
+            catch
+            {
+                return "Unknown";
             }
         }
 

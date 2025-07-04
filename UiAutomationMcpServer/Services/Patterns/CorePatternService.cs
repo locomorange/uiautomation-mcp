@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using System;
 using System.Windows.Automation;
 using UiAutomationMcpServer.Models;
 using UiAutomationMcpServer.Services.Windows;
@@ -55,30 +56,56 @@ namespace UiAutomationMcpServer.Services.Patterns
 
         private async Task<OperationResult> ExecutePatternAsync(string elementId, string patternName, Dictionary<string, object>? parameters = null, string? windowTitle = null, int? processId = null)
         {
+            var startTime = DateTime.UtcNow;
+            _logger.LogInformation("[ExecutePatternAsync] START: Pattern={PatternName}, Element={ElementId}, Window={WindowTitle}", 
+                patternName, elementId, windowTitle);
+            
             try
             {
-                _logger.LogInformation("Executing pattern {PatternName} on element {ElementId}", patternName, elementId);
-
-                var elementResult = await FindElementAsync(elementId, windowTitle, processId);
-                if (!elementResult.Success || elementResult.Data == null)
+                // 全体的なタイムアウト制御を追加（20秒）
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+                
+                var patternTask = Task.Run(async () =>
                 {
-                    return new OperationResult { Success = false, Error = elementResult.Error ?? $"Element '{elementId}' not found" };
-                }
-                var element = elementResult.Data;
+                    _logger.LogInformation("Executing pattern {PatternName} on element {ElementId}", patternName, elementId);
 
-                return await (patternName.ToLower() switch
-                {
-                    "invoke" => ExecuteInvokePattern(element),
-                    "value" => ExecuteValuePattern(element, parameters?.GetValueOrDefault("value") as string),
-                    "get_value" => GetValuePattern(element),
-                    "toggle" => ExecuteTogglePattern(element),
-                    "select" => ExecuteSelectPattern(element),
-                    _ => Task.FromResult(new OperationResult { Success = false, Error = $"Pattern '{patternName}' not supported" })
-                });
+                    var elementResult = await FindElementAsync(elementId, windowTitle, processId);
+                    if (!elementResult.Success || elementResult.Data == null)
+                    {
+                        return new OperationResult { Success = false, Error = elementResult.Error ?? $"Element '{elementId}' not found" };
+                    }
+                    var element = elementResult.Data;
+
+                    return await (patternName.ToLower() switch
+                    {
+                        "invoke" => ExecuteInvokePattern(element),
+                        "value" => ExecuteValuePattern(element, parameters?.GetValueOrDefault("value") as string),
+                        "get_value" => GetValuePattern(element),
+                        "toggle" => ExecuteTogglePattern(element),
+                        "select" => ExecuteSelectPattern(element),
+                        _ => Task.FromResult(new OperationResult { Success = false, Error = $"Pattern '{patternName}' not supported" })
+                    });
+                }, cts.Token);
+                
+                var result = await patternTask;
+                var elapsed = DateTime.UtcNow - startTime;
+                _logger.LogInformation("[ExecutePatternAsync] SUCCESS: Pattern={PatternName}, Elapsed={Elapsed}ms", 
+                    patternName, elapsed.TotalMilliseconds);
+                
+                return result;
+            }
+            catch (OperationCanceledException)
+            {
+                var elapsed = DateTime.UtcNow - startTime;
+                _logger.LogWarning("[ExecutePatternAsync] TIMEOUT: Pattern={PatternName}, After {Elapsed}ms", 
+                    patternName, elapsed.TotalMilliseconds);
+                return new OperationResult { Success = false, Error = $"Pattern execution timeout after 20 seconds" };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error executing pattern {PatternName} on element {ElementId}", patternName, elementId);
+                var elapsed = DateTime.UtcNow - startTime;
+                _logger.LogError(ex, "[ExecutePatternAsync] ERROR: Pattern={PatternName}, After {Elapsed}ms", 
+                    patternName, elapsed.TotalMilliseconds);
                 return new OperationResult { Success = false, Error = ex.Message };
             }
         }
@@ -102,12 +129,16 @@ namespace UiAutomationMcpServer.Services.Patterns
                     searchRoot = AutomationElement.RootElement;
                 }
 
+                _logger.LogInformation("[FindElementAsync] FindFirstAsync start: elementId={ElementId}", elementId);
                 var condition = new OrCondition(
                     new PropertyCondition(AutomationElement.AutomationIdProperty, elementId),
                     new PropertyCondition(AutomationElement.NameProperty, elementId)
                 );
 
-                return await _uiAutomationHelper.FindFirstAsync(searchRoot, TreeScope.Descendants, condition);
+                // より短いタイムアウト(10秒)でハングを早期検出
+                var result = await _uiAutomationHelper.FindFirstAsync(searchRoot, TreeScope.Descendants, condition, timeoutSeconds: 10);
+                _logger.LogInformation("[FindElementAsync] FindFirstAsync end: elementId={ElementId}, Success={Success}", elementId, result.Success);
+                return result;
             }
             catch (Exception ex)
             {

@@ -58,13 +58,7 @@ namespace UiAutomationMcpServer.Services.Elements
                     AccessKey = element.Current.AccessKey ?? "",
                     ProcessId = element.Current.ProcessId,
                     RuntimeId = element.GetRuntimeId(),
-                    BoundingRectangle = new BoundingRectangle
-                    {
-                        X = double.IsInfinity(element.Current.BoundingRectangle.X) ? 0 : element.Current.BoundingRectangle.X,
-                        Y = double.IsInfinity(element.Current.BoundingRectangle.Y) ? 0 : element.Current.BoundingRectangle.Y,
-                        Width = double.IsInfinity(element.Current.BoundingRectangle.Width) ? 0 : element.Current.BoundingRectangle.Width,
-                        Height = double.IsInfinity(element.Current.BoundingRectangle.Height) ? 0 : element.Current.BoundingRectangle.Height
-                    },
+                    BoundingRectangle = SafeGetBoundingRectangle(element),
                     HelpText = element.Current.HelpText ?? "",
                     ItemStatus = element.Current.ItemStatus ?? "",
                     ItemType = element.Current.ItemType ?? "",
@@ -254,6 +248,35 @@ namespace UiAutomationMcpServer.Services.Elements
             {
                 _logger.LogError(ex, "Error finding element {ElementId}", elementId);
                 return new OperationResult<AutomationElement?> { Success = false, Error = ex.Message };
+            }
+        }
+
+        private BoundingRectangle SafeGetBoundingRectangle(AutomationElement element)
+        {
+            try
+            {
+                var rect = element.Current.BoundingRectangle;
+                
+                // Check for invalid values that would cause JSON serialization issues
+                if (double.IsInfinity(rect.Left) || double.IsInfinity(rect.Top) ||
+                    double.IsInfinity(rect.Width) || double.IsInfinity(rect.Height) ||
+                    double.IsNaN(rect.Left) || double.IsNaN(rect.Top) ||
+                    double.IsNaN(rect.Width) || double.IsNaN(rect.Height))
+                {
+                    return new BoundingRectangle { X = 0, Y = 0, Width = 0, Height = 0 };
+                }
+                
+                return new BoundingRectangle
+                {
+                    X = rect.Left,
+                    Y = rect.Top,
+                    Width = rect.Width,
+                    Height = rect.Height
+                };
+            }
+            catch (Exception)
+            {
+                return new BoundingRectangle { X = 0, Y = 0, Width = 0, Height = 0 };
             }
         }
     }
