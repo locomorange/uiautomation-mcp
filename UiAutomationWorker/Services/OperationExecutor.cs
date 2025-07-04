@@ -14,19 +14,25 @@ namespace UiAutomationWorker.Services
         private readonly CorePatternExecutor _corePatternExecutor;
         private readonly LayoutPatternExecutor _layoutPatternExecutor;
         private readonly TreePatternExecutor _treePatternExecutor;
+        private readonly TextPatternExecutor _textPatternExecutor;
+        private readonly WindowPatternExecutor _windowPatternExecutor;
 
         public OperationExecutor(
             ILogger<OperationExecutor> logger,
             ElementSearchService elementSearchService,
             CorePatternExecutor corePatternExecutor,
             LayoutPatternExecutor layoutPatternExecutor,
-            TreePatternExecutor treePatternExecutor)
+            TreePatternExecutor treePatternExecutor,
+            TextPatternExecutor textPatternExecutor,
+            WindowPatternExecutor windowPatternExecutor)
         {
             _logger = logger;
             _elementSearchService = elementSearchService;
             _corePatternExecutor = corePatternExecutor;
             _layoutPatternExecutor = layoutPatternExecutor;
             _treePatternExecutor = treePatternExecutor;
+            _textPatternExecutor = textPatternExecutor;
+            _windowPatternExecutor = windowPatternExecutor;
         }
 
         /// <summary>
@@ -56,6 +62,18 @@ namespace UiAutomationWorker.Services
                     "scroll" => await _layoutPatternExecutor.ExecuteScrollAsync(operation),
                     "scrollintoview" => await _layoutPatternExecutor.ExecuteScrollIntoViewAsync(operation),
 
+                    // Text Pattern Operations
+                    "gettext" => await _textPatternExecutor.ExecuteGetTextAsync(operation),
+                    "selecttext" => await _textPatternExecutor.ExecuteSelectTextAsync(operation),
+                    "findtext" => await _textPatternExecutor.ExecuteFindTextAsync(operation),
+                    "gettextselection" => await _textPatternExecutor.ExecuteGetTextSelectionAsync(operation),
+
+                    // Window Pattern Operations
+                    "setwindowstate" => await _windowPatternExecutor.ExecuteSetWindowStateAsync(operation),
+                    "getwindowstate" => await _windowPatternExecutor.ExecuteGetWindowStateAsync(operation),
+                    "closewindow" => await _windowPatternExecutor.ExecuteCloseWindowAsync(operation),
+                    "waitforwindowstate" => await _windowPatternExecutor.ExecuteWaitForWindowStateAsync(operation),
+
                     // Tree Operations - using TreePatternExecutor for legacy operations format
                     "gettree" => await ConvertToWorkerResult(_treePatternExecutor.GetTreeAsync(ConvertOperationToParameters(operation))),
                     "getchildren" => await ConvertToWorkerResult(_treePatternExecutor.GetChildrenAsync(ConvertOperationToParameters(operation))),
@@ -70,7 +88,8 @@ namespace UiAutomationWorker.Services
                         Success = false,
                         Error = $"Unknown operation: {operation.Operation}. " +
                                 "Supported operations: findfirst, findall, getproperties, invoke, setvalue, getvalue, " +
-                                "toggle, select, scroll, scrollintoview, gettree, getchildren"
+                                "toggle, select, scroll, scrollintoview, gettext, selecttext, findtext, gettextselection, " +
+                                "setwindowstate, getwindowstate, closewindow, waitforwindowstate, gettree, getchildren"
                     }
                 };
             }
@@ -107,6 +126,18 @@ namespace UiAutomationWorker.Services
                 // Layout Pattern Operations
                 "scroll",
                 "scrollintoview",
+
+                // Text Pattern Operations
+                "gettext",
+                "selecttext",
+                "findtext",
+                "gettextselection",
+
+                // Window Pattern Operations
+                "setwindowstate",
+                "getwindowstate",
+                "closewindow",
+                "waitforwindowstate",
 
                 // Tree Operations
                 "gettree",

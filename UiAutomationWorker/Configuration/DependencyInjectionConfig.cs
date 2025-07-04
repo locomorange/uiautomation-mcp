@@ -29,6 +29,8 @@ namespace UiAutomationWorker.Configuration
             services.AddSingleton<CorePatternExecutor>();
             services.AddSingleton<LayoutPatternExecutor>();
             services.AddSingleton<TreePatternExecutor>();
+            services.AddSingleton<TextPatternExecutor>();
+            services.AddSingleton<WindowPatternExecutor>();
 
             // Register main services
             services.AddSingleton<ElementSearchService>();
