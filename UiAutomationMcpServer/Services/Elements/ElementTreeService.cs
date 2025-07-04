@@ -14,11 +14,13 @@ namespace UiAutomationMcpServer.Services.Elements
     {
         private readonly ILogger<ElementTreeService> _logger;
         private readonly IWindowService _windowService;
+        private readonly IElementUtilityService _elementUtilityService;
 
-        public ElementTreeService(ILogger<ElementTreeService> logger, IWindowService windowService)
+        public ElementTreeService(ILogger<ElementTreeService> logger, IWindowService windowService, IElementUtilityService elementUtilityService)
         {
             _logger = logger;
             _windowService = windowService;
+            _elementUtilityService = elementUtilityService;
         }
 
         public Task<OperationResult> GetElementTreeAsync(string? windowTitle = null, string treeView = "control", int maxDepth = 3, int? processId = null)
@@ -81,6 +83,7 @@ namespace UiAutomationMcpServer.Services.Elements
                     Width = double.IsInfinity(element.Current.BoundingRectangle.Width) ? 0 : element.Current.BoundingRectangle.Width,
                     Height = double.IsInfinity(element.Current.BoundingRectangle.Height) ? 0 : element.Current.BoundingRectangle.Height
                 },
+                AvailableActions = _elementUtilityService.GetAvailableActions(element),
                 Children = new List<ElementTreeNode>()
             };
 
@@ -132,6 +135,7 @@ namespace UiAutomationMcpServer.Services.Elements
         public bool IsEnabled { get; set; }
         public bool IsVisible { get; set; }
         public BoundingRectangle BoundingRectangle { get; set; } = new();
+        public Dictionary<string, string> AvailableActions { get; set; } = new();
         public List<ElementTreeNode> Children { get; set; } = new();
     }
 }

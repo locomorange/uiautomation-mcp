@@ -15,11 +15,13 @@ namespace UiAutomationMcpServer.Services.Elements
     {
         private readonly ILogger<ElementPropertiesService> _logger;
         private readonly IWindowService _windowService;
+        private readonly IElementUtilityService _elementUtilityService;
 
-        public ElementPropertiesService(ILogger<ElementPropertiesService> logger, IWindowService windowService)
+        public ElementPropertiesService(ILogger<ElementPropertiesService> logger, IWindowService windowService, IElementUtilityService elementUtilityService)
         {
             _logger = logger;
             _windowService = windowService;
+            _elementUtilityService = elementUtilityService;
         }
 
         public Task<OperationResult> GetElementPropertiesAsync(string elementId, string? windowTitle = null, int? processId = null)
@@ -32,6 +34,8 @@ namespace UiAutomationMcpServer.Services.Elements
                     return Task.FromResult(new OperationResult { Success = false, Error = $"Element '{elementId}' not found" });
                 }
 
+                var availableActions = _elementUtilityService.GetAvailableActions(element);
+                
                 var properties = new
                 {
                     Name = element.Current.Name ?? "",
@@ -61,7 +65,8 @@ namespace UiAutomationMcpServer.Services.Elements
                     ItemStatus = element.Current.ItemStatus ?? "",
                     ItemType = element.Current.ItemType ?? "",
                     LabeledBy = element.Current.LabeledBy?.Current.Name ?? "",
-                    Orientation = element.Current.Orientation.ToString()
+                    Orientation = element.Current.Orientation.ToString(),
+                    AvailableActions = availableActions
                 };
 
                 return Task.FromResult(new OperationResult { Success = true, Data = properties });

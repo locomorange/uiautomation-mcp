@@ -26,6 +26,7 @@ namespace UiAutomationMcpServer
             builder.Services.AddSingleton<IScreenshotService, ScreenshotService>();
             
             // Register Element services
+            builder.Services.AddSingleton<IElementUtilityService, ElementUtilityService>();
             builder.Services.AddSingleton<IElementDiscoveryService, ElementDiscoveryService>();
             builder.Services.AddSingleton<IElementTreeService, ElementTreeService>();
             builder.Services.AddSingleton<IElementPropertiesService, ElementPropertiesService>();
