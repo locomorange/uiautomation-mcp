@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Automation;
-using UiAutomationMcpServer.Models;
+using UiAutomationMcp.Models;
 using UiAutomationMcpServer.Services;
 
 namespace UiAutomationMcpServer.Services.Windows
@@ -18,73 +18,74 @@ namespace UiAutomationMcpServer.Services.Windows
     public class WindowService : IWindowService
     {
         private readonly ILogger<WindowService> _logger;
-        private readonly IUIAutomationHelper _uiAutomationHelper;
+        private readonly IUIAutomationWorker _uiAutomationWorker;
 
-        public WindowService(ILogger<WindowService> logger, IUIAutomationHelper uiAutomationHelper)
+        public WindowService(ILogger<WindowService> logger, IUIAutomationWorker uiAutomationWorker)
         {
             _logger = logger;
-            _uiAutomationHelper = uiAutomationHelper;
+            _uiAutomationWorker = uiAutomationWorker;
         }
 
         public async Task<OperationResult> GetWindowInfoAsync()
         {
             try
             {
-                var windows = new List<WindowInfo>();
+                _logger.LogInformation("Getting window info via UIAutomationWorker");
                 
-                var windowElementsResult = await _uiAutomationHelper.FindAllAsync(
-                    AutomationElement.RootElement,
-                    TreeScope.Children,
-                    new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window),
-                    30);
+                // Use the UIAutomationWorker to get window information
+                var windowElementsResult = await _uiAutomationWorker.FindAllAsync(
+                    windowTitle: null,
+                    searchText: null,
+                    controlType: "Window",
+                    processId: null,
+                    timeoutSeconds: 30);
                 
                 if (!windowElementsResult.Success)
                 {
+                    _logger.LogError("Failed to get window elements: {Error}", windowElementsResult.Error);
                     return new OperationResult { Success = false, Error = windowElementsResult.Error ?? "Failed to find windows" };
                 }
                 
-                var windowElements = windowElementsResult.Data;
+                var elementInfos = windowElementsResult.Data ?? new List<ElementInfo>();
+                var windows = new List<WindowInfo>();
 
-                if (windowElements == null)
-                {
-                    return new OperationResult { Success = true, Data = windows };
-                }
-
-                foreach (AutomationElement window in windowElements)
+                foreach (var elementInfo in elementInfos)
                 {
                     try
                     {
-                        var name = window?.Current.Name ?? "";
-                        if (!string.IsNullOrEmpty(name) && window != null)
+                        if (!string.IsNullOrEmpty(elementInfo.Name))
                         {
                             windows.Add(new WindowInfo
                             {
-                                Name = name,
-                                AutomationId = window.Current.AutomationId ?? "",
-                                ProcessId = window.Current.ProcessId,
-                                ClassName = window.Current.ClassName ?? "",
+                                Name = elementInfo.Name,
+                                AutomationId = elementInfo.AutomationId ?? "",
+                                ProcessId = elementInfo.ProcessId,
+                                ClassName = elementInfo.ClassName ?? "",
                                 BoundingRectangle = new BoundingRectangle
                                 {
-                                    X = double.IsInfinity(window.Current.BoundingRectangle.X) ? 0 : window.Current.BoundingRectangle.X,
-                                    Y = double.IsInfinity(window.Current.BoundingRectangle.Y) ? 0 : window.Current.BoundingRectangle.Y,
-                                    Width = double.IsInfinity(window.Current.BoundingRectangle.Width) ? 0 : window.Current.BoundingRectangle.Width,
-                                    Height = double.IsInfinity(window.Current.BoundingRectangle.Height) ? 0 : window.Current.BoundingRectangle.Height
+                                    X = elementInfo.BoundingRectangle?.X ?? 0,
+                                    Y = elementInfo.BoundingRectangle?.Y ?? 0,
+                                    Width = elementInfo.BoundingRectangle?.Width ?? 0,
+                                    Height = elementInfo.BoundingRectangle?.Height ?? 0
                                 },
-                                IsEnabled = window.Current.IsEnabled,
-                                IsVisible = !window.Current.IsOffscreen
+                                IsEnabled = elementInfo.IsEnabled,
+                                IsVisible = elementInfo.IsVisible
                             });
                         }
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        _logger.LogWarning(ex, "Error processing window element: {Name}", elementInfo.Name);
                         continue;
                     }
                 }
 
+                _logger.LogInformation("Successfully retrieved {Count} windows", windows.Count);
                 return new OperationResult { Success = true, Data = windows };
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "GetWindowInfo failed");
                 return new OperationResult { Success = false, Error = $"GetWindowInfo failed: {ex.Message}" };
             }
         }

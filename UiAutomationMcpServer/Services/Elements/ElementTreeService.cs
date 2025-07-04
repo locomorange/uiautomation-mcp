@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using System.Windows.Automation;
-using UiAutomationMcpServer.Models;
+using UiAutomationMcp.Models;
 using UiAutomationMcpServer.Services.Windows;
 using UiAutomationMcpServer.Services;
 
@@ -16,14 +16,14 @@ namespace UiAutomationMcpServer.Services.Elements
         private readonly ILogger<ElementTreeService> _logger;
         private readonly IWindowService _windowService;
         private readonly IElementUtilityService _elementUtilityService;
-        private readonly IUIAutomationHelper _uiAutomationHelper;
+        private readonly IUIAutomationWorker _uiAutomationWorker;
 
-        public ElementTreeService(ILogger<ElementTreeService> logger, IWindowService windowService, IElementUtilityService elementUtilityService, IUIAutomationHelper uiAutomationHelper)
+        public ElementTreeService(ILogger<ElementTreeService> logger, IWindowService windowService, IElementUtilityService elementUtilityService, IUIAutomationWorker uiAutomationWorker)
         {
             _logger = logger;
             _windowService = windowService;
             _elementUtilityService = elementUtilityService;
-            _uiAutomationHelper = uiAutomationHelper;
+            _uiAutomationWorker = uiAutomationWorker;
         }
 
         public async Task<OperationResult> GetElementTreeAsync(string? windowTitle = null, string treeView = "control", int maxDepth = 3, int? processId = null)
@@ -89,11 +89,12 @@ namespace UiAutomationMcpServer.Services.Elements
                 try
                 {
                     var childCondition = GetTreeViewCondition(scope);
-                    var childrenResult = await _uiAutomationHelper.FindAllAsync(element, TreeScope.Children, childCondition, 30);
+                    // 暫定的に直接AutomationAPIを使用（理想的にはWorkerを使用したい）
+                    var children = await Task.Run(() => element.FindAll(TreeScope.Children, childCondition));
 
-                    if (childrenResult.Success && childrenResult.Data != null)
+                    if (children != null)
                     {
-                        foreach (AutomationElement child in childrenResult.Data)
+                        foreach (AutomationElement child in children)
                         {
                             try
                             {
@@ -106,10 +107,6 @@ namespace UiAutomationMcpServer.Services.Elements
                                 continue;
                             }
                         }
-                    }
-                    else
-                    {
-                        _logger.LogWarning("Error getting child elements: {Error}", childrenResult.Error);
                     }
                 }
                 catch (Exception ex)

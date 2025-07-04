@@ -16,7 +16,7 @@ namespace UiAutomationMcpServer
         {
             var builder = Host.CreateApplicationBuilder(args);
 
-            // Configure logging for MCP - temporarily enable file logging for debugging
+            // Configure logging for MCP - disable console logging to avoid MCP protocol interference
             builder.Logging.ClearProviders();
             var logPath = Path.Combine(Directory.GetCurrentDirectory(), "mcp_debug.log");
             builder.Logging.AddProvider(new UiAutomationMcpServer.Services.FileLoggerProvider(logPath));
@@ -27,7 +27,6 @@ namespace UiAutomationMcpServer
             builder.Services.AddSingleton<IScreenshotService, ScreenshotService>();
             
             // Register shared services
-            builder.Services.AddSingleton<IUIAutomationHelper, UIAutomationHelper>();
             builder.Services.AddSingleton<IUIAutomationWorker, UIAutomationWorker>();
             
             // Register Element services

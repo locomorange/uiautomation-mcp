@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using System.Windows.Automation;
-using UiAutomationMcpServer.Models;
+using UiAutomationMcp.Models;
 using UiAutomationMcpServer.Services.Windows;
 using UiAutomationMcpServer.Services;
 
@@ -15,13 +15,13 @@ namespace UiAutomationMcpServer.Services.Patterns
     {
         private readonly ILogger<WindowPatternService> _logger;
         private readonly IWindowService _windowService;
-        private readonly IUIAutomationHelper _uiAutomationHelper;
+        private readonly IUIAutomationWorker _uiAutomationWorker;
 
-        public WindowPatternService(ILogger<WindowPatternService> logger, IWindowService windowService, IUIAutomationHelper uiAutomationHelper)
+        public WindowPatternService(ILogger<WindowPatternService> logger, IWindowService windowService, IUIAutomationWorker uiAutomationWorker)
         {
             _logger = logger;
             _windowService = windowService;
-            _uiAutomationHelper = uiAutomationHelper;
+            _uiAutomationWorker = uiAutomationWorker;
         }
 
         public async Task<OperationResult> WindowActionAsync(string elementId, string action, string? windowTitle = null, int? processId = null)
@@ -129,7 +129,11 @@ namespace UiAutomationMcpServer.Services.Patterns
                     _logger.LogInformation("Added ProcessId filter: {ProcessId}", processId.Value);
                 }
                 
-                var result = await _uiAutomationHelper.FindFirstAsync(searchRoot, TreeScope.Descendants, finalCondition);
+                var result = await Task.Run(() => 
+                {
+                    var element = searchRoot.FindFirst(TreeScope.Descendants, finalCondition);
+                    return new OperationResult<AutomationElement?> { Success = true, Data = element };
+                });
                 
                 if (result.Success && result.Data != null)
                 {

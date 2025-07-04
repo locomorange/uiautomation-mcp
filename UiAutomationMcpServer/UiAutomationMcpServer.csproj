@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\UiAutomationWorker\UiAutomationWorker.csproj" />
+    <ProjectReference Include="..\UiAutomationMcp.Models\UiAutomationMcp.Models.csproj" />
   </ItemGroup>
 
 

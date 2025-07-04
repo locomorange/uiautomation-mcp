@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using System.Windows.Automation;
-using UiAutomationMcpServer.Models;
+using UiAutomationMcp.Models;
 using UiAutomationMcpServer.Services.Windows;
 using UiAutomationMcpServer.Services;
 
@@ -17,14 +17,14 @@ namespace UiAutomationMcpServer.Services.Elements
         private readonly ILogger<ElementPropertiesService> _logger;
         private readonly IWindowService _windowService;
         private readonly IElementUtilityService _elementUtilityService;
-        private readonly IUIAutomationHelper _uiAutomationHelper;
+        private readonly IUIAutomationWorker _uiAutomationWorker;
 
-        public ElementPropertiesService(ILogger<ElementPropertiesService> logger, IWindowService windowService, IElementUtilityService elementUtilityService, IUIAutomationHelper uiAutomationHelper)
+        public ElementPropertiesService(ILogger<ElementPropertiesService> logger, IWindowService windowService, IElementUtilityService elementUtilityService, IUIAutomationWorker uiAutomationWorker)
         {
             _logger = logger;
             _windowService = windowService;
             _elementUtilityService = elementUtilityService;
-            _uiAutomationHelper = uiAutomationHelper;
+            _uiAutomationWorker = uiAutomationWorker;
         }
 
         public async Task<OperationResult> GetElementPropertiesAsync(string elementId, string? windowTitle = null, int? processId = null)
@@ -222,6 +222,11 @@ namespace UiAutomationMcpServer.Services.Elements
         {
             try
             {
+                // UIAutomationWorkerを使用してElementInfoを取得し、それをAutomationElementに変換する必要がある
+                // ただし、現在のUIAutomationWorkerはElementInfoを返すため、
+                // この部分はリファクタリングが必要です
+                
+                // 現在は暫定的に直接UIAutomationAPIを使用
                 AutomationElement? searchRoot = null;
                 if (!string.IsNullOrEmpty(windowTitle))
                 {
@@ -242,7 +247,9 @@ namespace UiAutomationMcpServer.Services.Elements
                     new PropertyCondition(AutomationElement.NameProperty, elementId)
                 );
 
-                return await _uiAutomationHelper.FindFirstAsync(searchRoot, TreeScope.Descendants, condition);
+                // 暫定的に直接AutomationAPIを使用（理想的にはWorkerを使用したい）
+                var result = await Task.Run(() => searchRoot.FindFirst(TreeScope.Descendants, condition));
+                return new OperationResult<AutomationElement?> { Success = true, Data = result };
             }
             catch (Exception ex)
             {

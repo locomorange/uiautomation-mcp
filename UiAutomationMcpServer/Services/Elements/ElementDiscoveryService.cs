@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using System.Windows.Automation;
-using UiAutomationMcpServer.Models;
+using UiAutomationMcp.Models;
 using UiAutomationMcpServer.Services.Windows;
 
 namespace UiAutomationMcpServer.Services.Elements
@@ -16,88 +16,29 @@ namespace UiAutomationMcpServer.Services.Elements
         private readonly ILogger<ElementDiscoveryService> _logger;
         private readonly IWindowService _windowService;
         private readonly IElementUtilityService _elementUtilityService;
-        private readonly IUIAutomationHelper _uiAutomationHelper;
+        private readonly IUIAutomationWorker _uiAutomationWorker;
 
-        public ElementDiscoveryService(ILogger<ElementDiscoveryService> logger, IWindowService windowService, IElementUtilityService elementUtilityService, IUIAutomationHelper uiAutomationHelper)
+        public ElementDiscoveryService(ILogger<ElementDiscoveryService> logger, IWindowService windowService, IElementUtilityService elementUtilityService, IUIAutomationWorker uiAutomationWorker)
         {
             _logger = logger;
             _windowService = windowService;
             _elementUtilityService = elementUtilityService;
-            _uiAutomationHelper = uiAutomationHelper;
+            _uiAutomationWorker = uiAutomationWorker;
         }
 
         public async Task<OperationResult> GetElementInfoAsync(string? windowTitle = null, string? controlType = null, int? processId = null)
         {
             try
             {
-                var elements = new List<ElementInfo>();
-
-                AutomationElement? searchRoot = null;
-                if (!string.IsNullOrEmpty(windowTitle))
-                {
-                    searchRoot = _windowService.FindWindowByTitle(windowTitle, processId);
-                    if (searchRoot == null)
-                    {
-                        return new OperationResult { Success = false, Error = $"Window '{windowTitle}' not found" };
-                    }
-                }
-                else
-                {
-                    searchRoot = AutomationElement.RootElement;
-                }
-
-                Condition condition = Condition.TrueCondition;
-                if (!string.IsNullOrEmpty(controlType))
-                {
-                    var controlTypeObj = GetControlType(controlType);
-                    if (controlTypeObj != null)
-                    {
-                        condition = new PropertyCondition(AutomationElement.ControlTypeProperty, controlTypeObj);
-                    }
-                }
-
-                var findResult = await _uiAutomationHelper.FindAllAsync(searchRoot, TreeScope.Descendants, condition);
+                // Use UIAutomationWorker directly
+                var findResult = await _uiAutomationWorker.FindAllAsync(windowTitle, null, controlType, processId);
+                
                 if (!findResult.Success)
                 {
                     return new OperationResult { Success = false, Error = findResult.Error };
                 }
 
-                var elementCollection = findResult.Data;
-                if (elementCollection == null)
-                {
-                    return new OperationResult { Success = true, Data = elements };
-                }
-
-                foreach (AutomationElement element in elementCollection)
-                {
-                    try
-                    {
-                        var name = element?.Current.Name ?? "";
-                        var automationId = element?.Current.AutomationId ?? "";
-
-                        if (!string.IsNullOrEmpty(name) || !string.IsNullOrEmpty(automationId))
-                        {
-                            elements.Add(new ElementInfo
-                            {
-                                Name = name,
-                                AutomationId = automationId,
-                                ControlType = element?.Current.ControlType.ProgrammaticName ?? "",
-                                ClassName = element?.Current.ClassName ?? "",
-                                ProcessId = element?.Current.ProcessId ?? 0,
-                                IsEnabled = element?.Current.IsEnabled ?? false,
-                                IsVisible = !(element?.Current.IsOffscreen ?? true),
-                                BoundingRectangle = element != null ? SafeGetBoundingRectangle(element) : new BoundingRectangle(),
-                                Value = _elementUtilityService.GetElementValue(element),
-                                AvailableActions = _elementUtilityService.GetAvailableActions(element)
-                            });
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        continue;
-                    }
-                }
-
+                var elements = findResult.Data ?? new List<ElementInfo>();
                 return new OperationResult { Success = true, Data = elements };
             }
             catch (Exception ex)
@@ -108,114 +49,33 @@ namespace UiAutomationMcpServer.Services.Elements
 
         public async Task<OperationResult> FindElementsAsync(string? searchText = null, string? controlType = null, string? windowTitle = null, int? processId = null)
         {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            _logger.LogInformation("FindElementsAsync started - SearchText: '{SearchText}', ControlType: '{ControlType}', WindowTitle: '{WindowTitle}', ProcessId: {ProcessId}",
+                searchText, controlType, windowTitle, processId);
+
             try
             {
-                var elements = new List<ElementInfo>();
-
-                AutomationElement? searchRoot = null;
-                if (!string.IsNullOrEmpty(windowTitle))
+                // Use UIAutomationWorker directly
+                var findResult = await _uiAutomationWorker.FindAllAsync(windowTitle, searchText, controlType, processId);
+                
+                stopwatch.Stop();
+                if (findResult.Success)
                 {
-                    searchRoot = _windowService.FindWindowByTitle(windowTitle, processId);
-                    if (searchRoot == null)
-                    {
-                        return new OperationResult { Success = false, Error = $"Window '{windowTitle}' not found" };
-                    }
+                    var elements = findResult.Data ?? new List<ElementInfo>();
+                    _logger.LogInformation("FindElementsAsync completed in {ElapsedMs}ms, returning {ResultCount} elements", 
+                        stopwatch.ElapsedMilliseconds, elements.Count);
+                    return new OperationResult { Success = true, Data = elements };
                 }
                 else
                 {
-                    searchRoot = AutomationElement.RootElement;
-                }
-
-                List<Condition> conditions = new List<Condition>();
-
-                if (!string.IsNullOrEmpty(searchText))
-                {
-                    conditions.Add(new PropertyCondition(AutomationElement.NameProperty, searchText));
-                    conditions.Add(new PropertyCondition(AutomationElement.AutomationIdProperty, searchText));
-                }
-
-                if (!string.IsNullOrEmpty(controlType))
-                {
-                    var controlTypeObj = GetControlType(controlType);
-                    if (controlTypeObj != null)
-                    {
-                        conditions.Add(new PropertyCondition(AutomationElement.ControlTypeProperty, controlTypeObj));
-                    }
-                }
-
-                Condition searchCondition;
-                if (conditions.Count == 0)
-                {
-                    searchCondition = Condition.TrueCondition;
-                }
-                else if (conditions.Count == 1)
-                {
-                    searchCondition = conditions[0];
-                }
-                else
-                {
-                    // If we have both searchText and controlType, use AND condition
-                    // If we have only searchText with multiple conditions (name OR automationId), use OR condition
-                    if (!string.IsNullOrEmpty(searchText) && !string.IsNullOrEmpty(controlType))
-                    {
-                        var textConditions = conditions.Take(2).ToArray(); // name OR automationId
-                        var textCondition = textConditions.Length > 1 ? new OrCondition(textConditions) : textConditions[0];
-                        var controlTypeCondition = conditions.Last(); // controlType
-                        searchCondition = new AndCondition(textCondition, controlTypeCondition);
-                    }
-                    else
-                    {
-                        searchCondition = new OrCondition(conditions.ToArray());
-                    }
-                }
-
-                var findResult = await _uiAutomationHelper.FindAllAsync(searchRoot, TreeScope.Descendants, searchCondition);
-                if (!findResult.Success)
-                {
+                    _logger.LogError("FindElementsAsync failed after {ElapsedMs}ms: {Error}", stopwatch.ElapsedMilliseconds, findResult.Error);
                     return new OperationResult { Success = false, Error = findResult.Error };
                 }
-
-                var elementCollection = findResult.Data;
-                if (elementCollection != null)
-                {
-
-                    foreach (AutomationElement element in elementCollection)
-                    {
-                        try
-                        {
-                            var name = element?.Current.Name ?? "";
-                            var automationId = element?.Current.AutomationId ?? "";
-
-                            if (string.IsNullOrEmpty(searchText) ||
-                                (!string.IsNullOrEmpty(name) && name.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
-                                (!string.IsNullOrEmpty(automationId) && automationId.Contains(searchText, StringComparison.OrdinalIgnoreCase)))
-                            {
-                                elements.Add(new ElementInfo
-                                {
-                                    Name = name,
-                                    AutomationId = automationId,
-                                    ControlType = element?.Current.ControlType.ProgrammaticName ?? "",
-                                    ClassName = element?.Current.ClassName ?? "",
-                                    ProcessId = element?.Current.ProcessId ?? 0,
-                                    IsEnabled = element?.Current.IsEnabled ?? false,
-                                    IsVisible = !(element?.Current.IsOffscreen ?? true),
-                                    BoundingRectangle = element != null ? SafeGetBoundingRectangle(element) : new BoundingRectangle(),
-                                    Value = _elementUtilityService.GetElementValue(element),
-                                    AvailableActions = _elementUtilityService.GetAvailableActions(element)
-                                });
-                            }
-                        }
-                        catch (Exception)
-                        {
-                            continue;
-                        }
-                    }
-                }
-
-                return new OperationResult { Success = true, Data = elements };
             }
             catch (Exception ex)
             {
+                stopwatch.Stop();
+                _logger.LogError(ex, "FindElementsAsync failed after {ElapsedMs}ms: {Error}", stopwatch.ElapsedMilliseconds, ex.Message);
                 return new OperationResult { Success = false, Error = $"FindElements failed: {ex.Message}" };
             }
         }
@@ -288,5 +148,6 @@ namespace UiAutomationMcpServer.Services.Elements
                 return new BoundingRectangle { X = 0, Y = 0, Width = 0, Height = 0 };
             }
         }
+
     }
 }

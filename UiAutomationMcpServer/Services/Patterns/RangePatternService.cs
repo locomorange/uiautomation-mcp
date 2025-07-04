@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using System.Windows.Automation;
-using UiAutomationMcpServer.Models;
+using UiAutomationMcp.Models;
 using UiAutomationMcpServer.Services.Windows;
 using UiAutomationMcpServer.Services;
 
@@ -16,13 +16,13 @@ namespace UiAutomationMcpServer.Services.Patterns
     {
         private readonly ILogger<RangePatternService> _logger;
         private readonly IWindowService _windowService;
-        private readonly IUIAutomationHelper _uiAutomationHelper;
+        private readonly IUIAutomationWorker _uiAutomationWorker;
 
-        public RangePatternService(ILogger<RangePatternService> logger, IWindowService windowService, IUIAutomationHelper uiAutomationHelper)
+        public RangePatternService(ILogger<RangePatternService> logger, IWindowService windowService, IUIAutomationWorker uiAutomationWorker)
         {
             _logger = logger;
             _windowService = windowService;
-            _uiAutomationHelper = uiAutomationHelper;
+            _uiAutomationWorker = uiAutomationWorker;
         }
 
         public async Task<OperationResult> SetRangeValueAsync(string elementId, double value, string? windowTitle = null, int? processId = null)
@@ -110,7 +110,9 @@ namespace UiAutomationMcpServer.Services.Patterns
                     new PropertyCondition(AutomationElement.NameProperty, elementId)
                 );
 
-                return await _uiAutomationHelper.FindFirstAsync(searchRoot, TreeScope.Descendants, condition);
+                // 暫定的に直接AutomationAPIを使用（理想的にはWorkerを使用したい）
+                var result = await Task.Run(() => searchRoot.FindFirst(TreeScope.Descendants, condition));
+                return new OperationResult<AutomationElement?> { Success = true, Data = result };
             }
             catch (Exception ex)
             {
