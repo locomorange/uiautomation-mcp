@@ -71,6 +71,7 @@ namespace UiAutomationMcpServer.Services.Elements
                 AutomationId = element.Current.AutomationId ?? "",
                 ControlType = element.Current.ControlType.ProgrammaticName ?? "",
                 ClassName = element.Current.ClassName ?? "",
+                ProcessId = element.Current.ProcessId,
                 IsEnabled = element.Current.IsEnabled,
                 IsVisible = !element.Current.IsOffscreen,
                 BoundingRectangle = new BoundingRectangle
@@ -127,6 +128,7 @@ namespace UiAutomationMcpServer.Services.Elements
         public string AutomationId { get; set; } = "";
         public string ControlType { get; set; } = "";
         public string ClassName { get; set; } = "";
+        public int ProcessId { get; set; }
         public bool IsEnabled { get; set; }
         public bool IsVisible { get; set; }
         public BoundingRectangle BoundingRectangle { get; set; } = new();

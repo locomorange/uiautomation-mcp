@@ -82,6 +82,7 @@ namespace UiAutomationMcpServer.Services.Elements
                                 AutomationId = automationId,
                                 ControlType = element?.Current.ControlType.ProgrammaticName ?? "",
                                 ClassName = element?.Current.ClassName ?? "",
+                                ProcessId = element?.Current.ProcessId ?? 0,
                                 IsEnabled = element?.Current.IsEnabled ?? false,
                                 IsVisible = !(element?.Current.IsOffscreen ?? true),
                                 BoundingRectangle = element != null ? new BoundingRectangle
@@ -91,7 +92,8 @@ namespace UiAutomationMcpServer.Services.Elements
                                     Width = double.IsInfinity(element.Current.BoundingRectangle.Width) ? 0 : element.Current.BoundingRectangle.Width,
                                     Height = double.IsInfinity(element.Current.BoundingRectangle.Height) ? 0 : element.Current.BoundingRectangle.Height
                                 } : new BoundingRectangle(),
-                                Value = GetElementValue(element)
+                                Value = GetElementValue(element),
+                                AvailableActions = GetAvailableActions(element)
                             });
                         }
                     }
@@ -169,6 +171,7 @@ namespace UiAutomationMcpServer.Services.Elements
                                     AutomationId = automationId,
                                     ControlType = element?.Current.ControlType.ProgrammaticName ?? "",
                                     ClassName = element?.Current.ClassName ?? "",
+                                    ProcessId = element?.Current.ProcessId ?? 0,
                                     IsEnabled = element?.Current.IsEnabled ?? false,
                                     IsVisible = !(element?.Current.IsOffscreen ?? true),
                                     BoundingRectangle = element != null ? new BoundingRectangle
@@ -178,7 +181,8 @@ namespace UiAutomationMcpServer.Services.Elements
                                         Width = double.IsInfinity(element.Current.BoundingRectangle.Width) ? 0 : element.Current.BoundingRectangle.Width,
                                         Height = double.IsInfinity(element.Current.BoundingRectangle.Height) ? 0 : element.Current.BoundingRectangle.Height
                                     } : new BoundingRectangle(),
-                                    Value = GetElementValue(element)
+                                    Value = GetElementValue(element),
+                                    AvailableActions = GetAvailableActions(element)
                                 });
                             }
                         }
@@ -273,6 +277,100 @@ namespace UiAutomationMcpServer.Services.Elements
             catch
             {
                 return element.Current.Name ?? "";
+            }
+        }
+
+        private Dictionary<string, string> GetAvailableActions(AutomationElement? element)
+        {
+            var actions = new Dictionary<string, string>();
+            if (element == null) return actions;
+
+            var patternsToCheck = new[]
+            {
+                (InvokePattern.Pattern, "Invoke"),
+                (ValuePattern.Pattern, "Value"),
+                (TogglePattern.Pattern, "Toggle"),
+                (SelectionItemPattern.Pattern, "SelectionItem"),
+                (ExpandCollapsePattern.Pattern, "ExpandCollapse"),
+                (ScrollPattern.Pattern, "Scroll"),
+                (ScrollItemPattern.Pattern, "ScrollItem"),
+                (RangeValuePattern.Pattern, "RangeValue"),
+                (WindowPattern.Pattern, "Window"),
+                (TransformPattern.Pattern, "Transform"),
+                (DockPattern.Pattern, "Dock"),
+                (TextPattern.Pattern, "Text"),
+                (MultipleViewPattern.Pattern, "MultipleView"),
+                (ItemContainerPattern.Pattern, "ItemContainer")
+            };
+
+            foreach (var (pattern, patternName) in patternsToCheck)
+            {
+                try
+                {
+                    if (element.TryGetCurrentPattern(pattern, out _))
+                    {
+                        AddActionsForPattern(actions, patternName);
+                    }
+                }
+                catch
+                {
+                    // Pattern not supported
+                }
+            }
+
+            return actions;
+        }
+
+        private void AddActionsForPattern(Dictionary<string, string> actions, string pattern)
+        {
+            switch (pattern)
+            {
+                case "Invoke":
+                    actions["InvokeElement"] = "Click/activate this element";
+                    break;
+                case "Value":
+                    actions["SetElementValue"] = "Set text value";
+                    actions["GetElementValue"] = "Get text value";
+                    break;
+                case "Toggle":
+                    actions["ToggleElement"] = "Toggle on/off state";
+                    break;
+                case "SelectionItem":
+                    actions["SelectElement"] = "Select this item";
+                    break;
+                case "ExpandCollapse":
+                    actions["ExpandCollapseElement"] = "Expand or collapse";
+                    break;
+                case "Scroll":
+                    actions["ScrollElement"] = "Scroll content";
+                    break;
+                case "ScrollItem":
+                    actions["ScrollElementIntoView"] = "Scroll into view";
+                    break;
+                case "RangeValue":
+                    actions["SetRangeValue"] = "Set slider/range value";
+                    actions["GetRangeValue"] = "Get slider/range value";
+                    break;
+                case "Window":
+                    actions["WindowAction"] = "Minimize/maximize/close window";
+                    break;
+                case "Transform":
+                    actions["TransformElement"] = "Move/resize element";
+                    break;
+                case "Dock":
+                    actions["DockElement"] = "Dock to position";
+                    break;
+                case "Text":
+                    actions["GetText"] = "Get text content";
+                    actions["FindText"] = "Find text within element";
+                    actions["SelectText"] = "Select text range";
+                    break;
+                case "MultipleView":
+                    actions["ChangeView"] = "Switch view";
+                    break;
+                case "ItemContainer":
+                    actions["FindItemInContainer"] = "Find item in container";
+                    break;
             }
         }
     }

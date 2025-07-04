@@ -49,11 +49,13 @@ namespace UiAutomationMcpServer.Models
         public string AutomationId { get; set; } = string.Empty;
         public string ControlType { get; set; } = string.Empty;
         public string ClassName { get; set; } = string.Empty;
+        public int ProcessId { get; set; }
         public BoundingRectangle BoundingRectangle { get; set; } = new();
         public bool IsEnabled { get; set; }
         public bool IsVisible { get; set; }
         public string HelpText { get; set; } = string.Empty;
         public string? Value { get; set; }
+        public Dictionary<string, string> AvailableActions { get; set; } = new();
     }
 
     public class BoundingRectangle
