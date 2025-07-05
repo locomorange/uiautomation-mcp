@@ -6,7 +6,7 @@ namespace UiAutomationMcpServer.Services
 {
     public interface IApplicationLauncher
     {
-        Task<ProcessResult> LaunchApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null, CancellationToken cancellationToken = default);
+        Task<ProcessResult> LaunchApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default);
     }
 
     public class ApplicationLauncher : IApplicationLauncher
@@ -19,7 +19,7 @@ namespace UiAutomationMcpServer.Services
         }
 
 
-        public async Task<ProcessResult> LaunchApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null, CancellationToken cancellationToken = default)
+        public async Task<ProcessResult> LaunchApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
         {
             try
             {

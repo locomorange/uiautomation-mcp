@@ -8,7 +8,7 @@ namespace UiAutomationMcpServer.Services
 {
     public interface IScreenshotService
     {
-        Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int? processId = null, CancellationToken cancellationToken = default);
+        Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int? processId = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default);
     }
 
     public class ScreenshotService : IScreenshotService
@@ -22,7 +22,7 @@ namespace UiAutomationMcpServer.Services
             _uiAutomationWorker = uiAutomationWorker;
         }
 
-        public async Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int? processId = null, CancellationToken cancellationToken = default)
+        public async Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int? processId = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -32,7 +32,13 @@ namespace UiAutomationMcpServer.Services
                 Rectangle bounds;
                 if (!string.IsNullOrEmpty(windowTitle))
                 {
-                    var windowResult = await _uiAutomationWorker.FindWindowByTitleAsync(windowTitle, processId, cancellationToken: cancellationToken);
+                    var parameters = new
+                    {
+                        WindowTitle = windowTitle,
+                        ProcessId = processId
+                    };
+                    var windowResult = await _uiAutomationWorker.ExecuteOperationAsync<Dictionary<string, object>>(
+                        "findwindow", parameters, timeoutSeconds, cancellationToken);
                     if (!windowResult.Success || windowResult.Data == null)
                     {
                         var errorMsg = processId.HasValue 
@@ -42,8 +48,14 @@ namespace UiAutomationMcpServer.Services
                     }
 
                     var windowInfo = windowResult.Data;
-                    var rect = windowInfo.BoundingRectangle;
-                    bounds = new Rectangle((int)rect.X, (int)rect.Y, (int)rect.Width, (int)rect.Height);
+                    
+                    // Dictionaryから座標情報を取得
+                    var x = Convert.ToInt32(windowInfo.GetValueOrDefault("x", 0));
+                    var y = Convert.ToInt32(windowInfo.GetValueOrDefault("y", 0));
+                    var width = Convert.ToInt32(windowInfo.GetValueOrDefault("width", 800));
+                    var height = Convert.ToInt32(windowInfo.GetValueOrDefault("height", 600));
+                    
+                    bounds = new Rectangle(x, y, width, height);
                 }
                 else
                 {

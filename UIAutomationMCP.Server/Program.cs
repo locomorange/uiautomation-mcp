@@ -29,7 +29,7 @@ namespace UiAutomationMcpServer
             
             // Register worker services
             builder.Services.AddSingleton<IUIAutomationWorker, UIAutomationWorker>();
-            
+            builder.Services.AddSingleton<IUIAutomationService, UIAutomationService>();
 
             // Configure MCP Server
             builder.Services
