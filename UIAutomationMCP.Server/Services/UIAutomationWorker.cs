@@ -228,8 +228,8 @@ namespace UiAutomationMcpServer.Services
             _processTimeoutManager = processTimeoutManager;
             // Worker executable will be in the same directory as the main application
             _workerExecutablePath = System.IO.Path.Combine(
-                System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? "",
-                "UiAutomationWorker.exe");
+                AppContext.BaseDirectory,
+                "UIAutomationMCP.Worker.exe");
         }
 
         public async Task<OperationResult<List<ElementInfo>>> FindAllAsync(
