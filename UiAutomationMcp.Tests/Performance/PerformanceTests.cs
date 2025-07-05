@@ -3,6 +3,7 @@ using System.Diagnostics;
 using UiAutomationMcp.Models;
 using UiAutomationMcpServer.Services;
 using Xunit.Abstractions;
+using Moq;
 
 namespace UiAutomationMcp.Tests.Performance
 {
@@ -14,6 +15,7 @@ namespace UiAutomationMcp.Tests.Performance
     {
         private readonly ITestOutputHelper _output;
         private readonly ILogger<UIAutomationWorker> _logger;
+        private readonly Mock<IProcessTimeoutManager> _mockProcessTimeoutManager;
         private readonly UIAutomationWorker _worker;
 
         public PerformanceTests(ITestOutputHelper output)
@@ -24,7 +26,8 @@ namespace UiAutomationMcp.Tests.Performance
                 builder.AddConsole().SetMinimumLevel(LogLevel.Information));
             _logger = loggerFactory.CreateLogger<UIAutomationWorker>();
             
-            _worker = new UIAutomationWorker(_logger);
+            _mockProcessTimeoutManager = new Mock<IProcessTimeoutManager>();
+            _worker = new UIAutomationWorker(_logger, _mockProcessTimeoutManager.Object);
         }
 
         [Fact]

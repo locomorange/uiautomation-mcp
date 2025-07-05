@@ -2,6 +2,8 @@ using Microsoft.Extensions.Logging;
 using UiAutomationMcp.Models;
 using UiAutomationMcpServer.Services;
 using Xunit.Abstractions;
+using Moq;
+using System.Diagnostics;
 
 namespace UiAutomationMcp.Tests.Integration
 {
@@ -14,6 +16,7 @@ namespace UiAutomationMcp.Tests.Integration
     {
         private readonly ITestOutputHelper _output;
         private readonly ILogger<UIAutomationWorker> _logger;
+        private readonly Mock<IProcessTimeoutManager> _mockProcessTimeoutManager;
         private readonly UIAutomationWorker _worker;
 
         public WorkerIntegrationTests(ITestOutputHelper output)
@@ -25,7 +28,23 @@ namespace UiAutomationMcp.Tests.Integration
                 builder.AddConsole().SetMinimumLevel(LogLevel.Information));
             _logger = loggerFactory.CreateLogger<UIAutomationWorker>();
             
-            _worker = new UIAutomationWorker(_logger);
+            _mockProcessTimeoutManager = new Mock<IProcessTimeoutManager>();
+            
+            // Setup mock to simulate worker executable not found scenario
+            _mockProcessTimeoutManager
+                .Setup(m => m.ExecuteWithTimeoutAsync(
+                    It.IsAny<ProcessStartInfo>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<string>()))
+                .ReturnsAsync(new ProcessExecutionResult
+                {
+                    Success = false,
+                    Error = "Worker executable not found: UiAutomationWorker.exe",
+                    ExecutionTime = TimeSpan.FromMilliseconds(10)
+                });
+                
+            _worker = new UIAutomationWorker(_logger, _mockProcessTimeoutManager.Object);
         }
 
         [Fact]

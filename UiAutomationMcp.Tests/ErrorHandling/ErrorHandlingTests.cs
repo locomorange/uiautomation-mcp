@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using UiAutomationMcp.Models;
 using UiAutomationMcpServer.Services;
 using Xunit.Abstractions;
+using Moq;
 
 namespace UiAutomationMcp.Tests.ErrorHandling
 {
@@ -14,6 +15,7 @@ namespace UiAutomationMcp.Tests.ErrorHandling
     {
         private readonly ITestOutputHelper _output;
         private readonly ILogger<UIAutomationWorker> _logger;
+        private readonly Mock<IProcessTimeoutManager> _mockProcessTimeoutManager;
         private readonly UIAutomationWorker _worker;
 
         public ErrorHandlingTests(ITestOutputHelper output)
@@ -24,7 +26,8 @@ namespace UiAutomationMcp.Tests.ErrorHandling
                 builder.AddConsole().SetMinimumLevel(LogLevel.Information));
             _logger = loggerFactory.CreateLogger<UIAutomationWorker>();
             
-            _worker = new UIAutomationWorker(_logger);
+            _mockProcessTimeoutManager = new Mock<IProcessTimeoutManager>();
+            _worker = new UIAutomationWorker(_logger, _mockProcessTimeoutManager.Object);
         }
 
         [Fact]

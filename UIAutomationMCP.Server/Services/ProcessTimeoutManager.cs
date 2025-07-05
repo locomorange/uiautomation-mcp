@@ -107,11 +107,26 @@ namespace UiAutomationMcpServer.Services
                     operationName, processId, processStartInfo.FileName);
                 process.Start();
                 
-                // Track active process for cleanup during shutdown
-                _activeProcesses[process.Id] = process;
-                
-                _logger.LogDebug("[ProcessTimeoutManager] {Operation}#{ProcessId} started with PID: {PID} (tracking {ActiveCount} processes)", 
-                    operationName, processId, process.Id, _activeProcesses.Count);
+                // Track active process for cleanup during shutdown - safely handle process ID
+                try
+                {
+                    if (!process.HasExited)
+                    {
+                        _activeProcesses[process.Id] = process;
+                        _logger.LogDebug("[ProcessTimeoutManager] {Operation}#{ProcessId} started with PID: {PID} (tracking {ActiveCount} processes)", 
+                            operationName, processId, process.Id, _activeProcesses.Count);
+                    }
+                    else
+                    {
+                        _logger.LogDebug("[ProcessTimeoutManager] {Operation}#{ProcessId} exited immediately", 
+                            operationName, processId);
+                    }
+                }
+                catch (InvalidOperationException)
+                {
+                    _logger.LogDebug("[ProcessTimeoutManager] {Operation}#{ProcessId} process state unavailable for tracking", 
+                        operationName, processId);
+                }
 
                 // Send input data to process
                 await process.StandardInput.WriteLineAsync(inputData);
@@ -194,10 +209,34 @@ namespace UiAutomationMcpServer.Services
             {
                 await CleanupProcessAsync(process, operationName);
                 
-                // Remove from active processes tracking
+                // Remove from active processes tracking - safely handle process ID
                 if (process != null)
                 {
-                    _activeProcesses.TryRemove(process.Id, out _);
+                    try
+                    {
+                        if (!process.HasExited)
+                        {
+                            _activeProcesses.TryRemove(process.Id, out _);
+                        }
+                        else
+                        {
+                            // Process exited, remove by finding it in the dictionary
+                            var kvpToRemove = _activeProcesses.FirstOrDefault(kvp => ReferenceEquals(kvp.Value, process));
+                            if (kvpToRemove.Key != 0)
+                            {
+                                _activeProcesses.TryRemove(kvpToRemove.Key, out _);
+                            }
+                        }
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // Process state unavailable, remove by finding it in the dictionary
+                        var kvpToRemove = _activeProcesses.FirstOrDefault(kvp => ReferenceEquals(kvp.Value, process));
+                        if (kvpToRemove.Key != 0)
+                        {
+                            _activeProcesses.TryRemove(kvpToRemove.Key, out _);
+                        }
+                    }
                 }
             }
         }
@@ -237,14 +276,22 @@ namespace UiAutomationMcpServer.Services
                     {
                         if (!process.HasExited)
                         {
-                            _logger.LogWarning("[ProcessTimeoutManager] Shutdown - Killing process PID: {PID}", process.Id);
+                            var processId = process.Id; // Get PID safely before killing
+                            _logger.LogWarning("[ProcessTimeoutManager] Shutdown - Killing process PID: {PID}", processId);
                             process.Kill(entireProcessTree: true);
                         }
+                        else
+                        {
+                            _logger.LogDebug("[ProcessTimeoutManager] Process already exited during shutdown");
+                        }
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        _logger.LogDebug("[ProcessTimeoutManager] Process state unavailable during shutdown - likely already exited");
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "[ProcessTimeoutManager] Failed to kill process during shutdown: PID {PID}", 
-                            process.Id);
+                        _logger.LogError(ex, "[ProcessTimeoutManager] Failed to kill process during shutdown");
                     }
                 }
 
