@@ -38,7 +38,7 @@ namespace UiAutomationWorker.Services
                 _logger.LogInformation("[InputProcessor] Processing operation: {InputLength} chars", inputJson.Length);
 
                 // Parse operation with UTF-8 encoding support
-                var options = JsonSerializationConfig.GetInputOptions();
+                var options = JsonSerializationConfig.GetOptions();
                 var operation = JsonSerializer.Deserialize<WorkerOperation>(inputJson, options);
                 
                 if (operation == null)

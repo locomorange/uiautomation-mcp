@@ -24,7 +24,7 @@ namespace UiAutomationWorker.Services
         {
             try
             {
-                var outputOptions = JsonSerializationConfig.GetOutputOptions();
+                var outputOptions = JsonSerializationConfig.GetOptions();
                 var resultJson = JsonSerializer.Serialize(result, outputOptions);
                 await Console.Out.WriteLineAsync(resultJson);
                 

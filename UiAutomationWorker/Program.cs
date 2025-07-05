@@ -1,6 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
-using UiAutomationWorker.Configuration;
+using Microsoft.Extensions.Logging;
 using UiAutomationWorker.Core;
+using UiAutomationWorker.Services;
+using UiAutomationWorker.PatternExecutors;
+using UiAutomationWorker.Helpers;
 
 namespace UiAutomationWorker
 {
@@ -14,7 +17,29 @@ namespace UiAutomationWorker
         {
             // Initialize dependency injection and logging
             var services = new ServiceCollection();
-            DependencyInjectionConfig.ConfigureServices(services);
+ 
+            // Initialize logging - disable console output to avoid interfering with JSON output
+            services.AddLogging(builder =>
+                builder.SetMinimumLevel(LogLevel.Error)); // Only log errors, and not to console
+
+            // Register helper services
+            services.AddSingleton<AutomationHelper>();
+            services.AddSingleton<ElementInfoExtractor>();
+
+            // Register pattern executors
+            services.AddSingleton<CorePatternExecutor>();
+            services.AddSingleton<LayoutPatternExecutor>();
+            services.AddSingleton<TreePatternExecutor>();
+            services.AddSingleton<TextPatternExecutor>();
+            services.AddSingleton<WindowPatternExecutor>();
+
+            // Register main services
+            services.AddSingleton<ElementSearchService>();
+            services.AddSingleton<OperationExecutor>();
+
+            // Register application services
+            services.AddSingleton<InputProcessor>();
+            services.AddSingleton<OutputProcessor>();
             
             using var serviceProvider = services.BuildServiceProvider();
 
@@ -22,5 +47,6 @@ namespace UiAutomationWorker
             var applicationHost = new WorkerApplicationHost(serviceProvider);
             return await applicationHost.RunAsync();
         }
+
     }
 }

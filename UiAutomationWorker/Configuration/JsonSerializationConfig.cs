@@ -8,22 +8,9 @@ namespace UiAutomationWorker.Configuration
     public static class JsonSerializationConfig
     {
         /// <summary>
-        /// 入力用のJSON シリアライゼーション オプションを取得します
+        /// 共通のJSON シリアライゼーション オプションを取得します
         /// </summary>
-        public static JsonSerializerOptions GetInputOptions()
-        {
-            return new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals
-            };
-        }
-
-        /// <summary>
-        /// 出力用のJSON シリアライゼーション オプションを取得します
-        /// </summary>
-        public static JsonSerializerOptions GetOutputOptions()
+        public static JsonSerializerOptions GetOptions()
         {
             return new JsonSerializerOptions
             {
