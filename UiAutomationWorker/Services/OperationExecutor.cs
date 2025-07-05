@@ -10,7 +10,7 @@ namespace UiAutomationWorker.Services
     public class OperationExecutor
     {
         private readonly ILogger<OperationExecutor> _logger;
-        private readonly ElementSearchService _elementSearchService;
+        private readonly ElementSearchExecutor _elementSearchExecutor;
         private readonly CorePatternExecutor _corePatternExecutor;
         private readonly LayoutPatternExecutor _layoutPatternExecutor;
         private readonly TreePatternExecutor _treePatternExecutor;
@@ -19,7 +19,7 @@ namespace UiAutomationWorker.Services
 
         public OperationExecutor(
             ILogger<OperationExecutor> logger,
-            ElementSearchService elementSearchService,
+            ElementSearchExecutor elementSearchExecutor,
             CorePatternExecutor corePatternExecutor,
             LayoutPatternExecutor layoutPatternExecutor,
             TreePatternExecutor treePatternExecutor,
@@ -27,7 +27,7 @@ namespace UiAutomationWorker.Services
             WindowPatternExecutor windowPatternExecutor)
         {
             _logger = logger;
-            _elementSearchService = elementSearchService;
+            _elementSearchExecutor = elementSearchExecutor;
             _corePatternExecutor = corePatternExecutor;
             _layoutPatternExecutor = layoutPatternExecutor;
             _treePatternExecutor = treePatternExecutor;
@@ -47,9 +47,9 @@ namespace UiAutomationWorker.Services
                 return operation.Operation.ToLowerInvariant() switch
                 {
                     // 要素検索操作
-                    "findfirst" => await _elementSearchService.ExecuteFindFirstAsync(operation),
-                    "findall" => await _elementSearchService.ExecuteFindAllAsync(operation),
-                    "getproperties" => await _elementSearchService.ExecuteGetPropertiesAsync(operation),
+                    "findfirst" => await _elementSearchExecutor.ExecuteFindFirstAsync(operation),
+                    "findall" => await _elementSearchExecutor.ExecuteFindAllAsync(operation),
+                    "getproperties" => await _elementSearchExecutor.ExecuteGetPropertiesAsync(operation),
 
                     // Core Pattern Operations
                     "invoke" => await _corePatternExecutor.ExecuteInvokeAsync(operation),
@@ -74,9 +74,9 @@ namespace UiAutomationWorker.Services
                     "closewindow" => await _windowPatternExecutor.ExecuteCloseWindowAsync(operation),
                     "waitforwindowstate" => await _windowPatternExecutor.ExecuteWaitForWindowStateAsync(operation),
 
-                    // Tree Operations - using TreePatternExecutor for legacy operations format
-                    "gettree" => await ConvertToWorkerResult(_treePatternExecutor.GetTreeAsync(ConvertOperationToParameters(operation))),
-                    "getchildren" => await ConvertToWorkerResult(_treePatternExecutor.GetChildrenAsync(ConvertOperationToParameters(operation))),
+                    // Tree Operations
+                    "gettree" => await _treePatternExecutor.ExecuteGetTreeAsync(operation),
+                    "getchildren" => await _treePatternExecutor.ExecuteGetChildrenAsync(operation),
 
                     // Aliases for backward compatibility
                     "value" => await _corePatternExecutor.ExecuteSetValueAsync(operation),

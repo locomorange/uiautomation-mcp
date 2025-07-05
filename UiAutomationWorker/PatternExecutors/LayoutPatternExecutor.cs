@@ -8,17 +8,13 @@ namespace UiAutomationWorker.PatternExecutors
     /// <summary>
     /// レイアウト関連パターン（ExpandCollapse、Scroll、Transform、Dock）を実行するクラス
     /// </summary>
-    public class LayoutPatternExecutor
+    public class LayoutPatternExecutor : BasePatternExecutor
     {
-        private readonly ILogger<LayoutPatternExecutor> _logger;
-        private readonly AutomationHelper _automationHelper;
-
         public LayoutPatternExecutor(
             ILogger<LayoutPatternExecutor> logger,
             AutomationHelper automationHelper)
+            : base(logger, automationHelper)
         {
-            _logger = logger;
-            _automationHelper = automationHelper;
         }
 
         /// <summary>
@@ -26,117 +22,79 @@ namespace UiAutomationWorker.PatternExecutors
         /// </summary>
         public async Task<WorkerResult> ExecuteExpandCollapseAsync(WorkerOperation operation)
         {
-            _logger.LogInformation("[LayoutPatternExecutor] Executing ExpandCollapse operation");
-
-            try
+            return await ExecuteWithTimeoutAsync(operation, () =>
             {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(operation.Timeout));
-
-                var result = await Task.Run(() =>
+                var element = FindElementFromOperation(operation);
+                if (element == null)
                 {
-                    try
+                    return CreateElementNotFoundResult("ExpandCollapse");
+                }
+
+                // ExpandCollapsePatternの取得
+                if (element.TryGetCurrentPattern(ExpandCollapsePattern.Pattern, out var patternObj) && 
+                    patternObj is ExpandCollapsePattern expandCollapsePattern)
+                {
+                    var currentState = expandCollapsePattern.Current.ExpandCollapseState;
+
+                    // expand パラメータの処理
+                    var shouldExpand = true; // デフォルトは展開
+                    if (operation.Parameters.TryGetValue("expand", out var expandObj))
                     {
-                        var element = FindElementFromOperation(operation);
-                        if (element == null)
+                        if (expandObj is bool expandBool)
                         {
-                            return new WorkerResult
-                            {
-                                Success = false,
-                                Error = "Target element not found for ExpandCollapse operation"
-                            };
+                            shouldExpand = expandBool;
                         }
-
-                        // ExpandCollapsePatternの取得
-                        if (element.TryGetCurrentPattern(ExpandCollapsePattern.Pattern, out var patternObj) && 
-                            patternObj is ExpandCollapsePattern expandCollapsePattern)
+                        else if (bool.TryParse(expandObj?.ToString(), out var expandParsed))
                         {
-                            var currentState = expandCollapsePattern.Current.ExpandCollapseState;
-
-                            // expand パラメータの処理
-                            var shouldExpand = true; // デフォルトは展開
-                            if (operation.Parameters.TryGetValue("expand", out var expandObj))
-                            {
-                                if (expandObj is bool expandBool)
-                                {
-                                    shouldExpand = expandBool;
-                                }
-                                else if (bool.TryParse(expandObj?.ToString(), out var expandParsed))
-                                {
-                                    shouldExpand = expandParsed;
-                                }
-                                else
-                                {
-                                    // トグル動作（現在の状態と逆にする）
-                                    shouldExpand = currentState != ExpandCollapseState.Expanded;
-                                }
-                            }
-                            else
-                            {
-                                // expand が指定されていない場合もトグル動作
-                                shouldExpand = currentState != ExpandCollapseState.Expanded;
-                            }
-
-                            _logger.LogInformation("[LayoutPatternExecutor] ExpandCollapse - Element: {ElementName}, Current: {CurrentState}, Target: {TargetAction}", 
-                                SafeGetElementName(element), currentState, shouldExpand ? "Expand" : "Collapse");
-
-                            if (shouldExpand && currentState != ExpandCollapseState.Expanded)
-                            {
-                                expandCollapsePattern.Expand();
-                                return new WorkerResult
-                                {
-                                    Success = true,
-                                    Data = "Element expanded successfully"
-                                };
-                            }
-                            else if (!shouldExpand && currentState != ExpandCollapseState.Collapsed)
-                            {
-                                expandCollapsePattern.Collapse();
-                                return new WorkerResult
-                                {
-                                    Success = true,
-                                    Data = "Element collapsed successfully"
-                                };
-                            }
-                            else
-                            {
-                                return new WorkerResult
-                                {
-                                    Success = true,
-                                    Data = $"Element is already in the desired state: {currentState}"
-                                };
-                            }
+                            shouldExpand = expandParsed;
                         }
                         else
                         {
-                            return new WorkerResult
-                            {
-                                Success = false,
-                                Error = "Element does not support ExpandCollapsePattern"
-                            };
+                            // トグル動作（現在の状態と逆にする）
+                            shouldExpand = currentState != ExpandCollapseState.Expanded;
                         }
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        _logger.LogError(ex, "[LayoutPatternExecutor] ExpandCollapse operation failed");
+                        // expand が指定されていない場合もトグル動作
+                        shouldExpand = currentState != ExpandCollapseState.Expanded;
+                    }
+
+                    _logger.LogInformation("[LayoutPatternExecutor] ExpandCollapse - Element: {ElementName}, Current: {CurrentState}, Target: {TargetAction}", 
+                        SafeGetElementName(element), currentState, shouldExpand ? "Expand" : "Collapse");
+
+                    if (shouldExpand && currentState != ExpandCollapseState.Expanded)
+                    {
+                        expandCollapsePattern.Expand();
                         return new WorkerResult
                         {
-                            Success = false,
-                            Error = $"ExpandCollapse operation failed: {ex.Message}"
+                            Success = true,
+                            Data = "Element expanded successfully"
                         };
                     }
-                }, cts.Token);
-
-                return result;
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.LogWarning("[LayoutPatternExecutor] ExpandCollapse operation timed out after {Timeout}s", operation.Timeout);
-                return new WorkerResult
+                    else if (!shouldExpand && currentState != ExpandCollapseState.Collapsed)
+                    {
+                        expandCollapsePattern.Collapse();
+                        return new WorkerResult
+                        {
+                            Success = true,
+                            Data = "Element collapsed successfully"
+                        };
+                    }
+                    else
+                    {
+                        return new WorkerResult
+                        {
+                            Success = true,
+                            Data = $"Element is already in the desired state: {currentState}"
+                        };
+                    }
+                }
+                else
                 {
-                    Success = false,
-                    Error = $"ExpandCollapse operation timed out after {operation.Timeout} seconds"
-                };
-            }
+                    return CreatePatternNotSupportedResult("ExpandCollapsePattern");
+                }
+            }, "ExpandCollapse");
         }
 
         /// <summary>
@@ -144,95 +102,57 @@ namespace UiAutomationWorker.PatternExecutors
         /// </summary>
         public async Task<WorkerResult> ExecuteScrollAsync(WorkerOperation operation)
         {
-            _logger.LogInformation("[LayoutPatternExecutor] Executing Scroll operation");
-
-            try
+            return await ExecuteWithTimeoutAsync(operation, () =>
             {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(operation.Timeout));
-
-                var result = await Task.Run(() =>
+                var element = FindElementFromOperation(operation);
+                if (element == null)
                 {
-                    try
+                    return CreateElementNotFoundResult("Scroll");
+                }
+
+                // ScrollPatternの取得
+                if (element.TryGetCurrentPattern(ScrollPattern.Pattern, out var patternObj) && 
+                    patternObj is ScrollPattern scrollPattern)
+                {
+                    // direction パラメータの処理
+                    if (operation.Parameters.TryGetValue("direction", out var directionObj) && 
+                        directionObj?.ToString() is string direction && !string.IsNullOrEmpty(direction))
                     {
-                        var element = FindElementFromOperation(operation);
-                        if (element == null)
-                        {
-                            return new WorkerResult
-                            {
-                                Success = false,
-                                Error = "Target element not found for Scroll operation"
-                            };
-                        }
-
-                        // ScrollPatternの取得
-                        if (element.TryGetCurrentPattern(ScrollPattern.Pattern, out var patternObj) && 
-                            patternObj is ScrollPattern scrollPattern)
-                        {
-                            // direction パラメータの処理
-                            if (operation.Parameters.TryGetValue("direction", out var directionObj) && 
-                                directionObj?.ToString() is string direction && !string.IsNullOrEmpty(direction))
-                            {
-                                return ExecuteScrollByDirection(scrollPattern, direction);
-                            }
-
-                            // horizontal/vertical パラメータの処理
-                            double horizontal = 0, vertical = 0;
-                            var hasHorizontal = operation.Parameters.TryGetValue("horizontal", out var horizontalObj) && 
-                                                double.TryParse(horizontalObj?.ToString(), out horizontal);
-                            var hasVertical = operation.Parameters.TryGetValue("vertical", out var verticalObj) && 
-                                            double.TryParse(verticalObj?.ToString(), out vertical);
-
-                            if (hasHorizontal || hasVertical)
-                            {
-                                var horizontalPercent = hasHorizontal ? Math.Clamp(horizontal, 0, 100) : scrollPattern.Current.HorizontalScrollPercent;
-                                var verticalPercent = hasVertical ? Math.Clamp(vertical, 0, 100) : scrollPattern.Current.VerticalScrollPercent;
-
-                                scrollPattern.SetScrollPercent(horizontalPercent, verticalPercent);
-
-                                return new WorkerResult
-                                {
-                                    Success = true,
-                                    Data = $"Scrolled to horizontal: {horizontalPercent}%, vertical: {verticalPercent}%"
-                                };
-                            }
-
-                            return new WorkerResult
-                            {
-                                Success = false,
-                                Error = "No scroll parameters specified. Use 'direction' or 'horizontal'/'vertical' parameters."
-                            };
-                        }
-                        else
-                        {
-                            return new WorkerResult
-                            {
-                                Success = false,
-                                Error = "Element does not support ScrollPattern"
-                            };
-                        }
+                        return ExecuteScrollByDirection(scrollPattern, direction);
                     }
-                    catch (Exception ex)
+
+                    // horizontal/vertical パラメータの処理
+                    double horizontal = 0, vertical = 0;
+                    var hasHorizontal = operation.Parameters.TryGetValue("horizontal", out var horizontalObj) && 
+                                        double.TryParse(horizontalObj?.ToString(), out horizontal);
+                    var hasVertical = operation.Parameters.TryGetValue("vertical", out var verticalObj) && 
+                                    double.TryParse(verticalObj?.ToString(), out vertical);
+
+                    if (hasHorizontal || hasVertical)
                     {
-                        _logger.LogError(ex, "[LayoutPatternExecutor] Scroll operation failed");
+                        var horizontalPercent = hasHorizontal ? Math.Clamp(horizontal, 0, 100) : scrollPattern.Current.HorizontalScrollPercent;
+                        var verticalPercent = hasVertical ? Math.Clamp(vertical, 0, 100) : scrollPattern.Current.VerticalScrollPercent;
+
+                        scrollPattern.SetScrollPercent(horizontalPercent, verticalPercent);
+
                         return new WorkerResult
                         {
-                            Success = false,
-                            Error = $"Scroll operation failed: {ex.Message}"
+                            Success = true,
+                            Data = $"Scrolled to horizontal: {horizontalPercent}%, vertical: {verticalPercent}%"
                         };
                     }
-                }, cts.Token);
 
-                return result;
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.LogWarning("[LayoutPatternExecutor] Scroll operation timed out after {Timeout}s", operation.Timeout);
-                return new WorkerResult
+                    return new WorkerResult
+                    {
+                        Success = false,
+                        Error = "No scroll parameters specified. Use 'direction' or 'horizontal'/'vertical' parameters."
+                    };
+                }
+                else
                 {
-                    Success = false,
-                    Error = $"Scroll operation timed out after {operation.Timeout} seconds"
-                };
-            }
+                    return CreatePatternNotSupportedResult("ScrollPattern");
+                }
+            }, "Scroll");
         }
 
         /// <summary>
@@ -240,72 +160,34 @@ namespace UiAutomationWorker.PatternExecutors
         /// </summary>
         public async Task<WorkerResult> ExecuteScrollIntoViewAsync(WorkerOperation operation)
         {
-            _logger.LogInformation("[LayoutPatternExecutor] Executing ScrollIntoView operation");
-
-            try
+            return await ExecuteWithTimeoutAsync(operation, () =>
             {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(operation.Timeout));
-
-                var result = await Task.Run(() =>
+                var element = FindElementFromOperation(operation);
+                if (element == null)
                 {
-                    try
-                    {
-                        var element = FindElementFromOperation(operation);
-                        if (element == null)
-                        {
-                            return new WorkerResult
-                            {
-                                Success = false,
-                                Error = "Target element not found for ScrollIntoView operation"
-                            };
-                        }
+                    return CreateElementNotFoundResult("ScrollIntoView");
+                }
 
-                        // ScrollItemPatternの取得
-                        if (element.TryGetCurrentPattern(ScrollItemPattern.Pattern, out var patternObj) && 
-                            patternObj is ScrollItemPattern scrollItemPattern)
-                        {
-                            _logger.LogInformation("[LayoutPatternExecutor] Scrolling element into view: {ElementName}", 
-                                SafeGetElementName(element));
-
-                            scrollItemPattern.ScrollIntoView();
-
-                            return new WorkerResult
-                            {
-                                Success = true,
-                                Data = "Element scrolled into view successfully"
-                            };
-                        }
-                        else
-                        {
-                            return new WorkerResult
-                            {
-                                Success = false,
-                                Error = "Element does not support ScrollItemPattern"
-                            };
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "[LayoutPatternExecutor] ScrollIntoView operation failed");
-                        return new WorkerResult
-                        {
-                            Success = false,
-                            Error = $"ScrollIntoView operation failed: {ex.Message}"
-                        };
-                    }
-                }, cts.Token);
-
-                return result;
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.LogWarning("[LayoutPatternExecutor] ScrollIntoView operation timed out after {Timeout}s", operation.Timeout);
-                return new WorkerResult
+                // ScrollItemPatternの取得
+                if (element.TryGetCurrentPattern(ScrollItemPattern.Pattern, out var patternObj) && 
+                    patternObj is ScrollItemPattern scrollItemPattern)
                 {
-                    Success = false,
-                    Error = $"ScrollIntoView operation timed out after {operation.Timeout} seconds"
-                };
-            }
+                    _logger.LogInformation("[LayoutPatternExecutor] Scrolling element into view: {ElementName}", 
+                        SafeGetElementName(element));
+
+                    scrollItemPattern.ScrollIntoView();
+
+                    return new WorkerResult
+                    {
+                        Success = true,
+                        Data = "Element scrolled into view successfully"
+                    };
+                }
+                else
+                {
+                    return CreatePatternNotSupportedResult("ScrollItemPattern");
+                }
+            }, "ScrollIntoView");
         }
 
         /// <summary>
@@ -313,84 +195,42 @@ namespace UiAutomationWorker.PatternExecutors
         /// </summary>
         public async Task<WorkerResult> ExecuteTransformAsync(WorkerOperation operation)
         {
-            _logger.LogInformation("[LayoutPatternExecutor] Executing Transform operation");
-
-            try
+            return await ExecuteWithTimeoutAsync(operation, () =>
             {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(operation.Timeout));
-
-                var result = await Task.Run(() =>
+                var element = FindElementFromOperation(operation);
+                if (element == null)
                 {
-                    try
+                    return CreateElementNotFoundResult("Transform");
+                }
+
+                // TransformPatternの取得
+                if (element.TryGetCurrentPattern(TransformPattern.Pattern, out var patternObj) && 
+                    patternObj is TransformPattern transformPattern)
+                {
+                    // action パラメータの取得
+                    if (!operation.Parameters.TryGetValue("action", out var actionObj) || 
+                        actionObj?.ToString() is not string action || string.IsNullOrEmpty(action))
                     {
-                        var element = FindElementFromOperation(operation);
-                        if (element == null)
-                        {
-                            return new WorkerResult
-                            {
-                                Success = false,
-                                Error = "Target element not found for Transform operation"
-                            };
-                        }
-
-                        // TransformPatternの取得
-                        if (element.TryGetCurrentPattern(TransformPattern.Pattern, out var patternObj) && 
-                            patternObj is TransformPattern transformPattern)
-                        {
-                            // action パラメータの取得
-                            if (!operation.Parameters.TryGetValue("action", out var actionObj) || 
-                                actionObj?.ToString() is not string action || string.IsNullOrEmpty(action))
-                            {
-                                return new WorkerResult
-                                {
-                                    Success = false,
-                                    Error = "Action parameter is required for Transform operation"
-                                };
-                            }
-
-                            return action.ToLowerInvariant() switch
-                            {
-                                "move" => ExecuteTransformMove(transformPattern, operation),
-                                "resize" => ExecuteTransformResize(transformPattern, operation),
-                                "rotate" => ExecuteTransformRotate(transformPattern, operation),
-                                _ => new WorkerResult
-                                {
-                                    Success = false,
-                                    Error = $"Unknown transform action: {action}. Supported actions: move, resize, rotate"
-                                }
-                            };
-                        }
-                        else
-                        {
-                            return new WorkerResult
-                            {
-                                Success = false,
-                                Error = "Element does not support TransformPattern"
-                            };
-                        }
+                        return CreateParameterMissingResult("Action", "Transform");
                     }
-                    catch (Exception ex)
+
+                    return action.ToLowerInvariant() switch
                     {
-                        _logger.LogError(ex, "[LayoutPatternExecutor] Transform operation failed");
-                        return new WorkerResult
+                        "move" => ExecuteTransformMove(transformPattern, operation),
+                        "resize" => ExecuteTransformResize(transformPattern, operation),
+                        "rotate" => ExecuteTransformRotate(transformPattern, operation),
+                        _ => new WorkerResult
                         {
                             Success = false,
-                            Error = $"Transform operation failed: {ex.Message}"
-                        };
-                    }
-                }, cts.Token);
-
-                return result;
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.LogWarning("[LayoutPatternExecutor] Transform operation timed out after {Timeout}s", operation.Timeout);
-                return new WorkerResult
+                            Error = $"Unknown transform action: {action}. Supported actions: move, resize, rotate"
+                        }
+                    };
+                }
+                else
                 {
-                    Success = false,
-                    Error = $"Transform operation timed out after {operation.Timeout} seconds"
-                };
-            }
+                    return CreatePatternNotSupportedResult("TransformPattern");
+                }
+            }, "Transform");
         }
 
         /// <summary>
@@ -398,143 +238,65 @@ namespace UiAutomationWorker.PatternExecutors
         /// </summary>
         public async Task<WorkerResult> ExecuteDockAsync(WorkerOperation operation)
         {
-            _logger.LogInformation("[LayoutPatternExecutor] Executing Dock operation");
-
-            try
+            return await ExecuteWithTimeoutAsync(operation, () =>
             {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(operation.Timeout));
-
-                var result = await Task.Run(() =>
+                var element = FindElementFromOperation(operation);
+                if (element == null)
                 {
-                    try
+                    return CreateElementNotFoundResult("Dock");
+                }
+
+                // DockPatternの取得
+                if (element.TryGetCurrentPattern(DockPattern.Pattern, out var patternObj) && 
+                    patternObj is DockPattern dockPattern)
+                {
+                    // position パラメータの取得
+                    if (!operation.Parameters.TryGetValue("position", out var positionObj) || 
+                        positionObj?.ToString() is not string position || string.IsNullOrEmpty(position))
                     {
-                        var element = FindElementFromOperation(operation);
-                        if (element == null)
-                        {
-                            return new WorkerResult
-                            {
-                                Success = false,
-                                Error = "Target element not found for Dock operation"
-                            };
-                        }
-
-                        // DockPatternの取得
-                        if (element.TryGetCurrentPattern(DockPattern.Pattern, out var patternObj) && 
-                            patternObj is DockPattern dockPattern)
-                        {
-                            // position パラメータの取得
-                            if (!operation.Parameters.TryGetValue("position", out var positionObj) || 
-                                positionObj?.ToString() is not string position || string.IsNullOrEmpty(position))
-                            {
-                                return new WorkerResult
-                                {
-                                    Success = false,
-                                    Error = "Position parameter is required for Dock operation"
-                                };
-                            }
-
-                            var dockPosition = position.ToLowerInvariant() switch
-                            {
-                                "top" => DockPosition.Top,
-                                "bottom" => DockPosition.Bottom,
-                                "left" => DockPosition.Left,
-                                "right" => DockPosition.Right,
-                                "fill" => DockPosition.Fill,
-                                "none" => DockPosition.None,
-                                _ => (DockPosition?)null
-                            };
-
-                            if (dockPosition == null)
-                            {
-                                return new WorkerResult
-                                {
-                                    Success = false,
-                                    Error = $"Invalid dock position: {position}. Supported positions: top, bottom, left, right, fill, none"
-                                };
-                            }
-
-                            _logger.LogInformation("[LayoutPatternExecutor] Docking element: {ElementName} to position: {Position}", 
-                                SafeGetElementName(element), dockPosition);
-
-                            dockPattern.SetDockPosition(dockPosition.Value);
-
-                            return new WorkerResult
-                            {
-                                Success = true,
-                                Data = $"Element docked to {dockPosition} position successfully"
-                            };
-                        }
-                        else
-                        {
-                            return new WorkerResult
-                            {
-                                Success = false,
-                                Error = "Element does not support DockPattern"
-                            };
-                        }
+                        return CreateParameterMissingResult("Position", "Dock");
                     }
-                    catch (Exception ex)
+
+                    var dockPosition = position.ToLowerInvariant() switch
                     {
-                        _logger.LogError(ex, "[LayoutPatternExecutor] Dock operation failed");
+                        "top" => DockPosition.Top,
+                        "bottom" => DockPosition.Bottom,
+                        "left" => DockPosition.Left,
+                        "right" => DockPosition.Right,
+                        "fill" => DockPosition.Fill,
+                        "none" => DockPosition.None,
+                        _ => (DockPosition?)null
+                    };
+
+                    if (dockPosition == null)
+                    {
                         return new WorkerResult
                         {
                             Success = false,
-                            Error = $"Dock operation failed: {ex.Message}"
+                            Error = $"Invalid dock position: {position}. Supported positions: top, bottom, left, right, fill, none"
                         };
                     }
-                }, cts.Token);
 
-                return result;
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.LogWarning("[LayoutPatternExecutor] Dock operation timed out after {Timeout}s", operation.Timeout);
-                return new WorkerResult
+                    _logger.LogInformation("[LayoutPatternExecutor] Docking element: {ElementName} to position: {Position}", 
+                        SafeGetElementName(element), dockPosition);
+
+                    dockPattern.SetDockPosition(dockPosition.Value);
+
+                    return new WorkerResult
+                    {
+                        Success = true,
+                        Data = $"Element docked to {dockPosition} position successfully"
+                    };
+                }
+                else
                 {
-                    Success = false,
-                    Error = $"Dock operation timed out after {operation.Timeout} seconds"
-                };
-            }
+                    return CreatePatternNotSupportedResult("DockPattern");
+                }
+            }, "Dock");
         }
 
         #region Private Helper Methods
 
-        /// <summary>
-        /// 操作から対象要素を検索します
-        /// </summary>
-        private AutomationElement? FindElementFromOperation(WorkerOperation operation)
-        {
-            try
-            {
-                var searchRoot = _automationHelper.GetSearchRoot(operation);
-                if (searchRoot == null)
-                {
-                    _logger.LogError("[LayoutPatternExecutor] Failed to get search root");
-                    return null;
-                }
-
-                // ElementIdパラメータから要素を検索
-                if (operation.Parameters.TryGetValue("ElementId", out var elementIdObj) && 
-                    elementIdObj?.ToString() is string elementId && !string.IsNullOrEmpty(elementId))
-                {
-                    return _automationHelper.FindElementById(elementId, searchRoot);
-                }
-
-                // 他の検索条件でも試行
-                var condition = _automationHelper.BuildCondition(operation);
-                if (condition != null)
-                {
-                    return searchRoot.FindFirst(TreeScope.Descendants, condition);
-                }
-
-                return null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "[LayoutPatternExecutor] Failed to find element from operation");
-                return null;
-            }
-        }
 
         /// <summary>
         /// 方向指定によるスクロール
@@ -716,20 +478,6 @@ namespace UiAutomationWorker.PatternExecutors
             }
         }
 
-        /// <summary>
-        /// 要素名の安全な取得
-        /// </summary>
-        private string SafeGetElementName(AutomationElement element)
-        {
-            try
-            {
-                return element?.Current.Name ?? "";
-            }
-            catch
-            {
-                return "";
-            }
-        }
 
         #endregion
     }

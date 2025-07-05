@@ -32,9 +32,9 @@ namespace UiAutomationWorker
             services.AddSingleton<TreePatternExecutor>();
             services.AddSingleton<TextPatternExecutor>();
             services.AddSingleton<WindowPatternExecutor>();
+            services.AddSingleton<ElementSearchExecutor>();
 
             // Register main services
-            services.AddSingleton<ElementSearchService>();
             services.AddSingleton<OperationExecutor>();
 
             // Register application services

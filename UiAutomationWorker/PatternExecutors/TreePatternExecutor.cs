@@ -1,84 +1,86 @@
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
 using UiAutomationMcp.Models;
+using UiAutomationWorker.Helpers;
 
 namespace UiAutomationWorker.PatternExecutors
 {
-    public class TreePatternExecutor
+    /// <summary>
+    /// UIツリー操作のパターンエグゼキューター
+    /// </summary>
+    public class TreePatternExecutor : BasePatternExecutor
     {
-        private readonly ILogger<TreePatternExecutor> _logger;
-
-        public TreePatternExecutor(ILogger<TreePatternExecutor> logger)
+        public TreePatternExecutor(
+            ILogger<TreePatternExecutor> logger,
+            AutomationHelper automationHelper)
+            : base(logger, automationHelper)
         {
-            _logger = logger;
         }
 
-        public async Task<object> GetTreeAsync(Dictionary<string, object> parameters)
+        /// <summary>
+        /// UIツリーを取得します
+        /// </summary>
+        public async Task<WorkerResult> ExecuteGetTreeAsync(WorkerOperation operation)
         {
-            try
+            return await ExecuteWithTimeoutAsync(operation, async cancellationToken =>
             {
-                var windowTitle = parameters["WindowTitle"]?.ToString();
-                var processId = parameters.ContainsKey("ProcessId") ? Convert.ToInt32(parameters["ProcessId"]) : (int?)null;
-                var maxDepth = parameters.ContainsKey("MaxDepth") ? Convert.ToInt32(parameters["MaxDepth"]) : 3;
+                var windowTitle = operation.Parameters.TryGetValue("windowTitle", out var wt) ? wt?.ToString() : null;
+                var processId = operation.Parameters.TryGetValue("processId", out var pid) ? Convert.ToInt32(pid) : (int?)null;
+                var maxDepth = operation.Parameters.TryGetValue("maxDepth", out var md) ? Convert.ToInt32(md) : 3;
                 
-                _logger.LogInformation("Getting element tree for window '{WindowTitle}', maxDepth: {MaxDepth}", windowTitle, maxDepth);
+                _logger.LogInformation("[TreePatternExecutor] Getting element tree for window '{WindowTitle}', maxDepth: {MaxDepth}", windowTitle, maxDepth);
 
-                var rootElement = await FindRootElementAsync(windowTitle, processId);
+                var rootElement = await FindRootElementAsync(windowTitle, processId, cancellationToken);
                 if (rootElement == null)
                 {
-                    return new { Success = false, Error = "Root element not found" };
+                    throw new InvalidOperationException("Root element not found");
                 }
 
-                var tree = await BuildElementTreeAsync(rootElement, maxDepth, 0);
+                var tree = await BuildElementTreeAsync(rootElement, maxDepth, 0, cancellationToken);
                 
-                return new { 
-                    Success = true, 
-                    Tree = tree,
-                    MaxDepth = maxDepth,
-                    WindowTitle = windowTitle
+                return new Dictionary<string, object>
+                { 
+                    ["tree"] = tree,
+                    ["maxDepth"] = maxDepth,
+                    ["windowTitle"] = windowTitle ?? ""
                 };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting element tree");
-                return new { Success = false, Error = ex.Message };
-            }
+            }, "GetTree");
         }
 
-        public async Task<object> GetChildrenAsync(Dictionary<string, object> parameters)
+        /// <summary>
+        /// 指定された要素の子要素を取得します
+        /// </summary>
+        public async Task<WorkerResult> ExecuteGetChildrenAsync(WorkerOperation operation)
         {
-            try
+            return await ExecuteWithTimeoutAsync(operation, async cancellationToken =>
             {
-                var elementId = parameters["ElementId"]?.ToString();
-                var windowTitle = parameters["WindowTitle"]?.ToString();
+                var elementId = operation.Parameters.TryGetValue("elementId", out var eid) ? eid?.ToString() : null;
+                var windowTitle = operation.Parameters.TryGetValue("windowTitle", out var wt) ? wt?.ToString() : null;
                 
-                _logger.LogInformation("Getting children for element '{ElementId}'", elementId);
+                _logger.LogInformation("[TreePatternExecutor] Getting children for element '{ElementId}'", elementId);
 
-                var element = await FindElementAsync(elementId, windowTitle);
+                var element = await FindElementAsync(elementId, windowTitle, cancellationToken);
                 if (element == null)
                 {
-                    return new { Success = false, Error = "Element not found" };
+                    throw new InvalidOperationException("Element not found");
                 }
 
-                var children = await GetDirectChildrenAsync(element);
+                var children = await GetDirectChildrenAsync(element, cancellationToken);
                 
-                return new { 
-                    Success = true, 
-                    Children = children,
-                    Count = children.Count
+                return new Dictionary<string, object>
+                { 
+                    ["children"] = children,
+                    ["count"] = children.Count
                 };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting element children");
-                return new { Success = false, Error = ex.Message };
-            }
+            }, "GetChildren");
         }
 
-        private async Task<AutomationElement?> FindRootElementAsync(string? windowTitle, int? processId)
+        private async Task<AutomationElement?> FindRootElementAsync(string? windowTitle, int? processId, CancellationToken cancellationToken)
         {
             return await Task.Run(() =>
             {
+                cancellationToken.ThrowIfCancellationRequested();
+                
                 if (!string.IsNullOrEmpty(windowTitle))
                 {
                     Condition condition = processId.HasValue
@@ -91,13 +93,15 @@ namespace UiAutomationWorker.PatternExecutors
                 }
                 
                 return AutomationElement.RootElement;
-            });
+            }, cancellationToken);
         }
 
-        private async Task<AutomationElement?> FindElementAsync(string? elementId, string? windowTitle)
+        private async Task<AutomationElement?> FindElementAsync(string? elementId, string? windowTitle, CancellationToken cancellationToken)
         {
             return await Task.Run(() =>
             {
+                cancellationToken.ThrowIfCancellationRequested();
+                
                 AutomationElement? searchRoot = null;
 
                 if (!string.IsNullOrEmpty(windowTitle))
@@ -126,19 +130,21 @@ namespace UiAutomationWorker.PatternExecutors
                 );
 
                 return searchRoot.FindFirst(TreeScope.Descendants, elementCondition);
-            });
+            }, cancellationToken);
         }
 
-        private async Task<Dictionary<string, object>> BuildElementTreeAsync(AutomationElement element, int maxDepth, int currentDepth)
+        private async Task<Dictionary<string, object>> BuildElementTreeAsync(AutomationElement element, int maxDepth, int currentDepth, CancellationToken cancellationToken)
         {
-            return await Task.Run(() =>
+            return await Task.Run(async () =>
             {
+                cancellationToken.ThrowIfCancellationRequested();
+                
                 var elementInfo = CreateElementInfo(element);
                 var treeNode = new Dictionary<string, object>
                 {
-                    ["Element"] = elementInfo,
-                    ["Depth"] = currentDepth,
-                    ["Children"] = new List<Dictionary<string, object>>()
+                    ["element"] = elementInfo,
+                    ["depth"] = currentDepth,
+                    ["children"] = new List<Dictionary<string, object>>()
                 };
 
                 if (currentDepth < maxDepth)
@@ -150,26 +156,33 @@ namespace UiAutomationWorker.PatternExecutors
 
                         foreach (AutomationElement child in children)
                         {
-                            childTasks.Add(BuildElementTreeAsync(child, maxDepth, currentDepth + 1));
+                            cancellationToken.ThrowIfCancellationRequested();
+                            childTasks.Add(BuildElementTreeAsync(child, maxDepth, currentDepth + 1, cancellationToken));
                         }
 
-                        var childResults = Task.WhenAll(childTasks).Result;
-                        treeNode["Children"] = childResults.ToList();
+                        var childResults = await Task.WhenAll(childTasks);
+                        treeNode["children"] = childResults.ToList();
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw; // タイムアウトの場合は再スロー
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning(ex, "Error getting children for element at depth {Depth}", currentDepth);
+                        _logger.LogWarning(ex, "[TreePatternExecutor] Error getting children for element at depth {Depth}", currentDepth);
                     }
                 }
 
                 return treeNode;
-            });
+            }, cancellationToken);
         }
 
-        private async Task<List<Dictionary<string, object>>> GetDirectChildrenAsync(AutomationElement element)
+        private async Task<List<Dictionary<string, object>>> GetDirectChildrenAsync(AutomationElement element, CancellationToken cancellationToken)
         {
             return await Task.Run(() =>
             {
+                cancellationToken.ThrowIfCancellationRequested();
+                
                 var children = new List<Dictionary<string, object>>();
                 
                 try
@@ -178,21 +191,27 @@ namespace UiAutomationWorker.PatternExecutors
                     
                     foreach (AutomationElement child in childElements)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        
                         var childInfo = CreateElementInfo(child);
                         children.Add(new Dictionary<string, object>
                         {
-                            ["Element"] = childInfo,
-                            ["HasChildren"] = HasChildren(child)
+                            ["element"] = childInfo,
+                            ["hasChildren"] = HasChildren(child)
                         });
                     }
                 }
+                catch (OperationCanceledException)
+                {
+                    throw; // タイムアウトの場合は再スロー
+                }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Error getting direct children");
+                    _logger.LogWarning(ex, "[TreePatternExecutor] Error getting direct children");
                 }
 
                 return children;
-            });
+            }, cancellationToken);
         }
 
         private bool HasChildren(AutomationElement element)
@@ -233,7 +252,7 @@ namespace UiAutomationWorker.PatternExecutors
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Error creating ElementInfo");
+                _logger.LogWarning(ex, "[TreePatternExecutor] Error creating ElementInfo");
                 return new ElementInfo
                 {
                     Name = "Error reading element",
