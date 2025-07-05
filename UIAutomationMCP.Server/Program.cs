@@ -17,11 +17,14 @@ namespace UiAutomationMcpServer
             builder.Logging.AddProvider(new FileLoggerProvider(logPath));
             builder.Logging.SetMinimumLevel(LogLevel.Information);
 
+            // Register core infrastructure services
+            builder.Services.AddSingleton<IProcessTimeoutManager, ProcessTimeoutManager>();
+            
             // Register application services
             builder.Services.AddSingleton<IApplicationLauncher, ApplicationLauncher>();
             builder.Services.AddSingleton<IScreenshotService, ScreenshotService>();
             
-            // Register shared services
+            // Register worker services
             builder.Services.AddSingleton<IUIAutomationWorker, UIAutomationWorker>();
             
 

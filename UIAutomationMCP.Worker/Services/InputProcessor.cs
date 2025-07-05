@@ -6,7 +6,7 @@ using UiAutomationWorker.Configuration;
 namespace UiAutomationWorker.Services
 {
     /// <summary>
-    /// 入力データの読み取りと解析を担当するサービス
+    /// Service responsible for reading and parsing input data from Server process
     /// </summary>
     public class InputProcessor
     {
@@ -18,9 +18,9 @@ namespace UiAutomationWorker.Services
         }
 
         /// <summary>
-        /// 標準入力からJSON データを読み取り、WorkerOperation にデシリアライズします
+        /// Reads JSON data from stdin and deserializes to WorkerOperation
         /// </summary>
-        /// <returns>解析されたWorkerOperation、または null（失敗時）</returns>
+        /// <returns>Parsed WorkerOperation, or null on failure</returns>
         public async Task<WorkerOperation?> ReadAndParseInputAsync()
         {
             try

@@ -10,7 +10,8 @@ using UiAutomationWorker.Patterns.Selection;
 namespace UiAutomationWorker.Services
 {
     /// <summary>
-    /// 操作の種類に応じて適切なエグゼキューターに処理を振り分けるクラス
+    /// Dispatches operations to appropriate pattern handlers based on operation type
+    /// Core execution logic without timeout management (handled by Server)
     /// </summary>
     public class OperationExecutor
     {
@@ -50,7 +51,7 @@ namespace UiAutomationWorker.Services
         }
 
         /// <summary>
-        /// 操作を実行します
+        /// Executes the specified UI Automation operation
         /// </summary>
         public async Task<WorkerResult> ExecuteOperationAsync(WorkerOperation operation)
         {
@@ -96,7 +97,7 @@ namespace UiAutomationWorker.Services
                     "value" => await _valuePatternHandler.ExecuteSetValueAsync(operation),
                     "get_value" => await _valuePatternHandler.ExecuteGetValueAsync(operation),
 
-                    // 未知の操作
+                    // Unknown operation
                     _ => new WorkerResult
                     {
                         Success = false,
@@ -119,7 +120,7 @@ namespace UiAutomationWorker.Services
         }
 
         /// <summary>
-        /// サポートされている操作の一覧を取得します
+        /// Gets the list of supported operations
         /// </summary>
         public static string[] GetSupportedOperations()
         {
@@ -164,7 +165,7 @@ namespace UiAutomationWorker.Services
         }
 
         /// <summary>
-        /// 操作がサポートされているかチェックします
+        /// Checks if the operation is supported
         /// </summary>
         public static bool IsOperationSupported(string operation)
         {
@@ -172,7 +173,7 @@ namespace UiAutomationWorker.Services
         }
 
         /// <summary>
-        /// 操作の詳細情報を取得します
+        /// Gets detailed information about an operation
         /// </summary>
         public static Dictionary<string, object> GetOperationInfo(string operation)
         {

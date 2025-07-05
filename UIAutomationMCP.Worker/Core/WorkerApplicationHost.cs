@@ -5,7 +5,8 @@ using UiAutomationWorker.Services;
 namespace UiAutomationWorker.Core
 {
     /// <summary>
-    /// ワーカープロセスのメイン実行ロジックを管理するクラス
+    /// Worker process main execution logic manager
+    /// Handles single operation execution without timeout management (Server manages timeouts)
     /// </summary>
     public class WorkerApplicationHost
     {
@@ -19,14 +20,15 @@ namespace UiAutomationWorker.Core
         }
 
         /// <summary>
-        /// ワーカーアプリケーションを実行します
+        /// Executes a single UI Automation operation
+        /// Timeout handling is managed by the Server process
         /// </summary>
-        /// <returns>終了コード</returns>
+        /// <returns>Exit code: 0 for success, 1 for failure</returns>
         public async Task<int> RunAsync()
         {
             try
             {
-                _logger.LogInformation("[WorkerApplicationHost] Worker process starting, PID: {ProcessId}", 
+                _logger.LogInformation("[WorkerApplicationHost] Worker starting, PID: {ProcessId}", 
                     Environment.ProcessId);
 
                 // Get required services
@@ -34,20 +36,20 @@ namespace UiAutomationWorker.Core
                 var outputProcessor = _serviceProvider.GetRequiredService<OutputProcessor>();
                 var operationExecutor = _serviceProvider.GetRequiredService<OperationExecutor>();
 
-                // Read and parse input
+                // Read and parse input from Server
                 var operation = await inputProcessor.ReadAndParseInputAsync();
                 if (operation == null)
                 {
                     return 1;
                 }
 
-                // Execute operation
+                // Execute operation (Server handles timeout and process termination)
                 var result = await operationExecutor.ExecuteOperationAsync(operation);
                 
-                // Output result
+                // Send result back to Server
                 await outputProcessor.WriteResultAsync(result);
                 
-                _logger.LogInformation("[WorkerApplicationHost] Operation completed successfully");
+                _logger.LogInformation("[WorkerApplicationHost] Operation completed");
                 return 0;
             }
             catch (Exception ex)

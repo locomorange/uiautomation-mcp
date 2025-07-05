@@ -7,11 +7,11 @@ namespace UiAutomationMcpServer.Services
 {
     /// <summary>
     /// Worker service for executing UI Automation operations in a separate process
-    /// to prevent main process from hanging due to COM/native API blocking
+    /// Manages timeout handling and process lifecycle from Server side
     /// </summary>
     public interface IUIAutomationWorker : IDisposable
     {
-        // Core subprocess execution methods
+        // Core subprocess execution with Server-side timeout management
         Task<OperationResult<string>> ExecuteInProcessAsync(
             string operationJson,
             int timeoutSeconds = 10);
@@ -104,7 +104,7 @@ namespace UiAutomationMcpServer.Services
             int? processId = null,
             int timeoutSeconds = 20);
 
-        // UIAutomationHelper から移植したメソッド
+        // Helper methods for safe element operations
         Task<OperationResult<ElementInfo?>> FindElementSafelyAsync(
             string? elementId,
             string? windowTitle = null,
@@ -121,7 +121,7 @@ namespace UiAutomationMcpServer.Services
             string operationName,
             T? defaultValue = default);
 
-        // 新しいパラメータベースのメソッド（UIAutomation依存なし）
+        // Parameter-based methods without direct UIAutomation dependencies
         Task<OperationResult<List<ElementInfo>>> FindAllElementsAsync(
             ElementSearchParameters searchParams,
             int timeoutSeconds = 60);
@@ -215,11 +215,15 @@ namespace UiAutomationMcpServer.Services
     public class UIAutomationWorker : IUIAutomationWorker
     {
         private readonly ILogger<UIAutomationWorker> _logger;
+        private readonly IProcessTimeoutManager _processTimeoutManager;
         private readonly string _workerExecutablePath;
 
-        public UIAutomationWorker(ILogger<UIAutomationWorker> logger)
+        public UIAutomationWorker(
+            ILogger<UIAutomationWorker> logger,
+            IProcessTimeoutManager processTimeoutManager)
         {
             _logger = logger;
+            _processTimeoutManager = processTimeoutManager;
             // Worker executable will be in the same directory as the main application
             _workerExecutablePath = System.IO.Path.Combine(
                 System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? "",
@@ -608,7 +612,7 @@ namespace UiAutomationMcpServer.Services
             string operationJson,
             int timeoutSeconds = 10)
         {
-            _logger.LogInformation("[UIAutomationWorker] Executing operation in subprocess, timeout: {Timeout}s", timeoutSeconds);
+            _logger.LogInformation("[UIAutomationWorker] Executing operation in subprocess with {Timeout}s timeout", timeoutSeconds);
 
             try
             {
@@ -616,7 +620,7 @@ namespace UiAutomationMcpServer.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[UIAutomationWorker] ExecuteInProcess failed");
+                _logger.LogError(ex, "[UIAutomationWorker] Subprocess execution failed");
                 return new OperationResult<string>
                 {
                     Success = false,
@@ -629,94 +633,34 @@ namespace UiAutomationMcpServer.Services
             string inputJson,
             int timeoutSeconds)
         {
-            Process? workerProcess = null;
-            
             try
             {
-                // Check if worker executable exists
-                if (!System.IO.File.Exists(_workerExecutablePath))
-                {
-                    _logger.LogError("[UIAutomationWorker] Worker executable not found: {Path}", _workerExecutablePath);
-                    return new OperationResult<string>
-                    {
-                        Success = false,
-                        Error = $"Worker executable not found: {_workerExecutablePath}"
-                    };
-                }
-
                 var processStartInfo = new ProcessStartInfo
                 {
-                    FileName = _workerExecutablePath,
-                    UseShellExecute = false,
-                    RedirectStandardInput = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
+                    FileName = _workerExecutablePath
                 };
 
-                workerProcess = new Process { StartInfo = processStartInfo };
-                
-                _logger.LogInformation("[UIAutomationWorker] Starting worker process: {Path}", _workerExecutablePath);
-                workerProcess.Start();
+                // Use centralized timeout management for all worker processes
+                var result = await _processTimeoutManager.ExecuteWithTimeoutAsync(
+                    processStartInfo,
+                    inputJson,
+                    timeoutSeconds,
+                    "UIAutomationWorker");
 
-                // Send input data
-                await workerProcess.StandardInput.WriteLineAsync(inputJson);
-                await workerProcess.StandardInput.FlushAsync();
-                workerProcess.StandardInput.Close();
-
-                // Wait for completion with timeout
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
-                var processTask = workerProcess.WaitForExitAsync(cts.Token);
-                
-                bool completedInTime;
-                try
+                if (!result.Success)
                 {
-                    await processTask;
-                    completedInTime = true;
-                }
-                catch (OperationCanceledException)
-                {
-                    completedInTime = false;
-                }
-                
-                if (!completedInTime)
-                {
-                    _logger.LogWarning("[UIAutomationWorker] Worker process timeout after {Timeout}s, killing process", timeoutSeconds);
-                    
-                    try
-                    {
-                        workerProcess.Kill(entireProcessTree: true);
-                    }
-                    catch (Exception killEx)
-                    {
-                        _logger.LogError(killEx, "[UIAutomationWorker] Failed to kill worker process");
-                    }
-
                     return new OperationResult<string>
                     {
                         Success = false,
-                        Error = $"Worker process timeout after {timeoutSeconds} seconds. UI Automation operation was forcibly terminated."
+                        Error = result.Error ?? "Worker process execution failed"
                     };
                 }
 
-                // Read results
-                var output = await workerProcess.StandardOutput.ReadToEndAsync();
-                var error = await workerProcess.StandardError.ReadToEndAsync();
-
-                if (workerProcess.ExitCode != 0)
-                {
-                    _logger.LogError("[UIAutomationWorker] Worker process failed with exit code {ExitCode}. Error: {Error}", 
-                        workerProcess.ExitCode, error);
-                    
-                    return new OperationResult<string>
-                    {
-                        Success = false,
-                        Error = $"Worker process failed (exit code {workerProcess.ExitCode}): {error}"
-                    };
-                }
-
-                _logger.LogInformation("[UIAutomationWorker] Worker process completed successfully");
-                return new OperationResult<string> { Success = true, Data = output };
+                return new OperationResult<string> 
+                { 
+                    Success = true, 
+                    Data = result.Output 
+                };
             }
             catch (Exception ex)
             {
@@ -726,23 +670,6 @@ namespace UiAutomationMcpServer.Services
                     Success = false,
                     Error = $"Worker process execution failed: {ex.Message}"
                 };
-            }
-            finally
-            {
-                try
-                {
-                    // Only kill if process is still running and didn't exit normally
-                    if (workerProcess != null && !workerProcess.HasExited)
-                    {
-                        _logger.LogWarning("[UIAutomationWorker] Worker process still running, terminating");
-                        workerProcess.Kill(entireProcessTree: true);
-                    }
-                    workerProcess?.Dispose();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "[UIAutomationWorker] Error disposing worker process");
-                }
             }
         }
 
@@ -1178,7 +1105,7 @@ namespace UiAutomationMcpServer.Services
             }
         }
 
-        // 高度な操作を実行する汎用メソッド
+        // Generic method for executing advanced operations
         public async Task<OperationResult<Dictionary<string, object>>> ExecuteAdvancedOperationAsync(
             AdvancedOperationParameters operationParams)
         {
