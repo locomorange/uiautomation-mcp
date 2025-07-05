@@ -2,7 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using UiAutomationMcpServer.Services.Windows;
-using UiAutomationMcpServer.Services.Elements;
 using UiAutomationMcpServer.Services;
 
 namespace UiAutomationMcpServer
@@ -25,11 +24,6 @@ namespace UiAutomationMcpServer
             
             // Register shared services
             builder.Services.AddSingleton<IUIAutomationWorker, UIAutomationWorker>();
-            
-            // Register Element services
-            builder.Services.AddSingleton<IElementDiscoveryService, ElementDiscoveryService>();
-            builder.Services.AddSingleton<IElementTreeService, ElementTreeService>();
-            builder.Services.AddSingleton<IElementPropertiesService, ElementPropertiesService>();
             
 
             // Configure MCP Server

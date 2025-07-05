@@ -2,7 +2,6 @@ using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
 using System.ComponentModel;
 using UiAutomationMcpServer.Services.Windows;
-using UiAutomationMcpServer.Services.Elements;
 using UiAutomationMcpServer.Services;
 
 namespace UiAutomationMcpServer.Tools
@@ -11,26 +10,17 @@ namespace UiAutomationMcpServer.Tools
     public class UIAutomationTools
     {
         private readonly IWindowService _windowService;
-        private readonly IElementDiscoveryService _elementDiscoveryService;
-        private readonly IElementTreeService _elementTreeService;
-        private readonly IElementPropertiesService _elementPropertiesService;
         private readonly IUIAutomationWorker _uiAutomationWorker;
         private readonly IScreenshotService _screenshotService;
         private readonly ILogger<UIAutomationTools> _logger;
 
         public UIAutomationTools(
             IWindowService windowService,
-            IElementDiscoveryService elementDiscoveryService,
-            IElementTreeService elementTreeService,
-            IElementPropertiesService elementPropertiesService,
             IUIAutomationWorker uiAutomationWorker,
             IScreenshotService screenshotService,
             ILogger<UIAutomationTools> logger)
         {
             _windowService = windowService;
-            _elementDiscoveryService = elementDiscoveryService;
-            _elementTreeService = elementTreeService;
-            _elementPropertiesService = elementPropertiesService;
             _uiAutomationWorker = uiAutomationWorker;
             _screenshotService = screenshotService;
             _logger = logger;
@@ -50,7 +40,8 @@ namespace UiAutomationMcpServer.Tools
             [Description("Type of control to filter by (optional)")] string? controlType = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _elementDiscoveryService.GetElementInfoAsync(windowTitle, controlType, processId);
+            var findResult = await _uiAutomationWorker.FindAllAsync(windowTitle, null, controlType, processId);
+            return new { Success = findResult.Success, Data = findResult.Data, Error = findResult.Error };
         }
 
         [McpServerTool, Description("Find UI elements by various criteria")]
@@ -60,7 +51,8 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window to search in (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _elementDiscoveryService.FindElementsAsync(searchText, controlType, windowTitle, processId);
+            var findResult = await _uiAutomationWorker.FindAllAsync(windowTitle, searchText, controlType, processId);
+            return new { Success = findResult.Success, Data = findResult.Data, Error = findResult.Error };
         }
 
         #endregion
@@ -294,7 +286,8 @@ namespace UiAutomationMcpServer.Tools
             [Description("Maximum depth to traverse (default: 3)")] int maxDepth = 3,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _elementTreeService.GetElementTreeAsync(windowTitle, treeView, maxDepth, processId);
+            var result = await _uiAutomationWorker.GetElementTreeAsync(windowTitle, processId, maxDepth);
+            return new { Success = result.Success, Data = result.Data, Error = result.Error };
         }
 
         [McpServerTool, Description("Get detailed properties of a specific element")]
@@ -303,7 +296,16 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _elementPropertiesService.GetElementPropertiesAsync(elementId, windowTitle, processId);
+            var operationParams = new UiAutomationMcp.Models.AdvancedOperationParameters
+            {
+                Operation = "get_properties",
+                ElementId = elementId,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = 20
+            };
+            var result = await _uiAutomationWorker.ExecuteAdvancedOperationAsync(operationParams);
+            return new { Success = result.Success, Data = result.Data ?? new Dictionary<string, object>(), Error = result.Error };
         }
 
         [McpServerTool, Description("Get available control patterns for a specific element")]
@@ -312,7 +314,16 @@ namespace UiAutomationMcpServer.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null)
         {
-            return await _elementPropertiesService.GetElementPatternsAsync(elementId, windowTitle, processId);
+            var operationParams = new UiAutomationMcp.Models.AdvancedOperationParameters
+            {
+                Operation = "get_patterns",
+                ElementId = elementId,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = 20
+            };
+            var result = await _uiAutomationWorker.ExecuteAdvancedOperationAsync(operationParams);
+            return new { Success = result.Success, Data = result.Data ?? new Dictionary<string, object>(), Error = result.Error };
         }
 
         #endregion

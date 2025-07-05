@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using UiAutomationMcp.Models;
-using UiAutomationMcpServer.Services.Elements;
 using UiAutomationMcpServer.Services.Windows;
 using UiAutomationMcpServer.Services;
 using UiAutomationMcpServer.Tools;
@@ -19,9 +18,6 @@ namespace UiAutomationMcp.Tests.Tools
         private readonly Mock<ILogger<UIAutomationTools>> _logger;
         private readonly UIAutomationTools _tools;
         private readonly Mock<IWindowService> _mockWindowService;
-        private readonly Mock<IElementDiscoveryService> _mockElementDiscoveryService;
-        private readonly Mock<IElementTreeService> _mockElementTreeService;
-        private readonly Mock<IElementPropertiesService> _mockElementPropertiesService;
         private readonly Mock<IUIAutomationWorker> _mockUIAutomationWorker;
         private readonly Mock<IScreenshotService> _mockScreenshotService;
 
@@ -32,17 +28,11 @@ namespace UiAutomationMcp.Tests.Tools
             
             // Create all service mocks
             _mockWindowService = new Mock<IWindowService>();
-            _mockElementDiscoveryService = new Mock<IElementDiscoveryService>();
-            _mockElementTreeService = new Mock<IElementTreeService>();
-            _mockElementPropertiesService = new Mock<IElementPropertiesService>();
             _mockUIAutomationWorker = new Mock<IUIAutomationWorker>();
             _mockScreenshotService = new Mock<IScreenshotService>();
 
             _tools = new UIAutomationTools(
                 _mockWindowService.Object,
-                _mockElementDiscoveryService.Object,
-                _mockElementTreeService.Object,
-                _mockElementPropertiesService.Object,
                 _mockUIAutomationWorker.Object,
                 _mockScreenshotService.Object,
                 _logger.Object
@@ -96,15 +86,15 @@ namespace UiAutomationMcp.Tests.Tools
                 Success = true,
                 Data = expectedElements
             };
-            _mockElementDiscoveryService.Setup(s => s.FindElementsAsync("Button", null, "TestWindow", null))
-                                       .Returns(Task.FromResult(expectedResult));
+            _mockUIAutomationWorker.Setup(s => s.FindAllAsync("TestWindow", "Button", null, null))
+                                   .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.FindElements("Button", windowTitle: "TestWindow");
 
             // Assert
             Assert.NotNull(result);
-            _mockElementDiscoveryService.Verify(s => s.FindElementsAsync("Button", null, "TestWindow", null), Times.Once);
+            _mockUIAutomationWorker.Verify(s => s.FindAllAsync("TestWindow", "Button", null, null), Times.Once);
             _output.WriteLine($"FindElements test passed: Found {expectedElements.Count} elements");
         }
 
