@@ -22,94 +22,42 @@ namespace UiAutomationMcpServer.Services.Elements
 
         public async Task<OperationResult<Dictionary<string, object>>> GetElementPropertiesAsync(string elementId, string? windowTitle = null, int? processId = null)
         {
-            try
+            var operationParams = new AdvancedOperationParameters
             {
-                _logger.LogInformation("Getting properties for element '{ElementId}' in window '{WindowTitle}'", elementId, windowTitle);
+                Operation = "get_properties",
+                ElementId = elementId,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = 20
+            };
 
-                // Worker経由でプロパティを取得
-                var operationParams = new AdvancedOperationParameters
-                {
-                    Operation = "get_properties",
-                    ElementId = elementId,
-                    WindowTitle = windowTitle,
-                    ProcessId = processId,
-                    TimeoutSeconds = 20
-                };
-
-                var result = await _uiAutomationWorker.ExecuteAdvancedOperationAsync(operationParams);
-
-                if (!result.Success)
-                {
-                    _logger.LogWarning("Failed to get properties for element '{ElementId}': {Error}", elementId, result.Error);
-                    return new OperationResult<Dictionary<string, object>>
-                    {
-                        Success = false,
-                        Error = result.Error ?? "Failed to get element properties"
-                    };
-                }
-
-                _logger.LogInformation("Successfully retrieved properties for element '{ElementId}'", elementId);
-                return new OperationResult<Dictionary<string, object>>
-                {
-                    Success = true,
-                    Data = result.Data ?? new Dictionary<string, object>()
-                };
-            }
-            catch (Exception ex)
+            var result = await _uiAutomationWorker.ExecuteAdvancedOperationAsync(operationParams);
+            return new OperationResult<Dictionary<string, object>>
             {
-                _logger.LogError(ex, "Error getting properties for element '{ElementId}'", elementId);
-                return new OperationResult<Dictionary<string, object>>
-                {
-                    Success = false,
-                    Error = $"Error getting element properties: {ex.Message}"
-                };
-            }
+                Success = result.Success,
+                Data = result.Data ?? new Dictionary<string, object>(),
+                Error = result.Error
+            };
         }
 
         public async Task<OperationResult<Dictionary<string, object>>> GetElementPatternsAsync(string elementId, string? windowTitle = null, int? processId = null)
         {
-            try
+            var operationParams = new AdvancedOperationParameters
             {
-                _logger.LogInformation("Getting patterns for element '{ElementId}' in window '{WindowTitle}'", elementId, windowTitle);
+                Operation = "get_patterns",
+                ElementId = elementId,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                TimeoutSeconds = 20
+            };
 
-                // Worker経由でパターンを取得
-                var operationParams = new AdvancedOperationParameters
-                {
-                    Operation = "get_patterns",
-                    ElementId = elementId,
-                    WindowTitle = windowTitle,
-                    ProcessId = processId,
-                    TimeoutSeconds = 20
-                };
-
-                var result = await _uiAutomationWorker.ExecuteAdvancedOperationAsync(operationParams);
-
-                if (!result.Success)
-                {
-                    _logger.LogWarning("Failed to get patterns for element '{ElementId}': {Error}", elementId, result.Error);
-                    return new OperationResult<Dictionary<string, object>>
-                    {
-                        Success = false,
-                        Error = result.Error ?? "Failed to get element patterns"
-                    };
-                }
-
-                _logger.LogInformation("Successfully retrieved patterns for element '{ElementId}'", elementId);
-                return new OperationResult<Dictionary<string, object>>
-                {
-                    Success = true,
-                    Data = result.Data ?? new Dictionary<string, object>()
-                };
-            }
-            catch (Exception ex)
+            var result = await _uiAutomationWorker.ExecuteAdvancedOperationAsync(operationParams);
+            return new OperationResult<Dictionary<string, object>>
             {
-                _logger.LogError(ex, "Error getting patterns for element '{ElementId}'", elementId);
-                return new OperationResult<Dictionary<string, object>>
-                {
-                    Success = false,
-                    Error = $"Error getting element patterns: {ex.Message}"
-                };
-            }
+                Success = result.Success,
+                Data = result.Data ?? new Dictionary<string, object>(),
+                Error = result.Error
+            };
         }
     }
 }
