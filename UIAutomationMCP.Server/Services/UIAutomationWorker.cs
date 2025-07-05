@@ -14,7 +14,8 @@ namespace UiAutomationMcpServer.Services
         // Core subprocess execution with Server-side timeout management
         Task<OperationResult<string>> ExecuteInProcessAsync(
             string operationJson,
-            int timeoutSeconds = 10);
+            int timeoutSeconds = 10,
+            CancellationToken cancellationToken = default);
 
         // High-level UI Automation methods that use the subprocess worker
         Task<OperationResult<List<ElementInfo>>> FindAllAsync(
@@ -22,7 +23,7 @@ namespace UiAutomationMcpServer.Services
             string? searchText = null,
             string? controlType = null,
             int? processId = null,
-            int timeoutSeconds = 30);
+            CancellationToken cancellationToken = default);
 
         Task<OperationResult<ElementInfo?>> FindFirstAsync(
             string? windowTitle = null,
@@ -35,32 +36,32 @@ namespace UiAutomationMcpServer.Services
             string elementId,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20);
+            CancellationToken cancellationToken = default);
 
         Task<OperationResult<string>> SetElementValueAsync(
             string elementId,
             string value,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20);
+            CancellationToken cancellationToken = default);
 
         Task<OperationResult<string>> GetElementValueAsync(
             string elementId,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20);
+            CancellationToken cancellationToken = default);
 
         Task<OperationResult<string>> ToggleElementAsync(
             string elementId,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20);
+            CancellationToken cancellationToken = default);
 
         Task<OperationResult<string>> SelectElementAsync(
             string elementId,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20);
+            CancellationToken cancellationToken = default);
 
         // Layout Pattern methods
         Task<OperationResult<string>> ExpandCollapseElementAsync(
@@ -68,7 +69,7 @@ namespace UiAutomationMcpServer.Services
             bool? expand = null,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20);
+            CancellationToken cancellationToken = default);
 
         Task<OperationResult<string>> ScrollElementAsync(
             string elementId,
@@ -77,13 +78,13 @@ namespace UiAutomationMcpServer.Services
             double? vertical = null,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20);
+            CancellationToken cancellationToken = default);
 
         Task<OperationResult<string>> ScrollElementIntoViewAsync(
             string elementId,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20);
+            CancellationToken cancellationToken = default);
 
         Task<OperationResult<string>> TransformElementAsync(
             string elementId,
@@ -95,14 +96,14 @@ namespace UiAutomationMcpServer.Services
             double? degrees = null,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20);
+            CancellationToken cancellationToken = default);
 
         Task<OperationResult<string>> DockElementAsync(
             string elementId,
             string position,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20);
+            CancellationToken cancellationToken = default);
 
         // Helper methods for safe element operations
         Task<OperationResult<ElementInfo?>> FindElementSafelyAsync(
@@ -131,7 +132,8 @@ namespace UiAutomationMcpServer.Services
             int timeoutSeconds = 15);
 
         Task<OperationResult<Dictionary<string, object>>> ExecuteAdvancedOperationAsync(
-            AdvancedOperationParameters operationParams);
+            AdvancedOperationParameters operationParams,
+            CancellationToken cancellationToken = default);
 
         // Range Value Pattern methods
         Task<OperationResult<string>> SetRangeValueAsync(
@@ -139,20 +141,20 @@ namespace UiAutomationMcpServer.Services
             double value,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20);
+            CancellationToken cancellationToken = default);
 
         Task<OperationResult<Dictionary<string, object>>> GetRangeValueAsync(
             string elementId,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20);
+            CancellationToken cancellationToken = default);
 
         // Text Pattern methods
         Task<OperationResult<string>> GetTextAsync(
             string elementId,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20);
+            CancellationToken cancellationToken = default);
 
         Task<OperationResult<string>> SelectTextAsync(
             string elementId,
@@ -160,20 +162,20 @@ namespace UiAutomationMcpServer.Services
             int length,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20);
+            CancellationToken cancellationToken = default);
 
         // Tree Operations
         Task<OperationResult<Dictionary<string, object>>> GetElementTreeAsync(
             string? windowTitle = null,
             int? processId = null,
             int maxDepth = 3,
-            int timeoutSeconds = 30);
+            CancellationToken cancellationToken = default);
 
         Task<OperationResult<List<Dictionary<string, object>>>> GetElementChildrenAsync(
             string elementId,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20);
+            CancellationToken cancellationToken = default);
 
         // Window state operations  
         Task<OperationResult<string>> SetWindowStateAsync(
@@ -181,7 +183,7 @@ namespace UiAutomationMcpServer.Services
             string state,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20);
+            CancellationToken cancellationToken = default);
 
         // Additional Text Pattern methods
         Task<OperationResult<Dictionary<string, object>>> FindTextAsync(
@@ -191,25 +193,25 @@ namespace UiAutomationMcpServer.Services
             bool ignoreCase = false,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20);
+            CancellationToken cancellationToken = default);
 
         Task<OperationResult<List<Dictionary<string, object>>>> GetTextSelectionAsync(
             string elementId,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20);
+            CancellationToken cancellationToken = default);
 
         // Window service methods
         Task<OperationResult<List<WindowInfo>>> GetWindowsAsync(
-            int timeoutSeconds = 30);
+            CancellationToken cancellationToken = default);
         
         Task<OperationResult<List<WindowInfo>>> GetWindowInfoAsync(
-            int timeoutSeconds = 30);
+            CancellationToken cancellationToken = default);
             
         Task<OperationResult<ElementInfo?>> FindWindowByTitleAsync(
             string title,
             int? processId = null,
-            int timeoutSeconds = 30);
+            CancellationToken cancellationToken = default);
     }
 
     public class UIAutomationWorker : IUIAutomationWorker
@@ -235,7 +237,7 @@ namespace UiAutomationMcpServer.Services
             string? searchText = null,
             string? controlType = null,
             int? processId = null,
-            int timeoutSeconds = 30)
+            CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("FindAllAsync via worker - WindowTitle: '{WindowTitle}', SearchText: '{SearchText}', ControlType: '{ControlType}'",
                 windowTitle, searchText, controlType);
@@ -247,11 +249,11 @@ namespace UiAutomationMcpServer.Services
                 {
                     Operation = "findall",
                     Parameters = parameters,
-                    Timeout = timeoutSeconds
+                    Timeout = 60
                 };
 
                 var operationJson = JsonSerializer.Serialize(operation);
-                var workerResult = await ExecuteInProcessAsync(operationJson, timeoutSeconds);
+                var workerResult = await ExecuteInProcessAsync(operationJson, 60, cancellationToken);
 
                 if (!workerResult.Success)
                 {
@@ -338,7 +340,7 @@ namespace UiAutomationMcpServer.Services
             string value,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20)
+            CancellationToken cancellationToken = default)
         {
             var parameters = new AdvancedOperationParameters
             {
@@ -346,11 +348,11 @@ namespace UiAutomationMcpServer.Services
                 ElementId = elementId,
                 WindowTitle = windowTitle,
                 ProcessId = processId,
-                TimeoutSeconds = timeoutSeconds,
+                TimeoutSeconds = 20,
                 Parameters = new Dictionary<string, object> { ["Value"] = value }
             };
 
-            var result = await ExecuteAdvancedOperationAsync(parameters);
+            var result = await ExecuteAdvancedOperationAsync(parameters, cancellationToken);
             return new OperationResult<string>
             {
                 Success = result.Success,
@@ -363,7 +365,7 @@ namespace UiAutomationMcpServer.Services
             string elementId,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20)
+            CancellationToken cancellationToken = default)
         {
             var parameters = new AdvancedOperationParameters
             {
@@ -371,11 +373,11 @@ namespace UiAutomationMcpServer.Services
                 ElementId = elementId,
                 WindowTitle = windowTitle,
                 ProcessId = processId,
-                TimeoutSeconds = timeoutSeconds,
+                TimeoutSeconds = 20,
                 Parameters = new Dictionary<string, object>()
             };
 
-            var result = await ExecuteAdvancedOperationAsync(parameters);
+            var result = await ExecuteAdvancedOperationAsync(parameters, cancellationToken);
             return new OperationResult<string>
             {
                 Success = result.Success,
@@ -388,7 +390,7 @@ namespace UiAutomationMcpServer.Services
             string elementId,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20)
+            CancellationToken cancellationToken = default)
         {
             var parameters = new AdvancedOperationParameters
             {
@@ -396,11 +398,11 @@ namespace UiAutomationMcpServer.Services
                 ElementId = elementId,
                 WindowTitle = windowTitle,
                 ProcessId = processId,
-                TimeoutSeconds = timeoutSeconds,
+                TimeoutSeconds = 20,
                 Parameters = new Dictionary<string, object>()
             };
 
-            var result = await ExecuteAdvancedOperationAsync(parameters);
+            var result = await ExecuteAdvancedOperationAsync(parameters, cancellationToken);
             return new OperationResult<string>
             {
                 Success = result.Success,
@@ -413,7 +415,7 @@ namespace UiAutomationMcpServer.Services
             string elementId,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20)
+            CancellationToken cancellationToken = default)
         {
             var parameters = new AdvancedOperationParameters
             {
@@ -421,11 +423,11 @@ namespace UiAutomationMcpServer.Services
                 ElementId = elementId,
                 WindowTitle = windowTitle,
                 ProcessId = processId,
-                TimeoutSeconds = timeoutSeconds,
+                TimeoutSeconds = 20,
                 Parameters = new Dictionary<string, object>()
             };
 
-            var result = await ExecuteAdvancedOperationAsync(parameters);
+            var result = await ExecuteAdvancedOperationAsync(parameters, cancellationToken);
             return new OperationResult<string>
             {
                 Success = result.Success,
@@ -438,7 +440,7 @@ namespace UiAutomationMcpServer.Services
             string elementId,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20)
+            CancellationToken cancellationToken = default)
         {
             var parameters = new AdvancedOperationParameters
             {
@@ -446,11 +448,11 @@ namespace UiAutomationMcpServer.Services
                 ElementId = elementId,
                 WindowTitle = windowTitle,
                 ProcessId = processId,
-                TimeoutSeconds = timeoutSeconds,
+                TimeoutSeconds = 20,
                 Parameters = new Dictionary<string, object>()
             };
 
-            var result = await ExecuteAdvancedOperationAsync(parameters);
+            var result = await ExecuteAdvancedOperationAsync(parameters, cancellationToken);
             return new OperationResult<string>
             {
                 Success = result.Success,
@@ -464,7 +466,7 @@ namespace UiAutomationMcpServer.Services
             bool? expand = null,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20)
+            CancellationToken cancellationToken = default)
         {
             var parameters = new AdvancedOperationParameters
             {
@@ -472,11 +474,11 @@ namespace UiAutomationMcpServer.Services
                 ElementId = elementId,
                 WindowTitle = windowTitle,
                 ProcessId = processId,
-                TimeoutSeconds = timeoutSeconds,
+                TimeoutSeconds = 20,
                 Parameters = new Dictionary<string, object> { ["Expand"] = expand ?? true }
             };
 
-            var result = await ExecuteAdvancedOperationAsync(parameters);
+            var result = await ExecuteAdvancedOperationAsync(parameters, cancellationToken);
             return new OperationResult<string>
             {
                 Success = result.Success,
@@ -492,7 +494,7 @@ namespace UiAutomationMcpServer.Services
             double? vertical = null,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20)
+            CancellationToken cancellationToken = default)
         {
             var parameters = new AdvancedOperationParameters
             {
@@ -500,7 +502,7 @@ namespace UiAutomationMcpServer.Services
                 ElementId = elementId,
                 WindowTitle = windowTitle,
                 ProcessId = processId,
-                TimeoutSeconds = timeoutSeconds,
+                TimeoutSeconds = 20,
                 Parameters = new Dictionary<string, object> 
                 { 
                     ["Direction"] = direction ?? "down",
@@ -509,7 +511,7 @@ namespace UiAutomationMcpServer.Services
                 }
             };
 
-            var result = await ExecuteAdvancedOperationAsync(parameters);
+            var result = await ExecuteAdvancedOperationAsync(parameters, cancellationToken);
             return new OperationResult<string>
             {
                 Success = result.Success,
@@ -522,7 +524,7 @@ namespace UiAutomationMcpServer.Services
             string elementId,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20)
+            CancellationToken cancellationToken = default)
         {
             var parameters = new AdvancedOperationParameters
             {
@@ -530,11 +532,11 @@ namespace UiAutomationMcpServer.Services
                 ElementId = elementId,
                 WindowTitle = windowTitle,
                 ProcessId = processId,
-                TimeoutSeconds = timeoutSeconds,
+                TimeoutSeconds = 20,
                 Parameters = new Dictionary<string, object>()
             };
 
-            var result = await ExecuteAdvancedOperationAsync(parameters);
+            var result = await ExecuteAdvancedOperationAsync(parameters, cancellationToken);
             return new OperationResult<string>
             {
                 Success = result.Success,
@@ -553,7 +555,7 @@ namespace UiAutomationMcpServer.Services
             double? degrees = null,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20)
+            CancellationToken cancellationToken = default)
         {
             var parameters = new AdvancedOperationParameters
             {
@@ -561,7 +563,7 @@ namespace UiAutomationMcpServer.Services
                 ElementId = elementId,
                 WindowTitle = windowTitle,
                 ProcessId = processId,
-                TimeoutSeconds = timeoutSeconds,
+                TimeoutSeconds = 20,
                 Parameters = new Dictionary<string, object> 
                 { 
                     ["Action"] = action,
@@ -573,7 +575,7 @@ namespace UiAutomationMcpServer.Services
                 }
             };
 
-            var result = await ExecuteAdvancedOperationAsync(parameters);
+            var result = await ExecuteAdvancedOperationAsync(parameters, cancellationToken);
             return new OperationResult<string>
             {
                 Success = result.Success,
@@ -587,7 +589,7 @@ namespace UiAutomationMcpServer.Services
             string position,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20)
+            CancellationToken cancellationToken = default)
         {
             var parameters = new AdvancedOperationParameters
             {
@@ -595,11 +597,11 @@ namespace UiAutomationMcpServer.Services
                 ElementId = elementId,
                 WindowTitle = windowTitle,
                 ProcessId = processId,
-                TimeoutSeconds = timeoutSeconds,
+                TimeoutSeconds = 20,
                 Parameters = new Dictionary<string, object> { ["Position"] = position }
             };
 
-            var result = await ExecuteAdvancedOperationAsync(parameters);
+            var result = await ExecuteAdvancedOperationAsync(parameters, cancellationToken);
             return new OperationResult<string>
             {
                 Success = result.Success,
@@ -610,13 +612,14 @@ namespace UiAutomationMcpServer.Services
 
         public async Task<OperationResult<string>> ExecuteInProcessAsync(
             string operationJson,
-            int timeoutSeconds = 10)
+            int timeoutSeconds = 10,
+            CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("[UIAutomationWorker] Executing operation in subprocess with {Timeout}s timeout", timeoutSeconds);
 
             try
             {
-                return await ExecuteWorkerProcessAsync(operationJson, timeoutSeconds);
+                return await ExecuteWorkerProcessAsync(operationJson, timeoutSeconds, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -631,7 +634,8 @@ namespace UiAutomationMcpServer.Services
 
         private async Task<OperationResult<string>> ExecuteWorkerProcessAsync(
             string inputJson,
-            int timeoutSeconds)
+            int timeoutSeconds,
+            CancellationToken cancellationToken = default)
         {
             try
             {
@@ -641,11 +645,15 @@ namespace UiAutomationMcpServer.Services
                 };
 
                 // Use centralized timeout management for all worker processes
+                using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                combinedCts.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
+                
                 var result = await _processTimeoutManager.ExecuteWithTimeoutAsync(
                     processStartInfo,
                     inputJson,
                     timeoutSeconds,
-                    "UIAutomationWorker");
+                    "UIAutomationWorker",
+                    combinedCts.Token);
 
                 if (!result.Success)
                 {
@@ -1107,7 +1115,8 @@ namespace UiAutomationMcpServer.Services
 
         // Generic method for executing advanced operations
         public async Task<OperationResult<Dictionary<string, object>>> ExecuteAdvancedOperationAsync(
-            AdvancedOperationParameters operationParams)
+            AdvancedOperationParameters operationParams,
+            CancellationToken cancellationToken = default)
         {
             var startTime = DateTime.UtcNow;
             
@@ -1137,7 +1146,7 @@ namespace UiAutomationMcpServer.Services
                 };
 
                 var operationJson = JsonSerializer.Serialize(operation);
-                var workerResult = await ExecuteInProcessAsync(operationJson, operationParams.TimeoutSeconds);
+                var workerResult = await ExecuteInProcessAsync(operationJson, operationParams.TimeoutSeconds, cancellationToken);
 
                 var elapsed = DateTime.UtcNow - startTime;
 
@@ -1195,7 +1204,7 @@ namespace UiAutomationMcpServer.Services
             double value,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20)
+            CancellationToken cancellationToken = default)
         {
             var parameters = new AdvancedOperationParameters
             {
@@ -1203,11 +1212,11 @@ namespace UiAutomationMcpServer.Services
                 ElementId = elementId,
                 WindowTitle = windowTitle,
                 ProcessId = processId,
-                TimeoutSeconds = timeoutSeconds,
+                TimeoutSeconds = 20,
                 Parameters = new Dictionary<string, object> { ["Value"] = value }
             };
 
-            var result = await ExecuteAdvancedOperationAsync(parameters);
+            var result = await ExecuteAdvancedOperationAsync(parameters, cancellationToken);
             return new OperationResult<string>
             {
                 Success = result.Success,
@@ -1220,7 +1229,7 @@ namespace UiAutomationMcpServer.Services
             string elementId,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20)
+            CancellationToken cancellationToken = default)
         {
             var parameters = new AdvancedOperationParameters
             {
@@ -1228,7 +1237,7 @@ namespace UiAutomationMcpServer.Services
                 ElementId = elementId,
                 WindowTitle = windowTitle,
                 ProcessId = processId,
-                TimeoutSeconds = timeoutSeconds,
+                TimeoutSeconds = 20,
                 Parameters = new Dictionary<string, object>()
             };
 
@@ -1240,7 +1249,7 @@ namespace UiAutomationMcpServer.Services
             string elementId,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20)
+            CancellationToken cancellationToken = default)
         {
             var parameters = new AdvancedOperationParameters
             {
@@ -1248,11 +1257,11 @@ namespace UiAutomationMcpServer.Services
                 ElementId = elementId,
                 WindowTitle = windowTitle,
                 ProcessId = processId,
-                TimeoutSeconds = timeoutSeconds,
+                TimeoutSeconds = 20,
                 Parameters = new Dictionary<string, object>()
             };
 
-            var result = await ExecuteAdvancedOperationAsync(parameters);
+            var result = await ExecuteAdvancedOperationAsync(parameters, cancellationToken);
             return new OperationResult<string>
             {
                 Success = result.Success,
@@ -1267,7 +1276,7 @@ namespace UiAutomationMcpServer.Services
             int length,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20)
+            CancellationToken cancellationToken = default)
         {
             var parameters = new AdvancedOperationParameters
             {
@@ -1275,7 +1284,7 @@ namespace UiAutomationMcpServer.Services
                 ElementId = elementId,
                 WindowTitle = windowTitle,
                 ProcessId = processId,
-                TimeoutSeconds = timeoutSeconds,
+                TimeoutSeconds = 20,
                 Parameters = new Dictionary<string, object> 
                 { 
                     ["StartIndex"] = startIndex,
@@ -1283,7 +1292,7 @@ namespace UiAutomationMcpServer.Services
                 }
             };
 
-            var result = await ExecuteAdvancedOperationAsync(parameters);
+            var result = await ExecuteAdvancedOperationAsync(parameters, cancellationToken);
             return new OperationResult<string>
             {
                 Success = result.Success,
@@ -1297,14 +1306,14 @@ namespace UiAutomationMcpServer.Services
             string? windowTitle = null,
             int? processId = null,
             int maxDepth = 3,
-            int timeoutSeconds = 30)
+            CancellationToken cancellationToken = default)
         {
             var parameters = new AdvancedOperationParameters
             {
                 Operation = "getelementtree",
                 WindowTitle = windowTitle,
                 ProcessId = processId,
-                TimeoutSeconds = timeoutSeconds,
+                TimeoutSeconds = 20,
                 Parameters = new Dictionary<string, object> { ["MaxDepth"] = maxDepth }
             };
 
@@ -1315,7 +1324,7 @@ namespace UiAutomationMcpServer.Services
             string elementId,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20)
+            CancellationToken cancellationToken = default)
         {
             var parameters = new AdvancedOperationParameters
             {
@@ -1323,11 +1332,11 @@ namespace UiAutomationMcpServer.Services
                 ElementId = elementId,
                 WindowTitle = windowTitle,
                 ProcessId = processId,
-                TimeoutSeconds = timeoutSeconds,
+                TimeoutSeconds = 20,
                 Parameters = new Dictionary<string, object>()
             };
 
-            var result = await ExecuteAdvancedOperationAsync(parameters);
+            var result = await ExecuteAdvancedOperationAsync(parameters, cancellationToken);
             return new OperationResult<List<Dictionary<string, object>>>
             {
                 Success = result.Success,
@@ -1342,7 +1351,7 @@ namespace UiAutomationMcpServer.Services
             string state,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20)
+            CancellationToken cancellationToken = default)
         {
             var parameters = new AdvancedOperationParameters
             {
@@ -1350,11 +1359,11 @@ namespace UiAutomationMcpServer.Services
                 ElementId = elementId,
                 WindowTitle = windowTitle,
                 ProcessId = processId,
-                TimeoutSeconds = timeoutSeconds,
+                TimeoutSeconds = 20,
                 Parameters = new Dictionary<string, object> { ["State"] = state }
             };
 
-            var result = await ExecuteAdvancedOperationAsync(parameters);
+            var result = await ExecuteAdvancedOperationAsync(parameters, cancellationToken);
             return new OperationResult<string>
             {
                 Success = result.Success,
@@ -1371,7 +1380,7 @@ namespace UiAutomationMcpServer.Services
             bool ignoreCase = false,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20)
+            CancellationToken cancellationToken = default)
         {
             var parameters = new AdvancedOperationParameters
             {
@@ -1379,7 +1388,7 @@ namespace UiAutomationMcpServer.Services
                 ElementId = elementId,
                 WindowTitle = windowTitle,
                 ProcessId = processId,
-                TimeoutSeconds = timeoutSeconds,
+                TimeoutSeconds = 20,
                 Parameters = new Dictionary<string, object> 
                 { 
                     ["SearchText"] = searchText,
@@ -1395,7 +1404,7 @@ namespace UiAutomationMcpServer.Services
             string elementId,
             string? windowTitle = null,
             int? processId = null,
-            int timeoutSeconds = 20)
+            CancellationToken cancellationToken = default)
         {
             var parameters = new AdvancedOperationParameters
             {
@@ -1403,11 +1412,11 @@ namespace UiAutomationMcpServer.Services
                 ElementId = elementId,
                 WindowTitle = windowTitle,
                 ProcessId = processId,
-                TimeoutSeconds = timeoutSeconds,
+                TimeoutSeconds = 20,
                 Parameters = new Dictionary<string, object>()
             };
 
-            var result = await ExecuteAdvancedOperationAsync(parameters);
+            var result = await ExecuteAdvancedOperationAsync(parameters, cancellationToken);
             return new OperationResult<List<Dictionary<string, object>>>
             {
                 Success = result.Success,
@@ -1418,16 +1427,16 @@ namespace UiAutomationMcpServer.Services
 
         // Window service methods implementation
         public async Task<OperationResult<List<WindowInfo>>> GetWindowsAsync(
-            int timeoutSeconds = 30)
+            CancellationToken cancellationToken = default)
         {
             var parameters = new AdvancedOperationParameters
             {
                 Operation = "getwindows",
-                TimeoutSeconds = timeoutSeconds,
+                TimeoutSeconds = 20,
                 Parameters = new Dictionary<string, object>()
             };
 
-            var result = await ExecuteAdvancedOperationAsync(parameters);
+            var result = await ExecuteAdvancedOperationAsync(parameters, cancellationToken);
             if (result.Success && result.Data != null)
             {
                 try
@@ -1460,14 +1469,14 @@ namespace UiAutomationMcpServer.Services
         }
 
         public async Task<OperationResult<List<WindowInfo>>> GetWindowInfoAsync(
-            int timeoutSeconds = 30)
+            CancellationToken cancellationToken = default)
         {
             var windowElementsResult = await FindAllAsync(
                 windowTitle: null,
                 searchText: null,
                 controlType: "Window",
                 processId: null,
-                timeoutSeconds: timeoutSeconds);
+                cancellationToken: cancellationToken);
             
             if (!windowElementsResult.Success)
             {
@@ -1507,7 +1516,7 @@ namespace UiAutomationMcpServer.Services
         public async Task<OperationResult<ElementInfo?>> FindWindowByTitleAsync(
             string title,
             int? processId = null,
-            int timeoutSeconds = 30)
+            CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(title))
             {

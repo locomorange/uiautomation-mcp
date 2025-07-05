@@ -26,7 +26,8 @@ namespace UiAutomationMcpServer.Services
             ProcessStartInfo processStartInfo,
             string inputData,
             int timeoutSeconds,
-            string operationName);
+            string operationName,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Kills a process and all its child processes
@@ -71,7 +72,8 @@ namespace UiAutomationMcpServer.Services
             ProcessStartInfo processStartInfo,
             string inputData,
             int timeoutSeconds,
-            string operationName)
+            string operationName,
+            CancellationToken cancellationToken = default)
         {
             var startTime = DateTime.UtcNow;
             var processId = Interlocked.Increment(ref _processCounter);
@@ -134,8 +136,9 @@ namespace UiAutomationMcpServer.Services
                 process.StandardInput.Close();
 
                 // Wait for completion with centralized timeout management
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
-                var processTask = process.WaitForExitAsync(cts.Token);
+                using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                combinedCts.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
+                var processTask = process.WaitForExitAsync(combinedCts.Token);
 
                 bool completedInTime;
                 try

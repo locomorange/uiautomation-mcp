@@ -6,7 +6,7 @@ namespace UiAutomationMcpServer.Services
 {
     public interface IApplicationLauncher
     {
-        Task<ProcessResult> LaunchApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null);
+        Task<ProcessResult> LaunchApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null, CancellationToken cancellationToken = default);
     }
 
     public class ApplicationLauncher : IApplicationLauncher
@@ -19,7 +19,7 @@ namespace UiAutomationMcpServer.Services
         }
 
 
-        public async Task<ProcessResult> LaunchApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null)
+        public async Task<ProcessResult> LaunchApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -44,7 +44,7 @@ namespace UiAutomationMcpServer.Services
                     return new ProcessResult { Success = false, Error = "Failed to start process" };
                 }
 
-                await Task.Delay(1000);
+                await Task.Delay(1000, cancellationToken);
 
                 var hasExited = process.HasExited;
                 var processId = hasExited ? 0 : process.Id;

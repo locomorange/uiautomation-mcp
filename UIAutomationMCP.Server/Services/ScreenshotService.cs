@@ -8,7 +8,7 @@ namespace UiAutomationMcpServer.Services
 {
     public interface IScreenshotService
     {
-        Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int? processId = null);
+        Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int? processId = null, CancellationToken cancellationToken = default);
     }
 
     public class ScreenshotService : IScreenshotService
@@ -22,7 +22,7 @@ namespace UiAutomationMcpServer.Services
             _uiAutomationWorker = uiAutomationWorker;
         }
 
-        public async Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int? processId = null)
+        public async Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int? processId = null, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -32,7 +32,7 @@ namespace UiAutomationMcpServer.Services
                 Rectangle bounds;
                 if (!string.IsNullOrEmpty(windowTitle))
                 {
-                    var windowResult = await _uiAutomationWorker.FindWindowByTitleAsync(windowTitle, processId);
+                    var windowResult = await _uiAutomationWorker.FindWindowByTitleAsync(windowTitle, processId, cancellationToken: cancellationToken);
                     if (!windowResult.Success || windowResult.Data == null)
                     {
                         var errorMsg = processId.HasValue 
