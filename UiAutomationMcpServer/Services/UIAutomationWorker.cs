@@ -202,6 +202,14 @@ namespace UiAutomationMcpServer.Services
         // Window service methods
         Task<OperationResult<List<WindowInfo>>> GetWindowsAsync(
             int timeoutSeconds = 30);
+        
+        Task<OperationResult<List<WindowInfo>>> GetWindowInfoAsync(
+            int timeoutSeconds = 30);
+            
+        Task<OperationResult<ElementInfo?>> FindWindowByTitleAsync(
+            string title,
+            int? processId = null,
+            int timeoutSeconds = 30);
     }
 
     public class UIAutomationWorker : IUIAutomationWorker
@@ -1522,6 +1530,113 @@ namespace UiAutomationMcpServer.Services
                 Success = false,
                 Error = result.Error ?? "Unknown error getting windows"
             };
+        }
+
+        public async Task<OperationResult<List<WindowInfo>>> GetWindowInfoAsync(
+            int timeoutSeconds = 30)
+        {
+            var windowElementsResult = await FindAllAsync(
+                windowTitle: null,
+                searchText: null,
+                controlType: "Window",
+                processId: null,
+                timeoutSeconds: timeoutSeconds);
+            
+            if (!windowElementsResult.Success)
+            {
+                return new OperationResult<List<WindowInfo>>
+                { 
+                    Success = false, 
+                    Error = windowElementsResult.Error ?? "Failed to find windows" 
+                };
+            }
+            
+            var elementInfos = windowElementsResult.Data ?? new List<ElementInfo>();
+            var windows = new List<WindowInfo>();
+            
+            foreach (var elementInfo in elementInfos)
+            {
+                var windowInfo = new WindowInfo
+                {
+                    Name = elementInfo.Name,
+                    AutomationId = elementInfo.AutomationId,
+                    ProcessId = elementInfo.ProcessId,
+                    ClassName = elementInfo.ClassName,
+                    BoundingRectangle = elementInfo.BoundingRectangle,
+                    IsEnabled = elementInfo.IsEnabled,
+                    IsVisible = elementInfo.IsVisible
+                };
+                
+                windows.Add(windowInfo);
+            }
+            
+            return new OperationResult<List<WindowInfo>> 
+            { 
+                Success = true, 
+                Data = windows 
+            };
+        }
+
+        public async Task<OperationResult<ElementInfo?>> FindWindowByTitleAsync(
+            string title,
+            int? processId = null,
+            int timeoutSeconds = 30)
+        {
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                return new OperationResult<ElementInfo?>
+                {
+                    Success = false,
+                    Error = "Window title cannot be empty"
+                };
+            }
+            
+            var searchParams = new ElementSearchParameters
+            {
+                SearchText = title,
+                ControlType = "Window",
+                ProcessId = processId,
+                TreeScope = "children"
+            };
+
+            var result = await FindFirstElementAsync(searchParams, timeoutSeconds: 15);
+            
+            if (!result.Success || result.Data == null)
+            {
+                var allWindowsResult = await FindAllElementsAsync(new ElementSearchParameters
+                {
+                    ControlType = "Window",
+                    ProcessId = processId,
+                    TreeScope = "children"
+                }, timeoutSeconds: 15);
+                
+                if (allWindowsResult.Success && allWindowsResult.Data != null)
+                {
+                    var matchingWindow = allWindowsResult.Data
+                        .Where(w => !string.IsNullOrEmpty(w.Name))
+                        .FirstOrDefault(w => 
+                            string.Equals(w.Name.Trim(), title.Trim(), StringComparison.OrdinalIgnoreCase) ||
+                            w.Name.Contains(title, StringComparison.OrdinalIgnoreCase) ||
+                            title.Contains(w.Name, StringComparison.OrdinalIgnoreCase));
+                    
+                    if (matchingWindow != null)
+                    {
+                        return new OperationResult<ElementInfo?>
+                        {
+                            Success = true,
+                            Data = matchingWindow
+                        };
+                    }
+                }
+                
+                return new OperationResult<ElementInfo?>
+                {
+                    Success = false,
+                    Error = $"Window with title '{title}' not found"
+                };
+            }
+            
+            return result;
         }
 
         #region IDisposable Implementation

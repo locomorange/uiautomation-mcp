@@ -4,7 +4,7 @@ using System.Drawing.Imaging;
 using System.Windows.Forms;
 using UiAutomationMcp.Models;
 
-namespace UiAutomationMcpServer.Services.Windows
+namespace UiAutomationMcpServer.Services
 {
     public interface IScreenshotService
     {
@@ -14,12 +14,12 @@ namespace UiAutomationMcpServer.Services.Windows
     public class ScreenshotService : IScreenshotService
     {
         private readonly ILogger<ScreenshotService> _logger;
-        private readonly IWindowService _windowService;
+        private readonly IUIAutomationWorker _uiAutomationWorker;
 
-        public ScreenshotService(ILogger<ScreenshotService> logger, IWindowService windowService)
+        public ScreenshotService(ILogger<ScreenshotService> logger, IUIAutomationWorker uiAutomationWorker)
         {
             _logger = logger;
-            _windowService = windowService;
+            _uiAutomationWorker = uiAutomationWorker;
         }
 
         public async Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int? processId = null)
@@ -32,7 +32,7 @@ namespace UiAutomationMcpServer.Services.Windows
                 Rectangle bounds;
                 if (!string.IsNullOrEmpty(windowTitle))
                 {
-                    var windowResult = await _windowService.FindWindowByTitleAsync(windowTitle, processId);
+                    var windowResult = await _uiAutomationWorker.FindWindowByTitleAsync(windowTitle, processId);
                     if (!windowResult.Success || windowResult.Data == null)
                     {
                         var errorMsg = processId.HasValue 

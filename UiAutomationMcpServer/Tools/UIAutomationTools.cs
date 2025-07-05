@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
 using System.ComponentModel;
-using UiAutomationMcpServer.Services.Windows;
 using UiAutomationMcpServer.Services;
 
 namespace UiAutomationMcpServer.Tools
@@ -9,18 +8,18 @@ namespace UiAutomationMcpServer.Tools
     [McpServerToolType]
     public class UIAutomationTools
     {
-        private readonly IWindowService _windowService;
+        private readonly IApplicationLauncher _applicationLauncher;
         private readonly IUIAutomationWorker _uiAutomationWorker;
         private readonly IScreenshotService _screenshotService;
         private readonly ILogger<UIAutomationTools> _logger;
 
         public UIAutomationTools(
-            IWindowService windowService,
+            IApplicationLauncher applicationLauncher,
             IUIAutomationWorker uiAutomationWorker,
             IScreenshotService screenshotService,
             ILogger<UIAutomationTools> logger)
         {
-            _windowService = windowService;
+            _applicationLauncher = applicationLauncher;
             _uiAutomationWorker = uiAutomationWorker;
             _screenshotService = screenshotService;
             _logger = logger;
@@ -31,7 +30,8 @@ namespace UiAutomationMcpServer.Tools
         [McpServerTool, Description("Get information about all open windows")]
         public async Task<object> GetWindowInfo()
         {
-            return await _windowService.GetWindowInfoAsync();
+            var result = await _uiAutomationWorker.GetWindowInfoAsync();
+            return new { Success = result.Success, Data = result.Data, Error = result.Error };
         }
 
         [McpServerTool, Description("Get information about UI elements in a specific window")]
@@ -75,7 +75,7 @@ namespace UiAutomationMcpServer.Tools
             [Description("Command line arguments (optional)")] string? arguments = null,
             [Description("Working directory (optional)")] string? workingDirectory = null)
         {
-            return await _windowService.LaunchApplicationAsync(applicationPath, arguments, workingDirectory);
+            return await _applicationLauncher.LaunchApplicationAsync(applicationPath, arguments, workingDirectory);
         }
 
         #endregion

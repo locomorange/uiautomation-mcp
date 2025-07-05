@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using UiAutomationMcpServer.Services.Windows;
 using UiAutomationMcpServer.Services;
 
 namespace UiAutomationMcpServer
@@ -15,11 +14,11 @@ namespace UiAutomationMcpServer
             // Configure logging for MCP - disable console logging to avoid MCP protocol interference
             builder.Logging.ClearProviders();
             var logPath = Path.Combine(Directory.GetCurrentDirectory(), "mcp_debug.log");
-            builder.Logging.AddProvider(new UiAutomationMcpServer.Services.FileLoggerProvider(logPath));
+            builder.Logging.AddProvider(new FileLoggerProvider(logPath));
             builder.Logging.SetMinimumLevel(LogLevel.Information);
 
-            // Register Windows services
-            builder.Services.AddSingleton<IWindowService, WindowService>();
+            // Register application services
+            builder.Services.AddSingleton<IApplicationLauncher, ApplicationLauncher>();
             builder.Services.AddSingleton<IScreenshotService, ScreenshotService>();
             
             // Register shared services
