@@ -38,6 +38,9 @@ ScaffoldingReadMe.txt
 # NuGet Symbol Packages
 *.snupkg
 
+# MCP config
+mcp.json
+
 # Others
 ~$*
 *~
