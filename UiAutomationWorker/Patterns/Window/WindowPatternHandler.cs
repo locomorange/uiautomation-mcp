@@ -2,16 +2,18 @@ using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
 using UiAutomationMcp.Models;
 using UiAutomationWorker.Helpers;
+using UiAutomationWorker.Core;
 
-namespace UiAutomationWorker.PatternExecutors
+namespace UiAutomationWorker.Patterns.Window
 {
     /// <summary>
-    /// WindowPatternの操作を実行するクラス
+    /// Microsoft UI Automation WindowPattern handler
+    /// Provides window state management functionality
     /// </summary>
-    public class WindowPatternExecutor : BasePatternExecutor
+    public class WindowPatternHandler : BaseAutomationHandler
     {
-        public WindowPatternExecutor(
-            ILogger<WindowPatternExecutor> logger,
+        public WindowPatternHandler(
+            ILogger<WindowPatternHandler> logger,
             AutomationHelper automationHelper)
             : base(logger, automationHelper)
         {

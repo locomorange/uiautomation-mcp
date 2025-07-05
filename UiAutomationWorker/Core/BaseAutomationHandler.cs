@@ -3,18 +3,18 @@ using Microsoft.Extensions.Logging;
 using UiAutomationMcp.Models;
 using UiAutomationWorker.Helpers;
 
-namespace UiAutomationWorker.PatternExecutors
+namespace UiAutomationWorker.Core
 {
     /// <summary>
-    /// パターン実行クラスの基底クラス
+    /// UI Automation ハンドラーの基底クラス
     /// 共通のタイムアウト処理、エラーハンドリング、ユーティリティメソッドを提供
     /// </summary>
-    public abstract class BasePatternExecutor
+    public abstract class BaseAutomationHandler
     {
         protected readonly ILogger _logger;
         protected readonly AutomationHelper _automationHelper;
 
-        protected BasePatternExecutor(ILogger logger, AutomationHelper automationHelper)
+        protected BaseAutomationHandler(ILogger logger, AutomationHelper automationHelper)
         {
             _logger = logger;
             _automationHelper = automationHelper;

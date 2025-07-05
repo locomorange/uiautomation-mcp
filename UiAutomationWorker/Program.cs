@@ -1,9 +1,14 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using UiAutomationWorker.Core;
-using UiAutomationWorker.Services;
-using UiAutomationWorker.PatternExecutors;
+using UiAutomationWorker.ElementTree;
 using UiAutomationWorker.Helpers;
+using UiAutomationWorker.Patterns.Interaction;
+using UiAutomationWorker.Patterns.Layout;
+using UiAutomationWorker.Patterns.Selection;
+using UiAutomationWorker.Patterns.Text;
+using UiAutomationWorker.Patterns.Window;
+using UiAutomationWorker.Services;
 
 namespace UiAutomationWorker
 {
@@ -26,13 +31,16 @@ namespace UiAutomationWorker
             services.AddSingleton<AutomationHelper>();
             services.AddSingleton<ElementInfoExtractor>();
 
-            // Register pattern executors
-            services.AddSingleton<CorePatternExecutor>();
-            services.AddSingleton<LayoutPatternExecutor>();
-            services.AddSingleton<TreePatternExecutor>();
-            services.AddSingleton<TextPatternExecutor>();
-            services.AddSingleton<WindowPatternExecutor>();
-            services.AddSingleton<ElementSearchExecutor>();
+            // Register pattern handlers
+            services.AddSingleton<InvokePatternHandler>();
+            services.AddSingleton<ValuePatternHandler>();
+            services.AddSingleton<TogglePatternHandler>();
+            services.AddSingleton<SelectionItemPatternHandler>();
+            services.AddSingleton<LayoutPatternHandler>();
+            services.AddSingleton<TreeNavigationHandler>();
+            services.AddSingleton<TextPatternHandler>();
+            services.AddSingleton<WindowPatternHandler>();
+            services.AddSingleton<ElementSearchHandler>();
 
             // Register main services
             services.AddSingleton<OperationExecutor>();

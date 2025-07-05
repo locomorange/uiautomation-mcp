@@ -1,24 +1,25 @@
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
 using UiAutomationMcp.Models;
+using UiAutomationWorker.Core;
 using UiAutomationWorker.Helpers;
 
-namespace UiAutomationWorker.PatternExecutors
+namespace UiAutomationWorker.ElementTree
 {
     /// <summary>
-    /// UIツリー操作のパターンエグゼキューター
+    /// Handles UI Automation tree navigation operations
     /// </summary>
-    public class TreePatternExecutor : BasePatternExecutor
+    public class TreeNavigationHandler : BaseAutomationHandler
     {
-        public TreePatternExecutor(
-            ILogger<TreePatternExecutor> logger,
+        public TreeNavigationHandler(
+            ILogger<TreeNavigationHandler> logger,
             AutomationHelper automationHelper)
             : base(logger, automationHelper)
         {
         }
 
         /// <summary>
-        /// UIツリーを取得します
+        /// Gets the UI element tree
         /// </summary>
         public async Task<WorkerResult> ExecuteGetTreeAsync(WorkerOperation operation)
         {
@@ -28,7 +29,7 @@ namespace UiAutomationWorker.PatternExecutors
                 var processId = operation.Parameters.TryGetValue("processId", out var pid) ? Convert.ToInt32(pid) : (int?)null;
                 var maxDepth = operation.Parameters.TryGetValue("maxDepth", out var md) ? Convert.ToInt32(md) : 3;
                 
-                _logger.LogInformation("[TreePatternExecutor] Getting element tree for window '{WindowTitle}', maxDepth: {MaxDepth}", windowTitle, maxDepth);
+                _logger.LogInformation("[TreeNavigationHandler] Getting element tree for window '{WindowTitle}', maxDepth: {MaxDepth}", windowTitle, maxDepth);
 
                 var rootElement = await FindRootElementAsync(windowTitle, processId, cancellationToken);
                 if (rootElement == null)
@@ -48,7 +49,7 @@ namespace UiAutomationWorker.PatternExecutors
         }
 
         /// <summary>
-        /// 指定された要素の子要素を取得します
+        /// Gets children of the specified element
         /// </summary>
         public async Task<WorkerResult> ExecuteGetChildrenAsync(WorkerOperation operation)
         {
@@ -57,7 +58,7 @@ namespace UiAutomationWorker.PatternExecutors
                 var elementId = operation.Parameters.TryGetValue("elementId", out var eid) ? eid?.ToString() : null;
                 var windowTitle = operation.Parameters.TryGetValue("windowTitle", out var wt) ? wt?.ToString() : null;
                 
-                _logger.LogInformation("[TreePatternExecutor] Getting children for element '{ElementId}'", elementId);
+                _logger.LogInformation("[TreeNavigationHandler] Getting children for element '{ElementId}'", elementId);
 
                 var element = await FindElementAsync(elementId, windowTitle, cancellationToken);
                 if (element == null)
@@ -165,11 +166,11 @@ namespace UiAutomationWorker.PatternExecutors
                     }
                     catch (OperationCanceledException)
                     {
-                        throw; // タイムアウトの場合は再スロー
+                        throw;
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning(ex, "[TreePatternExecutor] Error getting children for element at depth {Depth}", currentDepth);
+                        _logger.LogWarning(ex, "[TreeNavigationHandler] Error getting children for element at depth {Depth}", currentDepth);
                     }
                 }
 
@@ -203,11 +204,11 @@ namespace UiAutomationWorker.PatternExecutors
                 }
                 catch (OperationCanceledException)
                 {
-                    throw; // タイムアウトの場合は再スロー
+                    throw;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "[TreePatternExecutor] Error getting direct children");
+                    _logger.LogWarning(ex, "[TreeNavigationHandler] Error getting direct children");
                 }
 
                 return children;
@@ -252,7 +253,7 @@ namespace UiAutomationWorker.PatternExecutors
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "[TreePatternExecutor] Error creating ElementInfo");
+                _logger.LogWarning(ex, "[TreeNavigationHandler] Error creating ElementInfo");
                 return new ElementInfo
                 {
                     Name = "Error reading element",

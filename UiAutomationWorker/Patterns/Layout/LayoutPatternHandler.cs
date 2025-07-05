@@ -2,16 +2,18 @@ using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
 using UiAutomationMcp.Models;
 using UiAutomationWorker.Helpers;
+using UiAutomationWorker.Core;
 
-namespace UiAutomationWorker.PatternExecutors
+namespace UiAutomationWorker.Patterns.Layout
 {
     /// <summary>
-    /// レイアウト関連パターン（ExpandCollapse、Scroll、Transform、Dock）を実行するクラス
+    /// Microsoft UI Automation Layout patterns handler
+    /// Handles ExpandCollapse, Scroll, Transform, Dock patterns
     /// </summary>
-    public class LayoutPatternExecutor : BasePatternExecutor
+    public class LayoutPatternHandler : BaseAutomationHandler
     {
-        public LayoutPatternExecutor(
-            ILogger<LayoutPatternExecutor> logger,
+        public LayoutPatternHandler(
+            ILogger<LayoutPatternHandler> logger,
             AutomationHelper automationHelper)
             : base(logger, automationHelper)
         {

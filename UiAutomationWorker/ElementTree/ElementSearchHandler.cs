@@ -2,18 +2,19 @@ using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
 using UiAutomationMcp.Models;
 using UiAutomationWorker.Helpers;
+using UiAutomationWorker.Core;
 
-namespace UiAutomationWorker.PatternExecutors
+namespace UiAutomationWorker.ElementTree
 {
     /// <summary>
-    /// 要素検索操作を実行するエグゼキューター
+    /// Handles element search operations in the UI Automation tree
     /// </summary>
-    public class ElementSearchExecutor : BasePatternExecutor
+    public class ElementSearchHandler : BaseAutomationHandler
     {
         private readonly ElementInfoExtractor _elementInfoExtractor;
 
-        public ElementSearchExecutor(
-            ILogger<ElementSearchExecutor> logger,
+        public ElementSearchHandler(
+            ILogger<ElementSearchHandler> logger,
             AutomationHelper automationHelper,
             ElementInfoExtractor elementInfoExtractor)
             : base(logger, automationHelper)
@@ -22,27 +23,24 @@ namespace UiAutomationWorker.PatternExecutors
         }
 
         /// <summary>
-        /// FindFirst操作を実行します
+        /// Finds the first element matching the criteria
         /// </summary>
         public async Task<WorkerResult> ExecuteFindFirstAsync(WorkerOperation operation)
         {
             return await ExecuteWithTimeoutAsync<object?>(operation, () =>
             {
-                // Get search root
                 var searchRoot = _automationHelper.GetSearchRoot(operation);
                 if (searchRoot == null)
                 {
                     throw new InvalidOperationException("Failed to get search root element");
                 }
 
-                // Build condition
                 var condition = _automationHelper.BuildCondition(operation);
                 if (condition == null)
                 {
                     throw new InvalidOperationException("Failed to build search condition");
                 }
 
-                // Parse scope
                 if (!Enum.TryParse<TreeScope>(
                     operation.Parameters.GetValueOrDefault("Scope")?.ToString(), 
                     out var scope))
@@ -50,15 +48,12 @@ namespace UiAutomationWorker.PatternExecutors
                     scope = TreeScope.Descendants;
                 }
 
-                _logger.LogInformation("[ElementSearchExecutor] Calling FindFirst with scope: {Scope}", scope);
+                _logger.LogInformation("[ElementSearchHandler] FindFirst with scope: {Scope}", scope);
 
-                // This is the critical call that may hang
                 var element = searchRoot.FindFirst(scope, condition);
 
                 if (element != null)
                 {
-                    // Extract element information instead of returning the element itself
-                    // (AutomationElement cannot be serialized across processes)
                     var elementInfo = _elementInfoExtractor.ExtractElementInfo(element);
                     return elementInfo;
                 }
@@ -70,27 +65,24 @@ namespace UiAutomationWorker.PatternExecutors
         }
 
         /// <summary>
-        /// FindAll操作を実行します
+        /// Finds all elements matching the criteria
         /// </summary>
         public async Task<WorkerResult> ExecuteFindAllAsync(WorkerOperation operation)
         {
             return await ExecuteWithTimeoutAsync<List<Dictionary<string, object>>>(operation, () =>
             {
-                // Get search root
                 var searchRoot = _automationHelper.GetSearchRoot(operation);
                 if (searchRoot == null)
                 {
                     throw new InvalidOperationException("Failed to get search root element");
                 }
 
-                // Build condition
                 var condition = _automationHelper.BuildCondition(operation);
                 if (condition == null)
                 {
                     throw new InvalidOperationException("Failed to build search condition");
                 }
 
-                // Parse scope
                 if (!Enum.TryParse<TreeScope>(
                     operation.Parameters.GetValueOrDefault("Scope")?.ToString(), 
                     out var scope))
@@ -98,11 +90,9 @@ namespace UiAutomationWorker.PatternExecutors
                     scope = TreeScope.Descendants;
                 }
 
-                _logger.LogInformation("[ElementSearchExecutor] Calling FindAll with scope: {Scope}", scope);
+                _logger.LogInformation("[ElementSearchHandler] FindAll with scope: {Scope}", scope);
 
-                // This is the critical call that may hang
                 var elements = searchRoot.FindAll(scope, condition);
-
                 var elementInfos = new List<Dictionary<string, object>>();
                 
                 if (elements != null && elements.Count > 0)
@@ -116,34 +106,32 @@ namespace UiAutomationWorker.PatternExecutors
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogWarning(ex, "[ElementSearchExecutor] Failed to extract info from element");
+                            _logger.LogWarning(ex, "[ElementSearchHandler] Failed to extract info from element");
                             continue;
                         }
                     }
                 }
 
-                _logger.LogInformation("[ElementSearchExecutor] FindAll found {Count} elements", elementInfos.Count);
+                _logger.LogInformation("[ElementSearchHandler] FindAll found {Count} elements", elementInfos.Count);
 
                 return elementInfos;
             }, "FindAll");
         }
 
         /// <summary>
-        /// 要素のプロパティ情報を取得します
+        /// Gets properties of an element
         /// </summary>
         public async Task<WorkerResult> ExecuteGetPropertiesAsync(WorkerOperation operation)
         {
-            _logger.LogInformation("[ElementSearchExecutor] Executing GetProperties operation");
+            _logger.LogInformation("[ElementSearchHandler] Executing GetProperties operation");
 
             try
             {
-                // GetPropertiesは通常FindFirstを使用して要素を見つけてから、その詳細プロパティを取得
-                // ここでは簡略化してFindFirstと同じロジックを使用
                 return await ExecuteFindFirstAsync(operation);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[ElementSearchExecutor] GetProperties operation failed");
+                _logger.LogError(ex, "[ElementSearchHandler] GetProperties operation failed");
                 return new WorkerResult
                 {
                     Success = false,

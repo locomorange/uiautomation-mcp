@@ -1,6 +1,11 @@
 using Microsoft.Extensions.Logging;
 using UiAutomationMcp.Models;
-using UiAutomationWorker.PatternExecutors;
+using UiAutomationWorker.ElementTree;
+using UiAutomationWorker.Patterns.Interaction;
+using UiAutomationWorker.Patterns.Layout;
+using UiAutomationWorker.Patterns.Text;
+using UiAutomationWorker.Patterns.Window;
+using UiAutomationWorker.Patterns.Selection;
 
 namespace UiAutomationWorker.Services
 {
@@ -10,29 +15,38 @@ namespace UiAutomationWorker.Services
     public class OperationExecutor
     {
         private readonly ILogger<OperationExecutor> _logger;
-        private readonly ElementSearchExecutor _elementSearchExecutor;
-        private readonly CorePatternExecutor _corePatternExecutor;
-        private readonly LayoutPatternExecutor _layoutPatternExecutor;
-        private readonly TreePatternExecutor _treePatternExecutor;
-        private readonly TextPatternExecutor _textPatternExecutor;
-        private readonly WindowPatternExecutor _windowPatternExecutor;
+        private readonly ElementSearchHandler _elementSearchHandler;
+        private readonly InvokePatternHandler _invokePatternHandler;
+        private readonly ValuePatternHandler _valuePatternHandler;
+        private readonly TogglePatternHandler _togglePatternHandler;
+        private readonly SelectionItemPatternHandler _selectionItemPatternHandler;
+        private readonly LayoutPatternHandler _layoutPatternHandler;
+        private readonly TreeNavigationHandler _treeNavigationHandler;
+        private readonly TextPatternHandler _textPatternHandler;
+        private readonly WindowPatternHandler _windowPatternHandler;
 
         public OperationExecutor(
             ILogger<OperationExecutor> logger,
-            ElementSearchExecutor elementSearchExecutor,
-            CorePatternExecutor corePatternExecutor,
-            LayoutPatternExecutor layoutPatternExecutor,
-            TreePatternExecutor treePatternExecutor,
-            TextPatternExecutor textPatternExecutor,
-            WindowPatternExecutor windowPatternExecutor)
+            ElementSearchHandler elementSearchHandler,
+            InvokePatternHandler invokePatternHandler,
+            ValuePatternHandler valuePatternHandler,
+            TogglePatternHandler togglePatternHandler,
+            SelectionItemPatternHandler selectionItemPatternHandler,
+            LayoutPatternHandler layoutPatternHandler,
+            TreeNavigationHandler treeNavigationHandler,
+            TextPatternHandler textPatternHandler,
+            WindowPatternHandler windowPatternHandler)
         {
             _logger = logger;
-            _elementSearchExecutor = elementSearchExecutor;
-            _corePatternExecutor = corePatternExecutor;
-            _layoutPatternExecutor = layoutPatternExecutor;
-            _treePatternExecutor = treePatternExecutor;
-            _textPatternExecutor = textPatternExecutor;
-            _windowPatternExecutor = windowPatternExecutor;
+            _elementSearchHandler = elementSearchHandler;
+            _invokePatternHandler = invokePatternHandler;
+            _valuePatternHandler = valuePatternHandler;
+            _togglePatternHandler = togglePatternHandler;
+            _selectionItemPatternHandler = selectionItemPatternHandler;
+            _layoutPatternHandler = layoutPatternHandler;
+            _treeNavigationHandler = treeNavigationHandler;
+            _textPatternHandler = textPatternHandler;
+            _windowPatternHandler = windowPatternHandler;
         }
 
         /// <summary>
@@ -47,40 +61,40 @@ namespace UiAutomationWorker.Services
                 return operation.Operation.ToLowerInvariant() switch
                 {
                     // 要素検索操作
-                    "findfirst" => await _elementSearchExecutor.ExecuteFindFirstAsync(operation),
-                    "findall" => await _elementSearchExecutor.ExecuteFindAllAsync(operation),
-                    "getproperties" => await _elementSearchExecutor.ExecuteGetPropertiesAsync(operation),
+                    "findfirst" => await _elementSearchHandler.ExecuteFindFirstAsync(operation),
+                    "findall" => await _elementSearchHandler.ExecuteFindAllAsync(operation),
+                    "getproperties" => await _elementSearchHandler.ExecuteGetPropertiesAsync(operation),
 
                     // Core Pattern Operations
-                    "invoke" => await _corePatternExecutor.ExecuteInvokeAsync(operation),
-                    "setvalue" => await _corePatternExecutor.ExecuteSetValueAsync(operation),
-                    "getvalue" => await _corePatternExecutor.ExecuteGetValueAsync(operation),
-                    "toggle" => await _corePatternExecutor.ExecuteToggleAsync(operation),
-                    "select" => await _corePatternExecutor.ExecuteSelectAsync(operation),
+                    "invoke" => await _invokePatternHandler.ExecuteInvokeAsync(operation),
+                    "setvalue" => await _valuePatternHandler.ExecuteSetValueAsync(operation),
+                    "getvalue" => await _valuePatternHandler.ExecuteGetValueAsync(operation),
+                    "toggle" => await _togglePatternHandler.ExecuteToggleAsync(operation),
+                    "select" => await _selectionItemPatternHandler.ExecuteSelectAsync(operation),
 
                     // Layout Pattern Operations
-                    "scroll" => await _layoutPatternExecutor.ExecuteScrollAsync(operation),
-                    "scrollintoview" => await _layoutPatternExecutor.ExecuteScrollIntoViewAsync(operation),
+                    "scroll" => await _layoutPatternHandler.ExecuteScrollAsync(operation),
+                    "scrollintoview" => await _layoutPatternHandler.ExecuteScrollIntoViewAsync(operation),
 
                     // Text Pattern Operations
-                    "gettext" => await _textPatternExecutor.ExecuteGetTextAsync(operation),
-                    "selecttext" => await _textPatternExecutor.ExecuteSelectTextAsync(operation),
-                    "findtext" => await _textPatternExecutor.ExecuteFindTextAsync(operation),
-                    "gettextselection" => await _textPatternExecutor.ExecuteGetTextSelectionAsync(operation),
+                    "gettext" => await _textPatternHandler.ExecuteGetTextAsync(operation),
+                    "selecttext" => await _textPatternHandler.ExecuteSelectTextAsync(operation),
+                    "findtext" => await _textPatternHandler.ExecuteFindTextAsync(operation),
+                    "gettextselection" => await _textPatternHandler.ExecuteGetTextSelectionAsync(operation),
 
                     // Window Pattern Operations
-                    "setwindowstate" => await _windowPatternExecutor.ExecuteSetWindowStateAsync(operation),
-                    "getwindowstate" => await _windowPatternExecutor.ExecuteGetWindowStateAsync(operation),
-                    "closewindow" => await _windowPatternExecutor.ExecuteCloseWindowAsync(operation),
-                    "waitforwindowstate" => await _windowPatternExecutor.ExecuteWaitForWindowStateAsync(operation),
+                    "setwindowstate" => await _windowPatternHandler.ExecuteSetWindowStateAsync(operation),
+                    "getwindowstate" => await _windowPatternHandler.ExecuteGetWindowStateAsync(operation),
+                    "closewindow" => await _windowPatternHandler.ExecuteCloseWindowAsync(operation),
+                    "waitforwindowstate" => await _windowPatternHandler.ExecuteWaitForWindowStateAsync(operation),
 
                     // Tree Operations
-                    "gettree" => await _treePatternExecutor.ExecuteGetTreeAsync(operation),
-                    "getchildren" => await _treePatternExecutor.ExecuteGetChildrenAsync(operation),
+                    "gettree" => await _treeNavigationHandler.ExecuteGetTreeAsync(operation),
+                    "getchildren" => await _treeNavigationHandler.ExecuteGetChildrenAsync(operation),
 
                     // Aliases for backward compatibility
-                    "value" => await _corePatternExecutor.ExecuteSetValueAsync(operation),
-                    "get_value" => await _corePatternExecutor.ExecuteGetValueAsync(operation),
+                    "value" => await _valuePatternHandler.ExecuteSetValueAsync(operation),
+                    "get_value" => await _valuePatternHandler.ExecuteGetValueAsync(operation),
 
                     // 未知の操作
                     _ => new WorkerResult

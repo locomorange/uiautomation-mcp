@@ -2,16 +2,18 @@ using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
 using UiAutomationMcp.Models;
 using UiAutomationWorker.Helpers;
+using UiAutomationWorker.Core;
 
-namespace UiAutomationWorker.PatternExecutors
+namespace UiAutomationWorker.Patterns.Text
 {
     /// <summary>
-    /// TextPatternの操作を実行するクラス
+    /// Microsoft UI Automation TextPattern handler
+    /// Provides text manipulation functionality
     /// </summary>
-    public class TextPatternExecutor : BasePatternExecutor
+    public class TextPatternHandler : BaseAutomationHandler
     {
-        public TextPatternExecutor(
-            ILogger<TextPatternExecutor> logger,
+        public TextPatternHandler(
+            ILogger<TextPatternHandler> logger,
             AutomationHelper automationHelper)
             : base(logger, automationHelper)
         {
