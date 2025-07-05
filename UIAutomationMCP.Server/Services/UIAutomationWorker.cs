@@ -1582,8 +1582,15 @@ namespace UiAutomationMcpServer.Services
             {
                 if (disposing)
                 {
-                    // Cleanup managed resources if any
-                    _logger?.LogDebug("UIAutomationWorker disposed");
+                    _logger?.LogDebug("[UIAutomationWorker] Disposing - cleanup requested");
+                    
+                    // ProcessTimeoutManager will handle cleanup of any active processes
+                    // through its own disposal mechanism
+                    if (_processTimeoutManager is IDisposable disposableManager)
+                    {
+                        // Note: Don't dispose here as it's managed by DI container
+                        _logger?.LogDebug("[UIAutomationWorker] ProcessTimeoutManager cleanup delegated to DI container");
+                    }
                 }
 
                 _disposed = true;

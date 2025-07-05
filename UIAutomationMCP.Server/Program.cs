@@ -20,6 +20,9 @@ namespace UiAutomationMcpServer
             // Register core infrastructure services
             builder.Services.AddSingleton<IProcessTimeoutManager, ProcessTimeoutManager>();
             
+            // Register hosted services for lifecycle management
+            builder.Services.AddHostedService<ProcessCleanupService>();
+            
             // Register application services
             builder.Services.AddSingleton<IApplicationLauncher, ApplicationLauncher>();
             builder.Services.AddSingleton<IScreenshotService, ScreenshotService>();
@@ -43,8 +46,34 @@ namespace UiAutomationMcpServer
 
             var host = builder.Build();
 
-            // Run the MCP server without logging to avoid interference
-            await host.RunAsync();
+            // Setup graceful shutdown handling
+            var lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
+            lifetime.ApplicationStopping.Register(() =>
+            {
+                var logger = host.Services.GetRequiredService<ILogger<Program>>();
+                logger.LogInformation("[Program] MCP Server shutdown requested - cleaning up processes");
+            });
+
+            // Run the MCP server with proper shutdown handling
+            try
+            {
+                await host.RunAsync();
+            }
+            catch (Exception ex)
+            {
+                var logger = host.Services.GetRequiredService<ILogger<Program>>();
+                logger.LogError(ex, "[Program] MCP Server terminated with error");
+                throw;
+            }
+            finally
+            {
+                // Ensure cleanup happens even if RunAsync throws
+                var processManager = host.Services.GetService<IProcessTimeoutManager>();
+                if (processManager is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+            }
         }
     }
 }

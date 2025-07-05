@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 
@@ -33,6 +34,11 @@ namespace UiAutomationMcpServer.Services
         /// <param name="process">Process to kill</param>
         /// <param name="operationName">Operation name for logging</param>
         void KillProcessTree(Process process, string operationName);
+
+        /// <summary>
+        /// Terminates all active processes (called during shutdown)
+        /// </summary>
+        void TerminateAllActiveProcesses();
     }
 
     /// <summary>
@@ -48,10 +54,13 @@ namespace UiAutomationMcpServer.Services
         public TimeSpan ExecutionTime { get; set; }
     }
 
-    public class ProcessTimeoutManager : IProcessTimeoutManager
+    public class ProcessTimeoutManager : IProcessTimeoutManager, IDisposable
     {
         private readonly ILogger<ProcessTimeoutManager> _logger;
         private static long _processCounter = 0;
+        private readonly ConcurrentDictionary<int, Process> _activeProcesses = new();
+        private readonly object _disposeLock = new object();
+        private bool _disposed = false;
 
         public ProcessTimeoutManager(ILogger<ProcessTimeoutManager> logger)
         {
@@ -98,8 +107,11 @@ namespace UiAutomationMcpServer.Services
                     operationName, processId, processStartInfo.FileName);
                 process.Start();
                 
-                _logger.LogDebug("[ProcessTimeoutManager] {Operation}#{ProcessId} started with PID: {PID}", 
-                    operationName, processId, process.Id);
+                // Track active process for cleanup during shutdown
+                _activeProcesses[process.Id] = process;
+                
+                _logger.LogDebug("[ProcessTimeoutManager] {Operation}#{ProcessId} started with PID: {PID} (tracking {ActiveCount} processes)", 
+                    operationName, processId, process.Id, _activeProcesses.Count);
 
                 // Send input data to process
                 await process.StandardInput.WriteLineAsync(inputData);
@@ -181,6 +193,12 @@ namespace UiAutomationMcpServer.Services
             finally
             {
                 await CleanupProcessAsync(process, operationName);
+                
+                // Remove from active processes tracking
+                if (process != null)
+                {
+                    _activeProcesses.TryRemove(process.Id, out _);
+                }
             }
         }
 
@@ -199,6 +217,61 @@ namespace UiAutomationMcpServer.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[ProcessTimeoutManager] Failed to kill process tree for {Operation}", operationName);
+            }
+        }
+
+        public void TerminateAllActiveProcesses()
+        {
+            lock (_disposeLock)
+            {
+                if (_disposed) return;
+
+                _logger.LogInformation("[ProcessTimeoutManager] Terminating all active processes ({Count} processes)", 
+                    _activeProcesses.Count);
+
+                var processesToKill = _activeProcesses.Values.ToList();
+                
+                foreach (var process in processesToKill)
+                {
+                    try
+                    {
+                        if (!process.HasExited)
+                        {
+                            _logger.LogWarning("[ProcessTimeoutManager] Shutdown - Killing process PID: {PID}", process.Id);
+                            process.Kill(entireProcessTree: true);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "[ProcessTimeoutManager] Failed to kill process during shutdown: PID {PID}", 
+                            process.Id);
+                    }
+                }
+
+                _activeProcesses.Clear();
+                _logger.LogInformation("[ProcessTimeoutManager] All active processes terminated");
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed && disposing)
+            {
+                lock (_disposeLock)
+                {
+                    if (!_disposed)
+                    {
+                        _logger.LogInformation("[ProcessTimeoutManager] Disposing - Cleaning up all processes");
+                        TerminateAllActiveProcesses();
+                        _disposed = true;
+                    }
+                }
             }
         }
 
