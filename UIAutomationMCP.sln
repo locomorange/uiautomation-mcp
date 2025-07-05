@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UiAutomationMcpServer", "UiAutomationMcpServer\\UiAutomationMcpServer.csproj", "{61D9B3F2-1CF4-10C1-5680-083BA069822C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UIAutomationMCP.Server", "UIAutomationMCP.Server\\UIAutomationMCP.Server.csproj", "{61D9B3F2-1CF4-10C1-5680-083BA069822C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UiAutomationWorker", "UiAutomationWorker\\UiAutomationWorker.csproj", "{87654321-4321-4321-4321-210987654321}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UIAutomationMCP.Worker", "UIAutomationMCP.Worker\\UIAutomationMCP.Worker.csproj", "{87654321-4321-4321-4321-210987654321}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UiAutomationMcp.Models", "UiAutomationMcp.Models\UiAutomationMcp.Models.csproj", "{3E8BFA4F-C419-42C6-BEF4-B36A055E2719}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UIAutomationMCP.Models", "UIAutomationMCP.Models\\UiAutomationMcp.Models.csproj", "{3E8BFA4F-C419-42C6-BEF4-B36A055E2719}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UiAutomationMcp.Tests", "UiAutomationMcp.Tests\UiAutomationMcp.Tests.csproj", "{7A298877-7E1E-4A6B-944A-C0CD92783ECF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UIAutomationMCP.Tests", "UIAutomationMCP.Tests\\UiAutomationMcp.Tests.csproj", "{7A298877-7E1E-4A6B-944A-C0CD92783ECF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -16,8 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\UiAutomationWorker\UiAutomationWorker.csproj" />
-    <ProjectReference Include="..\UiAutomationMcp.Models\UiAutomationMcp.Models.csproj" />
+    <ProjectReference Include="..\UIAutomationMCP.Worker\UIAutomationMCP.Worker.csproj" />
+    <ProjectReference Include="..\UIAutomationMCP.Models\UiAutomationMcp.Models.csproj" />
   </ItemGroup>
 
 

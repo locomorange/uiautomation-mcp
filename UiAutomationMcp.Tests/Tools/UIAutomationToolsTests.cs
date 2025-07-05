@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using UiAutomationMcp.Models;
-using UiAutomationMcpServer.Services.Windows;
+// using UiAutomationMcpServer.Services.Windows;
 using UiAutomationMcpServer.Services;
 using UiAutomationMcpServer.Tools;
 using Xunit.Abstractions;
@@ -17,7 +17,7 @@ namespace UiAutomationMcp.Tests.Tools
         private readonly ITestOutputHelper _output;
         private readonly Mock<ILogger<UIAutomationTools>> _logger;
         private readonly UIAutomationTools _tools;
-        private readonly Mock<IWindowService> _mockWindowService;
+        private readonly Mock<IApplicationLauncher> _mockApplicationLauncher;
         private readonly Mock<IUIAutomationWorker> _mockUIAutomationWorker;
         private readonly Mock<IScreenshotService> _mockScreenshotService;
 
@@ -27,12 +27,12 @@ namespace UiAutomationMcp.Tests.Tools
             _logger = new Mock<ILogger<UIAutomationTools>>();
             
             // Create all service mocks
-            _mockWindowService = new Mock<IWindowService>();
+            _mockApplicationLauncher = new Mock<IApplicationLauncher>();
             _mockUIAutomationWorker = new Mock<IUIAutomationWorker>();
             _mockScreenshotService = new Mock<IScreenshotService>();
 
             _tools = new UIAutomationTools(
-                _mockWindowService.Object,
+                _mockApplicationLauncher.Object,
                 _mockUIAutomationWorker.Object,
                 _mockScreenshotService.Object,
                 _logger.Object
@@ -55,12 +55,12 @@ namespace UiAutomationMcp.Tests.Tools
                 new WindowInfo { Title = "Window1", ProcessName = "App1", ProcessId = 1234, Handle = 1001 },
                 new WindowInfo { Title = "Window2", ProcessName = "App2", ProcessId = 5678, Handle = 1002 }
             };
-            var expectedResult = new OperationResult
+            var expectedResult = new OperationResult<List<WindowInfo>>
             {
                 Success = true,
                 Data = expectedWindows
             };
-            _mockWindowService.Setup(s => s.GetWindowInfoAsync())
+            _mockUIAutomationWorker.Setup(s => s.GetWindowInfoAsync(It.IsAny<int>()))
                             .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -68,7 +68,7 @@ namespace UiAutomationMcp.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockWindowService.Verify(s => s.GetWindowInfoAsync(), Times.Once);
+            _mockUIAutomationWorker.Verify(s => s.GetWindowInfoAsync(It.IsAny<int>()), Times.Once);
             _output.WriteLine($"GetWindowInfo test passed: Found {expectedWindows.Count} windows");
         }
 
@@ -81,12 +81,12 @@ namespace UiAutomationMcp.Tests.Tools
                 new ElementInfo { AutomationId = "btn1", Name = "Button1", ControlType = "Button" },
                 new ElementInfo { AutomationId = "btn2", Name = "Button2", ControlType = "Button" }
             };
-            var expectedResult = new OperationResult
+            var expectedResult = new OperationResult<List<ElementInfo>>
             {
                 Success = true,
                 Data = expectedElements
             };
-            _mockUIAutomationWorker.Setup(s => s.FindAllAsync("TestWindow", "Button", null, null))
+            _mockUIAutomationWorker.Setup(s => s.FindAllAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<int>()))
                                    .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -94,7 +94,7 @@ namespace UiAutomationMcp.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockUIAutomationWorker.Verify(s => s.FindAllAsync("TestWindow", "Button", null, null), Times.Once);
+            _mockUIAutomationWorker.Verify(s => s.FindAllAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<int>()), Times.Once);
             _output.WriteLine($"FindElements test passed: Found {expectedElements.Count} elements");
         }
 

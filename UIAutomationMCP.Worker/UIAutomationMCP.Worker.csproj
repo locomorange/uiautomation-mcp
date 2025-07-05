@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\UiAutomationMcp.Models\UiAutomationMcp.Models.csproj" />
+    <ProjectReference Include="..\UIAutomationMCP.Models\UiAutomationMcp.Models.csproj" />
   </ItemGroup>
 
 </Project>

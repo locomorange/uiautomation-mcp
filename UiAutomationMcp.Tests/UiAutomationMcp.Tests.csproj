@@ -24,9 +24,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\UiAutomationMcpServer\UiAutomationMcpServer.csproj" />
-    <ProjectReference Include="..\UiAutomationMcp.Models\UiAutomationMcp.Models.csproj" />
-    <ProjectReference Include="..\UiAutomationWorker\UiAutomationWorker.csproj" />
+    <ProjectReference Include="..\UIAutomationMCP.Server\UIAutomationMCP.Server.csproj" />
+    <ProjectReference Include="..\UIAutomationMCP.Models\UiAutomationMcp.Models.csproj" />
+    <ProjectReference Include="..\UIAutomationMCP.Worker\UIAutomationMCP.Worker.csproj" />
   </ItemGroup>
 
 </Project>
