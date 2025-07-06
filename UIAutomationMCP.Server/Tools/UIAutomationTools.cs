@@ -9,7 +9,6 @@ namespace UIAutomationMCP.Server.Tools
     {
         private readonly IApplicationLauncher _applicationLauncher;
         private readonly IScreenshotService _screenshotService;
-        private readonly IDiagnosticService _diagnosticService;
         private readonly IElementSearchService _elementSearchService;
         private readonly ITreeNavigationService _treeNavigationService;
         private readonly IInvokeService _invokeService;
@@ -18,7 +17,6 @@ namespace UIAutomationMCP.Server.Tools
         public UIAutomationTools(
             IApplicationLauncher applicationLauncher,
             IScreenshotService screenshotService,
-            IDiagnosticService diagnosticService,
             IElementSearchService elementSearchService,
             ITreeNavigationService treeNavigationService,
             IInvokeService invokeService,
@@ -26,7 +24,6 @@ namespace UIAutomationMCP.Server.Tools
         {
             _applicationLauncher = applicationLauncher;
             _screenshotService = screenshotService;
-            _diagnosticService = diagnosticService;
             _elementSearchService = elementSearchService;
             _treeNavigationService = treeNavigationService;
             _invokeService = invokeService;
@@ -142,21 +139,5 @@ namespace UIAutomationMCP.Server.Tools
         // FindText - Method removed due to service deletion
 
         // GetTextSelection - Method removed due to service deletion
-
-        // Diagnostic Tools
-        [McpServerTool, Description("Diagnose why a specific ProcessId fails to work with UIAutomation")]
-        public async Task<object> DiagnoseProcessId(
-            [Description("Process ID to diagnose")] int processId)
-            => await _diagnosticService.DiagnoseProcessIdAsync(processId);
-
-        [McpServerTool, Description("List all running processes with their UIAutomation accessibility")]
-        public async Task<object> ListAccessibleProcesses([Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _diagnosticService.ListAccessibleProcessesAsync(timeoutSeconds);
-
-        [McpServerTool, Description("Test ProcessId accessibility and suggest alternatives")]
-        public async Task<object> TestProcessIdAccess(
-            [Description("Process ID to test")] int processId,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _diagnosticService.TestProcessIdAccessAsync(processId, timeoutSeconds);
     }
 }

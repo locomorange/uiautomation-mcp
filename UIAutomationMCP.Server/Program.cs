@@ -39,7 +39,6 @@ namespace UIAutomationMCP.Server
             builder.Services.AddSingleton<UIAutomationExecutor>();
             builder.Services.AddSingleton<AutomationHelper>();
             builder.Services.AddSingleton<ElementInfoExtractor>();
-            builder.Services.AddSingleton<IDiagnosticService, DiagnosticService>();
             
             // UI Automation services are now handled directly through pattern handlers
 
