@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using System.Windows.Automation;
 using UiAutomationMcp.Models;
 using UiAutomationMcpServer.ElementTree;
 using UiAutomationMcpServer.Patterns.Interaction;
@@ -154,6 +155,7 @@ namespace UiAutomationMcpServer.Services
                     "findtext" => await _textPatternHandler.ExecuteFindTextAsync(workerOperation),
                     "gettextselection" => await _textPatternHandler.ExecuteGetTextSelectionAsync(workerOperation),
                     "setwindowstate" => await _windowPatternHandler.ExecuteSetWindowStateAsync(workerOperation),
+                    "getwindows" => await ExecuteGetWindowsAsync(workerOperation),
                     _ => new WorkerResult { Success = false, Error = $"Unknown operation: {operation}" }
                 };
 
@@ -342,6 +344,83 @@ namespace UiAutomationMcpServer.Services
                 _logger.LogWarning(ex, "Failed to convert dictionary to ElementInfo");
                 return null;
             }
+        }
+
+        /// <summary>
+        /// GetWindows操作を実行します
+        /// </summary>
+        private async Task<WorkerResult> ExecuteGetWindowsAsync(WorkerOperation operation)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    _logger.LogInformation("[InProcessWorker] Executing GetWindows operation");
+
+                    var windows = new List<WindowInfo>();
+                    var desktopElement = System.Windows.Automation.AutomationElement.RootElement;
+                    
+                    // すべての子ウィンドウを取得
+                    var condition = new PropertyCondition(
+                        System.Windows.Automation.AutomationElement.ControlTypeProperty, 
+                        ControlType.Window);
+                    
+                    var windowElements = desktopElement.FindAll(TreeScope.Children, condition);
+                    
+                    foreach (System.Windows.Automation.AutomationElement windowElement in windowElements)
+                    {
+                        try
+                        {
+                            var windowInfo = new WindowInfo
+                            {
+                                ProcessId = windowElement.Current.ProcessId,
+                                Title = windowElement.Current.Name ?? "",
+                                Name = windowElement.Current.Name ?? "",
+                                AutomationId = windowElement.Current.AutomationId ?? "",
+                                ClassName = windowElement.Current.ClassName ?? "",
+                                BoundingRectangle = new BoundingRectangle
+                                {
+                                    X = (int)windowElement.Current.BoundingRectangle.X,
+                                    Y = (int)windowElement.Current.BoundingRectangle.Y,
+                                    Width = (int)windowElement.Current.BoundingRectangle.Width,
+                                    Height = (int)windowElement.Current.BoundingRectangle.Height
+                                },
+                                IsVisible = !windowElement.Current.IsOffscreen,
+                                IsEnabled = windowElement.Current.IsEnabled
+                            };
+                            
+                            // 空のタイトルやサイズ0のウィンドウは除外
+                            if (!string.IsNullOrEmpty(windowInfo.Title) && 
+                                windowInfo.BoundingRectangle.Width > 0 && 
+                                windowInfo.BoundingRectangle.Height > 0)
+                            {
+                                windows.Add(windowInfo);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogDebug(ex, "[InProcessWorker] Failed to extract window info for a window");
+                        }
+                    }
+
+                    _logger.LogInformation("[InProcessWorker] Found {Count} windows", windows.Count);
+
+                    return new WorkerResult
+                    {
+                        Success = true,
+                        Data = windows
+                    };
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "[InProcessWorker] GetWindows operation failed");
+                    return new WorkerResult
+                    {
+                        Success = false,
+                        Error = $"GetWindows operation failed: {ex.Message}"
+                    };
+                }
+            });
         }
     }
 }

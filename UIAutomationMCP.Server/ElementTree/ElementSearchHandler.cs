@@ -209,5 +209,150 @@ namespace UiAutomationMcpServer.ElementTree
 
             return elementInfo;
         }
+
+        /// <summary>
+        /// Finds all elements matching the criteria (synchronous version)
+        /// </summary>
+        public WorkerResult FindElements(WorkerOperation operation)
+        {
+            try
+            {
+                var searchRoot = _automationHelper.GetSearchRoot(operation);
+                if (searchRoot == null)
+                {
+                    return new WorkerResult
+                    {
+                        Success = false,
+                        Error = "Failed to get search root element"
+                    };
+                }
+
+                var condition = _automationHelper.BuildCondition(operation);
+                if (condition == null)
+                {
+                    return new WorkerResult
+                    {
+                        Success = false,
+                        Error = "Failed to build search condition"
+                    };
+                }
+
+                if (!Enum.TryParse<TreeScope>(
+                    operation.Parameters.GetValueOrDefault("Scope")?.ToString(), 
+                    out var scope))
+                {
+                    scope = TreeScope.Descendants;
+                }
+
+                _logger.LogInformation("[ElementSearchHandler] FindElements with scope: {Scope}", scope);
+
+                var elements = searchRoot.FindAll(scope, condition);
+                var elementInfos = new List<ElementInfo>();
+                
+                if (elements != null && elements.Count > 0)
+                {
+                    foreach (AutomationElement element in elements)
+                    {
+                        try
+                        {
+                            var elementInfoDict = _elementInfoExtractor.ExtractElementInfo(element);
+                            var elementInfo = ConvertToElementInfo(elementInfoDict);
+                            if (elementInfo != null)
+                            {
+                                elementInfos.Add(elementInfo);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "[ElementSearchHandler] Failed to extract info for element");
+                        }
+                    }
+                }
+
+                return new WorkerResult
+                {
+                    Success = true,
+                    Data = elementInfos
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[ElementSearchHandler] FindElements failed");
+                return new WorkerResult
+                {
+                    Success = false,
+                    Error = ex.Message
+                };
+            }
+        }
+
+        /// <summary>
+        /// Finds the first element matching the criteria (synchronous version)
+        /// </summary>
+        public WorkerResult FindFirstElement(WorkerOperation operation)
+        {
+            try
+            {
+                var searchRoot = _automationHelper.GetSearchRoot(operation);
+                if (searchRoot == null)
+                {
+                    return new WorkerResult
+                    {
+                        Success = false,
+                        Error = "Failed to get search root element"
+                    };
+                }
+
+                var condition = _automationHelper.BuildCondition(operation);
+                if (condition == null)
+                {
+                    return new WorkerResult
+                    {
+                        Success = false,
+                        Error = "Failed to build search condition"
+                    };
+                }
+
+                if (!Enum.TryParse<TreeScope>(
+                    operation.Parameters.GetValueOrDefault("Scope")?.ToString(), 
+                    out var scope))
+                {
+                    scope = TreeScope.Descendants;
+                }
+
+                _logger.LogInformation("[ElementSearchHandler] FindFirstElement with scope: {Scope}", scope);
+
+                var element = searchRoot.FindFirst(scope, condition);
+
+                if (element != null)
+                {
+                    var elementInfoDict = _elementInfoExtractor.ExtractElementInfo(element);
+                    var elementInfo = ConvertToElementInfo(elementInfoDict);
+                    
+                    return new WorkerResult
+                    {
+                        Success = true,
+                        Data = elementInfo
+                    };
+                }
+                else
+                {
+                    return new WorkerResult
+                    {
+                        Success = false,
+                        Error = "Element not found"
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[ElementSearchHandler] FindFirstElement failed");
+                return new WorkerResult
+                {
+                    Success = false,
+                    Error = ex.Message
+                };
+            }
+        }
     }
 }
