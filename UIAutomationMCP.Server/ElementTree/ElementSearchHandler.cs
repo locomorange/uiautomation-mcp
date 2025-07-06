@@ -1,10 +1,10 @@
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
 using UiAutomationMcp.Models;
-using UiAutomationWorker.Helpers;
-using UiAutomationWorker.Core;
+using UiAutomationMcpServer.Helpers;
+using UiAutomationMcpServer.Core;
 
-namespace UiAutomationWorker.ElementTree
+namespace UiAutomationMcpServer.ElementTree
 {
     /// <summary>
     /// Handles element search operations in the UI Automation tree
@@ -27,7 +27,7 @@ namespace UiAutomationWorker.ElementTree
         /// </summary>
         public async Task<WorkerResult> ExecuteFindFirstAsync(WorkerOperation operation)
         {
-            return await ExecuteWithTimeoutAsync<object?>(operation, () =>
+            return await ExecuteWithTimeoutAsync<ElementInfo?>(operation, () =>
             {
                 var searchRoot = _automationHelper.GetSearchRoot(operation);
                 if (searchRoot == null)
@@ -54,8 +54,8 @@ namespace UiAutomationWorker.ElementTree
 
                 if (element != null)
                 {
-                    var elementInfo = _elementInfoExtractor.ExtractElementInfo(element);
-                    return elementInfo;
+                    var elementInfoDict = _elementInfoExtractor.ExtractElementInfo(element);
+                    return ConvertToElementInfo(elementInfoDict);
                 }
                 else
                 {
@@ -69,7 +69,7 @@ namespace UiAutomationWorker.ElementTree
         /// </summary>
         public async Task<WorkerResult> ExecuteFindAllAsync(WorkerOperation operation)
         {
-            return await ExecuteWithTimeoutAsync<List<Dictionary<string, object>>>(operation, () =>
+            return await ExecuteWithTimeoutAsync<List<ElementInfo>>(operation, () =>
             {
                 var searchRoot = _automationHelper.GetSearchRoot(operation);
                 if (searchRoot == null)
@@ -93,7 +93,7 @@ namespace UiAutomationWorker.ElementTree
                 _logger.LogInformation("[ElementSearchHandler] FindAll with scope: {Scope}", scope);
 
                 var elements = searchRoot.FindAll(scope, condition);
-                var elementInfos = new List<Dictionary<string, object>>();
+                var elementInfos = new List<ElementInfo>();
                 
                 if (elements != null && elements.Count > 0)
                 {
@@ -101,7 +101,7 @@ namespace UiAutomationWorker.ElementTree
                     {
                         try
                         {
-                            var elementInfo = _elementInfoExtractor.ExtractElementInfo(element);
+                            var elementInfo = ConvertToElementInfo(_elementInfoExtractor.ExtractElementInfo(element));
                             elementInfos.Add(elementInfo);
                         }
                         catch (Exception ex)
@@ -138,6 +138,76 @@ namespace UiAutomationWorker.ElementTree
                     Error = $"GetProperties operation failed: {ex.Message}"
                 };
             }
+        }
+
+        /// <summary>
+        /// Converts a dictionary to ElementInfo object
+        /// </summary>
+        private ElementInfo ConvertToElementInfo(Dictionary<string, object> dict)
+        {
+            var elementInfo = new ElementInfo();
+
+            if (dict.TryGetValue("Name", out var name))
+                elementInfo.Name = name?.ToString() ?? "";
+
+            if (dict.TryGetValue("AutomationId", out var automationId))
+                elementInfo.AutomationId = automationId?.ToString() ?? "";
+
+            if (dict.TryGetValue("ClassName", out var className))
+                elementInfo.ClassName = className?.ToString() ?? "";
+
+            if (dict.TryGetValue("ControlType", out var controlType))
+                elementInfo.ControlType = controlType?.ToString() ?? "";
+
+            if (dict.TryGetValue("ProcessId", out var processId) && processId != null)
+            {
+                if (int.TryParse(processId.ToString(), out var pid))
+                    elementInfo.ProcessId = pid;
+            }
+
+            if (dict.TryGetValue("IsEnabled", out var isEnabled) && isEnabled != null)
+            {
+                if (bool.TryParse(isEnabled.ToString(), out var enabled))
+                    elementInfo.IsEnabled = enabled;
+            }
+
+            if (dict.TryGetValue("IsVisible", out var isVisible) && isVisible != null)
+            {
+                if (bool.TryParse(isVisible.ToString(), out var visible))
+                    elementInfo.IsVisible = visible;
+            }
+
+            if (dict.TryGetValue("HelpText", out var helpText))
+                elementInfo.HelpText = helpText?.ToString() ?? "";
+
+            if (dict.TryGetValue("Value", out var value))
+                elementInfo.Value = value?.ToString();
+
+            if (dict.TryGetValue("BoundingRectangle", out var boundingRect) && boundingRect is Dictionary<string, object> rectDict)
+            {
+                elementInfo.BoundingRectangle = new BoundingRectangle();
+                
+                if (rectDict.TryGetValue("X", out var x) && double.TryParse(x.ToString(), out var xVal))
+                    elementInfo.BoundingRectangle.X = xVal;
+                
+                if (rectDict.TryGetValue("Y", out var y) && double.TryParse(y.ToString(), out var yVal))
+                    elementInfo.BoundingRectangle.Y = yVal;
+                
+                if (rectDict.TryGetValue("Width", out var width) && double.TryParse(width.ToString(), out var widthVal))
+                    elementInfo.BoundingRectangle.Width = widthVal;
+                
+                if (rectDict.TryGetValue("Height", out var height) && double.TryParse(height.ToString(), out var heightVal))
+                    elementInfo.BoundingRectangle.Height = heightVal;
+            }
+
+            if (dict.TryGetValue("AvailableActions", out var availableActions) && availableActions is Dictionary<string, object> actionsDict)
+            {
+                elementInfo.AvailableActions = actionsDict.ToDictionary(
+                    kvp => kvp.Key, 
+                    kvp => kvp.Value?.ToString() ?? "");
+            }
+
+            return elementInfo;
         }
     }
 }

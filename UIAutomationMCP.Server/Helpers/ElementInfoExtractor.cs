@@ -1,7 +1,7 @@
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
 
-namespace UiAutomationWorker.Helpers
+namespace UiAutomationMcpServer.Helpers
 {
     /// <summary>
     /// 要素情報の抽出を担当するヘルパークラス
@@ -35,7 +35,7 @@ namespace UiAutomationWorker.Helpers
 
                 // BoundingRectangle の安全な取得
                 var rect = SafeGetProperty(() => element.Current.BoundingRectangle);
-                if (!rect.IsEmpty)
+                if (!rect.IsEmpty && rect.Width > 0 && rect.Height > 0)
                 {
                     info["BoundingRectangle"] = new Dictionary<string, object>
                     {
@@ -110,11 +110,11 @@ namespace UiAutomationWorker.Helpers
         /// </summary>
         private double SafeDoubleValue(double value)
         {
-            if (double.IsNaN(value) || double.IsInfinity(value))
+            if (double.IsNaN(value) || double.IsInfinity(value) || value < -1000000 || value > 1000000)
             {
                 return 0.0;
             }
-            return value;
+            return Math.Round(value, 2); // Round to 2 decimal places to avoid precision issues
         }
     }
 }

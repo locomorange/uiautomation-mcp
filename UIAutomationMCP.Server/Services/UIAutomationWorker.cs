@@ -212,5 +212,76 @@ namespace UiAutomationMcpServer.Services
                 _disposed = true;
             }
         }
+
+        // Legacy method implementations for test compatibility
+        public async Task<OperationResult<ElementInfo>> FindFirstElementAsync(object parameters, int timeoutSeconds = 30)
+        {
+            return await ExecuteOperationAsync<ElementInfo>("FindFirstElement", parameters, timeoutSeconds);
+        }
+
+        public async Task<OperationResult<object>> InvokeElementAsync(object parameters, int timeoutSeconds = 30)
+        {
+            return await ExecuteOperationAsync("InvokeElement", parameters, timeoutSeconds);
+        }
+
+        public async Task<OperationResult<object>> SetElementValueAsync(object parameters, int timeoutSeconds = 30)
+        {
+            return await ExecuteOperationAsync("SetElementValue", parameters, timeoutSeconds);
+        }
+
+        public async Task<OperationResult<object>> GetElementTreeAsync(object parameters, int timeoutSeconds = 30)
+        {
+            return await ExecuteOperationAsync("GetElementTree", parameters, timeoutSeconds);
+        }
+
+        public async Task<OperationResult<T>> ExecuteInProcessAsync<T>(string operation, object parameters, int timeoutSeconds = 30)
+        {
+            return await ExecuteOperationAsync<T>(operation, parameters, timeoutSeconds);
+        }
+
+        public async Task<OperationResult<object>> ToggleElementAsync(object parameters, int timeoutSeconds = 30)
+        {
+            return await ExecuteOperationAsync("ToggleElement", parameters, timeoutSeconds);
+        }
+
+        public async Task<OperationResult<object>> SelectElementAsync(object parameters, int timeoutSeconds = 30)
+        {
+            return await ExecuteOperationAsync("SelectElement", parameters, timeoutSeconds);
+        }
+
+        public async Task<OperationResult<object>> ScrollElementAsync(object parameters, int timeoutSeconds = 30)
+        {
+            return await ExecuteOperationAsync("ScrollElement", parameters, timeoutSeconds);
+        }
+
+        public async Task<OperationResult<object>> SetRangeValueAsync(object parameters, int timeoutSeconds = 30)
+        {
+            return await ExecuteOperationAsync("SetRangeValue", parameters, timeoutSeconds);
+        }
+
+        public async Task<OperationResult<object>> GetRangeValueAsync(object parameters, int timeoutSeconds = 30)
+        {
+            return await ExecuteOperationAsync("GetRangeValue", parameters, timeoutSeconds);
+        }
+
+        public async Task<OperationResult<string>> GetTextAsync(object parameters, int timeoutSeconds = 30)
+        {
+            return await ExecuteOperationAsync<string>("GetText", parameters, timeoutSeconds);
+        }
+
+        public async Task<OperationResult<object>> SelectTextAsync(object parameters, int timeoutSeconds = 30)
+        {
+            return await ExecuteOperationAsync("SelectText", parameters, timeoutSeconds);
+        }
+
+        public async Task<OperationResult<object>> GetWindowInfoAsync(object parameters, int timeoutSeconds = 30)
+        {
+            return await ExecuteOperationAsync("GetWindowInfo", parameters, timeoutSeconds);
+        }
+
+        public async Task<OperationResult<List<ElementInfo>>> FindAllAsync(object parameters, int timeoutSeconds = 30)
+        {
+            return await ExecuteOperationAsync<List<ElementInfo>>("FindAll", parameters, timeoutSeconds);
+        }
     }
 }

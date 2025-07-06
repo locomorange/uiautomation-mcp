@@ -1,10 +1,10 @@
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
 using UiAutomationMcp.Models;
-using UiAutomationWorker.Core;
-using UiAutomationWorker.Helpers;
+using UiAutomationMcpServer.Core;
+using UiAutomationMcpServer.Helpers;
 
-namespace UiAutomationWorker.ElementTree
+namespace UiAutomationMcpServer.ElementTree
 {
     /// <summary>
     /// Handles UI Automation tree navigation operations
@@ -39,11 +39,15 @@ namespace UiAutomationWorker.ElementTree
 
                 var tree = await BuildElementTreeAsync(rootElement, maxDepth, 0, cancellationToken);
                 
-                return new Dictionary<string, object>
-                { 
-                    ["tree"] = tree,
-                    ["maxDepth"] = maxDepth,
-                    ["windowTitle"] = windowTitle ?? ""
+                return new WorkerResult
+                {
+                    Success = true,
+                    Data = new Dictionary<string, object>
+                    { 
+                        ["tree"] = tree,
+                        ["maxDepth"] = maxDepth,
+                        ["windowTitle"] = windowTitle ?? ""
+                    }
                 };
             }, "GetTree");
         }
@@ -68,10 +72,14 @@ namespace UiAutomationWorker.ElementTree
 
                 var children = await GetDirectChildrenAsync(element, cancellationToken);
                 
-                return new Dictionary<string, object>
-                { 
-                    ["children"] = children,
-                    ["count"] = children.Count
+                return new WorkerResult
+                {
+                    Success = true,
+                    Data = new Dictionary<string, object>
+                    { 
+                        ["children"] = children,
+                        ["count"] = children.Count
+                    }
                 };
             }, "GetChildren");
         }
@@ -241,10 +249,10 @@ namespace UiAutomationWorker.ElementTree
                     ProcessId = element.Current.ProcessId,
                     BoundingRectangle = new BoundingRectangle
                     {
-                        X = element.Current.BoundingRectangle.X,
-                        Y = element.Current.BoundingRectangle.Y,
-                        Width = element.Current.BoundingRectangle.Width,
-                        Height = element.Current.BoundingRectangle.Height
+                        X = SafeDoubleValue(element.Current.BoundingRectangle.X),
+                        Y = SafeDoubleValue(element.Current.BoundingRectangle.Y),
+                        Width = SafeDoubleValue(element.Current.BoundingRectangle.Width),
+                        Height = SafeDoubleValue(element.Current.BoundingRectangle.Height)
                     },
                     IsEnabled = element.Current.IsEnabled,
                     IsVisible = !element.Current.IsOffscreen,
@@ -261,6 +269,18 @@ namespace UiAutomationWorker.ElementTree
                     ControlType = "Unknown"
                 };
             }
+        }
+
+        /// <summary>
+        /// double値の安全な変換（NaN/Infinityチェック付き）
+        /// </summary>
+        private double SafeDoubleValue(double value)
+        {
+            if (double.IsNaN(value) || double.IsInfinity(value) || value < -1000000 || value > 1000000)
+            {
+                return 0.0;
+            }
+            return Math.Round(value, 2);
         }
     }
 }

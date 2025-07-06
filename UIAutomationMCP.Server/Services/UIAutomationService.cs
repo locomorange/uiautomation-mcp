@@ -9,6 +9,12 @@ namespace UiAutomationMcpServer.Services
     /// </summary>
     public interface IUIAutomationService
     {
+        /// <summary>
+        /// 直接のワーカーアクセス（テスト用）
+        /// </summary>
+        IUIAutomationWorker Worker { get; }
+        
+        
         // Element Discovery
         Task<OperationResult<List<ElementInfo>>> FindElementsAsync(
             string? windowTitle = null,
@@ -183,6 +189,11 @@ namespace UiAutomationMcpServer.Services
             _worker = worker;
             _logger = logger;
         }
+
+        /// <summary>
+        /// 直接のワーカーアクセス（テスト用）
+        /// </summary>
+        public IUIAutomationWorker Worker => _worker;
 
         // Element Discovery
         public Task<OperationResult<List<ElementInfo>>> FindElementsAsync(

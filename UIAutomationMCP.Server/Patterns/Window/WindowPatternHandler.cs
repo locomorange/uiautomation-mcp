@@ -1,10 +1,10 @@
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
 using UiAutomationMcp.Models;
-using UiAutomationWorker.Helpers;
-using UiAutomationWorker.Core;
+using UiAutomationMcpServer.Helpers;
+using UiAutomationMcpServer.Core;
 
-namespace UiAutomationWorker.Patterns.Window
+namespace UiAutomationMcpServer.Patterns.Window
 {
     /// <summary>
     /// Microsoft UI Automation WindowPattern handler

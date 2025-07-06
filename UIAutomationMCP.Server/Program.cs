@@ -2,6 +2,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using UiAutomationMcpServer.Services;
+using UiAutomationMcpServer.ElementTree;
+using UiAutomationMcpServer.Patterns.Interaction;
+using UiAutomationMcpServer.Patterns.Layout;
+using UiAutomationMcpServer.Patterns.Text;
+using UiAutomationMcpServer.Patterns.Window;
+using UiAutomationMcpServer.Patterns.Selection;
+using UiAutomationMcpServer.Helpers;
 
 namespace UiAutomationMcpServer
 {
@@ -17,18 +24,27 @@ namespace UiAutomationMcpServer
             builder.Logging.AddProvider(new FileLoggerProvider(logPath));
             builder.Logging.SetMinimumLevel(LogLevel.Information);
 
-            // Register core infrastructure services
-            builder.Services.AddSingleton<IProcessTimeoutManager, ProcessTimeoutManager>();
-            
-            // Register hosted services for lifecycle management
-            builder.Services.AddHostedService<ProcessCleanupService>();
-            
             // Register application services
             builder.Services.AddSingleton<IApplicationLauncher, ApplicationLauncher>();
             builder.Services.AddSingleton<IScreenshotService, ScreenshotService>();
             
-            // Register worker services
-            builder.Services.AddSingleton<IUIAutomationWorker, UIAutomationWorker>();
+            // Register UI Automation pattern handlers
+            builder.Services.AddSingleton<ElementSearchHandler>();
+            builder.Services.AddSingleton<TreeNavigationHandler>();
+            builder.Services.AddSingleton<InvokePatternHandler>();
+            builder.Services.AddSingleton<ValuePatternHandler>();
+            builder.Services.AddSingleton<TogglePatternHandler>();
+            builder.Services.AddSingleton<SelectionItemPatternHandler>();
+            builder.Services.AddSingleton<LayoutPatternHandler>();
+            builder.Services.AddSingleton<TextPatternHandler>();
+            builder.Services.AddSingleton<WindowPatternHandler>();
+            
+            // Register helper services
+            builder.Services.AddSingleton<AutomationHelper>();
+            builder.Services.AddSingleton<ElementInfoExtractor>();
+            
+            // Register in-process UI automation worker (no external process needed)
+            builder.Services.AddSingleton<IUIAutomationWorker, InProcessUIAutomationWorker>();
             builder.Services.AddSingleton<IUIAutomationService, UIAutomationService>();
 
             // Configure MCP Server
@@ -51,7 +67,7 @@ namespace UiAutomationMcpServer
             lifetime.ApplicationStopping.Register(() =>
             {
                 var logger = host.Services.GetRequiredService<ILogger<Program>>();
-                logger.LogInformation("[Program] MCP Server shutdown requested - cleaning up processes");
+                logger.LogInformation("[Program] MCP Server shutdown requested - cleaning up threads");
             });
 
             // Run the MCP server with proper shutdown handling
@@ -67,11 +83,18 @@ namespace UiAutomationMcpServer
             }
             finally
             {
-                // Ensure cleanup happens even if RunAsync throws
-                var processManager = host.Services.GetService<IProcessTimeoutManager>();
-                if (processManager is IDisposable disposable)
+                // Cleanup thread-based worker
+                try
                 {
-                    disposable.Dispose();
+                    var worker = host?.Services?.GetService<IUIAutomationWorker>();
+                    if (worker is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Services already disposed, nothing to clean up
                 }
             }
         }

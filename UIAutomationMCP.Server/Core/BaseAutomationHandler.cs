@@ -1,9 +1,9 @@
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
 using UiAutomationMcp.Models;
-using UiAutomationWorker.Helpers;
+using UiAutomationMcpServer.Helpers;
 
-namespace UiAutomationWorker.Core
+namespace UiAutomationMcpServer.Core
 {
     /// <summary>
     /// UI Automation ハンドラーの基底クラス

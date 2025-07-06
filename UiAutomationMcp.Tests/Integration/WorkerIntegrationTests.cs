@@ -36,7 +36,8 @@ namespace UiAutomationMcp.Tests.Integration
                     It.IsAny<ProcessStartInfo>(),
                     It.IsAny<string>(),
                     It.IsAny<int>(),
-                    It.IsAny<string>()))
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ProcessExecutionResult
                 {
                     Success = false,
@@ -61,8 +62,8 @@ namespace UiAutomationMcp.Tests.Integration
             try
             {
                 // Act
-                var result = await _worker.ExecuteInProcessAsync(
-                    System.Text.Json.JsonSerializer.Serialize(operation), 10);
+                var result = await _worker.ExecuteInProcessAsync<object>(
+                    "GetSupportedOperations", operation, 10);
 
                 // Assert
                 _output.WriteLine($"Worker process result: Success={result.Success}, Data={result.Data}");

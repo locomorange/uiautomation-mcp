@@ -1,10 +1,10 @@
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
 using UiAutomationMcp.Models;
-using UiAutomationWorker.Core;
-using UiAutomationWorker.Helpers;
+using UiAutomationMcpServer.Core;
+using UiAutomationMcpServer.Helpers;
 
-namespace UiAutomationWorker.Patterns.Selection
+namespace UiAutomationMcpServer.Patterns.Selection
 {
     /// <summary>
     /// Microsoft UI Automation SelectionItemPattern handler

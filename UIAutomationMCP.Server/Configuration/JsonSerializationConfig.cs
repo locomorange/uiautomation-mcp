@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace UiAutomationWorker.Configuration
+namespace UiAutomationMcpServer.Configuration
 {
     /// <summary>
     /// JSON シリアライゼーションの設定を管理するクラス

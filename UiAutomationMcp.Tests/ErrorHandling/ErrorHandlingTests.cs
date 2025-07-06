@@ -106,11 +106,8 @@ namespace UiAutomationMcp.Tests.ErrorHandling
             try
             {
                 // Act - 存在しないプロセスIDを指定
-                var result = await _worker.SetElementValueAsync(
-                    "someElement", 
-                    "testValue", 
-                    processId: 99999, 
-                    timeoutSeconds: 5);
+                var parameters = new { elementId = "someElement", value = "testValue", processId = 99999 };
+                var result = await _worker.SetElementValueAsync(parameters, 5);
 
                 // Assert
                 _output.WriteLine($"Invalid process ID result: Success={result.Success}, Error={result.Error}");

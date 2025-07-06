@@ -107,7 +107,8 @@ namespace UiAutomationMcp.Tests.EndToEnd
             try
             {
                 // Act - 全ウィンドウの列挙
-                var result = await _worker.GetElementTreeAsync(maxDepth: 1, timeoutSeconds: 10);
+                var parameters = new { maxDepth = 1 };
+                var result = await _worker.GetElementTreeAsync(parameters, 10);
 
                 // Assert
                 _output.WriteLine($"Window enumeration result: Success={result.Success}");
@@ -169,10 +170,8 @@ namespace UiAutomationMcp.Tests.EndToEnd
                 if (findResult.Success && findResult.Data != null)
                 {
                     // テキスト入力を試行
-                    var textResult = await _worker.SetElementValueAsync(
-                        findResult.Data.AutomationId, 
-                        "Hello from UIAutomation test!", 
-                        processId: notepadProcess.Id);
+                    var parameters = new { elementId = findResult.Data.AutomationId, value = "Hello from UIAutomation test!", processId = notepadProcess.Id };
+                    var textResult = await _worker.SetElementValueAsync(parameters, 30);
                     
                     _output.WriteLine($"Text input result: Success={textResult.Success}");
                     

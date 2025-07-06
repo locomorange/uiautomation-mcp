@@ -31,11 +31,13 @@ namespace UiAutomationMcp.Tests.Tools
             _mockUIAutomationWorker = new Mock<IUIAutomationWorker>();
             _mockScreenshotService = new Mock<IScreenshotService>();
 
+            var mockUIAutomationService = new Mock<IUIAutomationService>();
+            mockUIAutomationService.Setup(x => x.Worker).Returns(_mockUIAutomationWorker.Object);
+            
             _tools = new UIAutomationTools(
                 _mockApplicationLauncher.Object,
-                _mockUIAutomationWorker.Object,
-                _mockScreenshotService.Object,
-                _logger.Object
+                mockUIAutomationService.Object,
+                _mockScreenshotService.Object
             );
         }
 
@@ -60,15 +62,15 @@ namespace UiAutomationMcp.Tests.Tools
                 Success = true,
                 Data = expectedWindows
             };
-            _mockUIAutomationWorker.Setup(s => s.GetWindowInfoAsync(It.IsAny<int>()))
-                            .Returns(Task.FromResult(expectedResult));
+            _mockUIAutomationWorker.Setup(s => s.GetWindowInfoAsync(It.IsAny<object>(), It.IsAny<int>()))
+                            .Returns(Task.FromResult(new OperationResult<object> { Success = true, Data = expectedWindows }));
 
             // Act
             var result = await _tools.GetWindowInfo();
 
             // Assert
             Assert.NotNull(result);
-            _mockUIAutomationWorker.Verify(s => s.GetWindowInfoAsync(It.IsAny<int>()), Times.Once);
+            _mockUIAutomationWorker.Verify(s => s.GetWindowInfoAsync(It.IsAny<object>(), It.IsAny<int>()), Times.Once);
             _output.WriteLine($"GetWindowInfo test passed: Found {expectedWindows.Count} windows");
         }
 

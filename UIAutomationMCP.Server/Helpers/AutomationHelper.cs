@@ -2,7 +2,7 @@ using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
 using UiAutomationMcp.Models;
 
-namespace UiAutomationWorker.Helpers
+namespace UiAutomationMcpServer.Helpers
 {
     /// <summary>
     /// UI Automation関連のヘルパーメソッドを提供するクラス
