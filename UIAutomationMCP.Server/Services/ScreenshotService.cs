@@ -2,10 +2,10 @@ using Microsoft.Extensions.Logging;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
-using UiAutomationMcp.Models;
+using UIAutomationMCP.Models;
 using System.Windows.Automation;
 
-namespace UiAutomationMcpServer.Services
+namespace UIAutomationMCP.Server.Services
 {
     public interface IScreenshotService
     {

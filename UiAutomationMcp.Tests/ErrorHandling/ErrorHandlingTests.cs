@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
-using UiAutomationMcp.Models;
-using UiAutomationMcpServer.Services;
+using UIAutomationMCP.Models;
+using UIAutomationMCP.Server.Services;
 using Xunit.Abstractions;
 using Moq;
 

@@ -1,8 +1,8 @@
 using ModelContextProtocol.Server;
 using System.ComponentModel;
-using UiAutomationMcpServer.Services;
+using UIAutomationMCP.Server.Services;
 
-namespace UiAutomationMcpServer.Tools
+namespace UIAutomationMCP.Server.Tools
 {
     [McpServerToolType]
     public class UIAutomationTools
@@ -14,13 +14,6 @@ namespace UiAutomationMcpServer.Tools
         private readonly ITreeNavigationService _treeNavigationService;
         private readonly IInvokeService _invokeService;
         private readonly IValueService _valueService;
-        private readonly IToggleService _toggleService;
-        private readonly ISelectionService _selectionService;
-        private readonly IWindowService _windowService;
-        private readonly ITextService _textService;
-        private readonly ILayoutService _layoutService;
-        private readonly IRangeService _rangeService;
-        private readonly IElementInspectionService _elementInspectionService;
 
         public UIAutomationTools(
             IApplicationLauncher applicationLauncher,
@@ -29,14 +22,7 @@ namespace UiAutomationMcpServer.Tools
             IElementSearchService elementSearchService,
             ITreeNavigationService treeNavigationService,
             IInvokeService invokeService,
-            IValueService valueService,
-            IToggleService toggleService,
-            ISelectionService selectionService,
-            IWindowService windowService,
-            ITextService textService,
-            ILayoutService layoutService,
-            IRangeService rangeService,
-            IElementInspectionService elementInspectionService)
+            IValueService valueService)
         {
             _applicationLauncher = applicationLauncher;
             _screenshotService = screenshotService;
@@ -45,13 +31,6 @@ namespace UiAutomationMcpServer.Tools
             _treeNavigationService = treeNavigationService;
             _invokeService = invokeService;
             _valueService = valueService;
-            _toggleService = toggleService;
-            _selectionService = selectionService;
-            _windowService = windowService;
-            _textService = textService;
-            _layoutService = layoutService;
-            _rangeService = rangeService;
-            _elementInspectionService = elementInspectionService;
         }
 
         // Window and Element Discovery
@@ -84,21 +63,9 @@ namespace UiAutomationMcpServer.Tools
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
             => await _treeNavigationService.GetElementTreeAsync(windowTitle, processId, maxDepth, timeoutSeconds);
 
-        [McpServerTool, Description("Get detailed properties of a specific UI element")]
-        public async Task<object> GetElementProperties(
-            [Description("Automation ID or name of the element")] string elementId, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _elementInspectionService.GetElementPropertiesAsync(elementId, windowTitle, processId, timeoutSeconds);
+        // GetElementProperties - Method removed due to service deletion
 
-        [McpServerTool, Description("Get automation patterns supported by a specific UI element")]
-        public async Task<object> GetElementPatterns(
-            [Description("Automation ID or name of the element")] string elementId, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _elementInspectionService.GetElementPatternsAsync(elementId, windowTitle, processId, timeoutSeconds);
+        // GetElementPatterns - Method removed due to service deletion
 
         // Application Management
         [McpServerTool, Description("Take a screenshot of the desktop or specific window")]
@@ -144,144 +111,37 @@ namespace UiAutomationMcpServer.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => await _valueService.GetElementValueAsync(elementId, windowTitle, processId, timeoutSeconds);
 
-        [McpServerTool, Description("Toggle a checkbox or toggle element using TogglePattern")]
-        public async Task<object> ToggleElement(
-            [Description("Automation ID or name of the element")] string elementId, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _toggleService.ToggleElementAsync(elementId, windowTitle, processId, timeoutSeconds);
+        // ToggleElement - Method removed due to service deletion
 
-        [McpServerTool, Description("Select an element in a list, tab, or tree using SelectionItemPattern")]
-        public async Task<object> SelectElement(
-            [Description("Automation ID or name of the element")] string elementId, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _selectionService.SelectElementAsync(elementId, windowTitle, processId, timeoutSeconds);
-
-        [McpServerTool, Description("Get the current selection from a container using SelectionPattern")]
-        public async Task<object> GetSelection(
-            [Description("Automation ID or name of the container element")] string containerElementId, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _selectionService.GetSelectionAsync(containerElementId, windowTitle, processId, timeoutSeconds);
+        // SelectElement - Method removed due to service deletion
 
         // Layout and Navigation Patterns
-        [McpServerTool, Description("Expand or collapse an element using ExpandCollapsePattern")]
-        public async Task<object> ExpandCollapseElement(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Action to perform: expand, collapse, toggle")] string action,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _layoutService.ExpandCollapseElementAsync(elementId, action, windowTitle, processId, timeoutSeconds);
+        // ExpandCollapseElement - Method removed due to service deletion
 
-        [McpServerTool, Description("Scroll an element using ScrollPattern")]
-        public async Task<object> ScrollElement(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Direction to scroll: up, down, left, right, pageup, pagedown, pageleft, pageright")] string direction,
-            [Description("Amount to scroll (default: 1.0)")] double amount = 1.0,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _layoutService.ScrollElementAsync(elementId, direction, amount, windowTitle, processId, timeoutSeconds);
+        // ScrollElement - Method removed due to service deletion
 
-        [McpServerTool, Description("Scroll an element into view using ScrollItemPattern")]
-        public async Task<object> ScrollElementIntoView(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _layoutService.ScrollElementIntoViewAsync(elementId, windowTitle, processId, timeoutSeconds);
+        // ScrollElementIntoView - Method removed due to service deletion
 
         // Value and Range Patterns
-        [McpServerTool, Description("Set the value of a range element (slider, progress bar) using RangeValuePattern")]
-        public async Task<object> SetRangeValue(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Value to set within the element's range")] double value,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _rangeService.SetRangeValueAsync(elementId, value, windowTitle, processId, timeoutSeconds);
+        // SetRangeValue - Method removed due to service deletion
 
-        [McpServerTool, Description("Get the current value and range information from a range element using RangeValuePattern")]
-        public async Task<object> GetRangeValue(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _rangeService.GetRangeValueAsync(elementId, windowTitle, processId, timeoutSeconds);
+        // GetRangeValue - Method removed due to service deletion
 
         // Window Management Patterns
-        [McpServerTool, Description("Perform window actions (minimize, maximize, close, etc.) using WindowPattern")]
-        public async Task<object> WindowAction(
-            [Description("Action to perform: minimize, maximize, normal, restore, close")] string action,
-            [Description("Title of the window (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _windowService.WindowActionAsync(action, windowTitle, processId, timeoutSeconds);
+        // WindowAction - Method removed due to service deletion
 
-        [McpServerTool, Description("Transform an element (move, resize, rotate) using TransformPattern")]
-        public async Task<object> TransformElement(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Action to perform: move, resize, rotate")] string action,
-            [Description("X coordinate for move, or rotation degrees for rotate")] double? x = null,
-            [Description("Y coordinate for move")] double? y = null,
-            [Description("Width for resize")] double? width = null,
-            [Description("Height for resize")] double? height = null,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _windowService.TransformElementAsync(elementId, action, x, y, width, height, windowTitle, processId, timeoutSeconds);
+        // TransformElement - Method removed due to service deletion
 
-        [McpServerTool, Description("Dock an element to a specific position using DockPattern")]
-        public async Task<object> DockElement(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Dock position: top, bottom, left, right, fill, none")] string dockPosition,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _layoutService.DockElementAsync(elementId, dockPosition, windowTitle, processId, timeoutSeconds);
+        // DockElement - Method removed due to service deletion
 
         // Text Pattern Operations
-        [McpServerTool, Description("Get text content from an element using TextPattern")]
-        public async Task<object> GetText(
-            [Description("Automation ID or name of the element")] string elementId, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _textService.GetTextAsync(elementId, windowTitle, processId, timeoutSeconds);
+        // GetText - Method removed due to service deletion
 
-        [McpServerTool, Description("Select text in an element using TextPattern")]
-        public async Task<object> SelectText(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Start index of the text to select")] int startIndex,
-            [Description("Length of text to select")] int length,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _textService.SelectTextAsync(elementId, startIndex, length, windowTitle, processId, timeoutSeconds);
+        // SelectText - Method removed due to service deletion
 
-        [McpServerTool, Description("Find text in an element using TextPattern")]
-        public async Task<object> FindText(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Text to search for")] string searchText,
-            [Description("Search backward (default: false)")] bool backward = false,
-            [Description("Ignore case (default: true)")] bool ignoreCase = true,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _textService.FindTextAsync(elementId, searchText, backward, ignoreCase, windowTitle, processId, timeoutSeconds);
+        // FindText - Method removed due to service deletion
 
-        [McpServerTool, Description("Get the current text selection from an element using TextPattern")]
-        public async Task<object> GetTextSelection(
-            [Description("Automation ID or name of the element")] string elementId, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _textService.GetTextSelectionAsync(elementId, windowTitle, processId, timeoutSeconds);
+        // GetTextSelection - Method removed due to service deletion
 
         // Diagnostic Tools
         [McpServerTool, Description("Diagnose why a specific ProcessId fails to work with UIAutomation")]

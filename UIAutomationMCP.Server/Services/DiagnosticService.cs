@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using UiAutomationMcpServer.Helpers;
+using UIAutomationMCP.Server.Helpers;
 
-namespace UiAutomationMcpServer.Services
+namespace UIAutomationMCP.Server.Services
 {
     public interface IDiagnosticService
     {

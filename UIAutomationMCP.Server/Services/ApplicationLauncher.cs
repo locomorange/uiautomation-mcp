@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
-using UiAutomationMcp.Models;
+using UIAutomationMCP.Models;
 
-namespace UiAutomationMcpServer.Services
+namespace UIAutomationMCP.Server.Services
 {
     public interface IApplicationLauncher
     {

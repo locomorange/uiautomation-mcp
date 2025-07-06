@@ -1,4 +1,4 @@
-using UiAutomationMcp.Models;
+using UIAutomationMCP.Models;
 
 namespace UiAutomationMcp.Tests.UnitTests
 {

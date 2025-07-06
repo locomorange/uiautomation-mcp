@@ -1,12 +1,12 @@
 using Microsoft.Extensions.Logging;
 using Moq;
-using UiAutomationMcp.Models;
-// using UiAutomationMcpServer.Services.Windows;
-using UiAutomationMcpServer.Services;
-using UiAutomationMcpServer.Tools;
+using UIAutomationMCP.Models;
+// using UIAutomationMCP.Server.Services.Windows;
+using UIAutomationMCP.Server.Services;
+using UIAutomationMCP.Server.Tools;
 using Xunit.Abstractions;
 
-namespace UiAutomationMcp.Tests.Tools
+namespace UIAutomationMCP.Tests.Tools
 {
     /// <summary>
     /// Tests for UIAutomationTools covering the essential functionality

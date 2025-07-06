@@ -1,10 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using UiAutomationMcpServer.Services;
-using UiAutomationMcpServer.Helpers;
+using UIAutomationMCP.Server.Services;
+using UIAutomationMCP.Server.Helpers;
 
-namespace UiAutomationMcpServer
+namespace UIAutomationMCP.Server
 {
     class Program
     {

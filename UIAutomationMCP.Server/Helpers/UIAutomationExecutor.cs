@@ -1,7 +1,7 @@
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
 
-namespace UiAutomationMcpServer.Helpers
+namespace UIAutomationMCP.Server.Helpers
 {
     /// <summary>
     /// UIAutomation API呼び出しのための共通スレッドラッパー

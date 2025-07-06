@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
-using UiAutomationMcpServer.Services;
+using UIAutomationMCP.Server.Services;
 using Xunit.Abstractions;
 
-namespace UiAutomationMcp.Tests.Services
+namespace UIAutomationMCP.Tests.Services
 {
     /// <summary>
     /// Simple tests for ProcessTimeoutManager functionality

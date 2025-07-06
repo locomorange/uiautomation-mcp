@@ -1,6 +1,6 @@
 using UiAutomationWorker.Services;
 
-namespace UiAutomationMcp.Tests.Services
+namespace UIAutomationMCP.Tests.Services
 {
     /// <summary>
     /// OperationExecutorのユニットテスト

@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
-using UiAutomationMcpServer.Services;
+using UIAutomationMCP.Server.Services;
 using Xunit.Abstractions;
 
-namespace UiAutomationMcp.Tests.Services
+namespace UIAutomationMCP.Tests.Services
 {
     /// <summary>
     /// ProcessTimeoutManager unit tests - timeout management and process lifecycle

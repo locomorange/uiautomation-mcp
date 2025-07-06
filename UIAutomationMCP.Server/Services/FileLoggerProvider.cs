@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 
-namespace UiAutomationMcpServer.Services
+namespace UIAutomationMCP.Server.Services
 {
     public class FileLoggerProvider : ILoggerProvider
     {

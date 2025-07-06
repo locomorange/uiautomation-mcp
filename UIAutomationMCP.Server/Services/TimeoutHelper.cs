@@ -1,6 +1,6 @@
-using UiAutomationMcp.Models;
+using UIAutomationMCP.Models;
 
-namespace UiAutomationMcpServer.Services
+namespace UIAutomationMCP.Server.Services
 {
     /// <summary>
     /// Common utilities for timeout and execution time handling

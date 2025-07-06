@@ -1,11 +1,11 @@
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
-using UiAutomationMcp.Models;
-using UiAutomationMcpServer.Services;
+using UIAutomationMCP.Models;
+using UIAutomationMCP.Server.Services;
 using Xunit.Abstractions;
 using Moq;
 
-namespace UiAutomationMcp.Tests.Performance
+namespace UIAutomationMCP.Tests.Performance
 {
     /// <summary>
     /// パフォーマンステスト - 大量の操作や連続操作での性能をテスト

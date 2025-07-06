@@ -1,8 +1,8 @@
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
-using UiAutomationMcp.Models;
+using UIAutomationMCP.Models;
 
-namespace UiAutomationMcpServer.Helpers
+namespace UIAutomationMCP.Server.Helpers
 {
     /// <summary>
     /// UI Automation関連のヘルパーメソッドを提供するクラス

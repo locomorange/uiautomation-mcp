@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace UiAutomationMcp.Models
+namespace UIAutomationMCP.Models
 {
     public class McpRequest
     {

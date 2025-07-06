@@ -1,11 +1,11 @@
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
-using UiAutomationMcp.Models;
-using UiAutomationMcpServer.Services;
+using UIAutomationMCP.Models;
+using UIAutomationMCP.Server.Services;
 using Xunit.Abstractions;
 using Moq;
 
-namespace UiAutomationMcp.Tests.EndToEnd
+namespace UIAutomationMCP.Tests.EndToEnd
 {
     /// <summary>
     /// エンドツーエンドテスト - 実際のWindowsアプリケーションとの操作をテスト

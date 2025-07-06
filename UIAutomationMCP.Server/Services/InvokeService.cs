@@ -1,8 +1,8 @@
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
-using UiAutomationMcpServer.Helpers;
+using UIAutomationMCP.Server.Helpers;
 
-namespace UiAutomationMcpServer.Services
+namespace UIAutomationMCP.Server.Services
 {
     public interface IInvokeService
     {

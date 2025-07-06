@@ -1,9 +1,9 @@
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
-using UiAutomationMcp.Models;
-using UiAutomationMcpServer.Helpers;
+using UIAutomationMCP.Models;
+using UIAutomationMCP.Server.Helpers;
 
-namespace UiAutomationMcpServer.Services
+namespace UIAutomationMCP.Server.Services
 {
     public interface IElementSearchService
     {
