@@ -44,11 +44,26 @@ namespace UiAutomationMcpServer.Services
                     return new ProcessResult { Success = false, Error = "Failed to start process" };
                 }
 
-                await Task.Delay(1000, cancellationToken);
+                // プロセスIDを先に取得（プロセスが終了する前に）
+                var processId = process.Id;
+                string processName;
+                try
+                {
+                    processName = process.ProcessName;
+                }
+                catch (InvalidOperationException)
+                {
+                    // プロセスが既に終了している場合でも、プロセス名を取得しようとする
+                    processName = Path.GetFileNameWithoutExtension(applicationPath);
+                }
 
+                _logger.LogInformation("Process started: ProcessId={ProcessId}, ProcessName={ProcessName}", processId, processName);
+
+                // プロセスが安定するまで少し待機
+                await Task.Delay(500, cancellationToken);
+
+                // プロセス状態をチェック（プロセスIDは起動時の値を保持）
                 var hasExited = process.HasExited;
-                var processId = hasExited ? 0 : process.Id;
-                var processName = hasExited ? "" : process.ProcessName;
 
                 _logger.LogInformation("Application launched: ProcessId={ProcessId}, ProcessName={ProcessName}, HasExited={HasExited}",
                     processId, processName, hasExited);
@@ -56,7 +71,7 @@ namespace UiAutomationMcpServer.Services
                 return new ProcessResult
                 {
                     Success = true,
-                    ProcessId = processId,
+                    ProcessId = processId,  // 起動時のプロセスIDを常に返す
                     ProcessName = processName,
                     HasExited = hasExited
                 };

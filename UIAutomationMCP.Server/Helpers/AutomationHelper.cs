@@ -50,126 +50,7 @@ namespace UiAutomationMcpServer.Helpers
             }
         }
 
-        /// <summary>
-        /// 操作の検索ルート要素を取得します
-        /// </summary>
-        public AutomationElement? GetSearchRoot(WorkerOperation operation)
-        {
-            try
-            {
-                _logger.LogInformation("[AutomationHelper] Getting search root for operation");
 
-                // ウィンドウタイトルが指定されている場合
-                if (operation.Parameters.TryGetValue("WindowTitle", out var windowTitle) && 
-                    windowTitle?.ToString() is string windowTitleStr && !string.IsNullOrEmpty(windowTitleStr))
-                {
-                    _logger.LogInformation("[AutomationHelper] Searching for window with title: {WindowTitle}", windowTitleStr);
-                    return FindWindowByTitle(windowTitleStr);
-                }
-
-                // プロセスIDが指定されている場合
-                if (operation.Parameters.TryGetValue("ProcessId", out var processIdObj) && 
-                    processIdObj != null && int.TryParse(processIdObj.ToString(), out var processId) && processId > 0)
-                {
-                    _logger.LogInformation("[AutomationHelper] Searching for window with ProcessId: {ProcessId}", processId);
-                    var processResult = FindWindowByProcessId(processId);
-                    if (processResult != null)
-                    {
-                        _logger.LogInformation("[AutomationHelper] Successfully found window by ProcessId: {ProcessId}", processId);
-                        return processResult;
-                    }
-                    
-                    // プロセスIDが指定されているが見つからない場合は、より詳細な診断を実行
-                    _logger.LogError("[AutomationHelper] Failed to find window for ProcessId: {ProcessId}. This will cause GetElementInfo to fail.", processId);
-                    DiagnoseProcessId(processId);
-                    
-                    // フォールバック：プロセスIDが指定されている場合でも、デスクトップルートを返すかどうか
-                    // 厳密にはエラーにすべきだが、一部の操作では動作する可能性がある
-                    _logger.LogWarning("[AutomationHelper] Falling back to desktop root despite ProcessId specification. This may lead to incorrect results.");
-                    return AutomationElement.RootElement;
-                }
-
-                // Window操作の場合はデスクトップから直接検索
-                if (IsWindowControlType(operation))
-                {
-                    _logger.LogInformation("[AutomationHelper] Using desktop as search root for window operation");
-                    return AutomationElement.RootElement;
-                }
-
-                // デフォルトはデスクトップルート
-                _logger.LogInformation("[AutomationHelper] Using desktop root as default search root");
-                return AutomationElement.RootElement;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "[AutomationHelper] Failed to get search root");
-                return AutomationElement.RootElement;
-            }
-        }
-
-        /// <summary>
-        /// 操作の検索条件を構築します
-        /// </summary>
-        public Condition? BuildCondition(WorkerOperation operation)
-        {
-            try
-            {
-                var conditions = new List<Condition>();
-
-                // ControlType条件
-                if (operation.Parameters.TryGetValue("ControlType", out var controlTypeValue) && 
-                    controlTypeValue?.ToString() is string controlTypeStr && !string.IsNullOrEmpty(controlTypeStr))
-                {
-                    var controlType = ParseControlType(controlTypeStr);
-                    if (controlType != null)
-                    {
-                        conditions.Add(new PropertyCondition(AutomationElement.ControlTypeProperty, controlType));
-                        _logger.LogInformation("[AutomationHelper] Added ControlType condition: {ControlType}", controlTypeStr);
-                    }
-                }
-
-                // Name条件
-                if (operation.Parameters.TryGetValue("Name", out var nameValue) && 
-                    nameValue?.ToString() is string nameStr && !string.IsNullOrEmpty(nameStr))
-                {
-                    conditions.Add(new PropertyCondition(AutomationElement.NameProperty, nameStr));
-                    _logger.LogInformation("[AutomationHelper] Added Name condition: {Name}", nameStr);
-                }
-
-                // AutomationId条件
-                if (operation.Parameters.TryGetValue("AutomationId", out var automationIdValue) && 
-                    automationIdValue?.ToString() is string automationIdStr && !string.IsNullOrEmpty(automationIdStr))
-                {
-                    conditions.Add(new PropertyCondition(AutomationElement.AutomationIdProperty, automationIdStr));
-                    _logger.LogInformation("[AutomationHelper] Added AutomationId condition: {AutomationId}", automationIdStr);
-                }
-
-                // 要素ID検索（NameまたはAutomationIdのいずれかにマッチ）
-                if (operation.Parameters.TryGetValue("ElementId", out var elementIdValue) && 
-                    elementIdValue?.ToString() is string elementIdStr && !string.IsNullOrEmpty(elementIdStr))
-                {
-                    var nameCondition = new PropertyCondition(AutomationElement.NameProperty, elementIdStr);
-                    var automationIdCondition = new PropertyCondition(AutomationElement.AutomationIdProperty, elementIdStr);
-                    conditions.Add(new OrCondition(nameCondition, automationIdCondition));
-                    _logger.LogInformation("[AutomationHelper] Added ElementId condition (Name OR AutomationId): {ElementId}", elementIdStr);
-                }
-
-                if (conditions.Count == 0)
-                {
-                    _logger.LogWarning("[AutomationHelper] No search conditions specified, using TrueCondition");
-                    return Condition.TrueCondition;
-                }
-
-                var result = conditions.Count == 1 ? conditions[0] : new AndCondition(conditions.ToArray());
-                _logger.LogInformation("[AutomationHelper] Built condition with {Count} sub-conditions", conditions.Count);
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "[AutomationHelper] Failed to build search condition");
-                return null;
-            }
-        }
 
         /// <summary>
         /// 指定した要素IDで要素を検索します
@@ -444,14 +325,6 @@ namespace UiAutomationMcpServer.Helpers
             }
         }
 
-        /// <summary>
-        /// 操作がWindow ControlTypeを対象としているかチェックします
-        /// </summary>
-        private bool IsWindowControlType(WorkerOperation operation)
-        {
-            return operation.Parameters.TryGetValue("ControlType", out var controlTypeValue) && 
-                   controlTypeValue?.ToString()?.ToLowerInvariant() == "window";
-        }
 
         /// <summary>
         /// 指定されたプロセスIDの詳細診断を実行

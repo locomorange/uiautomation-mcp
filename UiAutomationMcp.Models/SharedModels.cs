@@ -100,21 +100,6 @@ namespace UiAutomationMcp.Models
         public bool HasExited { get; set; }
     }
 
-    // Worker process communication models
-    public class WorkerOperation
-    {
-        public string Operation { get; set; } = string.Empty;
-        public Dictionary<string, object> Parameters { get; set; } = new();
-        public int Timeout { get; set; } = 10;
-    }
-
-    public class WorkerResult
-    {
-        public bool Success { get; set; }
-        public object? Data { get; set; }
-        public string? Error { get; set; }
-        public Dictionary<string, object>? Metadata { get; set; }
-    }
 
     // 要素検索用のパラメータ（UIAutomationの依存を削除）
     public class ElementSearchParameters
@@ -133,15 +118,15 @@ namespace UiAutomationMcp.Models
         public string? SearchText { get; set; }
     }
 
-    // Worker操作の詳細な結果
-    public class ElementOperationResult : WorkerResult
+    // 要素操作の詳細な結果
+    public class ElementOperationResult : OperationResult
     {
         public ElementInfo? Element { get; set; }
         public List<ElementInfo>? Elements { get; set; }
     }
 
     // プロパティ取得結果
-    public class ElementPropertiesResult : WorkerResult
+    public class ElementPropertiesResult : OperationResult
     {
         public Dictionary<string, object>? Properties { get; set; }
     }
