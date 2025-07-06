@@ -42,6 +42,7 @@ namespace UiAutomationMcpServer
             // Register helper services
             builder.Services.AddSingleton<AutomationHelper>();
             builder.Services.AddSingleton<ElementInfoExtractor>();
+            builder.Services.AddSingleton<IDiagnosticService, DiagnosticService>();
             
             // Register in-process UI automation worker (no external process needed)
             builder.Services.AddSingleton<IUIAutomationWorker, InProcessUIAutomationWorker>();
