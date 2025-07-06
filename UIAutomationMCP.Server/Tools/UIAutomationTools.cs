@@ -1,6 +1,7 @@
 using ModelContextProtocol.Server;
 using System.ComponentModel;
 using UiAutomationMcpServer.Services;
+using UiAutomationMcpServer.Helpers;
 
 namespace UiAutomationMcpServer.Tools
 {
@@ -10,15 +11,18 @@ namespace UiAutomationMcpServer.Tools
         private readonly IApplicationLauncher _applicationLauncher;
         private readonly IUIAutomationService _uiAutomationService;
         private readonly IScreenshotService _screenshotService;
+        private readonly AutomationHelper _automationHelper;
 
         public UIAutomationTools(
             IApplicationLauncher applicationLauncher,
             IUIAutomationService uiAutomationService,
-            IScreenshotService screenshotService)
+            IScreenshotService screenshotService,
+            AutomationHelper automationHelper)
         {
             _applicationLauncher = applicationLauncher;
             _uiAutomationService = uiAutomationService;
             _screenshotService = screenshotService;
+            _automationHelper = automationHelper;
         }
 
         // Window and Element Discovery
@@ -244,5 +248,138 @@ namespace UiAutomationMcpServer.Tools
             [Description("Process ID of the target window (optional)")] int? processId = null, 
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => await _uiAutomationService.GetTextSelectionAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        // Diagnostic Tools
+        [McpServerTool, Description("Diagnose why a specific ProcessId fails to work with UIAutomation")]
+        public async Task<object> DiagnoseProcessId(
+            [Description("Process ID to diagnose")] int processId)
+        {
+            try
+            {
+                await Task.Run(() => _automationHelper.DiagnoseProcessId(processId));
+                
+                return new
+                {
+                    Success = true,
+                    Message = $"Diagnostic information for ProcessId {processId} has been logged. Check the application logs for detailed analysis.",
+                    ProcessId = processId
+                };
+            }
+            catch (Exception ex)
+            {
+                return new
+                {
+                    Success = false,
+                    Error = $"Failed to diagnose ProcessId {processId}: {ex.Message}",
+                    ProcessId = processId
+                };
+            }
+        }
+
+        [McpServerTool, Description("List all running processes with their UIAutomation accessibility")]
+        public async Task<object> ListAccessibleProcesses([Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+        {
+            try
+            {
+                var result = await Task.Run(() =>
+                {
+                    var processes = System.Diagnostics.Process.GetProcesses()
+                        .Where(p => !p.HasExited && p.MainWindowHandle != IntPtr.Zero)
+                        .Select(p => new
+                        {
+                            ProcessId = p.Id,
+                            ProcessName = p.ProcessName,
+                            MainWindowTitle = p.MainWindowTitle,
+                            MainWindowHandle = p.MainWindowHandle.ToString()
+                        })
+                        .OrderBy(p => p.ProcessName)
+                        .ToList();
+
+                    return new
+                    {
+                        Success = true,
+                        ProcessCount = processes.Count,
+                        Processes = processes
+                    };
+                });
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return new
+                {
+                    Success = false,
+                    Error = $"Failed to list accessible processes: {ex.Message}"
+                };
+            }
+        }
+
+        [McpServerTool, Description("Test ProcessId accessibility and suggest alternatives")]
+        public async Task<object> TestProcessIdAccess(
+            [Description("Process ID to test")] int processId,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+        {
+            try
+            {
+                // まず診断を実行
+                await Task.Run(() => _automationHelper.DiagnoseProcessId(processId));
+
+                // GetElementInfoを試してみる
+                var elementResult = await _uiAutomationService.FindElementsAsync(null, null, null, processId, timeoutSeconds);
+
+                var alternatives = new List<object>();
+
+                if (!elementResult.Success)
+                {
+                    // 代替案を探す - 同じプロセス名の他のプロセス
+                    var targetProcess = System.Diagnostics.Process.GetProcesses()
+                        .FirstOrDefault(p => p.Id == processId);
+
+                    if (targetProcess != null)
+                    {
+                        var sameNameProcesses = System.Diagnostics.Process.GetProcessesByName(targetProcess.ProcessName)
+                            .Where(p => p.Id != processId && !p.HasExited)
+                            .Select(p => new
+                            {
+                                ProcessId = p.Id,
+                                ProcessName = p.ProcessName,
+                                MainWindowTitle = p.MainWindowTitle,
+                                HasMainWindow = p.MainWindowHandle != IntPtr.Zero
+                            })
+                            .ToList();
+
+                        alternatives.AddRange(sameNameProcesses);
+                    }
+                }
+
+                return new
+                {
+                    Success = true,
+                    ProcessId = processId,
+                    AccessTest = new
+                    {
+                        CanAccessElements = elementResult.Success,
+                        ElementCount = elementResult.Success && elementResult.Data is System.Collections.IList list ? list.Count : 0,
+                        Error = elementResult.Error
+                    },
+                    Alternatives = alternatives,
+                    Recommendation = alternatives.Count > 0 
+                        ? $"ProcessId {processId} is not accessible. Try using one of the alternative ProcessIds listed above."
+                        : elementResult.Success 
+                            ? $"ProcessId {processId} is working correctly."
+                            : $"ProcessId {processId} is not accessible and no alternatives found."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new
+                {
+                    Success = false,
+                    ProcessId = processId,
+                    Error = $"Failed to test ProcessId access: {ex.Message}"
+                };
+            }
+        }
     }
 }
