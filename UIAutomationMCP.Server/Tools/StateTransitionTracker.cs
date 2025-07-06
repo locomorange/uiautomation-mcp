@@ -105,14 +105,13 @@ namespace UiAutomationMcpServer.Tools
                     new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Text)
                 );
 
-                var displays = await rootElement.FindAllAsync(TreeScope.Descendants, displayCondition, cancellationToken);
+                var displays = rootElement.FindAll(TreeScope.Descendants, displayCondition);
 
                 foreach (AutomationElement display in displays)
                 {
                     try
                     {
-                        var automationId = await display.GetCurrentPropertyAsync<string>(
-                            AutomationElement.AutomationIdProperty, cancellationToken);
+                        var automationId = display.Current.AutomationId;
                         
                         var (success, value, method) = await _displayValueExtractor.ExtractDisplayValueAsync(display, cancellationToken);
                         
@@ -138,13 +137,13 @@ namespace UiAutomationMcpServer.Tools
                     new PropertyCondition(AutomationElement.NameProperty, "メモリ")
                 );
 
-                var historyElements = await rootElement.FindAllAsync(TreeScope.Descendants, historyCondition, cancellationToken);
+                var historyElements = rootElement.FindAll(TreeScope.Descendants, historyCondition);
 
                 foreach (AutomationElement historyElement in historyElements)
                 {
                     try
                     {
-                        var name = await historyElement.GetNameAsync(cancellationToken);
+                        var name = historyElement.Current.Name;
                         var (success, value, method) = await _displayValueExtractor.ExtractDisplayValueAsync(historyElement, cancellationToken);
                         
                         if (success && !string.IsNullOrEmpty(value))
@@ -178,25 +177,22 @@ namespace UiAutomationMcpServer.Tools
             try
             {
                 var buttonCondition = new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Button);
-                var buttons = await rootElement.FindAllAsync(TreeScope.Descendants, buttonCondition, cancellationToken);
+                var buttons = rootElement.FindAll(TreeScope.Descendants, buttonCondition);
 
                 foreach (AutomationElement button in buttons)
                 {
                     try
                     {
-                        var automationId = await button.GetCurrentPropertyAsync<string>(
-                            AutomationElement.AutomationIdProperty, cancellationToken);
+                        var automationId = button.Current.AutomationId;
                         
                         if (string.IsNullOrEmpty(automationId))
                             continue;
 
-                        var isEnabled = await button.GetCurrentPropertyAsync<bool>(
-                            AutomationElement.IsEnabledProperty, cancellationToken);
+                        var isEnabled = button.Current.IsEnabled;
                         
-                        var isOffscreen = await button.GetCurrentPropertyAsync<bool>(
-                            AutomationElement.IsOffscreenProperty, cancellationToken);
+                        var isOffscreen = button.Current.IsOffscreen;
 
-                        var name = await button.GetNameAsync(cancellationToken);
+                        var name = button.Current.Name;
 
                         buttonStates[automationId] = new ButtonState
                         {
@@ -237,21 +233,19 @@ namespace UiAutomationMcpServer.Tools
                     new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.MenuItem)
                 );
 
-                var menus = await rootElement.FindAllAsync(TreeScope.Descendants, menuCondition, cancellationToken);
+                var menus = rootElement.FindAll(TreeScope.Descendants, menuCondition);
 
                 foreach (AutomationElement menu in menus)
                 {
                     try
                     {
-                        var automationId = await menu.GetCurrentPropertyAsync<string>(
-                            AutomationElement.AutomationIdProperty, cancellationToken);
+                        var automationId = menu.Current.AutomationId;
                         
                         if (string.IsNullOrEmpty(automationId))
                             continue;
 
-                        var name = await menu.GetNameAsync(cancellationToken);
-                        var isEnabled = await menu.GetCurrentPropertyAsync<bool>(
-                            AutomationElement.IsEnabledProperty, cancellationToken);
+                        var name = menu.Current.Name;
+                        var isEnabled = menu.Current.IsEnabled;
 
                         menuStates[automationId] = new MenuState
                         {

@@ -16,12 +16,12 @@ namespace UiAutomationMcpServer.Services
     public class DiagnosticService : IDiagnosticService
     {
         private readonly AutomationHelper _automationHelper;
-        private readonly IUIAutomationService _uiAutomationService;
+        private readonly IElementSearchService _elementSearchService;
 
-        public DiagnosticService(AutomationHelper automationHelper, IUIAutomationService uiAutomationService)
+        public DiagnosticService(AutomationHelper automationHelper, IElementSearchService elementSearchService)
         {
             _automationHelper = automationHelper;
-            _uiAutomationService = uiAutomationService;
+            _elementSearchService = elementSearchService;
         }
 
         public async Task<object> DiagnoseProcessIdAsync(int processId)
@@ -92,11 +92,28 @@ namespace UiAutomationMcpServer.Services
             {
                 await Task.Run(() => _automationHelper.DiagnoseProcessId(processId));
 
-                var elementResult = await _uiAutomationService.FindElementsAsync(null, null, null, processId, timeoutSeconds);
+                var elementResult = await _elementSearchService.FindElementsAsync(null, null, null, processId, timeoutSeconds);
 
                 var alternatives = new List<object>();
+                bool canAccessElements = false;
+                int elementCount = 0;
+                string? error = null;
 
-                if (!elementResult.Success)
+                // Check if the result indicates success
+                if (elementResult is IDictionary<string, object> resultDict)
+                {
+                    canAccessElements = resultDict.ContainsKey("Success") && (bool)resultDict["Success"];
+                    if (canAccessElements && resultDict.ContainsKey("Data") && resultDict["Data"] is System.Collections.IList list)
+                    {
+                        elementCount = list.Count;
+                    }
+                    if (!canAccessElements && resultDict.ContainsKey("Error"))
+                    {
+                        error = resultDict["Error"]?.ToString();
+                    }
+                }
+
+                if (!canAccessElements)
                 {
                     var targetProcess = System.Diagnostics.Process.GetProcesses()
                         .FirstOrDefault(p => p.Id == processId);
@@ -124,14 +141,14 @@ namespace UiAutomationMcpServer.Services
                     ProcessId = processId,
                     AccessTest = new
                     {
-                        CanAccessElements = elementResult.Success,
-                        ElementCount = elementResult.Success && elementResult.Data is System.Collections.IList list ? list.Count : 0,
-                        Error = elementResult.Error
+                        CanAccessElements = canAccessElements,
+                        ElementCount = elementCount,
+                        Error = error
                     },
                     Alternatives = alternatives,
                     Recommendation = alternatives.Count > 0 
                         ? $"ProcessId {processId} is not accessible. Try using one of the alternative ProcessIds listed above."
-                        : elementResult.Success 
+                        : canAccessElements 
                             ? $"ProcessId {processId} is working correctly."
                             : $"ProcessId {processId} is not accessible and no alternatives found."
                 };

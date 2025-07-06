@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
 using UiAutomationMcp.Models;
+using System.Windows.Automation;
 
 namespace UiAutomationMcpServer.Services
 {
@@ -14,12 +15,10 @@ namespace UiAutomationMcpServer.Services
     public class ScreenshotService : IScreenshotService
     {
         private readonly ILogger<ScreenshotService> _logger;
-        private readonly IUIAutomationWorker _uiAutomationWorker;
 
-        public ScreenshotService(ILogger<ScreenshotService> logger, IUIAutomationWorker uiAutomationWorker)
+        public ScreenshotService(ILogger<ScreenshotService> logger)
         {
             _logger = logger;
-            _uiAutomationWorker = uiAutomationWorker;
         }
 
         public async Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int? processId = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
@@ -32,14 +31,23 @@ namespace UiAutomationMcpServer.Services
                 Rectangle bounds;
                 if (!string.IsNullOrEmpty(windowTitle))
                 {
-                    var parameters = new
+                    // Find window directly using UI Automation
+                    var windowElement = await Task.Run(() =>
                     {
-                        WindowTitle = windowTitle,
-                        ProcessId = processId
-                    };
-                    var windowResult = await _uiAutomationWorker.ExecuteOperationAsync<Dictionary<string, object>>(
-                        "findwindow", parameters, timeoutSeconds, cancellationToken);
-                    if (!windowResult.Success || windowResult.Data == null)
+                        var desktopElement = AutomationElement.RootElement;
+                        var condition = processId.HasValue
+                            ? new AndCondition(
+                                new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window),
+                                new PropertyCondition(AutomationElement.ProcessIdProperty, processId.Value),
+                                new PropertyCondition(AutomationElement.NameProperty, windowTitle))
+                            : new AndCondition(
+                                new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window),
+                                new PropertyCondition(AutomationElement.NameProperty, windowTitle));
+                        
+                        return desktopElement.FindFirst(TreeScope.Children, condition);
+                    }, cancellationToken);
+
+                    if (windowElement == null)
                     {
                         var errorMsg = processId.HasValue 
                             ? $"Window '{windowTitle}' (processId {processId}) not found"
@@ -47,15 +55,8 @@ namespace UiAutomationMcpServer.Services
                         return new ScreenshotResult { Success = false, Error = errorMsg };
                     }
 
-                    var windowInfo = windowResult.Data;
-                    
-                    // Dictionaryから座標情報を取得
-                    var x = Convert.ToInt32(windowInfo.GetValueOrDefault("x", 0));
-                    var y = Convert.ToInt32(windowInfo.GetValueOrDefault("y", 0));
-                    var width = Convert.ToInt32(windowInfo.GetValueOrDefault("width", 800));
-                    var height = Convert.ToInt32(windowInfo.GetValueOrDefault("height", 600));
-                    
-                    bounds = new Rectangle(x, y, width, height);
+                    var rect = windowElement.Current.BoundingRectangle;
+                    bounds = new Rectangle((int)rect.X, (int)rect.Y, (int)rect.Width, (int)rect.Height);
                 }
                 else
                 {

@@ -17,6 +17,40 @@ namespace UiAutomationMcpServer.Helpers
         }
 
         /// <summary>
+        /// 操作の検索ルート要素を取得します（簡単なパラメータ版）
+        /// </summary>
+        public AutomationElement? GetSearchRoot(string? windowTitle = null, int? processId = null)
+        {
+            try
+            {
+                _logger.LogInformation("[AutomationHelper] Getting search root for windowTitle: {WindowTitle}, processId: {ProcessId}", windowTitle, processId);
+
+                // ウィンドウタイトルが指定されている場合
+                if (!string.IsNullOrEmpty(windowTitle))
+                {
+                    _logger.LogInformation("[AutomationHelper] Searching for window with title: {WindowTitle}", windowTitle);
+                    return FindWindowByTitle(windowTitle);
+                }
+
+                // プロセスIDが指定されている場合
+                if (processId.HasValue && processId.Value > 0)
+                {
+                    _logger.LogInformation("[AutomationHelper] Searching for window with ProcessId: {ProcessId}", processId.Value);
+                    return FindWindowByProcessId(processId.Value);
+                }
+
+                // デフォルトはルート要素
+                _logger.LogInformation("[AutomationHelper] Using root element as search root");
+                return AutomationElement.RootElement;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[AutomationHelper] Error getting search root");
+                return AutomationElement.RootElement;
+            }
+        }
+
+        /// <summary>
         /// 操作の検索ルート要素を取得します
         /// </summary>
         public AutomationElement? GetSearchRoot(WorkerOperation operation)
@@ -173,6 +207,51 @@ namespace UiAutomationMcpServer.Helpers
             {
                 _logger.LogError(ex, "[AutomationHelper] Failed to find element by ID");
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// ControlType文字列をパースします
+        /// </summary>
+        public bool TryParseControlType(string controlType, out ControlType parsedControlType)
+        {
+            try
+            {
+                // Try direct mapping first
+                parsedControlType = controlType.ToLowerInvariant() switch
+                {
+                    "button" => ControlType.Button,
+                    "text" => ControlType.Text,
+                    "edit" => ControlType.Edit,
+                    "window" => ControlType.Window,
+                    "pane" => ControlType.Pane,
+                    "checkbox" => ControlType.CheckBox,
+                    "radiobutton" => ControlType.RadioButton,
+                    "combobox" => ControlType.ComboBox,
+                    "listbox" => ControlType.List,
+                    "listitem" => ControlType.ListItem,
+                    "tree" => ControlType.Tree,
+                    "treeitem" => ControlType.TreeItem,
+                    "tab" => ControlType.Tab,
+                    "tabitem" => ControlType.TabItem,
+                    "slider" => ControlType.Slider,
+                    "progressbar" => ControlType.ProgressBar,
+                    "menu" => ControlType.Menu,
+                    "menuitem" => ControlType.MenuItem,
+                    "toolbar" => ControlType.ToolBar,
+                    "statusbar" => ControlType.StatusBar,
+                    "table" => ControlType.Table,
+                    "document" => ControlType.Document,
+                    "image" => ControlType.Image,
+                    "hyperlink" => ControlType.Hyperlink,
+                    _ => throw new ArgumentException($"Unknown control type: {controlType}")
+                };
+                return true;
+            }
+            catch
+            {
+                parsedControlType = ControlType.Pane;
+                return false;
             }
         }
 

@@ -69,20 +69,17 @@ namespace UiAutomationMcpServer.Helpers
         /// <summary>
         /// ValuePatternを使用して値を取得
         /// </summary>
-        private async Task<(bool Success, string? Value, string Method)> TryValuePatternAsync(
+        private Task<(bool Success, string? Value, string Method)> TryValuePatternAsync(
             AutomationElement element, 
             CancellationToken cancellationToken)
         {
             try
             {
-                var (hasPattern, valuePattern) = await element.TryGetCurrentPatternAsync<ValuePattern>(
-                    ValuePattern.Pattern, cancellationToken);
-
-                if (hasPattern && valuePattern != null)
+                if (element.TryGetCurrentPattern(ValuePattern.Pattern, out var patternObject) && patternObject is ValuePattern valuePattern)
                 {
                     var value = valuePattern.Current.Value;
                     _logger.LogDebug("[DisplayValueExtractor] ValuePattern successful: {Value}", value);
-                    return (true, value, "ValuePattern");
+                    return Task.FromResult((true, value, "ValuePattern"));
                 }
             }
             catch (Exception ex)
@@ -90,26 +87,23 @@ namespace UiAutomationMcpServer.Helpers
                 _logger.LogDebug(ex, "[DisplayValueExtractor] ValuePattern failed");
             }
 
-            return (false, null, "ValuePattern");
+            return Task.FromResult((false, (string?)null, "ValuePattern"));
         }
 
         /// <summary>
         /// TextPatternを使用して値を取得
         /// </summary>
-        private async Task<(bool Success, string? Value, string Method)> TryTextPatternAsync(
+        private Task<(bool Success, string? Value, string Method)> TryTextPatternAsync(
             AutomationElement element, 
             CancellationToken cancellationToken)
         {
             try
             {
-                var (hasPattern, textPattern) = await element.TryGetCurrentPatternAsync<TextPattern>(
-                    TextPattern.Pattern, cancellationToken);
-
-                if (hasPattern && textPattern != null)
+                if (element.TryGetCurrentPattern(TextPattern.Pattern, out var patternObject) && patternObject is TextPattern textPattern)
                 {
-                    var text = await textPattern.GetTextAsync(cancellationToken);
+                    var text = textPattern.DocumentRange.GetText(-1);
                     _logger.LogDebug("[DisplayValueExtractor] TextPattern successful: {Text}", text);
-                    return (true, text, "TextPattern");
+                    return Task.FromResult((true, text, "TextPattern"));
                 }
             }
             catch (Exception ex)
@@ -117,23 +111,23 @@ namespace UiAutomationMcpServer.Helpers
                 _logger.LogDebug(ex, "[DisplayValueExtractor] TextPattern failed");
             }
 
-            return (false, null, "TextPattern");
+            return Task.FromResult((false, (string?)null, "TextPattern"));
         }
 
         /// <summary>
         /// Name プロパティから値を取得
         /// </summary>
-        private async Task<(bool Success, string? Value, string Method)> TryNamePropertyAsync(
+        private Task<(bool Success, string? Value, string Method)> TryNamePropertyAsync(
             AutomationElement element, 
             CancellationToken cancellationToken)
         {
             try
             {
-                var name = await element.GetNameAsync(cancellationToken);
+                var name = element.Current.Name;
                 if (!string.IsNullOrEmpty(name))
                 {
                     _logger.LogDebug("[DisplayValueExtractor] Name property successful: {Name}", name);
-                    return (true, name, "NameProperty");
+                    return Task.FromResult((true, name, "NameProperty"));
                 }
             }
             catch (Exception ex)
@@ -141,7 +135,7 @@ namespace UiAutomationMcpServer.Helpers
                 _logger.LogDebug(ex, "[DisplayValueExtractor] Name property failed");
             }
 
-            return (false, null, "NameProperty");
+            return Task.FromResult((false, (string?)null, "NameProperty"));
         }
 
 
@@ -154,18 +148,14 @@ namespace UiAutomationMcpServer.Helpers
         {
             try
             {
-                var children = await element.FindAllAsync(
-                    TreeScope.Children, 
-                    Condition.TrueCondition, 
-                    cancellationToken);
+                var children = element.FindAll(TreeScope.Children, Condition.TrueCondition);
 
                 foreach (AutomationElement child in children)
                 {
                     try
                     {
                         // Text要素を探す
-                        var controlType = await child.GetCurrentPropertyAsync<ControlType>(
-                            AutomationElement.ControlTypeProperty, cancellationToken);
+                        var controlType = child.Current.ControlType;
 
                         if (controlType == ControlType.Text || controlType == ControlType.Edit)
                         {
