@@ -74,6 +74,7 @@ namespace UiAutomationMcp.Models
         public bool Success { get; set; }
         public string? Error { get; set; }
         public object? Data { get; set; }
+        public double ExecutionSeconds { get; set; }
     }
 
     public class OperationResult<T>
@@ -81,6 +82,7 @@ namespace UiAutomationMcp.Models
         public bool Success { get; set; }
         public T? Data { get; set; }
         public string? Error { get; set; }
+        public double ExecutionSeconds { get; set; }
     }
 
     public class ScreenshotResult : OperationResult

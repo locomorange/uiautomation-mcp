@@ -37,42 +37,26 @@ namespace UiAutomationMcpServer.Services
             
             if (!result.Success)
             {
-                return new OperationResult<T>
-                {
-                    Success = false,
-                    Error = result.Error
-                };
+                return TimeoutHelper.CreateErrorResult<T>(result.Error ?? "Operation failed", result.ExecutionSeconds);
             }
 
             try
             {
                 if (result.Data == null)
                 {
-                    return new OperationResult<T>
-                    {
-                        Success = true,
-                        Data = default
-                    };
+                    return TimeoutHelper.CreateSuccessResult<T>(default, result.ExecutionSeconds);
                 }
 
                 // JSONとして再シリアライズしてから型変換
                 var json = JsonSerializer.Serialize(result.Data);
                 var typedData = JsonSerializer.Deserialize<T>(json);
                 
-                return new OperationResult<T>
-                {
-                    Success = true,
-                    Data = typedData
-                };
+                return TimeoutHelper.CreateSuccessResult(typedData, result.ExecutionSeconds);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to convert operation result to type {Type}", typeof(T).Name);
-                return new OperationResult<T>
-                {
-                    Success = false,
-                    Error = $"Failed to convert result: {ex.Message}"
-                };
+                return TimeoutHelper.CreateErrorResult<T>($"Failed to convert result: {ex.Message}", result.ExecutionSeconds);
             }
         }
 
@@ -130,38 +114,46 @@ namespace UiAutomationMcpServer.Services
                         "[Worker] Operation '{Operation}' failed after {Elapsed}ms: {Error}",
                         operation, elapsed, processResult.Error);
                     
-                    return new OperationResult<object>
-                    {
-                        Success = false,
-                        Error = processResult.Error ?? "Worker process execution failed"
-                    };
+                    return TimeoutHelper.CreateErrorResult<object>(
+                        processResult.Error ?? "Worker process execution failed", 
+                        Math.Round(processResult.ExecutionTime.TotalSeconds, 1));
                 }
 
                 // 結果をパース
                 var result = ParseWorkerResponse(processResult.Output);
                 
+                // 実行時間を結果に追加
+                result.ExecutionSeconds = Math.Round(processResult.ExecutionTime.TotalSeconds, 1);
+                
                 _logger.LogInformation(
                     "[Worker] Operation '{Operation}' completed successfully in {Elapsed}ms",
                     operation, elapsed);
+
+                // Log timeout suggestions if operation took significant time
+                if (processResult.ExecutionTime.TotalSeconds > (timeoutSeconds * 0.7))
+                {
+                    var suggestedTimeout = TimeoutHelper.AdjustTimeoutBasedOnPerformance(
+                        operation, timeoutSeconds, processResult.ExecutionTime.TotalSeconds, true);
+                    if (suggestedTimeout > timeoutSeconds)
+                    {
+                        _logger.LogInformation(
+                            "[Worker] Operation '{Operation}' took {Elapsed:F1}s (70%+ of timeout). Consider increasing timeout to {SuggestedTimeout}s",
+                            operation, processResult.ExecutionTime.TotalSeconds, suggestedTimeout);
+                    }
+                }
                 
                 return result;
             }
             catch (OperationCanceledException)
             {
-                return new OperationResult<object>
-                {
-                    Success = false,
-                    Error = $"Operation '{operation}' was cancelled after {timeoutSeconds} seconds"
-                };
+                var elapsed = Math.Round((DateTime.UtcNow - startTime).TotalSeconds, 1);
+                return TimeoutHelper.CreateTimeoutResult<object>(operation, timeoutSeconds, elapsed);
             }
             catch (Exception ex)
             {
+                var elapsed = Math.Round((DateTime.UtcNow - startTime).TotalSeconds, 1);
                 _logger.LogError(ex, "[Worker] Operation '{Operation}' failed with exception", operation);
-                return new OperationResult<object>
-                {
-                    Success = false,
-                    Error = $"Operation failed: {ex.Message}"
-                };
+                return TimeoutHelper.CreateErrorResult<object>($"Operation failed: {ex.Message}", elapsed);
             }
         }
 
@@ -169,11 +161,7 @@ namespace UiAutomationMcpServer.Services
         {
             if (string.IsNullOrEmpty(output))
             {
-                return new OperationResult<object>
-                {
-                    Success = false,
-                    Error = "Worker returned empty response"
-                };
+                return TimeoutHelper.CreateErrorResult<object>("Worker returned empty response", 0);
             }
 
             try
@@ -187,11 +175,7 @@ namespace UiAutomationMcpServer.Services
                         ? errorProp.GetString()
                         : "Unknown error";
                     
-                    return new OperationResult<object>
-                    {
-                        Success = false,
-                        Error = error
-                    };
+                    return TimeoutHelper.CreateErrorResult<object>(error ?? "Unknown error", 0);
                 }
 
                 // データを抽出
@@ -201,20 +185,12 @@ namespace UiAutomationMcpServer.Services
                     data = JsonSerializer.Deserialize<object>(dataProp.GetRawText());
                 }
 
-                return new OperationResult<object>
-                {
-                    Success = true,
-                    Data = data
-                };
+                return TimeoutHelper.CreateSuccessResult(data, 0);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to parse worker response");
-                return new OperationResult<object>
-                {
-                    Success = false,
-                    Error = $"Failed to parse worker response: {ex.Message}"
-                };
+                return TimeoutHelper.CreateErrorResult<object>($"Failed to parse worker response: {ex.Message}", 0);
             }
         }
 

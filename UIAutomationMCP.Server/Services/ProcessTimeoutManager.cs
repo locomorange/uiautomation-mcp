@@ -163,7 +163,7 @@ namespace UiAutomationMcpServer.Services
                     return new ProcessExecutionResult
                     {
                         Success = false,
-                        Error = $"{operationName} timeout after {timeoutSeconds} seconds. Process was terminated.",
+                        Error = TimeoutHelper.CreateTimeoutMessage(operationName, timeoutSeconds, executionTime.TotalMilliseconds),
                         TimedOut = true,
                         ExecutionTime = executionTime
                     };
