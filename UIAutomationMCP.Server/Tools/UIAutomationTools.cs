@@ -19,6 +19,12 @@ namespace UIAutomationMCP.Server.Tools
         private readonly IToggleService _toggleService;
         private readonly IWindowService _windowService;
         private readonly ILayoutService _layoutService;
+        private readonly IGridService _gridService;
+        private readonly ITableService _tableService;
+        private readonly IMultipleViewService _multipleViewService;
+        private readonly IControlTypeService _controlTypeService;
+        private readonly IAccessibilityService _accessibilityService;
+        private readonly ICustomPropertyService _customPropertyService;
 
         public UIAutomationTools(
             IApplicationLauncher applicationLauncher,
@@ -32,7 +38,13 @@ namespace UIAutomationMCP.Server.Tools
             ITextService textService,
             IToggleService toggleService,
             IWindowService windowService,
-            ILayoutService layoutService)
+            ILayoutService layoutService,
+            IGridService gridService,
+            ITableService tableService,
+            IMultipleViewService multipleViewService,
+            IControlTypeService controlTypeService,
+            IAccessibilityService accessibilityService,
+            ICustomPropertyService customPropertyService)
         {
             _applicationLauncher = applicationLauncher;
             _screenshotService = screenshotService;
@@ -46,6 +58,12 @@ namespace UIAutomationMCP.Server.Tools
             _toggleService = toggleService;
             _windowService = windowService;
             _layoutService = layoutService;
+            _gridService = gridService;
+            _tableService = tableService;
+            _multipleViewService = multipleViewService;
+            _controlTypeService = controlTypeService;
+            _accessibilityService = accessibilityService;
+            _customPropertyService = customPropertyService;
         }
 
         // Window and Element Discovery
@@ -300,5 +318,175 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Process ID of the target window (optional)")] int? processId = null, 
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => await _textService.GetTextAttributesAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        // Grid Pattern Operations
+        [McpServerTool, Description("Get grid information using GridPattern")]
+        public async Task<object> GetGridInfo(
+            [Description("Automation ID or name of the grid element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _gridService.GetGridInfoAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Get grid item at specific row and column")]
+        public async Task<object> GetGridItem(
+            [Description("Automation ID or name of the grid element")] string gridElementId,
+            [Description("Row index")] int row,
+            [Description("Column index")] int column,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _gridService.GetGridItemAsync(gridElementId, row, column, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Get row header for a specific row in a grid")]
+        public async Task<object> GetRowHeader(
+            [Description("Automation ID or name of the grid element")] string gridElementId,
+            [Description("Row index")] int row,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _gridService.GetRowHeaderAsync(gridElementId, row, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Get column header for a specific column in a grid")]
+        public async Task<object> GetColumnHeader(
+            [Description("Automation ID or name of the grid element")] string gridElementId,
+            [Description("Column index")] int column,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _gridService.GetColumnHeaderAsync(gridElementId, column, windowTitle, processId, timeoutSeconds);
+
+        // Table Pattern Operations
+        [McpServerTool, Description("Get table information including headers")]
+        public async Task<object> GetTableInfo(
+            [Description("Automation ID or name of the table element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _tableService.GetTableInfoAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Get all row headers from a table")]
+        public async Task<object> GetRowHeaders(
+            [Description("Automation ID or name of the table element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _tableService.GetRowHeadersAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Get all column headers from a table")]
+        public async Task<object> GetColumnHeaders(
+            [Description("Automation ID or name of the table element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _tableService.GetColumnHeadersAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        // MultipleView Pattern Operations
+        [McpServerTool, Description("Get available views for an element")]
+        public async Task<object> GetAvailableViews(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _multipleViewService.GetAvailableViewsAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Set the current view of an element")]
+        public async Task<object> SetView(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("View ID to set")] int viewId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _multipleViewService.SetViewAsync(elementId, viewId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Get the current view of an element")]
+        public async Task<object> GetCurrentView(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _multipleViewService.GetCurrentViewAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        // Control Type Specific Operations
+        [McpServerTool, Description("Interact with ComboBox control")]
+        public async Task<object> ComboBoxOperation(
+            [Description("Automation ID or name of the ComboBox")] string elementId,
+            [Description("Operation: open, close, select")] string operation,
+            [Description("Item to select (for select operation)")] string? itemToSelect = null,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _controlTypeService.ComboBoxOperationAsync(elementId, operation, itemToSelect, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Interact with Menu control")]
+        public async Task<object> MenuOperation(
+            [Description("Path to menu item (e.g., 'File/Open')")] string menuPath,
+            [Description("Title of the window containing the menu (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _controlTypeService.MenuOperationAsync(menuPath, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Interact with Tab control")]
+        public async Task<object> TabOperation(
+            [Description("Automation ID or name of the Tab control")] string elementId,
+            [Description("Operation: list, select")] string operation,
+            [Description("Tab name to select (for select operation)")] string? tabName = null,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _controlTypeService.TabOperationAsync(elementId, operation, tabName, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Interact with TreeView control")]
+        public async Task<object> TreeViewOperation(
+            [Description("Automation ID or name of the TreeView control")] string elementId,
+            [Description("Operation: expand, collapse, select")] string operation,
+            [Description("Path to tree item (e.g., 'Root/Child/Subchild')")] string? itemPath = null,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _controlTypeService.TreeViewOperationAsync(elementId, operation, itemPath, windowTitle, processId, timeoutSeconds);
+
+        // Accessibility Information
+        [McpServerTool, Description("Get comprehensive accessibility information for an element")]
+        public async Task<object> GetAccessibilityInfo(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _accessibilityService.GetAccessibilityInfoAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Verify accessibility compliance for a window or element")]
+        public async Task<object> VerifyAccessibility(
+            [Description("Automation ID or name of the element (optional, checks entire window if not specified)")] string? elementId = null,
+            [Description("Title of the window to verify")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
+            => await _accessibilityService.VerifyAccessibilityAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Get the element that labels this element")]
+        public async Task<object> GetLabeledBy(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _accessibilityService.GetLabeledByAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Get elements that describe this element")]
+        public async Task<object> GetDescribedBy(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _accessibilityService.GetDescribedByAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        // Custom Properties and Events
+        [McpServerTool, Description("Get custom properties from an element")]
+        public async Task<object> GetCustomProperties(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("List of custom property IDs to retrieve")] string[] propertyIds,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _customPropertyService.GetCustomPropertiesAsync(elementId, propertyIds, windowTitle, processId, timeoutSeconds);
     }
 }

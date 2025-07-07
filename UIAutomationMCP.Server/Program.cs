@@ -35,6 +35,14 @@ namespace UIAutomationMCP.Server
             builder.Services.AddSingleton<IRangeService, RangeService>();
             builder.Services.AddSingleton<IElementInspectionService, ElementInspectionService>();
             
+            // Register additional UI Automation services
+            builder.Services.AddSingleton<IGridService, GridService>();
+            builder.Services.AddSingleton<ITableService, TableService>();
+            builder.Services.AddSingleton<IMultipleViewService, MultipleViewService>();
+            builder.Services.AddSingleton<IControlTypeService, ControlTypeService>();
+            builder.Services.AddSingleton<IAccessibilityService, AccessibilityService>();
+            builder.Services.AddSingleton<ICustomPropertyService, CustomPropertyService>();
+            
             // Register helper services
             builder.Services.AddSingleton<UIAutomationExecutor>();
             builder.Services.AddSingleton<AutomationHelper>();
