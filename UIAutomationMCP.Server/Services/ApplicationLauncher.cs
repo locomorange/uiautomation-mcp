@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
-using UIAutomationMCP.Models;
+using UIAutomationMCP.Server.Models;
 
 namespace UIAutomationMCP.Server.Services
 {

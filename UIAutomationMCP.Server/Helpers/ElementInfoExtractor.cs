@@ -1,6 +1,6 @@
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Models;
+using UIAutomationMCP.Server.Models;
 
 namespace UIAutomationMCP.Server.Helpers
 {

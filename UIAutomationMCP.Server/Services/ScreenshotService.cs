@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
-using UIAutomationMCP.Models;
+using UIAutomationMCP.Server.Models;
 using System.Windows.Automation;
 
 namespace UIAutomationMCP.Server.Services
