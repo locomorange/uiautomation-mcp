@@ -1,4 +1,4 @@
-using UIAutomationMCP.Models;
+using UIAutomationMCP.Server.Models;
 using System.Text.Json;
 
 namespace UiAutomationMcp.Tests.Models

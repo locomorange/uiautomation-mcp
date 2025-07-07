@@ -1,6 +1,8 @@
 using ModelContextProtocol.Server;
 using System.ComponentModel;
 using UIAutomationMCP.Server.Services;
+using UIAutomationMCP.Server.Services.ControlPatterns;
+using UIAutomationMCP.Server.Services.ControlTypes;
 
 namespace UIAutomationMCP.Server.Tools
 {

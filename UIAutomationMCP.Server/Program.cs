@@ -2,6 +2,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Services;
+using UIAutomationMCP.Server.Services.ControlPatterns;
+using UIAutomationMCP.Server.Services.ControlTypes;
 using UIAutomationMCP.Server.Helpers;
 
 namespace UIAutomationMCP.Server

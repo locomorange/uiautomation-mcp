@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Moq;
-using UIAutomationMCP.Models;
+using UIAutomationMCP.Server.Models;
 // using UIAutomationMCP.Server.Services.Windows;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Tools;
