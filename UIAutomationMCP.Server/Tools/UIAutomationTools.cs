@@ -271,6 +271,34 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Automation ID or name of the element")] string elementId, 
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
             [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)            => await _textService.GetTextSelectionAsync(elementId, windowTitle, processId, timeoutSeconds);
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _textService.GetTextSelectionAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Set text content in an element using ValuePattern")]
+        public async Task<object> SetText(
+            [Description("Automation ID or name of the element")] string elementId, 
+            [Description("Text to set")] string text, 
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
+            [Description("Process ID of the target window (optional)")] int? processId = null, 
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _textService.SetTextAsync(elementId, text, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Traverse text using TextPattern with various navigation units")]
+        public async Task<object> TraverseText(
+            [Description("Automation ID or name of the element")] string elementId, 
+            [Description("Direction to traverse: character, word, line, paragraph, page, document (add '-back' suffix for backward movement)")] string direction, 
+            [Description("Number of units to move (default: 1)")] int count = 1, 
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
+            [Description("Process ID of the target window (optional)")] int? processId = null, 
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _textService.TraverseTextAsync(elementId, direction, count, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Get text formatting attributes using TextPattern")]
+        public async Task<object> GetTextAttributes(
+            [Description("Automation ID or name of the element")] string elementId, 
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
+            [Description("Process ID of the target window (optional)")] int? processId = null, 
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _textService.GetTextAttributesAsync(elementId, windowTitle, processId, timeoutSeconds);
     }
 }
