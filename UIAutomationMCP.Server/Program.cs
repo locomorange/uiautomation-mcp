@@ -39,7 +39,15 @@ namespace UIAutomationMCP.Server
             builder.Services.AddSingleton<IGridService, GridService>();
             builder.Services.AddSingleton<ITableService, TableService>();
             builder.Services.AddSingleton<IMultipleViewService, MultipleViewService>();
-            builder.Services.AddSingleton<IControlTypeService, ControlTypeService>();
+            // Register specialized control type services
+            builder.Services.AddSingleton<IComboBoxService, ComboBoxService>();
+            builder.Services.AddSingleton<IMenuService, MenuService>();
+            builder.Services.AddSingleton<ITabService, TabService>();
+            builder.Services.AddSingleton<ITreeViewService, TreeViewService>();
+            builder.Services.AddSingleton<IListService, ListService>();
+            builder.Services.AddSingleton<ICalendarService, CalendarService>();
+            builder.Services.AddSingleton<IButtonService, ButtonService>();
+            builder.Services.AddSingleton<IHyperlinkService, HyperlinkService>();
             builder.Services.AddSingleton<IAccessibilityService, AccessibilityService>();
             builder.Services.AddSingleton<ICustomPropertyService, CustomPropertyService>();
             
