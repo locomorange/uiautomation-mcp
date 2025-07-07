@@ -63,6 +63,9 @@ namespace UIAutomationMCP.Server.Helpers
                 // Value プロパティを試行
                 info.Value = TryGetElementValue(element);
 
+                // AvailableActions を取得
+                info.AvailableActions = GetAvailableActions(element);
+
                 return info;
             }
             catch (Exception ex)
@@ -145,6 +148,124 @@ namespace UIAutomationMCP.Server.Helpers
             {
                 _logger.LogDebug(ex, "[ElementInfoExtractor] Failed to get element value");
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// 要素の利用可能なアクションを取得
+        /// </summary>
+        private Dictionary<string, string> GetAvailableActions(AutomationElement element)
+        {
+            var availableActions = new Dictionary<string, string>();
+
+            try
+            {
+                var supportedPatterns = element.GetSupportedPatterns();
+
+                foreach (var pattern in supportedPatterns)
+                {
+                    switch (pattern.ProgrammaticName)
+                    {
+                        case "InvokePatternIdentifiers.Pattern":
+                            availableActions["invoke"] = "Click or activate this element";
+                            break;
+
+                        case "ValuePatternIdentifiers.Pattern":
+                            if (element.TryGetCurrentPattern(ValuePattern.Pattern, out var valuePattern) && 
+                                valuePattern is ValuePattern vp && !vp.Current.IsReadOnly)
+                            {
+                                availableActions["setValue"] = "Set text or value";
+                            }
+                            availableActions["getValue"] = "Get current value";
+                            break;
+
+                        case "TogglePatternIdentifiers.Pattern":
+                            availableActions["toggle"] = "Toggle checkbox or toggle button state";
+                            break;
+
+                        case "SelectionItemPatternIdentifiers.Pattern":
+                            availableActions["select"] = "Select this item";
+                            break;
+
+                        case "ExpandCollapsePatternIdentifiers.Pattern":
+                            availableActions["expand"] = "Expand this element";
+                            availableActions["collapse"] = "Collapse this element";
+                            break;
+
+                        case "ScrollPatternIdentifiers.Pattern":
+                            availableActions["scroll"] = "Scroll this element";
+                            break;
+
+                        case "RangeValuePatternIdentifiers.Pattern":
+                            if (element.TryGetCurrentPattern(RangeValuePattern.Pattern, out var rangePattern) && 
+                                rangePattern is RangeValuePattern rvp && !rvp.Current.IsReadOnly)
+                            {
+                                availableActions["setRangeValue"] = "Set range value (slider, progress bar)";
+                            }
+                            availableActions["getRangeValue"] = "Get range value";
+                            break;
+
+                        case "WindowPatternIdentifiers.Pattern":
+                            availableActions["windowAction"] = "Minimize, maximize, or close window";
+                            break;
+
+                        case "TextPatternIdentifiers.Pattern":
+                            availableActions["getText"] = "Get text content";
+                            availableActions["findText"] = "Find text in element";
+                            availableActions["selectText"] = "Select text";
+                            availableActions["setText"] = "Set text content";
+                            break;
+
+                        case "TransformPatternIdentifiers.Pattern":
+                            availableActions["transform"] = "Move, resize, or rotate element";
+                            break;
+
+                        case "DockPatternIdentifiers.Pattern":
+                            availableActions["dock"] = "Dock element to position";
+                            break;
+
+                        case "GridPatternIdentifiers.Pattern":
+                            availableActions["getGridInfo"] = "Get grid information";
+                            availableActions["getGridItem"] = "Get grid item at row/column";
+                            break;
+
+                        case "TablePatternIdentifiers.Pattern":
+                            availableActions["getTableInfo"] = "Get table information";
+                            availableActions["getColumnHeaders"] = "Get column headers";
+                            availableActions["getRowHeaders"] = "Get row headers";
+                            break;
+
+                        case "MultipleViewPatternIdentifiers.Pattern":
+                            availableActions["setView"] = "Set current view";
+                            availableActions["getAvailableViews"] = "Get available views";
+                            break;
+
+                        case "SelectionPatternIdentifiers.Pattern":
+                            availableActions["getSelection"] = "Get current selection";
+                            break;
+
+                        case "ScrollItemPatternIdentifiers.Pattern":
+                            availableActions["scrollIntoView"] = "Scroll element into view";
+                            break;
+                    }
+                }
+
+                // 基本的なアクション（パターンに依存しない）
+                availableActions["getElementInfo"] = "Get element information";
+                availableActions["getElementTree"] = "Get element tree structure";
+                availableActions["takeScreenshot"] = "Take screenshot";
+                availableActions["findElements"] = "Find child elements";
+
+                // アクセシビリティ関連
+                availableActions["getAccessibilityInfo"] = "Get accessibility information";
+                availableActions["verifyAccessibility"] = "Verify accessibility compliance";
+
+                return availableActions;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[ElementInfoExtractor] Failed to get available actions");
+                return new Dictionary<string, string>();
             }
         }
     }
