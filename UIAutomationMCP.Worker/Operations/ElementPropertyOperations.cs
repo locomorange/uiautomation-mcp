@@ -1,7 +1,5 @@
 using System.Windows.Automation;
-using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
-using UIAutomationMCP.Worker.Core;
 
 namespace UIAutomationMCP.Worker.Operations
 {
@@ -10,11 +8,8 @@ namespace UIAutomationMCP.Worker.Operations
     /// </summary>
     public class ElementPropertyOperations
     {
-        private readonly ILogger<ElementPropertyOperations> _logger;
-
-        public ElementPropertyOperations(ILogger<ElementPropertyOperations> logger)
+        public ElementPropertyOperations()
         {
-            _logger = logger;
         }
 
         /// <summary>
@@ -22,24 +17,13 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult<string> GetName(AutomationElement element)
         {
-            try
+            // Let exceptions flow naturally - no try-catch
+            var name = element.Current.Name;
+            return new OperationResult<string>
             {
-                var name = element.GetPropertyValue<string>(AutomationElement.NameProperty);
-                return new OperationResult<string>
-                {
-                    Success = true,
-                    Data = name ?? string.Empty
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to get element name");
-                return new OperationResult<string>
-                {
-                    Success = false,
-                    Error = ex.Message
-                };
-            }
+                Success = true,
+                Data = name ?? string.Empty
+            };
         }
 
         /// <summary>
@@ -47,24 +31,13 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult<string> GetAutomationId(AutomationElement element)
         {
-            try
+            // Let exceptions flow naturally - no try-catch
+            var automationId = element.Current.AutomationId;
+            return new OperationResult<string>
             {
-                var automationId = element.GetPropertyValue<string>(AutomationElement.AutomationIdProperty);
-                return new OperationResult<string>
-                {
-                    Success = true,
-                    Data = automationId ?? string.Empty
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to get automation ID");
-                return new OperationResult<string>
-                {
-                    Success = false,
-                    Error = ex.Message
-                };
-            }
+                Success = true,
+                Data = automationId ?? string.Empty
+            };
         }
 
         /// <summary>
@@ -72,24 +45,13 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult<ControlType> GetControlType(AutomationElement element)
         {
-            try
+            // Let exceptions flow naturally - no try-catch
+            var controlType = element.Current.ControlType;
+            return new OperationResult<ControlType>
             {
-                var controlType = element.GetPropertyValue<ControlType>(AutomationElement.ControlTypeProperty);
-                return new OperationResult<ControlType>
-                {
-                    Success = true,
-                    Data = controlType
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to get control type");
-                return new OperationResult<ControlType>
-                {
-                    Success = false,
-                    Error = ex.Message
-                };
-            }
+                Success = true,
+                Data = controlType
+            };
         }
 
         /// <summary>
@@ -97,24 +59,13 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult<string> GetClassName(AutomationElement element)
         {
-            try
+            // Let exceptions flow naturally - no try-catch
+            var className = element.Current.ClassName;
+            return new OperationResult<string>
             {
-                var className = element.GetPropertyValue<string>(AutomationElement.ClassNameProperty);
-                return new OperationResult<string>
-                {
-                    Success = true,
-                    Data = className ?? string.Empty
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to get class name");
-                return new OperationResult<string>
-                {
-                    Success = false,
-                    Error = ex.Message
-                };
-            }
+                Success = true,
+                Data = className ?? string.Empty
+            };
         }
 
         /// <summary>
@@ -122,24 +73,13 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult<System.Windows.Rect> GetBoundingRectangle(AutomationElement element)
         {
-            try
+            // Let exceptions flow naturally - no try-catch
+            var boundingRect = element.Current.BoundingRectangle;
+            return new OperationResult<System.Windows.Rect>
             {
-                var boundingRect = element.GetPropertyValue<System.Windows.Rect>(AutomationElement.BoundingRectangleProperty);
-                return new OperationResult<System.Windows.Rect>
-                {
-                    Success = true,
-                    Data = boundingRect
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to get bounding rectangle");
-                return new OperationResult<System.Windows.Rect>
-                {
-                    Success = false,
-                    Error = ex.Message
-                };
-            }
+                Success = true,
+                Data = boundingRect
+            };
         }
 
         /// <summary>
@@ -147,24 +87,13 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult<bool> IsEnabled(AutomationElement element)
         {
-            try
+            // Let exceptions flow naturally - no try-catch
+            var isEnabled = element.Current.IsEnabled;
+            return new OperationResult<bool>
             {
-                var isEnabled = element.GetPropertyValue<bool>(AutomationElement.IsEnabledProperty);
-                return new OperationResult<bool>
-                {
-                    Success = true,
-                    Data = isEnabled
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to check if element is enabled");
-                return new OperationResult<bool>
-                {
-                    Success = false,
-                    Error = ex.Message
-                };
-            }
+                Success = true,
+                Data = isEnabled
+            };
         }
 
         /// <summary>
@@ -172,24 +101,13 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult<bool> IsVisible(AutomationElement element)
         {
-            try
+            // Let exceptions flow naturally - no try-catch
+            var isOffscreen = element.Current.IsOffscreen;
+            return new OperationResult<bool>
             {
-                var isOffscreen = element.GetPropertyValue<bool>(AutomationElement.IsOffscreenProperty);
-                return new OperationResult<bool>
-                {
-                    Success = true,
-                    Data = !isOffscreen // IsOffscreenの逆
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to check if element is visible");
-                return new OperationResult<bool>
-                {
-                    Success = false,
-                    Error = ex.Message
-                };
-            }
+                Success = true,
+                Data = !isOffscreen // IsOffscreenの逆
+            };
         }
 
         /// <summary>
@@ -197,24 +115,13 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult<int> GetProcessId(AutomationElement element)
         {
-            try
+            // Let exceptions flow naturally - no try-catch
+            var processId = element.Current.ProcessId;
+            return new OperationResult<int>
             {
-                var processId = element.GetPropertyValue<int>(AutomationElement.ProcessIdProperty);
-                return new OperationResult<int>
-                {
-                    Success = true,
-                    Data = processId
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to get process ID");
-                return new OperationResult<int>
-                {
-                    Success = false,
-                    Error = ex.Message
-                };
-            }
+                Success = true,
+                Data = processId
+            };
         }
 
         /// <summary>
@@ -222,24 +129,13 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult<string> GetHelpText(AutomationElement element)
         {
-            try
+            // Let exceptions flow naturally - no try-catch
+            var helpText = element.Current.HelpText;
+            return new OperationResult<string>
             {
-                var helpText = element.GetPropertyValue<string>(AutomationElement.HelpTextProperty);
-                return new OperationResult<string>
-                {
-                    Success = true,
-                    Data = helpText ?? string.Empty
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to get help text");
-                return new OperationResult<string>
-                {
-                    Success = false,
-                    Error = ex.Message
-                };
-            }
+                Success = true,
+                Data = helpText ?? string.Empty
+            };
         }
 
         /// <summary>
@@ -247,24 +143,13 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult<T> GetProperty<T>(AutomationElement element, AutomationProperty property)
         {
-            try
+            // Let exceptions flow naturally - no try-catch
+            var value = element.GetCurrentPropertyValue(property);
+            return new OperationResult<T>
             {
-                var value = element.GetPropertyValue<T>(property);
-                return new OperationResult<T>
-                {
-                    Success = true,
-                    Data = value
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to get property: {PropertyName}", property.ProgrammaticName);
-                return new OperationResult<T>
-                {
-                    Success = false,
-                    Error = ex.Message
-                };
-            }
+                Success = true,
+                Data = (T)value
+            };
         }
     }
 }

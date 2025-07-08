@@ -1,7 +1,6 @@
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
-using UIAutomationMCP.Worker.Core;
 
 namespace UIAutomationMCP.Worker.Operations
 {
@@ -10,11 +9,8 @@ namespace UIAutomationMCP.Worker.Operations
     /// </summary>
     public class ValueOperations
     {
-        private readonly ILogger<ValueOperations> _logger;
-
-        public ValueOperations(ILogger<ValueOperations> logger)
+        public ValueOperations()
         {
-            _logger = logger;
         }
 
         /// <summary>
@@ -22,30 +18,12 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult SetValue(AutomationElement element, string value)
         {
-            try
-            {
-                var valuePattern = element.GetPattern<ValuePattern>(ValuePattern.Pattern);
-                if (valuePattern == null)
-                {
-                    return new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Element does not support ValuePattern" 
-                    };
-                }
+            if (!element.TryGetCurrentPattern(ValuePattern.Pattern, out var pattern) || pattern is not ValuePattern valuePattern)
+                return new OperationResult { Success = false, Error = "ValuePattern not supported" };
 
-                valuePattern.SetValue(value);
-                return new OperationResult { Success = true };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to set value");
-                return new OperationResult 
-                { 
-                    Success = false, 
-                    Error = ex.Message 
-                };
-            }
+            // Let exceptions flow naturally - no try-catch
+            valuePattern.SetValue(value);
+            return new OperationResult { Success = true };
         }
 
         /// <summary>
@@ -53,34 +31,12 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult<string> GetValue(AutomationElement element)
         {
-            try
-            {
-                var valuePattern = element.GetPattern<ValuePattern>(ValuePattern.Pattern);
-                if (valuePattern == null)
-                {
-                    return new OperationResult<string> 
-                    { 
-                        Success = false, 
-                        Error = "Element does not support ValuePattern" 
-                    };
-                }
+            if (!element.TryGetCurrentPattern(ValuePattern.Pattern, out var pattern) || pattern is not ValuePattern valuePattern)
+                return new OperationResult<string> { Success = false, Error = "ValuePattern not supported" };
 
-                var value = valuePattern.Current.Value;
-                return new OperationResult<string> 
-                { 
-                    Success = true, 
-                    Data = value 
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to get value");
-                return new OperationResult<string> 
-                { 
-                    Success = false, 
-                    Error = ex.Message 
-                };
-            }
+            // Let exceptions flow naturally - no try-catch
+            var value = valuePattern.Current.Value;
+            return new OperationResult<string> { Success = true, Data = value };
         }
 
         /// <summary>
@@ -88,34 +44,12 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult<bool> IsReadOnly(AutomationElement element)
         {
-            try
-            {
-                var valuePattern = element.GetPattern<ValuePattern>(ValuePattern.Pattern);
-                if (valuePattern == null)
-                {
-                    return new OperationResult<bool> 
-                    { 
-                        Success = false, 
-                        Error = "Element does not support ValuePattern" 
-                    };
-                }
+            if (!element.TryGetCurrentPattern(ValuePattern.Pattern, out var pattern) || pattern is not ValuePattern valuePattern)
+                return new OperationResult<bool> { Success = false, Error = "ValuePattern not supported" };
 
-                var isReadOnly = valuePattern.Current.IsReadOnly;
-                return new OperationResult<bool> 
-                { 
-                    Success = true, 
-                    Data = isReadOnly 
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to check read-only status");
-                return new OperationResult<bool> 
-                { 
-                    Success = false, 
-                    Error = ex.Message 
-                };
-            }
+            // Let exceptions flow naturally - no try-catch
+            var isReadOnly = valuePattern.Current.IsReadOnly;
+            return new OperationResult<bool> { Success = true, Data = isReadOnly };
         }
 
         /// <summary>
@@ -123,21 +57,12 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult SetElementValue(string elementId, string value, string windowTitle = "", int processId = 0)
         {
-            try
-            {
-                var element = FindElementById(elementId, windowTitle, processId);
-                if (element == null)
-                {
-                    return new OperationResult { Success = false, Error = $"Element '{elementId}' not found" };
-                }
+            var element = FindElementById(elementId, windowTitle, processId);
+            if (element == null)
+                return new OperationResult { Success = false, Error = "Element not found" };
 
-                return SetValue(element, value);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to set element value: {ElementId}", elementId);
-                return new OperationResult { Success = false, Error = ex.Message };
-            }
+            // Let exceptions flow naturally - no try-catch
+            return SetValue(element, value);
         }
 
         /// <summary>
@@ -145,22 +70,13 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult GetElementValue(string elementId, string windowTitle = "", int processId = 0)
         {
-            try
-            {
-                var element = FindElementById(elementId, windowTitle, processId);
-                if (element == null)
-                {
-                    return new OperationResult { Success = false, Error = $"Element '{elementId}' not found" };
-                }
+            var element = FindElementById(elementId, windowTitle, processId);
+            if (element == null)
+                return new OperationResult { Success = false, Error = "Element not found" };
 
-                var result = GetValue(element);
-                return new OperationResult { Success = result.Success, Data = result.Data, Error = result.Error };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to get element value: {ElementId}", elementId);
-                return new OperationResult { Success = false, Error = ex.Message };
-            }
+            // Let exceptions flow naturally - no try-catch
+            var result = GetValue(element);
+            return new OperationResult { Success = result.Success, Data = result.Data, Error = result.Error };
         }
 
         private AutomationElement? FindElementById(string elementId, string windowTitle, int processId)

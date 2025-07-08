@@ -7,35 +7,23 @@ namespace UIAutomationMCP.Worker.Operations
     {
         public OperationResult ToggleElement(string elementId, string windowTitle = "", int processId = 0)
         {
-            try
-            {
-                var element = FindElementById(elementId, windowTitle, processId);
-                if (element == null)
-                {
-                    return new OperationResult { Success = false, Error = $"Element '{elementId}' not found" };
-                }
+            var element = FindElementById(elementId, windowTitle, processId);
+            if (element == null)
+                return new OperationResult { Success = false, Error = "Element not found" };
 
-                if (element.TryGetCurrentPattern(TogglePattern.Pattern, out var pattern) && pattern is TogglePattern togglePattern)
-                {
-                    var currentState = togglePattern.Current.ToggleState;
-                    togglePattern.Toggle();
-                    var newState = togglePattern.Current.ToggleState;
-                    
-                    return new OperationResult 
-                    { 
-                        Success = true, 
-                        Data = new { CurrentState = currentState.ToString(), NewState = newState.ToString() }
-                    };
-                }
-                else
-                {
-                    return new OperationResult { Success = false, Error = "Element does not support TogglePattern" };
-                }
-            }
-            catch (Exception ex)
-            {
-                return new OperationResult { Success = false, Error = ex.Message };
-            }
+            if (!element.TryGetCurrentPattern(TogglePattern.Pattern, out var pattern) || pattern is not TogglePattern togglePattern)
+                return new OperationResult { Success = false, Error = "TogglePattern not supported" };
+
+            // Let exceptions flow naturally - no try-catch
+            var currentState = togglePattern.Current.ToggleState;
+            togglePattern.Toggle();
+            var newState = togglePattern.Current.ToggleState;
+            
+            return new OperationResult 
+            { 
+                Success = true, 
+                Data = new { CurrentState = currentState.ToString(), NewState = newState.ToString() }
+            };
         }
 
         private AutomationElement? FindElementById(string elementId, string windowTitle, int processId)

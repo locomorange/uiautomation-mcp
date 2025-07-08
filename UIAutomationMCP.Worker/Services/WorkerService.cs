@@ -13,6 +13,10 @@ namespace UIAutomationMCP.Worker.Services
         private readonly ElementPropertyOperations _elementPropertyOperations;
         private readonly ToggleOperations _toggleOperations;
         private readonly SelectionOperations _selectionOperations;
+        private readonly WindowOperations _windowOperations;
+        private readonly TextOperations _textOperations;
+        private readonly LayoutOperations _layoutOperations;
+        private readonly RangeOperations _rangeOperations;
 
         public WorkerService(
             ILogger<WorkerService> logger,
@@ -21,7 +25,11 @@ namespace UIAutomationMCP.Worker.Services
             ElementSearchOperations elementSearchOperations,
             ElementPropertyOperations elementPropertyOperations,
             ToggleOperations toggleOperations,
-            SelectionOperations selectionOperations)
+            SelectionOperations selectionOperations,
+            WindowOperations windowOperations,
+            TextOperations textOperations,
+            LayoutOperations layoutOperations,
+            RangeOperations rangeOperations)
         {
             _logger = logger;
             _invokeOperations = invokeOperations;
@@ -30,6 +38,10 @@ namespace UIAutomationMCP.Worker.Services
             _elementPropertyOperations = elementPropertyOperations;
             _toggleOperations = toggleOperations;
             _selectionOperations = selectionOperations;
+            _windowOperations = windowOperations;
+            _textOperations = textOperations;
+            _layoutOperations = layoutOperations;
+            _rangeOperations = rangeOperations;
         }
 
         public async Task RunAsync()
@@ -98,6 +110,53 @@ namespace UIAutomationMCP.Worker.Services
                     "SelectElement" => _selectionOperations.SelectElement(elementId, windowTitle, processId),
                     "GetSelection" => _selectionOperations.GetSelection(
                         request.Parameters?.GetValueOrDefault("containerElementId")?.ToString() ?? "", windowTitle, processId),
+                    
+                    // Window operations
+                    "WindowAction" => _windowOperations.WindowAction(
+                        request.Parameters?.GetValueOrDefault("action")?.ToString() ?? "", windowTitle, processId),
+                    "TransformElement" => _windowOperations.TransformElement(elementId,
+                        request.Parameters?.GetValueOrDefault("action")?.ToString() ?? "",
+                        Convert.ToDouble(request.Parameters?.GetValueOrDefault("x") ?? 0),
+                        Convert.ToDouble(request.Parameters?.GetValueOrDefault("y") ?? 0),
+                        Convert.ToDouble(request.Parameters?.GetValueOrDefault("width") ?? 0),
+                        Convert.ToDouble(request.Parameters?.GetValueOrDefault("height") ?? 0),
+                        windowTitle, processId),
+                    
+                    // Text operations
+                    "GetText" => _textOperations.GetText(elementId, windowTitle, processId),
+                    "SelectText" => _textOperations.SelectText(elementId,
+                        Convert.ToInt32(request.Parameters?.GetValueOrDefault("startIndex") ?? 0),
+                        Convert.ToInt32(request.Parameters?.GetValueOrDefault("length") ?? 0),
+                        windowTitle, processId),
+                    "FindText" => _textOperations.FindText(elementId,
+                        request.Parameters?.GetValueOrDefault("searchText")?.ToString() ?? "",
+                        Convert.ToBoolean(request.Parameters?.GetValueOrDefault("backward") ?? false),
+                        Convert.ToBoolean(request.Parameters?.GetValueOrDefault("ignoreCase") ?? true),
+                        windowTitle, processId),
+                    "GetTextSelection" => _textOperations.GetTextSelection(elementId, windowTitle, processId),
+                    "SetText" => _textOperations.SetText(elementId,
+                        request.Parameters?.GetValueOrDefault("text")?.ToString() ?? "", windowTitle, processId),
+                    "TraverseText" => _textOperations.TraverseText(elementId,
+                        request.Parameters?.GetValueOrDefault("direction")?.ToString() ?? "",
+                        Convert.ToInt32(request.Parameters?.GetValueOrDefault("count") ?? 1),
+                        windowTitle, processId),
+                    "GetTextAttributes" => _textOperations.GetTextAttributes(elementId, windowTitle, processId),
+                    
+                    // Layout operations
+                    "ExpandCollapseElement" => _layoutOperations.ExpandCollapseElement(elementId,
+                        request.Parameters?.GetValueOrDefault("action")?.ToString() ?? "", windowTitle, processId),
+                    "ScrollElement" => _layoutOperations.ScrollElement(elementId,
+                        request.Parameters?.GetValueOrDefault("direction")?.ToString() ?? "",
+                        Convert.ToDouble(request.Parameters?.GetValueOrDefault("amount") ?? 1.0),
+                        windowTitle, processId),
+                    "ScrollElementIntoView" => _layoutOperations.ScrollElementIntoView(elementId, windowTitle, processId),
+                    "DockElement" => _layoutOperations.DockElement(elementId,
+                        request.Parameters?.GetValueOrDefault("dockPosition")?.ToString() ?? "", windowTitle, processId),
+                    
+                    // Range operations
+                    "SetRangeValue" => _rangeOperations.SetRangeValue(elementId,
+                        Convert.ToDouble(request.Parameters?.GetValueOrDefault("value") ?? 0), windowTitle, processId),
+                    "GetRangeValue" => _rangeOperations.GetRangeValue(elementId, windowTitle, processId),
                     
                     _ => new UIAutomationMCP.Models.OperationResult { Success = false, Error = $"Unknown operation: {request.Operation}" }
                 };

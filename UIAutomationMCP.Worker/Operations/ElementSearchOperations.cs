@@ -1,7 +1,5 @@
 using System.Windows.Automation;
-using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
-using UIAutomationMCP.Worker.Core;
 
 namespace UIAutomationMCP.Worker.Operations
 {
@@ -10,11 +8,8 @@ namespace UIAutomationMCP.Worker.Operations
     /// </summary>
     public class ElementSearchOperations
     {
-        private readonly ILogger<ElementSearchOperations> _logger;
-
-        public ElementSearchOperations(ILogger<ElementSearchOperations> logger)
+        public ElementSearchOperations()
         {
-            _logger = logger;
         }
 
         /// <summary>
@@ -25,24 +20,13 @@ namespace UIAutomationMCP.Worker.Operations
             TreeScope scope,
             Condition condition)
         {
-            try
+            // Let exceptions flow naturally - no try-catch
+            var element = searchRoot.FindFirst(scope, condition);
+            return new OperationResult<AutomationElement>
             {
-                var element = searchRoot.FindElementSafe(scope, condition);
-                return new OperationResult<AutomationElement>
-                {
-                    Success = true,
-                    Data = element
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to find element");
-                return new OperationResult<AutomationElement>
-                {
-                    Success = false,
-                    Error = ex.Message
-                };
-            }
+                Success = true,
+                Data = element
+            };
         }
 
         /// <summary>
@@ -53,24 +37,13 @@ namespace UIAutomationMCP.Worker.Operations
             TreeScope scope,
             Condition condition)
         {
-            try
+            // Let exceptions flow naturally - no try-catch
+            var elements = searchRoot.FindAll(scope, condition);
+            return new OperationResult<AutomationElementCollection>
             {
-                var elements = searchRoot.FindElementsSafe(scope, condition);
-                return new OperationResult<AutomationElementCollection>
-                {
-                    Success = true,
-                    Data = elements
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to find elements");
-                return new OperationResult<AutomationElementCollection>
-                {
-                    Success = false,
-                    Error = ex.Message
-                };
-            }
+                Success = true,
+                Data = elements
+            };
         }
 
         /// <summary>
@@ -80,25 +53,14 @@ namespace UIAutomationMCP.Worker.Operations
             AutomationElement searchRoot,
             string automationId)
         {
-            try
+            // Let exceptions flow naturally - no try-catch
+            var condition = new PropertyCondition(AutomationElement.AutomationIdProperty, automationId);
+            var element = searchRoot.FindFirst(TreeScope.Descendants, condition);
+            return new OperationResult<AutomationElement>
             {
-                var condition = ConditionBuilder.ByAutomationId(automationId);
-                var element = searchRoot.FindElementSafe(TreeScope.Descendants, condition);
-                return new OperationResult<AutomationElement>
-                {
-                    Success = true,
-                    Data = element
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to find element by ID: {AutomationId}", automationId);
-                return new OperationResult<AutomationElement>
-                {
-                    Success = false,
-                    Error = ex.Message
-                };
-            }
+                Success = true,
+                Data = element
+            };
         }
 
         /// <summary>
@@ -108,25 +70,14 @@ namespace UIAutomationMCP.Worker.Operations
             AutomationElement searchRoot,
             string name)
         {
-            try
+            // Let exceptions flow naturally - no try-catch
+            var condition = new PropertyCondition(AutomationElement.NameProperty, name);
+            var element = searchRoot.FindFirst(TreeScope.Descendants, condition);
+            return new OperationResult<AutomationElement>
             {
-                var condition = ConditionBuilder.ByName(name);
-                var element = searchRoot.FindElementSafe(TreeScope.Descendants, condition);
-                return new OperationResult<AutomationElement>
-                {
-                    Success = true,
-                    Data = element
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to find element by name: {Name}", name);
-                return new OperationResult<AutomationElement>
-                {
-                    Success = false,
-                    Error = ex.Message
-                };
-            }
+                Success = true,
+                Data = element
+            };
         }
 
         /// <summary>
@@ -136,25 +87,14 @@ namespace UIAutomationMCP.Worker.Operations
             AutomationElement searchRoot,
             ControlType controlType)
         {
-            try
+            // Let exceptions flow naturally - no try-catch
+            var condition = new PropertyCondition(AutomationElement.ControlTypeProperty, controlType);
+            var elements = searchRoot.FindAll(TreeScope.Descendants, condition);
+            return new OperationResult<AutomationElementCollection>
             {
-                var condition = ConditionBuilder.ByControlType(controlType);
-                var elements = searchRoot.FindElementsSafe(TreeScope.Descendants, condition);
-                return new OperationResult<AutomationElementCollection>
-                {
-                    Success = true,
-                    Data = elements
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to find elements by control type: {ControlType}", controlType.LocalizedControlType);
-                return new OperationResult<AutomationElementCollection>
-                {
-                    Success = false,
-                    Error = ex.Message
-                };
-            }
+                Success = true,
+                Data = elements
+            };
         }
 
         /// <summary>
@@ -162,24 +102,13 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult<AutomationElement> GetRootElement()
         {
-            try
+            // Let exceptions flow naturally - no try-catch
+            var rootElement = AutomationElement.RootElement;
+            return new OperationResult<AutomationElement>
             {
-                var rootElement = AutomationElement.RootElement;
-                return new OperationResult<AutomationElement>
-                {
-                    Success = true,
-                    Data = rootElement
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to get root element");
-                return new OperationResult<AutomationElement>
-                {
-                    Success = false,
-                    Error = ex.Message
-                };
-            }
+                Success = true,
+                Data = rootElement
+            };
         }
 
         /// <summary>
@@ -187,45 +116,31 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult GetDesktopWindows()
         {
-            try
+            // Let exceptions flow naturally - no try-catch
+            var rootElement = AutomationElement.RootElement;
+            var condition = new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window);
+            var windows = rootElement.FindAll(TreeScope.Children, condition);
+            
+            var windowList = new List<WindowInfo>();
+            foreach (AutomationElement window in windows)
             {
-                var rootElement = AutomationElement.RootElement;
-                var condition = new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window);
-                var windows = rootElement.FindAll(TreeScope.Children, condition);
-                
-                var windowList = new List<WindowInfo>();
-                foreach (AutomationElement window in windows)
+                // Basic null check only - let exceptions flow naturally
+                if (window != null)
                 {
-                    try
+                    windowList.Add(new WindowInfo
                     {
-                        windowList.Add(new WindowInfo
-                        {
-                            Name = window.Current.Name,
-                            ProcessId = window.Current.ProcessId,
-                            AutomationId = window.Current.AutomationId
-                        });
-                    }
-                    catch (Exception)
-                    {
-                        // Skip windows that can't be processed
-                    }
+                        Name = window.Current.Name,
+                        ProcessId = window.Current.ProcessId,
+                        AutomationId = window.Current.AutomationId
+                    });
                 }
+            }
 
-                return new OperationResult
-                {
-                    Success = true,
-                    Data = windowList
-                };
-            }
-            catch (Exception ex)
+            return new OperationResult
             {
-                _logger.LogError(ex, "Failed to get desktop windows");
-                return new OperationResult
-                {
-                    Success = false,
-                    Error = ex.Message
-                };
-            }
+                Success = true,
+                Data = windowList
+            };
         }
 
         /// <summary>
@@ -233,74 +148,60 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult FindElements(string searchText = "", string controlType = "", string windowTitle = "", int processId = 0)
         {
-            try
+            // Let exceptions flow naturally - no try-catch
+            var searchRoot = GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
+            
+            Condition condition = Condition.TrueCondition;
+            
+            // Build search condition
+            var conditions = new List<Condition>();
+            
+            if (!string.IsNullOrEmpty(searchText))
             {
-                var searchRoot = GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
-                
-                Condition condition = Condition.TrueCondition;
-                
-                // Build search condition
-                var conditions = new List<Condition>();
-                
-                if (!string.IsNullOrEmpty(searchText))
+                var nameCondition = new PropertyCondition(AutomationElement.NameProperty, searchText);
+                var automationIdCondition = new PropertyCondition(AutomationElement.AutomationIdProperty, searchText);
+                conditions.Add(new OrCondition(nameCondition, automationIdCondition));
+            }
+            
+            if (!string.IsNullOrEmpty(controlType))
+            {
+                var controlTypeObj = GetControlTypeFromString(controlType);
+                if (controlTypeObj != null)
                 {
-                    var nameCondition = new PropertyCondition(AutomationElement.NameProperty, searchText);
-                    var automationIdCondition = new PropertyCondition(AutomationElement.AutomationIdProperty, searchText);
-                    conditions.Add(new OrCondition(nameCondition, automationIdCondition));
+                    conditions.Add(new PropertyCondition(AutomationElement.ControlTypeProperty, controlTypeObj));
                 }
-                
-                if (!string.IsNullOrEmpty(controlType))
+            }
+            
+            if (conditions.Count > 0)
+            {
+                condition = conditions.Count == 1 ? conditions[0] : new AndCondition(conditions.ToArray());
+            }
+            
+            var elements = searchRoot.FindAll(TreeScope.Descendants, condition);
+            var elementList = new List<ElementInfo>();
+            
+            foreach (AutomationElement element in elements)
+            {
+                // Basic null check only - let exceptions flow naturally
+                if (element != null)
                 {
-                    var controlTypeObj = GetControlTypeFromString(controlType);
-                    if (controlTypeObj != null)
+                    elementList.Add(new ElementInfo
                     {
-                        conditions.Add(new PropertyCondition(AutomationElement.ControlTypeProperty, controlTypeObj));
-                    }
+                        AutomationId = element.Current.AutomationId,
+                        Name = element.Current.Name,
+                        ControlType = element.Current.ControlType.LocalizedControlType,
+                        IsEnabled = element.Current.IsEnabled,
+                        ProcessId = element.Current.ProcessId,
+                        BoundingRectangle = element.Current.BoundingRectangle
+                    });
                 }
-                
-                if (conditions.Count > 0)
-                {
-                    condition = conditions.Count == 1 ? conditions[0] : new AndCondition(conditions.ToArray());
-                }
-                
-                var elements = searchRoot.FindAll(TreeScope.Descendants, condition);
-                var elementList = new List<ElementInfo>();
-                
-                foreach (AutomationElement element in elements)
-                {
-                    try
-                    {
-                        elementList.Add(new ElementInfo
-                        {
-                            AutomationId = element.Current.AutomationId,
-                            Name = element.Current.Name,
-                            ControlType = element.Current.ControlType.LocalizedControlType,
-                            IsEnabled = element.Current.IsEnabled,
-                            ProcessId = element.Current.ProcessId,
-                            BoundingRectangle = element.Current.BoundingRectangle
-                        });
-                    }
-                    catch (Exception)
-                    {
-                        // Skip elements that can't be processed
-                    }
-                }
+            }
 
-                return new OperationResult
-                {
-                    Success = true,
-                    Data = elementList
-                };
-            }
-            catch (Exception ex)
+            return new OperationResult
             {
-                _logger.LogError(ex, "Failed to find elements");
-                return new OperationResult
-                {
-                    Success = false,
-                    Error = ex.Message
-                };
-            }
+                Success = true,
+                Data = elementList
+            };
         }
 
         private ControlType? GetControlTypeFromString(string controlType)

@@ -25,6 +25,10 @@ namespace UIAutomationMCP.Worker
             builder.Services.AddSingleton<ElementPropertyOperations>();
             builder.Services.AddSingleton<ToggleOperations>();
             builder.Services.AddSingleton<SelectionOperations>();
+            builder.Services.AddSingleton<WindowOperations>();
+            builder.Services.AddSingleton<TextOperations>();
+            builder.Services.AddSingleton<LayoutOperations>();
+            builder.Services.AddSingleton<RangeOperations>();
 
             // Register Worker service
             builder.Services.AddSingleton<WorkerService>();

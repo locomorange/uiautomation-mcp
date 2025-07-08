@@ -1,7 +1,6 @@
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
-using UIAutomationMCP.Worker.Core;
 
 namespace UIAutomationMCP.Worker.Operations
 {
@@ -10,11 +9,8 @@ namespace UIAutomationMCP.Worker.Operations
     /// </summary>
     public class InvokeOperations
     {
-        private readonly ILogger<InvokeOperations> _logger;
-
-        public InvokeOperations(ILogger<InvokeOperations> logger)
+        public InvokeOperations()
         {
-            _logger = logger;
         }
 
         /// <summary>
@@ -22,30 +18,12 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult Invoke(AutomationElement element)
         {
-            try
-            {
-                var invokePattern = element.GetPattern<InvokePattern>(InvokePattern.Pattern);
-                if (invokePattern == null)
-                {
-                    return new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Element does not support InvokePattern" 
-                    };
-                }
+            if (!element.TryGetCurrentPattern(InvokePattern.Pattern, out var pattern) || pattern is not InvokePattern invokePattern)
+                return new OperationResult { Success = false, Error = "InvokePattern not supported" };
 
-                invokePattern.Invoke();
-                return new OperationResult { Success = true };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to invoke element");
-                return new OperationResult 
-                { 
-                    Success = false, 
-                    Error = ex.Message 
-                };
-            }
+            // Let exceptions flow naturally - no try-catch
+            invokePattern.Invoke();
+            return new OperationResult { Success = true };
         }
 
         /// <summary>
@@ -53,24 +31,9 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult<bool> SupportsInvoke(AutomationElement element)
         {
-            try
-            {
-                var invokePattern = element.GetPattern<InvokePattern>(InvokePattern.Pattern);
-                return new OperationResult<bool> 
-                { 
-                    Success = true, 
-                    Data = invokePattern != null 
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to check InvokePattern support");
-                return new OperationResult<bool> 
-                { 
-                    Success = false, 
-                    Error = ex.Message 
-                };
-            }
+            // Let exceptions flow naturally - no try-catch
+            bool supportsPattern = element.TryGetCurrentPattern(InvokePattern.Pattern, out _);
+            return new OperationResult<bool> { Success = true, Data = supportsPattern };
         }
 
         /// <summary>
@@ -78,21 +41,12 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult InvokeElement(string elementId, string windowTitle = "", int processId = 0)
         {
-            try
-            {
-                var element = FindElementById(elementId, windowTitle, processId);
-                if (element == null)
-                {
-                    return new OperationResult { Success = false, Error = $"Element '{elementId}' not found" };
-                }
+            var element = FindElementById(elementId, windowTitle, processId);
+            if (element == null)
+                return new OperationResult { Success = false, Error = "Element not found" };
 
-                return Invoke(element);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to invoke element: {ElementId}", elementId);
-                return new OperationResult { Success = false, Error = ex.Message };
-            }
+            // Let exceptions flow naturally - no try-catch
+            return Invoke(element);
         }
 
         private AutomationElement? FindElementById(string elementId, string windowTitle, int processId)

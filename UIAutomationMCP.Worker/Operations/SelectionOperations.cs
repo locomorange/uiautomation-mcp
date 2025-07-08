@@ -7,73 +7,46 @@ namespace UIAutomationMCP.Worker.Operations
     {
         public OperationResult SelectElement(string elementId, string windowTitle = "", int processId = 0)
         {
-            try
-            {
-                var element = FindElementById(elementId, windowTitle, processId);
-                if (element == null)
-                {
-                    return new OperationResult { Success = false, Error = $"Element '{elementId}' not found" };
-                }
+            var element = FindElementById(elementId, windowTitle, processId);
+            if (element == null)
+                return new OperationResult { Success = false, Error = "Element not found" };
 
-                if (element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var pattern) && pattern is SelectionItemPattern selectionPattern)
-                {
-                    selectionPattern.Select();
-                    return new OperationResult { Success = true, Data = "Element selected successfully" };
-                }
-                else
-                {
-                    return new OperationResult { Success = false, Error = "Element does not support SelectionItemPattern" };
-                }
-            }
-            catch (Exception ex)
-            {
-                return new OperationResult { Success = false, Error = ex.Message };
-            }
+            if (!element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var pattern) || pattern is not SelectionItemPattern selectionPattern)
+                return new OperationResult { Success = false, Error = "SelectionItemPattern not supported" };
+
+            // Let exceptions flow naturally - no try-catch
+            selectionPattern.Select();
+            return new OperationResult { Success = true, Data = "Element selected successfully" };
         }
 
         public OperationResult GetSelection(string containerElementId, string windowTitle = "", int processId = 0)
         {
-            try
+            var element = FindElementById(containerElementId, windowTitle, processId);
+            if (element == null)
+                return new OperationResult { Success = false, Error = "Container element not found" };
+
+            if (!element.TryGetCurrentPattern(SelectionPattern.Pattern, out var pattern) || pattern is not SelectionPattern selectionPattern)
+                return new OperationResult { Success = false, Error = "SelectionPattern not supported" };
+
+            // Let exceptions flow naturally - no try-catch
+            var selection = selectionPattern.Current.GetSelection();
+            var selectedInfo = new List<object>();
+
+            foreach (AutomationElement selectedElement in selection)
             {
-                var element = FindElementById(containerElementId, windowTitle, processId);
-                if (element == null)
+                // Minimal protection for element enumeration
+                if (selectedElement != null)
                 {
-                    return new OperationResult { Success = false, Error = $"Container element '{containerElementId}' not found" };
-                }
-
-                if (element.TryGetCurrentPattern(SelectionPattern.Pattern, out var pattern) && pattern is SelectionPattern selectionPattern)
-                {
-                    var selection = selectionPattern.Current.GetSelection();
-                    var selectedInfo = new List<object>();
-
-                    foreach (AutomationElement selectedElement in selection)
+                    selectedInfo.Add(new
                     {
-                        try
-                        {
-                            selectedInfo.Add(new
-                            {
-                                AutomationId = selectedElement.Current.AutomationId,
-                                Name = selectedElement.Current.Name,
-                                ControlType = selectedElement.Current.ControlType.LocalizedControlType
-                            });
-                        }
-                        catch (Exception)
-                        {
-                            // Skip elements that can't be processed
-                        }
-                    }
+                        AutomationId = selectedElement.Current.AutomationId,
+                        Name = selectedElement.Current.Name,
+                        ControlType = selectedElement.Current.ControlType.LocalizedControlType
+                    });
+                }
+            }
 
-                    return new OperationResult { Success = true, Data = selectedInfo };
-                }
-                else
-                {
-                    return new OperationResult { Success = false, Error = "Container element does not support SelectionPattern" };
-                }
-            }
-            catch (Exception ex)
-            {
-                return new OperationResult { Success = false, Error = ex.Message };
-            }
+            return new OperationResult { Success = true, Data = selectedInfo };
         }
 
         private AutomationElement? FindElementById(string elementId, string windowTitle, int processId)
