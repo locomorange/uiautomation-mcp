@@ -20,6 +20,9 @@
     <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
   </ItemGroup>
 
-
+  <ItemGroup>
+    <ProjectReference Include="..\UIAutomationMCP.Models\UIAutomationMCP.Models.csproj" />
+    <ProjectReference Include="..\UIAutomationMCP.Worker\UIAutomationMCP.Worker.csproj" />
+  </ItemGroup>
 
 </Project>

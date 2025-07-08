@@ -5,6 +5,7 @@ using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Services.ControlTypes;
 using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Worker.Operations;
 
 namespace UIAutomationMCP.Server
 {
@@ -25,7 +26,7 @@ namespace UIAutomationMCP.Server
             builder.Services.AddSingleton<IScreenshotService, ScreenshotService>();
             
             // Register simple UI Automation services
-            builder.Services.AddSingleton<IElementSearchService, ElementSearchService>();
+            builder.Services.AddSingleton<IElementSearchService, WorkerBasedElementSearchService>();
             builder.Services.AddSingleton<ITreeNavigationService, TreeNavigationService>();
             builder.Services.AddSingleton<IInvokeService, InvokeService>();
             builder.Services.AddSingleton<IValueService, ValueService>();
@@ -53,8 +54,14 @@ namespace UIAutomationMCP.Server
             builder.Services.AddSingleton<IAccessibilityService, AccessibilityService>();
             builder.Services.AddSingleton<ICustomPropertyService, CustomPropertyService>();
             
+            // Register Worker operations
+            builder.Services.AddSingleton<InvokeOperations>();
+            builder.Services.AddSingleton<ValueOperations>();
+            builder.Services.AddSingleton<ElementSearchOperations>();
+            builder.Services.AddSingleton<ElementPropertyOperations>();
+            
             // Register helper services
-            builder.Services.AddSingleton<UIAutomationExecutor>();
+            builder.Services.AddSingleton<WorkerExecutor>();
             builder.Services.AddSingleton<AutomationHelper>();
             builder.Services.AddSingleton<ElementInfoExtractor>();
             

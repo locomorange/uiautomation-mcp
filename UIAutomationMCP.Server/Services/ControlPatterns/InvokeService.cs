@@ -7,10 +7,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
     public class InvokeService : IInvokeService
     {
         private readonly ILogger<InvokeService> _logger;
-        private readonly UIAutomationExecutor _executor;
+        private readonly WorkerExecutor _executor;
         private readonly AutomationHelper _automationHelper;
 
-        public InvokeService(ILogger<InvokeService> logger, UIAutomationExecutor executor, AutomationHelper automationHelper)
+        public InvokeService(ILogger<InvokeService> logger, WorkerExecutor executor, AutomationHelper automationHelper)
         {
             _logger = logger;
             _executor = executor;
@@ -34,17 +34,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     return new { Success = false, Error = $"Element '{elementId}' not found" };
                 }
 
-                await _executor.ExecuteAsync(() =>
+                var result = await _executor.ExecuteAsync(() =>
                 {
-                    if (element.TryGetCurrentPattern(InvokePattern.Pattern, out var pattern) && pattern is InvokePattern invokePattern)
-                    {
-                        invokePattern.Invoke();
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException("Element does not support InvokePattern");
-                    }
+                    return _executor.Invoke.Invoke(element);
                 }, timeoutSeconds, $"InvokeElement_{elementId}");
+
+                if (!result.Success)
+                {
+                    return new { Success = false, Error = result.Error };
+                }
 
                 _logger.LogInformation("Element invoked successfully: {ElementId}", elementId);
                 return new { Success = true, Message = "Element invoked successfully" };

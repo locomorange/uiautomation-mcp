@@ -13,10 +13,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
     public class ValueService : IValueService
     {
         private readonly ILogger<ValueService> _logger;
-        private readonly UIAutomationExecutor _executor;
+        private readonly WorkerExecutor _executor;
         private readonly AutomationHelper _automationHelper;
 
-        public ValueService(ILogger<ValueService> logger, UIAutomationExecutor executor, AutomationHelper automationHelper)
+        public ValueService(ILogger<ValueService> logger, WorkerExecutor executor, AutomationHelper automationHelper)
         {
             _logger = logger;
             _executor = executor;
@@ -40,17 +40,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     return new { Success = false, Error = $"Element '{elementId}' not found" };
                 }
 
-                await _executor.ExecuteAsync(() =>
+                var result = await _executor.ExecuteAsync(() =>
                 {
-                    if (element.TryGetCurrentPattern(ValuePattern.Pattern, out var pattern) && pattern is ValuePattern valuePattern)
-                    {
-                        valuePattern.SetValue(value);
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException("Element does not support ValuePattern");
-                    }
+                    return _executor.Value.SetValue(element, value);
                 }, timeoutSeconds, $"SetValue_{elementId}");
+
+                if (!result.Success)
+                {
+                    return new { Success = false, Error = result.Error };
+                }
 
                 _logger.LogInformation("Element value set successfully: {ElementId}", elementId);
                 return new { Success = true, Message = $"Element value set to: {value}" };
@@ -79,17 +77,17 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     return new { Success = false, Error = $"Element '{elementId}' not found" };
                 }
 
-                var currentValue = await _executor.ExecuteAsync(() =>
+                var result = await _executor.ExecuteAsync(() =>
                 {
-                    if (element.TryGetCurrentPattern(ValuePattern.Pattern, out var pattern) && pattern is ValuePattern valuePattern)
-                    {
-                        return valuePattern.Current.Value;
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException("Element does not support ValuePattern");
-                    }
+                    return _executor.Value.GetValue(element);
                 }, timeoutSeconds, $"GetValue_{elementId}");
+
+                if (!result.Success)
+                {
+                    return new { Success = false, Error = result.Error };
+                }
+
+                var currentValue = result.Data;
 
                 _logger.LogInformation("Element value retrieved successfully: {ElementId}", elementId);
                 return new { Success = true, Data = currentValue ?? "" };
