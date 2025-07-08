@@ -192,7 +192,13 @@ namespace UIAutomationMCP.Worker.Operations
                         ControlType = element.Current.ControlType.LocalizedControlType,
                         IsEnabled = element.Current.IsEnabled,
                         ProcessId = element.Current.ProcessId,
-                        BoundingRectangle = element.Current.BoundingRectangle
+                        BoundingRectangle = new BoundingRectangle
+                        {
+                            X = element.Current.BoundingRectangle.X,
+                            Y = element.Current.BoundingRectangle.Y,
+                            Width = element.Current.BoundingRectangle.Width,
+                            Height = element.Current.BoundingRectangle.Height
+                        }
                     });
                 }
             }

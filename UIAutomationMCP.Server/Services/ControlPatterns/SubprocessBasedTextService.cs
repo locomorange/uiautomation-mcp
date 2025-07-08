@@ -16,9 +16,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
         public async Task<object> GetTextAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            // Input validation
+            var validationResult = SubprocessErrorHandler.ValidateElementId(elementId, "GetText", _logger);
+            if (validationResult != null) return validationResult;
+
             try
             {
-                _logger.LogInformation("Getting text from element: {ElementId}", elementId);
+                _logger.LogInformation("Getting text from element: {ElementId} in window: {WindowTitle} (ProcessId: {ProcessId})", 
+                    elementId, windowTitle ?? "any", processId ?? 0);
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -30,12 +35,17 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 var result = await _executor.ExecuteAsync<object>("GetText", parameters, timeoutSeconds);
 
                 _logger.LogInformation("Text retrieved successfully from element: {ElementId}", elementId);
-                return new { Success = true, Data = result };
+                return new { 
+                    Success = true, 
+                    Data = result,
+                    Message = $"Text retrieved from element '{elementId}'",
+                    ElementId = elementId,
+                    Operation = "GetText"
+                };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get text from element: {ElementId}", elementId);
-                return new { Success = false, Error = ex.Message };
+                return SubprocessErrorHandler.HandleError(ex, "GetText", elementId, timeoutSeconds, _logger);
             }
         }
 
@@ -121,9 +131,20 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
         public async Task<object> SetTextAsync(string elementId, string text, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            // Input validation
+            var validationResult = SubprocessErrorHandler.ValidateElementId(elementId, "SetText", _logger);
+            if (validationResult != null) return validationResult;
+
+            if (text == null)
+            {
+                var validationError = "Text value is required and cannot be null";
+                _logger.LogWarning("SetText operation failed due to validation: {Error}", validationError);
+                return new { Success = false, Error = validationError, ErrorCategory = "Validation" };
+            }
+
             try
             {
-                _logger.LogInformation("Setting text in element: {ElementId}", elementId);
+                _logger.LogInformation("Setting text in element: {ElementId} to: {TextLength} characters", elementId, text.Length);
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -136,12 +157,17 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 await _executor.ExecuteAsync<object>("SetText", parameters, timeoutSeconds);
 
                 _logger.LogInformation("Text set successfully in element: {ElementId}", elementId);
-                return new { Success = true, Message = "Text set successfully" };
+                return new { 
+                    Success = true, 
+                    Message = $"Text set successfully in element '{elementId}'",
+                    ElementId = elementId,
+                    Operation = "SetText",
+                    TextLength = text.Length
+                };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to set text in element: {ElementId}", elementId);
-                return new { Success = false, Error = ex.Message };
+                return SubprocessErrorHandler.HandleError(ex, "SetText", elementId, timeoutSeconds, _logger);
             }
         }
 

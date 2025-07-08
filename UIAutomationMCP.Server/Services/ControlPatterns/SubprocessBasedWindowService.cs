@@ -16,9 +16,18 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
         public async Task<object> WindowActionAsync(string action, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            // Input validation
+            if (string.IsNullOrWhiteSpace(action))
+            {
+                var validationError = "Window action is required and cannot be empty";
+                _logger.LogWarning("WindowAction operation failed due to validation: {Error}", validationError);
+                return new { Success = false, Error = validationError, ErrorCategory = "Validation" };
+            }
+
             try
             {
-                _logger.LogInformation("Performing window action: {Action} on window: {WindowTitle}", action, windowTitle);
+                _logger.LogInformation("Performing window action: {Action} on window: {WindowTitle} (ProcessId: {ProcessId})", 
+                    action, windowTitle ?? "any", processId ?? 0);
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -30,20 +39,37 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 await _executor.ExecuteAsync<object>("WindowAction", parameters, timeoutSeconds);
 
                 _logger.LogInformation("Window action performed successfully: {Action}", action);
-                return new { Success = true, Message = $"Window action '{action}' performed successfully" };
+                return new { 
+                    Success = true, 
+                    Message = $"Window action '{action}' performed successfully",
+                    Action = action,
+                    WindowTitle = windowTitle,
+                    Operation = "WindowAction"
+                };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to perform window action: {Action}", action);
-                return new { Success = false, Error = ex.Message };
+                return SubprocessErrorHandler.HandleError(ex, "WindowAction", windowTitle ?? "unknown", timeoutSeconds, _logger);
             }
         }
 
         public async Task<object> TransformElementAsync(string elementId, string action, double? x = null, double? y = null, double? width = null, double? height = null, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            // Input validation
+            var validationResult = SubprocessErrorHandler.ValidateElementId(elementId, "TransformElement", _logger);
+            if (validationResult != null) return validationResult;
+
+            if (string.IsNullOrWhiteSpace(action))
+            {
+                var validationError = "Transform action is required and cannot be empty";
+                _logger.LogWarning("TransformElement operation failed due to validation: {Error}", validationError);
+                return new { Success = false, Error = validationError, ErrorCategory = "Validation" };
+            }
+
             try
             {
-                _logger.LogInformation("Transforming element: {ElementId} with action: {Action}", elementId, action);
+                _logger.LogInformation("Transforming element: {ElementId} with action: {Action} (x:{X}, y:{Y}, w:{Width}, h:{Height})", 
+                    elementId, action, x ?? 0, y ?? 0, width ?? 0, height ?? 0);
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -60,12 +86,18 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 await _executor.ExecuteAsync<object>("TransformElement", parameters, timeoutSeconds);
 
                 _logger.LogInformation("Element transformed successfully: {ElementId}", elementId);
-                return new { Success = true, Message = $"Element transformed with action '{action}' successfully" };
+                return new { 
+                    Success = true, 
+                    Message = $"Element '{elementId}' transformed with action '{action}' successfully",
+                    ElementId = elementId,
+                    Action = action,
+                    Coordinates = new { X = x ?? 0, Y = y ?? 0, Width = width ?? 0, Height = height ?? 0 },
+                    Operation = "TransformElement"
+                };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to transform element: {ElementId}", elementId);
-                return new { Success = false, Error = ex.Message };
+                return SubprocessErrorHandler.HandleError(ex, "TransformElement", elementId, timeoutSeconds, _logger);
             }
         }
     }

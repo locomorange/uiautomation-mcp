@@ -65,7 +65,29 @@ namespace UIAutomationMCP.Server.Helpers
 
                 if (!response.Success)
                 {
-                    throw new InvalidOperationException($"Worker operation failed: {response.Error}");
+                    // Enhanced error propagation with more context
+                    var errorMessage = $"Worker operation '{operation}' failed: {response.Error}";
+                    _logger.LogError("Worker operation failed: {Operation}, Error: {Error}", operation, response.Error);
+                    
+                    // Try to detect specific error types for better exception handling
+                    if (response.Error?.Contains("not found", StringComparison.OrdinalIgnoreCase) == true)
+                    {
+                        throw new ArgumentException(errorMessage);
+                    }
+                    else if (response.Error?.Contains("not supported", StringComparison.OrdinalIgnoreCase) == true || 
+                             response.Error?.Contains("pattern", StringComparison.OrdinalIgnoreCase) == true)
+                    {
+                        throw new InvalidOperationException(errorMessage);
+                    }
+                    else if (response.Error?.Contains("read-only", StringComparison.OrdinalIgnoreCase) == true ||
+                             response.Error?.Contains("access", StringComparison.OrdinalIgnoreCase) == true)
+                    {
+                        throw new UnauthorizedAccessException(errorMessage);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException(errorMessage);
+                    }
                 }
 
                 return JsonSerializer.Deserialize<TResult>(JsonSerializer.Serialize(response.Data))!;

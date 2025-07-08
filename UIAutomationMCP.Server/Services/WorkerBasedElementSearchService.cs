@@ -118,17 +118,9 @@ namespace UIAutomationMCP.Server.Services
                     }
 
                     var windowInfoList = new List<UIAutomationMCP.Models.WindowInfo>();
-                    foreach (AutomationElement window in windowsResult.Data)
+                    if (windowsResult.Data is List<object> windowList)
                     {
-                        try
-                        {
-                            var windowInfo = ExtractWindowInfo(window);
-                            windowInfoList.Add(windowInfo);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogWarning(ex, "Failed to extract window info");
-                        }
+                        windowInfoList.AddRange(windowList.Cast<UIAutomationMCP.Models.WindowInfo>());
                     }
 
                     return windowInfoList;

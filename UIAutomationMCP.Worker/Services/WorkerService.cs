@@ -50,9 +50,10 @@ namespace UIAutomationMCP.Worker.Services
 
             while (true)
             {
+                string? input = null;
                 try
                 {
-                    var input = await Console.In.ReadLineAsync();
+                    input = await Console.In.ReadLineAsync();
                     if (string.IsNullOrEmpty(input))
                     {
                         break;
@@ -70,21 +71,37 @@ namespace UIAutomationMCP.Worker.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error processing request");
-                    WriteResponse(new WorkerResponse { Success = false, Error = ex.Message });
+                    _logger.LogError(ex, "Error processing request. Input: {Input}", input ?? "null");
+                    WriteResponse(new WorkerResponse 
+                    { 
+                        Success = false, 
+                        Error = $"Request processing failed: {ex.Message}",
+                        Data = new 
+                        { 
+                            ExceptionType = ex.GetType().Name,
+                            Input = input ?? "null",
+                            StackTrace = ex.StackTrace
+                        }
+                    });
                 }
             }
         }
 
-        private async Task<WorkerResponse> ProcessRequestAsync(WorkerRequest request)
+        private Task<WorkerResponse> ProcessRequestAsync(WorkerRequest request)
         {
             try
             {
-                // Extract common parameters
+                _logger.LogDebug("Processing operation: {Operation} with parameters: {Parameters}", 
+                    request.Operation, JsonSerializer.Serialize(request.Parameters));
+
+                // Extract common parameters with better error context
                 var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
                 var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
                 var processId = request.Parameters?.GetValueOrDefault("processId") != null ? 
                     Convert.ToInt32(request.Parameters["processId"]) : 0;
+
+                _logger.LogDebug("Extracted parameters - ElementId: {ElementId}, WindowTitle: {WindowTitle}, ProcessId: {ProcessId}", 
+                    elementId, windowTitle, processId);
 
                 var result = request.Operation switch
                 {
@@ -161,17 +178,38 @@ namespace UIAutomationMCP.Worker.Services
                     _ => new UIAutomationMCP.Models.OperationResult { Success = false, Error = $"Unknown operation: {request.Operation}" }
                 };
 
-                return new WorkerResponse 
+                return Task.FromResult(new WorkerResponse 
                 { 
                     Success = result.Success, 
                     Data = result.Data, 
                     Error = result.Error 
-                };
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error executing operation: {Operation}", request.Operation);
-                return new WorkerResponse { Success = false, Error = ex.Message };
+                // Enhanced error logging with operation context
+                _logger.LogError(ex, "Error executing operation: {Operation} with parameters: {Parameters}. Exception type: {ExceptionType}", 
+                    request.Operation, JsonSerializer.Serialize(request.Parameters), ex.GetType().Name);
+
+                // Provide detailed error information for better debugging
+                var detailedError = $"Operation '{request.Operation}' failed: {ex.Message}";
+                if (ex.InnerException != null)
+                {
+                    detailedError += $" Inner exception: {ex.InnerException.Message}";
+                }
+
+                return Task.FromResult(new WorkerResponse 
+                { 
+                    Success = false, 
+                    Error = detailedError,
+                    Data = new 
+                    { 
+                        ExceptionType = ex.GetType().Name,
+                        StackTrace = ex.StackTrace,
+                        Operation = request.Operation,
+                        Parameters = request.Parameters
+                    }
+                });
             }
         }
 

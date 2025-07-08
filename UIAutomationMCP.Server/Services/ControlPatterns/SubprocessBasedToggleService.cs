@@ -16,9 +16,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
         public async Task<object> ToggleElementAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            // Input validation
+            var validationResult = SubprocessErrorHandler.ValidateElementId(elementId, "ToggleElement", _logger);
+            if (validationResult != null) return validationResult;
+
             try
             {
-                _logger.LogInformation("Toggling element: {ElementId}", elementId);
+                _logger.LogInformation("Toggling element: {ElementId} in window: {WindowTitle} (ProcessId: {ProcessId})", 
+                    elementId, windowTitle ?? "any", processId ?? 0);
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -30,12 +35,17 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 var result = await _executor.ExecuteAsync<object>("ToggleElement", parameters, timeoutSeconds);
 
                 _logger.LogInformation("Element toggled successfully: {ElementId}", elementId);
-                return new { Success = true, Message = "Element toggled successfully", Data = result };
+                return new { 
+                    Success = true, 
+                    Message = $"Element '{elementId}' toggled successfully", 
+                    Data = result,
+                    ElementId = elementId,
+                    Operation = "ToggleElement"
+                };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to toggle element: {ElementId}", elementId);
-                return new { Success = false, Error = ex.Message };
+                return SubprocessErrorHandler.HandleError(ex, "ToggleElement", elementId, timeoutSeconds, _logger);
             }
         }
     }
