@@ -5,7 +5,6 @@ using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Services.ControlTypes;
 using UIAutomationMCP.Server.Helpers;
-using UIAutomationMCP.Worker.Operations;
 
 namespace UIAutomationMCP.Server
 {
@@ -26,10 +25,10 @@ namespace UIAutomationMCP.Server
             builder.Services.AddSingleton<IScreenshotService, ScreenshotService>();
             
             // Register simple UI Automation services
-            builder.Services.AddSingleton<IElementSearchService, WorkerBasedElementSearchService>();
+            builder.Services.AddSingleton<IElementSearchService, SubprocessBasedElementSearchService>();
             builder.Services.AddSingleton<ITreeNavigationService, TreeNavigationService>();
-            builder.Services.AddSingleton<IInvokeService, InvokeService>();
-            builder.Services.AddSingleton<IValueService, ValueService>();
+            builder.Services.AddSingleton<IInvokeService, SubprocessBasedInvokeService>();
+            builder.Services.AddSingleton<IValueService, SubprocessBasedValueService>();
             builder.Services.AddSingleton<IToggleService, ToggleService>();
             builder.Services.AddSingleton<ISelectionService, SelectionService>();
             builder.Services.AddSingleton<IWindowService, WindowService>();
@@ -54,14 +53,15 @@ namespace UIAutomationMCP.Server
             builder.Services.AddSingleton<IAccessibilityService, AccessibilityService>();
             builder.Services.AddSingleton<ICustomPropertyService, CustomPropertyService>();
             
-            // Register Worker operations
-            builder.Services.AddSingleton<InvokeOperations>();
-            builder.Services.AddSingleton<ValueOperations>();
-            builder.Services.AddSingleton<ElementSearchOperations>();
-            builder.Services.AddSingleton<ElementPropertyOperations>();
+            // Register subprocess executor
+            builder.Services.AddSingleton<SubprocessExecutor>(provider =>
+            {
+                var logger = provider.GetRequiredService<ILogger<SubprocessExecutor>>();
+                var workerPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UIAutomationMCP.Worker.exe");
+                return new SubprocessExecutor(logger, workerPath);
+            });
             
             // Register helper services
-            builder.Services.AddSingleton<WorkerExecutor>();
             builder.Services.AddSingleton<AutomationHelper>();
             builder.Services.AddSingleton<ElementInfoExtractor>();
             
