@@ -22,9 +22,9 @@ namespace UIAutomationMCP.Server
 
             // Register application services
             builder.Services.AddSingleton<IApplicationLauncher, ApplicationLauncher>();
-            builder.Services.AddSingleton<IScreenshotService, ScreenshotService>();
+            builder.Services.AddSingleton<IScreenshotService, SubprocessBasedScreenshotService>();
             
-            // Register simple UI Automation services
+            // Register subprocess-based UI Automation services
             builder.Services.AddSingleton<IElementSearchService, SubprocessBasedElementSearchService>();
             builder.Services.AddSingleton<ITreeNavigationService, SubprocessBasedTreeNavigationService>();
             builder.Services.AddSingleton<IInvokeService, SubprocessBasedInvokeService>();
@@ -37,21 +37,22 @@ namespace UIAutomationMCP.Server
             builder.Services.AddSingleton<IRangeService, SubprocessBasedRangeService>();
             builder.Services.AddSingleton<IElementInspectionService, SubprocessBasedElementInspectionService>();
             
-            // Register additional UI Automation services
-            builder.Services.AddSingleton<IGridService, GridService>();
-            builder.Services.AddSingleton<ITableService, TableService>();
-            builder.Services.AddSingleton<IMultipleViewService, MultipleViewService>();
-            // Register specialized control type services
-            builder.Services.AddSingleton<IComboBoxService, ComboBoxService>();
-            builder.Services.AddSingleton<IMenuService, MenuService>();
-            builder.Services.AddSingleton<ITabService, TabService>();
-            builder.Services.AddSingleton<ITreeViewService, TreeViewService>();
-            builder.Services.AddSingleton<IListService, ListService>();
-            builder.Services.AddSingleton<ICalendarService, CalendarService>();
-            builder.Services.AddSingleton<IButtonService, ButtonService>();
-            builder.Services.AddSingleton<IHyperlinkService, HyperlinkService>();
-            builder.Services.AddSingleton<IAccessibilityService, AccessibilityService>();
-            builder.Services.AddSingleton<ICustomPropertyService, CustomPropertyService>();
+            // Register additional subprocess-based UI Automation services
+            builder.Services.AddSingleton<IGridService, SubprocessBasedGridService>();
+            builder.Services.AddSingleton<ITableService, SubprocessBasedTableService>();
+            builder.Services.AddSingleton<IMultipleViewService, SubprocessBasedMultipleViewService>();
+            builder.Services.AddSingleton<IAccessibilityService, SubprocessBasedAccessibilityService>();
+            builder.Services.AddSingleton<ICustomPropertyService, SubprocessBasedCustomPropertyService>();
+            
+            // Register specialized control type services (subprocess-based)
+            builder.Services.AddSingleton<IComboBoxService, SubprocessBasedComboBoxService>();
+            builder.Services.AddSingleton<IMenuService, SubprocessBasedMenuService>();
+            builder.Services.AddSingleton<ITabService, SubprocessBasedTabService>();
+            builder.Services.AddSingleton<ITreeViewService, SubprocessBasedTreeViewService>();
+            builder.Services.AddSingleton<IListService, SubprocessBasedListService>();
+            builder.Services.AddSingleton<ICalendarService, SubprocessBasedCalendarService>();
+            builder.Services.AddSingleton<IButtonService, SubprocessBasedButtonService>();
+            builder.Services.AddSingleton<IHyperlinkService, SubprocessBasedHyperlinkService>();
             
             // Register subprocess executor
             builder.Services.AddSingleton<SubprocessExecutor>(provider =>
@@ -61,11 +62,7 @@ namespace UIAutomationMCP.Server
                 return new SubprocessExecutor(logger, workerPath);
             });
             
-            // Register helper services
-            builder.Services.AddSingleton<AutomationHelper>();
-            builder.Services.AddSingleton<ElementInfoExtractor>();
-            
-            // UI Automation services are now handled directly through pattern handlers
+            // All UI Automation services are now handled through subprocess executor
 
             // Configure MCP Server
             builder.Services

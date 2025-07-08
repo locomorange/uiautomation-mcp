@@ -242,6 +242,82 @@ namespace UIAutomationMCP.Worker.Operations
             return new OperationResult { Success = true, Data = attributeResults };
         }
 
+        public OperationResult AppendText(string elementId, string text, string windowTitle = "", int processId = 0)
+        {
+            var element = FindElementById(elementId, windowTitle, processId);
+            if (element == null)
+                return new OperationResult { Success = false, Error = $"Element '{elementId}' not found" };
+
+            // Try ValuePattern first
+            if (element.TryGetCurrentPattern(ValuePattern.Pattern, out var valuePattern) && valuePattern is ValuePattern vp)
+            {
+                if (!vp.Current.IsReadOnly)
+                {
+                    // Let exceptions flow naturally - no try-catch
+                    var currentValue = vp.Current.Value;
+                    var newValue = currentValue + text;
+                    vp.SetValue(newValue);
+                    return new OperationResult { Success = true, Data = "Text appended successfully" };
+                }
+                else
+                {
+                    return new OperationResult { Success = false, Error = "Element is read-only" };
+                }
+            }
+            // Try TextPattern for more advanced text manipulation
+            else if (element.TryGetCurrentPattern(TextPattern.Pattern, out var textPattern) && textPattern is TextPattern tp)
+            {
+                var documentRange = tp.DocumentRange;
+                var endRange = documentRange.Clone();
+                endRange.MoveEndpointByUnit(TextPatternRangeEndpoint.Start, TextUnit.Character, documentRange.GetText(-1).Length);
+                endRange.MoveEndpointByUnit(TextPatternRangeEndpoint.End, TextUnit.Character, documentRange.GetText(-1).Length);
+                
+                // Note: TextPattern doesn't support inserting text directly
+                // This would require sending keys or other input methods
+                return new OperationResult { Success = false, Error = "Text appending via TextPattern not implemented - use ValuePattern instead" };
+            }
+            else
+            {
+                return new OperationResult { Success = false, Error = "Element does not support text modification" };
+            }
+        }
+
+        public OperationResult GetSelectedText(string elementId, string windowTitle = "", int processId = 0)
+        {
+            var element = FindElementById(elementId, windowTitle, processId);
+            if (element == null)
+                return new OperationResult { Success = false, Error = $"Element '{elementId}' not found" };
+
+            if (!element.TryGetCurrentPattern(TextPattern.Pattern, out var pattern) || pattern is not TextPattern textPattern)
+                return new OperationResult { Success = false, Error = "Element does not support TextPattern" };
+
+            // Let exceptions flow naturally - no try-catch
+            var selectionRanges = textPattern.GetSelection();
+            var selectedTexts = new List<object>();
+
+            foreach (var range in selectionRanges)
+            {
+                selectedTexts.Add(new
+                {
+                    Text = range.GetText(-1),
+                    BoundingRectangle = range.GetBoundingRectangles()
+                });
+            }
+
+            if (selectedTexts.Count == 0)
+            {
+                return new OperationResult { Success = true, Data = new { SelectedText = "", HasSelection = false } };
+            }
+            else if (selectedTexts.Count == 1)
+            {
+                return new OperationResult { Success = true, Data = new { SelectedText = selectedTexts[0], HasSelection = true } };
+            }
+            else
+            {
+                return new OperationResult { Success = true, Data = new { SelectedTexts = selectedTexts, HasSelection = true, MultipleSelections = true } };
+            }
+        }
+
         private (TextUnit textUnit, int direction) ParseTraversalDirection(string direction)
         {
             return direction.ToLower() switch

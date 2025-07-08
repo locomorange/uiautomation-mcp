@@ -75,6 +75,31 @@ namespace UIAutomationMCP.Worker.Operations
             return new OperationResult { Success = true, Data = rangeInfo };
         }
 
+        public OperationResult GetRangeProperties(string elementId, string windowTitle = "", int processId = 0)
+        {
+            var element = FindElementById(elementId, windowTitle, processId);
+            if (element == null)
+                return new OperationResult { Success = false, Error = $"Element '{elementId}' not found" };
+
+            if (!element.TryGetCurrentPattern(RangeValuePattern.Pattern, out var pattern) || pattern is not RangeValuePattern rangePattern)
+                return new OperationResult { Success = false, Error = "Element does not support RangeValuePattern" };
+
+            // Let exceptions flow naturally - no try-catch
+            var properties = new
+            {
+                Minimum = rangePattern.Current.Minimum,
+                Maximum = rangePattern.Current.Maximum,
+                LargeChange = rangePattern.Current.LargeChange,
+                SmallChange = rangePattern.Current.SmallChange,
+                IsReadOnly = rangePattern.Current.IsReadOnly,
+                Range = rangePattern.Current.Maximum - rangePattern.Current.Minimum,
+                SupportsLargeChange = rangePattern.Current.LargeChange > 0,
+                SupportsSmallChange = rangePattern.Current.SmallChange > 0
+            };
+
+            return new OperationResult { Success = true, Data = properties };
+        }
+
         private AutomationElement? FindElementById(string elementId, string windowTitle, int processId)
         {
             var searchRoot = GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;

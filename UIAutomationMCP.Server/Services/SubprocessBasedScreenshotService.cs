@@ -4,6 +4,10 @@ using UIAutomationMCP.Server.Models;
 
 namespace UIAutomationMCP.Server.Services
 {
+    public interface IScreenshotService
+    {
+        Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int? processId = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default);
+    }
     public class SubprocessBasedScreenshotService : IScreenshotService
     {
         private readonly ILogger<SubprocessBasedScreenshotService> _logger;

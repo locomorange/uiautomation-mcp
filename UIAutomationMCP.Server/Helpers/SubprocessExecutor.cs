@@ -40,53 +40,109 @@ namespace UIAutomationMCP.Server.Helpers
                 await _workerProcess.StandardInput.FlushAsync();
 
                 var responseTask = _workerProcess.StandardOutput.ReadLineAsync();
-                var completedTask = await Task.WhenAny(responseTask, Task.Delay(Timeout.Infinite, cts.Token));
+                var timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeoutSeconds), cts.Token);
+                var completedTask = await Task.WhenAny(responseTask, timeoutTask);
 
-                if (completedTask != responseTask)
+                if (completedTask == timeoutTask)
                 {
-                    _logger.LogWarning("Worker operation timed out: {Operation}", operation);
-                    await RestartWorkerProcessAsync();
+                    _logger.LogWarning("Worker operation timed out after {TimeoutSeconds}s: {Operation}", timeoutSeconds, operation);
+                    
+                    // Give the process a chance to respond to cancellation
+                    cts.Cancel();
+                    
+                    // Wait a short time for graceful shutdown
+                    var gracefulShutdownTask = Task.Delay(TimeSpan.FromSeconds(2));
+                    var shutdownCompleted = await Task.WhenAny(responseTask, gracefulShutdownTask);
+                    
+                    if (shutdownCompleted == gracefulShutdownTask)
+                    {
+                        _logger.LogWarning("Worker process did not respond to cancellation, forcing restart");
+                        await RestartWorkerProcessAsync();
+                    }
+                    
                     throw new TimeoutException($"Worker operation '{operation}' timed out after {timeoutSeconds} seconds");
                 }
 
                 var responseJson = await responseTask;
                 if (string.IsNullOrEmpty(responseJson))
                 {
-                    throw new InvalidOperationException("Worker process returned empty response");
+                    var contextMessage = $"Worker process returned empty response for operation '{operation}'";
+                    if (parameters != null)
+                    {
+                        contextMessage += $" with parameters: {JsonSerializer.Serialize(parameters)}";
+                    }
+                    _logger.LogError("Empty response received: {Context}", contextMessage);
+                    throw new InvalidOperationException(contextMessage);
                 }
 
-                _logger.LogDebug("Received response from worker: {Response}", responseJson);
+                _logger.LogDebug("Received response from worker (length: {Length}): {Response}", 
+                    responseJson.Length, 
+                    responseJson.Length > 500 ? responseJson.Substring(0, 500) + "..." : responseJson);
 
-                var response = JsonSerializer.Deserialize<WorkerResponse>(responseJson);
+                WorkerResponse? response;
+                try
+                {
+                    response = JsonSerializer.Deserialize<WorkerResponse>(responseJson);
+                }
+                catch (JsonException ex)
+                {
+                    var errorMessage = $"Failed to deserialize worker response for operation '{operation}'. Response: {responseJson}";
+                    _logger.LogError(ex, "JSON deserialization failed: {ErrorMessage}", errorMessage);
+                    throw new InvalidOperationException(errorMessage, ex);
+                }
+                
                 if (response == null)
                 {
-                    throw new InvalidOperationException("Failed to deserialize worker response");
+                    var errorMessage = $"Deserialized response is null for operation '{operation}'. Raw response: {responseJson}";
+                    _logger.LogError("Null response after deserialization: {ErrorMessage}", errorMessage);
+                    throw new InvalidOperationException(errorMessage);
                 }
 
                 if (!response.Success)
                 {
-                    // Enhanced error propagation with more context
-                    var errorMessage = $"Worker operation '{operation}' failed: {response.Error}";
-                    _logger.LogError("Worker operation failed: {Operation}, Error: {Error}", operation, response.Error);
+                    // Enhanced error propagation with operation context
+                    var errorDetails = new
+                    {
+                        Operation = operation,
+                        Parameters = parameters,
+                        Error = response.Error,
+                        Timestamp = DateTime.UtcNow,
+                        WorkerPid = _workerProcess?.Id
+                    };
                     
-                    // Try to detect specific error types for better exception handling
-                    if (response.Error?.Contains("not found", StringComparison.OrdinalIgnoreCase) == true)
+                    var contextualErrorMessage = $"Worker operation '{operation}' failed: {response.Error}";
+                    if (parameters != null)
                     {
-                        throw new ArgumentException(errorMessage);
+                        contextualErrorMessage += $" (Parameters: {JsonSerializer.Serialize(parameters)})";
                     }
-                    else if (response.Error?.Contains("not supported", StringComparison.OrdinalIgnoreCase) == true || 
-                             response.Error?.Contains("pattern", StringComparison.OrdinalIgnoreCase) == true)
+                    
+                    _logger.LogError("Worker operation failed with details: {@ErrorDetails}", errorDetails);
+                    
+                    // Categorize errors for appropriate exception types
+                    var errorLower = response.Error?.ToLowerInvariant() ?? "";
+                    
+                    if (errorLower.Contains("not found") || errorLower.Contains("element") && errorLower.Contains("not") ||
+                        errorLower.Contains("invalid") && errorLower.Contains("id"))
                     {
-                        throw new InvalidOperationException(errorMessage);
+                        throw new ArgumentException(contextualErrorMessage);
                     }
-                    else if (response.Error?.Contains("read-only", StringComparison.OrdinalIgnoreCase) == true ||
-                             response.Error?.Contains("access", StringComparison.OrdinalIgnoreCase) == true)
+                    else if (errorLower.Contains("not supported") || errorLower.Contains("pattern") && errorLower.Contains("not") ||
+                             errorLower.Contains("control") && errorLower.Contains("not"))
                     {
-                        throw new UnauthorizedAccessException(errorMessage);
+                        throw new NotSupportedException(contextualErrorMessage);
+                    }
+                    else if (errorLower.Contains("read-only") || errorLower.Contains("access") && errorLower.Contains("denied") ||
+                             errorLower.Contains("permission") || errorLower.Contains("unauthorized"))
+                    {
+                        throw new UnauthorizedAccessException(contextualErrorMessage);
+                    }
+                    else if (errorLower.Contains("timeout") || errorLower.Contains("time") && errorLower.Contains("out"))
+                    {
+                        throw new TimeoutException(contextualErrorMessage);
                     }
                     else
                     {
-                        throw new InvalidOperationException(errorMessage);
+                        throw new InvalidOperationException(contextualErrorMessage);
                     }
                 }
 
@@ -140,16 +196,50 @@ namespace UIAutomationMCP.Server.Helpers
         {
             _logger.LogInformation("Restarting worker process");
             
-            if (_workerProcess != null && !_workerProcess.HasExited)
+            if (_workerProcess != null)
             {
                 try
                 {
-                    _workerProcess.Kill();
-                    await _workerProcess.WaitForExitAsync();
+                    if (!_workerProcess.HasExited)
+                    {
+                        _logger.LogDebug("Attempting graceful shutdown of worker process PID: {ProcessId}", _workerProcess.Id);
+                        
+                        // Try graceful shutdown first by closing stdin
+                        try
+                        {
+                            _workerProcess.StandardInput.Close();
+                            
+                            // Wait up to 3 seconds for graceful exit
+                            if (!_workerProcess.WaitForExit(3000))
+                            {
+                                _logger.LogWarning("Worker process did not exit gracefully, forcing termination");
+                                _workerProcess.Kill();
+                                
+                                // Wait up to 2 more seconds for forced termination
+                                if (!_workerProcess.WaitForExit(2000))
+                                {
+                                    _logger.LogError("Worker process did not respond to Kill signal");
+                                }
+                            }
+                            else
+                            {
+                                _logger.LogDebug("Worker process exited gracefully with code: {ExitCode}", _workerProcess.ExitCode);
+                            }
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            // Process may have already exited
+                            _logger.LogDebug("Worker process already exited during graceful shutdown attempt");
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogDebug("Worker process was already exited with code: {ExitCode}", _workerProcess.ExitCode);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to kill worker process");
+                    _logger.LogWarning(ex, "Exception during worker process shutdown");
                 }
                 finally
                 {
@@ -158,6 +248,9 @@ namespace UIAutomationMCP.Server.Helpers
                 }
             }
 
+            // Add a small delay before restart to prevent rapid restart loops
+            await Task.Delay(100);
+            
             await StartWorkerProcessAsync();
         }
 

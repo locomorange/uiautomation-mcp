@@ -29,6 +29,17 @@ namespace UIAutomationMCP.Worker
             builder.Services.AddSingleton<TextOperations>();
             builder.Services.AddSingleton<LayoutOperations>();
             builder.Services.AddSingleton<RangeOperations>();
+            builder.Services.AddSingleton<TreeNavigationOperations>();
+            builder.Services.AddSingleton<ElementInspectionOperations>();
+            
+            // Register new operations
+            builder.Services.AddSingleton<GridOperations>();
+            builder.Services.AddSingleton<TableOperations>();
+            builder.Services.AddSingleton<MultipleViewOperations>();
+            builder.Services.AddSingleton<ControlTypeOperations>();
+            builder.Services.AddSingleton<AccessibilityOperations>();
+            builder.Services.AddSingleton<CustomPropertyOperations>();
+            builder.Services.AddSingleton<ScreenshotOperations>();
 
             // Register Worker service
             builder.Services.AddSingleton<WorkerService>();

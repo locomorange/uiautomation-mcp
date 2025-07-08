@@ -14,7 +14,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             _executor = executor;
         }
 
-        public async Task<object> SetElementValueAsync(string elementId, string value, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<object> SetValueAsync(string elementId, string value, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             try
             {
@@ -28,7 +28,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                await _executor.ExecuteAsync<object>("SetElementValue", parameters, timeoutSeconds);
+                await _executor.ExecuteAsync<object>("SetValue", parameters, timeoutSeconds);
 
                 _logger.LogInformation("Element value set successfully: {ElementId}", elementId);
                 return new { Success = true, Message = $"Element value set to: {value}" };
@@ -40,7 +40,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             }
         }
 
-        public async Task<object> GetElementValueAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<object> GetValueAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             try
             {
@@ -53,7 +53,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                var result = await _executor.ExecuteAsync<string>("GetElementValue", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<string>("GetValue", parameters, timeoutSeconds);
 
                 _logger.LogInformation("Element value retrieved successfully: {ElementId}", elementId);
                 return new { Success = true, Data = result };
@@ -61,6 +61,31 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to get element value: {ElementId}", elementId);
+                return new { Success = false, Error = ex.Message };
+            }
+        }
+
+        public async Task<object> IsReadOnlyAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            try
+            {
+                _logger.LogInformation("Checking if element is read-only: {ElementId}", elementId);
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "elementId", elementId },
+                    { "windowTitle", windowTitle ?? "" },
+                    { "processId", processId ?? 0 }
+                };
+
+                var result = await _executor.ExecuteAsync<bool>("IsReadOnly", parameters, timeoutSeconds);
+
+                _logger.LogInformation("Read-only status retrieved successfully: {ElementId}", elementId);
+                return new { Success = true, Data = result };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to check read-only status: {ElementId}", elementId);
                 return new { Success = false, Error = ex.Message };
             }
         }

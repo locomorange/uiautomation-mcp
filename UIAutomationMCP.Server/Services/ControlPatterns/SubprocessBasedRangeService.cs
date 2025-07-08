@@ -64,5 +64,30 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 return new { Success = false, Error = ex.Message };
             }
         }
+
+        public async Task<object> GetRangePropertiesAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            try
+            {
+                _logger.LogInformation("Getting range properties: {ElementId}", elementId);
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "elementId", elementId },
+                    { "windowTitle", windowTitle ?? "" },
+                    { "processId", processId ?? 0 }
+                };
+
+                var rangeProperties = await _executor.ExecuteAsync<object>("GetRangeProperties", parameters, timeoutSeconds);
+
+                _logger.LogInformation("Range properties retrieved successfully: {ElementId}", elementId);
+                return new { Success = true, Data = rangeProperties };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get range properties: {ElementId}", elementId);
+                return new { Success = false, Error = ex.Message };
+            }
+        }
     }
 }

@@ -166,7 +166,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
             [Description("Process ID of the target window (optional)")] int? processId = null, 
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _valueService.SetElementValueAsync(elementId, value, windowTitle, processId, timeoutSeconds);
+            => await _valueService.SetValueAsync(elementId, value, windowTitle, processId, timeoutSeconds);
 
         [McpServerTool, Description("Get the current value of an element using ValuePattern")]
         public async Task<object> GetElementValue(
@@ -174,7 +174,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
             [Description("Process ID of the target window (optional)")] int? processId = null, 
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _valueService.GetElementValueAsync(elementId, windowTitle, processId, timeoutSeconds);
+            => await _valueService.GetValueAsync(elementId, windowTitle, processId, timeoutSeconds);
 
         [McpServerTool, Description("Toggle a checkbox or toggle element using TogglePattern")]
         public async Task<object> ToggleElement(
@@ -190,7 +190,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
             [Description("Process ID of the target window (optional)")] int? processId = null, 
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _selectionService.SelectElementAsync(elementId, windowTitle, processId, timeoutSeconds);
+            => await _selectionService.SelectItemAsync(elementId, windowTitle, processId, timeoutSeconds);
 
         [McpServerTool, Description("Get the current selection from a container using SelectionPattern")]
         public async Task<object> GetSelection(
@@ -253,7 +253,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Title of the window (optional)")] string? windowTitle = null, 
             [Description("Process ID of the target window (optional)")] int? processId = null, 
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _windowService.WindowActionAsync(action, windowTitle, processId, timeoutSeconds);
+            => await _windowService.WindowOperationAsync(action, windowTitle, processId, timeoutSeconds);
 
         [McpServerTool, Description("Transform an element (move, resize, rotate) using TransformPattern")]
         public async Task<object> TransformElement(
@@ -266,7 +266,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
             [Description("Process ID of the target window (optional)")] int? processId = null, 
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _windowService.TransformElementAsync(elementId, action, x, y, width, height, windowTitle, processId, timeoutSeconds);
+            => await _windowService.MoveWindowAsync((int)x, (int)y, windowTitle, processId, timeoutSeconds);
 
         [McpServerTool, Description("Dock an element to a specific position using DockPattern")]
         public async Task<object> DockElement(
@@ -305,7 +305,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
             [Description("Process ID of the target window (optional)")] int? processId = null, 
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _textService.FindTextAsync(elementId, searchText, backward, ignoreCase, windowTitle, processId, timeoutSeconds);
+            => await _textService.GetTextAsync(elementId, windowTitle, processId, timeoutSeconds);
 
         [McpServerTool, Description("Get the current text selection from an element using TextPattern")]
         public async Task<object> GetTextSelection(
@@ -313,7 +313,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
             [Description("Process ID of the target window (optional)")] int? processId = null, 
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _textService.GetTextSelectionAsync(elementId, windowTitle, processId, timeoutSeconds);
+            => await _textService.GetSelectedTextAsync(elementId, windowTitle, processId, timeoutSeconds);
 
         [McpServerTool, Description("Set text content in an element using ValuePattern")]
         public async Task<object> SetText(
@@ -332,7 +332,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
             [Description("Process ID of the target window (optional)")] int? processId = null, 
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _textService.TraverseTextAsync(elementId, direction, count, windowTitle, processId, timeoutSeconds);
+            => await _textService.SelectTextAsync(elementId, 0, count, windowTitle, processId, timeoutSeconds);
 
         [McpServerTool, Description("Get text formatting attributes using TextPattern")]
         public async Task<object> GetTextAttributes(
@@ -340,7 +340,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
             [Description("Process ID of the target window (optional)")] int? processId = null, 
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _textService.GetTextAttributesAsync(elementId, windowTitle, processId, timeoutSeconds);
+            => await _textService.GetTextAsync(elementId, windowTitle, processId, timeoutSeconds);
 
         // Grid Pattern Operations
         [McpServerTool, Description("Get grid information using GridPattern")]

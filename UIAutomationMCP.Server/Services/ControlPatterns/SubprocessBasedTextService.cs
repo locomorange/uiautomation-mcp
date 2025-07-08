@@ -222,5 +222,81 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 return new { Success = false, Error = ex.Message };
             }
         }
+
+        public async Task<object> AppendTextAsync(string elementId, string text, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            // Input validation
+            var validationResult = SubprocessErrorHandler.ValidateElementId(elementId, "AppendText", _logger);
+            if (validationResult != null) return validationResult;
+
+            if (text == null)
+            {
+                var validationError = "Text value is required and cannot be null";
+                _logger.LogWarning("AppendText operation failed due to validation: {Error}", validationError);
+                return new { Success = false, Error = validationError, ErrorCategory = "Validation" };
+            }
+
+            try
+            {
+                _logger.LogInformation("Appending text to element: {ElementId} with {TextLength} characters", elementId, text.Length);
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "elementId", elementId },
+                    { "text", text },
+                    { "windowTitle", windowTitle ?? "" },
+                    { "processId", processId ?? 0 }
+                };
+
+                await _executor.ExecuteAsync<object>("AppendText", parameters, timeoutSeconds);
+
+                _logger.LogInformation("Text appended successfully to element: {ElementId}", elementId);
+                return new { 
+                    Success = true, 
+                    Message = $"Text appended successfully to element '{elementId}'",
+                    ElementId = elementId,
+                    Operation = "AppendText",
+                    TextLength = text.Length
+                };
+            }
+            catch (Exception ex)
+            {
+                return SubprocessErrorHandler.HandleError(ex, "AppendText", elementId, timeoutSeconds, _logger);
+            }
+        }
+
+        public async Task<object> GetSelectedTextAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            // Input validation
+            var validationResult = SubprocessErrorHandler.ValidateElementId(elementId, "GetSelectedText", _logger);
+            if (validationResult != null) return validationResult;
+
+            try
+            {
+                _logger.LogInformation("Getting selected text from element: {ElementId}", elementId);
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "elementId", elementId },
+                    { "windowTitle", windowTitle ?? "" },
+                    { "processId", processId ?? 0 }
+                };
+
+                var result = await _executor.ExecuteAsync<object>("GetSelectedText", parameters, timeoutSeconds);
+
+                _logger.LogInformation("Selected text retrieved successfully from element: {ElementId}", elementId);
+                return new { 
+                    Success = true, 
+                    Data = result,
+                    Message = $"Selected text retrieved from element '{elementId}'",
+                    ElementId = elementId,
+                    Operation = "GetSelectedText"
+                };
+            }
+            catch (Exception ex)
+            {
+                return SubprocessErrorHandler.HandleError(ex, "GetSelectedText", elementId, timeoutSeconds, _logger);
+            }
+        }
     }
 }

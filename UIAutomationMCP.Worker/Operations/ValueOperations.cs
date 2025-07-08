@@ -79,6 +79,40 @@ namespace UIAutomationMCP.Worker.Operations
             return new OperationResult { Success = result.Success, Data = result.Data, Error = result.Error };
         }
 
+        /// <summary>
+        /// Get value - interface compatibility method
+        /// </summary>
+        public OperationResult<string> GetValueResult(string elementId, string windowTitle = "", int processId = 0)
+        {
+            var element = FindElementById(elementId, windowTitle, processId);
+            if (element == null)
+                return new OperationResult<string> { Success = false, Error = "Element not found" };
+
+            // Let exceptions flow naturally - no try-catch
+            return GetValue(element);
+        }
+
+        /// <summary>
+        /// Set value - interface compatibility method
+        /// </summary>
+        public OperationResult SetValueResult(string elementId, string value, string windowTitle = "", int processId = 0)
+        {
+            return SetElementValue(elementId, value, windowTitle, processId);
+        }
+
+        /// <summary>
+        /// Check if element is read-only - interface compatibility method
+        /// </summary>
+        public OperationResult<bool> IsReadOnlyResult(string elementId, string windowTitle = "", int processId = 0)
+        {
+            var element = FindElementById(elementId, windowTitle, processId);
+            if (element == null)
+                return new OperationResult<bool> { Success = false, Error = "Element not found" };
+
+            // Let exceptions flow naturally - no try-catch
+            return IsReadOnly(element);
+        }
+
         private AutomationElement? FindElementById(string elementId, string windowTitle, int processId)
         {
             var searchRoot = GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;

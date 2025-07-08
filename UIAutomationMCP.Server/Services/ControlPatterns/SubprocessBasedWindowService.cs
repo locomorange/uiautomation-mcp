@@ -14,42 +14,41 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             _executor = executor;
         }
 
-        public async Task<object> WindowActionAsync(string action, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<object> WindowOperationAsync(string operation, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             // Input validation
-            if (string.IsNullOrWhiteSpace(action))
+            if (string.IsNullOrWhiteSpace(operation))
             {
-                var validationError = "Window action is required and cannot be empty";
-                _logger.LogWarning("WindowAction operation failed due to validation: {Error}", validationError);
+                var validationError = "Window operation is required and cannot be empty";
+                _logger.LogWarning("WindowOperation operation failed due to validation: {Error}", validationError);
                 return new { Success = false, Error = validationError, ErrorCategory = "Validation" };
             }
 
             try
             {
-                _logger.LogInformation("Performing window action: {Action} on window: {WindowTitle} (ProcessId: {ProcessId})", 
-                    action, windowTitle ?? "any", processId ?? 0);
+                _logger.LogInformation("Performing window operation: {Operation} on window: {WindowTitle} (ProcessId: {ProcessId})", 
+                    operation, windowTitle ?? "any", processId ?? 0);
 
                 var parameters = new Dictionary<string, object>
                 {
-                    { "action", action },
+                    { "operation", operation },
                     { "windowTitle", windowTitle ?? "" },
                     { "processId", processId ?? 0 }
                 };
 
-                await _executor.ExecuteAsync<object>("WindowAction", parameters, timeoutSeconds);
+                await _executor.ExecuteAsync<object>("WindowOperation", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Window action performed successfully: {Action}", action);
+                _logger.LogInformation("Window operation performed successfully: {Operation}", operation);
                 return new { 
                     Success = true, 
-                    Message = $"Window action '{action}' performed successfully",
-                    Action = action,
-                    WindowTitle = windowTitle,
-                    Operation = "WindowAction"
+                    Message = $"Window operation '{operation}' performed successfully",
+                    Operation = operation,
+                    WindowTitle = windowTitle
                 };
             }
             catch (Exception ex)
             {
-                return SubprocessErrorHandler.HandleError(ex, "WindowAction", windowTitle ?? "unknown", timeoutSeconds, _logger);
+                return SubprocessErrorHandler.HandleError(ex, "WindowOperation", windowTitle ?? "unknown", timeoutSeconds, _logger);
             }
         }
 
@@ -98,6 +97,139 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             catch (Exception ex)
             {
                 return SubprocessErrorHandler.HandleError(ex, "TransformElement", elementId, timeoutSeconds, _logger);
+            }
+        }
+
+        public async Task<object> GetWindowStateAsync(string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            try
+            {
+                _logger.LogInformation("Getting window state for window: {WindowTitle} (ProcessId: {ProcessId})", 
+                    windowTitle ?? "any", processId ?? 0);
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "windowTitle", windowTitle ?? "" },
+                    { "processId", processId ?? 0 }
+                };
+
+                var result = await _executor.ExecuteAsync<object>("GetWindowState", parameters, timeoutSeconds);
+
+                _logger.LogInformation("Window state retrieved successfully for window: {WindowTitle}", windowTitle ?? "any");
+                return new { 
+                    Success = true, 
+                    Data = result,
+                    Message = $"Window state retrieved successfully",
+                    WindowTitle = windowTitle,
+                    Operation = "GetWindowState"
+                };
+            }
+            catch (Exception ex)
+            {
+                return SubprocessErrorHandler.HandleError(ex, "GetWindowState", windowTitle ?? "unknown", timeoutSeconds, _logger);
+            }
+        }
+
+        public async Task<object> SetWindowStateAsync(string windowState, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            // Input validation
+            if (string.IsNullOrWhiteSpace(windowState))
+            {
+                var validationError = "Window state is required and cannot be empty";
+                _logger.LogWarning("SetWindowState operation failed due to validation: {Error}", validationError);
+                return new { Success = false, Error = validationError, ErrorCategory = "Validation" };
+            }
+
+            try
+            {
+                _logger.LogInformation("Setting window state to: {WindowState} for window: {WindowTitle} (ProcessId: {ProcessId})", 
+                    windowState, windowTitle ?? "any", processId ?? 0);
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "windowState", windowState },
+                    { "windowTitle", windowTitle ?? "" },
+                    { "processId", processId ?? 0 }
+                };
+
+                await _executor.ExecuteAsync<object>("SetWindowState", parameters, timeoutSeconds);
+
+                _logger.LogInformation("Window state set successfully to: {WindowState}", windowState);
+                return new { 
+                    Success = true, 
+                    Message = $"Window state set to '{windowState}' successfully",
+                    WindowState = windowState,
+                    WindowTitle = windowTitle,
+                    Operation = "SetWindowState"
+                };
+            }
+            catch (Exception ex)
+            {
+                return SubprocessErrorHandler.HandleError(ex, "SetWindowState", windowTitle ?? "unknown", timeoutSeconds, _logger);
+            }
+        }
+
+        public async Task<object> MoveWindowAsync(int x, int y, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            try
+            {
+                _logger.LogInformation("Moving window to position: ({X}, {Y}) for window: {WindowTitle} (ProcessId: {ProcessId})", 
+                    x, y, windowTitle ?? "any", processId ?? 0);
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "x", x },
+                    { "y", y },
+                    { "windowTitle", windowTitle ?? "" },
+                    { "processId", processId ?? 0 }
+                };
+
+                await _executor.ExecuteAsync<object>("MoveWindow", parameters, timeoutSeconds);
+
+                _logger.LogInformation("Window moved successfully to position: ({X}, {Y})", x, y);
+                return new { 
+                    Success = true, 
+                    Message = $"Window moved to position ({x}, {y}) successfully",
+                    Position = new { X = x, Y = y },
+                    WindowTitle = windowTitle,
+                    Operation = "MoveWindow"
+                };
+            }
+            catch (Exception ex)
+            {
+                return SubprocessErrorHandler.HandleError(ex, "MoveWindow", windowTitle ?? "unknown", timeoutSeconds, _logger);
+            }
+        }
+
+        public async Task<object> ResizeWindowAsync(int width, int height, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            try
+            {
+                _logger.LogInformation("Resizing window to size: ({Width}, {Height}) for window: {WindowTitle} (ProcessId: {ProcessId})", 
+                    width, height, windowTitle ?? "any", processId ?? 0);
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "width", width },
+                    { "height", height },
+                    { "windowTitle", windowTitle ?? "" },
+                    { "processId", processId ?? 0 }
+                };
+
+                await _executor.ExecuteAsync<object>("ResizeWindow", parameters, timeoutSeconds);
+
+                _logger.LogInformation("Window resized successfully to size: ({Width}, {Height})", width, height);
+                return new { 
+                    Success = true, 
+                    Message = $"Window resized to size ({width}, {height}) successfully",
+                    Size = new { Width = width, Height = height },
+                    WindowTitle = windowTitle,
+                    Operation = "ResizeWindow"
+                };
+            }
+            catch (Exception ex)
+            {
+                return SubprocessErrorHandler.HandleError(ex, "ResizeWindow", windowTitle ?? "unknown", timeoutSeconds, _logger);
             }
         }
     }
