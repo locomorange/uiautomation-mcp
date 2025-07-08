@@ -185,28 +185,163 @@ namespace UIAutomationMCP.Worker.Operations
         /// <summary>
         /// デスクトップのウィンドウを取得
         /// </summary>
-        public OperationResult<AutomationElementCollection> GetDesktopWindows()
+        public OperationResult GetDesktopWindows()
         {
             try
             {
                 var rootElement = AutomationElement.RootElement;
-                var condition = ConditionBuilder.Windows();
-                var windows = rootElement.FindElementsSafe(TreeScope.Children, condition);
-                return new OperationResult<AutomationElementCollection>
+                var condition = new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window);
+                var windows = rootElement.FindAll(TreeScope.Children, condition);
+                
+                var windowList = new List<WindowInfo>();
+                foreach (AutomationElement window in windows)
+                {
+                    try
+                    {
+                        windowList.Add(new WindowInfo
+                        {
+                            Name = window.Current.Name,
+                            ProcessId = window.Current.ProcessId,
+                            AutomationId = window.Current.AutomationId
+                        });
+                    }
+                    catch (Exception)
+                    {
+                        // Skip windows that can't be processed
+                    }
+                }
+
+                return new OperationResult
                 {
                     Success = true,
-                    Data = windows
+                    Data = windowList
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to get desktop windows");
-                return new OperationResult<AutomationElementCollection>
+                return new OperationResult
                 {
                     Success = false,
                     Error = ex.Message
                 };
             }
+        }
+
+        /// <summary>
+        /// パラメータベースで要素を検索
+        /// </summary>
+        public OperationResult FindElements(string searchText = "", string controlType = "", string windowTitle = "", int processId = 0)
+        {
+            try
+            {
+                var searchRoot = GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
+                
+                Condition condition = Condition.TrueCondition;
+                
+                // Build search condition
+                var conditions = new List<Condition>();
+                
+                if (!string.IsNullOrEmpty(searchText))
+                {
+                    var nameCondition = new PropertyCondition(AutomationElement.NameProperty, searchText);
+                    var automationIdCondition = new PropertyCondition(AutomationElement.AutomationIdProperty, searchText);
+                    conditions.Add(new OrCondition(nameCondition, automationIdCondition));
+                }
+                
+                if (!string.IsNullOrEmpty(controlType))
+                {
+                    var controlTypeObj = GetControlTypeFromString(controlType);
+                    if (controlTypeObj != null)
+                    {
+                        conditions.Add(new PropertyCondition(AutomationElement.ControlTypeProperty, controlTypeObj));
+                    }
+                }
+                
+                if (conditions.Count > 0)
+                {
+                    condition = conditions.Count == 1 ? conditions[0] : new AndCondition(conditions.ToArray());
+                }
+                
+                var elements = searchRoot.FindAll(TreeScope.Descendants, condition);
+                var elementList = new List<ElementInfo>();
+                
+                foreach (AutomationElement element in elements)
+                {
+                    try
+                    {
+                        elementList.Add(new ElementInfo
+                        {
+                            AutomationId = element.Current.AutomationId,
+                            Name = element.Current.Name,
+                            ControlType = element.Current.ControlType.LocalizedControlType,
+                            IsEnabled = element.Current.IsEnabled,
+                            ProcessId = element.Current.ProcessId,
+                            BoundingRectangle = element.Current.BoundingRectangle
+                        });
+                    }
+                    catch (Exception)
+                    {
+                        // Skip elements that can't be processed
+                    }
+                }
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Data = elementList
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to find elements");
+                return new OperationResult
+                {
+                    Success = false,
+                    Error = ex.Message
+                };
+            }
+        }
+
+        private ControlType? GetControlTypeFromString(string controlType)
+        {
+            return controlType.ToLowerInvariant() switch
+            {
+                "button" => ControlType.Button,
+                "edit" => ControlType.Edit,
+                "text" => ControlType.Text,
+                "window" => ControlType.Window,
+                "combobox" => ControlType.ComboBox,
+                "list" => ControlType.List,
+                "listitem" => ControlType.ListItem,
+                "menu" => ControlType.Menu,
+                "menuitem" => ControlType.MenuItem,
+                "tab" => ControlType.Tab,
+                "tabitem" => ControlType.TabItem,
+                "tree" => ControlType.Tree,
+                "treeitem" => ControlType.TreeItem,
+                "checkbox" => ControlType.CheckBox,
+                "radiobutton" => ControlType.RadioButton,
+                "hyperlink" => ControlType.Hyperlink,
+                "table" => ControlType.Table,
+                "group" => ControlType.Group,
+                _ => null
+            };
+        }
+
+        private AutomationElement? GetSearchRoot(string windowTitle, int processId)
+        {
+            if (processId > 0)
+            {
+                var condition = new PropertyCondition(AutomationElement.ProcessIdProperty, processId);
+                return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
+            }
+            else if (!string.IsNullOrEmpty(windowTitle))
+            {
+                var condition = new PropertyCondition(AutomationElement.NameProperty, windowTitle);
+                return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
+            }
+            return null;
         }
     }
 }

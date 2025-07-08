@@ -26,16 +26,16 @@ namespace UIAutomationMCP.Server
             
             // Register simple UI Automation services
             builder.Services.AddSingleton<IElementSearchService, SubprocessBasedElementSearchService>();
-            builder.Services.AddSingleton<ITreeNavigationService, TreeNavigationService>();
+            builder.Services.AddSingleton<ITreeNavigationService, SubprocessBasedTreeNavigationService>();
             builder.Services.AddSingleton<IInvokeService, SubprocessBasedInvokeService>();
             builder.Services.AddSingleton<IValueService, SubprocessBasedValueService>();
-            builder.Services.AddSingleton<IToggleService, ToggleService>();
-            builder.Services.AddSingleton<ISelectionService, SelectionService>();
-            builder.Services.AddSingleton<IWindowService, WindowService>();
-            builder.Services.AddSingleton<ITextService, TextService>();
-            builder.Services.AddSingleton<ILayoutService, LayoutService>();
-            builder.Services.AddSingleton<IRangeService, RangeService>();
-            builder.Services.AddSingleton<IElementInspectionService, ElementInspectionService>();
+            builder.Services.AddSingleton<IToggleService, SubprocessBasedToggleService>();
+            builder.Services.AddSingleton<ISelectionService, SubprocessBasedSelectionService>();
+            builder.Services.AddSingleton<IWindowService, SubprocessBasedWindowService>();
+            builder.Services.AddSingleton<ITextService, SubprocessBasedTextService>();
+            builder.Services.AddSingleton<ILayoutService, SubprocessBasedLayoutService>();
+            builder.Services.AddSingleton<IRangeService, SubprocessBasedRangeService>();
+            builder.Services.AddSingleton<IElementInspectionService, SubprocessBasedElementInspectionService>();
             
             // Register additional UI Automation services
             builder.Services.AddSingleton<IGridService, GridService>();

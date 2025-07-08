@@ -13,13 +13,6 @@ namespace UIAutomationMCP.Worker.Services
         private readonly ElementPropertyOperations _elementPropertyOperations;
         private readonly ToggleOperations _toggleOperations;
         private readonly SelectionOperations _selectionOperations;
-        private readonly WindowOperations _windowOperations;
-        private readonly TextOperations _textOperations;
-        private readonly LayoutOperations _layoutOperations;
-        private readonly RangeOperations _rangeOperations;
-        private readonly GridOperations _gridOperations;
-        private readonly TableOperations _tableOperations;
-        private readonly MultipleViewOperations _multipleViewOperations;
 
         public WorkerService(
             ILogger<WorkerService> logger,
@@ -28,14 +21,7 @@ namespace UIAutomationMCP.Worker.Services
             ElementSearchOperations elementSearchOperations,
             ElementPropertyOperations elementPropertyOperations,
             ToggleOperations toggleOperations,
-            SelectionOperations selectionOperations,
-            WindowOperations windowOperations,
-            TextOperations textOperations,
-            LayoutOperations layoutOperations,
-            RangeOperations rangeOperations,
-            GridOperations gridOperations,
-            TableOperations tableOperations,
-            MultipleViewOperations multipleViewOperations)
+            SelectionOperations selectionOperations)
         {
             _logger = logger;
             _invokeOperations = invokeOperations;
@@ -44,13 +30,6 @@ namespace UIAutomationMCP.Worker.Services
             _elementPropertyOperations = elementPropertyOperations;
             _toggleOperations = toggleOperations;
             _selectionOperations = selectionOperations;
-            _windowOperations = windowOperations;
-            _textOperations = textOperations;
-            _layoutOperations = layoutOperations;
-            _rangeOperations = rangeOperations;
-            _gridOperations = gridOperations;
-            _tableOperations = tableOperations;
-            _multipleViewOperations = multipleViewOperations;
         }
 
         public async Task RunAsync()
@@ -89,51 +68,36 @@ namespace UIAutomationMCP.Worker.Services
         {
             try
             {
+                // Extract common parameters
+                var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
+                var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
+                var processId = request.Parameters?.GetValueOrDefault("processId") != null ? 
+                    Convert.ToInt32(request.Parameters["processId"]) : 0;
+
                 var result = request.Operation switch
                 {
                     // Invoke operations
-                    "Invoke" => _invokeOperations.Invoke(request.Element),
+                    "InvokeElement" => _invokeOperations.InvokeElement(elementId, windowTitle, processId),
                     
                     // Value operations
-                    "SetValue" => _valueOperations.SetValue(request.Element, request.Parameters?.GetValueOrDefault("value")?.ToString() ?? ""),
-                    "GetValue" => _valueOperations.GetValue(request.Element),
-                    "IsReadOnly" => _valueOperations.IsReadOnly(request.Element),
+                    "SetElementValue" => _valueOperations.SetElementValue(elementId, 
+                        request.Parameters?.GetValueOrDefault("value")?.ToString() ?? "", windowTitle, processId),
+                    "GetElementValue" => _valueOperations.GetElementValue(elementId, windowTitle, processId),
                     
                     // Element search operations
-                    "GetRootElement" => _elementSearchOperations.GetRootElement(),
-                    "FindElements" => _elementSearchOperations.FindElements(request.Element, request.TreeScope, request.Condition),
-                    "FindFirstElement" => _elementSearchOperations.FindFirstElement(request.Element, request.TreeScope, request.Condition),
+                    "FindElements" => _elementSearchOperations.FindElements(
+                        request.Parameters?.GetValueOrDefault("searchText")?.ToString() ?? "",
+                        request.Parameters?.GetValueOrDefault("controlType")?.ToString() ?? "",
+                        windowTitle, processId),
                     "GetDesktopWindows" => _elementSearchOperations.GetDesktopWindows(),
                     
-                    // Element property operations
-                    "GetName" => _elementPropertyOperations.GetName(request.Element),
-                    "GetAutomationId" => _elementPropertyOperations.GetAutomationId(request.Element),
-                    "GetClassName" => _elementPropertyOperations.GetClassName(request.Element),
-                    "GetControlType" => _elementPropertyOperations.GetControlType(request.Element),
-                    "GetProcessId" => _elementPropertyOperations.GetProcessId(request.Element),
-                    "GetBoundingRectangle" => _elementPropertyOperations.GetBoundingRectangle(request.Element),
-                    "IsEnabled" => _elementPropertyOperations.IsEnabled(request.Element),
-                    "IsVisible" => _elementPropertyOperations.IsVisible(request.Element),
-                    "GetHelpText" => _elementPropertyOperations.GetHelpText(request.Element),
-                    "GetItemType" => _elementPropertyOperations.GetItemType(request.Element),
-                    "GetItemStatus" => _elementPropertyOperations.GetItemStatus(request.Element),
-                    "GetAcceleratorKey" => _elementPropertyOperations.GetAcceleratorKey(request.Element),
-                    "GetAccessKey" => _elementPropertyOperations.GetAccessKey(request.Element),
-                    "GetLabeledBy" => _elementPropertyOperations.GetLabeledBy(request.Element),
-                    "GetLocalizedControlType" => _elementPropertyOperations.GetLocalizedControlType(request.Element),
-                    "GetFrameworkId" => _elementPropertyOperations.GetFrameworkId(request.Element),
-                    "GetOrientation" => _elementPropertyOperations.GetOrientation(request.Element),
-                    "GetCulture" => _elementPropertyOperations.GetCulture(request.Element),
-                    "GetNativeWindowHandle" => _elementPropertyOperations.GetNativeWindowHandle(request.Element),
-                    "GetRuntimeId" => _elementPropertyOperations.GetRuntimeId(request.Element),
-                    "GetClickablePoint" => _elementPropertyOperations.GetClickablePoint(request.Element),
-                    "HasKeyboardFocus" => _elementPropertyOperations.HasKeyboardFocus(request.Element),
-                    "IsKeyboardFocusable" => _elementPropertyOperations.IsKeyboardFocusable(request.Element),
-                    "IsOffscreen" => _elementPropertyOperations.IsOffscreen(request.Element),
-                    "IsRequiredForForm" => _elementPropertyOperations.IsRequiredForForm(request.Element),
-                    "IsPassword" => _elementPropertyOperations.IsPassword(request.Element),
-                    "IsContentElement" => _elementPropertyOperations.IsContentElement(request.Element),
-                    "IsControlElement" => _elementPropertyOperations.IsControlElement(request.Element),
+                    // Toggle operations
+                    "ToggleElement" => _toggleOperations.ToggleElement(elementId, windowTitle, processId),
+                    
+                    // Selection operations
+                    "SelectElement" => _selectionOperations.SelectElement(elementId, windowTitle, processId),
+                    "GetSelection" => _selectionOperations.GetSelection(
+                        request.Parameters?.GetValueOrDefault("containerElementId")?.ToString() ?? "", windowTitle, processId),
                     
                     _ => new UIAutomationMCP.Models.OperationResult { Success = false, Error = $"Unknown operation: {request.Operation}" }
                 };

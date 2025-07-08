@@ -72,5 +72,49 @@ namespace UIAutomationMCP.Worker.Operations
                 };
             }
         }
+
+        /// <summary>
+        /// 要素IDで要素を検索してInvokeする
+        /// </summary>
+        public OperationResult InvokeElement(string elementId, string windowTitle = "", int processId = 0)
+        {
+            try
+            {
+                var element = FindElementById(elementId, windowTitle, processId);
+                if (element == null)
+                {
+                    return new OperationResult { Success = false, Error = $"Element '{elementId}' not found" };
+                }
+
+                return Invoke(element);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to invoke element: {ElementId}", elementId);
+                return new OperationResult { Success = false, Error = ex.Message };
+            }
+        }
+
+        private AutomationElement? FindElementById(string elementId, string windowTitle, int processId)
+        {
+            var searchRoot = GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
+            var condition = new PropertyCondition(AutomationElement.AutomationIdProperty, elementId);
+            return searchRoot.FindFirst(TreeScope.Descendants, condition);
+        }
+
+        private AutomationElement? GetSearchRoot(string windowTitle, int processId)
+        {
+            if (processId > 0)
+            {
+                var condition = new PropertyCondition(AutomationElement.ProcessIdProperty, processId);
+                return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
+            }
+            else if (!string.IsNullOrEmpty(windowTitle))
+            {
+                var condition = new PropertyCondition(AutomationElement.NameProperty, windowTitle);
+                return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
+            }
+            return null;
+        }
     }
 }

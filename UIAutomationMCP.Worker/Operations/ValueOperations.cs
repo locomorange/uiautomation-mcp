@@ -117,5 +117,72 @@ namespace UIAutomationMCP.Worker.Operations
                 };
             }
         }
+
+        /// <summary>
+        /// 要素IDで要素を検索して値を設定
+        /// </summary>
+        public OperationResult SetElementValue(string elementId, string value, string windowTitle = "", int processId = 0)
+        {
+            try
+            {
+                var element = FindElementById(elementId, windowTitle, processId);
+                if (element == null)
+                {
+                    return new OperationResult { Success = false, Error = $"Element '{elementId}' not found" };
+                }
+
+                return SetValue(element, value);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to set element value: {ElementId}", elementId);
+                return new OperationResult { Success = false, Error = ex.Message };
+            }
+        }
+
+        /// <summary>
+        /// 要素IDで要素を検索して値を取得
+        /// </summary>
+        public OperationResult GetElementValue(string elementId, string windowTitle = "", int processId = 0)
+        {
+            try
+            {
+                var element = FindElementById(elementId, windowTitle, processId);
+                if (element == null)
+                {
+                    return new OperationResult { Success = false, Error = $"Element '{elementId}' not found" };
+                }
+
+                var result = GetValue(element);
+                return new OperationResult { Success = result.Success, Data = result.Data, Error = result.Error };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get element value: {ElementId}", elementId);
+                return new OperationResult { Success = false, Error = ex.Message };
+            }
+        }
+
+        private AutomationElement? FindElementById(string elementId, string windowTitle, int processId)
+        {
+            var searchRoot = GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
+            var condition = new PropertyCondition(AutomationElement.AutomationIdProperty, elementId);
+            return searchRoot.FindFirst(TreeScope.Descendants, condition);
+        }
+
+        private AutomationElement? GetSearchRoot(string windowTitle, int processId)
+        {
+            if (processId > 0)
+            {
+                var condition = new PropertyCondition(AutomationElement.ProcessIdProperty, processId);
+                return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
+            }
+            else if (!string.IsNullOrEmpty(windowTitle))
+            {
+                var condition = new PropertyCondition(AutomationElement.NameProperty, windowTitle);
+                return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
+            }
+            return null;
+        }
     }
 }
