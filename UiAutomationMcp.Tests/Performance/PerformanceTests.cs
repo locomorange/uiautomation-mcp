@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
-using UIAutomationMCP.Server.Models;
+using UIAutomationMCP.Shared;
 using UIAutomationMCP.Server.Services;
 using Xunit.Abstractions;
 using Moq;

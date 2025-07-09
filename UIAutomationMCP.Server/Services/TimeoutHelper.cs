@@ -1,4 +1,4 @@
-using UIAutomationMCP.Server.Models;
+using UIAutomationMCP.Shared;
 
 namespace UIAutomationMCP.Server.Services
 {

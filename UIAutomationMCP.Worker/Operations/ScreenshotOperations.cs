@@ -2,7 +2,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Automation;
 using System.Windows.Forms;
-using UIAutomationMCP.Models;
+using UIAutomationMCP.Shared;
 
 namespace UIAutomationMCP.Worker.Operations
 {

@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\UIAutomationMCP.Models\UIAutomationMCP.Models.csproj" />
+    <ProjectReference Include="..\UIAutomationMCP.Shared\UIAutomationMCP.Shared.csproj" />
   </ItemGroup>
 
 </Project>

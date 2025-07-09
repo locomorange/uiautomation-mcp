@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
-using UIAutomationMCP.Models;
+using UIAutomationMCP.Shared;
 
 namespace UIAutomationMCP.Server.Services
 {

@@ -1,6 +1,6 @@
 using System.Windows.Automation;
 using System.Windows.Automation.Text;
-using UIAutomationMCP.Models;
+using UIAutomationMCP.Shared;
 
 namespace UIAutomationMCP.Worker.Operations
 {

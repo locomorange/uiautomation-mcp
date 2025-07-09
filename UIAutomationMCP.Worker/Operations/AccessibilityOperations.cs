@@ -1,5 +1,5 @@
 using System.Windows.Automation;
-using UIAutomationMCP.Models;
+using UIAutomationMCP.Shared;
 
 namespace UIAutomationMCP.Worker.Operations
 {

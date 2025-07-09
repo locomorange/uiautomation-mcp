@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Worker.Operations;
 using System.Text.Json;
+using UIAutomationMCP.Shared;
 
 namespace UIAutomationMCP.Worker.Services
 {
@@ -86,7 +87,7 @@ namespace UIAutomationMCP.Worker.Services
                         break;
                     }
 
-                    var request = JsonSerializer.Deserialize<WorkerRequest>(input);
+                    var request = JsonSerializer.Deserialize<WorkerRequest>(input, JsonSerializationConfig.Options);
                     if (request == null)
                     {
                         WriteResponse(new WorkerResponse { Success = false, Error = "Invalid request format" });
@@ -119,7 +120,7 @@ namespace UIAutomationMCP.Worker.Services
             try
             {
                 _logger.LogDebug("Processing operation: {Operation} with parameters: {Parameters}", 
-                    request.Operation, JsonSerializer.Serialize(request.Parameters));
+                    request.Operation, JsonSerializer.Serialize(request.Parameters, JsonSerializationConfig.Options));
 
                 // Extract common parameters with better error context
                 var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
@@ -130,7 +131,7 @@ namespace UIAutomationMCP.Worker.Services
                 _logger.LogDebug("Extracted parameters - ElementId: {ElementId}, WindowTitle: {WindowTitle}, ProcessId: {ProcessId}", 
                     elementId, windowTitle, processId);
 
-                UIAutomationMCP.Models.OperationResult result = request.Operation switch
+                UIAutomationMCP.Shared.OperationResult result = request.Operation switch
                 {
                     // Invoke operations
                     "InvokeElement" => _invokeOperations.InvokeElement(elementId, windowTitle, processId),
@@ -139,7 +140,7 @@ namespace UIAutomationMCP.Worker.Services
                     "SetElementValue" => _valueOperations.SetElementValue(elementId, 
                         request.Parameters?.GetValueOrDefault("value")?.ToString() ?? "", windowTitle, processId),
                     "GetElementValue" => _valueOperations.GetElementValue(elementId, windowTitle, processId),
-                    "GetValue" => new UIAutomationMCP.Models.OperationResult 
+                    "GetValue" => new UIAutomationMCP.Shared.OperationResult 
                     { 
                         Success = _valueOperations.GetValueResult(elementId, windowTitle, processId).Success,
                         Data = _valueOperations.GetValueResult(elementId, windowTitle, processId).Data,
@@ -147,7 +148,7 @@ namespace UIAutomationMCP.Worker.Services
                     },
                     "SetValue" => _valueOperations.SetValueResult(elementId, 
                         request.Parameters?.GetValueOrDefault("value")?.ToString() ?? "", windowTitle, processId),
-                    "IsReadOnly" => new UIAutomationMCP.Models.OperationResult 
+                    "IsReadOnly" => new UIAutomationMCP.Shared.OperationResult 
                     { 
                         Success = _valueOperations.IsReadOnlyResult(elementId, windowTitle, processId).Success,
                         Data = _valueOperations.IsReadOnlyResult(elementId, windowTitle, processId).Data,
@@ -325,7 +326,7 @@ namespace UIAutomationMCP.Worker.Services
                         Convert.ToInt32(request.Parameters?.GetValueOrDefault("maxTokens") ?? 0),
                         processId),
                     
-                    _ => new UIAutomationMCP.Models.OperationResult { Success = false, Error = $"Unknown operation: {request.Operation}" }
+                    _ => new UIAutomationMCP.Shared.OperationResult { Success = false, Error = $"Unknown operation: {request.Operation}" }
                 };
 
                 return Task.FromResult(new WorkerResponse 
@@ -339,7 +340,7 @@ namespace UIAutomationMCP.Worker.Services
             {
                 // Enhanced error logging with operation context
                 _logger.LogError(ex, "Error executing operation: {Operation} with parameters: {Parameters}. Exception type: {ExceptionType}", 
-                    request.Operation, JsonSerializer.Serialize(request.Parameters), ex.GetType().Name);
+                    request.Operation, JsonSerializer.Serialize(request.Parameters, JsonSerializationConfig.Options), ex.GetType().Name);
 
                 // Provide detailed error information for better debugging
                 var detailedError = $"Operation '{request.Operation}' failed: {ex.Message}";
@@ -365,7 +366,7 @@ namespace UIAutomationMCP.Worker.Services
 
         private void WriteResponse(WorkerResponse response)
         {
-            var json = JsonSerializer.Serialize(response);
+            var json = JsonSerializer.Serialize(response, JsonSerializationConfig.Options);
             Console.WriteLine(json);
         }
 

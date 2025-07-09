@@ -13,10 +13,10 @@ namespace UIAutomationMCP.Worker
         {
             var builder = Host.CreateApplicationBuilder(args);
 
-            // Configure logging
+            // Configure logging - disable console logging to avoid interference with JSON responses
             builder.Logging.ClearProviders();
-            builder.Logging.AddConsole();
-            builder.Logging.SetMinimumLevel(LogLevel.Information);
+            // Add file logging only for Worker to avoid standard output pollution
+            builder.Logging.SetMinimumLevel(LogLevel.Warning);
 
             // Register UI Automation operations
             builder.Services.AddSingleton<InvokeOperations>();

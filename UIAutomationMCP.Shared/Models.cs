@@ -1,7 +1,6 @@
 using System.Text.Json;
-using UIAutomationMCP.Models;
 
-namespace UIAutomationMCP.Server.Models
+namespace UIAutomationMCP.Shared
 {
     public class McpRequest
     {
