@@ -183,29 +183,29 @@ namespace UIAutomationMCP.Worker.Services
                         request.Parameters?.GetValueOrDefault("action")?.ToString() ?? "", windowTitle, processId),
                     "TransformElement" => _windowOperations.TransformElement(elementId,
                         request.Parameters?.GetValueOrDefault("action")?.ToString() ?? "",
-                        Convert.ToDouble(request.Parameters?.GetValueOrDefault("x") ?? 0),
-                        Convert.ToDouble(request.Parameters?.GetValueOrDefault("y") ?? 0),
-                        Convert.ToDouble(request.Parameters?.GetValueOrDefault("width") ?? 0),
-                        Convert.ToDouble(request.Parameters?.GetValueOrDefault("height") ?? 0),
+                        GetDoubleParameter(request.Parameters, "x", 0),
+                        GetDoubleParameter(request.Parameters, "y", 0),
+                        GetDoubleParameter(request.Parameters, "width", 0),
+                        GetDoubleParameter(request.Parameters, "height", 0),
                         windowTitle, processId),
                     
                     // Text operations
                     "GetText" => _textOperations.GetText(elementId, windowTitle, processId),
                     "SelectText" => _textOperations.SelectText(elementId,
-                        Convert.ToInt32(request.Parameters?.GetValueOrDefault("startIndex") ?? 0),
-                        Convert.ToInt32(request.Parameters?.GetValueOrDefault("length") ?? 0),
+                        GetIntParameter(request.Parameters, "startIndex", 0),
+                        GetIntParameter(request.Parameters, "length", 0),
                         windowTitle, processId),
                     "FindText" => _textOperations.FindText(elementId,
                         request.Parameters?.GetValueOrDefault("searchText")?.ToString() ?? "",
-                        Convert.ToBoolean(request.Parameters?.GetValueOrDefault("backward") ?? false),
-                        Convert.ToBoolean(request.Parameters?.GetValueOrDefault("ignoreCase") ?? true),
+                        GetBoolParameter(request.Parameters, "backward", false),
+                        GetBoolParameter(request.Parameters, "ignoreCase", true),
                         windowTitle, processId),
                     "GetTextSelection" => _textOperations.GetTextSelection(elementId, windowTitle, processId),
                     "SetText" => _textOperations.SetText(elementId,
                         request.Parameters?.GetValueOrDefault("text")?.ToString() ?? "", windowTitle, processId),
                     "TraverseText" => _textOperations.TraverseText(elementId,
                         request.Parameters?.GetValueOrDefault("direction")?.ToString() ?? "",
-                        Convert.ToInt32(request.Parameters?.GetValueOrDefault("count") ?? 1),
+                        GetIntParameter(request.Parameters, "count", 1),
                         windowTitle, processId),
                     "GetTextAttributes" => _textOperations.GetTextAttributes(elementId, windowTitle, processId),
                     
@@ -214,7 +214,7 @@ namespace UIAutomationMCP.Worker.Services
                         request.Parameters?.GetValueOrDefault("action")?.ToString() ?? "", windowTitle, processId),
                     "ScrollElement" => _layoutOperations.ScrollElement(elementId,
                         request.Parameters?.GetValueOrDefault("direction")?.ToString() ?? "",
-                        Convert.ToDouble(request.Parameters?.GetValueOrDefault("amount") ?? 1.0),
+                        GetDoubleParameter(request.Parameters, "amount", 1.0),
                         windowTitle, processId),
                     "ScrollElementIntoView" => _layoutOperations.ScrollElementIntoView(elementId, windowTitle, processId),
                     "DockElement" => _layoutOperations.DockElement(elementId,
@@ -222,7 +222,7 @@ namespace UIAutomationMCP.Worker.Services
                     
                     // Range operations
                     "SetRangeValue" => _rangeOperations.SetRangeValue(elementId,
-                        Convert.ToDouble(request.Parameters?.GetValueOrDefault("value") ?? 0), windowTitle, processId),
+                        GetDoubleParameter(request.Parameters, "value", 0), windowTitle, processId),
                     "GetRangeValue" => _rangeOperations.GetRangeValue(elementId, windowTitle, processId),
                     
                     // Tree navigation operations
@@ -232,7 +232,7 @@ namespace UIAutomationMCP.Worker.Services
                     "GetDescendants" => _treeNavigationOperations.GetDescendants(elementId, windowTitle, processId),
                     "GetAncestors" => _treeNavigationOperations.GetAncestors(elementId, windowTitle, processId),
                     "GetElementTree" => _treeNavigationOperations.GetElementTree(windowTitle, processId,
-                        Convert.ToInt32(request.Parameters?.GetValueOrDefault("maxDepth") ?? 3)),
+                        GetIntParameter(request.Parameters, "maxDepth", 3)),
                     
                     // Element inspection operations
                     "GetElementProperties" => _elementInspectionOperations.GetElementProperties(elementId, windowTitle, processId),
@@ -241,14 +241,14 @@ namespace UIAutomationMCP.Worker.Services
                     // Grid operations
                     "GetGridInfo" => _gridOperations.GetGridInfo(elementId, windowTitle, processId),
                     "GetGridItem" => _gridOperations.GetGridItem(elementId,
-                        Convert.ToInt32(request.Parameters?.GetValueOrDefault("row") ?? 0),
-                        Convert.ToInt32(request.Parameters?.GetValueOrDefault("column") ?? 0),
+                        GetIntParameter(request.Parameters, "row", 0),
+                        GetIntParameter(request.Parameters, "column", 0),
                         windowTitle, processId),
                     "GetRowHeader" => _gridOperations.GetRowHeader(elementId,
-                        Convert.ToInt32(request.Parameters?.GetValueOrDefault("row") ?? 0),
+                        GetIntParameter(request.Parameters, "row", 0),
                         windowTitle, processId),
                     "GetColumnHeader" => _gridOperations.GetColumnHeader(elementId,
-                        Convert.ToInt32(request.Parameters?.GetValueOrDefault("column") ?? 0),
+                        GetIntParameter(request.Parameters, "column", 0),
                         windowTitle, processId),
                     
                     // Table operations
@@ -259,11 +259,11 @@ namespace UIAutomationMCP.Worker.Services
                     // Multiple view operations
                     "GetAvailableViews" => _multipleViewOperations.GetAvailableViews(elementId, windowTitle, processId),
                     "SetView" => _multipleViewOperations.SetView(elementId,
-                        Convert.ToInt32(request.Parameters?.GetValueOrDefault("viewId") ?? 0),
+                        GetIntParameter(request.Parameters, "viewId", 0),
                         windowTitle, processId),
                     "GetCurrentView" => _multipleViewOperations.GetCurrentView(elementId, windowTitle, processId),
                     "GetViewName" => _multipleViewOperations.GetViewName(elementId,
-                        Convert.ToInt32(request.Parameters?.GetValueOrDefault("viewId") ?? 0),
+                        GetIntParameter(request.Parameters, "viewId", 0),
                         windowTitle, processId),
                     
                     // Range operations (additional)
@@ -293,7 +293,7 @@ namespace UIAutomationMCP.Worker.Services
                         request.Parameters?.GetValueOrDefault("operation")?.ToString() ?? "",
                         request.Parameters?.GetValueOrDefault("itemName")?.ToString(),
                         request.Parameters?.GetValueOrDefault("itemIndex") != null ? 
-                            Convert.ToInt32(request.Parameters["itemIndex"]) : null,
+                            GetIntParameter(request.Parameters, "itemIndex", 0) : null,
                         windowTitle, processId),
                     "MenuOperation" => _controlTypeOperations.MenuOperation(
                         request.Parameters?.GetValueOrDefault("menuPath")?.ToString() ?? "",
@@ -323,7 +323,7 @@ namespace UIAutomationMCP.Worker.Services
                     "TakeScreenshot" => _screenshotOperations.TakeScreenshot(
                         string.IsNullOrEmpty(windowTitle) ? null : windowTitle,
                         request.Parameters?.GetValueOrDefault("outputPath")?.ToString(),
-                        Convert.ToInt32(request.Parameters?.GetValueOrDefault("maxTokens") ?? 0),
+                        GetIntParameter(request.Parameters, "maxTokens", 0),
                         processId),
                     
                     _ => new UIAutomationMCP.Shared.OperationResult { Success = false, Error = $"Unknown operation: {request.Operation}" }

@@ -58,7 +58,10 @@ namespace UIAutomationMCP.Server
             builder.Services.AddSingleton<SubprocessExecutor>(provider =>
             {
                 var logger = provider.GetRequiredService<ILogger<SubprocessExecutor>>();
-                var workerPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UIAutomationMCP.Worker.exe");
+                var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                var workerPath = Path.Combine(baseDir, "UIAutomationMCP.Worker.exe");
+                logger.LogInformation("Worker path configured: {WorkerPath}", workerPath);
+                logger.LogInformation("Worker exists: {Exists}", File.Exists(workerPath));
                 return new SubprocessExecutor(logger, workerPath);
             });
             

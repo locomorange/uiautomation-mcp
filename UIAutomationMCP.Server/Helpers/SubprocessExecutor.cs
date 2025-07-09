@@ -166,6 +166,12 @@ namespace UIAutomationMCP.Server.Helpers
         {
             _logger.LogInformation("Starting worker process: {WorkerPath}", _workerPath);
 
+            if (!File.Exists(_workerPath))
+            {
+                _logger.LogError("Worker executable not found at: {WorkerPath}", _workerPath);
+                throw new FileNotFoundException($"Worker executable not found at: {_workerPath}");
+            }
+
             var startInfo = new ProcessStartInfo
             {
                 FileName = _workerPath,
@@ -173,11 +179,21 @@ namespace UIAutomationMCP.Server.Helpers
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                WorkingDirectory = Path.GetDirectoryName(_workerPath)
             };
 
             _workerProcess = new Process { StartInfo = startInfo };
-            _workerProcess.Start();
+            
+            try
+            {
+                _workerProcess.Start();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to start worker process: {WorkerPath}", _workerPath);
+                throw new InvalidOperationException($"Failed to start worker process: {_workerPath}", ex);
+            }
 
             // Wait a bit for the process to start
             await Task.Delay(100);
@@ -185,8 +201,16 @@ namespace UIAutomationMCP.Server.Helpers
             if (_workerProcess.HasExited)
             {
                 var exitCode = _workerProcess.ExitCode;
-                _logger.LogError("Worker process exited immediately with code: {ExitCode}", exitCode);
-                throw new InvalidOperationException($"Worker process failed to start (exit code: {exitCode})");
+                var errorOutput = "";
+                
+                try
+                {
+                    errorOutput = await _workerProcess.StandardError.ReadToEndAsync();
+                }
+                catch { }
+                
+                _logger.LogError("Worker process exited immediately with code: {ExitCode}, Error: {ErrorOutput}", exitCode, errorOutput);
+                throw new InvalidOperationException($"Worker process failed to start (exit code: {exitCode}). Error: {errorOutput}");
             }
 
             _logger.LogInformation("Worker process started with PID: {ProcessId}", _workerProcess.Id);
