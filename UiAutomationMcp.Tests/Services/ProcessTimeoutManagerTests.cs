@@ -1,3 +1,4 @@
+#if FALSE // Disabled - ProcessTimeoutManager no longer exists in new architecture
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using UIAutomationMCP.Server.Services;
@@ -220,3 +221,4 @@ namespace UIAutomationMCP.Tests.Services
         }
     }
 }
+#endif

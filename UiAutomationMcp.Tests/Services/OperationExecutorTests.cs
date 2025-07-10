@@ -1,3 +1,4 @@
+#if FALSE // Disabled - UiAutomationWorker.Services no longer exists in new architecture
 using UiAutomationWorker.Services;
 
 namespace UIAutomationMCP.Tests.Services
@@ -190,3 +191,4 @@ namespace UIAutomationMCP.Tests.Services
         }
     }
 }
+#endif

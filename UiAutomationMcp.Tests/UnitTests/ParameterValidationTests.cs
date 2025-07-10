@@ -106,26 +106,24 @@ namespace UiAutomationMcp.Tests.UnitTests
         }
 
         [Fact]
-        public void WorkerOperation_WithValidParameters_ShouldBeConstructable()
+        public void WorkerRequest_WithValidParameters_ShouldBeConstructable()
         {
             // Arrange & Act
-            var operation = new WorkerOperation
+            var request = new WorkerRequest
             {
                 Operation = "invoke",
                 Parameters = new Dictionary<string, object>
                 {
                     ["elementId"] = "btn1",
                     ["windowTitle"] = "TestWindow"
-                },
-                Timeout = 30
+                }
             };
 
             // Assert
-            Assert.NotNull(operation);
-            Assert.Equal("invoke", operation.Operation);
-            Assert.Equal(30, operation.Timeout);
-            Assert.True(operation.Parameters.ContainsKey("elementId"));
-            Assert.Equal("btn1", operation.Parameters["elementId"]);
+            Assert.NotNull(request);
+            Assert.Equal("invoke", request.Operation);
+            Assert.True(request.Parameters.ContainsKey("elementId"));
+            Assert.Equal("btn1", request.Parameters["elementId"]);
         }
 
         [Theory]

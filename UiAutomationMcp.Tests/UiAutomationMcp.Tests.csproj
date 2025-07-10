@@ -8,7 +8,6 @@
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <AssemblyName>UIAutomationMCP.Tests</AssemblyName>
-    <DefineConstants>DISABLE_TESTS</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,6 +27,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\UIAutomationMCP.Server\UIAutomationMCP.Server.csproj" />
+    <ProjectReference Include="..\UIAutomationMCP.Worker\UIAutomationMCP.Worker.csproj" />
+    <ProjectReference Include="..\UIAutomationMCP.Shared\UIAutomationMCP.Shared.csproj" />
   </ItemGroup>
 
 </Project>

@@ -160,30 +160,28 @@ namespace UiAutomationMcp.Tests.Models
                 ["WindowTitle"] = "TestWindow"
             };
 
-            var operation = new WorkerOperation
+            var request = new WorkerRequest
             {
                 Operation = "invoke",
-                Parameters = parameters,
-                Timeout = 20
+                Parameters = parameters
             };
 
             // Act
-            var json = JsonSerializer.Serialize(operation);
-            var deserialized = JsonSerializer.Deserialize<WorkerOperation>(json);
+            var json = JsonSerializer.Serialize(request, JsonSerializationConfig.Options);
+            var deserialized = JsonSerializer.Deserialize<WorkerRequest>(json, JsonSerializationConfig.Options);
 
             // Assert
             Assert.NotNull(deserialized);
-            Assert.Equal(operation.Operation, deserialized.Operation);
-            Assert.Equal(operation.Timeout, deserialized.Timeout);
+            Assert.Equal(request.Operation, deserialized.Operation);
             Assert.NotNull(deserialized.Parameters);
             Assert.Equal(2, deserialized.Parameters.Count);
         }
 
         [Fact]
-        public void WorkerResult_ShouldHandleSuccessAndFailureStates()
+        public void WorkerResponse_ShouldHandleSuccessAndFailureStates()
         {
             // Arrange & Act - Success case
-            var successResult = new WorkerResult
+            var successResponse = new WorkerResponse
             {
                 Success = true,
                 Data = new { Message = "Operation completed" },
@@ -191,12 +189,12 @@ namespace UiAutomationMcp.Tests.Models
             };
 
             // Assert - Success case
-            Assert.True(successResult.Success);
-            Assert.NotNull(successResult.Data);
-            Assert.Null(successResult.Error);
+            Assert.True(successResponse.Success);
+            Assert.NotNull(successResponse.Data);
+            Assert.Null(successResponse.Error);
 
             // Arrange & Act - Failure case
-            var failureResult = new WorkerResult
+            var failureResponse = new WorkerResponse
             {
                 Success = false,
                 Data = null,
@@ -204,9 +202,9 @@ namespace UiAutomationMcp.Tests.Models
             };
 
             // Assert - Failure case
-            Assert.False(failureResult.Success);
-            Assert.Null(failureResult.Data);
-            Assert.Equal("Element not found", failureResult.Error);
+            Assert.False(failureResponse.Success);
+            Assert.Null(failureResponse.Data);
+            Assert.Equal("Element not found", failureResponse.Error);
         }
 
         [Theory]
