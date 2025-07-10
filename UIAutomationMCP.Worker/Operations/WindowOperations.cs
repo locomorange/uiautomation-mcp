@@ -1,18 +1,22 @@
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Worker.Helpers;
 
 namespace UIAutomationMCP.Worker.Operations
 {
     public class WindowOperations
     {
-        public WindowOperations()
+        private readonly ElementFinderService _elementFinderService;
+
+        public WindowOperations(ElementFinderService? elementFinderService = null)
         {
+            _elementFinderService = elementFinderService ?? new ElementFinderService();
         }
 
         public OperationResult WindowAction(string action, string windowTitle = "", int processId = 0)
         {
-            var window = FindWindow(windowTitle, processId);
+            var window = _elementFinderService.GetSearchRoot(windowTitle, processId);
             if (window == null)
                 return new OperationResult { Success = false, Error = "Window not found" };
 
@@ -44,7 +48,7 @@ namespace UIAutomationMCP.Worker.Operations
 
         public OperationResult TransformElement(string elementId, string action, double x = 0, double y = 0, double width = 0, double height = 0, string windowTitle = "", int processId = 0)
         {
-            var element = FindElementById(elementId, windowTitle, processId);
+            var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
                 return new OperationResult { Success = false, Error = "Element not found" };
 
@@ -74,26 +78,5 @@ namespace UIAutomationMCP.Worker.Operations
             return new OperationResult { Success = true, Data = $"Element transformed with action '{action}' successfully" };
         }
 
-        private AutomationElement? FindWindow(string windowTitle, int processId)
-        {
-            if (processId > 0)
-            {
-                var condition = new PropertyCondition(AutomationElement.ProcessIdProperty, processId);
-                return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
-            }
-            else if (!string.IsNullOrEmpty(windowTitle))
-            {
-                var condition = new PropertyCondition(AutomationElement.NameProperty, windowTitle);
-                return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
-            }
-            return null;
-        }
-
-        private AutomationElement? FindElementById(string elementId, string windowTitle, int processId)
-        {
-            var searchRoot = FindWindow(windowTitle, processId) ?? AutomationElement.RootElement;
-            var condition = new PropertyCondition(AutomationElement.AutomationIdProperty, elementId);
-            return searchRoot.FindFirst(TreeScope.Descendants, condition);
-        }
     }
 }

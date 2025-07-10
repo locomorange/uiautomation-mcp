@@ -1,13 +1,20 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Worker.Helpers;
 
 namespace UIAutomationMCP.Worker.Operations
 {
     public class AccessibilityOperations
     {
+        private readonly ElementFinderService _elementFinderService;
+
+        public AccessibilityOperations(ElementFinderService? elementFinderService = null)
+        {
+            _elementFinderService = elementFinderService ?? new ElementFinderService();
+        }
         public OperationResult GetAccessibilityInfo(string elementId, string windowTitle = "", int processId = 0)
         {
-            var element = FindElementById(elementId, windowTitle, processId);
+            var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
                 return new OperationResult { Success = false, Error = "Element not found" };
 
@@ -54,13 +61,13 @@ namespace UIAutomationMCP.Worker.Operations
             AutomationElement element;
             if (!string.IsNullOrEmpty(elementId))
             {
-                element = FindElementById(elementId, windowTitle, processId);
+                element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
                 if (element == null)
                     return new OperationResult { Success = false, Error = "Element not found" };
             }
             else
             {
-                element = GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
+                element = _elementFinderService.GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
             }
 
             // Let exceptions flow naturally - no try-catch
@@ -88,7 +95,7 @@ namespace UIAutomationMCP.Worker.Operations
 
         public OperationResult GetLabeledBy(string elementId, string windowTitle = "", int processId = 0)
         {
-            var element = FindElementById(elementId, windowTitle, processId);
+            var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
                 return new OperationResult { Success = false, Error = "Element not found" };
 
@@ -104,7 +111,7 @@ namespace UIAutomationMCP.Worker.Operations
 
         public OperationResult GetDescribedBy(string elementId, string windowTitle = "", int processId = 0)
         {
-            var element = FindElementById(elementId, windowTitle, processId);
+            var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
                 return new OperationResult { Success = false, Error = "Element not found" };
 
@@ -217,26 +224,5 @@ namespace UIAutomationMCP.Worker.Operations
             return patterns;
         }
 
-        private AutomationElement? FindElementById(string elementId, string windowTitle, int processId)
-        {
-            var searchRoot = GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
-            var condition = new PropertyCondition(AutomationElement.AutomationIdProperty, elementId);
-            return searchRoot.FindFirst(TreeScope.Descendants, condition);
-        }
-
-        private AutomationElement? GetSearchRoot(string windowTitle, int processId)
-        {
-            if (processId > 0)
-            {
-                var condition = new PropertyCondition(AutomationElement.ProcessIdProperty, processId);
-                return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
-            }
-            else if (!string.IsNullOrEmpty(windowTitle))
-            {
-                var condition = new PropertyCondition(AutomationElement.NameProperty, windowTitle);
-                return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
-            }
-            return null;
-        }
     }
 }

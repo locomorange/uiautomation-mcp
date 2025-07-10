@@ -1,13 +1,20 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Worker.Helpers;
 
 namespace UIAutomationMCP.Worker.Operations
 {
     public class ControlTypeOperations
     {
+        private readonly ElementFinderService _elementFinderService;
+
+        public ControlTypeOperations(ElementFinderService? elementFinderService = null)
+        {
+            _elementFinderService = elementFinderService ?? new ElementFinderService();
+        }
         public OperationResult ButtonOperation(string elementId, string operation, string windowTitle = "", int processId = 0)
         {
-            var element = FindElementById(elementId, windowTitle, processId);
+            var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
                 return new OperationResult { Success = false, Error = "Button element not found" };
 
@@ -78,7 +85,7 @@ namespace UIAutomationMCP.Worker.Operations
 
         public OperationResult CalendarOperation(string elementId, string operation, string? dateString = null, string windowTitle = "", int processId = 0)
         {
-            var element = FindElementById(elementId, windowTitle, processId);
+            var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
                 return new OperationResult { Success = false, Error = "Calendar element not found" };
 
@@ -155,7 +162,7 @@ namespace UIAutomationMCP.Worker.Operations
 
         public OperationResult ComboBoxOperation(string elementId, string operation, string? itemToSelect = null, string windowTitle = "", int processId = 0)
         {
-            var element = FindElementById(elementId, windowTitle, processId);
+            var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
                 return new OperationResult { Success = false, Error = "ComboBox element not found" };
 
@@ -217,7 +224,7 @@ namespace UIAutomationMCP.Worker.Operations
 
         public OperationResult HyperlinkOperation(string elementId, string operation, string windowTitle = "", int processId = 0)
         {
-            var element = FindElementById(elementId, windowTitle, processId);
+            var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
                 return new OperationResult { Success = false, Error = "Hyperlink element not found" };
 
@@ -274,7 +281,7 @@ namespace UIAutomationMCP.Worker.Operations
 
         public OperationResult ListOperation(string elementId, string operation, string? itemName = null, int? itemIndex = null, string windowTitle = "", int processId = 0)
         {
-            var element = FindElementById(elementId, windowTitle, processId);
+            var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
                 return new OperationResult { Success = false, Error = "List element not found" };
 
@@ -351,7 +358,7 @@ namespace UIAutomationMCP.Worker.Operations
 
         public OperationResult MenuOperation(string menuPath, string windowTitle = "", int processId = 0)
         {
-            var searchRoot = GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
+            var searchRoot = _elementFinderService.GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
             var pathParts = menuPath.Split('/');
 
             AutomationElement currentElement = searchRoot;
@@ -397,7 +404,7 @@ namespace UIAutomationMCP.Worker.Operations
 
         public OperationResult TabOperation(string elementId, string operation, string? tabName = null, string windowTitle = "", int processId = 0)
         {
-            var element = FindElementById(elementId, windowTitle, processId);
+            var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
                 return new OperationResult { Success = false, Error = "Tab control element not found" };
 
@@ -447,7 +454,7 @@ namespace UIAutomationMCP.Worker.Operations
 
         public OperationResult TreeViewOperation(string elementId, string operation, string? nodePath = null, string windowTitle = "", int processId = 0)
         {
-            var element = FindElementById(elementId, windowTitle, processId);
+            var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
                 return new OperationResult { Success = false, Error = "TreeView element not found" };
 
@@ -512,26 +519,5 @@ namespace UIAutomationMCP.Worker.Operations
             return new OperationResult { Success = false, Error = "Operation not implemented" };
         }
 
-        private AutomationElement? FindElementById(string elementId, string windowTitle, int processId)
-        {
-            var searchRoot = GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
-            var condition = new PropertyCondition(AutomationElement.AutomationIdProperty, elementId);
-            return searchRoot.FindFirst(TreeScope.Descendants, condition);
-        }
-
-        private AutomationElement? GetSearchRoot(string windowTitle, int processId)
-        {
-            if (processId > 0)
-            {
-                var condition = new PropertyCondition(AutomationElement.ProcessIdProperty, processId);
-                return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
-            }
-            else if (!string.IsNullOrEmpty(windowTitle))
-            {
-                var condition = new PropertyCondition(AutomationElement.NameProperty, windowTitle);
-                return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
-            }
-            return null;
-        }
     }
 }

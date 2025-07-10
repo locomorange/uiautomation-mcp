@@ -3,11 +3,18 @@ using System.Drawing.Imaging;
 using System.Windows.Automation;
 using System.Windows.Forms;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Worker.Helpers;
 
 namespace UIAutomationMCP.Worker.Operations
 {
     public class ScreenshotOperations
     {
+        private readonly ElementFinderService _elementFinderService;
+
+        public ScreenshotOperations(ElementFinderService? elementFinderService = null)
+        {
+            _elementFinderService = elementFinderService ?? new ElementFinderService();
+        }
         public OperationResult TakeScreenshot(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int processId = 0)
         {
             // Let exceptions flow naturally - no try-catch
@@ -16,7 +23,7 @@ namespace UIAutomationMCP.Worker.Operations
             if (!string.IsNullOrEmpty(windowTitle) || processId > 0)
             {
                 // Take screenshot of specific window
-                var window = FindWindow(windowTitle, processId);
+                var window = _elementFinderService.GetSearchRoot(windowTitle, processId);
                 if (window == null)
                     return new OperationResult { Success = false, Error = "Window not found" };
 
@@ -140,19 +147,5 @@ namespace UIAutomationMCP.Worker.Operations
             return (int)(sizeInBytes / 170);
         }
 
-        private AutomationElement? FindWindow(string? windowTitle, int processId)
-        {
-            if (processId > 0)
-            {
-                var condition = new PropertyCondition(AutomationElement.ProcessIdProperty, processId);
-                return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
-            }
-            else if (!string.IsNullOrEmpty(windowTitle))
-            {
-                var condition = new PropertyCondition(AutomationElement.NameProperty, windowTitle);
-                return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
-            }
-            return null;
-        }
     }
 }

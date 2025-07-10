@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Worker.Helpers;
 
 namespace UIAutomationMCP.Worker.Operations
 {
@@ -8,8 +9,11 @@ namespace UIAutomationMCP.Worker.Operations
     /// </summary>
     public class ElementSearchOperations
     {
-        public ElementSearchOperations()
+        private readonly ElementFinderService _elementFinderService;
+
+        public ElementSearchOperations(ElementFinderService? elementFinderService = null)
         {
+            _elementFinderService = elementFinderService ?? new ElementFinderService();
         }
 
         /// <summary>
@@ -149,7 +153,7 @@ namespace UIAutomationMCP.Worker.Operations
         public OperationResult FindElements(string searchText = "", string controlType = "", string windowTitle = "", int processId = 0)
         {
             // Let exceptions flow naturally - no try-catch
-            var searchRoot = GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
+            var searchRoot = _elementFinderService.GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
             
             Condition condition = Condition.TrueCondition;
             
@@ -236,19 +240,5 @@ namespace UIAutomationMCP.Worker.Operations
             };
         }
 
-        private AutomationElement? GetSearchRoot(string windowTitle, int processId)
-        {
-            if (processId > 0)
-            {
-                var condition = new PropertyCondition(AutomationElement.ProcessIdProperty, processId);
-                return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
-            }
-            else if (!string.IsNullOrEmpty(windowTitle))
-            {
-                var condition = new PropertyCondition(AutomationElement.NameProperty, windowTitle);
-                return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
-            }
-            return null;
-        }
     }
 }

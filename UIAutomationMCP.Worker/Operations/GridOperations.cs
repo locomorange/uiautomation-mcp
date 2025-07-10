@@ -1,13 +1,20 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Worker.Helpers;
 
 namespace UIAutomationMCP.Worker.Operations
 {
     public class GridOperations
     {
+        private readonly ElementFinderService _elementFinderService;
+
+        public GridOperations(ElementFinderService? elementFinderService = null)
+        {
+            _elementFinderService = elementFinderService ?? new ElementFinderService();
+        }
         public OperationResult GetGridInfo(string elementId, string windowTitle = "", int processId = 0)
         {
-            var element = FindElementById(elementId, windowTitle, processId);
+            var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
                 return new OperationResult { Success = false, Error = "Element not found" };
 
@@ -33,7 +40,7 @@ namespace UIAutomationMCP.Worker.Operations
 
         public OperationResult GetGridItem(string gridElementId, int row, int column, string windowTitle = "", int processId = 0)
         {
-            var element = FindElementById(gridElementId, windowTitle, processId);
+            var element = _elementFinderService.FindElementById(gridElementId, windowTitle, processId);
             if (element == null)
                 return new OperationResult { Success = false, Error = "Grid element not found" };
 
@@ -62,7 +69,7 @@ namespace UIAutomationMCP.Worker.Operations
 
         public OperationResult GetRowHeader(string gridElementId, int row, string windowTitle = "", int processId = 0)
         {
-            var element = FindElementById(gridElementId, windowTitle, processId);
+            var element = _elementFinderService.FindElementById(gridElementId, windowTitle, processId);
             if (element == null)
                 return new OperationResult { Success = false, Error = "Grid element not found" };
 
@@ -94,7 +101,7 @@ namespace UIAutomationMCP.Worker.Operations
 
         public OperationResult GetColumnHeader(string gridElementId, int column, string windowTitle = "", int processId = 0)
         {
-            var element = FindElementById(gridElementId, windowTitle, processId);
+            var element = _elementFinderService.FindElementById(gridElementId, windowTitle, processId);
             if (element == null)
                 return new OperationResult { Success = false, Error = "Grid element not found" };
 
@@ -124,26 +131,5 @@ namespace UIAutomationMCP.Worker.Operations
             }
         }
 
-        private AutomationElement? FindElementById(string elementId, string windowTitle, int processId)
-        {
-            var searchRoot = GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
-            var condition = new PropertyCondition(AutomationElement.AutomationIdProperty, elementId);
-            return searchRoot.FindFirst(TreeScope.Descendants, condition);
-        }
-
-        private AutomationElement? GetSearchRoot(string windowTitle, int processId)
-        {
-            if (processId > 0)
-            {
-                var condition = new PropertyCondition(AutomationElement.ProcessIdProperty, processId);
-                return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
-            }
-            else if (!string.IsNullOrEmpty(windowTitle))
-            {
-                var condition = new PropertyCondition(AutomationElement.NameProperty, windowTitle);
-                return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
-            }
-            return null;
-        }
     }
 }

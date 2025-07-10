@@ -1,13 +1,20 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Worker.Helpers;
 
 namespace UIAutomationMCP.Worker.Operations
 {
     public class SelectionOperations
     {
+        private readonly ElementFinderService _elementFinderService;
+
+        public SelectionOperations(ElementFinderService? elementFinderService = null)
+        {
+            _elementFinderService = elementFinderService ?? new ElementFinderService();
+        }
         public OperationResult SelectElement(string elementId, string windowTitle = "", int processId = 0)
         {
-            var element = FindElementById(elementId, windowTitle, processId);
+            var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
                 return new OperationResult { Success = false, Error = "Element not found" };
 
@@ -32,7 +39,7 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult AddToSelection(string elementId, string windowTitle = "", int processId = 0)
         {
-            var element = FindElementById(elementId, windowTitle, processId);
+            var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
                 return new OperationResult { Success = false, Error = "Element not found" };
 
@@ -49,7 +56,7 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult RemoveFromSelection(string elementId, string windowTitle = "", int processId = 0)
         {
-            var element = FindElementById(elementId, windowTitle, processId);
+            var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
                 return new OperationResult { Success = false, Error = "Element not found" };
 
@@ -66,7 +73,7 @@ namespace UIAutomationMCP.Worker.Operations
         /// </summary>
         public OperationResult ClearSelection(string containerElementId, string windowTitle = "", int processId = 0)
         {
-            var element = FindElementById(containerElementId, windowTitle, processId);
+            var element = _elementFinderService.FindElementById(containerElementId, windowTitle, processId);
             if (element == null)
                 return new OperationResult { Success = false, Error = "Container element not found" };
 
@@ -90,7 +97,7 @@ namespace UIAutomationMCP.Worker.Operations
 
         public OperationResult GetSelection(string containerElementId, string windowTitle = "", int processId = 0)
         {
-            var element = FindElementById(containerElementId, windowTitle, processId);
+            var element = _elementFinderService.FindElementById(containerElementId, windowTitle, processId);
             if (element == null)
                 return new OperationResult { Success = false, Error = "Container element not found" };
 
@@ -118,26 +125,5 @@ namespace UIAutomationMCP.Worker.Operations
             return new OperationResult { Success = true, Data = selectedInfo };
         }
 
-        private AutomationElement? FindElementById(string elementId, string windowTitle, int processId)
-        {
-            var searchRoot = GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
-            var condition = new PropertyCondition(AutomationElement.AutomationIdProperty, elementId);
-            return searchRoot.FindFirst(TreeScope.Descendants, condition);
-        }
-
-        private AutomationElement? GetSearchRoot(string windowTitle, int processId)
-        {
-            if (processId > 0)
-            {
-                var condition = new PropertyCondition(AutomationElement.ProcessIdProperty, processId);
-                return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
-            }
-            else if (!string.IsNullOrEmpty(windowTitle))
-            {
-                var condition = new PropertyCondition(AutomationElement.NameProperty, windowTitle);
-                return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
-            }
-            return null;
-        }
     }
 }
