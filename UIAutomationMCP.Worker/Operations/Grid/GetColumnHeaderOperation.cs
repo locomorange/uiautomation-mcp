@@ -27,31 +27,34 @@ namespace UIAutomationMCP.Worker.Operations.Grid
             if (element == null)
                 return Task.FromResult(new OperationResult { Success = false, Error = "Element not found" });
 
-            if (!element.TryGetCurrentPattern(GridItemPattern.Pattern, out var pattern) || pattern is not GridItemPattern gridItemPattern)
-                return Task.FromResult(new OperationResult { Success = false, Error = "GridItemPattern not supported" });
+            if (!element.TryGetCurrentPattern(GridPattern.Pattern, out var pattern) || pattern is not GridPattern gridPattern)
+                return Task.FromResult(new OperationResult { Success = false, Error = "GridPattern not supported" });
 
             try
             {
-                var columnHeaders = gridItemPattern.Current.ContainingGrid.GetColumnHeaders();
-                if (columnHeaders == null || columnHeaders.Length == 0)
-                    return Task.FromResult(new OperationResult { Success = false, Error = "No column headers found" });
-
-                if (column >= columnHeaders.Length)
+                // Check if column is within bounds
+                if (column >= gridPattern.Current.ColumnCount)
                     return Task.FromResult(new OperationResult { Success = false, Error = "Column index out of range" });
 
-                var columnHeader = columnHeaders[column];
+                // Try to get the first item in the specified column (assuming header is at row 0)
+                var headerElement = gridPattern.GetItem(0, column);
+                if (headerElement == null)
+                    return Task.FromResult(new OperationResult { Success = false, Error = "No header element found at specified column" });
+
                 var headerInfo = new Dictionary<string, object>
                 {
-                    ["AutomationId"] = columnHeader.Current.AutomationId,
-                    ["Name"] = columnHeader.Current.Name,
-                    ["ControlType"] = columnHeader.Current.ControlType.LocalizedControlType,
-                    ["IsEnabled"] = columnHeader.Current.IsEnabled,
+                    ["AutomationId"] = headerElement.Current.AutomationId,
+                    ["Name"] = headerElement.Current.Name,
+                    ["ControlType"] = headerElement.Current.ControlType.LocalizedControlType,
+                    ["IsEnabled"] = headerElement.Current.IsEnabled,
+                    ["Row"] = 0,
+                    ["Column"] = column,
                     ["BoundingRectangle"] = new BoundingRectangle
                     {
-                        X = columnHeader.Current.BoundingRectangle.X,
-                        Y = columnHeader.Current.BoundingRectangle.Y,
-                        Width = columnHeader.Current.BoundingRectangle.Width,
-                        Height = columnHeader.Current.BoundingRectangle.Height
+                        X = headerElement.Current.BoundingRectangle.X,
+                        Y = headerElement.Current.BoundingRectangle.Y,
+                        Width = headerElement.Current.BoundingRectangle.Width,
+                        Height = headerElement.Current.BoundingRectangle.Height
                     }
                 };
 

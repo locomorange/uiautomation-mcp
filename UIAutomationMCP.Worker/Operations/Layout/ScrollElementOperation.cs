@@ -2,7 +2,6 @@ using System.Windows.Automation;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
-using UIAutomationMCP.Worker.Services;
 
 namespace UIAutomationMCP.Worker.Operations.Layout
 {

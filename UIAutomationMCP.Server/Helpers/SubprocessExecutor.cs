@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text.Json;
+using UIAutomationMCP.Shared;
 
 namespace UIAutomationMCP.Server.Helpers
 {
@@ -304,18 +305,5 @@ namespace UIAutomationMCP.Server.Helpers
             _semaphore.Dispose();
             _disposed = true;
         }
-    }
-
-    public class WorkerRequest
-    {
-        public string Operation { get; set; } = "";
-        public Dictionary<string, object>? Parameters { get; set; }
-    }
-
-    public class WorkerResponse
-    {
-        public bool Success { get; set; }
-        public object? Data { get; set; }
-        public string? Error { get; set; }
     }
 }

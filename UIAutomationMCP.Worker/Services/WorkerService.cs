@@ -69,33 +69,26 @@ namespace UIAutomationMCP.Worker.Services
                 _logger.LogDebug("Processing operation: {Operation} with parameters: {Parameters}", 
                     request.Operation, JsonSerializer.Serialize(request.Parameters, JsonSerializationConfig.Options));
 
-                // Try to get the handler for this operation
-                var handler = _serviceProvider.GetKeyedService<IUIAutomationOperation>(request.Operation);
-                if (handler != null)
+                // Try to get the operation for this request
+                var operation = _serviceProvider.GetKeyedService<IUIAutomationOperation>(request.Operation);
+                if (operation != null)
                 {
-                    var result = await handler.ExecuteAsync(request);
+                    var operationResult = await operation.ExecuteAsync(request);
                     return new WorkerResponse 
                     { 
-                        Success = result.Success, 
-                        Data = result.Data, 
-                        Error = result.Error 
+                        Success = operationResult.Success, 
+                        Data = operationResult.Data, 
+                        Error = operationResult.Error 
                     };
                 }
 
-                // All operations are now handled by handlers
-                // This should never be reached if all handlers are registered properly
-                var result = new UIAutomationMCP.Shared.OperationResult 
+                // All operations are now handled by operation classes
+                // This should never be reached if all operations are registered properly
+                return new WorkerResponse 
                 { 
                     Success = false, 
-                    Error = $"No handler found for operation: {request.Operation}" 
+                    Error = $"No operation found for: {request.Operation}" 
                 };
-
-                return Task.FromResult(new WorkerResponse 
-                { 
-                    Success = result.Success, 
-                    Data = result.Data, 
-                    Error = result.Error 
-                });
             }
             catch (Exception ex)
             {
@@ -110,7 +103,7 @@ namespace UIAutomationMCP.Worker.Services
                     detailedError += $" Inner exception: {ex.InnerException.Message}";
                 }
 
-                return Task.FromResult(new WorkerResponse 
+                return new WorkerResponse 
                 { 
                     Success = false, 
                     Error = detailedError,
@@ -121,7 +114,7 @@ namespace UIAutomationMCP.Worker.Services
                         Operation = request.Operation,
                         Parameters = request.Parameters
                     }
-                });
+                };
             }
         }
 
@@ -130,21 +123,5 @@ namespace UIAutomationMCP.Worker.Services
             var json = JsonSerializer.Serialize(response, JsonSerializationConfig.Options);
             Console.WriteLine(json);
         }
-    }
-
-    public class WorkerRequest
-    {
-        public string Operation { get; set; } = "";
-        public System.Windows.Automation.AutomationElement? Element { get; set; }
-        public System.Windows.Automation.TreeScope TreeScope { get; set; }
-        public System.Windows.Automation.Condition? Condition { get; set; }
-        public Dictionary<string, object>? Parameters { get; set; }
-    }
-
-    public class WorkerResponse
-    {
-        public bool Success { get; set; }
-        public object? Data { get; set; }
-        public string? Error { get; set; }
     }
 }

@@ -164,4 +164,18 @@ namespace UIAutomationMCP.Shared
         public List<ElementTreeNode> Children { get; set; } = new();
         public Dictionary<string, object> Properties { get; set; } = new();
     }
+
+    // Worker communication models
+    public class WorkerRequest
+    {
+        public string Operation { get; set; } = "";
+        public Dictionary<string, object>? Parameters { get; set; }
+    }
+
+    public class WorkerResponse
+    {
+        public bool Success { get; set; }
+        public object? Data { get; set; }
+        public string? Error { get; set; }
+    }
 }

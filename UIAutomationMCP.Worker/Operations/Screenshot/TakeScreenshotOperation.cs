@@ -68,7 +68,10 @@ namespace UIAutomationMCP.Worker.Operations.Screenshot
                         break;
 
                     case "screen":
-                        captureArea = System.Windows.Forms.Screen.PrimaryScreen.Bounds;
+                        var primaryScreen = System.Windows.Forms.Screen.PrimaryScreen;
+                        if (primaryScreen == null)
+                            return Task.FromResult(new OperationResult { Success = false, Error = "Primary screen not found" });
+                        captureArea = primaryScreen.Bounds;
                         break;
 
                     default:

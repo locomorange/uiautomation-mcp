@@ -31,8 +31,7 @@ namespace UIAutomationMCP.Worker.Operations.Grid
             var gridInfo = new Dictionary<string, object>
             {
                 ["RowCount"] = gridPattern.Current.RowCount,
-                ["ColumnCount"] = gridPattern.Current.ColumnCount,
-                ["CanSelectMultiple"] = gridPattern.Current.CanSelectMultiple
+                ["ColumnCount"] = gridPattern.Current.ColumnCount
             };
 
             return Task.FromResult(new OperationResult { Success = true, Data = gridInfo });

@@ -26,7 +26,7 @@ namespace UIAutomationMCP.Worker.Operations.ControlType
             if (element == null)
                 return Task.FromResult(new OperationResult { Success = false, Error = "Element not found" });
 
-            if (element.Current.ControlType != ControlType.List)
+            if (element.Current.ControlType != System.Windows.Automation.ControlType.List)
                 return Task.FromResult(new OperationResult { Success = false, Error = "Element is not a list" });
 
             try
@@ -53,7 +53,7 @@ namespace UIAutomationMCP.Worker.Operations.ControlType
                         return Task.FromResult(new OperationResult { Success = true, Data = listInfo });
 
                     case "getitems":
-                        var listItems = element.FindAll(TreeScope.Children, new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.ListItem));
+                        var listItems = element.FindAll(TreeScope.Children, new PropertyCondition(AutomationElement.ControlTypeProperty, System.Windows.Automation.ControlType.ListItem));
                         var items = new List<Dictionary<string, object>>();
                         
                         foreach (AutomationElement item in listItems)

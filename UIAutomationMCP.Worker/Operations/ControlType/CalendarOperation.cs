@@ -26,7 +26,7 @@ namespace UIAutomationMCP.Worker.Operations.ControlType
             if (element == null)
                 return Task.FromResult(new OperationResult { Success = false, Error = "Element not found" });
 
-            if (element.Current.ControlType != ControlType.Calendar)
+            if (element.Current.ControlType != System.Windows.Automation.ControlType.Calendar)
                 return Task.FromResult(new OperationResult { Success = false, Error = "Element is not a calendar" });
 
             try

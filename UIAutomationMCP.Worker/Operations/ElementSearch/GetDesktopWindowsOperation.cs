@@ -9,7 +9,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
         public Task<OperationResult> ExecuteAsync(WorkerRequest request)
         {
             var rootElement = AutomationElement.RootElement;
-            var condition = new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window);
+            var condition = new PropertyCondition(AutomationElement.ControlTypeProperty, System.Windows.Automation.ControlType.Window);
             var windows = rootElement.FindAll(TreeScope.Children, condition);
             
             var windowList = new List<WindowInfo>();

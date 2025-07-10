@@ -26,7 +26,7 @@ namespace UIAutomationMCP.Worker.Operations.ControlType
             if (element == null)
                 return Task.FromResult(new OperationResult { Success = false, Error = "Element not found" });
 
-            if (element.Current.ControlType != ControlType.Tab)
+            if (element.Current.ControlType != System.Windows.Automation.ControlType.Tab)
                 return Task.FromResult(new OperationResult { Success = false, Error = "Element is not a tab control" });
 
             try
@@ -53,7 +53,7 @@ namespace UIAutomationMCP.Worker.Operations.ControlType
                         return Task.FromResult(new OperationResult { Success = true, Data = tabInfo });
 
                     case "gettabs":
-                        var tabItems = element.FindAll(TreeScope.Children, new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.TabItem));
+                        var tabItems = element.FindAll(TreeScope.Children, new PropertyCondition(AutomationElement.ControlTypeProperty, System.Windows.Automation.ControlType.TabItem));
                         var tabs = new List<Dictionary<string, object>>();
                         
                         foreach (AutomationElement item in tabItems)
