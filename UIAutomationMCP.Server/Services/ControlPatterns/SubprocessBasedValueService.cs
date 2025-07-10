@@ -28,7 +28,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                await _executor.ExecuteAsync<object>("SetValue", parameters, timeoutSeconds);
+                await _executor.ExecuteAsync<object>("SetElementValue", parameters, timeoutSeconds);
 
                 _logger.LogInformation("Element value set successfully: {ElementId}", elementId);
                 return new { Success = true, Message = $"Element value set to: {value}" };
@@ -53,7 +53,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                var result = await _executor.ExecuteAsync<string>("GetValue", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<string>("GetElementValue", parameters, timeoutSeconds);
 
                 _logger.LogInformation("Element value retrieved successfully: {ElementId}", elementId);
                 return new { Success = true, Data = result };

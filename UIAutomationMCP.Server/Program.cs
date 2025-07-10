@@ -59,7 +59,32 @@ namespace UIAutomationMCP.Server
             {
                 var logger = provider.GetRequiredService<ILogger<SubprocessExecutor>>();
                 var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                var workerPath = Path.Combine(baseDir, "UIAutomationMCP.Worker.exe");
+                
+                // Look for Worker.exe in multiple possible locations
+                var possiblePaths = new[]
+                {
+                    Path.Combine(baseDir, "UIAutomationMCP.Worker.exe"), // Same directory
+                    Path.Combine(baseDir, "..", "UIAutomationMCP.Worker", "bin", "Debug", "net9.0-windows", "UIAutomationMCP.Worker.exe"), // Development layout
+                    Path.Combine(baseDir, "worker", "UIAutomationMCP.Worker.exe"), // Deployed layout
+                };
+
+                string? workerPath = null;
+                foreach (var path in possiblePaths)
+                {
+                    var fullPath = Path.GetFullPath(path);
+                    if (File.Exists(fullPath))
+                    {
+                        workerPath = fullPath;
+                        break;
+                    }
+                }
+
+                if (workerPath == null)
+                {
+                    logger.LogError("Worker executable not found in any of these locations: {Paths}", string.Join(", ", possiblePaths.Select(Path.GetFullPath)));
+                    throw new InvalidOperationException("UIAutomationMCP.Worker.exe not found");
+                }
+
                 logger.LogInformation("Worker path configured: {WorkerPath}", workerPath);
                 logger.LogInformation("Worker exists: {Exists}", File.Exists(workerPath));
                 return new SubprocessExecutor(logger, workerPath);
