@@ -15,12 +15,18 @@ namespace UIAutomationMCP.Server.Helpers
 
         public SubprocessExecutor(ILogger<SubprocessExecutor> logger, string workerPath)
         {
-            _logger = logger;
-            _workerPath = workerPath;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _workerPath = !string.IsNullOrWhiteSpace(workerPath) ? workerPath : throw new ArgumentException("Worker path cannot be null or empty", nameof(workerPath));
         }
 
         public async Task<TResult> ExecuteAsync<TResult>(string operation, object? parameters = null, int timeoutSeconds = 60)
         {
+            if (_disposed)
+                throw new ObjectDisposedException(nameof(SubprocessExecutor));
+            
+            if (string.IsNullOrWhiteSpace(operation))
+                throw new ArgumentException("Operation cannot be null or empty", nameof(operation));
+            
             await _semaphore.WaitAsync();
             try
             {

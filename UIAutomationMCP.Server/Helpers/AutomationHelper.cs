@@ -13,7 +13,7 @@ namespace UIAutomationMCP.Server.Helpers
 
         public AutomationHelper(ILogger<AutomationHelper> logger)
         {
-            _logger = logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>

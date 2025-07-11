@@ -71,9 +71,9 @@ namespace UiAutomationMcp.Tests.Integration
         }
 
         [Fact]
-        public async Task SubprocessExecutor_ShouldHandleInvalidOperation()
+        public async Task SubprocessExecutor_WhenInvalidOperation_ShouldThrowException()
         {
-            // Arrange
+            // Given
             var parameters = new Dictionary<string, object>
             {
                 { "elementId", "test" },
@@ -81,17 +81,18 @@ namespace UiAutomationMcp.Tests.Integration
                 { "processId", 0 }
             };
 
-            // Act & Assert
+            // When & Then
             var exception = await Assert.ThrowsAsync<Exception>(async () =>
                 await _subprocessExecutor.ExecuteAsync<object>("InvalidOperation", parameters, 10));
 
+            Assert.NotNull(exception);
             _output.WriteLine($"Invalid operation correctly threw exception: {exception.Message}");
         }
 
         [Fact]
-        public async Task SubprocessExecutor_ShouldHandleValidOperationWithMissingElement()
+        public async Task SubprocessExecutor_WhenValidOperationWithMissingElement_ShouldThrowException()
         {
-            // Arrange
+            // Given
             var parameters = new Dictionary<string, object>
             {
                 { "elementId", "NonExistentElement" },
@@ -99,23 +100,24 @@ namespace UiAutomationMcp.Tests.Integration
                 { "processId", 0 }
             };
 
-            // Act & Assert
+            // When & Then
             var exception = await Assert.ThrowsAsync<Exception>(async () =>
                 await _subprocessExecutor.ExecuteAsync<object>("InvokeElement", parameters, 10));
 
+            Assert.NotNull(exception);
             _output.WriteLine($"Valid operation with missing element correctly threw exception: {exception.Message}");
         }
 
         [Fact]
-        public async Task InvokeService_ShouldCommunicateWithWorker()
+        public async Task InvokeService_WhenCalledWithNonExistentElement_ShouldReturnFailure()
         {
-            // Arrange
+            // Given
             var invokeService = new SubprocessBasedInvokeService(_serviceProvider.GetRequiredService<ILogger<SubprocessBasedInvokeService>>(), _subprocessExecutor);
 
-            // Act
+            // When
             var result = await invokeService.InvokeElementAsync("NonExistentElement", null, null, 5);
 
-            // Assert
+            // Then
             Assert.NotNull(result);
             var resultObject = result as dynamic;
             Assert.False(resultObject?.Success);

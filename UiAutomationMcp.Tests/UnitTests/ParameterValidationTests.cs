@@ -13,12 +13,12 @@ namespace UiAutomationMcp.Tests.UnitTests
         [InlineData("")]
         [InlineData(null)]
         [InlineData("   ")]
-        public void ValidateElementId_WithInvalidInput_ShouldReturnFalse(string? elementId)
+        public void ValidateElementId_WhenInvalidInput_ShouldReturnFalse(string? elementId)
         {
-            // Act
+            // Given & When
             var isValid = !string.IsNullOrWhiteSpace(elementId);
 
-            // Assert
+            // Then
             Assert.False(isValid);
         }
 
@@ -26,12 +26,12 @@ namespace UiAutomationMcp.Tests.UnitTests
         [InlineData("btn1")]
         [InlineData("textBox_123")]
         [InlineData("menu-item")]
-        public void ValidateElementId_WithValidInput_ShouldReturnTrue(string elementId)
+        public void ValidateElementId_WhenValidInput_ShouldReturnTrue(string elementId)
         {
-            // Act
+            // Given & When
             var isValid = !string.IsNullOrWhiteSpace(elementId);
 
-            // Assert
+            // Then
             Assert.True(isValid);
         }
 
