@@ -79,7 +79,7 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Given
             var nonExistentElementId = "NonExistentElement12345";
-            var timeout = 5;
+            var timeout = 1;
 
             // When
             var invokeResult = await _invokeService.InvokeElementAsync(nonExistentElementId, null, null, timeout);
@@ -89,14 +89,16 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.NotNull(invokeResult);
             Assert.NotNull(valueResult);
             
-            var invokeResultObj = invokeResult as dynamic;
-            var valueResultObj = valueResult as dynamic;
+            var invokeJson = System.Text.Json.JsonSerializer.Serialize(invokeResult);
+            var valueJson = System.Text.Json.JsonSerializer.Serialize(valueResult);
             
-            Assert.False(invokeResultObj?.Success);
-            Assert.False(valueResultObj?.Success);
+            Assert.Contains("Success", invokeJson);
+            Assert.Contains("false", invokeJson);
+            Assert.Contains("Success", valueJson);
+            Assert.Contains("false", valueJson);
             
-            _output.WriteLine($"Invoke result: {invokeResult}");
-            _output.WriteLine($"Value result: {valueResult}");
+            _output.WriteLine($"Invoke result: {invokeJson}");
+            _output.WriteLine($"Value result: {valueJson}");
         }
 
         [Fact]

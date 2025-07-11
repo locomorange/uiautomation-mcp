@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
 using Moq;
+using System.IO;
 
 namespace UIAutomationMCP.Tests.UnitTests.Helpers
 {
@@ -57,7 +58,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
             };
 
             // When & Then
-            await Assert.ThrowsAsync<Exception>(async () =>
+            await Assert.ThrowsAsync<FileNotFoundException>(async () =>
                 await executor.ExecuteAsync<object>("TestOperation", parameters, 5));
         }
 
@@ -73,7 +74,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
 
             // When & Then
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            await Assert.ThrowsAsync<Exception>(async () =>
+            await Assert.ThrowsAsync<FileNotFoundException>(async () =>
                 await executor.ExecuteAsync<object>("TestOperation", parameters, 1));
             stopwatch.Stop();
 
@@ -106,7 +107,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
             using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath);
 
             // When & Then
-            await Assert.ThrowsAsync<Exception>(async () =>
+            await Assert.ThrowsAsync<FileNotFoundException>(async () =>
                 await executor.ExecuteAsync<object>("TestOperation", null, 5));
         }
 
@@ -118,7 +119,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
             var parameters = new Dictionary<string, object>();
 
             // When & Then
-            await Assert.ThrowsAsync<Exception>(async () =>
+            await Assert.ThrowsAsync<FileNotFoundException>(async () =>
                 await executor.ExecuteAsync<object>("TestOperation", parameters, 5));
         }
 
@@ -136,7 +137,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
             };
 
             // When & Then
-            await Assert.ThrowsAsync<Exception>(async () =>
+            await Assert.ThrowsAsync<FileNotFoundException>(async () =>
                 await executor.ExecuteAsync<object>("TestOperation", parameters, timeout));
         }
 
@@ -195,7 +196,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    await Assert.ThrowsAsync<Exception>(async () =>
+                    await Assert.ThrowsAsync<FileNotFoundException>(async () =>
                         await executor.ExecuteAsync<object>("TestOperation", parameters, 2));
                 }));
             }

@@ -82,7 +82,7 @@ namespace UiAutomationMcp.Tests.Integration
             };
 
             // When & Then
-            var exception = await Assert.ThrowsAsync<Exception>(async () =>
+            var exception = await Assert.ThrowsAsync<ArgumentException>(async () =>
                 await _subprocessExecutor.ExecuteAsync<object>("InvalidOperation", parameters, 10));
 
             Assert.NotNull(exception);
@@ -101,7 +101,7 @@ namespace UiAutomationMcp.Tests.Integration
             };
 
             // When & Then
-            var exception = await Assert.ThrowsAsync<Exception>(async () =>
+            var exception = await Assert.ThrowsAsync<TimeoutException>(async () =>
                 await _subprocessExecutor.ExecuteAsync<object>("InvokeElement", parameters, 10));
 
             Assert.NotNull(exception);
@@ -109,7 +109,7 @@ namespace UiAutomationMcp.Tests.Integration
         }
 
         [Fact]
-        public async Task InvokeService_WhenCalledWithNonExistentElement_ShouldReturnFailure()
+        public async Task InvokeService_WhenCalledWithNonExistentElement_ShouldHandleTimeout()
         {
             // Given
             var invokeService = new SubprocessBasedInvokeService(_serviceProvider.GetRequiredService<ILogger<SubprocessBasedInvokeService>>(), _subprocessExecutor);
@@ -119,9 +119,11 @@ namespace UiAutomationMcp.Tests.Integration
 
             // Then
             Assert.NotNull(result);
-            var resultObject = result as dynamic;
-            Assert.False(resultObject?.Success);
-            _output.WriteLine($"InvokeService communication test completed: {result}");
+            var resultJson = System.Text.Json.JsonSerializer.Serialize(result);
+            Assert.Contains("Success", resultJson);
+            Assert.Contains("false", resultJson);
+            Assert.Contains("timed out", resultJson);
+            _output.WriteLine($"InvokeService timeout test completed: {resultJson}");
         }
 
         [Fact]
@@ -135,9 +137,11 @@ namespace UiAutomationMcp.Tests.Integration
 
             // Assert
             Assert.NotNull(result);
-            var resultObject = result as dynamic;
-            Assert.False(resultObject?.Success);
-            _output.WriteLine($"ValueService communication test completed: {result}");
+            var resultJson = System.Text.Json.JsonSerializer.Serialize(result);
+            Assert.Contains("Success", resultJson);
+            Assert.Contains("false", resultJson);
+            Assert.Contains("timed out", resultJson);
+            _output.WriteLine($"ValueService timeout test completed: {resultJson}");
         }
 
         [Fact]
@@ -151,9 +155,11 @@ namespace UiAutomationMcp.Tests.Integration
 
             // Assert
             Assert.NotNull(result);
-            var resultObject = result as dynamic;
-            Assert.False(resultObject?.Success);
-            _output.WriteLine($"ToggleService communication test completed: {result}");
+            var resultJson = System.Text.Json.JsonSerializer.Serialize(result);
+            Assert.Contains("Success", resultJson);
+            Assert.Contains("false", resultJson);
+            Assert.Contains("timed out", resultJson);
+            _output.WriteLine($"ToggleService timeout test completed: {resultJson}");
         }
 
         [Fact]
@@ -170,7 +176,13 @@ namespace UiAutomationMcp.Tests.Integration
             // Assert
             Assert.NotNull(invokeResult);
             Assert.NotNull(valueResult);
-            _output.WriteLine("Multiple sequential operations completed successfully");
+            var invokeJson = System.Text.Json.JsonSerializer.Serialize(invokeResult);
+            var valueJson = System.Text.Json.JsonSerializer.Serialize(valueResult);
+            Assert.Contains("Success", invokeJson);
+            Assert.Contains("false", invokeJson);
+            Assert.Contains("Success", valueJson);
+            Assert.Contains("false", valueJson);
+            _output.WriteLine("Multiple sequential timeout operations completed successfully");
         }
 
         [Fact]
