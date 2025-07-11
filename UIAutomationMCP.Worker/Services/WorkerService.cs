@@ -29,20 +29,27 @@ namespace UIAutomationMCP.Worker.Services
                 try
                 {
                     input = await Console.In.ReadLineAsync();
+                    _logger.LogDebug("Received input: {Input}", input ?? "null");
+                    
                     if (string.IsNullOrEmpty(input))
                     {
+                        _logger.LogDebug("Input is null or empty, breaking main loop");
                         break;
                     }
 
                     var request = JsonSerializer.Deserialize<WorkerRequest>(input, JsonSerializationConfig.Options);
                     if (request == null)
                     {
+                        _logger.LogWarning("Failed to deserialize request: {Input}", input);
                         WriteResponse(new WorkerResponse { Success = false, Error = "Invalid request format" });
                         continue;
                     }
 
+                    _logger.LogDebug("Successfully deserialized request for operation: {Operation}", request.Operation);
                     var response = await ProcessRequestAsync(request);
+                    _logger.LogDebug("Processing completed, writing response: {Success}", response.Success);
                     WriteResponse(response);
+                    _logger.LogDebug("Response written to stdout");
                 }
                 catch (Exception ex)
                 {
@@ -122,6 +129,7 @@ namespace UIAutomationMCP.Worker.Services
         {
             var json = JsonSerializer.Serialize(response, JsonSerializationConfig.Options);
             Console.WriteLine(json);
+            Console.Out.Flush(); // Ensure immediate output
         }
     }
 }

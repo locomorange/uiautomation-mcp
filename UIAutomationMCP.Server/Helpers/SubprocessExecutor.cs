@@ -19,7 +19,7 @@ namespace UIAutomationMCP.Server.Helpers
             _workerPath = workerPath;
         }
 
-        public async Task<TResult> ExecuteAsync<TResult>(string operation, object? parameters = null, int timeoutSeconds = 30)
+        public async Task<TResult> ExecuteAsync<TResult>(string operation, object? parameters = null, int timeoutSeconds = 60)
         {
             await _semaphore.WaitAsync();
             try
@@ -67,10 +67,28 @@ namespace UIAutomationMCP.Server.Helpers
                 var responseJson = await responseTask;
                 if (string.IsNullOrEmpty(responseJson))
                 {
+                    // Check stderr for error output
+                    string errorOutput = "";
+                    try
+                    {
+                        if (_workerProcess?.StandardError != null && _workerProcess.StandardError.Peek() >= 0)
+                        {
+                            errorOutput = await _workerProcess.StandardError.ReadToEndAsync();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to read stderr from worker process");
+                    }
+
                     var contextMessage = $"Worker process returned empty response for operation '{operation}'";
                     if (parameters != null)
                     {
                         contextMessage += $" with parameters: {JsonSerializer.Serialize(parameters)}";
+                    }
+                    if (!string.IsNullOrEmpty(errorOutput))
+                    {
+                        contextMessage += $". Stderr: {errorOutput}";
                     }
                     _logger.LogError("Empty response received: {Context}", contextMessage);
                     throw new InvalidOperationException(contextMessage);
@@ -186,9 +204,19 @@ namespace UIAutomationMCP.Server.Helpers
 
             _workerProcess = new Process { StartInfo = startInfo };
             
+            // Set up async stderr monitoring
+            _workerProcess.ErrorDataReceived += (sender, e) =>
+            {
+                if (!string.IsNullOrEmpty(e.Data))
+                {
+                    _logger.LogDebug("Worker stderr: {ErrorData}", e.Data);
+                }
+            };
+            
             try
             {
                 _workerProcess.Start();
+                _workerProcess.BeginErrorReadLine(); // Start async stderr reading
             }
             catch (Exception ex)
             {
@@ -202,16 +230,8 @@ namespace UIAutomationMCP.Server.Helpers
             if (_workerProcess.HasExited)
             {
                 var exitCode = _workerProcess.ExitCode;
-                var errorOutput = "";
-                
-                try
-                {
-                    errorOutput = await _workerProcess.StandardError.ReadToEndAsync();
-                }
-                catch { }
-                
-                _logger.LogError("Worker process exited immediately with code: {ExitCode}, Error: {ErrorOutput}", exitCode, errorOutput);
-                throw new InvalidOperationException($"Worker process failed to start (exit code: {exitCode}). Error: {errorOutput}");
+                _logger.LogError("Worker process exited immediately with code: {ExitCode}", exitCode);
+                throw new InvalidOperationException($"Worker process failed to start (exit code: {exitCode})");
             }
 
             _logger.LogInformation("Worker process started with PID: {ProcessId}", _workerProcess.Id);

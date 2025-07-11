@@ -91,6 +91,8 @@ namespace UIAutomationMCP.Shared
         public string Base64Image { get; set; } = string.Empty;
         public int Width { get; set; }
         public int Height { get; set; }
+        public long FileSize { get; set; }
+        public string Timestamp { get; set; } = string.Empty;
     }
 
     public class ProcessResult : OperationResult

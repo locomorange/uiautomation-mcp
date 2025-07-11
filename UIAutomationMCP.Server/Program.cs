@@ -22,7 +22,7 @@ namespace UIAutomationMCP.Server
 
             // Register application services
             builder.Services.AddSingleton<IApplicationLauncher, ApplicationLauncher>();
-            builder.Services.AddSingleton<IScreenshotService, SubprocessBasedScreenshotService>();
+            builder.Services.AddSingleton<IScreenshotService, DirectScreenshotService>();
             
             // Register subprocess-based UI Automation services
             builder.Services.AddSingleton<IElementSearchService, SubprocessBasedElementSearchService>();

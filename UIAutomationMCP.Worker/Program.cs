@@ -13,7 +13,6 @@ using UIAutomationMCP.Worker.Operations.ElementInspection;
 using UIAutomationMCP.Worker.Operations.Layout;
 using UIAutomationMCP.Worker.Operations.MultipleView;
 using UIAutomationMCP.Worker.Operations.Range;
-using UIAutomationMCP.Worker.Operations.Screenshot;
 using UIAutomationMCP.Worker.Operations.Selection;
 using UIAutomationMCP.Worker.Operations.Table;
 using UIAutomationMCP.Worker.Operations.Text;
@@ -32,97 +31,97 @@ namespace UIAutomationMCP.Worker
 
             // Configure logging - disable console logging to avoid interference with JSON responses
             builder.Logging.ClearProviders();
-            // Add file logging only for Worker to avoid standard output pollution
-            builder.Logging.SetMinimumLevel(LogLevel.Warning);
+            // Add file logging for debugging but avoid console output pollution
+            builder.Logging.AddProvider(new DebugLoggerProvider());
+            builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
             // Register helper services
             builder.Services.AddSingleton<ElementFinderService>();
 
             // Register basic operations as keyed services (working ones only)
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, InvokeElementOperation>("InvokeElement");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, ToggleElementOperation>("ToggleElement");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetToggleStateOperation>("GetToggleState");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, SetToggleStateOperation>("SetToggleState");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, SetElementValueOperation>("SetElementValue");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetElementValueOperation>("GetElementValue");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, FindElementsOperation>("FindElements");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetDesktopWindowsOperation>("GetDesktopWindows");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, InvokeElementOperation>("InvokeElement");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, ToggleElementOperation>("ToggleElement");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetToggleStateOperation>("GetToggleState");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, SetToggleStateOperation>("SetToggleState");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, SetElementValueOperation>("SetElementValue");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetElementValueOperation>("GetElementValue");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, FindElementsOperation>("FindElements");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetDesktopWindowsOperation>("GetDesktopWindows");
 
             // ControlType operations
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, ButtonOperation>("ButtonOperation");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, CalendarOperation>("CalendarOperation");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, ComboBoxOperation>("ComboBoxOperation");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, HyperlinkOperation>("HyperlinkOperation");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, ListOperation>("ListOperation");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, MenuOperation>("MenuOperation");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, TabOperation>("TabOperation");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, TreeViewOperation>("TreeViewOperation");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, ButtonOperation>("ButtonOperation");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, CalendarOperation>("CalendarOperation");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, ComboBoxOperation>("ComboBoxOperation");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, HyperlinkOperation>("HyperlinkOperation");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, ListOperation>("ListOperation");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, MenuOperation>("MenuOperation");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, TabOperation>("TabOperation");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, TreeViewOperation>("TreeViewOperation");
 
             // Grid operations
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetColumnHeaderOperation>("GetColumnHeader");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetRowHeaderOperation>("GetRowHeader");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetGridInfoOperation>("GetGridInfo");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetGridItemOperation>("GetGridItem");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetColumnHeaderOperation>("GetColumnHeader");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetRowHeaderOperation>("GetRowHeader");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetGridInfoOperation>("GetGridInfo");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetGridItemOperation>("GetGridItem");
 
             // ElementInspection operations
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetElementPropertiesOperation>("GetElementProperties");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetElementPatternsOperation>("GetElementPatterns");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetElementPropertiesOperation>("GetElementProperties");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetElementPatternsOperation>("GetElementPatterns");
 
             // Layout operations
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, DockElementOperation>("DockElement");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, ExpandCollapseElementOperation>("ExpandCollapseElement");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, ScrollElementOperation>("ScrollElement");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, ScrollElementIntoViewOperation>("ScrollElementIntoView");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, DockElementOperation>("DockElement");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, ExpandCollapseElementOperation>("ExpandCollapseElement");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, ScrollElementOperation>("ScrollElement");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, ScrollElementIntoViewOperation>("ScrollElementIntoView");
 
             // MultipleView operations
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetAvailableViewsOperation>("GetAvailableViews");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetCurrentViewOperation>("GetCurrentView");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetViewNameOperation>("GetViewName");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, SetViewOperation>("SetView");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetAvailableViewsOperation>("GetAvailableViews");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetCurrentViewOperation>("GetCurrentView");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetViewNameOperation>("GetViewName");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, SetViewOperation>("SetView");
 
             // Range operations
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetRangePropertiesOperation>("GetRangeProperties");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetRangeValueOperation>("GetRangeValue");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, SetRangeValueOperation>("SetRangeValue");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetRangePropertiesOperation>("GetRangeProperties");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetRangeValueOperation>("GetRangeValue");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, SetRangeValueOperation>("SetRangeValue");
 
-            // Screenshot operations
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, TakeScreenshotOperation>("TakeScreenshot");
 
             // Selection operations
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, AddToSelectionOperation>("AddToSelection");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, ClearSelectionOperation>("ClearSelection");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetSelectionOperation>("GetSelection");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, RemoveFromSelectionOperation>("RemoveFromSelection");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, SelectElementOperation>("SelectElement");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, SelectItemOperation>("SelectItem");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, AddToSelectionOperation>("AddToSelection");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, ClearSelectionOperation>("ClearSelection");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetSelectionOperation>("GetSelection");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, RemoveFromSelectionOperation>("RemoveFromSelection");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, SelectElementOperation>("SelectElement");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, SelectItemOperation>("SelectItem");
 
             // Table operations
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetColumnHeadersOperation>("GetColumnHeaders");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetRowHeadersOperation>("GetRowHeaders");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetTableInfoOperation>("GetTableInfo");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetColumnHeadersOperation>("GetColumnHeaders");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetRowHeadersOperation>("GetRowHeaders");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetTableInfoOperation>("GetTableInfo");
 
             // Text operations
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, AppendTextOperation>("AppendText");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, FindTextOperation>("FindText");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetSelectedTextOperation>("GetSelectedText");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetTextAttributesOperation>("GetTextAttributes");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetTextOperation>("GetText");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetTextSelectionOperation>("GetTextSelection");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, SelectTextOperation>("SelectText");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, SetTextOperation>("SetText");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, TraverseTextOperation>("TraverseText");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, AppendTextOperation>("AppendText");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, FindTextOperation>("FindText");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetSelectedTextOperation>("GetSelectedText");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetTextAttributesOperation>("GetTextAttributes");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetTextOperation>("GetText");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetTextSelectionOperation>("GetTextSelection");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, SelectTextOperation>("SelectText");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, SetTextOperation>("SetText");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, TraverseTextOperation>("TraverseText");
 
             // TreeNavigation operations
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetAncestorsOperation>("GetAncestors");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetChildrenOperation>("GetChildren");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetDescendantsOperation>("GetDescendants");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetElementTreeOperation>("GetElementTree");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetParentOperation>("GetParent");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, GetSiblingsOperation>("GetSiblings");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetAncestorsOperation>("GetAncestors");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetChildrenOperation>("GetChildren");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetDescendantsOperation>("GetDescendants");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetElementTreeOperation>("GetElementTree");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetParentOperation>("GetParent");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetSiblingsOperation>("GetSiblings");
 
             // Window operations
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, TransformElementOperation>("TransformElement");
-            builder.Services.AddKeyedSingleton<IUIAutomationOperation, WindowActionOperation>("WindowAction");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, TransformElementOperation>("TransformElement");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, WindowActionOperation>("WindowAction");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetWindowInfoOperation>("GetWindowInfo");
 
             // Register Worker service
             builder.Services.AddSingleton<WorkerService>();
