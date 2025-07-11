@@ -18,18 +18,28 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
         {
             try
             {
-                _logger.LogDebug("Starting GetDesktopWindows operation");
+                _logger.LogInformation("Starting GetDesktopWindows operation");
                 
-                _logger.LogDebug("Getting root element...");
+                _logger.LogInformation("Getting root element...");
                 var rootElement = AutomationElement.RootElement;
-                _logger.LogDebug("Root element obtained: {RootElementName}", rootElement?.Current.Name ?? "null");
+                if (rootElement == null)
+                {
+                    _logger.LogError("Root element is null!");
+                    return Task.FromResult(new OperationResult
+                    {
+                        Success = false,
+                        Error = "Root element is null - UIAutomation may not be available"
+                    });
+                }
                 
-                _logger.LogDebug("Creating condition for windows...");
+                _logger.LogInformation("Root element obtained: {RootElementName}", rootElement.Current.Name ?? "null");
+                
+                _logger.LogInformation("Creating condition for windows...");
                 var condition = new PropertyCondition(AutomationElement.ControlTypeProperty, System.Windows.Automation.ControlType.Window);
                 
-                _logger.LogDebug("Finding all windows...");
+                _logger.LogInformation("Finding all windows...");
                 var windows = rootElement.FindAll(TreeScope.Children, condition);
-                _logger.LogDebug("Found {WindowCount} windows", windows?.Count ?? 0);
+                _logger.LogInformation("Found {WindowCount} windows", windows?.Count ?? 0);
                 
                 var windowList = new List<WindowInfo>();
                 if (windows != null)
@@ -66,11 +76,19 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "GetDesktopWindows operation failed");
+                _logger.LogError(ex, "GetDesktopWindows operation failed - Exception type: {ExceptionType}, Message: {Message}", 
+                    ex.GetType().Name, ex.Message);
+                
+                var errorMessage = $"Failed to get desktop windows: {ex.Message}";
+                if (ex.InnerException != null)
+                {
+                    errorMessage += $" Inner: {ex.InnerException.Message}";
+                }
+                
                 return Task.FromResult(new OperationResult
                 {
                     Success = false,
-                    Error = $"Failed to get desktop windows: {ex.Message}"
+                    Error = errorMessage
                 });
             }
         }

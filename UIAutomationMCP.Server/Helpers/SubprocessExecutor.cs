@@ -33,12 +33,13 @@ namespace UIAutomationMCP.Server.Helpers
                 };
 
                 var requestJson = JsonSerializer.Serialize(request);
-                _logger.LogDebug("Sending request to worker: {Request}", requestJson);
+                _logger.LogInformation("Sending request to worker: {Request}", requestJson);
 
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
                 
                 await _workerProcess!.StandardInput.WriteLineAsync(requestJson);
                 await _workerProcess.StandardInput.FlushAsync();
+                _logger.LogInformation("Request sent and flushed to worker process");
 
                 var responseTask = _workerProcess.StandardOutput.ReadLineAsync();
                 var timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeoutSeconds), cts.Token);
@@ -94,9 +95,9 @@ namespace UIAutomationMCP.Server.Helpers
                     throw new InvalidOperationException(contextMessage);
                 }
 
-                _logger.LogDebug("Received response from worker (length: {Length}): {Response}", 
+                _logger.LogInformation("Received response from worker (length: {Length}): {Response}", 
                     responseJson.Length, 
-                    responseJson.Length > 500 ? responseJson.Substring(0, 500) + "..." : responseJson);
+                    responseJson.Length > 1000 ? responseJson.Substring(0, 1000) + "..." : responseJson);
 
                 WorkerResponse? response;
                 try
@@ -125,11 +126,18 @@ namespace UIAutomationMCP.Server.Helpers
                         Operation = operation,
                         Parameters = parameters,
                         Error = response.Error,
+                        ErrorIsNull = response.Error == null,
+                        ErrorIsEmpty = string.IsNullOrEmpty(response.Error),
+                        Data = response.Data,
                         Timestamp = DateTime.UtcNow,
                         WorkerPid = _workerProcess?.Id
                     };
                     
-                    var contextualErrorMessage = $"Worker operation '{operation}' failed: {response.Error}";
+                    // Fix empty error message handling
+                    var errorMessage = string.IsNullOrEmpty(response.Error) ? 
+                        "Unknown error occurred" : response.Error;
+                    
+                    var contextualErrorMessage = $"Worker operation '{operation}' failed: {errorMessage}";
                     if (parameters != null)
                     {
                         contextualErrorMessage += $" (Parameters: {JsonSerializer.Serialize(parameters)})";
@@ -138,7 +146,7 @@ namespace UIAutomationMCP.Server.Helpers
                     _logger.LogError("Worker operation failed with details: {@ErrorDetails}", errorDetails);
                     
                     // Categorize errors for appropriate exception types
-                    var errorLower = response.Error?.ToLowerInvariant() ?? "";
+                    var errorLower = errorMessage.ToLowerInvariant();
                     
                     if (errorLower.Contains("not found") || errorLower.Contains("element") && errorLower.Contains("not") ||
                         errorLower.Contains("invalid") && errorLower.Contains("id"))
@@ -165,7 +173,18 @@ namespace UIAutomationMCP.Server.Helpers
                     }
                 }
 
-                return JsonSerializer.Deserialize<TResult>(JsonSerializer.Serialize(response.Data))!;
+                try
+                {
+                    var result = JsonSerializer.Deserialize<TResult>(JsonSerializer.Serialize(response.Data))!;
+                    _logger.LogInformation("Successfully deserialized worker response data to type {ResultType}", typeof(TResult).Name);
+                    return result;
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogError(ex, "Failed to deserialize response data to type {ResultType}. Data: {Data}", 
+                        typeof(TResult).Name, JsonSerializer.Serialize(response.Data));
+                    throw new InvalidOperationException($"Failed to deserialize response data to {typeof(TResult).Name}: {ex.Message}", ex);
+                }
             }
             finally
             {
@@ -185,22 +204,68 @@ namespace UIAutomationMCP.Server.Helpers
         {
             _logger.LogInformation("Starting worker process: {WorkerPath}", _workerPath);
 
-            if (!File.Exists(_workerPath))
+            // Check if it's a .dll file or executable
+            ProcessStartInfo startInfo;
+            
+            if (_workerPath.EndsWith(".dll"))
             {
-                _logger.LogError("Worker executable not found at: {WorkerPath}", _workerPath);
-                throw new FileNotFoundException($"Worker executable not found at: {_workerPath}");
+                // For .dll files, use dotnet to run them
+                startInfo = new ProcessStartInfo
+                {
+                    FileName = "dotnet",
+                    Arguments = _workerPath,
+                    UseShellExecute = false,
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true,
+                    WorkingDirectory = Path.GetDirectoryName(_workerPath)
+                };
             }
-
-            var startInfo = new ProcessStartInfo
+            else if (_workerPath.Contains("UIAutomationMCP.Worker") && !File.Exists(_workerPath))
             {
-                FileName = _workerPath,
-                UseShellExecute = false,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
-                WorkingDirectory = Path.GetDirectoryName(_workerPath)
-            };
+                // For project directory, use dotnet run
+                var projectDir = Path.GetDirectoryName(_workerPath);
+                if (projectDir != null && Directory.Exists(projectDir))
+                {
+                    startInfo = new ProcessStartInfo
+                    {
+                        FileName = "dotnet",
+                        Arguments = "run --project UIAutomationMCP.Worker",
+                        UseShellExecute = false,
+                        RedirectStandardInput = true,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true,
+                        WorkingDirectory = Directory.GetParent(projectDir)?.FullName ?? projectDir
+                    };
+                }
+                else
+                {
+                    _logger.LogError("Worker project directory not found: {WorkerPath}", _workerPath);
+                    throw new FileNotFoundException($"Worker project directory not found: {_workerPath}");
+                }
+            }
+            else
+            {
+                // For executable files
+                if (!File.Exists(_workerPath))
+                {
+                    _logger.LogError("Worker executable not found at: {WorkerPath}", _workerPath);
+                    throw new FileNotFoundException($"Worker executable not found at: {_workerPath}");
+                }
+
+                startInfo = new ProcessStartInfo
+                {
+                    FileName = _workerPath,
+                    UseShellExecute = false,
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true,
+                    WorkingDirectory = Path.GetDirectoryName(_workerPath)
+                };
+            }
 
             _workerProcess = new Process { StartInfo = startInfo };
             

@@ -65,14 +65,16 @@ namespace UIAutomationMCP.Server
                 {
                     Path.Combine(baseDir, "UIAutomationMCP.Worker.exe"), // Same directory
                     Path.Combine(baseDir, "..", "UIAutomationMCP.Worker", "bin", "Debug", "net9.0-windows", "UIAutomationMCP.Worker.exe"), // Development layout
+                    Path.Combine(baseDir, "..", "UIAutomationMCP.Worker", "bin", "Debug", "net9.0-windows", "UIAutomationMCP.Worker.dll"), // Development DLL
                     Path.Combine(baseDir, "worker", "UIAutomationMCP.Worker.exe"), // Deployed layout
+                    Path.Combine(baseDir, "..", "UIAutomationMCP.Worker"), // Project directory for dotnet run
                 };
 
                 string? workerPath = null;
                 foreach (var path in possiblePaths)
                 {
                     var fullPath = Path.GetFullPath(path);
-                    if (File.Exists(fullPath))
+                    if (File.Exists(fullPath) || (path.EndsWith("UIAutomationMCP.Worker") && Directory.Exists(fullPath)))
                     {
                         workerPath = fullPath;
                         break;
@@ -81,8 +83,8 @@ namespace UIAutomationMCP.Server
 
                 if (workerPath == null)
                 {
-                    logger.LogError("Worker executable not found in any of these locations: {Paths}", string.Join(", ", possiblePaths.Select(Path.GetFullPath)));
-                    throw new InvalidOperationException("UIAutomationMCP.Worker.exe not found");
+                    logger.LogError("Worker executable or project not found in any of these locations: {Paths}", string.Join(", ", possiblePaths.Select(Path.GetFullPath)));
+                    throw new InvalidOperationException("UIAutomationMCP.Worker not found");
                 }
 
                 logger.LogInformation("Worker path configured: {WorkerPath}", workerPath);

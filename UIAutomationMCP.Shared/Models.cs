@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace UIAutomationMCP.Shared
 {
@@ -176,8 +177,13 @@ namespace UIAutomationMCP.Shared
 
     public class WorkerResponse
     {
+        [JsonPropertyName("success")]
         public bool Success { get; set; }
+        
+        [JsonPropertyName("data")]
         public object? Data { get; set; }
+        
+        [JsonPropertyName("error")]
         public string? Error { get; set; }
     }
 }
