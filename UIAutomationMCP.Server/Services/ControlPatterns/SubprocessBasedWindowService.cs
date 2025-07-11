@@ -20,7 +20,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             if (string.IsNullOrWhiteSpace(operation))
             {
                 var validationError = "Window operation is required and cannot be empty";
-                _logger.LogWarning("WindowOperation operation failed due to validation: {Error}", validationError);
+                _logger.LogWarning("WindowAction operation failed due to validation: {Error}", validationError);
                 return new { Success = false, Error = validationError, ErrorCategory = "Validation" };
             }
 
@@ -31,12 +31,12 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
                 var parameters = new Dictionary<string, object>
                 {
-                    { "operation", operation },
+                    { "action", operation },
                     { "windowTitle", windowTitle ?? "" },
                     { "processId", processId ?? 0 }
                 };
 
-                await _executor.ExecuteAsync<object>("WindowOperation", parameters, timeoutSeconds);
+                await _executor.ExecuteAsync<object>("WindowAction", parameters, timeoutSeconds);
 
                 _logger.LogInformation("Window operation performed successfully: {Operation}", operation);
                 return new { 
@@ -48,7 +48,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             }
             catch (Exception ex)
             {
-                return SubprocessErrorHandler.HandleError(ex, "WindowOperation", windowTitle ?? "unknown", timeoutSeconds, _logger);
+                return SubprocessErrorHandler.HandleError(ex, "WindowAction", windowTitle ?? "unknown", timeoutSeconds, _logger);
             }
         }
 

@@ -32,6 +32,8 @@ namespace UIAutomationMCP.Server.Services
                     // Determine capture area
                     if (!string.IsNullOrEmpty(windowTitle) || processId.HasValue)
                     {
+                        _logger.LogInformation("Attempting to get window info for title: {WindowTitle}, processId: {ProcessId}", windowTitle, processId);
+                        
                         // Use Worker to get window information via UIAutomation
                         var windowInfo = await GetWindowInfoFromWorker(windowTitle, processId);
                         if (windowInfo == null)
@@ -40,38 +42,53 @@ namespace UIAutomationMCP.Server.Services
                             return new ScreenshotResult { Success = false, Error = "Window not found" };
                         }
 
+                        _logger.LogInformation("Window info retrieved successfully: {Keys}", string.Join(", ", windowInfo.Keys));
+
                         // Extract bounding rectangle from window info
-                        if (windowInfo.TryGetValue("BoundingRectangle", out var boundingRectObj) && 
-                            boundingRectObj is Dictionary<string, object> boundingRect)
+                        if (windowInfo.TryGetValue("BoundingRectangle", out var boundingRectObj))
                         {
-                            var x = Convert.ToInt32(boundingRect["X"]);
-                            var y = Convert.ToInt32(boundingRect["Y"]);
-                            var width = Convert.ToInt32(boundingRect["Width"]);
-                            var height = Convert.ToInt32(boundingRect["Height"]);
+                            _logger.LogInformation("BoundingRectangle found, type: {Type}, value: {Value}", 
+                                boundingRectObj?.GetType().Name ?? "null", 
+                                System.Text.Json.JsonSerializer.Serialize(boundingRectObj));
                             
-                            captureArea = new Rectangle(x, y, width, height);
+                            if (boundingRectObj is Dictionary<string, object> boundingRect)
+                            {
+                                var x = Convert.ToInt32(boundingRect["X"]);
+                                var y = Convert.ToInt32(boundingRect["Y"]);
+                                var width = Convert.ToInt32(boundingRect["Width"]);
+                                var height = Convert.ToInt32(boundingRect["Height"]);
+                                
+                                captureArea = new Rectangle(x, y, width, height);
+                                _logger.LogInformation("Capture area set to: {X}, {Y}, {Width}, {Height}", x, y, width, height);
+                            }
+                            else if (boundingRectObj is System.Text.Json.JsonElement jsonElement && jsonElement.ValueKind == System.Text.Json.JsonValueKind.Object)
+                            {
+                                // Handle JsonElement case
+                                var x = jsonElement.GetProperty("X").GetInt32();
+                                var y = jsonElement.GetProperty("Y").GetInt32();
+                                var width = jsonElement.GetProperty("Width").GetInt32();
+                                var height = jsonElement.GetProperty("Height").GetInt32();
+                                
+                                captureArea = new Rectangle(x, y, width, height);
+                                _logger.LogInformation("Capture area set from JsonElement: {X}, {Y}, {Width}, {Height}", x, y, width, height);
+                            }
+                            else
+                            {
+                                _logger.LogError("BoundingRectangle is not in expected format. Type: {Type}", boundingRectObj?.GetType().Name ?? "null");
+                                return new ScreenshotResult { Success = false, Error = "Invalid BoundingRectangle format" };
+                            }
                         }
                         else
                         {
-                            _logger.LogError("Failed to get window rectangle from UIAutomation");
+                            _logger.LogError("Failed to get window rectangle from UIAutomation. Available keys: {Keys}", string.Join(", ", windowInfo.Keys));
                             return new ScreenshotResult { Success = false, Error = "Failed to get window rectangle" };
                         }
 
-                        // Try to activate window using Windows API
-                        if (windowInfo.TryGetValue("ProcessId", out var processIdObj))
-                        {
-                            var pid = Convert.ToInt32(processIdObj);
-                            hwnd = FindWindowByProcessId(pid);
-                            if (hwnd != IntPtr.Zero)
-                            {
-                                if (!ActivateWindow(hwnd))
-                                {
-                                    _logger.LogWarning("Failed to activate window: {WindowTitle}", windowTitle);
-                                }
-                                // Wait a bit for window to come to foreground
-                                Thread.Sleep(500);
-                            }
-                        }
+                        // Try to activate window using Worker's WindowAction for better reliability
+                        await ActivateWindowViaWorker(windowTitle, processId);
+                        
+                        // Wait a bit for window to come to foreground
+                        Thread.Sleep(500);
                     }
                     else
                     {
@@ -248,7 +265,22 @@ namespace UIAutomationMCP.Server.Services
                     { "processId", processId ?? 0 }
                 };
 
+                _logger.LogInformation("Calling Worker GetWindowInfo with parameters: {Parameters}", 
+                    System.Text.Json.JsonSerializer.Serialize(parameters));
+
                 var result = await _executor.ExecuteAsync<Dictionary<string, object>>("GetWindowInfo", parameters, 10);
+                
+                _logger.LogInformation("Worker returned result type: {Type}", result?.GetType().Name ?? "null");
+                if (result != null)
+                {
+                    _logger.LogInformation("Worker returned window info keys: {Keys}", string.Join(", ", result.Keys));
+                    _logger.LogInformation("Worker returned window info: {WindowInfo}", System.Text.Json.JsonSerializer.Serialize(result));
+                }
+                else
+                {
+                    _logger.LogWarning("Worker returned null result");
+                }
+                
                 return result;
             }
             catch (Exception ex)
@@ -306,6 +338,40 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogWarning(ex, "Failed to activate window");
                 return false;
+            }
+        }
+
+        private async Task ActivateWindowViaWorker(string? windowTitle, int? processId)
+        {
+            try
+            {
+                _logger.LogInformation("Attempting to activate window via Worker: {WindowTitle}, ProcessId: {ProcessId}", windowTitle, processId);
+
+                // Use Worker's WindowAction operation to activate window
+                var parameters = new Dictionary<string, object>
+                {
+                    ["action"] = "normal",
+                    ["windowTitle"] = windowTitle ?? "",
+                    ["processId"] = processId ?? 0
+                };
+
+                var result = await _executor.ExecuteAsync<Dictionary<string, object>>("WindowAction", parameters, 5);
+                if (result != null && result.TryGetValue("success", out var successObj) && Convert.ToBoolean(successObj))
+                {
+                    _logger.LogInformation("Window activated successfully via Worker: {WindowTitle}", windowTitle);
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to activate window via Worker. Result: {Result}", 
+                        result != null ? System.Text.Json.JsonSerializer.Serialize(result) : "null");
+                }
+
+                // Wait for window state changes
+                Thread.Sleep(300);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to activate window via Worker: {WindowTitle}", windowTitle);
             }
         }
 
