@@ -11,8 +11,8 @@ namespace UIAutomationMCP.Tests.Integration
 {
     /// <summary>
     /// 基本的なE2Eテスト - 最も重要なユーザーシナリオのみをテスト
+    /// Process IDベースの安全な終了処理により並行実行をサポート
     /// </summary>
-    [Collection("UIAutomation Collection")]
     public class BasicE2ETests : IDisposable
     {
         private readonly ITestOutputHelper _output;
@@ -101,6 +101,40 @@ namespace UIAutomationMCP.Tests.Integration
             _output.WriteLine($"Value result: {valueJson}");
         }
 
+        private async Task SafelyTerminateProcessAsync(Process? process, string appName)
+        {
+            if (process == null) return;
+
+            try
+            {
+                if (!process.HasExited)
+                {
+                    _output.WriteLine($"Terminating {appName} with PID: {process.Id}");
+                    
+                    // まず正常終了を試行
+                    process.CloseMainWindow();
+                    
+                    // 少し待機してから強制終了
+                    if (!process.WaitForExit(2000))
+                    {
+                        _output.WriteLine($"Force killing {appName} with PID: {process.Id}");
+                        process.Kill();
+                        await process.WaitForExitAsync();
+                    }
+                    
+                    _output.WriteLine($"{appName} with PID: {process.Id} terminated successfully");
+                }
+            }
+            catch (Exception ex)
+            {
+                _output.WriteLine($"Error terminating {appName}: {ex.Message}");
+            }
+            finally
+            {
+                process?.Dispose();
+            }
+        }
+
         [Fact]
         public async Task BasicWorkflow_WithCalculator_ShouldHandleGracefully()
         {
@@ -121,6 +155,7 @@ namespace UIAutomationMCP.Tests.Integration
                 }
 
                 await Task.Delay(3000); // Wait for calculator to start
+                _output.WriteLine($"Calculator launched with PID: {calcProcess.Id}");
                 var timeout = 10;
 
                 // When
@@ -139,18 +174,7 @@ namespace UIAutomationMCP.Tests.Integration
             }
             finally
             {
-                if (calcProcess != null && !calcProcess.HasExited)
-                {
-                    try
-                    {
-                        calcProcess.Kill();
-                        calcProcess.WaitForExit(3000);
-                    }
-                    catch (Exception ex)
-                    {
-                        _output.WriteLine($"Failed to cleanup calculator: {ex.Message}");
-                    }
-                }
+                await SafelyTerminateProcessAsync(calcProcess, "Calculator");
             }
         }
 

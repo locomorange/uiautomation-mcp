@@ -10,8 +10,8 @@ namespace UiAutomationMcp.Tests.Integration
 {
     /// <summary>
     /// Server-Worker統合テスト - 実際のプロセス間通信をテスト
+    /// 並行実行をサポート
     /// </summary>
-    [Collection("UIAutomation Collection")]
     public class ServerWorkerIntegrationTests : IDisposable
     {
         private readonly ITestOutputHelper _output;

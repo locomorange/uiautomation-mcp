@@ -13,8 +13,8 @@ namespace UiAutomationMcp.Tests.Integration
     /// <summary>
     /// 各ツールの機能テスト
     /// 実際のWindowsアプリケーションを使って各操作が正しく動作することを確認
+    /// Process IDベースの安全な終了処理により並行実行をサポート
     /// </summary>
-    [Collection("UIAutomation Collection")]
     public class ToolFunctionalityTests : IDisposable
     {
         private readonly ITestOutputHelper _output;
@@ -123,6 +123,40 @@ namespace UiAutomationMcp.Tests.Integration
             }
         }
 
+        private async Task SafelyTerminateProcessAsync(Process? process, string appName)
+        {
+            if (process == null) return;
+
+            try
+            {
+                if (!process.HasExited)
+                {
+                    _output.WriteLine($"Terminating {appName} with PID: {process.Id}");
+                    
+                    // まず正常終了を試行
+                    process.CloseMainWindow();
+                    
+                    // 少し待機してから強制終了
+                    if (!process.WaitForExit(2000))
+                    {
+                        _output.WriteLine($"Force killing {appName} with PID: {process.Id}");
+                        process.Kill();
+                        await process.WaitForExitAsync();
+                    }
+                    
+                    _output.WriteLine($"{appName} with PID: {process.Id} terminated successfully");
+                }
+            }
+            catch (Exception ex)
+            {
+                _output.WriteLine($"Error terminating {appName}: {ex.Message}");
+            }
+            finally
+            {
+                process?.Dispose();
+            }
+        }
+
         [Fact]
         public async Task Tool_GetDesktopWindows_ShouldWork()
         {
@@ -142,7 +176,7 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task Tool_FindElements_WithCalculator_ShouldWork()
         {
             // Arrange
-            using var calcProcess = await LaunchCalculatorAsync();
+            var calcProcess = await LaunchCalculatorAsync();
             if (calcProcess == null)
             {
                 _output.WriteLine("Skipping test - Calculator could not be launched");
@@ -163,7 +197,7 @@ namespace UiAutomationMcp.Tests.Integration
             }
             finally
             {
-                try { calcProcess?.Kill(); } catch { }
+                await SafelyTerminateProcessAsync(calcProcess, "Calculator");
             }
         }
 
@@ -171,7 +205,7 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task Tool_GetElementTree_ShouldWork()
         {
             // Arrange
-            using var calcProcess = await LaunchCalculatorAsync();
+            var calcProcess = await LaunchCalculatorAsync();
             if (calcProcess == null)
             {
                 _output.WriteLine("Skipping test - Calculator could not be launched");
@@ -189,7 +223,7 @@ namespace UiAutomationMcp.Tests.Integration
             }
             finally
             {
-                try { calcProcess?.Kill(); } catch { }
+                await SafelyTerminateProcessAsync(calcProcess, "Calculator");
             }
         }
 
@@ -197,7 +231,7 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task Tool_InvokeElement_ShouldReturnResponse()
         {
             // Arrange
-            using var calcProcess = await LaunchCalculatorAsync();
+            var calcProcess = await LaunchCalculatorAsync();
             if (calcProcess == null)
             {
                 _output.WriteLine("Skipping test - Calculator could not be launched");
@@ -221,7 +255,7 @@ namespace UiAutomationMcp.Tests.Integration
             }
             finally
             {
-                try { calcProcess?.Kill(); } catch { }
+                await SafelyTerminateProcessAsync(calcProcess, "Calculator");
             }
         }
 
@@ -229,7 +263,7 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task Tool_SetValue_WithNotepad_ShouldWork()
         {
             // Arrange
-            using var notepadProcess = await LaunchNotepadAsync();
+            var notepadProcess = await LaunchNotepadAsync();
             if (notepadProcess == null)
             {
                 _output.WriteLine("Skipping test - Notepad could not be launched");
@@ -252,7 +286,7 @@ namespace UiAutomationMcp.Tests.Integration
             }
             finally
             {
-                try { notepadProcess?.Kill(); } catch { }
+                await SafelyTerminateProcessAsync(notepadProcess, "Notepad");
             }
         }
 
@@ -260,7 +294,7 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task Tool_GetValue_WithNotepad_ShouldWork()
         {
             // Arrange
-            using var notepadProcess = await LaunchNotepadAsync();
+            var notepadProcess = await LaunchNotepadAsync();
             if (notepadProcess == null)
             {
                 _output.WriteLine("Skipping test - Notepad could not be launched");
@@ -280,7 +314,7 @@ namespace UiAutomationMcp.Tests.Integration
             }
             finally
             {
-                try { notepadProcess?.Kill(); } catch { }
+                await SafelyTerminateProcessAsync(notepadProcess, "Notepad");
             }
         }
 
@@ -288,7 +322,7 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task Tool_ButtonOperation_ShouldReturnResponse()
         {
             // Arrange
-            using var calcProcess = await LaunchCalculatorAsync();
+            var calcProcess = await LaunchCalculatorAsync();
             if (calcProcess == null)
             {
                 _output.WriteLine("Skipping test - Calculator could not be launched");
@@ -308,7 +342,7 @@ namespace UiAutomationMcp.Tests.Integration
             }
             finally
             {
-                try { calcProcess?.Kill(); } catch { }
+                await SafelyTerminateProcessAsync(calcProcess, "Calculator");
             }
         }
 
