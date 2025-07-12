@@ -464,6 +464,23 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => await _tableService.GetRowOrColumnMajorAsync(elementId, windowTitle, processId, timeoutSeconds);
 
+        // TableItem Pattern Operations
+        [McpServerTool, Description("Get column header items for a table item")]
+        public async Task<object> GetColumnHeaderItems(
+            [Description("Automation ID or name of the table item element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _tableService.GetColumnHeaderItemsAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Get row header items for a table item")]
+        public async Task<object> GetRowHeaderItems(
+            [Description("Automation ID or name of the table item element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _tableService.GetRowHeaderItemsAsync(elementId, windowTitle, processId, timeoutSeconds);
+
         // MultipleView Pattern Operations
         [McpServerTool, Description("Get available views for an element")]
         public async Task<object> GetAvailableViews(
