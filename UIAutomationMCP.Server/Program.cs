@@ -3,7 +3,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
-using UIAutomationMCP.Server.Services.ControlTypes;
 using UIAutomationMCP.Server.Helpers;
 
 namespace UIAutomationMCP.Server
@@ -44,15 +43,9 @@ namespace UIAutomationMCP.Server
             builder.Services.AddSingleton<IAccessibilityService, SubprocessBasedAccessibilityService>();
             builder.Services.AddSingleton<ICustomPropertyService, SubprocessBasedCustomPropertyService>();
             
-            // Register specialized control type services (subprocess-based)
-            builder.Services.AddSingleton<IComboBoxService, SubprocessBasedComboBoxService>();
-            builder.Services.AddSingleton<IMenuService, SubprocessBasedMenuService>();
-            builder.Services.AddSingleton<ITabService, SubprocessBasedTabService>();
-            builder.Services.AddSingleton<ITreeViewService, SubprocessBasedTreeViewService>();
-            builder.Services.AddSingleton<IListService, SubprocessBasedListService>();
-            builder.Services.AddSingleton<ICalendarService, SubprocessBasedCalendarService>();
-            builder.Services.AddSingleton<IButtonService, SubprocessBasedButtonService>();
-            builder.Services.AddSingleton<IHyperlinkService, SubprocessBasedHyperlinkService>();
+            
+            // Register ControlType service
+            builder.Services.AddSingleton<IControlTypeService, SubprocessBasedControlTypeService>();
             
             // Register subprocess executor
             builder.Services.AddSingleton<SubprocessExecutor>(provider =>

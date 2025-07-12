@@ -2,7 +2,6 @@ using ModelContextProtocol.Server;
 using System.ComponentModel;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
-using UIAutomationMCP.Server.Services.ControlTypes;
 
 namespace UIAutomationMCP.Server.Tools
 {
@@ -24,16 +23,9 @@ namespace UIAutomationMCP.Server.Tools
         private readonly IGridService _gridService;
         private readonly ITableService _tableService;
         private readonly IMultipleViewService _multipleViewService;
-        private readonly IComboBoxService _comboBoxService;
-        private readonly IMenuService _menuService;
-        private readonly ITabService _tabService;
-        private readonly ITreeViewService _treeViewService;
-        private readonly IListService _listService;
-        private readonly ICalendarService _calendarService;
-        private readonly IButtonService _buttonService;
-        private readonly IHyperlinkService _hyperlinkService;
         private readonly IAccessibilityService _accessibilityService;
         private readonly ICustomPropertyService _customPropertyService;
+        private readonly IControlTypeService _controlTypeService;
 
         public UIAutomationTools(
             IApplicationLauncher applicationLauncher,
@@ -51,16 +43,9 @@ namespace UIAutomationMCP.Server.Tools
             IGridService gridService,
             ITableService tableService,
             IMultipleViewService multipleViewService,
-            IComboBoxService comboBoxService,
-            IMenuService menuService,
-            ITabService tabService,
-            ITreeViewService treeViewService,
-            IListService listService,
-            ICalendarService calendarService,
-            IButtonService buttonService,
-            IHyperlinkService hyperlinkService,
             IAccessibilityService accessibilityService,
-            ICustomPropertyService customPropertyService)
+            ICustomPropertyService customPropertyService,
+            IControlTypeService controlTypeService)
         {
             _applicationLauncher = applicationLauncher;
             _screenshotService = screenshotService;
@@ -77,16 +62,9 @@ namespace UIAutomationMCP.Server.Tools
             _gridService = gridService;
             _tableService = tableService;
             _multipleViewService = multipleViewService;
-            _comboBoxService = comboBoxService;
-            _menuService = menuService;
-            _tabService = tabService;
-            _treeViewService = treeViewService;
-            _listService = listService;
-            _calendarService = calendarService;
-            _buttonService = buttonService;
-            _hyperlinkService = hyperlinkService;
             _accessibilityService = accessibilityService;
             _customPropertyService = customPropertyService;
+            _controlTypeService = controlTypeService;
         }
 
         // Window and Element Discovery
@@ -430,90 +408,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => await _multipleViewService.GetCurrentViewAsync(elementId, windowTitle, processId, timeoutSeconds);
 
-        // Control Type Specific Operations
-        [McpServerTool, Description("Interact with ComboBox control")]
-        public async Task<object> ComboBoxOperation(
-            [Description("Automation ID or name of the ComboBox")] string elementId,
-            [Description("Operation: open, close, select")] string operation,
-            [Description("Item to select (for select operation)")] string? itemToSelect = null,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _comboBoxService.ComboBoxOperationAsync(elementId, operation, itemToSelect, windowTitle, processId, timeoutSeconds);
-
-        [McpServerTool, Description("Interact with Menu control")]
-        public async Task<object> MenuOperation(
-            [Description("Path to menu item (e.g., 'File/Open')")] string menuPath,
-            [Description("Title of the window containing the menu (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _menuService.MenuOperationAsync(menuPath, windowTitle, processId, timeoutSeconds);
-
-        [McpServerTool, Description("Interact with Tab control")]
-        public async Task<object> TabOperation(
-            [Description("Automation ID or name of the Tab control")] string elementId,
-            [Description("Operation: list, select")] string operation,
-            [Description("Tab name to select (for select operation)")] string? tabName = null,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _tabService.TabOperationAsync(elementId, operation, tabName, windowTitle, processId, timeoutSeconds);
-
-        [McpServerTool, Description("Interact with TreeView control")]
-        public async Task<object> TreeViewOperation(
-            [Description("Automation ID or name of the TreeView control")] string elementId,
-            [Description("Operation: expand, collapse, select")] string operation,
-            [Description("Path to tree item (e.g., 'Root/Child/Subchild')")] string? nodePath = null,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _treeViewService.TreeViewOperationAsync(elementId, operation, nodePath, windowTitle, processId, timeoutSeconds);
-
-        [McpServerTool, Description("Interact with List control")]
-        public async Task<object> ListOperation(
-            [Description("Automation ID or name of the List control")] string elementId,
-            [Description("Operation: select, getselected, getitems, selectmultiple")] string operation,
-            [Description("Item name to select (for select operation)")] string? itemName = null,
-            [Description("Item index to select (for select operation)")] int? itemIndex = null,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _listService.ListOperationAsync(elementId, operation, itemName, itemIndex, windowTitle, processId, timeoutSeconds);
-
-        [McpServerTool, Description("Interact with Calendar control")]
-        public async Task<object> CalendarOperation(
-            [Description("Automation ID or name of the Calendar control")] string elementId,
-            [Description("Operation: selectdate, getselecteddate, navigate, getavailabledates")] string operation,
-            [Description("Date for date operations (format: yyyy-MM-dd)")] string? dateString = null,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-        {
-            DateTime? date = null;
-            if (!string.IsNullOrEmpty(dateString) && DateTime.TryParse(dateString, out var parsedDate))
-            {
-                date = parsedDate;
-            }
-            return await _calendarService.CalendarOperationAsync(elementId, operation, date, windowTitle, processId, timeoutSeconds);
-        }
-
-        [McpServerTool, Description("Interact with Button control")]
-        public async Task<object> ButtonOperation(
-            [Description("Automation ID or name of the Button control")] string elementId,
-            [Description("Operation: click, getstatus, toggle, gettext, isfocused, setfocus")] string operation,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _buttonService.ButtonOperationAsync(elementId, operation, windowTitle, processId, timeoutSeconds);
-
-        [McpServerTool, Description("Interact with Hyperlink control")]
-        public async Task<object> HyperlinkOperation(
-            [Description("Automation ID or name of the Hyperlink control")] string elementId,
-            [Description("Operation: click, gettext, geturl, getstatus, setfocus, isfocused")] string operation,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _hyperlinkService.HyperlinkOperationAsync(elementId, operation, windowTitle, processId, timeoutSeconds);
 
         // Accessibility Information
         [McpServerTool, Description("Get comprehensive accessibility information for an element")]
@@ -557,5 +451,35 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Process ID of the target window (optional)")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => await _customPropertyService.GetCustomPropertiesAsync(elementId, propertyIds, windowTitle, processId, timeoutSeconds);
+
+        // Control Type Operations
+        [McpServerTool, Description("Get control type information and supported patterns")]
+        public async Task<object> GetControlTypeInfo(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Include supported patterns validation (default: true)")] bool validatePatterns = true,
+            [Description("Include default property values (default: true)")] bool includeDefaultProperties = true,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _controlTypeService.GetControlTypeInfoAsync(elementId, validatePatterns, includeDefaultProperties, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Validate if element supports expected patterns for its control type")]
+        public async Task<object> ValidateControlTypePatterns(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _controlTypeService.ValidateControlTypePatternsAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Find all elements of specific control type with pattern validation")]
+        public async Task<object> FindElementsByControlType(
+            [Description("Control type (Button, Edit, List, ComboBox, CheckBox, RadioButton, etc.)")] string controlType,
+            [Description("Validate required patterns (default: true)")] bool validatePatterns = true,
+            [Description("Scope: children, descendants, subtree (default: descendants)")] string scope = "descendants",
+            [Description("Title of the window (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Maximum number of elements to return (default: 100)")] int maxResults = 100,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _controlTypeService.FindElementsByControlTypeAsync(controlType, validatePatterns, scope, windowTitle, processId, maxResults, timeoutSeconds);
     }
 }

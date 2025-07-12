@@ -7,7 +7,7 @@ using UIAutomationMCP.Worker.Operations.Invoke;
 using UIAutomationMCP.Worker.Operations.Toggle;
 using UIAutomationMCP.Worker.Operations.Value;
 using UIAutomationMCP.Worker.Operations.ElementSearch;
-using UIAutomationMCP.Worker.Operations.ControlType;
+using UIAutomationMCP.Worker.Operations.ControlTypeInfo;
 using UIAutomationMCP.Worker.Operations.Grid;
 using UIAutomationMCP.Worker.Operations.ElementInspection;
 using UIAutomationMCP.Worker.Operations.Layout;
@@ -48,15 +48,11 @@ namespace UIAutomationMCP.Worker
             builder.Services.AddKeyedTransient<IUIAutomationOperation, FindElementsOperation>("FindElements");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetDesktopWindowsOperation>("GetDesktopWindows");
 
-            // ControlType operations
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, ButtonOperation>("ButtonOperation");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, CalendarOperation>("CalendarOperation");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, ComboBoxOperation>("ComboBoxOperation");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, HyperlinkOperation>("HyperlinkOperation");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, ListOperation>("ListOperation");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, MenuOperation>("MenuOperation");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, TabOperation>("TabOperation");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, TreeViewOperation>("TreeViewOperation");
+
+            // ControlTypeInfo operations
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetControlTypeInfoOperation>("GetControlTypeInfo");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, ValidateControlTypePatternsOperation>("ValidateControlTypePatterns");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, FindElementsByControlTypeOperation>("FindElementsByControlType");
 
             // Grid operations
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetColumnHeaderOperation>("GetColumnHeader");
