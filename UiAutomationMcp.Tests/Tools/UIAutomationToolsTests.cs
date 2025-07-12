@@ -607,10 +607,16 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         [Fact]
+        [Trait("Category", "Unit")]
         public async Task GetAvailableViews_WithValidParameters_CallsCorrectService()
         {
             // Arrange
-            var expectedResult = new[] { "View1", "View2", "View3" };
+            var expectedResult = new List<Dictionary<string, object>>
+            {
+                new Dictionary<string, object> { ["ViewId"] = 1, ["ViewName"] = "View1" },
+                new Dictionary<string, object> { ["ViewId"] = 2, ["ViewName"] = "View2" },
+                new Dictionary<string, object> { ["ViewId"] = 3, ["ViewName"] = "View3" }
+            };
             _mockMultipleViewService.Setup(s => s.GetAvailableViewsAsync("viewContainer1", "TestWindow", null, 30))
                                   .ReturnsAsync(expectedResult);
 
@@ -621,6 +627,269 @@ namespace UIAutomationMCP.Tests.Tools
             Assert.NotNull(result);
             _mockMultipleViewService.Verify(s => s.GetAvailableViewsAsync("viewContainer1", "TestWindow", null, 30), Times.Once);
             _output.WriteLine("GetAvailableViews test passed");
+        }
+
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task GetAvailableViews_WithProcessId_CallsCorrectService()
+        {
+            // Arrange
+            var expectedResult = new List<Dictionary<string, object>>
+            {
+                new Dictionary<string, object> { ["ViewId"] = 1, ["ViewName"] = "List View" },
+                new Dictionary<string, object> { ["ViewId"] = 2, ["ViewName"] = "Details View" }
+            };
+            _mockMultipleViewService.Setup(s => s.GetAvailableViewsAsync("viewContainer1", null, 1234, 30))
+                                  .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.GetAvailableViews("viewContainer1", null, 1234);
+
+            // Assert
+            Assert.NotNull(result);
+            _mockMultipleViewService.Verify(s => s.GetAvailableViewsAsync("viewContainer1", null, 1234, 30), Times.Once);
+            _output.WriteLine("GetAvailableViews with ProcessId test passed");
+        }
+
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task GetAvailableViews_WithCustomTimeout_CallsCorrectService()
+        {
+            // Arrange
+            var expectedResult = new List<Dictionary<string, object>>
+            {
+                new Dictionary<string, object> { ["ViewId"] = 1, ["ViewName"] = "Thumbnail View" }
+            };
+            _mockMultipleViewService.Setup(s => s.GetAvailableViewsAsync("viewContainer1", "TestWindow", null, 60))
+                                  .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.GetAvailableViews("viewContainer1", "TestWindow", null, 60);
+
+            // Assert
+            Assert.NotNull(result);
+            _mockMultipleViewService.Verify(s => s.GetAvailableViewsAsync("viewContainer1", "TestWindow", null, 60), Times.Once);
+            _output.WriteLine("GetAvailableViews with custom timeout test passed");
+        }
+
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task GetAvailableViews_EmptyElementId_CallsService()
+        {
+            // Arrange
+            var expectedResult = new List<Dictionary<string, object>>();
+            _mockMultipleViewService.Setup(s => s.GetAvailableViewsAsync("", "TestWindow", null, 30))
+                                  .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.GetAvailableViews("", "TestWindow");
+
+            // Assert
+            Assert.NotNull(result);
+            _mockMultipleViewService.Verify(s => s.GetAvailableViewsAsync("", "TestWindow", null, 30), Times.Once);
+            _output.WriteLine("GetAvailableViews with empty elementId test passed");
+        }
+
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task GetAvailableViews_ServiceException_PropagatesError()
+        {
+            // Arrange
+            _mockMultipleViewService.Setup(s => s.GetAvailableViewsAsync("viewContainer1", "TestWindow", null, 30))
+                                  .ThrowsAsync(new InvalidOperationException("MultipleViewPattern not supported"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => 
+                _tools.GetAvailableViews("viewContainer1", "TestWindow"));
+            
+            _mockMultipleViewService.Verify(s => s.GetAvailableViewsAsync("viewContainer1", "TestWindow", null, 30), Times.Once);
+            _output.WriteLine("GetAvailableViews service exception test passed");
+        }
+
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task GetCurrentView_WithValidParameters_CallsCorrectService()
+        {
+            // Arrange
+            var expectedResult = new Dictionary<string, object>
+            {
+                ["ViewId"] = 2,
+                ["ViewName"] = "Details View"
+            };
+            _mockMultipleViewService.Setup(s => s.GetCurrentViewAsync("viewContainer1", "TestWindow", null, 30))
+                                  .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.GetCurrentView("viewContainer1", "TestWindow");
+
+            // Assert
+            Assert.NotNull(result);
+            _mockMultipleViewService.Verify(s => s.GetCurrentViewAsync("viewContainer1", "TestWindow", null, 30), Times.Once);
+            _output.WriteLine("GetCurrentView test passed");
+        }
+
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task GetCurrentView_WithProcessId_CallsCorrectService()
+        {
+            // Arrange
+            var expectedResult = new Dictionary<string, object>
+            {
+                ["ViewId"] = 1,
+                ["ViewName"] = "List View"
+            };
+            _mockMultipleViewService.Setup(s => s.GetCurrentViewAsync("viewContainer1", null, 1234, 30))
+                                  .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.GetCurrentView("viewContainer1", null, 1234);
+
+            // Assert
+            Assert.NotNull(result);
+            _mockMultipleViewService.Verify(s => s.GetCurrentViewAsync("viewContainer1", null, 1234, 30), Times.Once);
+            _output.WriteLine("GetCurrentView with ProcessId test passed");
+        }
+
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task GetCurrentView_WithCustomTimeout_CallsCorrectService()
+        {
+            // Arrange
+            var expectedResult = new Dictionary<string, object>
+            {
+                ["ViewId"] = 3,
+                ["ViewName"] = "Thumbnail View"
+            };
+            _mockMultipleViewService.Setup(s => s.GetCurrentViewAsync("viewContainer1", "TestWindow", null, 60))
+                                  .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.GetCurrentView("viewContainer1", "TestWindow", null, 60);
+
+            // Assert
+            Assert.NotNull(result);
+            _mockMultipleViewService.Verify(s => s.GetCurrentViewAsync("viewContainer1", "TestWindow", null, 60), Times.Once);
+            _output.WriteLine("GetCurrentView with custom timeout test passed");
+        }
+
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task GetCurrentView_ServiceException_PropagatesError()
+        {
+            // Arrange
+            _mockMultipleViewService.Setup(s => s.GetCurrentViewAsync("viewContainer1", "TestWindow", null, 30))
+                                  .ThrowsAsync(new ArgumentException("Element not found"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => 
+                _tools.GetCurrentView("viewContainer1", "TestWindow"));
+            
+            _mockMultipleViewService.Verify(s => s.GetCurrentViewAsync("viewContainer1", "TestWindow", null, 30), Times.Once);
+            _output.WriteLine("GetCurrentView service exception test passed");
+        }
+
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task SetView_WithValidParameters_CallsCorrectService()
+        {
+            // Arrange
+            var expectedResult = "View set successfully";
+            _mockMultipleViewService.Setup(s => s.SetViewAsync("viewContainer1", 2, "TestWindow", null, 30))
+                                  .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.SetView("viewContainer1", 2, "TestWindow");
+
+            // Assert
+            Assert.NotNull(result);
+            _mockMultipleViewService.Verify(s => s.SetViewAsync("viewContainer1", 2, "TestWindow", null, 30), Times.Once);
+            _output.WriteLine("SetView test passed");
+        }
+
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task SetView_WithProcessId_CallsCorrectService()
+        {
+            // Arrange
+            var expectedResult = "View set successfully";
+            _mockMultipleViewService.Setup(s => s.SetViewAsync("viewContainer1", 1, null, 1234, 30))
+                                  .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.SetView("viewContainer1", 1, null, 1234);
+
+            // Assert
+            Assert.NotNull(result);
+            _mockMultipleViewService.Verify(s => s.SetViewAsync("viewContainer1", 1, null, 1234, 30), Times.Once);
+            _output.WriteLine("SetView with ProcessId test passed");
+        }
+
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task SetView_WithCustomTimeout_CallsCorrectService()
+        {
+            // Arrange
+            var expectedResult = "View set successfully";
+            _mockMultipleViewService.Setup(s => s.SetViewAsync("viewContainer1", 3, "TestWindow", null, 60))
+                                  .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.SetView("viewContainer1", 3, "TestWindow", null, 60);
+
+            // Assert
+            Assert.NotNull(result);
+            _mockMultipleViewService.Verify(s => s.SetViewAsync("viewContainer1", 3, "TestWindow", null, 60), Times.Once);
+            _output.WriteLine("SetView with custom timeout test passed");
+        }
+
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task SetView_WithInvalidViewId_ServiceException_PropagatesError()
+        {
+            // Arrange
+            _mockMultipleViewService.Setup(s => s.SetViewAsync("viewContainer1", 999, "TestWindow", null, 30))
+                                  .ThrowsAsync(new ArgumentException("Unsupported view ID: 999"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => 
+                _tools.SetView("viewContainer1", 999, "TestWindow"));
+            
+            _mockMultipleViewService.Verify(s => s.SetViewAsync("viewContainer1", 999, "TestWindow", null, 30), Times.Once);
+            _output.WriteLine("SetView with invalid viewId test passed");
+        }
+
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task SetView_WithZeroViewId_CallsService()
+        {
+            // Arrange
+            var expectedResult = "View set to default";
+            _mockMultipleViewService.Setup(s => s.SetViewAsync("viewContainer1", 0, "TestWindow", null, 30))
+                                  .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.SetView("viewContainer1", 0, "TestWindow");
+
+            // Assert
+            Assert.NotNull(result);
+            _mockMultipleViewService.Verify(s => s.SetViewAsync("viewContainer1", 0, "TestWindow", null, 30), Times.Once);
+            _output.WriteLine("SetView with zero viewId test passed");
+        }
+
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task SetView_WithNegativeViewId_CallsService()
+        {
+            // Arrange
+            _mockMultipleViewService.Setup(s => s.SetViewAsync("viewContainer1", -1, "TestWindow", null, 30))
+                                  .ThrowsAsync(new ArgumentException("Invalid view ID: -1"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => 
+                _tools.SetView("viewContainer1", -1, "TestWindow"));
+            
+            _mockMultipleViewService.Verify(s => s.SetViewAsync("viewContainer1", -1, "TestWindow", null, 30), Times.Once);
+            _output.WriteLine("SetView with negative viewId test passed");
         }
 
         [Fact]
