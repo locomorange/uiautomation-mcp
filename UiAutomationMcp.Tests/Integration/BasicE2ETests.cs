@@ -103,6 +103,75 @@ namespace UIAutomationMCP.Tests.Integration
             _output.WriteLine($"Value result: {valueJson}");
         }
 
+        [Fact]
+        public async Task InvokeElement_WithDifferentParameters_ShouldHandleGracefully()
+        {
+            // Given
+            var nonExistentElementId = "TestButton123";
+            var timeout = 5;
+
+            // When - Test different parameter combinations
+            var resultByElementId = await _invokeService.InvokeElementAsync(nonExistentElementId, null, null, timeout);
+            var resultByWindowTitle = await _invokeService.InvokeElementAsync(nonExistentElementId, "NonExistentWindow", null, timeout);
+            var resultByProcessId = await _invokeService.InvokeElementAsync(nonExistentElementId, null, 99999, timeout);
+
+            // Then
+            Assert.NotNull(resultByElementId);
+            Assert.NotNull(resultByWindowTitle);
+            Assert.NotNull(resultByProcessId);
+            
+            _output.WriteLine($"Result by ElementId: {resultByElementId}");
+            _output.WriteLine($"Result by WindowTitle: {resultByWindowTitle}");
+            _output.WriteLine($"Result by ProcessId: {resultByProcessId}");
+        }
+
+        [Fact]
+        public async Task InvokeElement_ConcurrentCalls_ShouldNotBlock()
+        {
+            // Given
+            var elementIds = new[] { "Element1", "Element2", "Element3" };
+            var timeout = 2;
+
+            // When - Execute concurrent invoke operations
+            var startTime = DateTime.UtcNow;
+            var tasks = elementIds.Select(id => 
+                _invokeService.InvokeElementAsync(id, null, null, timeout)).ToArray();
+            
+            var results = await Task.WhenAll(tasks);
+            var endTime = DateTime.UtcNow;
+            var totalTime = (endTime - startTime).TotalMilliseconds;
+
+            // Then - Should complete in reasonable time (non-blocking behavior)
+            Assert.All(results, result => Assert.NotNull(result));
+            Assert.True(totalTime < 10000, $"Concurrent calls took too long: {totalTime}ms");
+            
+            _output.WriteLine($"Concurrent invoke operations completed in {totalTime}ms");
+            for (int i = 0; i < results.Length; i++)
+            {
+                _output.WriteLine($"Result {i}: {results[i]}");
+            }
+        }
+
+        [Fact]
+        public async Task InvokeElement_ShortTimeout_ShouldReturnQuickly()
+        {
+            // Given
+            var nonExistentElementId = "TimeoutTestElement";
+            var shortTimeout = 1;
+
+            // When
+            var startTime = DateTime.UtcNow;
+            var result = await _invokeService.InvokeElementAsync(nonExistentElementId, null, null, shortTimeout);
+            var endTime = DateTime.UtcNow;
+            var actualTime = (endTime - startTime).TotalSeconds;
+
+            // Then - Should respect timeout and return quickly
+            Assert.NotNull(result);
+            Assert.True(actualTime <= shortTimeout + 2, $"Operation took {actualTime}s, expected <= {shortTimeout + 2}s");
+            
+            _output.WriteLine($"Short timeout test completed in {actualTime}s with result: {result}");
+        }
+
         private async Task SafelyTerminateProcessAsync(Process? process, string appName)
         {
             if (process == null) return;

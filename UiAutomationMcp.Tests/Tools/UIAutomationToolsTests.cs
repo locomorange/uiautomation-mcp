@@ -156,6 +156,90 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         [Fact]
+        public async Task InvokeElement_WithProcessId_Success()
+        {
+            // Arrange
+            var expectedResult = "Element invoked successfully";
+            _mockInvokeService.Setup(s => s.InvokeElementAsync("testButton", null, 1234, 30))
+                                 .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.InvokeElement("testButton", null, 1234);
+
+            // Assert
+            Assert.NotNull(result);
+            _mockInvokeService.Verify(s => s.InvokeElementAsync("testButton", null, 1234, 30), Times.Once);
+            _output.WriteLine("InvokeElement with ProcessId test passed");
+        }
+
+        [Fact]
+        public async Task InvokeElement_WithCustomTimeout_Success()
+        {
+            // Arrange
+            var expectedResult = "Element invoked successfully";
+            var customTimeout = 60;
+            _mockInvokeService.Setup(s => s.InvokeElementAsync("testButton", "TestWindow", null, customTimeout))
+                                 .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.InvokeElement("testButton", "TestWindow", null, customTimeout);
+
+            // Assert
+            Assert.NotNull(result);
+            _mockInvokeService.Verify(s => s.InvokeElementAsync("testButton", "TestWindow", null, customTimeout), Times.Once);
+            _output.WriteLine("InvokeElement with custom timeout test passed");
+        }
+
+        [Fact]
+        public async Task InvokeElement_ElementNotFound_ReturnsError()
+        {
+            // Arrange
+            var errorResult = "Element not found";
+            _mockInvokeService.Setup(s => s.InvokeElementAsync("nonExistentButton", "TestWindow", null, 30))
+                                 .ReturnsAsync(errorResult);
+
+            // Act
+            var result = await _tools.InvokeElement("nonExistentButton", "TestWindow");
+
+            // Assert
+            Assert.NotNull(result);
+            _mockInvokeService.Verify(s => s.InvokeElementAsync("nonExistentButton", "TestWindow", null, 30), Times.Once);
+            _output.WriteLine("InvokeElement element not found test passed");
+        }
+
+        [Fact]
+        public async Task InvokeElement_ServiceException_PropagatesError()
+        {
+            // Arrange
+            _mockInvokeService.Setup(s => s.InvokeElementAsync("testButton", "TestWindow", null, 30))
+                                 .ThrowsAsync(new InvalidOperationException("Service error"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => 
+                _tools.InvokeElement("testButton", "TestWindow"));
+            
+            _mockInvokeService.Verify(s => s.InvokeElementAsync("testButton", "TestWindow", null, 30), Times.Once);
+            _output.WriteLine("InvokeElement service exception test passed");
+        }
+
+        [Fact]
+        public async Task InvokeElement_EmptyElementId_CallsService()
+        {
+            // Arrange
+            var expectedResult = "Invoked with empty ID";
+            _mockInvokeService.Setup(s => s.InvokeElementAsync("", "TestWindow", null, 30))
+                                 .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.InvokeElement("", "TestWindow");
+
+            // Assert
+            Assert.NotNull(result);
+            _mockInvokeService.Verify(s => s.InvokeElementAsync("", "TestWindow", null, 30), Times.Once);
+            _output.WriteLine("InvokeElement empty element ID test passed");
+        }
+
+        [Fact]
         public async Task SetElementValue_Success_SetsValue()
         {
             // Arrange
