@@ -456,6 +456,14 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => await _tableService.GetColumnHeadersAsync(elementId, windowTitle, processId, timeoutSeconds);
 
+        [McpServerTool, Description("Get the row or column major property of a table")]
+        public async Task<object> GetRowOrColumnMajor(
+            [Description("Automation ID or name of the table element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _tableService.GetRowOrColumnMajorAsync(elementId, windowTitle, processId, timeoutSeconds);
+
         // MultipleView Pattern Operations
         [McpServerTool, Description("Get available views for an element")]
         public async Task<object> GetAvailableViews(

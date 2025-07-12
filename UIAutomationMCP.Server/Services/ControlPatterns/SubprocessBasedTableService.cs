@@ -88,5 +88,30 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 return new { Success = false, Error = ex.Message };
             }
         }
+
+        public async Task<object> GetRowOrColumnMajorAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            try
+            {
+                _logger.LogInformation("Getting RowOrColumnMajor property for element: {ElementId}", elementId);
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "elementId", elementId },
+                    { "windowTitle", windowTitle ?? "" },
+                    { "processId", processId ?? 0 }
+                };
+
+                var result = await _executor.ExecuteAsync<object>("GetRowOrColumnMajor", parameters, timeoutSeconds);
+
+                _logger.LogInformation("RowOrColumnMajor property retrieved successfully for element: {ElementId}", elementId);
+                return new { Success = true, Data = result };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get RowOrColumnMajor property for element {ElementId}", elementId);
+                return new { Success = false, Error = ex.Message };
+            }
+        }
     }
 }
