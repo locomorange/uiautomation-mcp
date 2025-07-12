@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Moq;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using Xunit.Abstractions;
@@ -23,9 +24,10 @@ namespace UIAutomationMCP.Tests.Integration
         public SelectionPatternIntegrationTests(ITestOutputHelper output)
         {
             _output = output;
-            var loggerFactory = new LoggerFactory();
-            _logger = loggerFactory.CreateLogger<SubprocessBasedSelectionService>();
-            var executorLogger = loggerFactory.CreateLogger<SubprocessExecutor>();
+            
+            // Use simple mock loggers for integration tests
+            _logger = Mock.Of<ILogger<SubprocessBasedSelectionService>>();
+            var executorLogger = Mock.Of<ILogger<SubprocessExecutor>>();
 
             // Locate the Worker executable for subprocess testing
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;

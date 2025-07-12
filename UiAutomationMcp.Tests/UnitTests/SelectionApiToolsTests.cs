@@ -436,24 +436,24 @@ namespace UIAutomationMCP.Tests.UnitTests
         }
 
         [Fact]
-        public async Task SelectionApis_WithNullElementId_ShouldCallServiceWithNull()
+        public async Task SelectionApis_WithEmptyElementId_ShouldCallServiceCorrectly()
         {
             // Arrange
-            string? nullElementId = null;
-            var expectedResult = new { Success = false, Error = "Element ID is required" };
+            var emptyElementId = "";
+            var expectedResult = new { Success = true, Data = new { IsSelected = false } };
 
             _mockSelectionService
-                .Setup(s => s.IsSelectedAsync(nullElementId, null, null, 30))
+                .Setup(s => s.IsSelectedAsync(emptyElementId, null, null, 30))
                 .ReturnsAsync(expectedResult);
 
             // Act
-            var result = await _tools.IsElementSelected(nullElementId);
+            var result = await _tools.IsElementSelected(emptyElementId);
 
             // Assert
             Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.IsSelectedAsync(nullElementId, null, null, 30), Times.Once);
+            _mockSelectionService.Verify(s => s.IsSelectedAsync(emptyElementId, null, null, 30), Times.Once);
             
-            _output.WriteLine("Null element ID test passed - API handles null parameters");
+            _output.WriteLine("Empty element ID test passed - API handles empty parameters");
         }
 
         #endregion

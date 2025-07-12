@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services.ControlPatterns;
+using UIAutomationMCP.Server.Interfaces;
 using Xunit.Abstractions;
 
 namespace UIAutomationMCP.Tests.Services
@@ -16,14 +17,14 @@ namespace UIAutomationMCP.Tests.Services
     {
         private readonly ITestOutputHelper _output;
         private readonly Mock<ILogger<SubprocessBasedSelectionService>> _mockLogger;
-        private readonly Mock<SubprocessExecutor> _mockExecutor;
+        private readonly Mock<ISubprocessExecutor> _mockExecutor;
         private readonly SubprocessBasedSelectionService _selectionService;
 
         public SelectionServiceTests(ITestOutputHelper output)
         {
             _output = output;
             _mockLogger = new Mock<ILogger<SubprocessBasedSelectionService>>();
-            _mockExecutor = new Mock<SubprocessExecutor>();
+            _mockExecutor = new Mock<ISubprocessExecutor>();
             
             _selectionService = new SubprocessBasedSelectionService(_mockLogger.Object, _mockExecutor.Object);
         }

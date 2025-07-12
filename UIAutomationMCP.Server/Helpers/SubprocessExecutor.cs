@@ -2,10 +2,11 @@ using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text.Json;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Server.Interfaces;
 
 namespace UIAutomationMCP.Server.Helpers
 {
-    public class SubprocessExecutor : IDisposable
+    public class SubprocessExecutor : ISubprocessExecutor
     {
         private readonly ILogger<SubprocessExecutor> _logger;
         private readonly string _workerPath;

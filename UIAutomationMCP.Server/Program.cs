@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Server.Interfaces;
 
 namespace UIAutomationMCP.Server
 {
@@ -49,7 +50,7 @@ namespace UIAutomationMCP.Server
             builder.Services.AddSingleton<IControlTypeService, SubprocessBasedControlTypeService>();
             
             // Register subprocess executor
-            builder.Services.AddSingleton<SubprocessExecutor>(provider =>
+            builder.Services.AddSingleton<ISubprocessExecutor, SubprocessExecutor>(provider =>
             {
                 var logger = provider.GetRequiredService<ILogger<SubprocessExecutor>>();
                 var baseDir = AppDomain.CurrentDomain.BaseDirectory;

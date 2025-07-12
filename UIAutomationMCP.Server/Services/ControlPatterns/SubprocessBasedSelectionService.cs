@@ -1,14 +1,15 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Server.Interfaces;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
     public class SubprocessBasedSelectionService : ISelectionService
     {
         private readonly ILogger<SubprocessBasedSelectionService> _logger;
-        private readonly SubprocessExecutor _executor;
+        private readonly ISubprocessExecutor _executor;
 
-        public SubprocessBasedSelectionService(ILogger<SubprocessBasedSelectionService> logger, SubprocessExecutor executor)
+        public SubprocessBasedSelectionService(ILogger<SubprocessBasedSelectionService> logger, ISubprocessExecutor executor)
         {
             _logger = logger;
             _executor = executor;
