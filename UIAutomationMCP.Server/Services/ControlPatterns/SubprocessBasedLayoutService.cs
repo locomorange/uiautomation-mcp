@@ -92,6 +92,58 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             }
         }
 
+        public async Task<object> GetScrollInfoAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            try
+            {
+                _logger.LogInformation("Getting scroll information for element: {ElementId}", elementId);
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "elementId", elementId },
+                    { "windowTitle", windowTitle ?? "" },
+                    { "processId", processId ?? 0 }
+                };
+
+                var result = await _executor.ExecuteAsync<object>("GetScrollInfo", parameters, timeoutSeconds);
+
+                _logger.LogInformation("Scroll information retrieved successfully for element: {ElementId}", elementId);
+                return new { Success = true, Data = result };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get scroll information for element: {ElementId}", elementId);
+                return new { Success = false, Error = ex.Message };
+            }
+        }
+
+        public async Task<object> SetScrollPercentAsync(string elementId, double horizontalPercent, double verticalPercent, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            try
+            {
+                _logger.LogInformation("Setting scroll percentage for element: {ElementId} to H:{HorizontalPercent}%, V:{VerticalPercent}%", elementId, horizontalPercent, verticalPercent);
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "elementId", elementId },
+                    { "horizontalPercent", horizontalPercent },
+                    { "verticalPercent", verticalPercent },
+                    { "windowTitle", windowTitle ?? "" },
+                    { "processId", processId ?? 0 }
+                };
+
+                var result = await _executor.ExecuteAsync<object>("SetScrollPercent", parameters, timeoutSeconds);
+
+                _logger.LogInformation("Scroll percentage set successfully for element: {ElementId}", elementId);
+                return new { Success = true, Data = result };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to set scroll percentage for element: {ElementId}", elementId);
+                return new { Success = false, Error = ex.Message };
+            }
+        }
+
         public async Task<object> DockElementAsync(string elementId, string dockPosition, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             try

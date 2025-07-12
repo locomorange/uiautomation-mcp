@@ -206,6 +206,24 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => await _layoutService.ScrollElementIntoViewAsync(elementId, windowTitle, processId, timeoutSeconds);
 
+        [McpServerTool, Description("Get scroll information including position and view size using ScrollPattern")]
+        public async Task<object> GetScrollInfo(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _layoutService.GetScrollInfoAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Set scroll position by percentage using ScrollPattern")]
+        public async Task<object> SetScrollPercent(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Horizontal scroll percentage (0-100, -1 for no change)")] double horizontalPercent,
+            [Description("Vertical scroll percentage (0-100, -1 for no change)")] double verticalPercent,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _layoutService.SetScrollPercentAsync(elementId, horizontalPercent, verticalPercent, windowTitle, processId, timeoutSeconds);
+
         // Value and Range Patterns
         [McpServerTool, Description("Set the value of a range element (slider, progress bar) using RangeValuePattern")]
         public async Task<object> SetRangeValue(
