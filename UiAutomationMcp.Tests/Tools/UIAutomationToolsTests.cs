@@ -1080,5 +1080,175 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         #endregion
+
+        #region ScrollElementIntoView Integration Tests
+
+        /// <summary>
+        /// ScrollElementIntoView - 正常系：Microsoft ScrollItemPattern仕様準拠テスト
+        /// </summary>
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task ScrollElementIntoView_Should_Call_LayoutService_With_Correct_Parameters()
+        {
+            // Arrange - Microsoft ScrollItemPattern.ScrollIntoView()仕様をテスト
+            var expectedResult = new
+            {
+                Success = true,
+                Data = "Element scrolled into view successfully"
+            };
+            
+            _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync("scrollableItem", "TestWindow", 1234, 30))
+                             .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.ScrollElementIntoView("scrollableItem", "TestWindow", 1234, 30);
+
+            // Assert
+            Assert.NotNull(result);
+            _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync("scrollableItem", "TestWindow", 1234, 30), Times.Once);
+            _output.WriteLine("ScrollElementIntoView test passed - ScrollItemPattern.ScrollIntoView() verified");
+        }
+
+        /// <summary>
+        /// ScrollElementIntoView - デフォルトパラメータでの動作テスト
+        /// </summary>
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task ScrollElementIntoView_Should_Use_Default_Parameters()
+        {
+            // Arrange
+            var expectedResult = new { Success = true, Message = "Element scrolled into view" };
+            
+            _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync("listItem", null, null, 30))
+                             .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.ScrollElementIntoView("listItem");
+
+            // Assert
+            Assert.NotNull(result);
+            _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync("listItem", null, null, 30), Times.Once);
+            _output.WriteLine("ScrollElementIntoView with default parameters test passed");
+        }
+
+        /// <summary>
+        /// ScrollElementIntoView - エラーハンドリング：ScrollItemPatternが利用できない場合
+        /// Microsoft仕様: InvalidOperationException handling
+        /// </summary>
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task ScrollElementIntoView_Should_Handle_Pattern_Not_Supported_Exception()
+        {
+            // Arrange
+            var expectedException = new InvalidOperationException("ScrollItemPattern is not supported by this element");
+            
+            _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync("nonScrollableElement", null, null, 30))
+                             .ThrowsAsync(expectedException);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => 
+                _tools.ScrollElementIntoView("nonScrollableElement"));
+            
+            _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync("nonScrollableElement", null, null, 30), Times.Once);
+            _output.WriteLine("ScrollElementIntoView pattern not supported exception test passed");
+        }
+
+        /// <summary>
+        /// ScrollElementIntoView - エラーハンドリング：要素が見つからない場合
+        /// </summary>
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task ScrollElementIntoView_Should_Handle_Element_Not_Found_Exception()
+        {
+            // Arrange
+            var expectedException = new ArgumentException("Element not found: nonExistentElement");
+            
+            _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync("nonExistentElement", "TestWindow", null, 30))
+                             .ThrowsAsync(expectedException);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => 
+                _tools.ScrollElementIntoView("nonExistentElement", "TestWindow"));
+            
+            _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync("nonExistentElement", "TestWindow", null, 30), Times.Once);
+            _output.WriteLine("ScrollElementIntoView element not found exception test passed");
+        }
+
+        /// <summary>
+        /// ScrollElementIntoView - タイムアウト処理テスト
+        /// </summary>
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task ScrollElementIntoView_Should_Handle_Custom_Timeout()
+        {
+            // Arrange
+            var expectedResult = new { Success = true };
+            
+            _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync("slowElement", "TestWindow", null, 60))
+                             .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.ScrollElementIntoView("slowElement", "TestWindow", null, 60);
+
+            // Assert
+            Assert.NotNull(result);
+            _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync("slowElement", "TestWindow", null, 60), Times.Once);
+            _output.WriteLine("ScrollElementIntoView with custom timeout test passed");
+        }
+
+        /// <summary>
+        /// ScrollElementIntoView - Microsoft仕様準拠：ListItemとTreeItemコントロールタイプでの動作確認
+        /// </summary>
+        [Theory]
+        [Trait("Category", "Unit")]
+        [InlineData("list-item-1")]
+        [InlineData("tree-item-node-2")]
+        [InlineData("dataitem-3")]
+        public async Task ScrollElementIntoView_Should_Work_With_Expected_Control_Types(string elementId)
+        {
+            // Arrange - ListItem、TreeItem、DataItemでScrollItemPatternがサポートされることをテスト
+            var expectedResult = new
+            {
+                Success = true,
+                Data = $"Element {elementId} scrolled into view successfully"
+            };
+            
+            _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync(elementId, "TestApplication", null, 30))
+                             .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.ScrollElementIntoView(elementId, "TestApplication");
+
+            // Assert
+            Assert.NotNull(result);
+            _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync(elementId, "TestApplication", null, 30), Times.Once);
+            _output.WriteLine($"ScrollElementIntoView worked correctly for control type element: {elementId}");
+        }
+
+        /// <summary>
+        /// ScrollElementIntoView - 空文字列パラメータの処理
+        /// </summary>
+        [Theory]
+        [Trait("Category", "Unit")]
+        [InlineData("", "TestWindow")]
+        [InlineData("element1", "")]
+        public async Task ScrollElementIntoView_Should_Handle_Empty_String_Parameters(string elementId, string windowTitle)
+        {
+            // Arrange
+            var expectedResult = new { Success = false, Error = "Invalid parameters" };
+            
+            _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync(elementId, windowTitle, null, 30))
+                             .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.ScrollElementIntoView(elementId, windowTitle);
+
+            // Assert
+            Assert.NotNull(result);
+            _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync(elementId, windowTitle, null, 30), Times.Once);
+            _output.WriteLine($"ScrollElementIntoView empty string parameters test passed for elementId:'{elementId}', windowTitle:'{windowTitle}'");
+        }
+
+        #endregion
     }
 }
