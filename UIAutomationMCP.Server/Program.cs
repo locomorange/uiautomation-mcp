@@ -42,6 +42,7 @@ namespace UIAutomationMCP.Server
             builder.Services.AddSingleton<IMultipleViewService, SubprocessBasedMultipleViewService>();
             builder.Services.AddSingleton<IAccessibilityService, SubprocessBasedAccessibilityService>();
             builder.Services.AddSingleton<ICustomPropertyService, SubprocessBasedCustomPropertyService>();
+            builder.Services.AddSingleton<ITransformService, SubprocessBasedTransformService>();
             
             
             // Register ControlType service

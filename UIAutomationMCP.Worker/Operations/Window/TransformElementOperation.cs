@@ -33,23 +33,36 @@ namespace UIAutomationMCP.Worker.Operations.Window
             if (!element.TryGetCurrentPattern(TransformPattern.Pattern, out var pattern) || pattern is not TransformPattern transformPattern)
                 return Task.FromResult(new OperationResult { Success = false, Error = "TransformPattern not supported" });
 
-            switch (action.ToLowerInvariant())
+            try
             {
-                case "move":
-                    if (x == 0 && y == 0)
-                        return Task.FromResult(new OperationResult { Success = false, Error = "Move action requires x and y coordinates" });
-                    transformPattern.Move(x, y);
-                    break;
-                case "resize":
-                    if (width == 0 && height == 0)
-                        return Task.FromResult(new OperationResult { Success = false, Error = "Resize action requires width and height" });
-                    transformPattern.Resize(width, height);
-                    break;
-                case "rotate":
-                    transformPattern.Rotate(x); // Use x as rotation degrees
-                    break;
-                default:
-                    return Task.FromResult(new OperationResult { Success = false, Error = $"Unsupported transform action: {action}" });
+                switch (action.ToLowerInvariant())
+                {
+                    case "move":
+                        if (!transformPattern.Current.CanMove)
+                            return Task.FromResult(new OperationResult { Success = false, Error = "Element cannot be moved (CanMove = false)" });
+                        if (x == 0 && y == 0)
+                            return Task.FromResult(new OperationResult { Success = false, Error = "Move action requires x and y coordinates" });
+                        transformPattern.Move(x, y);
+                        break;
+                    case "resize":
+                        if (!transformPattern.Current.CanResize)
+                            return Task.FromResult(new OperationResult { Success = false, Error = "Element cannot be resized (CanResize = false)" });
+                        if (width <= 0 || height <= 0)
+                            return Task.FromResult(new OperationResult { Success = false, Error = "Resize action requires positive width and height values" });
+                        transformPattern.Resize(width, height);
+                        break;
+                    case "rotate":
+                        if (!transformPattern.Current.CanRotate)
+                            return Task.FromResult(new OperationResult { Success = false, Error = "Element cannot be rotated (CanRotate = false)" });
+                        transformPattern.Rotate(x); // Use x as rotation degrees
+                        break;
+                    default:
+                        return Task.FromResult(new OperationResult { Success = false, Error = $"Unsupported transform action: {action}" });
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Task.FromResult(new OperationResult { Success = false, Error = $"Transform operation failed: {ex.Message}" });
             }
 
             return Task.FromResult(new OperationResult { Success = true, Data = $"Element transformed with action '{action}' successfully" });

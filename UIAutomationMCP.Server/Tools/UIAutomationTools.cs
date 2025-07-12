@@ -26,6 +26,7 @@ namespace UIAutomationMCP.Server.Tools
         private readonly IAccessibilityService _accessibilityService;
         private readonly ICustomPropertyService _customPropertyService;
         private readonly IControlTypeService _controlTypeService;
+        private readonly ITransformService _transformService;
 
         public UIAutomationTools(
             IApplicationLauncher applicationLauncher,
@@ -45,7 +46,8 @@ namespace UIAutomationMCP.Server.Tools
             IMultipleViewService multipleViewService,
             IAccessibilityService accessibilityService,
             ICustomPropertyService customPropertyService,
-            IControlTypeService controlTypeService)
+            IControlTypeService controlTypeService,
+            ITransformService transformService)
         {
             _applicationLauncher = applicationLauncher;
             _screenshotService = screenshotService;
@@ -65,6 +67,7 @@ namespace UIAutomationMCP.Server.Tools
             _accessibilityService = accessibilityService;
             _customPropertyService = customPropertyService;
             _controlTypeService = controlTypeService;
+            _transformService = transformService;
         }
 
         // Window and Element Discovery
@@ -307,18 +310,42 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => await _windowService.WindowOperationAsync(action, windowTitle, processId, timeoutSeconds);
 
-        [McpServerTool, Description("Transform an element (move, resize, rotate) using TransformPattern")]
-        public async Task<object> TransformElement(
-            [Description("Automation ID or name of the element")] string elementId, 
-            [Description("Action to perform: move, resize, rotate")] string action, 
-            [Description("X coordinate for move, or rotation degrees for rotate")] double x = 0, 
-            [Description("Y coordinate for move")] double y = 0, 
-            [Description("Width for resize")] double width = 0, 
-            [Description("Height for resize")] double height = 0, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
+        [McpServerTool, Description("Get transform capabilities (CanMove, CanResize, CanRotate) for an element")]
+        public async Task<object> GetTransformCapabilities(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _windowService.MoveWindowAsync((int)x, (int)y, windowTitle, processId, timeoutSeconds);
+            => await _transformService.GetTransformCapabilitiesAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Move an element to new coordinates using TransformPattern")]
+        public async Task<object> MoveElement(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("X coordinate for move")] double x,
+            [Description("Y coordinate for move")] double y,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _transformService.MoveElementAsync(elementId, x, y, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Resize an element using TransformPattern")]
+        public async Task<object> ResizeElement(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("New width")] double width,
+            [Description("New height")] double height,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _transformService.ResizeElementAsync(elementId, width, height, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Rotate an element using TransformPattern")]
+        public async Task<object> RotateElement(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Rotation degrees")] double degrees,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _transformService.RotateElementAsync(elementId, degrees, windowTitle, processId, timeoutSeconds);
 
         [McpServerTool, Description("Dock an element to a specific position using DockPattern")]
         public async Task<object> DockElement(
