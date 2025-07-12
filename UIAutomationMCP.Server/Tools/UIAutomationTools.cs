@@ -157,6 +157,14 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => await _valueService.GetValueAsync(elementId, windowTitle, processId, timeoutSeconds);
 
+        [McpServerTool, Description("Check if an element is read-only using ValuePattern")]
+        public async Task<object> IsElementReadOnly(
+            [Description("Automation ID or name of the element")] string elementId, 
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
+            [Description("Process ID of the target window (optional)")] int? processId = null, 
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _valueService.IsReadOnlyAsync(elementId, windowTitle, processId, timeoutSeconds);
+
         [McpServerTool, Description("Toggle a checkbox or toggle element using TogglePattern")]
         public async Task<object> ToggleElement(
             [Description("Automation ID or name of the element")] string elementId, 

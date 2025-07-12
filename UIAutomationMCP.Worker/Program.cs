@@ -45,6 +45,7 @@ namespace UIAutomationMCP.Worker
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SetToggleStateOperation>("SetToggleState");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SetElementValueOperation>("SetElementValue");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetElementValueOperation>("GetElementValue");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, IsReadOnlyOperation>("IsReadOnly");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, FindElementsOperation>("FindElements");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetDesktopWindowsOperation>("GetDesktopWindows");
 
