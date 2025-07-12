@@ -318,6 +318,28 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => await _windowService.WindowOperationAsync(action, windowTitle, processId, timeoutSeconds);
 
+        [McpServerTool, Description("Get window interaction state using WindowPattern")]
+        public async Task<object> GetWindowInteractionState(
+            [Description("Title of the window (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _windowService.GetWindowInteractionStateAsync(windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Get window capability properties (Maximizable, Minimizable) using WindowPattern")]
+        public async Task<object> GetWindowCapabilities(
+            [Description("Title of the window (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _windowService.GetWindowCapabilitiesAsync(windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Wait for window to become idle using WindowPattern")]
+        public async Task<object> WaitForWindowInputIdle(
+            [Description("Maximum time to wait in milliseconds (default: 10000)")] int timeoutMilliseconds = 10000,
+            [Description("Title of the window (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds for operation (default: 30)")] int timeoutSeconds = 30)
+            => await _windowService.WaitForInputIdleAsync(timeoutMilliseconds, windowTitle, processId, timeoutSeconds);
+
         [McpServerTool, Description("Get transform capabilities (CanMove, CanResize, CanRotate) for an element")]
         public async Task<object> GetTransformCapabilities(
             [Description("Automation ID or name of the element")] string elementId,

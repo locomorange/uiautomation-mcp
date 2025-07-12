@@ -232,5 +232,96 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 return SubprocessErrorHandler.HandleError(ex, "ResizeWindow", windowTitle ?? "unknown", timeoutSeconds, _logger);
             }
         }
+
+        public async Task<object> GetWindowInteractionStateAsync(string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            try
+            {
+                _logger.LogInformation("Getting window interaction state for window: {WindowTitle} (ProcessId: {ProcessId})", 
+                    windowTitle ?? "any", processId ?? 0);
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "windowTitle", windowTitle ?? "" },
+                    { "processId", processId ?? 0 }
+                };
+
+                var result = await _executor.ExecuteAsync<object>("GetWindowInteractionState", parameters, timeoutSeconds);
+
+                _logger.LogInformation("Window interaction state retrieved successfully for window: {WindowTitle}", windowTitle ?? "any");
+                return new { 
+                    Success = true, 
+                    Data = result,
+                    Message = "Window interaction state retrieved successfully",
+                    WindowTitle = windowTitle,
+                    Operation = "GetWindowInteractionState"
+                };
+            }
+            catch (Exception ex)
+            {
+                return SubprocessErrorHandler.HandleError(ex, "GetWindowInteractionState", windowTitle ?? "unknown", timeoutSeconds, _logger);
+            }
+        }
+
+        public async Task<object> GetWindowCapabilitiesAsync(string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            try
+            {
+                _logger.LogInformation("Getting window capabilities for window: {WindowTitle} (ProcessId: {ProcessId})", 
+                    windowTitle ?? "any", processId ?? 0);
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "windowTitle", windowTitle ?? "" },
+                    { "processId", processId ?? 0 }
+                };
+
+                var result = await _executor.ExecuteAsync<object>("GetWindowCapabilities", parameters, timeoutSeconds);
+
+                _logger.LogInformation("Window capabilities retrieved successfully for window: {WindowTitle}", windowTitle ?? "any");
+                return new { 
+                    Success = true, 
+                    Data = result,
+                    Message = "Window capabilities retrieved successfully",
+                    WindowTitle = windowTitle,
+                    Operation = "GetWindowCapabilities"
+                };
+            }
+            catch (Exception ex)
+            {
+                return SubprocessErrorHandler.HandleError(ex, "GetWindowCapabilities", windowTitle ?? "unknown", timeoutSeconds, _logger);
+            }
+        }
+
+        public async Task<object> WaitForInputIdleAsync(int timeoutMilliseconds = 10000, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            try
+            {
+                _logger.LogInformation("Waiting for input idle for window: {WindowTitle} (ProcessId: {ProcessId}, Timeout: {TimeoutMs}ms)", 
+                    windowTitle ?? "any", processId ?? 0, timeoutMilliseconds);
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "timeoutMilliseconds", timeoutMilliseconds },
+                    { "windowTitle", windowTitle ?? "" },
+                    { "processId", processId ?? 0 }
+                };
+
+                var result = await _executor.ExecuteAsync<object>("WaitForInputIdle", parameters, timeoutSeconds);
+
+                _logger.LogInformation("Wait for input idle completed for window: {WindowTitle}", windowTitle ?? "any");
+                return new { 
+                    Success = true, 
+                    Data = result,
+                    Message = "Wait for input idle completed",
+                    WindowTitle = windowTitle,
+                    Operation = "WaitForInputIdle"
+                };
+            }
+            catch (Exception ex)
+            {
+                return SubprocessErrorHandler.HandleError(ex, "WaitForInputIdle", windowTitle ?? "unknown", timeoutSeconds, _logger);
+            }
+        }
     }
 }

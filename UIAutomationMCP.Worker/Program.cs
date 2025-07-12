@@ -125,6 +125,9 @@ namespace UIAutomationMCP.Worker
             builder.Services.AddKeyedTransient<IUIAutomationOperation, TransformElementOperation>("TransformElement");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, WindowActionOperation>("WindowAction");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetWindowInfoOperation>("GetWindowInfo");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetWindowInteractionStateOperation>("GetWindowInteractionState");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetWindowCapabilitiesOperation>("GetWindowCapabilities");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, WaitForInputIdleOperation>("WaitForInputIdle");
 
             // Register Worker service
             builder.Services.AddSingleton<WorkerService>();
