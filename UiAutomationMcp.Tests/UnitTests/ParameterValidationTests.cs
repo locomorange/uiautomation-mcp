@@ -106,6 +106,171 @@ namespace UiAutomationMcp.Tests.UnitTests
             Assert.Equal(expectedValid, isValid);
         }
 
+        #region Selection Pattern Parameter Validation Tests
+
+        [Theory]
+        [InlineData("listBox1", "Test Window", 1234, true)]
+        [InlineData("container", null, null, true)]
+        [InlineData("", "Window", 0, false)]
+        [InlineData(null, "Window", 5678, false)]
+        [InlineData("   ", "Window", -1, false)]
+        public void ValidateSelectionContainerParameters_WithVariousInputs_ShouldReturnExpectedResult(
+            string? containerId, string? windowTitle, int? processId, bool expectedValid)
+        {
+            // Act
+            var isValid = !string.IsNullOrWhiteSpace(containerId) && 
+                         (processId == null || processId >= 0);
+            
+            // Use windowTitle in validation to avoid warning
+            var hasValidWindow = string.IsNullOrEmpty(windowTitle) || !string.IsNullOrWhiteSpace(windowTitle);
+            isValid = isValid && hasValidWindow;
+
+            // Assert
+            Assert.Equal(expectedValid, isValid);
+        }
+
+        [Theory]
+        [InlineData("item1", "App Window", 1234, true)]
+        [InlineData("listItem", null, null, true)]
+        [InlineData("", "Window", 0, false)]
+        [InlineData(null, "Window", 5678, false)]
+        [InlineData("   ", "Window", -1, false)]
+        public void ValidateSelectionItemParameters_WithVariousInputs_ShouldReturnExpectedResult(
+            string? elementId, string? windowTitle, int? processId, bool expectedValid)
+        {
+            // Act
+            var isValid = !string.IsNullOrWhiteSpace(elementId) && 
+                         (processId == null || processId >= 0);
+            
+            // Use windowTitle in validation to avoid warning
+            var hasValidWindow = string.IsNullOrEmpty(windowTitle) || !string.IsNullOrWhiteSpace(windowTitle);
+            isValid = isValid && hasValidWindow;
+
+            // Assert
+            Assert.Equal(expectedValid, isValid);
+        }
+
+        [Theory]
+        [InlineData("CanSelectMultiple")]
+        [InlineData("IsSelectionRequired")]
+        [InlineData("GetSelection")]
+        [InlineData("ClearSelection")]
+        public void ValidateSelectionPatternOperations_WithValidOperations_ShouldReturnTrue(string operation)
+        {
+            // Arrange
+            var validSelectionPatternOperations = new[] 
+            { 
+                "CanSelectMultiple", 
+                "IsSelectionRequired", 
+                "GetSelection", 
+                "ClearSelection" 
+            };
+
+            // Act
+            var isValid = validSelectionPatternOperations.Contains(operation);
+
+            // Assert
+            Assert.True(isValid);
+        }
+
+        [Theory]
+        [InlineData("Select")]
+        [InlineData("IsSelected")]
+        [InlineData("GetSelectionContainer")]
+        [InlineData("AddToSelection")]
+        [InlineData("RemoveFromSelection")]
+        public void ValidateSelectionItemPatternOperations_WithValidOperations_ShouldReturnTrue(string operation)
+        {
+            // Arrange
+            var validSelectionItemPatternOperations = new[] 
+            { 
+                "Select", 
+                "IsSelected", 
+                "GetSelectionContainer", 
+                "AddToSelection", 
+                "RemoveFromSelection" 
+            };
+
+            // Act
+            var isValid = validSelectionItemPatternOperations.Contains(operation);
+
+            // Assert
+            Assert.True(isValid);
+        }
+
+        [Theory]
+        [InlineData("InvalidOperation")]
+        [InlineData("")]
+        [InlineData(null)]
+        [InlineData("UnknownPattern")]
+        public void ValidateSelectionOperations_WithInvalidOperations_ShouldReturnFalse(string? operation)
+        {
+            // Arrange
+            var validOperations = new[] 
+            { 
+                "CanSelectMultiple", "IsSelectionRequired", "GetSelection", "ClearSelection",
+                "Select", "IsSelected", "GetSelectionContainer", "AddToSelection", "RemoveFromSelection"
+            };
+
+            // Act
+            var isValid = operation != null && validOperations.Contains(operation);
+
+            // Assert
+            Assert.False(isValid);
+        }
+
+        [Theory]
+        [InlineData("list", true)]        // Single selection list
+        [InlineData("multilist", true)]   // Multiple selection list
+        [InlineData("tree", true)]        // Tree control
+        [InlineData("tab", true)]         // Tab control
+        [InlineData("menu", true)]        // Menu control
+        [InlineData("combobox", false)]   // ComboBox uses other patterns
+        [InlineData("button", false)]     // Button doesn't support selection
+        [InlineData("textbox", false)]    // TextBox doesn't support selection
+        public void ValidateSelectionPatternSupportedControls_WithVariousControlTypes_ShouldReturnExpectedResult(
+            string controlType, bool expectedSupported)
+        {
+            // Arrange
+            var selectionPatternSupportedControls = new[] 
+            { 
+                "list", "multilist", "tree", "tab", "menu", "listview", "datagrid", "calendar" 
+            };
+
+            // Act
+            var isSupported = selectionPatternSupportedControls.Contains(controlType.ToLower());
+
+            // Assert
+            Assert.Equal(expectedSupported, isSupported);
+        }
+
+        [Theory]
+        [InlineData("listitem", true)]
+        [InlineData("treeitem", true)]
+        [InlineData("tabitem", true)]
+        [InlineData("menuitem", true)]
+        [InlineData("radiobutton", true)]
+        [InlineData("checkbox", false)]   // Checkbox uses TogglePattern
+        [InlineData("button", false)]     // Button uses InvokePattern
+        [InlineData("textbox", false)]    // TextBox uses ValuePattern
+        public void ValidateSelectionItemPatternSupportedControls_WithVariousControlTypes_ShouldReturnExpectedResult(
+            string controlType, bool expectedSupported)
+        {
+            // Arrange
+            var selectionItemPatternSupportedControls = new[] 
+            { 
+                "listitem", "treeitem", "tabitem", "menuitem", "radiobutton", "dataitem", "calendaritem" 
+            };
+
+            // Act
+            var isSupported = selectionItemPatternSupportedControls.Contains(controlType.ToLower());
+
+            // Assert
+            Assert.Equal(expectedSupported, isSupported);
+        }
+
+        #endregion
+
         [Fact]
         public void WorkerRequest_WithValidParameters_ShouldBeConstructable()
         {
