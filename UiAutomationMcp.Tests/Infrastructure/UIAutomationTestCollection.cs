@@ -3,7 +3,7 @@ namespace UiAutomationMcp.Tests.Infrastructure
     /// <summary>
     /// テストコレクション - プロセスのクリーンアップを確実に行う
     /// </summary>
-    [CollectionDefinition("UIAutomation Collection")]
+    [CollectionDefinition("UIAutomationTestCollection")]
     public class UIAutomationTestCollection : ICollectionFixture<UIAutomationTestFixture>
     {
         // このクラスは実装を持たず、テストコレクションの定義のみを行います

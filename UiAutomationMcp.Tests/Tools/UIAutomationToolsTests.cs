@@ -3,7 +3,6 @@ using Moq;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
-using UIAutomationMCP.Server.Services.ControlTypes;
 using UIAutomationMCP.Server.Tools;
 using Xunit.Abstractions;
 using System.Threading;
@@ -33,16 +32,10 @@ namespace UIAutomationMCP.Tests.Tools
         private readonly Mock<IGridService> _mockGridService;
         private readonly Mock<ITableService> _mockTableService;
         private readonly Mock<IMultipleViewService> _mockMultipleViewService;
-        private readonly Mock<IComboBoxService> _mockComboBoxService;
-        private readonly Mock<IMenuService> _mockMenuService;
-        private readonly Mock<ITabService> _mockTabService;
-        private readonly Mock<ITreeViewService> _mockTreeViewService;
-        private readonly Mock<IListService> _mockListService;
-        private readonly Mock<ICalendarService> _mockCalendarService;
-        private readonly Mock<IButtonService> _mockButtonService;
-        private readonly Mock<IHyperlinkService> _mockHyperlinkService;
         private readonly Mock<IAccessibilityService> _mockAccessibilityService;
         private readonly Mock<ICustomPropertyService> _mockCustomPropertyService;
+        private readonly Mock<IControlTypeService> _mockControlTypeService;
+        private readonly Mock<ITransformService> _mockTransformService;
 
         public UIAutomationToolsTests(ITestOutputHelper output)
         {
@@ -64,16 +57,10 @@ namespace UIAutomationMCP.Tests.Tools
             _mockGridService = new Mock<IGridService>();
             _mockTableService = new Mock<ITableService>();
             _mockMultipleViewService = new Mock<IMultipleViewService>();
-            _mockComboBoxService = new Mock<IComboBoxService>();
-            _mockMenuService = new Mock<IMenuService>();
-            _mockTabService = new Mock<ITabService>();
-            _mockTreeViewService = new Mock<ITreeViewService>();
-            _mockListService = new Mock<IListService>();
-            _mockCalendarService = new Mock<ICalendarService>();
-            _mockButtonService = new Mock<IButtonService>();
-            _mockHyperlinkService = new Mock<IHyperlinkService>();
             _mockAccessibilityService = new Mock<IAccessibilityService>();
             _mockCustomPropertyService = new Mock<ICustomPropertyService>();
+            _mockControlTypeService = new Mock<IControlTypeService>();
+            _mockTransformService = new Mock<ITransformService>();
             
             _tools = new UIAutomationTools(
                 _mockApplicationLauncher.Object,
@@ -91,16 +78,10 @@ namespace UIAutomationMCP.Tests.Tools
                 _mockGridService.Object,
                 _mockTableService.Object,
                 _mockMultipleViewService.Object,
-                _mockComboBoxService.Object,
-                _mockMenuService.Object,
-                _mockTabService.Object,
-                _mockTreeViewService.Object,
-                _mockListService.Object,
-                _mockCalendarService.Object,
-                _mockButtonService.Object,
-                _mockHyperlinkService.Object,
                 _mockAccessibilityService.Object,
-                _mockCustomPropertyService.Object
+                _mockCustomPropertyService.Object,
+                _mockControlTypeService.Object,
+                _mockTransformService.Object
             );
         }
 
@@ -487,94 +468,6 @@ namespace UIAutomationMCP.Tests.Tools
 
         #endregion
 
-        #region Control Type Specific Tests
-
-        [Fact]
-        public async Task ComboBoxOperation_WithValidParameters_CallsCorrectService()
-        {
-            // Arrange
-            var expectedResult = "ComboBox opened successfully";
-            _mockComboBoxService.Setup(s => s.ComboBoxOperationAsync("comboBox1", "open", null, "TestWindow", null, 30))
-                               .ReturnsAsync(expectedResult);
-
-            // Act
-            var result = await _tools.ComboBoxOperation("comboBox1", "open", windowTitle: "TestWindow");
-
-            // Assert
-            Assert.NotNull(result);
-            _mockComboBoxService.Verify(s => s.ComboBoxOperationAsync("comboBox1", "open", null, "TestWindow", null, 30), Times.Once);
-            _output.WriteLine("ComboBoxOperation test passed");
-        }
-
-        [Fact]
-        public async Task MenuOperation_WithValidPath_CallsCorrectService()
-        {
-            // Arrange
-            var expectedResult = "Menu item selected";
-            _mockMenuService.Setup(s => s.MenuOperationAsync("File/Open", "TestWindow", null, 30))
-                           .ReturnsAsync(expectedResult);
-
-            // Act
-            var result = await _tools.MenuOperation("File/Open", "TestWindow");
-
-            // Assert
-            Assert.NotNull(result);
-            _mockMenuService.Verify(s => s.MenuOperationAsync("File/Open", "TestWindow", null, 30), Times.Once);
-            _output.WriteLine("MenuOperation test passed");
-        }
-
-        [Fact]
-        public async Task TabOperation_WithValidParameters_CallsCorrectService()
-        {
-            // Arrange
-            var expectedResult = "Tab selected successfully";
-            _mockTabService.Setup(s => s.TabOperationAsync("tabControl1", "select", "TabItem1", "TestWindow", null, 30))
-                          .ReturnsAsync(expectedResult);
-
-            // Act
-            var result = await _tools.TabOperation("tabControl1", "select", "TabItem1", "TestWindow");
-
-            // Assert
-            Assert.NotNull(result);
-            _mockTabService.Verify(s => s.TabOperationAsync("tabControl1", "select", "TabItem1", "TestWindow", null, 30), Times.Once);
-            _output.WriteLine("TabOperation test passed");
-        }
-
-        [Fact]
-        public async Task ButtonOperation_WithValidParameters_CallsCorrectService()
-        {
-            // Arrange
-            var expectedResult = "Button clicked successfully";
-            _mockButtonService.Setup(s => s.ButtonOperationAsync("button1", "click", "TestWindow", null, 30))
-                             .ReturnsAsync(expectedResult);
-
-            // Act
-            var result = await _tools.ButtonOperation("button1", "click", "TestWindow");
-
-            // Assert
-            Assert.NotNull(result);
-            _mockButtonService.Verify(s => s.ButtonOperationAsync("button1", "click", "TestWindow", null, 30), Times.Once);
-            _output.WriteLine("ButtonOperation test passed");
-        }
-
-        [Fact]
-        public async Task CalendarOperation_WithValidDate_CallsCorrectService()
-        {
-            // Arrange
-            var expectedResult = "Date selected successfully";
-            _mockCalendarService.Setup(s => s.CalendarOperationAsync("calendar1", "selectdate", It.IsAny<DateTime?>(), "TestWindow", null, 30))
-                               .ReturnsAsync(expectedResult);
-
-            // Act
-            var result = await _tools.CalendarOperation("calendar1", "selectdate", "2024-01-01", "TestWindow");
-
-            // Assert
-            Assert.NotNull(result);
-            _mockCalendarService.Verify(s => s.CalendarOperationAsync("calendar1", "selectdate", It.IsAny<DateTime?>(), "TestWindow", null, 30), Times.Once);
-            _output.WriteLine("CalendarOperation test passed");
-        }
-
-        #endregion
 
         #region Advanced Pattern Tests
 

@@ -5,6 +5,7 @@ using System.IO;
 
 namespace UIAutomationMCP.Tests.UnitTests.Helpers
 {
+    [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Unit")]
     public class SubprocessExecutorTests
     {

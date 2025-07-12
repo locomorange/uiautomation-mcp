@@ -6,6 +6,7 @@ namespace UiAutomationMcp.Tests.UnitTests
     /// パラメータ検証の単体テスト
     /// UI Automationに依存しない純粋なロジックをテストします
     /// </summary>
+    [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Unit")]
     public class ParameterValidationTests
     {

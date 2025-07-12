@@ -13,6 +13,8 @@ namespace UIAutomationMCP.Tests.Integration
     /// 基本的なE2Eテスト - 最も重要なユーザーシナリオのみをテスト
     /// Process IDベースの安全な終了処理により並行実行をサポート
     /// </summary>
+    [Collection("UIAutomationTestCollection")]
+    [Trait("Category", "Integration")]
     public class BasicE2ETests : IDisposable
     {
         private readonly ITestOutputHelper _output;

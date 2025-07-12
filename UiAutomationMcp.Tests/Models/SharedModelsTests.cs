@@ -7,7 +7,7 @@ namespace UiAutomationMcp.Tests.Models
     /// SharedModelsのユニットテスト
     /// シリアライゼーション、デシリアライゼーション、バリデーションをテスト
     /// </summary>
-    [Collection("UIAutomation Collection")]
+    [Collection("UIAutomationTestCollection")]
     public class SharedModelsTests
     {
         [Fact]
