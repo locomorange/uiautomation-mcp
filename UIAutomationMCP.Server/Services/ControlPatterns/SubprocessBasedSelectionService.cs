@@ -138,5 +138,105 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 return new { Success = false, Error = ex.Message };
             }
         }
+
+        public async Task<object> CanSelectMultipleAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            try
+            {
+                _logger.LogInformation("Checking if container supports multiple selection: {ContainerId}", containerId);
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "containerId", containerId },
+                    { "windowTitle", windowTitle ?? "" },
+                    { "processId", processId ?? 0 }
+                };
+
+                var result = await _executor.ExecuteAsync<object>("CanSelectMultiple", parameters, timeoutSeconds);
+
+                _logger.LogInformation("Multiple selection check completed for container: {ContainerId}", containerId);
+                return new { Success = true, Data = result };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to check multiple selection support for container: {ContainerId}", containerId);
+                return new { Success = false, Error = ex.Message };
+            }
+        }
+
+        public async Task<object> IsSelectionRequiredAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            try
+            {
+                _logger.LogInformation("Checking if selection is required for container: {ContainerId}", containerId);
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "containerId", containerId },
+                    { "windowTitle", windowTitle ?? "" },
+                    { "processId", processId ?? 0 }
+                };
+
+                var result = await _executor.ExecuteAsync<object>("IsSelectionRequired", parameters, timeoutSeconds);
+
+                _logger.LogInformation("Selection requirement check completed for container: {ContainerId}", containerId);
+                return new { Success = true, Data = result };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to check selection requirement for container: {ContainerId}", containerId);
+                return new { Success = false, Error = ex.Message };
+            }
+        }
+
+        public async Task<object> IsSelectedAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            try
+            {
+                _logger.LogInformation("Checking if element is selected: {ElementId}", elementId);
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "elementId", elementId },
+                    { "windowTitle", windowTitle ?? "" },
+                    { "processId", processId ?? 0 }
+                };
+
+                var result = await _executor.ExecuteAsync<object>("IsSelected", parameters, timeoutSeconds);
+
+                _logger.LogInformation("Selection status check completed for element: {ElementId}", elementId);
+                return new { Success = true, Data = result };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to check selection status for element: {ElementId}", elementId);
+                return new { Success = false, Error = ex.Message };
+            }
+        }
+
+        public async Task<object> GetSelectionContainerAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            try
+            {
+                _logger.LogInformation("Getting selection container for element: {ElementId}", elementId);
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "elementId", elementId },
+                    { "windowTitle", windowTitle ?? "" },
+                    { "processId", processId ?? 0 }
+                };
+
+                var result = await _executor.ExecuteAsync<object>("GetSelectionContainer", parameters, timeoutSeconds);
+
+                _logger.LogInformation("Selection container retrieved for element: {ElementId}", elementId);
+                return new { Success = true, Data = result };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get selection container for element: {ElementId}", elementId);
+                return new { Success = false, Error = ex.Message };
+            }
+        }
     }
 }

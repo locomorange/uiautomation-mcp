@@ -170,6 +170,22 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => await _selectionService.SelectItemAsync(elementId, windowTitle, processId, timeoutSeconds);
 
+        [McpServerTool, Description("Check if element is currently selected using SelectionItemPattern")]
+        public async Task<object> IsElementSelected(
+            [Description("Automation ID or name of the element")] string elementId, 
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
+            [Description("Process ID of the target window (optional)")] int? processId = null, 
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _selectionService.IsSelectedAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Get the selection container for an element using SelectionItemPattern")]
+        public async Task<object> GetSelectionContainer(
+            [Description("Automation ID or name of the element")] string elementId, 
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
+            [Description("Process ID of the target window (optional)")] int? processId = null, 
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _selectionService.GetSelectionContainerAsync(elementId, windowTitle, processId, timeoutSeconds);
+
         [McpServerTool, Description("Get the current selection from a container using SelectionPattern")]
         public async Task<object> GetSelection(
             [Description("Automation ID or name of the container element")] string containerElementId, 
@@ -177,6 +193,46 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Process ID of the target window (optional)")] int? processId = null, 
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => await _selectionService.GetSelectionAsync(containerElementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Check if container supports multiple selection using SelectionPattern")]
+        public async Task<object> CanSelectMultiple(
+            [Description("Automation ID or name of the container element")] string containerElementId, 
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
+            [Description("Process ID of the target window (optional)")] int? processId = null, 
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _selectionService.CanSelectMultipleAsync(containerElementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Check if selection is required for container using SelectionPattern")]
+        public async Task<object> IsSelectionRequired(
+            [Description("Automation ID or name of the container element")] string containerElementId, 
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
+            [Description("Process ID of the target window (optional)")] int? processId = null, 
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _selectionService.IsSelectionRequiredAsync(containerElementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Add element to selection using SelectionItemPattern")]
+        public async Task<object> AddToSelection(
+            [Description("Automation ID or name of the element")] string elementId, 
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
+            [Description("Process ID of the target window (optional)")] int? processId = null, 
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _selectionService.AddToSelectionAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Remove element from selection using SelectionItemPattern")]
+        public async Task<object> RemoveFromSelection(
+            [Description("Automation ID or name of the element")] string elementId, 
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
+            [Description("Process ID of the target window (optional)")] int? processId = null, 
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _selectionService.RemoveFromSelectionAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Clear all selections in a container")]
+        public async Task<object> ClearSelection(
+            [Description("Automation ID or name of the container element")] string containerElementId, 
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
+            [Description("Process ID of the target window (optional)")] int? processId = null, 
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _selectionService.ClearSelectionAsync(containerElementId, windowTitle, processId, timeoutSeconds);
 
         // Layout and Navigation Patterns
         [McpServerTool, Description("Expand or collapse an element using ExpandCollapsePattern")]

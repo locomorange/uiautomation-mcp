@@ -86,8 +86,12 @@ namespace UIAutomationMCP.Worker
 
             // Selection operations
             builder.Services.AddKeyedTransient<IUIAutomationOperation, AddToSelectionOperation>("AddToSelection");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, CanSelectMultipleOperation>("CanSelectMultiple");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, ClearSelectionOperation>("ClearSelection");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetSelectionContainerOperation>("GetSelectionContainer");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetSelectionOperation>("GetSelection");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, IsSelectedOperation>("IsSelected");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, IsSelectionRequiredOperation>("IsSelectionRequired");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, RemoveFromSelectionOperation>("RemoveFromSelection");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SelectElementOperation>("SelectElement");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SelectItemOperation>("SelectItem");
