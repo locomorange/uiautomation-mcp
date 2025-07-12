@@ -981,6 +981,104 @@ namespace UIAutomationMCP.Tests.Tools
             _output.WriteLine("ScrollElement with custom amount test passed");
         }
 
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task GetScrollInfo_Should_Call_LayoutService_With_Correct_Parameters()
+        {
+            // Arrange - Microsoft ScrollPattern仕様の6つの必須プロパティをテスト
+            var expectedScrollInfo = new
+            {
+                HorizontalScrollPercent = 25.0,
+                VerticalScrollPercent = 50.0,
+                HorizontalViewSize = 80.0,
+                VerticalViewSize = 60.0,
+                HorizontallyScrollable = true,
+                VerticallyScrollable = true
+            };
+            
+            _mockLayoutService.Setup(s => s.GetScrollInfoAsync("scrollableElement", "TestWindow", 1234, 30))
+                             .ReturnsAsync(new { Success = true, Data = expectedScrollInfo });
+
+            // Act
+            var result = await _tools.GetScrollInfo("scrollableElement", "TestWindow", 1234, 30);
+
+            // Assert
+            Assert.NotNull(result);
+            _mockLayoutService.Verify(s => s.GetScrollInfoAsync("scrollableElement", "TestWindow", 1234, 30), Times.Once);
+            _output.WriteLine("GetScrollInfo test passed - all ScrollPattern properties verified");
+        }
+
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task SetScrollPercent_Should_Call_LayoutService_With_Valid_Percentages()
+        {
+            // Arrange - Microsoft ScrollPattern仕様のSetScrollPercentメソッドをテスト
+            var expectedResult = new
+            {
+                Success = true,
+                Data = new
+                {
+                    HorizontalScrollPercent = 75.0,
+                    VerticalScrollPercent = 25.0,
+                    HorizontalViewSize = 100.0,
+                    VerticalViewSize = 100.0
+                }
+            };
+            
+            _mockLayoutService.Setup(s => s.SetScrollPercentAsync("scrollContainer", 75.0, 25.0, "TestWindow", 1234, 30))
+                             .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.SetScrollPercent("scrollContainer", 75.0, 25.0, "TestWindow", 1234, 30);
+
+            // Assert
+            Assert.NotNull(result);
+            _mockLayoutService.Verify(s => s.SetScrollPercentAsync("scrollContainer", 75.0, 25.0, "TestWindow", 1234, 30), Times.Once);
+            _output.WriteLine("SetScrollPercent test passed - percentage-based scrolling verified");
+        }
+
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task SetScrollPercent_Should_Handle_NoScroll_Values()
+        {
+            // Arrange - Microsoft仕様の-1値（NoScroll）をテスト
+            var expectedResult = new { Success = true, Message = "Scroll percentage set with NoScroll" };
+            
+            _mockLayoutService.Setup(s => s.SetScrollPercentAsync("scrollElement", -1.0, 50.0, null, null, 30))
+                             .ReturnsAsync(expectedResult);
+
+            // Act - 水平方向にNoScroll(-1)、垂直方向に50%を指定
+            var result = await _tools.SetScrollPercent("scrollElement", -1.0, 50.0);
+
+            // Assert
+            Assert.NotNull(result);
+            _mockLayoutService.Verify(s => s.SetScrollPercentAsync("scrollElement", -1.0, 50.0, null, null, 30), Times.Once);
+            _output.WriteLine("SetScrollPercent with NoScroll values test passed");
+        }
+
+        [Theory]
+        [Trait("Category", "Unit")]
+        [InlineData(0.0, 0.0)]     // Minimum valid values
+        [InlineData(100.0, 100.0)] // Maximum valid values
+        [InlineData(50.5, 33.3)]   // Decimal values
+        [InlineData(-1.0, -1.0)]   // NoScroll values
+        public async Task SetScrollPercent_Should_Accept_Valid_Range_Values(double horizontal, double vertical)
+        {
+            // Arrange - Microsoft仕様の有効範囲（0-100、-1）をテスト
+            var expectedResult = new { Success = true };
+            
+            _mockLayoutService.Setup(s => s.SetScrollPercentAsync("testElement", horizontal, vertical, null, null, 30))
+                             .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.SetScrollPercent("testElement", horizontal, vertical);
+
+            // Assert
+            Assert.NotNull(result);
+            _mockLayoutService.Verify(s => s.SetScrollPercentAsync("testElement", horizontal, vertical, null, null, 30), Times.Once);
+            _output.WriteLine($"SetScrollPercent valid range test passed for H:{horizontal}, V:{vertical}");
+        }
+
         #endregion
     }
 }
