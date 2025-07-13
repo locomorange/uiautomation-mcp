@@ -38,6 +38,7 @@ namespace UIAutomationMCP.Worker
 
             // Register helper services
             builder.Services.AddSingleton<ElementFinderService>();
+            builder.Services.AddSingleton<FindElementsCacheService>();
 
             // Register basic operations as keyed services (working ones only)
             builder.Services.AddKeyedTransient<IUIAutomationOperation, InvokeElementOperation>("InvokeElement");
@@ -55,6 +56,7 @@ namespace UIAutomationMCP.Worker
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetControlTypeInfoOperation>("GetControlTypeInfo");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, ValidateControlTypePatternsOperation>("ValidateControlTypePatterns");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, FindElementsByControlTypeOperation>("FindElementsByControlType");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, FindElementsByPatternOperation>("FindElementsByPattern");
 
             // Grid operations
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetColumnHeaderOperation>("GetColumnHeader");

@@ -55,11 +55,11 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             // Prevent searching from RootElement for performance reasons
             if (searchRoot == null && string.IsNullOrEmpty(windowTitle) && processId == 0)
             {
-                return Task.FromResult(new OperationResult
+                return new OperationResult
                 {
                     Success = false,
                     Error = "Search scope too broad. Please specify a windowTitle or processId to narrow the search."
-                });
+                };
             }
             
             searchRoot ??= AutomationElement.RootElement;
@@ -366,7 +366,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                             elementList.Add(CreateElementInfo(root));
                         }
                     }
-                    else if (walker.Condition.AppliesTo(root))
+                    else
                     {
                         elementList.Add(CreateElementInfo(root));
                     }
