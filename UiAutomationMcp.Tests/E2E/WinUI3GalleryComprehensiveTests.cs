@@ -114,9 +114,9 @@ namespace UIAutomationMCP.Tests.E2E
         #region Core Interaction Patterns
 
         [Fact]
-        public async Task Test_09_InvokeElement_NavigationItem()
+        public async Task Test_09_SelectElement_NavigationItem()
         {
-            Output.WriteLine("=== Testing InvokeElement on navigation items ===");
+            Output.WriteLine("=== Testing SelectElement on navigation items (CORRECTED) ===");
             
             try
             {
@@ -124,15 +124,41 @@ namespace UIAutomationMCP.Tests.E2E
                 var navItems = await Tools.FindElementsByControlType("ListItem", windowTitle: "WinUI 3 Gallery");
                 LogResult("Found navigation items", navItems);
                 
-                // Try to find and click on "Basic Input" navigation item
-                var elements = await Tools.FindElements(searchText: "Basic Input", windowTitle: "WinUI 3 Gallery");
-                LogResult("Found Basic Input elements", elements);
+                // Take screenshot before navigation
+                Output.WriteLine("Taking screenshot before navigation...");
+                await Tools.TakeScreenshot("WinUI 3 Gallery", @"C:\temp\test_before.png");
                 
-                Assert.NotNull(elements);
+                // Use SelectElement (correct pattern) on FundamentalsItem
+                Output.WriteLine("Attempting to select Fundamentals navigation item using SelectElement...");
+                var selectResult = await Tools.SelectElement("FundamentalsItem", windowTitle: "WinUI 3 Gallery");
+                LogResult("SelectElement result", selectResult);
+                
+                // Wait for navigation to complete
+                await Task.Delay(2000);
+                
+                // Take screenshot after navigation
+                Output.WriteLine("Taking screenshot after navigation...");
+                await Tools.TakeScreenshot("WinUI 3 Gallery", @"C:\temp\test_after.png");
+                
+                // Verify that the operation was successful
+                Assert.NotNull(selectResult);
+                
+                // For comparison, demonstrate why InvokeElement fails
+                Output.WriteLine("For comparison: testing InvokeElement (should fail)...");
+                try 
+                {
+                    var invokeResult = await Tools.InvokeElement("FundamentalsItem", windowTitle: "WinUI 3 Gallery");
+                    Output.WriteLine($"WARNING: InvokeElement unexpectedly succeeded: {JsonSerializer.Serialize(invokeResult)}");
+                }
+                catch (Exception invokeEx)
+                {
+                    Output.WriteLine($"InvokeElement failed as expected: {invokeEx.Message}");
+                }
             }
             catch (Exception ex)
             {
-                Output.WriteLine($"InvokeElement test encountered: {ex.Message}");
+                Output.WriteLine($"Navigation test encountered: {ex.Message}");
+                throw; // Re-throw to fail the test if navigation doesn't work
             }
         }
 
