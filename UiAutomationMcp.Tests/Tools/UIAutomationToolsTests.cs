@@ -274,6 +274,74 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         [Fact]
+        public async Task IsElementReadOnly_Success_ReturnsReadOnlyStatus()
+        {
+            // Arrange
+            var expectedResult = new { Success = true, Data = true };
+            _mockValueService.Setup(s => s.IsReadOnlyAsync("textBox", "TestWindow", null, 30))
+                                 .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.IsElementReadOnly("textBox", "TestWindow");
+
+            // Assert
+            Assert.NotNull(result);
+            _mockValueService.Verify(s => s.IsReadOnlyAsync("textBox", "TestWindow", null, 30), Times.Once);
+            _output.WriteLine("IsElementReadOnly test passed");
+        }
+
+        [Fact]
+        public async Task IsElementReadOnly_ElementNotFound_ReturnsError()
+        {
+            // Arrange
+            var errorResult = new { Success = false, Error = "Element not found" };
+            _mockValueService.Setup(s => s.IsReadOnlyAsync("nonExistentElement", "TestWindow", null, 30))
+                                 .ReturnsAsync(errorResult);
+
+            // Act
+            var result = await _tools.IsElementReadOnly("nonExistentElement", "TestWindow");
+
+            // Assert
+            Assert.NotNull(result);
+            _mockValueService.Verify(s => s.IsReadOnlyAsync("nonExistentElement", "TestWindow", null, 30), Times.Once);
+            _output.WriteLine("IsElementReadOnly element not found test passed");
+        }
+
+        [Fact]
+        public async Task IsElementReadOnly_ValuePatternNotSupported_ReturnsError()
+        {
+            // Arrange
+            var errorResult = new { Success = false, Error = "ValuePattern not supported" };
+            _mockValueService.Setup(s => s.IsReadOnlyAsync("unsupportedElement", "TestWindow", null, 30))
+                                 .ReturnsAsync(errorResult);
+
+            // Act
+            var result = await _tools.IsElementReadOnly("unsupportedElement", "TestWindow");
+
+            // Assert
+            Assert.NotNull(result);
+            _mockValueService.Verify(s => s.IsReadOnlyAsync("unsupportedElement", "TestWindow", null, 30), Times.Once);
+            _output.WriteLine("IsElementReadOnly ValuePattern not supported test passed");
+        }
+
+        [Fact]
+        public async Task IsElementReadOnly_WithCustomTimeout_Success()
+        {
+            // Arrange
+            var expectedResult = new { Success = true, Data = false };
+            _mockValueService.Setup(s => s.IsReadOnlyAsync("editableTextBox", "TestWindow", null, 60))
+                                 .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.IsElementReadOnly("editableTextBox", "TestWindow", timeoutSeconds: 60);
+
+            // Assert
+            Assert.NotNull(result);
+            _mockValueService.Verify(s => s.IsReadOnlyAsync("editableTextBox", "TestWindow", null, 60), Times.Once);
+            _output.WriteLine("IsElementReadOnly with custom timeout test passed");
+        }
+
+        [Fact]
         public async Task ToggleElement_Success_TogglesElement()
         {
             // Arrange

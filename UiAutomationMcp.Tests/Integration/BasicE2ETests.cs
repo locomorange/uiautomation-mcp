@@ -86,21 +86,27 @@ namespace UIAutomationMCP.Tests.Integration
             // When
             var invokeResult = await _invokeService.InvokeElementAsync(nonExistentElementId, null, null, timeout);
             var valueResult = await _valueService.GetValueAsync(nonExistentElementId, null, null, timeout);
+            var isReadOnlyResult = await _valueService.IsReadOnlyAsync(nonExistentElementId, null, null, timeout);
 
             // Then
             Assert.NotNull(invokeResult);
             Assert.NotNull(valueResult);
+            Assert.NotNull(isReadOnlyResult);
             
             var invokeJson = System.Text.Json.JsonSerializer.Serialize(invokeResult);
             var valueJson = System.Text.Json.JsonSerializer.Serialize(valueResult);
+            var isReadOnlyJson = System.Text.Json.JsonSerializer.Serialize(isReadOnlyResult);
             
             Assert.Contains("Success", invokeJson);
             Assert.Contains("false", invokeJson);
             Assert.Contains("Success", valueJson);
             Assert.Contains("false", valueJson);
+            Assert.Contains("Success", isReadOnlyJson);
+            Assert.Contains("false", isReadOnlyJson);
             
             _output.WriteLine($"Invoke result: {invokeJson}");
             _output.WriteLine($"Value result: {valueJson}");
+            _output.WriteLine($"IsReadOnly result: {isReadOnlyJson}");
         }
 
         [Fact]
@@ -259,14 +265,18 @@ namespace UIAutomationMCP.Tests.Integration
             // When & Then
             var invokeTask = _invokeService.InvokeElementAsync(nonExistentElementId, null, null, veryShortTimeout);
             var valueTask = _valueService.GetValueAsync(nonExistentElementId, null, null, veryShortTimeout);
+            var isReadOnlyTask = _valueService.IsReadOnlyAsync(nonExistentElementId, null, null, veryShortTimeout);
 
             var invokeResult = await invokeTask;
             var valueResult = await valueTask;
+            var isReadOnlyResult = await isReadOnlyTask;
 
             Assert.NotNull(invokeResult);
             Assert.NotNull(valueResult);
+            Assert.NotNull(isReadOnlyResult);
             _output.WriteLine($"Timeout test - Invoke: {invokeResult}");
             _output.WriteLine($"Timeout test - Value: {valueResult}");
+            _output.WriteLine($"Timeout test - IsReadOnly: {isReadOnlyResult}");
         }
 
         public void Dispose()
