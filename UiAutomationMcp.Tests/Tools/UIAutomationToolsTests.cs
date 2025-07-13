@@ -1250,5 +1250,355 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         #endregion
+
+        #region TableItem Pattern Tests - Microsoft UI Automation仕様準拠
+
+        /// <summary>
+        /// GetColumnHeaderItems - 正常系：Microsoft TableItemPattern.GetColumnHeaderItems()仕様準拠テスト
+        /// Required Members: GetColumnHeaderItems() - テーブル項目の列ヘッダー要素を取得
+        /// </summary>
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task GetColumnHeaderItems_Should_Call_TableService_With_Correct_Parameters()
+        {
+            // Arrange - Microsoft TableItemPattern仕様のGetColumnHeaderItems()をテスト
+            var expectedColumnHeaders = new List<Dictionary<string, object>>
+            {
+                new Dictionary<string, object>
+                {
+                    ["AutomationId"] = "header_col1",
+                    ["Name"] = "Name",
+                    ["ControlType"] = "Header",
+                    ["IsEnabled"] = true,
+                    ["BoundingRectangle"] = new { X = 10, Y = 5, Width = 100, Height = 25 }
+                },
+                new Dictionary<string, object>
+                {
+                    ["AutomationId"] = "header_col2", 
+                    ["Name"] = "Age",
+                    ["ControlType"] = "Header",
+                    ["IsEnabled"] = true,
+                    ["BoundingRectangle"] = new { X = 110, Y = 5, Width = 80, Height = 25 }
+                }
+            };
+            
+            _mockTableService.Setup(s => s.GetColumnHeaderItemsAsync("tableCell1", "TestWindow", null, 30))
+                           .ReturnsAsync(new { Success = true, Data = expectedColumnHeaders });
+
+            // Act
+            var result = await _tools.GetColumnHeaderItems("tableCell1", "TestWindow");
+
+            // Assert
+            Assert.NotNull(result);
+            _mockTableService.Verify(s => s.GetColumnHeaderItemsAsync("tableCell1", "TestWindow", null, 30), Times.Once);
+            _output.WriteLine("GetColumnHeaderItems test passed - TableItemPattern.GetColumnHeaderItems() verified");
+        }
+
+        /// <summary>
+        /// GetColumnHeaderItems - プロセスIDとカスタムタイムアウト指定テスト
+        /// </summary>
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task GetColumnHeaderItems_Should_Work_With_ProcessId_And_CustomTimeout()
+        {
+            // Arrange
+            var expectedResult = new
+            {
+                Success = true,
+                Data = new List<Dictionary<string, object>>
+                {
+                    new Dictionary<string, object> { ["Name"] = "Column Header 1" }
+                }
+            };
+            
+            _mockTableService.Setup(s => s.GetColumnHeaderItemsAsync("cell2_3", null, 1234, 60))
+                           .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.GetColumnHeaderItems("cell2_3", null, 1234, 60);
+
+            // Assert
+            Assert.NotNull(result);
+            _mockTableService.Verify(s => s.GetColumnHeaderItemsAsync("cell2_3", null, 1234, 60), Times.Once);
+            _output.WriteLine("GetColumnHeaderItems with ProcessId and custom timeout test passed");
+        }
+
+        /// <summary>
+        /// GetColumnHeaderItems - TableItemPatternがサポートされていない場合のエラーハンドリング
+        /// Microsoft仕様: InvalidOperationException when pattern not supported
+        /// </summary>
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task GetColumnHeaderItems_Should_Handle_Pattern_Not_Supported_Exception()
+        {
+            // Arrange
+            var expectedException = new InvalidOperationException("TableItemPattern not supported");
+            
+            _mockTableService.Setup(s => s.GetColumnHeaderItemsAsync("nonTableCell", "TestWindow", null, 30))
+                           .ThrowsAsync(expectedException);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => 
+                _tools.GetColumnHeaderItems("nonTableCell", "TestWindow"));
+            
+            _mockTableService.Verify(s => s.GetColumnHeaderItemsAsync("nonTableCell", "TestWindow", null, 30), Times.Once);
+            _output.WriteLine("GetColumnHeaderItems pattern not supported exception test passed");
+        }
+
+        /// <summary>
+        /// GetColumnHeaderItems - 列ヘッダーが見つからない場合の処理
+        /// </summary>
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task GetColumnHeaderItems_Should_Handle_No_Column_Headers_Found()
+        {
+            // Arrange
+            var expectedResult = new
+            {
+                Success = false,
+                Error = "No column header items found"
+            };
+            
+            _mockTableService.Setup(s => s.GetColumnHeaderItemsAsync("emptyTableCell", "TestWindow", null, 30))
+                           .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.GetColumnHeaderItems("emptyTableCell", "TestWindow");
+
+            // Assert
+            Assert.NotNull(result);
+            _mockTableService.Verify(s => s.GetColumnHeaderItemsAsync("emptyTableCell", "TestWindow", null, 30), Times.Once);
+            _output.WriteLine("GetColumnHeaderItems no headers found test passed");
+        }
+
+        /// <summary>
+        /// GetRowHeaderItems - 正常系：Microsoft TableItemPattern.GetRowHeaderItems()仕様準拠テスト
+        /// Required Members: GetRowHeaderItems() - テーブル項目の行ヘッダー要素を取得
+        /// </summary>
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task GetRowHeaderItems_Should_Call_TableService_With_Correct_Parameters()
+        {
+            // Arrange - Microsoft TableItemPattern仕様のGetRowHeaderItems()をテスト
+            var expectedRowHeaders = new List<Dictionary<string, object>>
+            {
+                new Dictionary<string, object>
+                {
+                    ["AutomationId"] = "header_row1",
+                    ["Name"] = "Person 1",
+                    ["ControlType"] = "Header",
+                    ["IsEnabled"] = true,
+                    ["BoundingRectangle"] = new { X = 5, Y = 30, Width = 80, Height = 20 }
+                },
+                new Dictionary<string, object>
+                {
+                    ["AutomationId"] = "header_row2",
+                    ["Name"] = "Person 2", 
+                    ["ControlType"] = "Header",
+                    ["IsEnabled"] = true,
+                    ["BoundingRectangle"] = new { X = 5, Y = 50, Width = 80, Height = 20 }
+                }
+            };
+            
+            _mockTableService.Setup(s => s.GetRowHeaderItemsAsync("tableCell2", "TestWindow", null, 30))
+                           .ReturnsAsync(new { Success = true, Data = expectedRowHeaders });
+
+            // Act
+            var result = await _tools.GetRowHeaderItems("tableCell2", "TestWindow");
+
+            // Assert
+            Assert.NotNull(result);
+            _mockTableService.Verify(s => s.GetRowHeaderItemsAsync("tableCell2", "TestWindow", null, 30), Times.Once);
+            _output.WriteLine("GetRowHeaderItems test passed - TableItemPattern.GetRowHeaderItems() verified");
+        }
+
+        /// <summary>
+        /// GetRowHeaderItems - デフォルトパラメータでの動作テスト
+        /// </summary>
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task GetRowHeaderItems_Should_Use_Default_Parameters()
+        {
+            // Arrange
+            var expectedResult = new
+            {
+                Success = true,
+                Data = new List<Dictionary<string, object>>
+                {
+                    new Dictionary<string, object> { ["Name"] = "Row Header 1" }
+                }
+            };
+            
+            _mockTableService.Setup(s => s.GetRowHeaderItemsAsync("defaultCell", null, null, 30))
+                           .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.GetRowHeaderItems("defaultCell");
+
+            // Assert
+            Assert.NotNull(result);
+            _mockTableService.Verify(s => s.GetRowHeaderItemsAsync("defaultCell", null, null, 30), Times.Once);
+            _output.WriteLine("GetRowHeaderItems with default parameters test passed");
+        }
+
+        /// <summary>
+        /// GetRowHeaderItems - TableItemPatternがサポートされていない場合のエラーハンドリング
+        /// Microsoft仕様: InvalidOperationException when pattern not supported
+        /// </summary>
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task GetRowHeaderItems_Should_Handle_Pattern_Not_Supported_Exception()
+        {
+            // Arrange
+            var expectedException = new InvalidOperationException("TableItemPattern not supported");
+            
+            _mockTableService.Setup(s => s.GetRowHeaderItemsAsync("nonTableCell", "TestWindow", null, 30))
+                           .ThrowsAsync(expectedException);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => 
+                _tools.GetRowHeaderItems("nonTableCell", "TestWindow"));
+            
+            _mockTableService.Verify(s => s.GetRowHeaderItemsAsync("nonTableCell", "TestWindow", null, 30), Times.Once);
+            _output.WriteLine("GetRowHeaderItems pattern not supported exception test passed");
+        }
+
+        /// <summary>
+        /// GetRowHeaderItems - 行ヘッダーが見つからない場合の処理
+        /// </summary>
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task GetRowHeaderItems_Should_Handle_No_Row_Headers_Found()
+        {
+            // Arrange
+            var expectedResult = new
+            {
+                Success = false,
+                Error = "No row header items found"
+            };
+            
+            _mockTableService.Setup(s => s.GetRowHeaderItemsAsync("emptyRowTableCell", "TestWindow", null, 30))
+                           .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.GetRowHeaderItems("emptyRowTableCell", "TestWindow");
+
+            // Assert
+            Assert.NotNull(result);
+            _mockTableService.Verify(s => s.GetRowHeaderItemsAsync("emptyRowTableCell", "TestWindow", null, 30), Times.Once);
+            _output.WriteLine("GetRowHeaderItems no headers found test passed");
+        }
+
+        /// <summary>
+        /// GetRowHeaderItems - プロセスIDとカスタムタイムアウト指定での動作確認
+        /// </summary>
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task GetRowHeaderItems_Should_Work_With_ProcessId_And_CustomTimeout()
+        {
+            // Arrange
+            var expectedResult = new
+            {
+                Success = true,
+                Data = new List<Dictionary<string, object>>
+                {
+                    new Dictionary<string, object>
+                    {
+                        ["AutomationId"] = "row_header_special",
+                        ["Name"] = "Special Row Header",
+                        ["ControlType"] = "Header"
+                    }
+                }
+            };
+            
+            _mockTableService.Setup(s => s.GetRowHeaderItemsAsync("specialCell", null, 5678, 45))
+                           .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.GetRowHeaderItems("specialCell", null, 5678, 45);
+
+            // Assert
+            Assert.NotNull(result);
+            _mockTableService.Verify(s => s.GetRowHeaderItemsAsync("specialCell", null, 5678, 45), Times.Once);
+            _output.WriteLine("GetRowHeaderItems with ProcessId and custom timeout test passed");
+        }
+
+        /// <summary>
+        /// TableItem Pattern Integration - 両方のメソッドが協調動作することをテスト
+        /// Microsoft仕様: TableItemPatternは通常GridItemPatternと併用される
+        /// </summary>
+        [Theory]
+        [Trait("Category", "Unit")]
+        [InlineData("cell_1_1", "Cell at row 1, column 1")]
+        [InlineData("cell_2_3", "Cell at row 2, column 3")]
+        [InlineData("cell_0_0", "Top-left cell")]
+        public async Task TableItem_Pattern_Methods_Should_Work_For_Different_Cell_Types(string cellId, string description)
+        {
+            // Arrange - 異なるタイプのテーブルセルでの動作確認
+            var columnHeadersResult = new
+            {
+                Success = true,
+                Data = new List<Dictionary<string, object>>
+                {
+                    new Dictionary<string, object> { ["Name"] = $"Column Header for {cellId}" }
+                }
+            };
+            
+            var rowHeadersResult = new
+            {
+                Success = true,
+                Data = new List<Dictionary<string, object>>
+                {
+                    new Dictionary<string, object> { ["Name"] = $"Row Header for {cellId}" }
+                }
+            };
+            
+            _mockTableService.Setup(s => s.GetColumnHeaderItemsAsync(cellId, "TestApplication", null, 30))
+                           .ReturnsAsync(columnHeadersResult);
+            _mockTableService.Setup(s => s.GetRowHeaderItemsAsync(cellId, "TestApplication", null, 30))
+                           .ReturnsAsync(rowHeadersResult);
+
+            // Act
+            var columnResult = await _tools.GetColumnHeaderItems(cellId, "TestApplication");
+            var rowResult = await _tools.GetRowHeaderItems(cellId, "TestApplication");
+
+            // Assert
+            Assert.NotNull(columnResult);
+            Assert.NotNull(rowResult);
+            _mockTableService.Verify(s => s.GetColumnHeaderItemsAsync(cellId, "TestApplication", null, 30), Times.Once);
+            _mockTableService.Verify(s => s.GetRowHeaderItemsAsync(cellId, "TestApplication", null, 30), Times.Once);
+            _output.WriteLine($"TableItem pattern integration test passed for {description}");
+        }
+
+        /// <summary>
+        /// TableItem Pattern - 空文字列パラメータの処理
+        /// </summary>
+        [Theory]
+        [Trait("Category", "Unit")]
+        [InlineData("", "TestWindow")]
+        [InlineData("validCell", "")]
+        public async Task TableItem_Pattern_Should_Handle_Empty_String_Parameters(string elementId, string windowTitle)
+        {
+            // Arrange
+            var expectedResult = new { Success = false, Error = "Invalid parameters" };
+            
+            _mockTableService.Setup(s => s.GetColumnHeaderItemsAsync(elementId, windowTitle, null, 30))
+                           .ReturnsAsync(expectedResult);
+            _mockTableService.Setup(s => s.GetRowHeaderItemsAsync(elementId, windowTitle, null, 30))
+                           .ReturnsAsync(expectedResult);
+
+            // Act
+            var columnResult = await _tools.GetColumnHeaderItems(elementId, windowTitle);
+            var rowResult = await _tools.GetRowHeaderItems(elementId, windowTitle);
+
+            // Assert
+            Assert.NotNull(columnResult);
+            Assert.NotNull(rowResult);
+            _mockTableService.Verify(s => s.GetColumnHeaderItemsAsync(elementId, windowTitle, null, 30), Times.Once);
+            _mockTableService.Verify(s => s.GetRowHeaderItemsAsync(elementId, windowTitle, null, 30), Times.Once);
+            _output.WriteLine($"TableItem pattern empty string parameters test passed for elementId:'{elementId}', windowTitle:'{windowTitle}'");
+        }
+
+        #endregion
     }
 }
