@@ -618,6 +618,132 @@ namespace UIAutomationMCP.Tests.Tools
             _output.WriteLine("WindowAction test passed");
         }
 
+        [Fact]
+        public async Task GetWindowInteractionState_Success_ReturnsInteractionState()
+        {
+            // Arrange
+            var expectedResult = new 
+            { 
+                Success = true, 
+                Data = new Dictionary<string, object>
+                {
+                    ["InteractionState"] = "Running",
+                    ["InteractionStateValue"] = 0,
+                    ["Description"] = "The window is running and responding to user input"
+                }
+            };
+            _mockWindowService.Setup(s => s.GetWindowInteractionStateAsync("TestWindow", null, 30))
+                                 .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.GetWindowInteractionState("TestWindow");
+
+            // Assert
+            Assert.NotNull(result);
+            _mockWindowService.Verify(s => s.GetWindowInteractionStateAsync("TestWindow", null, 30), Times.Once);
+            _output.WriteLine("GetWindowInteractionState test passed");
+        }
+
+        [Fact]
+        public async Task GetWindowCapabilities_Success_ReturnsCapabilities()
+        {
+            // Arrange
+            var expectedResult = new 
+            { 
+                Success = true, 
+                Data = new Dictionary<string, object>
+                {
+                    ["Maximizable"] = true,
+                    ["Minimizable"] = true,
+                    ["CanMaximize"] = true,
+                    ["CanMinimize"] = true,
+                    ["IsModal"] = false,
+                    ["IsTopmost"] = false,
+                    ["WindowVisualState"] = "Normal",
+                    ["WindowInteractionState"] = "Running"
+                }
+            };
+            _mockWindowService.Setup(s => s.GetWindowCapabilitiesAsync("TestWindow", null, 30))
+                                 .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.GetWindowCapabilities("TestWindow");
+
+            // Assert
+            Assert.NotNull(result);
+            _mockWindowService.Verify(s => s.GetWindowCapabilitiesAsync("TestWindow", null, 30), Times.Once);
+            _output.WriteLine("GetWindowCapabilities test passed");
+        }
+
+        [Fact]
+        public async Task WaitForWindowInputIdle_Success_WaitsForIdle()
+        {
+            // Arrange
+            var expectedResult = new 
+            { 
+                Success = true, 
+                Data = new Dictionary<string, object>
+                {
+                    ["Success"] = true,
+                    ["TimeoutMilliseconds"] = 5000,
+                    ["ElapsedMilliseconds"] = 1234.5,
+                    ["TimedOut"] = false,
+                    ["WindowInteractionState"] = "ReadyForUserInteraction",
+                    ["Message"] = "Window became idle within the specified timeout"
+                }
+            };
+            _mockWindowService.Setup(s => s.WaitForInputIdleAsync(5000, "TestWindow", null, 30))
+                                 .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.WaitForWindowInputIdle(5000, "TestWindow");
+
+            // Assert
+            Assert.NotNull(result);
+            _mockWindowService.Verify(s => s.WaitForInputIdleAsync(5000, "TestWindow", null, 30), Times.Once);
+            _output.WriteLine("WaitForWindowInputIdle test passed");
+        }
+
+        [Theory]
+        [InlineData("minimize", "TestWindow", 1234)]
+        [InlineData("maximize", "AnotherWindow", 5678)]
+        [InlineData("close", null, null)]
+        public async Task WindowAction_WithVariousParameters_CallsCorrectService(string action, string windowTitle, int? processId)
+        {
+            // Arrange
+            var expectedResult = $"Window {action} action performed successfully";
+            _mockWindowService.Setup(s => s.WindowOperationAsync(action, windowTitle, processId, 30))
+                                 .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.WindowAction(action, windowTitle, processId);
+
+            // Assert
+            Assert.NotNull(result);
+            _mockWindowService.Verify(s => s.WindowOperationAsync(action, windowTitle, processId, 30), Times.Once);
+            _output.WriteLine($"WindowAction with parameters ({action}, {windowTitle}, {processId}) test passed");
+        }
+
+        [Theory]
+        [InlineData(1000)]
+        [InlineData(10000)]
+        [InlineData(30000)]
+        public async Task WaitForWindowInputIdle_WithCustomTimeout_UsesCorrectTimeout(int timeoutMs)
+        {
+            // Arrange
+            var expectedResult = new { Success = true, Data = "Idle operation completed" };
+            _mockWindowService.Setup(s => s.WaitForInputIdleAsync(timeoutMs, It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<int>()))
+                                 .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _tools.WaitForWindowInputIdle(timeoutMs);
+
+            // Assert
+            Assert.NotNull(result);
+            _mockWindowService.Verify(s => s.WaitForInputIdleAsync(timeoutMs, null, null, 30), Times.Once);
+            _output.WriteLine($"WaitForWindowInputIdle with timeout {timeoutMs}ms test passed");
+        }
+
         #endregion
 
 
