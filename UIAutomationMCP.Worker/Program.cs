@@ -18,6 +18,7 @@ using UIAutomationMCP.Worker.Operations.Table;
 using UIAutomationMCP.Worker.Operations.Text;
 using UIAutomationMCP.Worker.Operations.TreeNavigation;
 using UIAutomationMCP.Worker.Operations.Window;
+using UIAutomationMCP.Worker.Operations.Transform;
 using UIAutomationMCP.Worker.Helpers;
 using System.Text.Json;
 
@@ -127,6 +128,12 @@ namespace UIAutomationMCP.Worker
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetWindowInfoOperation>("GetWindowInfo");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetWindowInteractionStateOperation>("GetWindowInteractionState");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetWindowCapabilitiesOperation>("GetWindowCapabilities");
+
+            // Transform operations
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetTransformCapabilitiesOperation>("GetTransformCapabilities");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, MoveElementOperation>("MoveElement");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, ResizeElementOperation>("ResizeElement");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, RotateElementOperation>("RotateElement");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, WaitForInputIdleOperation>("WaitForInputIdle");
 
             // Register Worker service
