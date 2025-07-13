@@ -22,7 +22,8 @@ namespace UIAutomationMCP.Worker.Helpers
         /// <param name="windowTitle">ウィンドウタイトル（省略可）</param>
         /// <param name="processId">プロセスID（省略可）</param>
         /// <returns>見つかった要素またはnull</returns>
-        public AutomationElement? FindElementById(string elementId, string windowTitle = "", int processId = 0)
+        public AutomationElement? FindElementById(string elementId, string windowTitle = "", int processId = 0, 
+            TreeScope scope = TreeScope.Descendants, CacheRequest? cacheRequest = null)
         {
             if (string.IsNullOrEmpty(elementId))
             {
@@ -30,13 +31,31 @@ namespace UIAutomationMCP.Worker.Helpers
                 return null;
             }
 
-            var searchRoot = GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
+            var searchRoot = GetSearchRoot(windowTitle, processId);
+            
+            // Prevent searching from RootElement without scope limitation
+            if (searchRoot == null && string.IsNullOrEmpty(windowTitle) && processId == 0)
+            {
+                _logger?.LogWarning("Search scope too broad. Consider specifying windowTitle or processId.");
+                searchRoot = AutomationElement.RootElement;
+            }
+            
+            searchRoot ??= AutomationElement.RootElement;
+            
             var condition = new PropertyCondition(AutomationElement.AutomationIdProperty, elementId);
             
-            _logger?.LogDebug("Searching for element with ID: {ElementId} in window: {WindowTitle} (PID: {ProcessId})", 
-                elementId, windowTitle, processId);
+            _logger?.LogDebug("Searching for element with ID: {ElementId} in window: {WindowTitle} (PID: {ProcessId}), Scope: {Scope}", 
+                elementId, windowTitle, processId, scope);
             
-            return searchRoot.FindFirst(TreeScope.Descendants, condition);
+            if (cacheRequest != null)
+            {
+                using (cacheRequest.Activate())
+                {
+                    return searchRoot.FindFirst(scope, condition);
+                }
+            }
+            
+            return searchRoot.FindFirst(scope, condition);
         }
 
         /// <summary>
@@ -46,7 +65,8 @@ namespace UIAutomationMCP.Worker.Helpers
         /// <param name="windowTitle">ウィンドウタイトル（省略可）</param>
         /// <param name="processId">プロセスID（省略可）</param>
         /// <returns>見つかった要素またはnull</returns>
-        public AutomationElement? FindElementByName(string elementName, string windowTitle = "", int processId = 0)
+        public AutomationElement? FindElementByName(string elementName, string windowTitle = "", int processId = 0,
+            TreeScope scope = TreeScope.Descendants, CacheRequest? cacheRequest = null)
         {
             if (string.IsNullOrEmpty(elementName))
             {
@@ -54,13 +74,31 @@ namespace UIAutomationMCP.Worker.Helpers
                 return null;
             }
 
-            var searchRoot = GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
+            var searchRoot = GetSearchRoot(windowTitle, processId);
+            
+            // Prevent searching from RootElement without scope limitation
+            if (searchRoot == null && string.IsNullOrEmpty(windowTitle) && processId == 0)
+            {
+                _logger?.LogWarning("Search scope too broad. Consider specifying windowTitle or processId.");
+                searchRoot = AutomationElement.RootElement;
+            }
+            
+            searchRoot ??= AutomationElement.RootElement;
+            
             var condition = new PropertyCondition(AutomationElement.NameProperty, elementName);
             
-            _logger?.LogDebug("Searching for element with name: {ElementName} in window: {WindowTitle} (PID: {ProcessId})", 
-                elementName, windowTitle, processId);
+            _logger?.LogDebug("Searching for element with name: {ElementName} in window: {WindowTitle} (PID: {ProcessId}), Scope: {Scope}", 
+                elementName, windowTitle, processId, scope);
             
-            return searchRoot.FindFirst(TreeScope.Descendants, condition);
+            if (cacheRequest != null)
+            {
+                using (cacheRequest.Activate())
+                {
+                    return searchRoot.FindFirst(scope, condition);
+                }
+            }
+            
+            return searchRoot.FindFirst(scope, condition);
         }
 
         /// <summary>
@@ -70,7 +108,8 @@ namespace UIAutomationMCP.Worker.Helpers
         /// <param name="windowTitle">ウィンドウタイトル（省略可）</param>
         /// <param name="processId">プロセスID（省略可）</param>
         /// <returns>見つかった要素またはnull</returns>
-        public AutomationElement? FindElementByConditions(Condition[] conditions, string windowTitle = "", int processId = 0)
+        public AutomationElement? FindElementByConditions(Condition[] conditions, string windowTitle = "", int processId = 0,
+            TreeScope scope = TreeScope.Descendants, CacheRequest? cacheRequest = null)
         {
             if (conditions == null || conditions.Length == 0)
             {
@@ -78,13 +117,31 @@ namespace UIAutomationMCP.Worker.Helpers
                 return null;
             }
 
-            var searchRoot = GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
+            var searchRoot = GetSearchRoot(windowTitle, processId);
+            
+            // Prevent searching from RootElement without scope limitation
+            if (searchRoot == null && string.IsNullOrEmpty(windowTitle) && processId == 0)
+            {
+                _logger?.LogWarning("Search scope too broad. Consider specifying windowTitle or processId.");
+                searchRoot = AutomationElement.RootElement;
+            }
+            
+            searchRoot ??= AutomationElement.RootElement;
+            
             var combinedCondition = conditions.Length == 1 ? conditions[0] : new AndCondition(conditions);
             
-            _logger?.LogDebug("Searching for element with {ConditionCount} conditions in window: {WindowTitle} (PID: {ProcessId})", 
-                conditions.Length, windowTitle, processId);
+            _logger?.LogDebug("Searching for element with {ConditionCount} conditions in window: {WindowTitle} (PID: {ProcessId}), Scope: {Scope}", 
+                conditions.Length, windowTitle, processId, scope);
             
-            return searchRoot.FindFirst(TreeScope.Descendants, combinedCondition);
+            if (cacheRequest != null)
+            {
+                using (cacheRequest.Activate())
+                {
+                    return searchRoot.FindFirst(scope, combinedCondition);
+                }
+            }
+            
+            return searchRoot.FindFirst(scope, combinedCondition);
         }
 
         /// <summary>
@@ -94,14 +151,32 @@ namespace UIAutomationMCP.Worker.Helpers
         /// <param name="windowTitle">ウィンドウタイトル（省略可）</param>
         /// <param name="processId">プロセスID（省略可）</param>
         /// <returns>見つかった要素のコレクション</returns>
-        public AutomationElementCollection FindElements(Condition condition, string windowTitle = "", int processId = 0)
+        public AutomationElementCollection FindElements(Condition condition, string windowTitle = "", int processId = 0,
+            TreeScope scope = TreeScope.Descendants, CacheRequest? cacheRequest = null)
         {
-            var searchRoot = GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
+            var searchRoot = GetSearchRoot(windowTitle, processId);
             
-            _logger?.LogDebug("Searching for multiple elements in window: {WindowTitle} (PID: {ProcessId})", 
-                windowTitle, processId);
+            // Prevent searching from RootElement without scope limitation
+            if (searchRoot == null && string.IsNullOrEmpty(windowTitle) && processId == 0)
+            {
+                _logger?.LogWarning("Search scope too broad. Consider specifying windowTitle or processId.");
+                searchRoot = AutomationElement.RootElement;
+            }
             
-            return searchRoot.FindAll(TreeScope.Descendants, condition);
+            searchRoot ??= AutomationElement.RootElement;
+            
+            _logger?.LogDebug("Searching for multiple elements in window: {WindowTitle} (PID: {ProcessId}), Scope: {Scope}", 
+                windowTitle, processId, scope);
+            
+            if (cacheRequest != null)
+            {
+                using (cacheRequest.Activate())
+                {
+                    return searchRoot.FindAll(scope, condition);
+                }
+            }
+            
+            return searchRoot.FindAll(scope, condition);
         }
 
         /// <summary>
@@ -130,6 +205,60 @@ namespace UIAutomationMCP.Worker.Helpers
         }
 
         /// <summary>
+        /// 要素IDで要素を非同期検索（タイムアウト付き）
+        /// </summary>
+        /// <param name="elementId">要素ID</param>
+        /// <param name="windowTitle">ウィンドウタイトル（省略可）</param>
+        /// <param name="processId">プロセスID（省略可）</param>
+        /// <param name="scope">検索スコープ</param>
+        /// <param name="timeoutMs">タイムアウト（ミリ秒）</param>
+        /// <returns>見つかった要素またはnull</returns>
+        public async Task<AutomationElement?> FindElementByIdAsync(string elementId, string windowTitle = "", 
+            int processId = 0, TreeScope scope = TreeScope.Descendants, int timeoutMs = 5000)
+        {
+            using var cts = new CancellationTokenSource(timeoutMs);
+            
+            try
+            {
+                return await Task.Run(() => 
+                    FindElementById(elementId, windowTitle, processId, scope), cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger?.LogWarning("Search for element ID '{ElementId}' timed out after {TimeoutMs}ms", 
+                    elementId, timeoutMs);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 要素名で要素を非同期検索（タイムアウト付き）
+        /// </summary>
+        /// <param name="elementName">要素名</param>
+        /// <param name="windowTitle">ウィンドウタイトル（省略可）</param>
+        /// <param name="processId">プロセスID（省略可）</param>
+        /// <param name="scope">検索スコープ</param>
+        /// <param name="timeoutMs">タイムアウト（ミリ秒）</param>
+        /// <returns>見つかった要素またはnull</returns>
+        public async Task<AutomationElement?> FindElementByNameAsync(string elementName, string windowTitle = "",
+            int processId = 0, TreeScope scope = TreeScope.Descendants, int timeoutMs = 5000)
+        {
+            using var cts = new CancellationTokenSource(timeoutMs);
+            
+            try
+            {
+                return await Task.Run(() => 
+                    FindElementByName(elementName, windowTitle, processId, scope), cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger?.LogWarning("Search for element name '{ElementName}' timed out after {TimeoutMs}ms", 
+                    elementName, timeoutMs);
+                return null;
+            }
+        }
+
+        /// <summary>
         /// 要素が存在するかチェック
         /// </summary>
         /// <param name="elementId">要素ID</param>
@@ -139,6 +268,26 @@ namespace UIAutomationMCP.Worker.Helpers
         public bool ElementExists(string elementId, string windowTitle = "", int processId = 0)
         {
             return FindElementById(elementId, windowTitle, processId) != null;
+        }
+
+        /// <summary>
+        /// デフォルトのCacheRequestを作成
+        /// </summary>
+        /// <returns>基本プロパティを含むCacheRequest</returns>
+        public static CacheRequest CreateDefaultCacheRequest()
+        {
+            var cacheRequest = new CacheRequest();
+            cacheRequest.Add(AutomationElement.AutomationIdProperty);
+            cacheRequest.Add(AutomationElement.NameProperty);
+            cacheRequest.Add(AutomationElement.ClassNameProperty);
+            cacheRequest.Add(AutomationElement.ControlTypeProperty);
+            cacheRequest.Add(AutomationElement.IsEnabledProperty);
+            cacheRequest.Add(AutomationElement.ProcessIdProperty);
+            cacheRequest.Add(AutomationElement.BoundingRectangleProperty);
+            cacheRequest.Add(AutomationElement.IsOffscreenProperty);
+            cacheRequest.AutomationElementMode = AutomationElementMode.None;
+            cacheRequest.TreeFilter = Automation.RawViewCondition;
+            return cacheRequest;
         }
 
         /// <summary>
