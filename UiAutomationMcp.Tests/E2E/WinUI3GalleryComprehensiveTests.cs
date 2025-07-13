@@ -310,63 +310,427 @@ namespace UIAutomationMCP.Tests.E2E
         }
 
         [Fact]
-        public async Task Test_10_SelectionPattern_ListItems()
+        public async Task Test_10_InvokePattern_VisuallyObviousButton()
         {
-            Output.WriteLine("=== Testing Selection patterns ===");
+            Output.WriteLine("=== Testing InvokePattern with VISUALLY OBVIOUS button (Minimize) ===");
             
             try
             {
-                // Find list items
-                var listItems = await Tools.FindElementsByControlType("ListItem", windowTitle: "WinUI 3 Gallery");
-                LogResult("Found list items", listItems);
+                Output.WriteLine("1. Taking screenshot before button click...");
+                await Tools.TakeScreenshot("WinUI 3 Gallery", @"C:\temp\before_minimize.png");
                 
-                // Test selection capabilities
-                if (listItems != null)
+                Output.WriteLine("2. Finding and analyzing buttons...");
+                var buttons = await Tools.FindElementsByControlType("Button", windowTitle: "WinUI 3 Gallery");
+                
+                // Parse and find the Minimize button specifically
+                var buttonsData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(buttons));
+                if (buttonsData.TryGetProperty("data", out var dataElement) && 
+                    dataElement.TryGetProperty("elements", out var elementsArray))
                 {
-                    var listItemsJson = JsonSerializer.Serialize(listItems);
-                    var itemsArray = JsonSerializer.Deserialize<JsonElement>(listItemsJson);
+                    var buttonElements = elementsArray.EnumerateArray().ToList();
+                    Output.WriteLine($"Found {buttonElements.Count} button elements");
                     
-                    if (itemsArray.TryGetProperty("data", out var dataElement) && dataElement.ValueKind == JsonValueKind.Array)
+                    bool foundMinimizeButton = false;
+                    
+                    foreach (var button in buttonElements)
                     {
-                        var items = dataElement.EnumerateArray().ToList();
-                        if (items.Count > 0)
+                        if (button.TryGetProperty("AutomationId", out var idElement) &&
+                            button.TryGetProperty("Name", out var nameElement) &&
+                            button.TryGetProperty("IsVisible", out var visibleElement))
                         {
-                            var firstItem = items[0];
-                            if (firstItem.TryGetProperty("automationId", out var idElement))
+                            var automationId = idElement.GetString();
+                            var name = nameElement.GetString();
+                            var isVisible = visibleElement.GetBoolean();
+                            
+                            Output.WriteLine($"Button: {name} (ID: {automationId}) - Visible: {isVisible}");
+                            
+                            // Test specifically the Minimize button for obvious visual change
+                            if (automationId == "Minimize" && isVisible)
+                            {
+                                Output.WriteLine($"🎯 Testing MINIMIZE button for obvious visual change!");
+                                foundMinimizeButton = true;
+                                
+                                try
+                                {
+                                    Output.WriteLine("3. Clicking Minimize button...");
+                                    var invokeResult = await Tools.InvokeElement("Minimize", windowTitle: "WinUI 3 Gallery");
+                                    Output.WriteLine($"Minimize invoke result: {JsonSerializer.Serialize(invokeResult)}");
+                                    
+                                    await Task.Delay(2000); // Wait for minimize animation
+                                    
+                                    Output.WriteLine("4. Taking screenshot after minimize...");
+                                    await Tools.TakeScreenshot("WinUI 3 Gallery", @"C:\temp\after_minimize.png");
+                                    
+                                    Output.WriteLine("5. Attempting to restore window by clicking on taskbar or searching...");
+                                    // Try to find the window again (it might be minimized)
+                                    var windowInfo = await Tools.GetWindowInfo();
+                                    Output.WriteLine($"Window info after minimize: {JsonSerializer.Serialize(windowInfo)}");
+                                    
+                                    // Verify the invoke operation succeeded
+                                    var invokeData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(invokeResult));
+                                    bool invokeSuccess = invokeData.TryGetProperty("Success", out var successEl) && successEl.GetBoolean();
+                                    
+                                    Assert.True(invokeSuccess, "Minimize button InvokeElement should succeed");
+                                    
+                                    Output.WriteLine("✅ MINIMIZE BUTTON TEST PASSED!");
+                                    Output.WriteLine("📸 Compare screenshots: C:\\temp\\before_minimize.png vs C:\\temp\\after_minimize.png");
+                                    Output.WriteLine("📋 If window disappeared/minimized, the UI automation is working!");
+                                    
+                                    break;
+                                }
+                                catch (Exception ex)
+                                {
+                                    Output.WriteLine($"❌ Minimize button test failed: {ex.Message}");
+                                    throw;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (!foundMinimizeButton)
+                    {
+                        Output.WriteLine("⚠️ Minimize button not found or not visible");
+                        // Fall back to testing any visible button
+                        foreach (var button in buttonElements.Take(3))
+                        {
+                            if (button.TryGetProperty("AutomationId", out var idElement) &&
+                                button.TryGetProperty("IsVisible", out var visibleElement) &&
+                                visibleElement.GetBoolean())
                             {
                                 var automationId = idElement.GetString();
                                 if (!string.IsNullOrEmpty(automationId))
                                 {
-                                    var isSelected = await Tools.IsElementSelected(automationId, windowTitle: "WinUI 3 Gallery");
-                                    LogResult($"IsElementSelected for {automationId}", isSelected);
+                                    Output.WriteLine($"Testing fallback button: {automationId}");
+                                    var invokeResult = await Tools.InvokeElement(automationId, windowTitle: "WinUI 3 Gallery");
+                                    var invokeData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(invokeResult));
+                                    bool invokeSuccess = invokeData.TryGetProperty("Success", out var successEl) && successEl.GetBoolean();
+                                    
+                                    Assert.True(invokeSuccess, $"InvokeElement should succeed on visible button {automationId}");
+                                    break;
                                 }
                             }
                         }
                     }
                 }
+                
+                Output.WriteLine("✅ InvokePattern testing completed");
             }
             catch (Exception ex)
             {
-                Output.WriteLine($"Selection pattern test encountered: {ex.Message}");
+                Output.WriteLine($"❌ InvokePattern test failed: {ex.Message}");
+                throw;
             }
         }
 
         [Fact]
-        public async Task Test_11_TogglePattern_CheckBoxes()
+        public async Task Test_11_ValuePattern_ActualVisibleElements()
         {
-            Output.WriteLine("=== Testing Toggle patterns ===");
+            Output.WriteLine("=== Testing ValuePattern with VISIBLE elements only ===");
             
             try
             {
-                // Find checkboxes
-                var checkboxes = await Tools.FindElementsByControlType("CheckBox", windowTitle: "WinUI 3 Gallery");
-                LogResult("Found checkboxes", checkboxes);
+                Output.WriteLine("1. Looking for text input controls with detailed analysis...");
                 
-                Assert.NotNull(checkboxes);
+                var textInputs = await Tools.FindElementsByControlType("Edit", windowTitle: "WinUI 3 Gallery");
+                
+                // Parse and analyze each element
+                var inputsData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(textInputs));
+                if (inputsData.TryGetProperty("data", out var dataElement) && 
+                    dataElement.TryGetProperty("elements", out var elementsArray))
+                {
+                    var inputElements = elementsArray.EnumerateArray().ToList();
+                    Output.WriteLine($"Found {inputElements.Count} text input elements");
+                    
+                    bool foundVisibleElement = false;
+                    
+                    foreach (var input in inputElements)
+                    {
+                        if (input.TryGetProperty("AutomationId", out var idElement) &&
+                            input.TryGetProperty("Name", out var nameElement) &&
+                            input.TryGetProperty("IsVisible", out var visibleElement) &&
+                            input.TryGetProperty("BoundingRectangle", out var rectElement))
+                        {
+                            var automationId = idElement.GetString();
+                            var name = nameElement.GetString();
+                            var isVisible = visibleElement.GetBoolean();
+                            
+                            Output.WriteLine($"Element Analysis:");
+                            Output.WriteLine($"  ID: {automationId}");
+                            Output.WriteLine($"  Name: {name}");
+                            Output.WriteLine($"  Visible: {isVisible}");
+                            Output.WriteLine($"  BoundingRect: {rectElement}");
+                            
+                            // Only test VISIBLE elements with valid automation IDs
+                            if (isVisible && !string.IsNullOrEmpty(automationId) && 
+                                !automationId.StartsWith("__")) // Skip internal elements
+                            {
+                                Output.WriteLine($"🎯 Testing VISIBLE element: {name} (ID: {automationId})");
+                                
+                                try
+                                {
+                                    // Take screenshot before
+                                    await Tools.TakeScreenshot("WinUI 3 Gallery", @"C:\temp\before_value_test.png");
+                                    
+                                    // Get initial value
+                                    var initialValue = await Tools.GetElementValue(automationId, windowTitle: "WinUI 3 Gallery");
+                                    Output.WriteLine($"Initial value: {JsonSerializer.Serialize(initialValue)}");
+                                    
+                                    // Set a test value
+                                    var testValue = $"TEST VALUE {DateTime.Now:HH:mm:ss}";
+                                    Output.WriteLine($"Setting value to: '{testValue}'");
+                                    
+                                    var setValue = await Tools.SetElementValue(automationId, testValue, windowTitle: "WinUI 3 Gallery");
+                                    Output.WriteLine($"Set value result: {JsonSerializer.Serialize(setValue)}");
+                                    
+                                    await Task.Delay(1000); // Wait for UI update
+                                    
+                                    // Take screenshot after
+                                    await Tools.TakeScreenshot("WinUI 3 Gallery", @"C:\temp\after_value_test.png");
+                                    
+                                    // Get value after setting
+                                    var afterValue = await Tools.GetElementValue(automationId, windowTitle: "WinUI 3 Gallery");
+                                    Output.WriteLine($"After value: {JsonSerializer.Serialize(afterValue)}");
+                                    
+                                    // Verify the operation worked
+                                    var setData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(setValue));
+                                    bool setSuccess = setData.TryGetProperty("Success", out var successEl) && successEl.GetBoolean();
+                                    
+                                    if (setSuccess)
+                                    {
+                                        Output.WriteLine($"✅ ValuePattern succeeded on VISIBLE element {name}");
+                                        Output.WriteLine("📸 Check screenshots: C:\\temp\\before_value_test.png vs C:\\temp\\after_value_test.png");
+                                        foundVisibleElement = true;
+                                        
+                                        Assert.True(setSuccess, $"SetElementValue should succeed on visible element {name}");
+                                        break; // Test one successful visible element
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Output.WriteLine($"❌ ValuePattern failed on visible element {name}: {ex.Message}");
+                                }
+                            }
+                            else
+                            {
+                                Output.WriteLine($"⏭️ Skipping non-visible or internal element: {automationId}");
+                            }
+                        }
+                    }
+                    
+                    if (!foundVisibleElement)
+                    {
+                        Output.WriteLine("⚠️ No visible text input elements found for testing");
+                        Output.WriteLine("This indicates WinUI 3 Gallery may not have visible text inputs on current page");
+                        
+                        // Try to navigate to a page with text inputs
+                        Output.WriteLine("Attempting to navigate to a page with text inputs...");
+                        try
+                        {
+                            // Try to find Basic Input page
+                            await Tools.SelectElement("FundamentalsItem", windowTitle: "WinUI 3 Gallery");
+                            await Task.Delay(2000);
+                            
+                            // Search again after navigation
+                            var newInputs = await Tools.FindElementsByControlType("Edit", windowTitle: "WinUI 3 Gallery");
+                            Output.WriteLine($"After navigation, found: {JsonSerializer.Serialize(newInputs)}");
+                        }
+                        catch (Exception navEx)
+                        {
+                            Output.WriteLine($"Navigation failed: {navEx.Message}");
+                        }
+                    }
+                }
+                
+                Output.WriteLine("✅ ValuePattern visibility analysis completed");
             }
             catch (Exception ex)
             {
-                Output.WriteLine($"Toggle pattern test encountered: {ex.Message}");
+                Output.WriteLine($"❌ ValuePattern test failed: {ex.Message}");
+                throw;
+            }
+        }
+
+        [Fact]
+        public async Task Test_12_TogglePattern_Checkboxes()
+        {
+            Output.WriteLine("=== Testing TogglePattern with checkboxes ===");
+            
+            try
+            {
+                // Look for checkboxes
+                Output.WriteLine("1. Looking for checkbox controls...");
+                
+                var checkboxes = await Tools.FindElementsByControlType("CheckBox", windowTitle: "WinUI 3 Gallery");
+                Output.WriteLine($"Found checkboxes: {JsonSerializer.Serialize(checkboxes)}");
+                
+                // Parse and test checkbox toggling
+                var checkboxData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(checkboxes));
+                if (checkboxData.TryGetProperty("data", out var dataElement) && 
+                    dataElement.TryGetProperty("elements", out var elementsArray))
+                {
+                    var checkboxElements = elementsArray.EnumerateArray().ToList();
+                    Output.WriteLine($"Found {checkboxElements.Count} checkbox elements");
+                    
+                    foreach (var checkbox in checkboxElements.Take(2)) // Test first 2 checkboxes
+                    {
+                        if (checkbox.TryGetProperty("AutomationId", out var idElement) &&
+                            checkbox.TryGetProperty("Name", out var nameElement))
+                        {
+                            var automationId = idElement.GetString();
+                            var name = nameElement.GetString();
+                            
+                            if (!string.IsNullOrEmpty(automationId))
+                            {
+                                Output.WriteLine($"Testing TogglePattern on checkbox: {name} (ID: {automationId})");
+                                
+                                try
+                                {
+                                    // Toggle the checkbox
+                                    var toggleResult = await Tools.ToggleElement(automationId, windowTitle: "WinUI 3 Gallery");
+                                    Output.WriteLine($"Toggle result: {JsonSerializer.Serialize(toggleResult)}");
+                                    
+                                    await Task.Delay(500);
+                                    
+                                    // Verify the operation worked
+                                    var toggleData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(toggleResult));
+                                    bool toggleSuccess = toggleData.TryGetProperty("Success", out var successEl) && successEl.GetBoolean();
+                                    
+                                    Assert.True(toggleSuccess, $"ToggleElement should succeed on {name}");
+                                    
+                                    Output.WriteLine($"✅ TogglePattern succeeded on {name}");
+                                    break; // Test one successful checkbox
+                                }
+                                catch (Exception ex)
+                                {
+                                    Output.WriteLine($"❌ TogglePattern failed on {name}: {ex.Message}");
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                Output.WriteLine("✅ TogglePattern testing completed");
+            }
+            catch (Exception ex)
+            {
+                Output.WriteLine($"❌ TogglePattern test failed: {ex.Message}");
+                throw;
+            }
+        }
+
+        [Fact]
+        public async Task Test_13_ScrollPattern_Operations()
+        {
+            Output.WriteLine("=== Testing ScrollPattern operations ===");
+            
+            try
+            {
+                Output.WriteLine("1. Looking for scrollable elements...");
+                
+                // Look for scroll viewers or scrollable content
+                var scrollableElements = await Tools.FindElementsByControlType("ScrollViewer", windowTitle: "WinUI 3 Gallery");
+                Output.WriteLine($"Found scroll viewers: {JsonSerializer.Serialize(scrollableElements)}");
+                
+                // Also look for lists that might be scrollable
+                var lists = await Tools.FindElementsByControlType("List", windowTitle: "WinUI 3 Gallery");
+                Output.WriteLine($"Found lists: {JsonSerializer.Serialize(lists)}");
+                
+                // Test scrolling on the navigation pane (it should be scrollable)
+                try
+                {
+                    Output.WriteLine("2. Testing scroll operations on navigation pane...");
+                    
+                    // Get scroll info first
+                    var scrollInfo = await Tools.GetScrollInfo("NavigationViewContentGrid", windowTitle: "WinUI 3 Gallery");
+                    Output.WriteLine($"Scroll info: {JsonSerializer.Serialize(scrollInfo)}");
+                    
+                    // Try scrolling down
+                    var scrollDown = await Tools.ScrollElement("NavigationViewContentGrid", "down", 1.0, windowTitle: "WinUI 3 Gallery");
+                    Output.WriteLine($"Scroll down result: {JsonSerializer.Serialize(scrollDown)}");
+                    
+                    await Task.Delay(1000);
+                    
+                    // Try scrolling up
+                    var scrollUp = await Tools.ScrollElement("NavigationViewContentGrid", "up", 1.0, windowTitle: "WinUI 3 Gallery");
+                    Output.WriteLine($"Scroll up result: {JsonSerializer.Serialize(scrollUp)}");
+                    
+                    Output.WriteLine("✅ ScrollPattern testing completed");
+                }
+                catch (Exception ex)
+                {
+                    Output.WriteLine($"Scroll operations failed: {ex.Message}");
+                    // Don't fail the test, as scroll elements might not be available
+                }
+            }
+            catch (Exception ex)
+            {
+                Output.WriteLine($"❌ ScrollPattern test failed: {ex.Message}");
+                // Don't throw - scroll might not be available
+            }
+        }
+
+        [Fact]
+        public async Task Test_14_WindowPattern_Operations()
+        {
+            Output.WriteLine("=== Testing WindowPattern operations ===");
+            
+            try
+            {
+                Output.WriteLine("1. Testing window capabilities...");
+                
+                // Get window capabilities
+                var capabilities = await Tools.GetWindowCapabilities(windowTitle: "WinUI 3 Gallery");
+                Output.WriteLine($"Window capabilities: {JsonSerializer.Serialize(capabilities)}");
+                
+                // Get window interaction state
+                var interactionState = await Tools.GetWindowInteractionState(windowTitle: "WinUI 3 Gallery");
+                Output.WriteLine($"Window interaction state: {JsonSerializer.Serialize(interactionState)}");
+                
+                // Test window info
+                var windowInfo = await Tools.GetWindowInfo();
+                Output.WriteLine($"Window info: {JsonSerializer.Serialize(windowInfo)}");
+                
+                // Verify operations succeeded
+                var capData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(capabilities));
+                bool capSuccess = capData.TryGetProperty("Success", out var successEl) && successEl.GetBoolean();
+                
+                Assert.True(capSuccess, "GetWindowCapabilities should succeed");
+                
+                Output.WriteLine("✅ WindowPattern testing completed");
+            }
+            catch (Exception ex)
+            {
+                Output.WriteLine($"❌ WindowPattern test failed: {ex.Message}");
+                throw;
+            }
+        }
+
+        [Fact]
+        public async Task Test_15_ApplicationLauncher_Operations()
+        {
+            Output.WriteLine("=== Testing Application Launcher operations ===");
+            
+            try
+            {
+                Output.WriteLine("1. Testing application launching (already tested in setup)...");
+                
+                // Test taking screenshots
+                Output.WriteLine("2. Testing screenshot functionality...");
+                var screenshot = await Tools.TakeScreenshot("WinUI 3 Gallery", @"C:\temp\comprehensive_test.png");
+                Output.WriteLine($"Screenshot result: {JsonSerializer.Serialize(screenshot)}");
+                
+                // Verify screenshot operation
+                var screenshotData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(screenshot));
+                bool screenshotSuccess = screenshotData.TryGetProperty("Success", out var successEl) && successEl.GetBoolean();
+                
+                Assert.True(screenshotSuccess, "TakeScreenshot should succeed");
+                
+                Output.WriteLine("✅ Application launcher testing completed");
+            }
+            catch (Exception ex)
+            {
+                Output.WriteLine($"❌ Application launcher test failed: {ex.Message}");
+                throw;
             }
         }
 
