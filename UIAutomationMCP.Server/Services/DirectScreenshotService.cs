@@ -4,15 +4,16 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Server.Interfaces;
 
 namespace UIAutomationMCP.Server.Services
 {
     public class DirectScreenshotService : IScreenshotService
     {
         private readonly ILogger<DirectScreenshotService> _logger;
-        private readonly SubprocessExecutor _executor;
+        private readonly ISubprocessExecutor _executor;
 
-        public DirectScreenshotService(ILogger<DirectScreenshotService> logger, SubprocessExecutor executor)
+        public DirectScreenshotService(ILogger<DirectScreenshotService> logger, ISubprocessExecutor executor)
         {
             _logger = logger;
             _executor = executor;

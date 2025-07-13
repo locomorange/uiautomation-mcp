@@ -50,7 +50,7 @@ namespace UIAutomationMCP.Server
             builder.Services.AddSingleton<IControlTypeService, SubprocessBasedControlTypeService>();
             
             // Register subprocess executor
-            builder.Services.AddSingleton<ISubprocessExecutor, SubprocessExecutor>(provider =>
+            builder.Services.AddSingleton<SubprocessExecutor>(provider =>
             {
                 var logger = provider.GetRequiredService<ILogger<SubprocessExecutor>>();
                 var baseDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -86,6 +86,9 @@ namespace UIAutomationMCP.Server
                 logger.LogInformation("Worker exists: {Exists}", File.Exists(workerPath));
                 return new SubprocessExecutor(logger, workerPath);
             });
+            
+            // Also register as interface
+            builder.Services.AddSingleton<ISubprocessExecutor>(provider => provider.GetRequiredService<SubprocessExecutor>());
             
             // All UI Automation services are now handled through subprocess executor
 
