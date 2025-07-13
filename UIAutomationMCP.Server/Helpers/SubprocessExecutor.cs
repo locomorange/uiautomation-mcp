@@ -377,24 +377,48 @@ namespace UIAutomationMCP.Server.Helpers
 
             _logger.LogInformation("Disposing SubprocessExecutor");
 
-            if (_workerProcess != null && !_workerProcess.HasExited)
+            if (_workerProcess != null)
             {
                 try
                 {
-                    _workerProcess.Kill();
-                    _workerProcess.WaitForExit(5000);
+                    if (!_workerProcess.HasExited)
+                    {
+                        _logger.LogInformation("Terminating worker process PID: {ProcessId}", _workerProcess.Id);
+                        
+                        // Try graceful shutdown first
+                        try
+                        {
+                            _workerProcess.StandardInput.Close();
+                        }
+                        catch { }
+                        
+                        // Give it a moment to exit gracefully
+                        if (!_workerProcess.WaitForExit(2000))
+                        {
+                            _logger.LogWarning("Worker process did not exit gracefully, forcing termination");
+                            _workerProcess.Kill(entireProcessTree: true);
+                            
+                            if (!_workerProcess.WaitForExit(3000))
+                            {
+                                _logger.LogError("Worker process did not respond to termination");
+                            }
+                        }
+                    }
+                    
+                    _logger.LogInformation("Worker process terminated successfully");
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to kill worker process during disposal");
+                    _logger.LogWarning(ex, "Error during worker process termination");
                 }
                 finally
                 {
                     _workerProcess.Dispose();
+                    _workerProcess = null;
                 }
             }
 
-            _semaphore.Dispose();
+            _semaphore?.Dispose();
             _disposed = true;
         }
     }

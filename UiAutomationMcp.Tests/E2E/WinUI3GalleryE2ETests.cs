@@ -10,7 +10,7 @@ using Xunit.Abstractions;
 
 namespace UIAutomationMCP.Tests.E2E
 {
-    [Collection("UIAutomationTestCollection")]
+    [Collection("WinUI3GalleryTestCollection")]
     [Trait("Category", "E2E")]
     public class WinUI3GalleryE2ETests : IDisposable
     {
