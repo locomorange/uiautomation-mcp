@@ -133,7 +133,13 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformation("Getting desktop windows");
 
-                var result = await _executor.ExecuteAsync<object>("GetDesktopWindows", null, timeoutSeconds);
+                var parameters = new Dictionary<string, object>
+                {
+                    { "operation", "GetDesktopWindows" },
+                    { "includeInvisible", false }
+                };
+
+                var result = await _executor.ExecuteAsync<object>("GetDesktopWindows", parameters, timeoutSeconds);
 
                 _logger.LogInformation("Got desktop windows successfully");
                 return new { Success = true, Data = result };
