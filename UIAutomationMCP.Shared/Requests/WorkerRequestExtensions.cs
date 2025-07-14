@@ -11,26 +11,6 @@ namespace UIAutomationMCP.Shared
     public static class WorkerRequestExtensions
     {
         /// <summary>
-        /// WorkerRequestから型安全なリクエストオブジェクトを取得
-        /// </summary>
-        public static T? GetTypedRequest<T>(this WorkerRequest request) where T : TypedWorkerRequest
-        {
-            if (request.Parameters == null)
-                return null;
-
-            try
-            {
-                var json = JsonSerializer.Serialize(request.Parameters);
-                var typedRequest = JsonSerializer.Deserialize<T>(json);
-                return typedRequest;
-            }
-            catch (JsonException)
-            {
-                return null;
-            }
-        }
-
-        /// <summary>
         /// WorkerRequestから型安全なリクエストオブジェクトを取得（設定値を適用）
         /// </summary>
         public static T? GetTypedRequest<T>(this WorkerRequest request, IOptions<UIAutomationOptions> options) where T : TypedWorkerRequest
@@ -235,78 +215,78 @@ namespace UIAutomationMCP.Shared
         }
 
         /// <summary>
-        /// 操作名に基づいて適切な型安全リクエストを取得
+        /// 操作名に基づいて適切な型安全リクエストを取得（設定値を適用）
         /// </summary>
-        public static TypedWorkerRequest? GetTypedRequestByOperation(this WorkerRequest request)
+        public static TypedWorkerRequest? GetTypedRequestByOperation(this WorkerRequest request, IOptions<UIAutomationOptions> options)
         {
             return request.Operation switch
             {
-                "InvokeElement" => request.GetTypedRequest<InvokeElementRequest>(),
-                "ToggleElement" => request.GetTypedRequest<ToggleElementRequest>(),
-                "GetToggleState" => request.GetTypedRequest<GetToggleStateRequest>(),
-                "SetToggleState" => request.GetTypedRequest<SetToggleStateRequest>(),
-                "SetElementValue" => request.GetTypedRequest<SetElementValueRequest>(),
-                "GetElementValue" => request.GetTypedRequest<GetElementValueRequest>(),
-                "IsReadOnly" => request.GetTypedRequest<IsReadOnlyRequest>(),
-                "FindElements" => request.GetTypedRequest<FindElementsRequest>(),
-                "FindElementsByControlType" => request.GetTypedRequest<FindElementsByControlTypeRequest>(),
-                "FindElementsByPattern" => request.GetTypedRequest<FindElementsByPatternRequest>(),
-                "GetDesktopWindows" => request.GetTypedRequest<GetDesktopWindowsRequest>(),
-                "WindowAction" => request.GetTypedRequest<WindowActionRequest>(),
-                "GetWindowInfo" => request.GetTypedRequest<GetWindowInfoRequest>(),
-                "GetWindowInteractionState" => request.GetTypedRequest<GetWindowInteractionStateRequest>(),
-                "GetWindowCapabilities" => request.GetTypedRequest<GetWindowCapabilitiesRequest>(),
-                "SetRangeValue" => request.GetTypedRequest<SetRangeValueRequest>(),
-                "GetRangeValue" => request.GetTypedRequest<GetRangeValueRequest>(),
-                "GetRangeProperties" => request.GetTypedRequest<GetRangePropertiesRequest>(),
-                "SetText" => request.GetTypedRequest<SetTextRequest>(),
-                "GetText" => request.GetTypedRequest<GetTextRequest>(),
-                "FindText" => request.GetTypedRequest<FindTextRequest>(),
-                "SelectText" => request.GetTypedRequest<SelectTextRequest>(),
-                "TraverseText" => request.GetTypedRequest<TraverseTextRequest>(),
-                "TransformElement" => request.GetTypedRequest<TransformElementRequest>(),
-                "MoveElement" => request.GetTypedRequest<MoveElementRequest>(),
-                "ResizeElement" => request.GetTypedRequest<ResizeElementRequest>(),
-                "RotateElement" => request.GetTypedRequest<RotateElementRequest>(),
-                "WaitForInputIdle" => request.GetTypedRequest<WaitForInputIdleRequest>(),
-                "GetGridInfo" => request.GetTypedRequest<GetGridInfoRequest>(),
-                "GetGridItem" => request.GetTypedRequest<GetGridItemRequest>(),
-                "GetColumnHeader" => request.GetTypedRequest<GetColumnHeaderRequest>(),
-                "GetRowHeader" => request.GetTypedRequest<GetRowHeaderRequest>(),
-                "DockElement" => request.GetTypedRequest<DockElementRequest>(),
-                "ExpandCollapseElement" => request.GetTypedRequest<ExpandCollapseElementRequest>(),
-                "GetScrollInfo" => request.GetTypedRequest<GetScrollInfoRequest>(),
-                "ScrollElementIntoView" => request.GetTypedRequest<ScrollElementIntoViewRequest>(),
-                "ScrollElement" => request.GetTypedRequest<ScrollElementRequest>(),
-                "SetScrollPercent" => request.GetTypedRequest<SetScrollPercentRequest>(),
-                "GetAvailableViews" => request.GetTypedRequest<GetAvailableViewsRequest>(),
-                "GetCurrentView" => request.GetTypedRequest<GetCurrentViewRequest>(),
-                "GetViewName" => request.GetTypedRequest<GetViewNameRequest>(),
-                "SetView" => request.GetTypedRequest<SetViewRequest>(),
-                "AddToSelection" => request.GetTypedRequest<AddToSelectionRequest>(),
-                "CanSelectMultiple" => request.GetTypedRequest<CanSelectMultipleRequest>(),
-                "ClearSelection" => request.GetTypedRequest<ClearSelectionRequest>(),
-                "GetSelectionContainer" => request.GetTypedRequest<GetSelectionContainerRequest>(),
-                "GetSelection" => request.GetTypedRequest<GetSelectionRequest>(),
-                "IsSelected" => request.GetTypedRequest<IsSelectedRequest>(),
-                "IsSelectionRequired" => request.GetTypedRequest<IsSelectionRequiredRequest>(),
-                "RemoveFromSelection" => request.GetTypedRequest<RemoveFromSelectionRequest>(),
-                "SelectElement" => request.GetTypedRequest<SelectElementRequest>(),
-                "SelectItem" => request.GetTypedRequest<SelectItemRequest>(),
-                "GetColumnHeaderItems" => request.GetTypedRequest<GetColumnHeaderItemsRequest>(),
-                "GetColumnHeaders" => request.GetTypedRequest<GetColumnHeadersRequest>(),
-                "GetRowHeaderItems" => request.GetTypedRequest<GetRowHeaderItemsRequest>(),
-                "GetRowHeaders" => request.GetTypedRequest<GetRowHeadersRequest>(),
-                "GetRowOrColumnMajor" => request.GetTypedRequest<GetRowOrColumnMajorRequest>(),
-                "GetTableInfo" => request.GetTypedRequest<GetTableInfoRequest>(),
-                "GetElementProperties" => request.GetTypedRequest<GetElementPropertiesRequest>(),
-                "GetElementPatterns" => request.GetTypedRequest<GetElementPatternsRequest>(),
-                "GetAncestors" => request.GetTypedRequest<GetAncestorsRequest>(),
-                "GetChildren" => request.GetTypedRequest<GetChildrenRequest>(),
-                "GetDescendants" => request.GetTypedRequest<GetDescendantsRequest>(),
-                "GetElementTree" => request.GetTypedRequest<GetElementTreeRequest>(),
-                "GetParent" => request.GetTypedRequest<GetParentRequest>(),
-                "GetSiblings" => request.GetTypedRequest<GetSiblingsRequest>(),
+                "InvokeElement" => request.GetTypedRequest<InvokeElementRequest>(options),
+                "ToggleElement" => request.GetTypedRequest<ToggleElementRequest>(options),
+                "GetToggleState" => request.GetTypedRequest<GetToggleStateRequest>(options),
+                "SetToggleState" => request.GetTypedRequest<SetToggleStateRequest>(options),
+                "SetElementValue" => request.GetTypedRequest<SetElementValueRequest>(options),
+                "GetElementValue" => request.GetTypedRequest<GetElementValueRequest>(options),
+                "IsReadOnly" => request.GetTypedRequest<IsReadOnlyRequest>(options),
+                "FindElements" => request.GetTypedRequest<FindElementsRequest>(options),
+                "FindElementsByControlType" => request.GetTypedRequest<FindElementsByControlTypeRequest>(options),
+                "FindElementsByPattern" => request.GetTypedRequest<FindElementsByPatternRequest>(options),
+                "GetDesktopWindows" => request.GetTypedRequest<GetDesktopWindowsRequest>(options),
+                "WindowAction" => request.GetTypedRequest<WindowActionRequest>(options),
+                "GetWindowInfo" => request.GetTypedRequest<GetWindowInfoRequest>(options),
+                "GetWindowInteractionState" => request.GetTypedRequest<GetWindowInteractionStateRequest>(options),
+                "GetWindowCapabilities" => request.GetTypedRequest<GetWindowCapabilitiesRequest>(options),
+                "SetRangeValue" => request.GetTypedRequest<SetRangeValueRequest>(options),
+                "GetRangeValue" => request.GetTypedRequest<GetRangeValueRequest>(options),
+                "GetRangeProperties" => request.GetTypedRequest<GetRangePropertiesRequest>(options),
+                "SetText" => request.GetTypedRequest<SetTextRequest>(options),
+                "GetText" => request.GetTypedRequest<GetTextRequest>(options),
+                "FindText" => request.GetTypedRequest<FindTextRequest>(options),
+                "SelectText" => request.GetTypedRequest<SelectTextRequest>(options),
+                "TraverseText" => request.GetTypedRequest<TraverseTextRequest>(options),
+                "TransformElement" => request.GetTypedRequest<TransformElementRequest>(options),
+                "MoveElement" => request.GetTypedRequest<MoveElementRequest>(options),
+                "ResizeElement" => request.GetTypedRequest<ResizeElementRequest>(options),
+                "RotateElement" => request.GetTypedRequest<RotateElementRequest>(options),
+                "WaitForInputIdle" => request.GetTypedRequest<WaitForInputIdleRequest>(options),
+                "GetGridInfo" => request.GetTypedRequest<GetGridInfoRequest>(options),
+                "GetGridItem" => request.GetTypedRequest<GetGridItemRequest>(options),
+                "GetColumnHeader" => request.GetTypedRequest<GetColumnHeaderRequest>(options),
+                "GetRowHeader" => request.GetTypedRequest<GetRowHeaderRequest>(options),
+                "DockElement" => request.GetTypedRequest<DockElementRequest>(options),
+                "ExpandCollapseElement" => request.GetTypedRequest<ExpandCollapseElementRequest>(options),
+                "GetScrollInfo" => request.GetTypedRequest<GetScrollInfoRequest>(options),
+                "ScrollElementIntoView" => request.GetTypedRequest<ScrollElementIntoViewRequest>(options),
+                "ScrollElement" => request.GetTypedRequest<ScrollElementRequest>(options),
+                "SetScrollPercent" => request.GetTypedRequest<SetScrollPercentRequest>(options),
+                "GetAvailableViews" => request.GetTypedRequest<GetAvailableViewsRequest>(options),
+                "GetCurrentView" => request.GetTypedRequest<GetCurrentViewRequest>(options),
+                "GetViewName" => request.GetTypedRequest<GetViewNameRequest>(options),
+                "SetView" => request.GetTypedRequest<SetViewRequest>(options),
+                "AddToSelection" => request.GetTypedRequest<AddToSelectionRequest>(options),
+                "CanSelectMultiple" => request.GetTypedRequest<CanSelectMultipleRequest>(options),
+                "ClearSelection" => request.GetTypedRequest<ClearSelectionRequest>(options),
+                "GetSelectionContainer" => request.GetTypedRequest<GetSelectionContainerRequest>(options),
+                "GetSelection" => request.GetTypedRequest<GetSelectionRequest>(options),
+                "IsSelected" => request.GetTypedRequest<IsSelectedRequest>(options),
+                "IsSelectionRequired" => request.GetTypedRequest<IsSelectionRequiredRequest>(options),
+                "RemoveFromSelection" => request.GetTypedRequest<RemoveFromSelectionRequest>(options),
+                "SelectElement" => request.GetTypedRequest<SelectElementRequest>(options),
+                "SelectItem" => request.GetTypedRequest<SelectItemRequest>(options),
+                "GetColumnHeaderItems" => request.GetTypedRequest<GetColumnHeaderItemsRequest>(options),
+                "GetColumnHeaders" => request.GetTypedRequest<GetColumnHeadersRequest>(options),
+                "GetRowHeaderItems" => request.GetTypedRequest<GetRowHeaderItemsRequest>(options),
+                "GetRowHeaders" => request.GetTypedRequest<GetRowHeadersRequest>(options),
+                "GetRowOrColumnMajor" => request.GetTypedRequest<GetRowOrColumnMajorRequest>(options),
+                "GetTableInfo" => request.GetTypedRequest<GetTableInfoRequest>(options),
+                "GetElementProperties" => request.GetTypedRequest<GetElementPropertiesRequest>(options),
+                "GetElementPatterns" => request.GetTypedRequest<GetElementPatternsRequest>(options),
+                "GetAncestors" => request.GetTypedRequest<GetAncestorsRequest>(options),
+                "GetChildren" => request.GetTypedRequest<GetChildrenRequest>(options),
+                "GetDescendants" => request.GetTypedRequest<GetDescendantsRequest>(options),
+                "GetElementTree" => request.GetTypedRequest<GetElementTreeRequest>(options),
+                "GetParent" => request.GetTypedRequest<GetParentRequest>(options),
+                "GetSiblings" => request.GetTypedRequest<GetSiblingsRequest>(options),
                 _ => null
             };
         }

@@ -22,32 +22,28 @@ namespace UIAutomationMCP.Worker.Operations.Transform
 
         public Task<OperationResult<TransformActionResult>> ExecuteAsync(WorkerRequest request)
         {
-            // 型安全なリクエストを試行し、失敗した場合は従来の方法にフォールバック
             var typedRequest = request.GetTypedRequest<ResizeElementRequest>(_options);
-            
-            string elementId, windowTitle;
-            double width, height;
-            int processId;
-            
-            if (typedRequest != null)
+            if (typedRequest == null)
             {
-                // 型安全なパラメータアクセス
-                elementId = typedRequest.ElementId;
-                windowTitle = typedRequest.WindowTitle;
-                processId = typedRequest.ProcessId ?? 0;
-                width = typedRequest.Width;
-                height = typedRequest.Height;
+                return Task.FromResult(new OperationResult<TransformActionResult>
+                {
+                    Success = false,
+                    Error = "Invalid request format. Expected ResizeElementRequest.",
+                    Data = new TransformActionResult
+                    {
+                        ActionName = "Resize",
+                        TransformType = "Resize",
+                        Completed = false,
+                        ExecutedAt = DateTime.UtcNow
+                    }
+                });
             }
-            else
-            {
-                // 従来の方法（後方互換性のため）
-                elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
-                width = GetDoubleParameter(request.Parameters, "width", 0);
-                height = GetDoubleParameter(request.Parameters, "height", 0);
-                windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-                processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
-            }
+            
+            var elementId = typedRequest.ElementId;
+            var windowTitle = typedRequest.WindowTitle;
+            var processId = typedRequest.ProcessId ?? 0;
+            var width = typedRequest.Width;
+            var height = typedRequest.Height;
 
             if (width <= 0 || height <= 0)
             {

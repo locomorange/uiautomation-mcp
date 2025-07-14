@@ -22,27 +22,18 @@ namespace UIAutomationMCP.Worker.Operations.Grid
 
         public Task<OperationResult<UIAutomationMCP.Shared.Results.GridInfoResult>> ExecuteAsync(WorkerRequest request)
         {
-            // Try to parse as typed request first
             var typedRequest = request.GetTypedRequest<GetGridInfoRequest>(_options);
+            if (typedRequest == null)
+                return Task.FromResult(new OperationResult<UIAutomationMCP.Shared.Results.GridInfoResult> 
+                { 
+                    Success = false, 
+                    Error = "Invalid request format",
+                    Data = new UIAutomationMCP.Shared.Results.GridInfoResult()
+                });
             
-            string elementId;
-            string windowTitle;
-            int processId;
-            
-            if (typedRequest != null)
-            {
-                elementId = typedRequest.ElementId;
-                windowTitle = typedRequest.WindowTitle;
-                processId = typedRequest.ProcessId ?? 0;
-            }
-            else
-            {
-                // Fall back to legacy dictionary method
-                elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
-                windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-                processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
-            }
+            var elementId = typedRequest.ElementId;
+            var windowTitle = typedRequest.WindowTitle;
+            var processId = typedRequest.ProcessId ?? 0;
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)

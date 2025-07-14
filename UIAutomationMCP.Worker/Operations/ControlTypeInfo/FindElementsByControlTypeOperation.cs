@@ -63,35 +63,23 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
         {
             try
             {
-                // 型安全なリクエストを試行し、失敗した場合は従来の方法にフォールバック
                 var typedRequest = request.GetTypedRequest<FindElementsByControlTypeRequest>(_options);
-                
-                string controlType, scope, windowTitle;
-                int processId, maxResults;
-                bool validatePatterns;
-                
-                if (typedRequest != null)
+                if (typedRequest == null)
                 {
-                    // 型安全なパラメータアクセス
-                    controlType = typedRequest.ControlType;
-                    scope = typedRequest.Scope;
-                    windowTitle = typedRequest.WindowTitle ?? "";
-                    processId = typedRequest.ProcessId ?? 0;
-                    maxResults = _options.Value.ElementSearch.MaxResults;
-                    validatePatterns = _options.Value.ElementSearch.ValidatePatterns;
+                    return Task.FromResult(new OperationResult<ControlTypeSearchResult>
+                    {
+                        Success = false,
+                        Error = "Invalid request format. Expected FindElementsByControlTypeRequest.",
+                        Data = new ControlTypeSearchResult()
+                    });
                 }
-                else
-                {
-                    // 従来の方法（後方互換性のため）
-                    controlType = request.Parameters?.GetValueOrDefault("controlType")?.ToString() ?? "";
-                    validatePatterns = request.Parameters?.GetValueOrDefault("validatePatterns")?.ToString() == "True";
-                    scope = request.Parameters?.GetValueOrDefault("scope")?.ToString() ?? "descendants";
-                    windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-                    processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                        int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
-                    maxResults = request.Parameters?.GetValueOrDefault("maxResults")?.ToString() is string maxResultsStr && 
-                        int.TryParse(maxResultsStr, out var parsedMaxResults) ? parsedMaxResults : 100;
-                }
+                
+                var controlType = typedRequest.ControlType;
+                var scope = typedRequest.Scope;
+                var windowTitle = typedRequest.WindowTitle ?? "";
+                var processId = typedRequest.ProcessId ?? 0;
+                var maxResults = _options.Value.ElementSearch.MaxResults;
+                var validatePatterns = _options.Value.ElementSearch.ValidatePatterns;
 
                 if (string.IsNullOrEmpty(controlType))
                     return Task.FromResult(new OperationResult<ControlTypeSearchResult> 

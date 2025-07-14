@@ -25,22 +25,18 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
         {
             try
             {
-                // 型安全なリクエストを試行し、失敗した場合は従来の方法にフォールバック
                 var typedRequest = request.GetTypedRequest<GetDesktopWindowsRequest>(_options);
-                
-                bool includeInvisible;
-                
-                if (typedRequest != null)
+                if (typedRequest == null)
                 {
-                    // 型安全なパラメータアクセス
-                    includeInvisible = typedRequest.IncludeInvisible;
+                    return Task.FromResult(new OperationResult<DesktopWindowsResult>
+                    {
+                        Success = false,
+                        Error = "Invalid request format. Expected GetDesktopWindowsRequest.",
+                        Data = new DesktopWindowsResult()
+                    });
                 }
-                else
-                {
-                    // 従来の方法（後方互換性のため）
-                    includeInvisible = request.Parameters?.GetValueOrDefault("includeInvisible")?.ToString() is string includeInvisibleStr && 
-                        bool.TryParse(includeInvisibleStr, out var parsedIncludeInvisible) ? parsedIncludeInvisible : _options.Value.WindowOperation.IncludeInvisible;
-                }
+                
+                var includeInvisible = typedRequest.IncludeInvisible;
                 
                 _logger.LogInformation("Starting GetDesktopWindows operation");
                 

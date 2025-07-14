@@ -23,27 +23,20 @@ namespace UIAutomationMCP.Worker.Operations.Text
 
         public Task<OperationResult<TextInfoResult>> ExecuteAsync(WorkerRequest request)
         {
-            // 型安全なリクエストを試行し、失敗した場合は従来の方法にフォールバック
             var typedRequest = request.GetTypedRequest<GetTextRequest>(_options);
-            
-            string elementId, windowTitle;
-            int processId;
-            
-            if (typedRequest != null)
+            if (typedRequest == null)
             {
-                // 型安全なパラメータアクセス
-                elementId = typedRequest.ElementId;
-                windowTitle = typedRequest.WindowTitle;
-                processId = typedRequest.ProcessId ?? 0;
+                return Task.FromResult(new OperationResult<TextInfoResult>
+                {
+                    Success = false,
+                    Error = "Invalid request format. Expected GetTextRequest.",
+                    Data = new TextInfoResult()
+                });
             }
-            else
-            {
-                // 従来の方法（後方互換性のため）
-                elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
-                windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-                processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
-            }
+            
+            var elementId = typedRequest.ElementId;
+            var windowTitle = typedRequest.WindowTitle;
+            var processId = typedRequest.ProcessId ?? 0;
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)

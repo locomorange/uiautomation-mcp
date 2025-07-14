@@ -26,31 +26,14 @@ namespace UIAutomationMCP.Worker.Operations.Grid
             
             try
             {
-                // Try to parse as typed request first
                 var typedRequest = request.GetTypedRequest<GetColumnHeaderRequest>(_options);
+                if (typedRequest == null)
+                    return new OperationResult<ElementSearchResult> { Success = false, Error = "Invalid request format", Data = result };
                 
-                string elementId;
-                string windowTitle;
-                int processId;
-                int column;
-                
-                if (typedRequest != null)
-                {
-                    elementId = typedRequest.ElementId;
-                    windowTitle = typedRequest.WindowTitle;
-                    processId = typedRequest.ProcessId ?? 0;
-                    column = typedRequest.Column;
-                }
-                else
-                {
-                    // Fall back to legacy dictionary method
-                    elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
-                    windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-                    processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                        int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
-                    column = request.Parameters?.GetValueOrDefault("column")?.ToString() is string columnStr && 
-                        int.TryParse(columnStr, out var parsedColumn) ? parsedColumn : 0;
-                }
+                var elementId = typedRequest.ElementId;
+                var windowTitle = typedRequest.WindowTitle;
+                var processId = typedRequest.ProcessId ?? 0;
+                var column = typedRequest.Column;
 
                 var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
                 if (element == null)

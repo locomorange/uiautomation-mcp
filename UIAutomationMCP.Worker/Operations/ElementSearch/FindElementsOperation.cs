@@ -43,73 +43,40 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
 
         private async Task<OperationResult<ElementSearchResult>> ExecuteInternalAsync(WorkerRequest request)
         {
-            // 型安全なリクエストを試行し、失敗した場合は従来の方法にフォールバック
             var typedRequest = request.GetTypedRequest<FindElementsRequest>(_options);
-            
-            string searchText, controlType, windowTitle, className, helpText, acceleratorKey, accessKey;
-            string patternType, searchMethod, conditionOperator, excludeText, excludeControlType;
-            string scope;
-            int processId, maxResults, timeoutMs, cacheTimeoutMinutes;
-            bool useCache, useRegex, useWildcard;
-            
-            if (typedRequest != null)
+            if (typedRequest == null)
             {
-                // 型安全なパラメータアクセス
-                searchText = typedRequest.SearchText ?? "";
-                controlType = typedRequest.ControlType ?? "";
-                windowTitle = typedRequest.WindowTitle ?? "";
-                processId = typedRequest.ProcessId ?? 0;
-                scope = typedRequest.Scope;
-                maxResults = _options.Value.ElementSearch.MaxResults; // 設定値から取得
-                timeoutMs = 30000; // タイムアウト処理はworkerで行わない
-                
-                className = typedRequest.ClassName ?? "";
-                helpText = "";
-                acceleratorKey = "";
-                accessKey = "";
-                
-                patternType = "exact";
-                searchMethod = "findall";
-                conditionOperator = "and";
-                excludeText = "";
-                excludeControlType = "";
-                
-                useCache = typedRequest.UseCache;
-                useRegex = typedRequest.UseRegex;
-                useWildcard = typedRequest.UseWildcard;
-                cacheTimeoutMinutes = 5;
+                return new OperationResult<ElementSearchResult>
+                {
+                    Success = false,
+                    Error = "Invalid request format. Expected FindElementsRequest.",
+                    Data = new ElementSearchResult()
+                };
             }
-            else
-            {
-                // 従来の方法（後方互換性のため）
-                searchText = request.Parameters?.GetValueOrDefault("searchText")?.ToString() ?? "";
-                controlType = request.Parameters?.GetValueOrDefault("controlType")?.ToString() ?? "";
-                windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-                processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
-                scope = request.Parameters?.GetValueOrDefault("scope")?.ToString() ?? "descendants";
-                maxResults = request.Parameters?.GetValueOrDefault("maxResults")?.ToString() is string maxResultsStr && 
-                    int.TryParse(maxResultsStr, out var parsedMaxResults) ? parsedMaxResults : 100;
-                timeoutMs = request.Parameters?.GetValueOrDefault("timeoutMs")?.ToString() is string timeoutStr && 
-                    int.TryParse(timeoutStr, out var parsedTimeout) ? parsedTimeout : 30000;
-                
-                className = request.Parameters?.GetValueOrDefault("className")?.ToString() ?? "";
-                helpText = request.Parameters?.GetValueOrDefault("helpText")?.ToString() ?? "";
-                acceleratorKey = request.Parameters?.GetValueOrDefault("acceleratorKey")?.ToString() ?? "";
-                accessKey = request.Parameters?.GetValueOrDefault("accessKey")?.ToString() ?? "";
-                
-                patternType = request.Parameters?.GetValueOrDefault("patternType")?.ToString() ?? "exact";
-                searchMethod = request.Parameters?.GetValueOrDefault("searchMethod")?.ToString() ?? "findall";
-                conditionOperator = request.Parameters?.GetValueOrDefault("conditionOperator")?.ToString() ?? "and";
-                excludeText = request.Parameters?.GetValueOrDefault("excludeText")?.ToString() ?? "";
-                excludeControlType = request.Parameters?.GetValueOrDefault("excludeControlType")?.ToString() ?? "";
-                
-                useCache = request.Parameters?.GetValueOrDefault("useCache")?.ToString() == "true";
-                useRegex = false;
-                useWildcard = false;
-                cacheTimeoutMinutes = request.Parameters?.GetValueOrDefault("cacheTimeoutMinutes")?.ToString() is string cacheTimeoutStr && 
-                    int.TryParse(cacheTimeoutStr, out var parsedCacheTimeout) ? parsedCacheTimeout : 5;
-            }
+            
+            var searchText = typedRequest.SearchText ?? "";
+            var controlType = typedRequest.ControlType ?? "";
+            var windowTitle = typedRequest.WindowTitle ?? "";
+            var processId = typedRequest.ProcessId ?? 0;
+            var scope = typedRequest.Scope;
+            var maxResults = _options.Value.ElementSearch.MaxResults; // 設定値から取得
+            var timeoutMs = 30000; // タイムアウト処理はworkerで行わない
+            
+            var className = typedRequest.ClassName ?? "";
+            var helpText = "";
+            var acceleratorKey = "";
+            var accessKey = "";
+            
+            var patternType = "exact";
+            var searchMethod = "findall";
+            var conditionOperator = "and";
+            var excludeText = "";
+            var excludeControlType = "";
+            
+            var useCache = typedRequest.UseCache;
+            var useRegex = typedRequest.UseRegex;
+            var useWildcard = typedRequest.UseWildcard;
+            var cacheTimeoutMinutes = 5;
 
             var searchRoot = _elementFinderService.GetSearchRoot(windowTitle, processId);
             

@@ -22,38 +22,22 @@ namespace UIAutomationMCP.Worker.Operations.Window
 
         public Task<OperationResult<TransformActionResult>> ExecuteAsync(WorkerRequest request)
         {
-            // Try typed request first, fallback to legacy dictionary method
             var typedRequest = request.GetTypedRequest<TransformElementRequest>(_options);
+            if (typedRequest == null)
+                return Task.FromResult(new OperationResult<TransformActionResult> 
+                { 
+                    Success = false, 
+                    Error = "Invalid request format"
+                });
             
-            string elementId, action, windowTitle;
-            int processId;
-            double x, y, width, height;
-            
-            if (typedRequest != null)
-            {
-                // Type-safe parameter access
-                elementId = typedRequest.ElementId;
-                action = typedRequest.Action;
-                x = typedRequest.X;
-                y = typedRequest.Y;
-                width = typedRequest.Width;
-                height = typedRequest.Height;
-                windowTitle = typedRequest.WindowTitle ?? "";
-                processId = typedRequest.ProcessId ?? 0;
-            }
-            else
-            {
-                // Legacy method (for backward compatibility)
-                elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
-                action = request.Parameters?.GetValueOrDefault("action")?.ToString() ?? "";
-                x = GetDoubleParameter(request.Parameters, "x", 0);
-                y = GetDoubleParameter(request.Parameters, "y", 0);
-                width = GetDoubleParameter(request.Parameters, "width", 0);
-                height = GetDoubleParameter(request.Parameters, "height", 0);
-                windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-                processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
-            }
+            var elementId = typedRequest.ElementId;
+            var action = typedRequest.Action;
+            var x = typedRequest.X;
+            var y = typedRequest.Y;
+            var width = typedRequest.Width;
+            var height = typedRequest.Height;
+            var windowTitle = typedRequest.WindowTitle ?? "";
+            var processId = typedRequest.ProcessId ?? 0;
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)

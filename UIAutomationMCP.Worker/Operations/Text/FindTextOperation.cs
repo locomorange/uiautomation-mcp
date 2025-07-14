@@ -23,36 +23,23 @@ namespace UIAutomationMCP.Worker.Operations.Text
 
         public Task<OperationResult<TextSearchResult>> ExecuteAsync(WorkerRequest request)
         {
-            // 型安全なリクエストを試行し、失敗した場合は従来の方法にフォールバック
             var typedRequest = request.GetTypedRequest<FindTextRequest>(_options);
-            
-            string elementId, windowTitle, searchText;
-            int processId;
-            bool backward, ignoreCase;
-            
-            if (typedRequest != null)
+            if (typedRequest == null)
             {
-                // 型安全なパラメータアクセス
-                elementId = typedRequest.ElementId;
-                windowTitle = typedRequest.WindowTitle;
-                processId = typedRequest.ProcessId ?? 0;
-                searchText = typedRequest.SearchText;
-                backward = typedRequest.Backward;
-                ignoreCase = typedRequest.IgnoreCase;
+                return Task.FromResult(new OperationResult<TextSearchResult>
+                {
+                    Success = false,
+                    Error = "Invalid request format. Expected FindTextRequest.",
+                    Data = new TextSearchResult { Found = false, Text = "" }
+                });
             }
-            else
-            {
-                // 従来の方法（後方互換性のため）
-                elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
-                windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-                processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
-                searchText = request.Parameters?.GetValueOrDefault("searchText")?.ToString() ?? "";
-                backward = request.Parameters?.GetValueOrDefault("backward")?.ToString() is string backwardStr && 
-                    bool.TryParse(backwardStr, out var parsedBackward) ? parsedBackward : false;
-                ignoreCase = request.Parameters?.GetValueOrDefault("ignoreCase")?.ToString() is string ignoreCaseStr && 
-                    bool.TryParse(ignoreCaseStr, out var parsedIgnoreCase) ? parsedIgnoreCase : true;
-            }
+            
+            var elementId = typedRequest.ElementId;
+            var windowTitle = typedRequest.WindowTitle;
+            var processId = typedRequest.ProcessId ?? 0;
+            var searchText = typedRequest.SearchText;
+            var backward = typedRequest.Backward;
+            var ignoreCase = typedRequest.IgnoreCase;
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)

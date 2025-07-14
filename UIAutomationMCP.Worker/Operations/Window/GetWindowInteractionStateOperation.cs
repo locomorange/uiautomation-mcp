@@ -22,25 +22,17 @@ namespace UIAutomationMCP.Worker.Operations.Window
 
         public Task<OperationResult<WindowInteractionStateResult>> ExecuteAsync(WorkerRequest request)
         {
-            // Try typed request first, fallback to legacy dictionary method
             var typedRequest = request.GetTypedRequest<GetWindowInteractionStateRequest>(_options);
+            if (typedRequest == null)
+                return Task.FromResult(new OperationResult<WindowInteractionStateResult> 
+                { 
+                    Success = false, 
+                    Error = "Invalid request format",
+                    Data = new WindowInteractionStateResult()
+                });
             
-            string windowTitle;
-            int processId;
-            
-            if (typedRequest != null)
-            {
-                // Type-safe parameter access
-                windowTitle = typedRequest.WindowTitle ?? "";
-                processId = typedRequest.ProcessId ?? 0;
-            }
-            else
-            {
-                // Legacy method (for backward compatibility)
-                windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-                processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
-            }
+            var windowTitle = typedRequest.WindowTitle ?? "";
+            var processId = typedRequest.ProcessId ?? 0;
 
             try
             {

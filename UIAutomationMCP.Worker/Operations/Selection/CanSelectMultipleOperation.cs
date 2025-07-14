@@ -23,27 +23,22 @@ namespace UIAutomationMCP.Worker.Operations.Selection
 
         public Task<OperationResult<BooleanResult>> ExecuteAsync(WorkerRequest request)
         {
-            // Try to get typed request first, fallback to legacy dictionary method
             var typedRequest = request.GetTypedRequest<CanSelectMultipleRequest>(_options);
+            if (typedRequest == null)
+                return Task.FromResult(new OperationResult<BooleanResult> 
+                { 
+                    Success = false, 
+                    Error = "Invalid request format",
+                    Data = new BooleanResult
+                    {
+                        Value = false,
+                        Description = "Invalid request format, cannot determine multiple selection capability"
+                    }
+                });
             
-            string containerId;
-            string windowTitle;
-            int processId;
-            
-            if (typedRequest != null)
-            {
-                containerId = typedRequest.ElementId;
-                windowTitle = typedRequest.WindowTitle;
-                processId = typedRequest.ProcessId ?? 0;
-            }
-            else
-            {
-                // Legacy dictionary method
-                containerId = request.Parameters?.GetValueOrDefault("containerId")?.ToString() ?? "";
-                windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-                processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
-            }
+            var containerId = typedRequest.ElementId;
+            var windowTitle = typedRequest.WindowTitle;
+            var processId = typedRequest.ProcessId ?? 0;
 
             var element = _elementFinderService.FindElementById(containerId, windowTitle, processId);
             if (element == null)

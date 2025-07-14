@@ -22,27 +22,18 @@ namespace UIAutomationMCP.Worker.Operations.Window
 
         public Task<OperationResult<WindowActionResult>> ExecuteAsync(WorkerRequest request)
         {
-            // 型安全なリクエストを試行し、失敗した場合は従来の方法にフォールバック
             var typedRequest = request.GetTypedRequest<WindowActionRequest>(_options);
+            if (typedRequest == null)
+                return Task.FromResult(new OperationResult<WindowActionResult> 
+                { 
+                    Success = false, 
+                    Error = "Invalid request format",
+                    Data = new WindowActionResult { ActionName = "" }
+                });
             
-            string action, windowTitle;
-            int processId;
-            
-            if (typedRequest != null)
-            {
-                // 型安全なパラメータアクセス
-                action = typedRequest.Action;
-                windowTitle = typedRequest.WindowTitle ?? "";
-                processId = typedRequest.ProcessId ?? 0;
-            }
-            else
-            {
-                // 従来の方法（後方互換性のため）
-                action = request.Parameters?.GetValueOrDefault("action")?.ToString() ?? "";
-                windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-                processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
-            }
+            var action = typedRequest.Action;
+            var windowTitle = typedRequest.WindowTitle ?? "";
+            var processId = typedRequest.ProcessId ?? 0;
 
             var window = _elementFinderService.GetSearchRoot(windowTitle, processId);
             if (window == null)

@@ -22,29 +22,18 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
 
         public Task<OperationResult<ElementTreeResult>> ExecuteAsync(WorkerRequest request)
         {
-            // 型安全なリクエストを試行し、失敗した場合は従来の方法にフォールバック
             var typedRequest = request.GetTypedRequest<GetElementTreeRequest>(_options);
+            if (typedRequest == null)
+                return Task.FromResult(new OperationResult<ElementTreeResult> 
+                { 
+                    Success = false, 
+                    Error = "Invalid request format",
+                    Data = new ElementTreeResult()
+                });
             
-            string windowTitle;
-            int processId;
-            int maxDepth;
-            
-            if (typedRequest != null)
-            {
-                // 型安全なパラメータアクセス
-                windowTitle = typedRequest.WindowTitle ?? "";
-                processId = typedRequest.ProcessId ?? 0;
-                maxDepth = typedRequest.MaxDepth;
-            }
-            else
-            {
-                // 従来の方法（後方互換性のため）
-                windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-                processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
-                maxDepth = request.Parameters?.GetValueOrDefault("maxDepth")?.ToString() is string maxDepthStr && 
-                    int.TryParse(maxDepthStr, out var parsedMaxDepth) ? parsedMaxDepth : 3;
-            }
+            var windowTitle = typedRequest.WindowTitle ?? "";
+            var processId = typedRequest.ProcessId ?? 0;
+            var maxDepth = typedRequest.MaxDepth;
 
             var root = _elementFinderService.GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
             var rootNode = BuildElementTree(root, maxDepth, 0);

@@ -23,27 +23,18 @@ namespace UIAutomationMCP.Worker.Operations.Selection
 
         public Task<OperationResult<SelectionInfoResult>> ExecuteAsync(WorkerRequest request)
         {
-            // Try to get typed request first, fallback to legacy dictionary method
             var typedRequest = request.GetTypedRequest<GetSelectionRequest>(_options);
+            if (typedRequest == null)
+                return Task.FromResult(new OperationResult<SelectionInfoResult> 
+                { 
+                    Success = false, 
+                    Error = "Invalid request format",
+                    Data = new SelectionInfoResult()
+                });
             
-            string containerElementId;
-            string windowTitle;
-            int processId;
-            
-            if (typedRequest != null)
-            {
-                containerElementId = typedRequest.ElementId;
-                windowTitle = typedRequest.WindowTitle;
-                processId = typedRequest.ProcessId ?? 0;
-            }
-            else
-            {
-                // Legacy dictionary method
-                containerElementId = request.Parameters?.GetValueOrDefault("containerElementId")?.ToString() ?? "";
-                windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-                processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
-            }
+            var containerElementId = typedRequest.ElementId;
+            var windowTitle = typedRequest.WindowTitle;
+            var processId = typedRequest.ProcessId ?? 0;
 
             var element = _elementFinderService.FindElementById(containerElementId, windowTitle, processId);
             if (element == null)

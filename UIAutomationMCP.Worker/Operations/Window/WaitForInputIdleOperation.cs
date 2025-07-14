@@ -22,29 +22,18 @@ namespace UIAutomationMCP.Worker.Operations.Window
 
         public Task<OperationResult<WaitForInputIdleResult>> ExecuteAsync(WorkerRequest request)
         {
-            // Try typed request first, fallback to legacy dictionary method
             var typedRequest = request.GetTypedRequest<WaitForInputIdleRequest>(_options);
+            if (typedRequest == null)
+                return Task.FromResult(new OperationResult<WaitForInputIdleResult> 
+                { 
+                    Success = false, 
+                    Error = "Invalid request format",
+                    Data = new WaitForInputIdleResult()
+                });
             
-            string windowTitle;
-            int processId;
-            int timeoutMilliseconds;
-            
-            if (typedRequest != null)
-            {
-                // Type-safe parameter access
-                windowTitle = typedRequest.WindowTitle ?? "";
-                processId = typedRequest.ProcessId ?? 0;
-                timeoutMilliseconds = typedRequest.TimeoutMilliseconds;
-            }
-            else
-            {
-                // Legacy method (for backward compatibility)
-                windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-                processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
-                timeoutMilliseconds = request.Parameters?.GetValueOrDefault("timeoutMilliseconds")?.ToString() is string timeoutStr && 
-                    int.TryParse(timeoutStr, out var timeout) ? timeout : 10000;
-            }
+            var windowTitle = typedRequest.WindowTitle ?? "";
+            var processId = typedRequest.ProcessId ?? 0;
+            var timeoutMilliseconds = typedRequest.TimeoutMilliseconds;
 
             try
             {

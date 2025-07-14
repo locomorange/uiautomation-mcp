@@ -22,14 +22,18 @@ namespace UIAutomationMCP.Worker.Operations.ElementInspection
 
         public Task<OperationResult<UIAutomationMCP.Shared.Results.PatternsInfoResult>> ExecuteAsync(WorkerRequest request)
         {
-            // Try to get typed request first, fallback to legacy dictionary approach
             var typedRequest = request.GetTypedRequest<GetElementPatternsRequest>(_options);
+            if (typedRequest == null)
+                return Task.FromResult(new OperationResult<UIAutomationMCP.Shared.Results.PatternsInfoResult> 
+                { 
+                    Success = false, 
+                    Error = "Invalid request format",
+                    Data = new UIAutomationMCP.Shared.Results.PatternsInfoResult()
+                });
             
-            var elementId = typedRequest?.ElementId ?? request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
-            var windowTitle = typedRequest?.WindowTitle ?? request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-            var processId = typedRequest?.ProcessId ?? 
-                (request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                 int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0);
+            var elementId = typedRequest.ElementId;
+            var windowTitle = typedRequest.WindowTitle;
+            var processId = typedRequest.ProcessId ?? 0;
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
