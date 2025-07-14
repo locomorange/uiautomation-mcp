@@ -2,6 +2,8 @@ using System.Text.Json;
 using Microsoft.Extensions.Options;
 using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Options;
+using System.Reflection;
+using System.Collections.Concurrent;
 
 namespace UIAutomationMCP.Shared
 {
@@ -10,6 +12,47 @@ namespace UIAutomationMCP.Shared
     /// </summary>
     public static class WorkerRequestExtensions
     {
+        private static readonly ConcurrentDictionary<string, Type> _operationTypeMap = new();
+        private static readonly object _initializationLock = new();
+        private static bool _initialized = false;
+
+        static WorkerRequestExtensions()
+        {
+            InitializeOperationTypeMap();
+        }
+
+        private static void InitializeOperationTypeMap()
+        {
+            if (_initialized) return;
+            
+            lock (_initializationLock)
+            {
+                if (_initialized) return;
+                
+                var assembly = Assembly.GetExecutingAssembly();
+                var requestTypes = assembly.GetTypes()
+                    .Where(t => t.IsClass && !t.IsAbstract && typeof(TypedWorkerRequest).IsAssignableFrom(t))
+                    .ToList();
+
+                foreach (var type in requestTypes)
+                {
+                    try
+                    {
+                        var instance = Activator.CreateInstance(type) as TypedWorkerRequest;
+                        if (instance != null)
+                        {
+                            _operationTypeMap[instance.Operation] = type;
+                        }
+                    }
+                    catch
+                    {
+                        // Skip types that can't be instantiated with default constructor
+                    }
+                }
+                
+                _initialized = true;
+            }
+        }
         /// <summary>
         /// WorkerRequestから型安全なリクエストオブジェクトを取得（設定値を適用）
         /// </summary>
@@ -219,76 +262,17 @@ namespace UIAutomationMCP.Shared
         /// </summary>
         public static TypedWorkerRequest? GetTypedRequestByOperation(this WorkerRequest request, IOptions<UIAutomationOptions> options)
         {
-            return request.Operation switch
+            if (!_operationTypeMap.TryGetValue(request.Operation, out var requestType))
             {
-                "InvokeElement" => request.GetTypedRequest<InvokeElementRequest>(options),
-                "ToggleElement" => request.GetTypedRequest<ToggleElementRequest>(options),
-                "GetToggleState" => request.GetTypedRequest<GetToggleStateRequest>(options),
-                "SetToggleState" => request.GetTypedRequest<SetToggleStateRequest>(options),
-                "SetElementValue" => request.GetTypedRequest<SetElementValueRequest>(options),
-                "GetElementValue" => request.GetTypedRequest<GetElementValueRequest>(options),
-                "IsReadOnly" => request.GetTypedRequest<IsReadOnlyRequest>(options),
-                "FindElements" => request.GetTypedRequest<FindElementsRequest>(options),
-                "FindElementsByControlType" => request.GetTypedRequest<FindElementsByControlTypeRequest>(options),
-                "FindElementsByPattern" => request.GetTypedRequest<FindElementsByPatternRequest>(options),
-                "GetDesktopWindows" => request.GetTypedRequest<GetDesktopWindowsRequest>(options),
-                "WindowAction" => request.GetTypedRequest<WindowActionRequest>(options),
-                "GetWindowInfo" => request.GetTypedRequest<GetWindowInfoRequest>(options),
-                "GetWindowInteractionState" => request.GetTypedRequest<GetWindowInteractionStateRequest>(options),
-                "GetWindowCapabilities" => request.GetTypedRequest<GetWindowCapabilitiesRequest>(options),
-                "SetRangeValue" => request.GetTypedRequest<SetRangeValueRequest>(options),
-                "GetRangeValue" => request.GetTypedRequest<GetRangeValueRequest>(options),
-                "GetRangeProperties" => request.GetTypedRequest<GetRangePropertiesRequest>(options),
-                "SetText" => request.GetTypedRequest<SetTextRequest>(options),
-                "GetText" => request.GetTypedRequest<GetTextRequest>(options),
-                "FindText" => request.GetTypedRequest<FindTextRequest>(options),
-                "SelectText" => request.GetTypedRequest<SelectTextRequest>(options),
-                "TraverseText" => request.GetTypedRequest<TraverseTextRequest>(options),
-                "TransformElement" => request.GetTypedRequest<TransformElementRequest>(options),
-                "MoveElement" => request.GetTypedRequest<MoveElementRequest>(options),
-                "ResizeElement" => request.GetTypedRequest<ResizeElementRequest>(options),
-                "RotateElement" => request.GetTypedRequest<RotateElementRequest>(options),
-                "WaitForInputIdle" => request.GetTypedRequest<WaitForInputIdleRequest>(options),
-                "GetGridInfo" => request.GetTypedRequest<GetGridInfoRequest>(options),
-                "GetGridItem" => request.GetTypedRequest<GetGridItemRequest>(options),
-                "GetColumnHeader" => request.GetTypedRequest<GetColumnHeaderRequest>(options),
-                "GetRowHeader" => request.GetTypedRequest<GetRowHeaderRequest>(options),
-                "DockElement" => request.GetTypedRequest<DockElementRequest>(options),
-                "ExpandCollapseElement" => request.GetTypedRequest<ExpandCollapseElementRequest>(options),
-                "GetScrollInfo" => request.GetTypedRequest<GetScrollInfoRequest>(options),
-                "ScrollElementIntoView" => request.GetTypedRequest<ScrollElementIntoViewRequest>(options),
-                "ScrollElement" => request.GetTypedRequest<ScrollElementRequest>(options),
-                "SetScrollPercent" => request.GetTypedRequest<SetScrollPercentRequest>(options),
-                "GetAvailableViews" => request.GetTypedRequest<GetAvailableViewsRequest>(options),
-                "GetCurrentView" => request.GetTypedRequest<GetCurrentViewRequest>(options),
-                "GetViewName" => request.GetTypedRequest<GetViewNameRequest>(options),
-                "SetView" => request.GetTypedRequest<SetViewRequest>(options),
-                "AddToSelection" => request.GetTypedRequest<AddToSelectionRequest>(options),
-                "CanSelectMultiple" => request.GetTypedRequest<CanSelectMultipleRequest>(options),
-                "ClearSelection" => request.GetTypedRequest<ClearSelectionRequest>(options),
-                "GetSelectionContainer" => request.GetTypedRequest<GetSelectionContainerRequest>(options),
-                "GetSelection" => request.GetTypedRequest<GetSelectionRequest>(options),
-                "IsSelected" => request.GetTypedRequest<IsSelectedRequest>(options),
-                "IsSelectionRequired" => request.GetTypedRequest<IsSelectionRequiredRequest>(options),
-                "RemoveFromSelection" => request.GetTypedRequest<RemoveFromSelectionRequest>(options),
-                "SelectElement" => request.GetTypedRequest<SelectElementRequest>(options),
-                "SelectItem" => request.GetTypedRequest<SelectItemRequest>(options),
-                "GetColumnHeaderItems" => request.GetTypedRequest<GetColumnHeaderItemsRequest>(options),
-                "GetColumnHeaders" => request.GetTypedRequest<GetColumnHeadersRequest>(options),
-                "GetRowHeaderItems" => request.GetTypedRequest<GetRowHeaderItemsRequest>(options),
-                "GetRowHeaders" => request.GetTypedRequest<GetRowHeadersRequest>(options),
-                "GetRowOrColumnMajor" => request.GetTypedRequest<GetRowOrColumnMajorRequest>(options),
-                "GetTableInfo" => request.GetTypedRequest<GetTableInfoRequest>(options),
-                "GetElementProperties" => request.GetTypedRequest<GetElementPropertiesRequest>(options),
-                "GetElementPatterns" => request.GetTypedRequest<GetElementPatternsRequest>(options),
-                "GetAncestors" => request.GetTypedRequest<GetAncestorsRequest>(options),
-                "GetChildren" => request.GetTypedRequest<GetChildrenRequest>(options),
-                "GetDescendants" => request.GetTypedRequest<GetDescendantsRequest>(options),
-                "GetElementTree" => request.GetTypedRequest<GetElementTreeRequest>(options),
-                "GetParent" => request.GetTypedRequest<GetParentRequest>(options),
-                "GetSiblings" => request.GetTypedRequest<GetSiblingsRequest>(options),
-                _ => null
-            };
+                return null;
+            }
+
+            // Use reflection to call the generic GetTypedRequest method
+            var method = typeof(WorkerRequestExtensions)
+                .GetMethod(nameof(GetTypedRequest), BindingFlags.Static | BindingFlags.Public)
+                ?.MakeGenericMethod(requestType);
+
+            return method?.Invoke(null, new object[] { request, options }) as TypedWorkerRequest;
         }
 
         /// <summary>
