@@ -1,6 +1,9 @@
 using System.Windows.Automation;
+using Microsoft.Extensions.Options;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
+using UIAutomationMCP.Shared.Options;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -9,20 +12,42 @@ namespace UIAutomationMCP.Worker.Operations.Transform
     public class ResizeElementOperation : IUIAutomationOperation
     {
         private readonly ElementFinderService _elementFinderService;
+        private readonly IOptions<UIAutomationOptions> _options;
 
-        public ResizeElementOperation(ElementFinderService elementFinderService)
+        public ResizeElementOperation(ElementFinderService elementFinderService, IOptions<UIAutomationOptions> options)
         {
             _elementFinderService = elementFinderService;
+            _options = options;
         }
 
         public Task<OperationResult<TransformActionResult>> ExecuteAsync(WorkerRequest request)
         {
-            var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
-            var width = GetDoubleParameter(request.Parameters, "width", 0);
-            var height = GetDoubleParameter(request.Parameters, "height", 0);
-            var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-            var processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
+            // 型安全なリクエストを試行し、失敗した場合は従来の方法にフォールバック
+            var typedRequest = request.GetTypedRequest<ResizeElementRequest>(_options);
+            
+            string elementId, windowTitle;
+            double width, height;
+            int processId;
+            
+            if (typedRequest != null)
+            {
+                // 型安全なパラメータアクセス
+                elementId = typedRequest.ElementId;
+                windowTitle = typedRequest.WindowTitle;
+                processId = typedRequest.ProcessId ?? 0;
+                width = typedRequest.Width;
+                height = typedRequest.Height;
+            }
+            else
+            {
+                // 従来の方法（後方互換性のため）
+                elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
+                width = GetDoubleParameter(request.Parameters, "width", 0);
+                height = GetDoubleParameter(request.Parameters, "height", 0);
+                windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
+                processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
+                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
+            }
 
             if (width <= 0 || height <= 0)
             {

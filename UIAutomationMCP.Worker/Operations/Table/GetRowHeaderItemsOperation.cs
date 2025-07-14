@@ -1,5 +1,8 @@
 using System.Windows.Automation;
+using Microsoft.Extensions.Options;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Options;
+using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
@@ -9,18 +12,23 @@ namespace UIAutomationMCP.Worker.Operations.Table
     public class GetRowHeaderItemsOperation : IUIAutomationOperation
     {
         private readonly ElementFinderService _elementFinderService;
+        private readonly IOptions<UIAutomationOptions> _options;
 
-        public GetRowHeaderItemsOperation(ElementFinderService elementFinderService)
+        public GetRowHeaderItemsOperation(ElementFinderService elementFinderService, IOptions<UIAutomationOptions> options)
         {
             _elementFinderService = elementFinderService;
+            _options = options;
         }
 
         public Task<OperationResult<ElementSearchResult>> ExecuteAsync(WorkerRequest request)
         {
-            var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
-            var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-            var processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
+            // Try to get typed request first, fall back to legacy parameter extraction
+            var typedRequest = request.GetTypedRequest<GetRowHeaderItemsRequest>(_options);
+            
+            var elementId = typedRequest?.ElementId ?? request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
+            var windowTitle = typedRequest?.WindowTitle ?? request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
+            var processId = typedRequest?.ProcessId ?? (request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
+                int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0);
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)

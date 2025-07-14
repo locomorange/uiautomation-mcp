@@ -1,6 +1,9 @@
 using System.Windows.Automation;
+using Microsoft.Extensions.Options;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
+using UIAutomationMCP.Shared.Options;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -9,6 +12,7 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
     public class FindElementsByControlTypeOperation : IUIAutomationOperation
     {
         private readonly ElementFinderService _elementFinderService;
+        private readonly IOptions<UIAutomationOptions> _options;
 
         // Control Type and Pattern mapping for validation
         private static readonly Dictionary<string, ControlTypePatternInfo> ControlTypePatterns = new()
@@ -31,9 +35,10 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
             ["Window"] = new() { RequiredPatterns = Array.Empty<string>(), OptionalPatterns = new[] { "Transform", "Window" } }
         };
 
-        public FindElementsByControlTypeOperation(ElementFinderService elementFinderService)
+        public FindElementsByControlTypeOperation(ElementFinderService elementFinderService, IOptions<UIAutomationOptions> options)
         {
             _elementFinderService = elementFinderService;
+            _options = options;
         }
 
         public Task<OperationResult<ControlTypeSearchResult>> ExecuteAsync(WorkerRequest request)
@@ -58,14 +63,35 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
         {
             try
             {
-                var controlType = request.Parameters?.GetValueOrDefault("controlType")?.ToString() ?? "";
-                var validatePatterns = request.Parameters?.GetValueOrDefault("validatePatterns")?.ToString() == "True";
-                var scope = request.Parameters?.GetValueOrDefault("scope")?.ToString() ?? "descendants";
-                var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-                var processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
-                var maxResults = request.Parameters?.GetValueOrDefault("maxResults")?.ToString() is string maxResultsStr && 
-                    int.TryParse(maxResultsStr, out var parsedMaxResults) ? parsedMaxResults : 100;
+                // 型安全なリクエストを試行し、失敗した場合は従来の方法にフォールバック
+                var typedRequest = request.GetTypedRequest<FindElementsByControlTypeRequest>(_options);
+                
+                string controlType, scope, windowTitle;
+                int processId, maxResults;
+                bool validatePatterns;
+                
+                if (typedRequest != null)
+                {
+                    // 型安全なパラメータアクセス
+                    controlType = typedRequest.ControlType;
+                    scope = typedRequest.Scope;
+                    windowTitle = typedRequest.WindowTitle ?? "";
+                    processId = typedRequest.ProcessId ?? 0;
+                    maxResults = _options.Value.ElementSearch.MaxResults;
+                    validatePatterns = _options.Value.ElementSearch.ValidatePatterns;
+                }
+                else
+                {
+                    // 従来の方法（後方互換性のため）
+                    controlType = request.Parameters?.GetValueOrDefault("controlType")?.ToString() ?? "";
+                    validatePatterns = request.Parameters?.GetValueOrDefault("validatePatterns")?.ToString() == "True";
+                    scope = request.Parameters?.GetValueOrDefault("scope")?.ToString() ?? "descendants";
+                    windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
+                    processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
+                        int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
+                    maxResults = request.Parameters?.GetValueOrDefault("maxResults")?.ToString() is string maxResultsStr && 
+                        int.TryParse(maxResultsStr, out var parsedMaxResults) ? parsedMaxResults : 100;
+                }
 
                 if (string.IsNullOrEmpty(controlType))
                     return Task.FromResult(new OperationResult<ControlTypeSearchResult> 

@@ -84,6 +84,9 @@ namespace UIAutomationMCP.Shared
                 case TraverseTextRequest traverseTextRequest:
                     ApplyTextOperationDefaults(traverseTextRequest, options.TextOperation);
                     break;
+                case TransformElementRequest transformRequest:
+                    ApplyTransformDefaults(transformRequest, options.Transform);
+                    break;
                 case MoveElementRequest moveRequest:
                     ApplyTransformDefaults(moveRequest, options.Transform);
                     break;
@@ -95,6 +98,18 @@ namespace UIAutomationMCP.Shared
                     break;
                 case SetRangeValueRequest rangeRequest:
                     ApplyRangeValueDefaults(rangeRequest, options.RangeValue);
+                    break;
+                case DockElementRequest dockRequest:
+                    ApplyLayoutDefaults(dockRequest, options.Layout);
+                    break;
+                case ExpandCollapseElementRequest expandCollapseRequest:
+                    ApplyLayoutDefaults(expandCollapseRequest, options.Layout);
+                    break;
+                case ScrollElementRequest scrollRequest:
+                    ApplyLayoutDefaults(scrollRequest, options.Layout);
+                    break;
+                case SetScrollPercentRequest scrollPercentRequest:
+                    ApplyLayoutDefaults(scrollPercentRequest, options.Layout);
                     break;
             }
         }
@@ -151,6 +166,18 @@ namespace UIAutomationMCP.Shared
                 request.Count = options.DefaultTraverseCount;
         }
 
+        private static void ApplyTransformDefaults(TransformElementRequest request, TransformOptions options)
+        {
+            if (request.X == default)
+                request.X = options.DefaultX;
+            if (request.Y == default)
+                request.Y = options.DefaultY;
+            if (request.Width == default)
+                request.Width = options.DefaultWidth;
+            if (request.Height == default)
+                request.Height = options.DefaultHeight;
+        }
+
         private static void ApplyTransformDefaults(MoveElementRequest request, TransformOptions options)
         {
             if (request.X == default)
@@ -177,6 +204,34 @@ namespace UIAutomationMCP.Shared
         {
             if (request.Value == default)
                 request.Value = options.DefaultValue;
+        }
+
+        private static void ApplyLayoutDefaults(DockElementRequest request, LayoutOptions options)
+        {
+            if (string.IsNullOrEmpty(request.DockPosition))
+                request.DockPosition = options.DefaultDockPosition;
+        }
+
+        private static void ApplyLayoutDefaults(ExpandCollapseElementRequest request, LayoutOptions options)
+        {
+            if (string.IsNullOrEmpty(request.Action))
+                request.Action = options.DefaultExpandCollapseAction;
+        }
+
+        private static void ApplyLayoutDefaults(ScrollElementRequest request, LayoutOptions options)
+        {
+            if (string.IsNullOrEmpty(request.Direction))
+                request.Direction = options.DefaultScrollDirection;
+            if (request.Amount == default)
+                request.Amount = options.DefaultScrollAmount;
+        }
+
+        private static void ApplyLayoutDefaults(SetScrollPercentRequest request, LayoutOptions options)
+        {
+            if (request.HorizontalPercent == default)
+                request.HorizontalPercent = options.DefaultHorizontalScrollPercent;
+            if (request.VerticalPercent == default)
+                request.VerticalPercent = options.DefaultVerticalScrollPercent;
         }
 
         /// <summary>
@@ -209,10 +264,49 @@ namespace UIAutomationMCP.Shared
                 "FindText" => request.GetTypedRequest<FindTextRequest>(),
                 "SelectText" => request.GetTypedRequest<SelectTextRequest>(),
                 "TraverseText" => request.GetTypedRequest<TraverseTextRequest>(),
+                "TransformElement" => request.GetTypedRequest<TransformElementRequest>(),
                 "MoveElement" => request.GetTypedRequest<MoveElementRequest>(),
                 "ResizeElement" => request.GetTypedRequest<ResizeElementRequest>(),
                 "RotateElement" => request.GetTypedRequest<RotateElementRequest>(),
                 "WaitForInputIdle" => request.GetTypedRequest<WaitForInputIdleRequest>(),
+                "GetGridInfo" => request.GetTypedRequest<GetGridInfoRequest>(),
+                "GetGridItem" => request.GetTypedRequest<GetGridItemRequest>(),
+                "GetColumnHeader" => request.GetTypedRequest<GetColumnHeaderRequest>(),
+                "GetRowHeader" => request.GetTypedRequest<GetRowHeaderRequest>(),
+                "DockElement" => request.GetTypedRequest<DockElementRequest>(),
+                "ExpandCollapseElement" => request.GetTypedRequest<ExpandCollapseElementRequest>(),
+                "GetScrollInfo" => request.GetTypedRequest<GetScrollInfoRequest>(),
+                "ScrollElementIntoView" => request.GetTypedRequest<ScrollElementIntoViewRequest>(),
+                "ScrollElement" => request.GetTypedRequest<ScrollElementRequest>(),
+                "SetScrollPercent" => request.GetTypedRequest<SetScrollPercentRequest>(),
+                "GetAvailableViews" => request.GetTypedRequest<GetAvailableViewsRequest>(),
+                "GetCurrentView" => request.GetTypedRequest<GetCurrentViewRequest>(),
+                "GetViewName" => request.GetTypedRequest<GetViewNameRequest>(),
+                "SetView" => request.GetTypedRequest<SetViewRequest>(),
+                "AddToSelection" => request.GetTypedRequest<AddToSelectionRequest>(),
+                "CanSelectMultiple" => request.GetTypedRequest<CanSelectMultipleRequest>(),
+                "ClearSelection" => request.GetTypedRequest<ClearSelectionRequest>(),
+                "GetSelectionContainer" => request.GetTypedRequest<GetSelectionContainerRequest>(),
+                "GetSelection" => request.GetTypedRequest<GetSelectionRequest>(),
+                "IsSelected" => request.GetTypedRequest<IsSelectedRequest>(),
+                "IsSelectionRequired" => request.GetTypedRequest<IsSelectionRequiredRequest>(),
+                "RemoveFromSelection" => request.GetTypedRequest<RemoveFromSelectionRequest>(),
+                "SelectElement" => request.GetTypedRequest<SelectElementRequest>(),
+                "SelectItem" => request.GetTypedRequest<SelectItemRequest>(),
+                "GetColumnHeaderItems" => request.GetTypedRequest<GetColumnHeaderItemsRequest>(),
+                "GetColumnHeaders" => request.GetTypedRequest<GetColumnHeadersRequest>(),
+                "GetRowHeaderItems" => request.GetTypedRequest<GetRowHeaderItemsRequest>(),
+                "GetRowHeaders" => request.GetTypedRequest<GetRowHeadersRequest>(),
+                "GetRowOrColumnMajor" => request.GetTypedRequest<GetRowOrColumnMajorRequest>(),
+                "GetTableInfo" => request.GetTypedRequest<GetTableInfoRequest>(),
+                "GetElementProperties" => request.GetTypedRequest<GetElementPropertiesRequest>(),
+                "GetElementPatterns" => request.GetTypedRequest<GetElementPatternsRequest>(),
+                "GetAncestors" => request.GetTypedRequest<GetAncestorsRequest>(),
+                "GetChildren" => request.GetTypedRequest<GetChildrenRequest>(),
+                "GetDescendants" => request.GetTypedRequest<GetDescendantsRequest>(),
+                "GetElementTree" => request.GetTypedRequest<GetElementTreeRequest>(),
+                "GetParent" => request.GetTypedRequest<GetParentRequest>(),
+                "GetSiblings" => request.GetTypedRequest<GetSiblingsRequest>(),
                 _ => null
             };
         }

@@ -281,6 +281,26 @@ namespace UIAutomationMCP.Shared.Requests
 
     // === Transform操作 ===
 
+    public class TransformElementRequest : ElementTargetRequest
+    {
+        public override string Operation => "TransformElement";
+
+        [JsonPropertyName("action")]
+        public string Action { get; set; } = ""; // "move", "resize", "rotate"
+
+        [JsonPropertyName("x")]
+        public double X { get; set; }
+
+        [JsonPropertyName("y")]
+        public double Y { get; set; }
+
+        [JsonPropertyName("width")]
+        public double Width { get; set; }
+
+        [JsonPropertyName("height")]
+        public double Height { get; set; }
+    }
+
     public class MoveElementRequest : ElementTargetRequest
     {
         public override string Operation => "MoveElement";
@@ -325,5 +345,254 @@ namespace UIAutomationMCP.Shared.Requests
 
         [JsonPropertyName("timeoutMilliseconds")]
         public int TimeoutMilliseconds { get; set; } = 10000;
+    }
+
+    // === Grid操作 ===
+
+    public class GetGridInfoRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetGridInfo";
+    }
+
+    public class GetGridItemRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetGridItem";
+
+        [JsonPropertyName("row")]
+        public int Row { get; set; }
+
+        [JsonPropertyName("column")]
+        public int Column { get; set; }
+    }
+
+    public class GetColumnHeaderRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetColumnHeader";
+
+        [JsonPropertyName("column")]
+        public int Column { get; set; }
+    }
+
+    public class GetRowHeaderRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetRowHeader";
+
+        [JsonPropertyName("row")]
+        public int Row { get; set; }
+    }
+
+    // === Layout操作 ===
+
+    public class DockElementRequest : ElementTargetRequest
+    {
+        public override string Operation => "DockElement";
+
+        [JsonPropertyName("dockPosition")]
+        public string DockPosition { get; set; } = ""; // "top", "bottom", "left", "right", "fill", "none"
+    }
+
+    public class ExpandCollapseElementRequest : ElementTargetRequest
+    {
+        public override string Operation => "ExpandCollapseElement";
+
+        [JsonPropertyName("action")]
+        public string Action { get; set; } = ""; // "expand", "collapse", "toggle"
+    }
+
+    public class GetScrollInfoRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetScrollInfo";
+    }
+
+    public class ScrollElementIntoViewRequest : ElementTargetRequest
+    {
+        public override string Operation => "ScrollElementIntoView";
+    }
+
+    public class ScrollElementRequest : ElementTargetRequest
+    {
+        public override string Operation => "ScrollElement";
+
+        [JsonPropertyName("direction")]
+        public string Direction { get; set; } = ""; // "up", "down", "left", "right", "pageup", "pagedown", "pageleft", "pageright"
+
+        [JsonPropertyName("amount")]
+        public double Amount { get; set; } = 1.0;
+    }
+
+    public class SetScrollPercentRequest : ElementTargetRequest
+    {
+        public override string Operation => "SetScrollPercent";
+
+        [JsonPropertyName("horizontalPercent")]
+        public double HorizontalPercent { get; set; } = -1; // -1 = no change, 0-100 = percentage
+
+        [JsonPropertyName("verticalPercent")]
+        public double VerticalPercent { get; set; } = -1; // -1 = no change, 0-100 = percentage
+    }
+
+    // === MultipleView操作 ===
+
+    public class GetAvailableViewsRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetAvailableViews";
+    }
+
+    public class GetCurrentViewRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetCurrentView";
+    }
+
+    public class GetViewNameRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetViewName";
+
+        [JsonPropertyName("viewId")]
+        public int ViewId { get; set; }
+    }
+
+    public class SetViewRequest : ElementTargetRequest
+    {
+        public override string Operation => "SetView";
+
+        [JsonPropertyName("viewId")]
+        public int ViewId { get; set; }
+    }
+
+    // === Table操作 ===
+
+    public class GetColumnHeaderItemsRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetColumnHeaderItems";
+    }
+
+    public class GetColumnHeadersRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetColumnHeaders";
+    }
+
+    public class GetRowHeaderItemsRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetRowHeaderItems";
+    }
+
+    public class GetRowHeadersRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetRowHeaders";
+    }
+
+    public class GetRowOrColumnMajorRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetRowOrColumnMajor";
+    }
+
+    public class GetTableInfoRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetTableInfo";
+    }
+
+    // === Selection操作 ===
+
+    public class AddToSelectionRequest : ElementTargetRequest
+    {
+        public override string Operation => "AddToSelection";
+    }
+
+    public class CanSelectMultipleRequest : ElementTargetRequest
+    {
+        public override string Operation => "CanSelectMultiple";
+    }
+
+    public class ClearSelectionRequest : ElementTargetRequest
+    {
+        public override string Operation => "ClearSelection";
+    }
+
+    public class GetSelectionContainerRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetSelectionContainer";
+    }
+
+    public class GetSelectionRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetSelection";
+    }
+
+    public class IsSelectedRequest : ElementTargetRequest
+    {
+        public override string Operation => "IsSelected";
+    }
+
+    public class IsSelectionRequiredRequest : ElementTargetRequest
+    {
+        public override string Operation => "IsSelectionRequired";
+    }
+
+    public class RemoveFromSelectionRequest : ElementTargetRequest
+    {
+        public override string Operation => "RemoveFromSelection";
+    }
+
+    public class SelectElementRequest : ElementTargetRequest
+    {
+        public override string Operation => "SelectElement";
+    }
+
+    public class SelectItemRequest : ElementTargetRequest
+    {
+        public override string Operation => "SelectItem";
+    }
+
+    // === ElementInspection操作 ===
+
+    public class GetElementPropertiesRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetElementProperties";
+    }
+
+    public class GetElementPatternsRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetElementPatterns";
+    }
+
+    // === TreeNavigation操作 ===
+
+    public class GetAncestorsRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetAncestors";
+    }
+
+    public class GetChildrenRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetChildren";
+    }
+
+    public class GetDescendantsRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetDescendants";
+    }
+
+    public class GetElementTreeRequest : TypedWorkerRequest
+    {
+        public override string Operation => "GetElementTree";
+
+        [JsonPropertyName("windowTitle")]
+        public string? WindowTitle { get; set; }
+
+        [JsonPropertyName("processId")]
+        public int? ProcessId { get; set; }
+
+        [JsonPropertyName("maxDepth")]
+        public int MaxDepth { get; set; } = 3;
+    }
+
+    public class GetParentRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetParent";
+    }
+
+    public class GetSiblingsRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetSiblings";
     }
 }

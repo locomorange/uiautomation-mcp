@@ -1,5 +1,8 @@
 using System.Windows.Automation;
+using Microsoft.Extensions.Options;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Options;
+using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
@@ -10,18 +13,37 @@ namespace UIAutomationMCP.Worker.Operations.Selection
     public class AddToSelectionOperation : IUIAutomationOperation
     {
         private readonly ElementFinderService _elementFinderService;
+        private readonly IOptions<UIAutomationOptions> _options;
 
-        public AddToSelectionOperation(ElementFinderService elementFinderService)
+        public AddToSelectionOperation(ElementFinderService elementFinderService, IOptions<UIAutomationOptions> options)
         {
             _elementFinderService = elementFinderService;
+            _options = options;
         }
 
         public Task<OperationResult<SelectionActionResult>> ExecuteAsync(WorkerRequest request)
         {
-            var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
-            var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-            var processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
+            // Try to get typed request first, fallback to legacy dictionary method
+            var typedRequest = request.GetTypedRequest<AddToSelectionRequest>(_options);
+            
+            string elementId;
+            string windowTitle;
+            int processId;
+            
+            if (typedRequest != null)
+            {
+                elementId = typedRequest.ElementId;
+                windowTitle = typedRequest.WindowTitle;
+                processId = typedRequest.ProcessId ?? 0;
+            }
+            else
+            {
+                // Legacy dictionary method
+                elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
+                windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
+                processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
+                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
+            }
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)

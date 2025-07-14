@@ -1,6 +1,9 @@
 using System.Windows.Automation;
+using Microsoft.Extensions.Options;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
+using UIAutomationMCP.Shared.Options;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -9,19 +12,39 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
     public class GetElementTreeOperation : IUIAutomationOperation
     {
         private readonly ElementFinderService _elementFinderService;
+        private readonly IOptions<UIAutomationOptions> _options;
 
-        public GetElementTreeOperation(ElementFinderService elementFinderService)
+        public GetElementTreeOperation(ElementFinderService elementFinderService, IOptions<UIAutomationOptions> options)
         {
             _elementFinderService = elementFinderService;
+            _options = options;
         }
 
         public Task<OperationResult<ElementTreeResult>> ExecuteAsync(WorkerRequest request)
         {
-            var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-            var processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
-            var maxDepth = request.Parameters?.GetValueOrDefault("maxDepth")?.ToString() is string maxDepthStr && 
-                int.TryParse(maxDepthStr, out var parsedMaxDepth) ? parsedMaxDepth : 3;
+            // 型安全なリクエストを試行し、失敗した場合は従来の方法にフォールバック
+            var typedRequest = request.GetTypedRequest<GetElementTreeRequest>(_options);
+            
+            string windowTitle;
+            int processId;
+            int maxDepth;
+            
+            if (typedRequest != null)
+            {
+                // 型安全なパラメータアクセス
+                windowTitle = typedRequest.WindowTitle ?? "";
+                processId = typedRequest.ProcessId ?? 0;
+                maxDepth = typedRequest.MaxDepth;
+            }
+            else
+            {
+                // 従来の方法（後方互換性のため）
+                windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
+                processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
+                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
+                maxDepth = request.Parameters?.GetValueOrDefault("maxDepth")?.ToString() is string maxDepthStr && 
+                    int.TryParse(maxDepthStr, out var parsedMaxDepth) ? parsedMaxDepth : 3;
+            }
 
             var root = _elementFinderService.GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
             var rootNode = BuildElementTree(root, maxDepth, 0);

@@ -1,8 +1,11 @@
 using System.Windows.Automation;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
+using UIAutomationMCP.Shared.Options;
 using UIAutomationMCP.Worker.Contracts;
-using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Worker.Operations.ElementSearch
@@ -10,16 +13,35 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
     public class GetDesktopWindowsOperation : IUIAutomationOperation
     {
         private readonly ILogger<GetDesktopWindowsOperation> _logger;
+        private readonly IOptions<UIAutomationOptions> _options;
 
-        public GetDesktopWindowsOperation(ILogger<GetDesktopWindowsOperation> logger)
+        public GetDesktopWindowsOperation(ILogger<GetDesktopWindowsOperation> logger, IOptions<UIAutomationOptions> options)
         {
             _logger = logger;
+            _options = options;
         }
 
         public Task<OperationResult<DesktopWindowsResult>> ExecuteAsync(WorkerRequest request)
         {
             try
             {
+                // 型安全なリクエストを試行し、失敗した場合は従来の方法にフォールバック
+                var typedRequest = request.GetTypedRequest<GetDesktopWindowsRequest>(_options);
+                
+                bool includeInvisible;
+                
+                if (typedRequest != null)
+                {
+                    // 型安全なパラメータアクセス
+                    includeInvisible = typedRequest.IncludeInvisible;
+                }
+                else
+                {
+                    // 従来の方法（後方互換性のため）
+                    includeInvisible = request.Parameters?.GetValueOrDefault("includeInvisible")?.ToString() is string includeInvisibleStr && 
+                        bool.TryParse(includeInvisibleStr, out var parsedIncludeInvisible) ? parsedIncludeInvisible : _options.Value.WindowOperation.IncludeInvisible;
+                }
+                
                 _logger.LogInformation("Starting GetDesktopWindows operation");
                 
                 _logger.LogInformation("Getting root element...");
@@ -61,6 +83,12 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                                 }
                                 catch { }
 
+                                var isVisible = !window.Current.IsOffscreen;
+                                
+                                // includeInvisibleがfalseの場合、非表示ウィンドウはスキップ
+                                if (!includeInvisible && !isVisible)
+                                    continue;
+                                    
                                 var windowInfo = new UIAutomationMCP.Shared.Results.WindowInfo
                                 {
                                     Title = window.Current.Name,
@@ -68,7 +96,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                                     ProcessId = window.Current.ProcessId,
                                     ProcessName = processName,
                                     Handle = window.Current.NativeWindowHandle,
-                                    IsVisible = !window.Current.IsOffscreen,
+                                    IsVisible = isVisible,
                                     IsEnabled = window.Current.IsEnabled,
                                     BoundingRectangle = new BoundingRectangle
                                     {

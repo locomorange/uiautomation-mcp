@@ -1,6 +1,9 @@
 using System.Windows.Automation;
+using Microsoft.Extensions.Options;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
+using UIAutomationMCP.Shared.Options;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 using UIAutomationMCP.Worker.Services;
@@ -10,18 +13,38 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
     public class GetChildrenOperation : IUIAutomationOperation
     {
         private readonly ElementFinderService _elementFinderService;
+        private readonly IOptions<UIAutomationOptions> _options;
 
-        public GetChildrenOperation(ElementFinderService elementFinderService)
+        public GetChildrenOperation(ElementFinderService elementFinderService, IOptions<UIAutomationOptions> options)
         {
             _elementFinderService = elementFinderService;
+            _options = options;
         }
 
         public Task<OperationResult<TreeNavigationResult>> ExecuteAsync(WorkerRequest request)
         {
-            var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
-            var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-            var processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
+            // 型安全なリクエストを試行し、失敗した場合は従来の方法にフォールバック
+            var typedRequest = request.GetTypedRequest<GetChildrenRequest>(_options);
+            
+            string elementId;
+            string windowTitle;
+            int processId;
+            
+            if (typedRequest != null)
+            {
+                // 型安全なパラメータアクセス
+                elementId = typedRequest.ElementId;
+                windowTitle = typedRequest.WindowTitle;
+                processId = typedRequest.ProcessId ?? 0;
+            }
+            else
+            {
+                // 従来の方法（後方互換性のため）
+                elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
+                windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
+                processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
+                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
+            }
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)

@@ -1,5 +1,8 @@
 using System.Windows.Automation;
+using Microsoft.Extensions.Options;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Options;
+using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
@@ -9,10 +12,12 @@ namespace UIAutomationMCP.Worker.Operations.Grid
     public class GetColumnHeaderOperation : IUIAutomationOperation
     {
         private readonly ElementFinderService _elementFinderService;
+        private readonly IOptions<UIAutomationOptions> _options;
 
-        public GetColumnHeaderOperation(ElementFinderService elementFinderService)
+        public GetColumnHeaderOperation(ElementFinderService elementFinderService, IOptions<UIAutomationOptions> options)
         {
             _elementFinderService = elementFinderService;
+            _options = options;
         }
 
         public async Task<OperationResult<ElementSearchResult>> ExecuteAsync(WorkerRequest request)
@@ -21,12 +26,31 @@ namespace UIAutomationMCP.Worker.Operations.Grid
             
             try
             {
-                var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
-                var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-                var processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
-                var column = request.Parameters?.GetValueOrDefault("column")?.ToString() is string columnStr && 
-                    int.TryParse(columnStr, out var parsedColumn) ? parsedColumn : 0;
+                // Try to parse as typed request first
+                var typedRequest = request.GetTypedRequest<GetColumnHeaderRequest>(_options);
+                
+                string elementId;
+                string windowTitle;
+                int processId;
+                int column;
+                
+                if (typedRequest != null)
+                {
+                    elementId = typedRequest.ElementId;
+                    windowTitle = typedRequest.WindowTitle;
+                    processId = typedRequest.ProcessId ?? 0;
+                    column = typedRequest.Column;
+                }
+                else
+                {
+                    // Fall back to legacy dictionary method
+                    elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
+                    windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
+                    processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
+                        int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
+                    column = request.Parameters?.GetValueOrDefault("column")?.ToString() is string columnStr && 
+                        int.TryParse(columnStr, out var parsedColumn) ? parsedColumn : 0;
+                }
 
                 var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
                 if (element == null)

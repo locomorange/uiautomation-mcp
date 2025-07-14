@@ -1,6 +1,9 @@
 using System.Windows.Automation;
+using Microsoft.Extensions.Options;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
+using UIAutomationMCP.Shared.Options;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -9,20 +12,42 @@ namespace UIAutomationMCP.Worker.Operations.Transform
     public class MoveElementOperation : IUIAutomationOperation
     {
         private readonly ElementFinderService _elementFinderService;
+        private readonly IOptions<UIAutomationOptions> _options;
 
-        public MoveElementOperation(ElementFinderService elementFinderService)
+        public MoveElementOperation(ElementFinderService elementFinderService, IOptions<UIAutomationOptions> options)
         {
             _elementFinderService = elementFinderService;
+            _options = options;
         }
 
         public Task<OperationResult<TransformActionResult>> ExecuteAsync(WorkerRequest request)
         {
-            var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
-            var x = GetDoubleParameter(request.Parameters, "x", 0);
-            var y = GetDoubleParameter(request.Parameters, "y", 0);
-            var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-            var processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
+            // 型安全なリクエストを試行し、失敗した場合は従来の方法にフォールバック
+            var typedRequest = request.GetTypedRequest<MoveElementRequest>(_options);
+            
+            string elementId, windowTitle;
+            double x, y;
+            int processId;
+            
+            if (typedRequest != null)
+            {
+                // 型安全なパラメータアクセス
+                elementId = typedRequest.ElementId;
+                windowTitle = typedRequest.WindowTitle;
+                processId = typedRequest.ProcessId ?? 0;
+                x = typedRequest.X;
+                y = typedRequest.Y;
+            }
+            else
+            {
+                // 従来の方法（後方互換性のため）
+                elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
+                x = GetDoubleParameter(request.Parameters, "x", 0);
+                y = GetDoubleParameter(request.Parameters, "y", 0);
+                windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
+                processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
+                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
+            }
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)

@@ -1,5 +1,8 @@
 using System.Windows.Automation;
+using Microsoft.Extensions.Options;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Options;
+using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
@@ -10,18 +13,37 @@ namespace UIAutomationMCP.Worker.Operations.Selection
     public class CanSelectMultipleOperation : IUIAutomationOperation
     {
         private readonly ElementFinderService _elementFinderService;
+        private readonly IOptions<UIAutomationOptions> _options;
 
-        public CanSelectMultipleOperation(ElementFinderService elementFinderService)
+        public CanSelectMultipleOperation(ElementFinderService elementFinderService, IOptions<UIAutomationOptions> options)
         {
             _elementFinderService = elementFinderService;
+            _options = options;
         }
 
         public Task<OperationResult<BooleanResult>> ExecuteAsync(WorkerRequest request)
         {
-            var containerId = request.Parameters?.GetValueOrDefault("containerId")?.ToString() ?? "";
-            var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-            var processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
+            // Try to get typed request first, fallback to legacy dictionary method
+            var typedRequest = request.GetTypedRequest<CanSelectMultipleRequest>(_options);
+            
+            string containerId;
+            string windowTitle;
+            int processId;
+            
+            if (typedRequest != null)
+            {
+                containerId = typedRequest.ElementId;
+                windowTitle = typedRequest.WindowTitle;
+                processId = typedRequest.ProcessId ?? 0;
+            }
+            else
+            {
+                // Legacy dictionary method
+                containerId = request.Parameters?.GetValueOrDefault("containerId")?.ToString() ?? "";
+                windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
+                processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
+                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
+            }
 
             var element = _elementFinderService.FindElementById(containerId, windowTitle, processId);
             if (element == null)

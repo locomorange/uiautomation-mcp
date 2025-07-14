@@ -1,5 +1,8 @@
 using System.Windows.Automation;
+using Microsoft.Extensions.Options;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Options;
+using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
@@ -9,23 +12,48 @@ namespace UIAutomationMCP.Worker.Operations.Window
     public class TransformElementOperation : IUIAutomationOperation
     {
         private readonly ElementFinderService _elementFinderService;
+        private readonly IOptions<UIAutomationOptions> _options;
 
-        public TransformElementOperation(ElementFinderService elementFinderService)
+        public TransformElementOperation(ElementFinderService elementFinderService, IOptions<UIAutomationOptions> options)
         {
             _elementFinderService = elementFinderService;
+            _options = options;
         }
 
         public Task<OperationResult<TransformActionResult>> ExecuteAsync(WorkerRequest request)
         {
-            var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
-            var action = request.Parameters?.GetValueOrDefault("action")?.ToString() ?? "";
-            var x = GetDoubleParameter(request.Parameters, "x", 0);
-            var y = GetDoubleParameter(request.Parameters, "y", 0);
-            var width = GetDoubleParameter(request.Parameters, "width", 0);
-            var height = GetDoubleParameter(request.Parameters, "height", 0);
-            var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-            var processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
+            // Try typed request first, fallback to legacy dictionary method
+            var typedRequest = request.GetTypedRequest<TransformElementRequest>(_options);
+            
+            string elementId, action, windowTitle;
+            int processId;
+            double x, y, width, height;
+            
+            if (typedRequest != null)
+            {
+                // Type-safe parameter access
+                elementId = typedRequest.ElementId;
+                action = typedRequest.Action;
+                x = typedRequest.X;
+                y = typedRequest.Y;
+                width = typedRequest.Width;
+                height = typedRequest.Height;
+                windowTitle = typedRequest.WindowTitle ?? "";
+                processId = typedRequest.ProcessId ?? 0;
+            }
+            else
+            {
+                // Legacy method (for backward compatibility)
+                elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
+                action = request.Parameters?.GetValueOrDefault("action")?.ToString() ?? "";
+                x = GetDoubleParameter(request.Parameters, "x", 0);
+                y = GetDoubleParameter(request.Parameters, "y", 0);
+                width = GetDoubleParameter(request.Parameters, "width", 0);
+                height = GetDoubleParameter(request.Parameters, "height", 0);
+                windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
+                processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
+                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
+            }
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)

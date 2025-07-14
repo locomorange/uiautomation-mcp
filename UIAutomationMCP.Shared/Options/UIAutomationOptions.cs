@@ -33,6 +33,11 @@ namespace UIAutomationMCP.Shared.Options
         /// 範囲値操作のデフォルト設定
         /// </summary>
         public RangeValueOptions RangeValue { get; set; } = new();
+
+        /// <summary>
+        /// レイアウト操作のデフォルト設定
+        /// </summary>
+        public LayoutOptions Layout { get; set; } = new();
     }
 
     /// <summary>
@@ -175,6 +180,45 @@ namespace UIAutomationMCP.Shared.Options
         /// </summary>
         [Range(0.01, 100)]
         public double DefaultStep { get; set; } = 1;
+    }
+
+    /// <summary>
+    /// レイアウト操作のオプション
+    /// </summary>
+    public class LayoutOptions
+    {
+        /// <summary>
+        /// デフォルトのドック位置
+        /// </summary>
+        public string DefaultDockPosition { get; set; } = "none";
+
+        /// <summary>
+        /// デフォルトのExpandCollapse動作
+        /// </summary>
+        public string DefaultExpandCollapseAction { get; set; } = "toggle";
+
+        /// <summary>
+        /// デフォルトのスクロール方向
+        /// </summary>
+        public string DefaultScrollDirection { get; set; } = "down";
+
+        /// <summary>
+        /// デフォルトのスクロール量
+        /// </summary>
+        [Range(0.1, 10.0)]
+        public double DefaultScrollAmount { get; set; } = 1.0;
+
+        /// <summary>
+        /// デフォルトの水平スクロール位置（パーセント）
+        /// </summary>
+        [Range(-1, 100)]
+        public double DefaultHorizontalScrollPercent { get; set; } = -1;
+
+        /// <summary>
+        /// デフォルトの垂直スクロール位置（パーセント）
+        /// </summary>
+        [Range(-1, 100)]
+        public double DefaultVerticalScrollPercent { get; set; } = -1;
     }
 
 }

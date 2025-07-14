@@ -1,5 +1,8 @@
 using System.Windows.Automation;
+using Microsoft.Extensions.Options;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Options;
+using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
@@ -9,17 +12,35 @@ namespace UIAutomationMCP.Worker.Operations.Window
     public class GetWindowCapabilitiesOperation : IUIAutomationOperation
     {
         private readonly ElementFinderService _elementFinderService;
+        private readonly IOptions<UIAutomationOptions> _options;
 
-        public GetWindowCapabilitiesOperation(ElementFinderService elementFinderService)
+        public GetWindowCapabilitiesOperation(ElementFinderService elementFinderService, IOptions<UIAutomationOptions> options)
         {
             _elementFinderService = elementFinderService;
+            _options = options;
         }
 
         public Task<OperationResult<WindowCapabilitiesResult>> ExecuteAsync(WorkerRequest request)
         {
-            var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-            var processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
+            // Try typed request first, fallback to legacy dictionary method
+            var typedRequest = request.GetTypedRequest<GetWindowCapabilitiesRequest>(_options);
+            
+            string windowTitle;
+            int processId;
+            
+            if (typedRequest != null)
+            {
+                // Type-safe parameter access
+                windowTitle = typedRequest.WindowTitle ?? "";
+                processId = typedRequest.ProcessId ?? 0;
+            }
+            else
+            {
+                // Legacy method (for backward compatibility)
+                windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
+                processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
+                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
+            }
 
             try
             {

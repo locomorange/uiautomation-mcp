@@ -1,5 +1,8 @@
 using System.Windows.Automation;
+using Microsoft.Extensions.Options;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Options;
+using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
@@ -9,27 +12,43 @@ namespace UIAutomationMCP.Worker.Operations.Layout
     public class SetScrollPercentOperation : IUIAutomationOperation
     {
         private readonly ElementFinderService _elementFinderService;
+        private readonly IOptions<UIAutomationOptions> _options;
 
-        public SetScrollPercentOperation(ElementFinderService elementFinderService)
+        public SetScrollPercentOperation(ElementFinderService elementFinderService, IOptions<UIAutomationOptions> options)
         {
             _elementFinderService = elementFinderService;
+            _options = options;
         }
 
         public Task<OperationResult<ScrollActionResult>> ExecuteAsync(WorkerRequest request)
         {
-            var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
-            var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-            var processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
+            // Try to get typed request first, fall back to legacy dictionary method
+            var typedRequest = request.GetTypedRequest<SetScrollPercentRequest>(_options);
             
-            var horizontalPercentStr = request.Parameters?.GetValueOrDefault("horizontalPercent")?.ToString() ?? "";
-            var verticalPercentStr = request.Parameters?.GetValueOrDefault("verticalPercent")?.ToString() ?? "";
+            var elementId = typedRequest?.ElementId ?? request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
+            var windowTitle = typedRequest?.WindowTitle ?? request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
+            var processId = typedRequest?.ProcessId ?? (request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
+                int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0);
+            
+            var horizontalPercent = typedRequest?.HorizontalPercent ?? 
+                (request.Parameters?.GetValueOrDefault("horizontalPercent")?.ToString() is string horizontalPercentStr && 
+                double.TryParse(horizontalPercentStr, out var parsedHorizontalPercent) ? parsedHorizontalPercent : _options.Value.Layout.DefaultHorizontalScrollPercent);
+            
+            var verticalPercent = typedRequest?.VerticalPercent ?? 
+                (request.Parameters?.GetValueOrDefault("verticalPercent")?.ToString() is string verticalPercentStr && 
+                double.TryParse(verticalPercentStr, out var parsedVerticalPercent) ? parsedVerticalPercent : _options.Value.Layout.DefaultVerticalScrollPercent);
 
-            if (!double.TryParse(horizontalPercentStr, out var horizontalPercent))
-                return Task.FromResult(new OperationResult<ScrollActionResult> { Success = false, Error = "Invalid horizontal percentage value" });
+            if (typedRequest == null)
+            {
+                // Legacy validation only when not using typed request
+                if (request.Parameters?.GetValueOrDefault("horizontalPercent")?.ToString() is string legacyHorizontalStr && 
+                    !double.TryParse(legacyHorizontalStr, out _))
+                    return Task.FromResult(new OperationResult<ScrollActionResult> { Success = false, Error = "Invalid horizontal percentage value" });
 
-            if (!double.TryParse(verticalPercentStr, out var verticalPercent))
-                return Task.FromResult(new OperationResult<ScrollActionResult> { Success = false, Error = "Invalid vertical percentage value" });
+                if (request.Parameters?.GetValueOrDefault("verticalPercent")?.ToString() is string legacyVerticalStr && 
+                    !double.TryParse(legacyVerticalStr, out _))
+                    return Task.FromResult(new OperationResult<ScrollActionResult> { Success = false, Error = "Invalid vertical percentage value" });
+            }
 
             // Validate percentage ranges (ScrollPattern uses -1 for NoScroll)
             if ((horizontalPercent < -1 || horizontalPercent > 100) && horizontalPercent != ScrollPattern.NoScroll)
