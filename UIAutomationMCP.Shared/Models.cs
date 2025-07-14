@@ -212,36 +212,18 @@ namespace UIAutomationMCP.Shared
     }
 
     /// <summary>
-    /// 後方互換性のためのWorkerレスポンス（非ジェネリック版）
+    /// よく使用される型のエイリアス
     /// </summary>
-    public class WorkerResponse : WorkerResponse<object>
+    public static class WorkerResponseAliases
     {
-        // 継承により既存の動作を維持
+        /// <summary>
+        /// object型のWorkerResponseのエイリアス
+        /// </summary>
+        public static WorkerResponse<object> CreateSuccess(object data) => WorkerResponse<object>.CreateSuccess(data);
         
         /// <summary>
-        /// 成功レスポンスを作成（非ジェネリック版）
+        /// object型のWorkerResponseのエイリアス
         /// </summary>
-        public new static WorkerResponse CreateSuccess(object data)
-        {
-            return new WorkerResponse
-            {
-                Success = true,
-                Data = data,
-                Error = null
-            };
-        }
-
-        /// <summary>
-        /// エラーレスポンスを作成（非ジェネリック版）
-        /// </summary>
-        public new static WorkerResponse CreateError(string error)
-        {
-            return new WorkerResponse
-            {
-                Success = false,
-                Data = null,
-                Error = error
-            };
-        }
+        public static WorkerResponse<object> CreateError(string error) => WorkerResponse<object>.CreateError(error);
     }
 }

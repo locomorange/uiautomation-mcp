@@ -41,7 +41,7 @@ namespace UIAutomationMCP.Worker.Services
                     if (request == null)
                     {
                         _logger.LogWarning("Failed to deserialize request: {Input}", input);
-                        WriteResponse(new WorkerResponse { Success = false, Error = "Invalid request format" });
+                        WriteResponse(WorkerResponse<object>.CreateError("Invalid request format"));
                         continue;
                     }
 
@@ -54,7 +54,7 @@ namespace UIAutomationMCP.Worker.Services
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error processing request. Input: {Input}", input ?? "null");
-                    WriteResponse(new WorkerResponse 
+                    WriteResponse(new WorkerResponse<object> 
                     { 
                         Success = false, 
                         Error = $"Request processing failed: {ex.Message}",
@@ -69,7 +69,7 @@ namespace UIAutomationMCP.Worker.Services
             }
         }
 
-        private async Task<WorkerResponse> ProcessRequestAsync(WorkerRequest request)
+        private async Task<WorkerResponse<object>> ProcessRequestAsync(WorkerRequest request)
         {
             try
             {
@@ -81,7 +81,7 @@ namespace UIAutomationMCP.Worker.Services
                 if (operation != null)
                 {
                     var operationResult = await operation.ExecuteAsync(request);
-                    return new WorkerResponse 
+                    return new WorkerResponse<object> 
                     { 
                         Success = operationResult.Success, 
                         Data = operationResult.Data, 
@@ -91,11 +91,7 @@ namespace UIAutomationMCP.Worker.Services
 
                 // All operations are now handled by operation classes
                 // This should never be reached if all operations are registered properly
-                return new WorkerResponse 
-                { 
-                    Success = false, 
-                    Error = $"No operation found for: {request.Operation}" 
-                };
+                return WorkerResponse<object>.CreateError($"No operation found for: {request.Operation}");
             }
             catch (Exception ex)
             {
@@ -110,7 +106,7 @@ namespace UIAutomationMCP.Worker.Services
                     detailedError += $" Inner exception: {ex.InnerException.Message}";
                 }
 
-                return new WorkerResponse 
+                return new WorkerResponse<object> 
                 { 
                     Success = false, 
                     Error = detailedError,
@@ -125,7 +121,7 @@ namespace UIAutomationMCP.Worker.Services
             }
         }
 
-        private void WriteResponse(WorkerResponse response)
+        private void WriteResponse(WorkerResponse<object> response)
         {
             var json = JsonSerializer.Serialize(response, JsonSerializationConfig.Options);
             Console.WriteLine(json);

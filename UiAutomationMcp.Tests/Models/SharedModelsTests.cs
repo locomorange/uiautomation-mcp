@@ -180,13 +180,8 @@ namespace UiAutomationMcp.Tests.Models
         [Fact]
         public void WorkerResponse_ShouldHandleSuccessAndFailureStates()
         {
-            // Arrange & Act - Success case
-            var successResponse = new WorkerResponse
-            {
-                Success = true,
-                Data = new { Message = "Operation completed" },
-                Error = null
-            };
+            // Arrange & Act - Success case with generic version
+            var successResponse = WorkerResponse<object>.CreateSuccess(new { Message = "Operation completed" });
 
             // Assert - Success case
             Assert.True(successResponse.Success);
@@ -194,12 +189,7 @@ namespace UiAutomationMcp.Tests.Models
             Assert.Null(successResponse.Error);
 
             // Arrange & Act - Failure case
-            var failureResponse = new WorkerResponse
-            {
-                Success = false,
-                Data = null,
-                Error = "Element not found"
-            };
+            var failureResponse = WorkerResponse<object>.CreateError("Element not found");
 
             // Assert - Failure case
             Assert.False(failureResponse.Success);

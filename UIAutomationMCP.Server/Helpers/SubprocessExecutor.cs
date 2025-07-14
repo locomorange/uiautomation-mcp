@@ -106,10 +106,10 @@ namespace UIAutomationMCP.Server.Helpers
                     responseJson.Length, 
                     responseJson.Length > 1000 ? responseJson.Substring(0, 1000) + "..." : responseJson);
 
-                WorkerResponse? response;
+                WorkerResponse<object>? response;
                 try
                 {
-                    response = JsonSerializer.Deserialize<WorkerResponse>(responseJson);
+                    response = JsonSerializer.Deserialize<WorkerResponse<object>>(responseJson);
                 }
                 catch (JsonException ex)
                 {
