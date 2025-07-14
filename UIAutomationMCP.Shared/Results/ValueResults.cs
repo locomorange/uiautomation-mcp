@@ -3,30 +3,24 @@ namespace UIAutomationMCP.Shared.Results
     /// <summary>
     /// 単一値を返す操作の結果
     /// </summary>
-    public class ValueResult<T>
+    public class ValueResult<T> : ValueOperationResult<T>
     {
-        /// <summary>
-        /// 実際の値
-        /// </summary>
-        public T Value { get; set; } = default!;
-
         /// <summary>
         /// 表示用のテキスト
         /// </summary>
         public string DisplayText { get; set; } = "";
-
-        /// <summary>
-        /// 値の追加情報
-        /// </summary>
-        public Dictionary<string, object>? Metadata { get; set; }
     }
 
     /// <summary>
     /// トグル状態の結果
     /// </summary>
-    public class ToggleStateResult
+    public class ToggleStateResult : ValueOperationResult<string>
     {
-        public string State { get; set; } = "";
+        public string State 
+        { 
+            get => Value; 
+            set => Value = value; 
+        }
         public bool IsOn => State == "On";
         public bool IsOff => State == "Off";
         public bool IsIndeterminate => State == "Indeterminate";

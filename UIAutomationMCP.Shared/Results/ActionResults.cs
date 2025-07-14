@@ -3,7 +3,7 @@ namespace UIAutomationMCP.Shared.Results
     /// <summary>
     /// アクション実行の基本結果
     /// </summary>
-    public class ActionResult
+    public class ActionResult : BaseOperationResult
     {
         /// <summary>
         /// 実行したアクション名
@@ -14,11 +14,6 @@ namespace UIAutomationMCP.Shared.Results
         /// アクションが正常に実行されたか
         /// </summary>
         public bool Completed { get; set; }
-
-        /// <summary>
-        /// 実行時刻
-        /// </summary>
-        public DateTime ExecutedAt { get; set; } = DateTime.UtcNow;
 
         /// <summary>
         /// 追加情報

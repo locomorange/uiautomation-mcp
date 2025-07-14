@@ -3,7 +3,7 @@ namespace UIAutomationMCP.Shared.Results
     /// <summary>
     /// 要素プロパティの結果
     /// </summary>
-    public class ElementPropertiesResult
+    public class ElementPropertiesResult : BaseOperationResult
     {
         /// <summary>
         /// 基本プロパティ

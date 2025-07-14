@@ -3,22 +3,21 @@ namespace UIAutomationMCP.Shared.Results
     /// <summary>
     /// 要素検索操作の結果
     /// </summary>
-    public class ElementSearchResult
+    public class ElementSearchResult : CollectionOperationResult<ElementInfo>
     {
         /// <summary>
         /// 見つかった要素のリスト
         /// </summary>
-        public List<ElementInfo> Elements { get; set; } = new();
-
-        /// <summary>
-        /// 見つかった要素の数
-        /// </summary>
-        public int Count => Elements.Count;
+        public List<ElementInfo> Elements 
+        { 
+            get => Items; 
+            set => Items = value; 
+        }
 
         /// <summary>
         /// 要素が見つかったかどうか
         /// </summary>
-        public bool HasResults => Count > 0;
+        public bool HasResults => HasItems;
 
         /// <summary>
         /// 検索条件（デバッグ用）
