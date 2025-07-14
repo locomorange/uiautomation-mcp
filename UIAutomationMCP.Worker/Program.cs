@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using UIAutomationMCP.Worker.Services;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Operations.Invoke;
@@ -20,6 +21,8 @@ using UIAutomationMCP.Worker.Operations.TreeNavigation;
 using UIAutomationMCP.Worker.Operations.Window;
 using UIAutomationMCP.Worker.Operations.Transform;
 using UIAutomationMCP.Worker.Helpers;
+using UIAutomationMCP.Shared.Options;
+using UIAutomationMCP.Shared.Validation;
 using System.Text.Json;
 
 namespace UIAutomationMCP.Worker
@@ -29,6 +32,19 @@ namespace UIAutomationMCP.Worker
         static async Task Main(string[] args)
         {
             var builder = Host.CreateApplicationBuilder(args);
+
+            // Configure Options Pattern
+            builder.Services.Configure<UIAutomationOptions>(
+                builder.Configuration.GetSection(UIAutomationOptions.SectionName));
+
+            // Enable validation for options
+            builder.Services.AddOptions<UIAutomationOptions>()
+                .Bind(builder.Configuration.GetSection(UIAutomationOptions.SectionName))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+
+            // Add custom validation
+            builder.Services.AddSingleton<IValidateOptions<UIAutomationOptions>, UIAutomationOptionsValidator>();
 
             // Configure logging - disable console logging to avoid interference with JSON responses
             builder.Logging.ClearProviders();

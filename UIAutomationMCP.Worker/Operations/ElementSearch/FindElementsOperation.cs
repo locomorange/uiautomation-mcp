@@ -1,7 +1,10 @@
 using System.Windows.Automation;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Options;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
+using UIAutomationMCP.Shared.Options;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -11,10 +14,12 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
     {
         private readonly ElementFinderService _elementFinderService;
         private readonly FindElementsCacheService _cacheService;
+        private readonly IOptions<UIAutomationOptions> _options;
 
-        public FindElementsOperation(ElementFinderService elementFinderService, FindElementsCacheService? cacheService = null)
+        public FindElementsOperation(ElementFinderService elementFinderService, IOptions<UIAutomationOptions> options, FindElementsCacheService? cacheService = null)
         {
             _elementFinderService = elementFinderService;
+            _options = options;
             _cacheService = cacheService ?? new FindElementsCacheService();
         }
 
@@ -38,36 +43,73 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
 
         private async Task<OperationResult<ElementSearchResult>> ExecuteInternalAsync(WorkerRequest request)
         {
-            var searchText = request.Parameters?.GetValueOrDefault("searchText")?.ToString() ?? "";
-            var controlType = request.Parameters?.GetValueOrDefault("controlType")?.ToString() ?? "";
-            var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
-            var processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
-                int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
-            var scope = request.Parameters?.GetValueOrDefault("scope")?.ToString() ?? "descendants";
-            var maxResults = request.Parameters?.GetValueOrDefault("maxResults")?.ToString() is string maxResultsStr && 
-                int.TryParse(maxResultsStr, out var parsedMaxResults) ? parsedMaxResults : 100;
-            var timeoutMs = request.Parameters?.GetValueOrDefault("timeoutMs")?.ToString() is string timeoutStr && 
-                int.TryParse(timeoutStr, out var parsedTimeout) ? parsedTimeout : 30000; // 30 seconds default
+            // 型安全なリクエストを試行し、失敗した場合は従来の方法にフォールバック
+            var typedRequest = request.GetTypedRequest<FindElementsRequest>(_options);
             
-            // Additional search properties
-            var className = request.Parameters?.GetValueOrDefault("className")?.ToString() ?? "";
-            var helpText = request.Parameters?.GetValueOrDefault("helpText")?.ToString() ?? "";
-            var acceleratorKey = request.Parameters?.GetValueOrDefault("acceleratorKey")?.ToString() ?? "";
-            var accessKey = request.Parameters?.GetValueOrDefault("accessKey")?.ToString() ?? "";
+            string searchText, controlType, windowTitle, className, helpText, acceleratorKey, accessKey;
+            string patternType, searchMethod, conditionOperator, excludeText, excludeControlType;
+            string scope;
+            int processId, maxResults, timeoutMs, cacheTimeoutMinutes;
+            bool useCache, useRegex, useWildcard;
             
-            // Pattern matching parameters
-            var patternType = request.Parameters?.GetValueOrDefault("patternType")?.ToString() ?? "exact";
-            var searchMethod = request.Parameters?.GetValueOrDefault("searchMethod")?.ToString() ?? "findall"; // findall or treewalker
-            
-            // Custom condition parameters
-            var conditionOperator = request.Parameters?.GetValueOrDefault("conditionOperator")?.ToString() ?? "and"; // and, or, not
-            var excludeText = request.Parameters?.GetValueOrDefault("excludeText")?.ToString() ?? "";
-            var excludeControlType = request.Parameters?.GetValueOrDefault("excludeControlType")?.ToString() ?? "";
-            
-            // Cache parameters
-            var useCache = request.Parameters?.GetValueOrDefault("useCache")?.ToString() == "true";
-            var cacheTimeoutMinutes = request.Parameters?.GetValueOrDefault("cacheTimeoutMinutes")?.ToString() is string cacheTimeoutStr && 
-                int.TryParse(cacheTimeoutStr, out var parsedCacheTimeout) ? parsedCacheTimeout : 5;
+            if (typedRequest != null)
+            {
+                // 型安全なパラメータアクセス
+                searchText = typedRequest.SearchText ?? "";
+                controlType = typedRequest.ControlType ?? "";
+                windowTitle = typedRequest.WindowTitle ?? "";
+                processId = typedRequest.ProcessId ?? 0;
+                scope = typedRequest.Scope;
+                maxResults = _options.Value.ElementSearch.MaxResults; // 設定値から取得
+                timeoutMs = 30000; // タイムアウト処理はworkerで行わない
+                
+                className = typedRequest.ClassName ?? "";
+                helpText = "";
+                acceleratorKey = "";
+                accessKey = "";
+                
+                patternType = "exact";
+                searchMethod = "findall";
+                conditionOperator = "and";
+                excludeText = "";
+                excludeControlType = "";
+                
+                useCache = typedRequest.UseCache;
+                useRegex = typedRequest.UseRegex;
+                useWildcard = typedRequest.UseWildcard;
+                cacheTimeoutMinutes = 5;
+            }
+            else
+            {
+                // 従来の方法（後方互換性のため）
+                searchText = request.Parameters?.GetValueOrDefault("searchText")?.ToString() ?? "";
+                controlType = request.Parameters?.GetValueOrDefault("controlType")?.ToString() ?? "";
+                windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
+                processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
+                    int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
+                scope = request.Parameters?.GetValueOrDefault("scope")?.ToString() ?? "descendants";
+                maxResults = request.Parameters?.GetValueOrDefault("maxResults")?.ToString() is string maxResultsStr && 
+                    int.TryParse(maxResultsStr, out var parsedMaxResults) ? parsedMaxResults : 100;
+                timeoutMs = request.Parameters?.GetValueOrDefault("timeoutMs")?.ToString() is string timeoutStr && 
+                    int.TryParse(timeoutStr, out var parsedTimeout) ? parsedTimeout : 30000;
+                
+                className = request.Parameters?.GetValueOrDefault("className")?.ToString() ?? "";
+                helpText = request.Parameters?.GetValueOrDefault("helpText")?.ToString() ?? "";
+                acceleratorKey = request.Parameters?.GetValueOrDefault("acceleratorKey")?.ToString() ?? "";
+                accessKey = request.Parameters?.GetValueOrDefault("accessKey")?.ToString() ?? "";
+                
+                patternType = request.Parameters?.GetValueOrDefault("patternType")?.ToString() ?? "exact";
+                searchMethod = request.Parameters?.GetValueOrDefault("searchMethod")?.ToString() ?? "findall";
+                conditionOperator = request.Parameters?.GetValueOrDefault("conditionOperator")?.ToString() ?? "and";
+                excludeText = request.Parameters?.GetValueOrDefault("excludeText")?.ToString() ?? "";
+                excludeControlType = request.Parameters?.GetValueOrDefault("excludeControlType")?.ToString() ?? "";
+                
+                useCache = request.Parameters?.GetValueOrDefault("useCache")?.ToString() == "true";
+                useRegex = false;
+                useWildcard = false;
+                cacheTimeoutMinutes = request.Parameters?.GetValueOrDefault("cacheTimeoutMinutes")?.ToString() is string cacheTimeoutStr && 
+                    int.TryParse(cacheTimeoutStr, out var parsedCacheTimeout) ? parsedCacheTimeout : 5;
+            }
 
             var searchRoot = _elementFinderService.GetSearchRoot(windowTitle, processId);
             
