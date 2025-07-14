@@ -128,11 +128,6 @@ namespace UIAutomationMCP.Shared
         public List<ElementInfo>? Elements { get; set; }
     }
 
-    // プロパティ取得結果
-    public class ElementPropertiesResult : OperationResult
-    {
-        public Dictionary<string, object>? Properties { get; set; }
-    }
 
     // パターン情報
     public class PatternInfo

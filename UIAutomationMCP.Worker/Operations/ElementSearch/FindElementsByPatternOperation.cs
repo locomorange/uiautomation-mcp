@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -14,7 +15,25 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             _elementFinderService = elementFinderService;
         }
 
-        public async Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public async Task<OperationResult<PatternSearchResult>> ExecuteAsync(WorkerRequest request)
+        {
+            var result = await ExecuteInternalAsync(request);
+            return result;
+        }
+
+        async Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = await ExecuteAsync(request);
+            return new OperationResult
+            {
+                Success = typedResult.Success,
+                Error = typedResult.Error,
+                Data = typedResult.Data,
+                ExecutionSeconds = typedResult.ExecutionSeconds
+            };
+        }
+
+        private async Task<OperationResult<PatternSearchResult>> ExecuteInternalAsync(WorkerRequest request)
         {
             var patternName = request.Parameters?.GetValueOrDefault("pattern")?.ToString() ?? "";
             var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
@@ -30,20 +49,22 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
 
             if (string.IsNullOrEmpty(patternName))
             {
-                return new OperationResult
+                return new OperationResult<PatternSearchResult>
                 {
                     Success = false,
-                    Error = "Pattern name is required"
+                    Error = "Pattern name is required",
+                    Data = new PatternSearchResult()
                 };
             }
 
             var patternId = GetPatternId(patternName);
             if (patternId == null)
             {
-                return new OperationResult
+                return new OperationResult<PatternSearchResult>
                 {
                     Success = false,
-                    Error = $"Unknown pattern: {patternName}"
+                    Error = $"Unknown pattern: {patternName}",
+                    Data = new PatternSearchResult { PatternSearched = patternName }
                 };
             }
 
@@ -52,10 +73,11 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             // Prevent searching from RootElement for performance reasons
             if (searchRoot == null && string.IsNullOrEmpty(windowTitle) && processId == 0)
             {
-                return new OperationResult
+                return new OperationResult<PatternSearchResult>
                 {
                     Success = false,
-                    Error = "Search scope too broad. Please specify a windowTitle or processId to narrow the search."
+                    Error = "Search scope too broad. Please specify a windowTitle or processId to narrow the search.",
+                    Data = new PatternSearchResult { PatternSearched = patternName }
                 };
             }
             
@@ -72,7 +94,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 _ => TreeScope.Descendants
             };
 
-            var elementList = new List<PatternElementInfo>();
+            var elementList = new List<ElementInfo>();
             
             // Create cancellation token for timeout
             using var cts = new CancellationTokenSource(timeoutMs);
@@ -86,25 +108,45 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     SearchForPattern(searchRoot, walker, patternId, treeScope, elementList, 
                         includeDescendantPatterns, validateAvailability, maxResults);
                     
-                    return new OperationResult
+                    var searchResult = new PatternSearchResult
+                    {
+                        Elements = elementList,
+                        PatternSearched = patternName,
+                        ValidationPerformed = validateAvailability,
+                        SearchCriteria = new SearchCriteria
+                        {
+                            WindowTitle = windowTitle,
+                            ProcessId = processId > 0 ? processId : null,
+                            Scope = scope,
+                            AdditionalCriteria = new Dictionary<string, object>
+                            {
+                                ["pattern"] = patternName,
+                                ["includeDescendantPatterns"] = includeDescendantPatterns,
+                                ["validateAvailability"] = validateAvailability
+                            }
+                        }
+                    };
+                    
+                    return new OperationResult<PatternSearchResult>
                     {
                         Success = true,
-                        Data = elementList
+                        Data = searchResult
                     };
                 }, cts.Token);
             }
             catch (OperationCanceledException)
             {
-                return new OperationResult
+                return new OperationResult<PatternSearchResult>
                 {
                     Success = false,
-                    Error = $"Search operation timed out after {timeoutMs}ms"
+                    Error = $"Search operation timed out after {timeoutMs}ms",
+                    Data = new PatternSearchResult { PatternSearched = patternName }
                 };
             }
         }
 
         private void SearchForPattern(AutomationElement root, TreeWalker walker, AutomationPattern patternId,
-            TreeScope scope, List<PatternElementInfo> results, bool includeDescendantPatterns,
+            TreeScope scope, List<ElementInfo> results, bool includeDescendantPatterns,
             bool validateAvailability, int maxResults)
         {
             if (results.Count >= maxResults) return;
@@ -158,7 +200,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
         }
 
         private void CheckDescendantsForPattern(AutomationElement element, TreeWalker walker, 
-            AutomationPattern patternId, List<PatternElementInfo> results, bool validateAvailability, int maxResults)
+            AutomationPattern patternId, List<ElementInfo> results, bool validateAvailability, int maxResults)
         {
             var child = walker.GetFirstChild(element);
             while (child != null && results.Count < maxResults)
@@ -172,8 +214,6 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                         if (parentInfo == null)
                         {
                             parentInfo = CreatePatternElementInfo(element, patternId, false);
-                            parentInfo.HasDescendantWithPattern = true;
-                            parentInfo.DescendantPatternInfo = $"{child.Current.Name} ({child.Current.ControlType.LocalizedControlType})";
                             results.Add(parentInfo);
                         }
                     }
@@ -210,9 +250,9 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             }
         }
 
-        private PatternElementInfo CreatePatternElementInfo(AutomationElement element, AutomationPattern patternId, bool includePatternState)
+        private ElementInfo CreatePatternElementInfo(AutomationElement element, AutomationPattern patternId, bool includePatternState)
         {
-            var info = new PatternElementInfo
+            var info = new ElementInfo
             {
                 AutomationId = element.Current.AutomationId,
                 Name = element.Current.Name,
@@ -227,19 +267,9 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     Width = element.Current.BoundingRectangle.Width,
                     Height = element.Current.BoundingRectangle.Height
                 },
-                PatternName = GetPatternName(patternId),
-                PatternAvailable = true
+                HelpText = $"Pattern: {GetPatternName(patternId)}",
+                AvailableActions = GetPatternActions(element, patternId)
             };
-
-            // Get all supported patterns
-            var supportedPatterns = element.GetSupportedPatterns();
-            info.SupportedPatterns = supportedPatterns.Select(p => GetPatternName(p)).ToList();
-
-            // Get pattern-specific state if requested
-            if (includePatternState)
-            {
-                info.PatternState = GetPatternState(element, patternId);
-            }
 
             return info;
         }
@@ -337,15 +367,34 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             
             return "Unknown";
         }
-    }
 
-    public class PatternElementInfo : ElementInfo
-    {
-        public string PatternName { get; set; } = "";
-        public bool PatternAvailable { get; set; }
-        public List<string> SupportedPatterns { get; set; } = new();
-        public Dictionary<string, object>? PatternState { get; set; }
-        public bool HasDescendantWithPattern { get; set; }
-        public string? DescendantPatternInfo { get; set; }
+        private Dictionary<string, string> GetPatternActions(AutomationElement element, AutomationPattern patternId)
+        {
+            var actions = new Dictionary<string, string>();
+            
+            if (patternId == InvokePattern.Pattern)
+                actions["Invoke"] = "Click or activate the element";
+            else if (patternId == ValuePattern.Pattern)
+                actions["SetValue"] = "Set the element's value";
+            else if (patternId == TogglePattern.Pattern)
+                actions["Toggle"] = "Toggle the element's state";
+            else if (patternId == SelectionItemPattern.Pattern)
+                actions["Select"] = "Select this item";
+            else if (patternId == ExpandCollapsePattern.Pattern)
+            {
+                actions["Expand"] = "Expand the element";
+                actions["Collapse"] = "Collapse the element";
+            }
+            else if (patternId == ScrollPattern.Pattern)
+                actions["Scroll"] = "Scroll the element";
+            else if (patternId == WindowPattern.Pattern)
+            {
+                actions["Close"] = "Close the window";
+                actions["Maximize"] = "Maximize the window";
+                actions["Minimize"] = "Minimize the window";
+            }
+            
+            return actions;
+        }
     }
 }

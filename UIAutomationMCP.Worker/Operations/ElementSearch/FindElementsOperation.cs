@@ -1,6 +1,7 @@
 using System.Windows.Automation;
 using System.Text.RegularExpressions;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -17,7 +18,25 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             _cacheService = cacheService ?? new FindElementsCacheService();
         }
 
-        public async Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public async Task<OperationResult<ElementSearchResult>> ExecuteAsync(WorkerRequest request)
+        {
+            var result = await ExecuteInternalAsync(request);
+            return result;
+        }
+
+        async Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = await ExecuteAsync(request);
+            return new OperationResult
+            {
+                Success = typedResult.Success,
+                Error = typedResult.Error,
+                Data = typedResult.Data,
+                ExecutionSeconds = typedResult.ExecutionSeconds
+            };
+        }
+
+        private async Task<OperationResult<ElementSearchResult>> ExecuteInternalAsync(WorkerRequest request)
         {
             var searchText = request.Parameters?.GetValueOrDefault("searchText")?.ToString() ?? "";
             var controlType = request.Parameters?.GetValueOrDefault("controlType")?.ToString() ?? "";
@@ -55,10 +74,12 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             // Prevent searching from RootElement for performance reasons
             if (searchRoot == null && string.IsNullOrEmpty(windowTitle) && processId == 0)
             {
-                return new OperationResult
+                var result = new ElementSearchResult();
+                return new OperationResult<ElementSearchResult>
                 {
                     Success = false,
-                    Error = "Search scope too broad. Please specify a windowTitle or processId to narrow the search."
+                    Error = "Search scope too broad. Please specify a windowTitle or processId to narrow the search.",
+                    Data = result
                 };
             }
             
@@ -193,10 +214,15 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 var cachedResult = _cacheService.GetFromCache(cacheKey);
                 if (cachedResult != null)
                 {
-                    return new OperationResult
+                    var cachedSearchResult = new ElementSearchResult
+                    {
+                        Elements = cachedResult,
+                        SearchCriteria = CreateSearchCriteria(request.Parameters)
+                    };
+                    return new OperationResult<ElementSearchResult>
                     {
                         Success = true,
-                        Data = cachedResult
+                        Data = cachedSearchResult
                     };
                 }
             }
@@ -231,19 +257,26 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                         _cacheService.AddToCache(cacheKey, elementList, TimeSpan.FromMinutes(cacheTimeoutMinutes));
                     }
                     
-                    return new OperationResult
+                    var searchResult = new ElementSearchResult
+                    {
+                        Elements = elementList,
+                        SearchCriteria = CreateSearchCriteria(request.Parameters)
+                    };
+                    
+                    return new OperationResult<ElementSearchResult>
                     {
                         Success = true,
-                        Data = elementList
+                        Data = searchResult
                     };
                 }, cts.Token);
             }
             catch (OperationCanceledException)
             {
-                return new OperationResult
+                return new OperationResult<ElementSearchResult>
                 {
                     Success = false,
-                    Error = $"Search operation timed out after {timeoutMs}ms"
+                    Error = $"Search operation timed out after {timeoutMs}ms",
+                    Data = new ElementSearchResult()
                 };
             }
         }
@@ -444,6 +477,33 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     Y = element.Cached.BoundingRectangle.Y,
                     Width = element.Cached.BoundingRectangle.Width,
                     Height = element.Cached.BoundingRectangle.Height
+                }
+            };
+        }
+
+        private SearchCriteria CreateSearchCriteria(Dictionary<string, object>? parameters)
+        {
+            if (parameters == null) return new SearchCriteria();
+
+            return new SearchCriteria
+            {
+                SearchText = parameters.GetValueOrDefault("searchText")?.ToString(),
+                ControlType = parameters.GetValueOrDefault("controlType")?.ToString(),
+                WindowTitle = parameters.GetValueOrDefault("windowTitle")?.ToString(),
+                ProcessId = parameters.GetValueOrDefault("processId")?.ToString() is string pidStr && 
+                    int.TryParse(pidStr, out var pid) ? pid : null,
+                Scope = parameters.GetValueOrDefault("scope")?.ToString(),
+                PatternType = parameters.GetValueOrDefault("patternType")?.ToString(),
+                AdditionalCriteria = new Dictionary<string, object>
+                {
+                    ["className"] = parameters.GetValueOrDefault("className")?.ToString() ?? "",
+                    ["helpText"] = parameters.GetValueOrDefault("helpText")?.ToString() ?? "",
+                    ["acceleratorKey"] = parameters.GetValueOrDefault("acceleratorKey")?.ToString() ?? "",
+                    ["accessKey"] = parameters.GetValueOrDefault("accessKey")?.ToString() ?? "",
+                    ["searchMethod"] = parameters.GetValueOrDefault("searchMethod")?.ToString() ?? "",
+                    ["conditionOperator"] = parameters.GetValueOrDefault("conditionOperator")?.ToString() ?? "",
+                    ["excludeText"] = parameters.GetValueOrDefault("excludeText")?.ToString() ?? "",
+                    ["excludeControlType"] = parameters.GetValueOrDefault("excludeControlType")?.ToString() ?? ""
                 }
             };
         }

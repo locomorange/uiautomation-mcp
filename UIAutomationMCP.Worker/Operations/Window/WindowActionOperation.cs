@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -14,7 +15,7 @@ namespace UIAutomationMCP.Worker.Operations.Window
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<WindowActionResult>> ExecuteAsync(WorkerRequest request)
         {
             var action = request.Parameters?.GetValueOrDefault("action")?.ToString() ?? "";
             var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
@@ -23,31 +24,97 @@ namespace UIAutomationMCP.Worker.Operations.Window
 
             var window = _elementFinderService.GetSearchRoot(windowTitle, processId);
             if (window == null)
-                return Task.FromResult(new OperationResult { Success = false, Error = "Window not found" });
+                return Task.FromResult(new OperationResult<WindowActionResult> 
+                { 
+                    Success = false, 
+                    Error = "Window not found",
+                    Data = new WindowActionResult { ActionName = action }
+                });
 
             if (!window.TryGetCurrentPattern(WindowPattern.Pattern, out var pattern) || pattern is not WindowPattern windowPattern)
-                return Task.FromResult(new OperationResult { Success = false, Error = "WindowPattern not supported" });
+                return Task.FromResult(new OperationResult<WindowActionResult> 
+                { 
+                    Success = false, 
+                    Error = "WindowPattern not supported",
+                    Data = new WindowActionResult { ActionName = action }
+                });
 
-            switch (action.ToLowerInvariant())
+            try
             {
-                case "minimize":
-                    windowPattern.SetWindowVisualState(WindowVisualState.Minimized);
-                    break;
-                case "maximize":
-                    windowPattern.SetWindowVisualState(WindowVisualState.Maximized);
-                    break;
-                case "normal":
-                case "restore":
-                    windowPattern.SetWindowVisualState(WindowVisualState.Normal);
-                    break;
-                case "close":
-                    windowPattern.Close();
-                    break;
-                default:
-                    return Task.FromResult(new OperationResult { Success = false, Error = $"Unsupported window action: {action}" });
-            }
+                // Get the current state before action
+                var previousState = windowPattern.Current.WindowVisualState.ToString();
+                var windowHandle = window.Current.NativeWindowHandle;
+                
+                var result = new WindowActionResult
+                {
+                    ActionName = action,
+                    WindowTitle = window.Current.Name,
+                    WindowHandle = windowHandle,
+                    PreviousState = previousState,
+                    Completed = true,
+                    ExecutedAt = DateTime.UtcNow
+                };
 
-            return Task.FromResult(new OperationResult { Success = true, Data = $"Window action '{action}' performed successfully" });
+                switch (action.ToLowerInvariant())
+                {
+                    case "minimize":
+                        windowPattern.SetWindowVisualState(WindowVisualState.Minimized);
+                        result.CurrentState = "Minimized";
+                        break;
+                    case "maximize":
+                        windowPattern.SetWindowVisualState(WindowVisualState.Maximized);
+                        result.CurrentState = "Maximized";
+                        break;
+                    case "normal":
+                    case "restore":
+                        windowPattern.SetWindowVisualState(WindowVisualState.Normal);
+                        result.CurrentState = "Normal";
+                        break;
+                    case "close":
+                        windowPattern.Close();
+                        result.CurrentState = "Closed";
+                        break;
+                    default:
+                        return Task.FromResult(new OperationResult<WindowActionResult> 
+                        { 
+                            Success = false, 
+                            Error = $"Unsupported window action: {action}",
+                            Data = result
+                        });
+                }
+
+                return Task.FromResult(new OperationResult<WindowActionResult> 
+                { 
+                    Success = true, 
+                    Data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return Task.FromResult(new OperationResult<WindowActionResult> 
+                { 
+                    Success = false, 
+                    Error = $"Failed to perform window action: {ex.Message}",
+                    Data = new WindowActionResult 
+                    { 
+                        ActionName = action,
+                        WindowTitle = window.Current.Name,
+                        Completed = false
+                    }
+                });
+            }
+        }
+
+        Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = ExecuteAsync(request);
+            return Task.FromResult(new OperationResult
+            {
+                Success = typedResult.Result.Success,
+                Error = typedResult.Result.Error,
+                Data = typedResult.Result.Data,
+                ExecutionSeconds = typedResult.Result.ExecutionSeconds
+            });
         }
     }
 }

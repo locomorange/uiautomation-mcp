@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -14,7 +15,7 @@ namespace UIAutomationMCP.Worker.Operations.Value
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<ElementValueResult>> ExecuteAsync(WorkerRequest request)
         {
             var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
             var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
@@ -23,13 +24,44 @@ namespace UIAutomationMCP.Worker.Operations.Value
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element not found" });
+                return Task.FromResult(new OperationResult<ElementValueResult> 
+                { 
+                    Success = false, 
+                    Error = "Element not found",
+                    Data = new ElementValueResult()
+                });
 
             if (!element.TryGetCurrentPattern(ValuePattern.Pattern, out var pattern) || pattern is not ValuePattern valuePattern)
-                return Task.FromResult(new OperationResult { Success = false, Error = "ValuePattern not supported" });
+                return Task.FromResult(new OperationResult<ElementValueResult> 
+                { 
+                    Success = false, 
+                    Error = "ValuePattern not supported",
+                    Data = new ElementValueResult()
+                });
 
-            var value = valuePattern.Current.Value;
-            return Task.FromResult(new OperationResult { Success = true, Data = value });
+            var result = new ElementValueResult
+            {
+                Value = valuePattern.Current.Value ?? "",
+                IsReadOnly = valuePattern.Current.IsReadOnly
+            };
+            
+            return Task.FromResult(new OperationResult<ElementValueResult> 
+            { 
+                Success = true, 
+                Data = result
+            });
+        }
+
+        Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = ExecuteAsync(request);
+            return Task.FromResult(new OperationResult
+            {
+                Success = typedResult.Result.Success,
+                Error = typedResult.Result.Error,
+                Data = typedResult.Result.Data,
+                ExecutionSeconds = typedResult.Result.ExecutionSeconds
+            });
         }
     }
 }

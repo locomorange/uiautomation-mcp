@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -14,7 +15,7 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<ElementTreeResult>> ExecuteAsync(WorkerRequest request)
         {
             var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
             var processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
@@ -23,28 +24,56 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
                 int.TryParse(maxDepthStr, out var parsedMaxDepth) ? parsedMaxDepth : 3;
 
             var root = _elementFinderService.GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
-            var tree = BuildElementTree(root, maxDepth, 0);
+            var rootNode = BuildElementTree(root, maxDepth, 0);
+            
+            var result = new ElementTreeResult
+            {
+                RootNode = rootNode,
+                TotalElements = CountElements(rootNode),
+                MaxDepth = GetMaxDepth(rootNode)
+            };
 
-            return Task.FromResult(new OperationResult { Success = true, Data = tree });
+            return Task.FromResult(new OperationResult<ElementTreeResult> 
+            { 
+                Success = true, 
+                Data = result 
+            });
         }
 
-        private ElementTreeNode BuildElementTree(AutomationElement element, int maxDepth, int currentDepth)
+        Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
         {
-            var node = new ElementTreeNode
+            var typedResult = ExecuteAsync(request);
+            return Task.FromResult(new OperationResult
             {
-                AutomationId = element.Current.AutomationId,
-                Name = element.Current.Name,
-                ControlType = element.Current.ControlType.LocalizedControlType,
-                IsEnabled = element.Current.IsEnabled,
-                ProcessId = element.Current.ProcessId,
-                BoundingRectangle = new BoundingRectangle
+                Success = typedResult.Result.Success,
+                Error = typedResult.Result.Error,
+                Data = typedResult.Result.Data,
+                ExecutionSeconds = typedResult.Result.ExecutionSeconds
+            });
+        }
+
+        private UIAutomationMCP.Shared.Results.TreeNode BuildElementTree(AutomationElement element, int maxDepth, int currentDepth)
+        {
+            var node = new UIAutomationMCP.Shared.Results.TreeNode
+            {
+                Element = new ElementInfo
                 {
-                    X = element.Current.BoundingRectangle.X,
-                    Y = element.Current.BoundingRectangle.Y,
-                    Width = element.Current.BoundingRectangle.Width,
-                    Height = element.Current.BoundingRectangle.Height
+                    AutomationId = element.Current.AutomationId,
+                    Name = element.Current.Name,
+                    ControlType = element.Current.ControlType.LocalizedControlType,
+                    ClassName = element.Current.ClassName,
+                    IsEnabled = element.Current.IsEnabled,
+                    IsVisible = !element.Current.IsOffscreen,
+                    ProcessId = element.Current.ProcessId,
+                    BoundingRectangle = new BoundingRectangle
+                    {
+                        X = element.Current.BoundingRectangle.X,
+                        Y = element.Current.BoundingRectangle.Y,
+                        Width = element.Current.BoundingRectangle.Width,
+                        Height = element.Current.BoundingRectangle.Height
+                    }
                 },
-                Children = new List<ElementTreeNode>()
+                Depth = currentDepth
             };
 
             if (currentDepth < maxDepth)
@@ -61,16 +90,30 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
 
             return node;
         }
-    }
 
-    public class ElementTreeNode
-    {
-        public string AutomationId { get; set; } = "";
-        public string Name { get; set; } = "";
-        public string ControlType { get; set; } = "";
-        public bool IsEnabled { get; set; }
-        public int ProcessId { get; set; }
-        public BoundingRectangle BoundingRectangle { get; set; } = new();
-        public List<ElementTreeNode> Children { get; set; } = new();
+        private int CountElements(UIAutomationMCP.Shared.Results.TreeNode node)
+        {
+            int count = 1; // Count this node
+            foreach (var child in node.Children)
+            {
+                count += CountElements(child);
+            }
+            return count;
+        }
+
+        private int GetMaxDepth(UIAutomationMCP.Shared.Results.TreeNode node)
+        {
+            if (node.Children.Count == 0)
+                return node.Depth;
+
+            int maxChildDepth = node.Depth;
+            foreach (var child in node.Children)
+            {
+                int childDepth = GetMaxDepth(child);
+                if (childDepth > maxChildDepth)
+                    maxChildDepth = childDepth;
+            }
+            return maxChildDepth;
+        }
     }
 }

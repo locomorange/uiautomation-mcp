@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 using UIAutomationMCP.Worker.Services;
@@ -15,7 +16,7 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<TreeNavigationResult>> ExecuteAsync(WorkerRequest request)
         {
             var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
             var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
@@ -24,22 +25,33 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
-                return Task.FromResult(new OperationResult { Success = false, Error = $"Element '{elementId}' not found" });
+                return Task.FromResult(new OperationResult<TreeNavigationResult> 
+                { 
+                    Success = false, 
+                    Error = $"Element '{elementId}' not found",
+                    Data = new TreeNavigationResult { NavigationType = "Children" }
+                });
 
             var children = element.FindAll(TreeScope.Children, Condition.TrueCondition);
-            var childrenInfo = new List<object>();
+            var result = new TreeNavigationResult
+            {
+                NavigationType = "Children"
+            };
 
             foreach (AutomationElement child in children)
             {
                 if (child != null)
                 {
-                    childrenInfo.Add(new
+                    result.Elements.Add(new ElementInfo
                     {
                         AutomationId = child.Current.AutomationId ?? "",
                         Name = child.Current.Name ?? "",
                         ControlType = child.Current.ControlType.LocalizedControlType,
+                        ClassName = child.Current.ClassName,
                         IsEnabled = child.Current.IsEnabled,
-                        BoundingRectangle = new
+                        IsVisible = !child.Current.IsOffscreen,
+                        ProcessId = child.Current.ProcessId,
+                        BoundingRectangle = new BoundingRectangle
                         {
                             X = child.Current.BoundingRectangle.X,
                             Y = child.Current.BoundingRectangle.Y,
@@ -50,7 +62,23 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
                 }
             }
 
-            return Task.FromResult(new OperationResult { Success = true, Data = childrenInfo });
+            return Task.FromResult(new OperationResult<TreeNavigationResult> 
+            { 
+                Success = true, 
+                Data = result 
+            });
+        }
+
+        Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = ExecuteAsync(request);
+            return Task.FromResult(new OperationResult
+            {
+                Success = typedResult.Result.Success,
+                Error = typedResult.Result.Error,
+                Data = typedResult.Result.Data,
+                ExecutionSeconds = typedResult.Result.ExecutionSeconds
+            });
         }
     }
 }

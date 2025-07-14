@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -35,7 +36,25 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<ControlTypeSearchResult>> ExecuteAsync(WorkerRequest request)
+        {
+            var result = ExecuteInternalAsync(request);
+            return result;
+        }
+
+        Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = ExecuteAsync(request);
+            return Task.FromResult(new OperationResult
+            {
+                Success = typedResult.Result.Success,
+                Error = typedResult.Result.Error,
+                Data = typedResult.Result.Data,
+                ExecutionSeconds = typedResult.Result.ExecutionSeconds
+            });
+        }
+
+        private Task<OperationResult<ControlTypeSearchResult>> ExecuteInternalAsync(WorkerRequest request)
         {
             try
             {
@@ -49,13 +68,23 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
                     int.TryParse(maxResultsStr, out var parsedMaxResults) ? parsedMaxResults : 100;
 
                 if (string.IsNullOrEmpty(controlType))
-                    return Task.FromResult(new OperationResult { Success = false, Error = "ControlType parameter is required" });
+                    return Task.FromResult(new OperationResult<ControlTypeSearchResult> 
+                    { 
+                        Success = false, 
+                        Error = "ControlType parameter is required",
+                        Data = new ControlTypeSearchResult()
+                    });
 
                 var searchRoot = _elementFinderService.GetSearchRoot(windowTitle, processId) ?? AutomationElement.RootElement;
                 
                 var controlTypeObj = GetControlTypeFromString(controlType);
                 if (controlTypeObj == null)
-                    return Task.FromResult(new OperationResult { Success = false, Error = $"Unknown control type: {controlType}" });
+                    return Task.FromResult(new OperationResult<ControlTypeSearchResult> 
+                    { 
+                        Success = false, 
+                        Error = $"Unknown control type: {controlType}",
+                        Data = new ControlTypeSearchResult()
+                    });
 
                 var condition = new PropertyCondition(AutomationElement.ControlTypeProperty, controlTypeObj);
                 
@@ -68,22 +97,22 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
                 };
 
                 var elements = searchRoot.FindAll(treeScope, condition);
-                var results = new List<object>();
+                var results = new List<ElementInfo>();
 
                 var elementCount = Math.Min(elements.Count, maxResults);
                 for (int i = 0; i < elementCount; i++)
                 {
                     var element = elements[i];
-                    var elementInfo = new Dictionary<string, object>
+                    var elementInfo = new ElementInfo
                     {
-                        ["AutomationId"] = element.Current.AutomationId,
-                        ["Name"] = element.Current.Name,
-                        ["ControlType"] = element.Current.ControlType.LocalizedControlType,
-                        ["ClassName"] = element.Current.ClassName,
-                        ["IsEnabled"] = element.Current.IsEnabled,
-                        ["IsVisible"] = !element.Current.IsOffscreen,
-                        ["ProcessId"] = element.Current.ProcessId,
-                        ["BoundingRectangle"] = new
+                        AutomationId = element.Current.AutomationId,
+                        Name = element.Current.Name,
+                        ControlType = element.Current.ControlType.LocalizedControlType,
+                        ClassName = element.Current.ClassName,
+                        IsEnabled = element.Current.IsEnabled,
+                        IsVisible = !element.Current.IsOffscreen,
+                        ProcessId = element.Current.ProcessId,
+                        BoundingRectangle = new BoundingRectangle
                         {
                             X = element.Current.BoundingRectangle.X,
                             Y = element.Current.BoundingRectangle.Y,
@@ -99,7 +128,12 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
                             .Select(pattern => pattern.ProgrammaticName)
                             .ToArray();
 
-                        elementInfo["AvailablePatterns"] = availablePatterns;
+                        var availableActions = new Dictionary<string, string>();
+                        foreach (var pattern in availablePatterns)
+                        {
+                            availableActions[pattern] = "Pattern available";
+                        }
+                        elementInfo.AvailableActions = availableActions;
 
                         if (ControlTypePatterns.TryGetValue(controlType, out var expectedPatterns))
                         {
@@ -107,40 +141,64 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
                                 .Where(p => !availablePatterns.Any(ap => ap.Contains(p)))
                                 .ToArray();
 
-                            elementInfo["PatternValidation"] = new
+                            if (missingRequired.Length > 0)
                             {
-                                IsValid = missingRequired.Length == 0,
-                                ExpectedRequired = expectedPatterns.RequiredPatterns,
-                                ExpectedOptional = expectedPatterns.OptionalPatterns,
-                                MissingRequired = missingRequired,
-                                ValidationStatus = missingRequired.Length == 0 ? "Valid" : $"Missing {missingRequired.Length} required pattern(s)"
-                            };
+                                elementInfo.HelpText = $"Missing {missingRequired.Length} required pattern(s): {string.Join(", ", missingRequired)}";
+                            }
+                            else
+                            {
+                                elementInfo.HelpText = "All required patterns available";
+                            }
                         }
                     }
 
                     results.Add(elementInfo);
                 }
 
-                var searchSummary = new
+                var searchSummary = new ControlTypeSearchSummary
                 {
                     ControlType = controlType,
-                    SearchScope = scope,
-                    WindowTitle = windowTitle,
+                    Scope = scope,
                     TotalFound = elements.Count,
-                    Returned = results.Count,
+                    ValidElements = validatePatterns ? results.Count(r => string.IsNullOrEmpty(r.HelpText) || r.HelpText.Contains("All required")) : results.Count,
+                    InvalidElements = validatePatterns ? results.Count(r => !string.IsNullOrEmpty(r.HelpText) && r.HelpText.Contains("Missing")) : 0,
                     MaxResults = maxResults,
-                    ValidationEnabled = validatePatterns
+                    ValidationEnabled = validatePatterns,
+                    SearchDuration = TimeSpan.Zero
                 };
 
-                return Task.FromResult(new OperationResult 
+                var searchResult = new ControlTypeSearchResult
+                {
+                    Elements = results,
+                    SearchSummary = searchSummary,
+                    SearchCriteria = new SearchCriteria
+                    {
+                        ControlType = controlType,
+                        WindowTitle = windowTitle,
+                        ProcessId = processId > 0 ? processId : null,
+                        Scope = scope,
+                        AdditionalCriteria = new Dictionary<string, object>
+                        {
+                            ["validatePatterns"] = validatePatterns,
+                            ["maxResults"] = maxResults
+                        }
+                    }
+                };
+
+                return Task.FromResult(new OperationResult<ControlTypeSearchResult> 
                 { 
                     Success = true, 
-                    Data = new { SearchSummary = searchSummary, Elements = results }
+                    Data = searchResult
                 });
             }
             catch (Exception ex)
             {
-                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+                return Task.FromResult(new OperationResult<ControlTypeSearchResult> 
+                { 
+                    Success = false, 
+                    Error = ex.Message,
+                    Data = new ControlTypeSearchResult()
+                });
             }
         }
 

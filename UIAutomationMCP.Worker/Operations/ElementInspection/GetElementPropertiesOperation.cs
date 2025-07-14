@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -14,7 +15,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementInspection
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<UIAutomationMCP.Shared.Results.ElementPropertiesResult>> ExecuteAsync(WorkerRequest request)
         {
             var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
             var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
@@ -23,38 +24,70 @@ namespace UIAutomationMCP.Worker.Operations.ElementInspection
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element not found" });
+                return Task.FromResult(new OperationResult<UIAutomationMCP.Shared.Results.ElementPropertiesResult> 
+                { 
+                    Success = false, 
+                    Error = "Element not found",
+                    Data = new UIAutomationMCP.Shared.Results.ElementPropertiesResult()
+                });
 
-            var properties = new Dictionary<string, object>
+            var result = new UIAutomationMCP.Shared.Results.ElementPropertiesResult
             {
-                ["AutomationId"] = element.Current.AutomationId,
-                ["Name"] = element.Current.Name,
-                ["ControlType"] = element.Current.ControlType.LocalizedControlType,
-                ["LocalizedControlType"] = element.Current.LocalizedControlType,
-                ["IsEnabled"] = element.Current.IsEnabled,
-                ["IsVisible"] = !element.Current.IsOffscreen,
-                ["HasKeyboardFocus"] = element.Current.HasKeyboardFocus,
-                ["IsKeyboardFocusable"] = element.Current.IsKeyboardFocusable,
-                ["IsContentElement"] = element.Current.IsContentElement,
-                ["IsControlElement"] = element.Current.IsControlElement,
-                ["ClassName"] = element.Current.ClassName,
-                ["ProcessId"] = element.Current.ProcessId,
-                ["FrameworkId"] = element.Current.FrameworkId,
-                ["AcceleratorKey"] = element.Current.AcceleratorKey,
-                ["AccessKey"] = element.Current.AccessKey,
-                ["HelpText"] = element.Current.HelpText,
-                ["ItemStatus"] = element.Current.ItemStatus,
-                ["ItemType"] = element.Current.ItemType,
-                ["BoundingRectangle"] = new BoundingRectangle
+                BasicInfo = new ElementInfo
                 {
-                    X = element.Current.BoundingRectangle.X,
-                    Y = element.Current.BoundingRectangle.Y,
-                    Width = element.Current.BoundingRectangle.Width,
-                    Height = element.Current.BoundingRectangle.Height
-                }
+                    AutomationId = element.Current.AutomationId,
+                    Name = element.Current.Name,
+                    ControlType = element.Current.ControlType.LocalizedControlType,
+                    ClassName = element.Current.ClassName,
+                    IsEnabled = element.Current.IsEnabled,
+                    IsVisible = !element.Current.IsOffscreen,
+                    ProcessId = element.Current.ProcessId,
+                    BoundingRectangle = new BoundingRectangle
+                    {
+                        X = element.Current.BoundingRectangle.X,
+                        Y = element.Current.BoundingRectangle.Y,
+                        Width = element.Current.BoundingRectangle.Width,
+                        Height = element.Current.BoundingRectangle.Height
+                    },
+                    HelpText = element.Current.HelpText
+                },
+                ExtendedProperties = new Dictionary<string, object>
+                {
+                    ["LocalizedControlType"] = element.Current.LocalizedControlType,
+                    ["HasKeyboardFocus"] = element.Current.HasKeyboardFocus,
+                    ["IsKeyboardFocusable"] = element.Current.IsKeyboardFocusable,
+                    ["IsContentElement"] = element.Current.IsContentElement,
+                    ["IsControlElement"] = element.Current.IsControlElement,
+                    ["AcceleratorKey"] = element.Current.AcceleratorKey,
+                    ["AccessKey"] = element.Current.AccessKey,
+                    ["ItemStatus"] = element.Current.ItemStatus,
+                    ["ItemType"] = element.Current.ItemType
+                },
+                FrameworkId = element.Current.FrameworkId,
+                RuntimeId = element.GetRuntimeId()
             };
 
-            return Task.FromResult(new OperationResult { Success = true, Data = properties });
+            // Get supported patterns
+            var patterns = element.GetSupportedPatterns();
+            result.SupportedPatterns = patterns.Select(p => p.ProgrammaticName).ToList();
+
+            return Task.FromResult(new OperationResult<UIAutomationMCP.Shared.Results.ElementPropertiesResult> 
+            { 
+                Success = true, 
+                Data = result 
+            });
+        }
+
+        Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = ExecuteAsync(request);
+            return Task.FromResult(new OperationResult
+            {
+                Success = typedResult.Result.Success,
+                Error = typedResult.Result.Error,
+                Data = typedResult.Result.Data,
+                ExecutionSeconds = typedResult.Result.ExecutionSeconds
+            });
         }
     }
 }

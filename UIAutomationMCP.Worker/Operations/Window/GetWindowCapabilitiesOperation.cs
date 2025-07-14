@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -14,7 +15,7 @@ namespace UIAutomationMCP.Worker.Operations.Window
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<WindowCapabilitiesResult>> ExecuteAsync(WorkerRequest request)
         {
             var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
             var processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
@@ -24,29 +25,58 @@ namespace UIAutomationMCP.Worker.Operations.Window
             {
                 var window = _elementFinderService.GetSearchRoot(windowTitle, processId);
                 if (window == null)
-                    return Task.FromResult(new OperationResult { Success = false, Error = "Window not found" });
+                    return Task.FromResult(new OperationResult<WindowCapabilitiesResult> 
+                    { 
+                        Success = false, 
+                        Error = "Window not found",
+                        Data = new WindowCapabilitiesResult()
+                    });
 
                 if (!window.TryGetCurrentPattern(WindowPattern.Pattern, out var pattern) || pattern is not WindowPattern windowPattern)
-                    return Task.FromResult(new OperationResult { Success = false, Error = "WindowPattern not supported" });
+                    return Task.FromResult(new OperationResult<WindowCapabilitiesResult> 
+                    { 
+                        Success = false, 
+                        Error = "WindowPattern not supported",
+                        Data = new WindowCapabilitiesResult()
+                    });
 
-                var capabilities = new Dictionary<string, object>
+                var result = new WindowCapabilitiesResult
                 {
-                    ["Maximizable"] = windowPattern.Current.CanMaximize,
-                    ["Minimizable"] = windowPattern.Current.CanMinimize,
-                    ["CanMaximize"] = windowPattern.Current.CanMaximize,
-                    ["CanMinimize"] = windowPattern.Current.CanMinimize,
-                    ["IsModal"] = windowPattern.Current.IsModal,
-                    ["IsTopmost"] = windowPattern.Current.IsTopmost,
-                    ["WindowVisualState"] = windowPattern.Current.WindowVisualState.ToString(),
-                    ["WindowInteractionState"] = windowPattern.Current.WindowInteractionState.ToString()
+                    CanMaximize = windowPattern.Current.CanMaximize,
+                    CanMinimize = windowPattern.Current.CanMinimize,
+                    IsModal = windowPattern.Current.IsModal,
+                    IsTopmost = windowPattern.Current.IsTopmost,
+                    WindowVisualState = windowPattern.Current.WindowVisualState.ToString(),
+                    WindowInteractionState = windowPattern.Current.WindowInteractionState.ToString()
                 };
 
-                return Task.FromResult(new OperationResult { Success = true, Data = capabilities });
+                return Task.FromResult(new OperationResult<WindowCapabilitiesResult> 
+                { 
+                    Success = true, 
+                    Data = result 
+                });
             }
             catch (Exception ex)
             {
-                return Task.FromResult(new OperationResult { Success = false, Error = $"Error getting window capabilities: {ex.Message}" });
+                return Task.FromResult(new OperationResult<WindowCapabilitiesResult> 
+                { 
+                    Success = false, 
+                    Error = $"Error getting window capabilities: {ex.Message}",
+                    Data = new WindowCapabilitiesResult()
+                });
             }
+        }
+
+        Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = ExecuteAsync(request);
+            return Task.FromResult(new OperationResult
+            {
+                Success = typedResult.Result.Success,
+                Error = typedResult.Result.Error,
+                Data = typedResult.Result.Data,
+                ExecutionSeconds = typedResult.Result.ExecutionSeconds
+            });
         }
     }
 }
