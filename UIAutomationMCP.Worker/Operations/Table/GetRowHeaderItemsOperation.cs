@@ -34,8 +34,15 @@ namespace UIAutomationMCP.Worker.Operations.Table
             if (element == null)
                 return Task.FromResult(new OperationResult<ElementSearchResult> { Success = false, Error = "Element not found" });
 
-            if (!element.TryGetCurrentPattern(TableItemPattern.Pattern, out var pattern) || pattern is not TableItemPattern tableItemPattern)
+            TableItemPattern tableItemPattern;
+            try
+            {
+                tableItemPattern = (TableItemPattern)element.GetCurrentPattern(TableItemPattern.Pattern);
+            }
+            catch (InvalidOperationException)
+            {
                 return Task.FromResult(new OperationResult<ElementSearchResult> { Success = false, Error = "TableItemPattern not supported" });
+            }
 
             try
             {

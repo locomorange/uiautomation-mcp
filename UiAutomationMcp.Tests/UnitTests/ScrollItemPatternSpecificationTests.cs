@@ -1,7 +1,10 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Options;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 using UIAutomationMCP.Worker.Operations.Layout;
@@ -19,13 +22,16 @@ namespace UiAutomationMcp.Tests.UnitTests
     {
         private readonly ITestOutputHelper _output;
         private readonly Mock<ElementFinderService> _mockElementFinder;
+        private readonly Mock<IOptions<UIAutomationOptions>> _mockOptions;
         private readonly ScrollElementIntoViewOperation _operation;
 
         public ScrollItemPatternSpecificationTests(ITestOutputHelper output)
         {
             _output = output;
             _mockElementFinder = new Mock<ElementFinderService>(Mock.Of<ILogger<ElementFinderService>>());
-            _operation = new ScrollElementIntoViewOperation(_mockElementFinder.Object);
+            _mockOptions = new Mock<IOptions<UIAutomationOptions>>();
+            _mockOptions.Setup(x => x.Value).Returns(new UIAutomationOptions());
+            _operation = new ScrollElementIntoViewOperation(_mockElementFinder.Object, _mockOptions.Object);
         }
 
         #region Microsoft ScrollItemPattern Specification Compliance Tests
@@ -56,19 +62,18 @@ namespace UiAutomationMcp.Tests.UnitTests
                 .Returns(mockElement.Object);
 
             mockElement
-                .Setup(x => x.TryGetCurrentPattern(ScrollItemPattern.Pattern, out It.Ref<object>.IsAny))
-                .Returns((AutomationPattern pattern, out object patternObject) =>
-                {
-                    patternObject = mockScrollItemPattern.Object;
-                    return true;
-                });
+                .Setup(x => x.GetCurrentPattern(ScrollItemPattern.Pattern))
+                .Returns(mockScrollItemPattern.Object);
 
             // Act
             var result = await _operation.ExecuteAsync(request);
 
             // Assert - Microsoft仕様準拠確認
             Assert.True(result.Success);
-            Assert.Equal("Element scrolled into view successfully", result.Data);
+            Assert.IsType<ScrollActionResult>(result.Data);
+            var scrollResult = (ScrollActionResult)result.Data;
+            Assert.True(scrollResult.Completed);
+            Assert.Equal("ScrollIntoView", scrollResult.ActionName);
             
             // ScrollIntoView()が正確に1回呼ばれることを確認（Microsoft仕様）
             mockScrollItemPattern.Verify(x => x.ScrollIntoView(), Times.Once);
@@ -102,12 +107,8 @@ namespace UiAutomationMcp.Tests.UnitTests
                 .Returns(mockElement.Object);
 
             mockElement
-                .Setup(x => x.TryGetCurrentPattern(ScrollItemPattern.Pattern, out It.Ref<object>.IsAny))
-                .Returns((AutomationPattern pattern, out object patternObject) =>
-                {
-                    patternObject = mockScrollItemPattern.Object;
-                    return true;
-                });
+                .Setup(x => x.GetCurrentPattern(ScrollItemPattern.Pattern))
+                .Returns(mockScrollItemPattern.Object);
 
             // Microsoft仕様：スクロール不可能な場合のInvalidOperationException
             mockScrollItemPattern
@@ -158,12 +159,8 @@ namespace UiAutomationMcp.Tests.UnitTests
                 .Returns(mockElement.Object);
 
             mockElement
-                .Setup(x => x.TryGetCurrentPattern(ScrollItemPattern.Pattern, out It.Ref<object>.IsAny))
-                .Returns((AutomationPattern pattern, out object patternObject) =>
-                {
-                    patternObject = mockScrollItemPattern.Object;
-                    return true;
-                });
+                .Setup(x => x.GetCurrentPattern(ScrollItemPattern.Pattern))
+                .Returns(mockScrollItemPattern.Object);
 
             // Act
             var result = await _operation.ExecuteAsync(request);
@@ -204,12 +201,8 @@ namespace UiAutomationMcp.Tests.UnitTests
                 .Returns(mockElement.Object);
 
             mockElement
-                .Setup(x => x.TryGetCurrentPattern(ScrollItemPattern.Pattern, out It.Ref<object>.IsAny))
-                .Returns((AutomationPattern pattern, out object patternObject) =>
-                {
-                    patternObject = mockScrollItemPattern.Object;
-                    return true;
-                });
+                .Setup(x => x.GetCurrentPattern(ScrollItemPattern.Pattern))
+                .Returns(mockScrollItemPattern.Object);
 
             // Act
             var result = await _operation.ExecuteAsync(request);
@@ -410,12 +403,8 @@ namespace UiAutomationMcp.Tests.UnitTests
                 .Returns(mockElement.Object);
 
             mockElement
-                .Setup(x => x.TryGetCurrentPattern(ScrollItemPattern.Pattern, out It.Ref<object>.IsAny))
-                .Returns((AutomationPattern pattern, out object patternObject) =>
-                {
-                    patternObject = mockScrollItemPattern.Object;
-                    return true;
-                });
+                .Setup(x => x.GetCurrentPattern(ScrollItemPattern.Pattern))
+                .Returns(mockScrollItemPattern.Object);
 
             // メモリ不足をシミュレート
             mockScrollItemPattern

@@ -20,7 +20,7 @@ namespace UIAutomationMCP.Worker.Operations.Grid
             _options = options;
         }
 
-        public async Task<OperationResult<GridItemResult>> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<GridItemResult>> ExecuteAsync(WorkerRequest request)
         {
             var result = new GridItemResult();
             
@@ -28,7 +28,7 @@ namespace UIAutomationMCP.Worker.Operations.Grid
             {
                 var typedRequest = request.GetTypedRequest<GetGridItemRequest>(_options);
                 if (typedRequest == null)
-                    return new OperationResult<GridItemResult> { Success = false, Error = "Invalid request format", Data = result };
+                    return Task.FromResult(new OperationResult<GridItemResult> { Success = false, Error = "Invalid request format", Data = result });
                 
                 var elementId = typedRequest.ElementId;
                 var windowTitle = typedRequest.WindowTitle;
@@ -38,14 +38,14 @@ namespace UIAutomationMCP.Worker.Operations.Grid
 
                 var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
                 if (element == null)
-                    return new OperationResult<GridItemResult> { Success = false, Error = "Element not found", Data = result };
+                    return Task.FromResult(new OperationResult<GridItemResult> { Success = false, Error = "Element not found", Data = result });
 
                 if (!element.TryGetCurrentPattern(GridPattern.Pattern, out var pattern) || pattern is not GridPattern gridPattern)
-                    return new OperationResult<GridItemResult> { Success = false, Error = "GridPattern not supported", Data = result };
+                    return Task.FromResult(new OperationResult<GridItemResult> { Success = false, Error = "GridPattern not supported", Data = result });
 
                 var gridItem = gridPattern.GetItem(row, column);
                 if (gridItem == null)
-                    return new OperationResult<GridItemResult> { Success = false, Error = "Grid item not found", Data = result };
+                    return Task.FromResult(new OperationResult<GridItemResult> { Success = false, Error = "Grid item not found", Data = result });
 
                 result.Row = row;
                 result.Column = column;
@@ -64,11 +64,11 @@ namespace UIAutomationMCP.Worker.Operations.Grid
                     }
                 };
 
-                return new OperationResult<GridItemResult> { Success = true, Data = result };
+                return Task.FromResult(new OperationResult<GridItemResult> { Success = true, Data = result });
             }
             catch (Exception ex)
             {
-                return new OperationResult<GridItemResult> { Success = false, Error = $"Error getting grid item: {ex.Message}", Data = result };
+                return Task.FromResult(new OperationResult<GridItemResult> { Success = false, Error = $"Error getting grid item: {ex.Message}", Data = result });
             }
         }
 

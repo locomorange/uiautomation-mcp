@@ -20,7 +20,7 @@ namespace UIAutomationMCP.Worker.Operations.Table
             _options = options;
         }
 
-        public async Task<OperationResult<BooleanResult>> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<BooleanResult>> ExecuteAsync(WorkerRequest request)
         {
             var result = new BooleanResult();
             
@@ -39,27 +39,32 @@ namespace UIAutomationMCP.Worker.Operations.Table
                 {
                     result.Value = false;
                     result.Description = "Element not found";
-                    return new OperationResult<BooleanResult> { Success = false, Error = "Element not found", Data = result };
+                    return Task.FromResult(new OperationResult<BooleanResult> { Success = false, Error = "Element not found", Data = result });
                 }
 
-                if (!element.TryGetCurrentPattern(TablePattern.Pattern, out var pattern) || pattern is not TablePattern tablePattern)
+                TablePattern tablePattern;
+                try
+                {
+                    tablePattern = (TablePattern)element.GetCurrentPattern(TablePattern.Pattern);
+                }
+                catch (InvalidOperationException)
                 {
                     result.Value = false;
                     result.Description = "TablePattern not supported";
-                    return new OperationResult<BooleanResult> { Success = false, Error = "TablePattern not supported", Data = result };
+                    return Task.FromResult(new OperationResult<BooleanResult> { Success = false, Error = "TablePattern not supported", Data = result });
                 }
 
                 var rowOrColumnMajor = tablePattern.Current.RowOrColumnMajor;
                 result.Value = rowOrColumnMajor == RowOrColumnMajor.RowMajor;
                 result.Description = $"Table is {rowOrColumnMajor} (Row major: {result.Value})";
 
-                return new OperationResult<BooleanResult> { Success = true, Data = result };
+                return Task.FromResult(new OperationResult<BooleanResult> { Success = true, Data = result });
             }
             catch (Exception ex)
             {
                 result.Value = false;
                 result.Description = $"Error getting row/column major: {ex.Message}";
-                return new OperationResult<BooleanResult> { Success = false, Error = $"Error getting row/column major: {ex.Message}", Data = result };
+                return Task.FromResult(new OperationResult<BooleanResult> { Success = false, Error = $"Error getting row/column major: {ex.Message}", Data = result });
             }
         }
 

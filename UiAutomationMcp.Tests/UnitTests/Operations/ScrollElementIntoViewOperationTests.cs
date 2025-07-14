@@ -1,7 +1,9 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Options;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 using UIAutomationMCP.Worker.Operations.Layout;
@@ -9,6 +11,7 @@ using Xunit.Abstractions;
 
 namespace UiAutomationMcp.Tests.UnitTests.Operations
 {
+
     /// <summary>
     /// ScrollElementIntoViewOperation単体テスト - Microsoft ScrollItemPattern仕様準拠テスト
     /// Mock使用により安全にUIAutomation依存を回避
@@ -19,13 +22,16 @@ namespace UiAutomationMcp.Tests.UnitTests.Operations
     {
         private readonly ITestOutputHelper _output;
         private readonly Mock<ElementFinderService> _mockElementFinder;
+        private readonly Mock<IOptions<UIAutomationOptions>> _mockOptions;
         private readonly ScrollElementIntoViewOperation _operation;
 
         public ScrollElementIntoViewOperationTests(ITestOutputHelper output)
         {
             _output = output;
             _mockElementFinder = new Mock<ElementFinderService>(Mock.Of<ILogger<ElementFinderService>>());
-            _operation = new ScrollElementIntoViewOperation(_mockElementFinder.Object);
+            _mockOptions = new Mock<IOptions<UIAutomationOptions>>();
+            _mockOptions.Setup(x => x.Value).Returns(new UIAutomationOptions());
+            _operation = new ScrollElementIntoViewOperation(_mockElementFinder.Object, _mockOptions.Object);
         }
 
         #region Microsoft ScrollItemPattern Specification Tests
@@ -56,24 +62,23 @@ namespace UiAutomationMcp.Tests.UnitTests.Operations
                 .Returns(mockElement.Object);
 
             mockElement
-                .Setup(x => x.TryGetCurrentPattern(ScrollItemPattern.Pattern, out It.Ref<object>.IsAny))
-                .Returns((AutomationPattern pattern, out object patternObject) =>
-                {
-                    patternObject = mockScrollItemPattern.Object;
-                    return true;
-                });
+                .Setup(x => x.GetCurrentPattern(ScrollItemPattern.Pattern))
+                .Returns(mockScrollItemPattern.Object);
 
             // Act
             var result = await _operation.ExecuteAsync(request);
 
             // Assert
             Assert.True(result.Success);
-            Assert.Equal("Element scrolled into view successfully", result.Data);
+            Assert.IsType<ScrollActionResult>(result.Data);
+            var scrollResult = (ScrollActionResult)result.Data;
+            Assert.True(scrollResult.Completed);
+            Assert.Equal("ScrollIntoView", scrollResult.ActionName);
 
             // Verify ScrollIntoView was called
             mockScrollItemPattern.Verify(x => x.ScrollIntoView(), Times.Once);
             
-            _output.WriteLine($"ScrollElementIntoView executed successfully: {result.Data}");
+            _output.WriteLine($"ScrollElementIntoView executed successfully: {scrollResult.ActionName}");
         }
 
         /// <summary>
@@ -179,12 +184,8 @@ namespace UiAutomationMcp.Tests.UnitTests.Operations
                 .Returns(mockElement.Object);
 
             mockElement
-                .Setup(x => x.TryGetCurrentPattern(ScrollItemPattern.Pattern, out It.Ref<object>.IsAny))
-                .Returns((AutomationPattern pattern, out object patternObject) =>
-                {
-                    patternObject = mockScrollItemPattern.Object;
-                    return true;
-                });
+                .Setup(x => x.GetCurrentPattern(ScrollItemPattern.Pattern))
+                .Returns(mockScrollItemPattern.Object);
 
             // Act
             var result = await _operation.ExecuteAsync(request);
@@ -346,12 +347,8 @@ namespace UiAutomationMcp.Tests.UnitTests.Operations
                 .Returns(mockElement.Object);
 
             mockElement
-                .Setup(x => x.TryGetCurrentPattern(ScrollItemPattern.Pattern, out It.Ref<object>.IsAny))
-                .Returns((AutomationPattern pattern, out object patternObject) =>
-                {
-                    patternObject = mockScrollItemPattern.Object;
-                    return true;
-                });
+                .Setup(x => x.GetCurrentPattern(ScrollItemPattern.Pattern))
+                .Returns(mockScrollItemPattern.Object);
 
             // Act
             var result = await _operation.ExecuteAsync(request);

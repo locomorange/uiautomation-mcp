@@ -10,7 +10,9 @@ namespace UIAutomationMCP.Worker.Helpers
     {
         private readonly ILogger<ElementFinderService>? _logger;
 
-        public ElementFinderService(ILogger<ElementFinderService>? logger = null)
+        public ElementFinderService() : this(null) { }
+        
+        public ElementFinderService(ILogger<ElementFinderService>? logger)
         {
             _logger = logger;
         }

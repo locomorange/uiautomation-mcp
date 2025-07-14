@@ -1,4 +1,7 @@
+using Microsoft.Extensions.Options;
+using Moq;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Options;
 using UIAutomationMCP.Shared.Requests;
 using System.Text.Json;
 
@@ -10,6 +13,13 @@ namespace UiAutomationMcp.Tests.Requests
     [Collection("UIAutomationTestCollection")]
     public class TypedRequestTests
     {
+        private readonly Mock<IOptions<UIAutomationOptions>> _mockOptions;
+
+        public TypedRequestTests()
+        {
+            _mockOptions = new Mock<IOptions<UIAutomationOptions>>();
+            _mockOptions.Setup(x => x.Value).Returns(new UIAutomationOptions());
+        }
         [Fact]
         public void InvokeElementRequest_ShouldConvertToWorkerRequest()
         {
@@ -48,7 +58,7 @@ namespace UiAutomationMcp.Tests.Requests
             };
 
             // Act
-            var typedRequest = workerRequest.GetTypedRequest<InvokeElementRequest>();
+            var typedRequest = workerRequest.GetTypedRequest<InvokeElementRequest>(_mockOptions.Object);
 
             // Assert
             Assert.NotNull(typedRequest);
@@ -75,7 +85,7 @@ namespace UiAutomationMcp.Tests.Requests
             };
 
             // Act
-            var typedRequest = workerRequest.GetTypedRequestByOperation();
+            var typedRequest = workerRequest.GetTypedRequestByOperation(_mockOptions.Object);
 
             // Assert
             Assert.NotNull(typedRequest);
@@ -159,7 +169,7 @@ namespace UiAutomationMcp.Tests.Requests
 
             // Act
             var workerRequest = complexRequest.ToWorkerRequest();
-            var roundTrip = workerRequest.GetTypedRequest<FindElementsRequest>();
+            var roundTrip = workerRequest.GetTypedRequest<FindElementsRequest>(_mockOptions.Object);
 
             // Assert
             Assert.NotNull(roundTrip);
@@ -195,7 +205,7 @@ namespace UiAutomationMcp.Tests.Requests
             };
 
             // Act
-            var typedRequest = workerRequest.GetTypedRequestByOperation();
+            var typedRequest = workerRequest.GetTypedRequestByOperation(_mockOptions.Object);
 
             // Assert
             Assert.NotNull(typedRequest);
@@ -217,7 +227,7 @@ namespace UiAutomationMcp.Tests.Requests
             };
 
             // Act
-            var typedRequest = invalidRequest.GetTypedRequest<SetRangeValueRequest>();
+            var typedRequest = invalidRequest.GetTypedRequest<SetRangeValueRequest>(_mockOptions.Object);
 
             // Assert
             Assert.NotNull(typedRequest); // Deserialization will succeed but with default values

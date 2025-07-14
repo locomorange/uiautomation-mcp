@@ -20,7 +20,7 @@ namespace UIAutomationMCP.Worker.Operations.Grid
             _options = options;
         }
 
-        public async Task<OperationResult<ElementSearchResult>> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<ElementSearchResult>> ExecuteAsync(WorkerRequest request)
         {
             var result = new ElementSearchResult();
             
@@ -28,7 +28,7 @@ namespace UIAutomationMCP.Worker.Operations.Grid
             {
                 var typedRequest = request.GetTypedRequest<GetRowHeaderRequest>(_options);
                 if (typedRequest == null)
-                    return new OperationResult<ElementSearchResult> { Success = false, Error = "Invalid request format", Data = result };
+                    return Task.FromResult(new OperationResult<ElementSearchResult> { Success = false, Error = "Invalid request format", Data = result });
                 
                 var elementId = typedRequest.ElementId;
                 var windowTitle = typedRequest.WindowTitle;
@@ -37,19 +37,19 @@ namespace UIAutomationMCP.Worker.Operations.Grid
 
                 var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
                 if (element == null)
-                    return new OperationResult<ElementSearchResult> { Success = false, Error = "Element not found", Data = result };
+                    return Task.FromResult(new OperationResult<ElementSearchResult> { Success = false, Error = "Element not found", Data = result });
 
                 if (!element.TryGetCurrentPattern(GridPattern.Pattern, out var pattern) || pattern is not GridPattern gridPattern)
-                    return new OperationResult<ElementSearchResult> { Success = false, Error = "GridPattern not supported", Data = result };
+                    return Task.FromResult(new OperationResult<ElementSearchResult> { Success = false, Error = "GridPattern not supported", Data = result });
 
                 // Check if row is within bounds
                 if (row >= gridPattern.Current.RowCount)
-                    return new OperationResult<ElementSearchResult> { Success = false, Error = "Row index out of range", Data = result };
+                    return Task.FromResult(new OperationResult<ElementSearchResult> { Success = false, Error = "Row index out of range", Data = result });
 
                 // Try to get the first item in the specified row (assuming header is at column 0)
                 var headerElement = gridPattern.GetItem(row, 0);
                 if (headerElement == null)
-                    return new OperationResult<ElementSearchResult> { Success = false, Error = "No header element found at specified row", Data = result };
+                    return Task.FromResult(new OperationResult<ElementSearchResult> { Success = false, Error = "No header element found at specified row", Data = result });
 
                 var headerInfo = new ElementInfo
                 {
@@ -76,11 +76,11 @@ namespace UIAutomationMCP.Worker.Operations.Grid
                     }
                 };
 
-                return new OperationResult<ElementSearchResult> { Success = true, Data = result };
+                return Task.FromResult(new OperationResult<ElementSearchResult> { Success = true, Data = result });
             }
             catch (Exception ex)
             {
-                return new OperationResult<ElementSearchResult> { Success = false, Error = $"Error getting row header: {ex.Message}", Data = result };
+                return Task.FromResult(new OperationResult<ElementSearchResult> { Success = false, Error = $"Error getting row header: {ex.Message}", Data = result });
             }
         }
 

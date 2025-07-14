@@ -1,4 +1,6 @@
+using Microsoft.Extensions.Options;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Options;
 using UIAutomationMCP.Worker.Operations.Transform;
 using UIAutomationMCP.Worker.Helpers;
 using Moq;
@@ -17,11 +19,14 @@ namespace UIAutomationMCP.Tests.UnitTests
     {
         private readonly ITestOutputHelper _output;
         private readonly Mock<ElementFinderService> _mockElementFinder;
+        private readonly Mock<IOptions<UIAutomationOptions>> _mockOptions;
 
         public TransformPatternParameterValidationTests(ITestOutputHelper output)
         {
             _output = output;
-            _mockElementFinder = new Mock<ElementFinderService>();
+            _mockElementFinder = new Mock<ElementFinderService>(Mock.Of<ILogger<ElementFinderService>>());
+            _mockOptions = new Mock<IOptions<UIAutomationOptions>>();
+            _mockOptions.Setup(x => x.Value).Returns(new UIAutomationOptions());
         }
 
         public void Dispose()
@@ -128,7 +133,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task MoveElementOperation_WithInvalidElementId_ShouldReturnError(string? invalidElementId)
         {
             // Arrange
-            var operation = new MoveElementOperation(_mockElementFinder.Object);
+            var operation = new MoveElementOperation(_mockElementFinder.Object, _mockOptions.Object);
             var request = new WorkerRequest
             {
                 Parameters = new Dictionary<string, object>
@@ -164,7 +169,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task MoveElementOperation_WithInvalidCoordinates_ShouldUseDefaultValues(string xValue, string yValue)
         {
             // Arrange
-            var operation = new MoveElementOperation(_mockElementFinder.Object);
+            var operation = new MoveElementOperation(_mockElementFinder.Object, _mockOptions.Object);
             var request = new WorkerRequest
             {
                 Parameters = new Dictionary<string, object>
@@ -194,7 +199,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task MoveElementOperation_WithMissingCoordinateParameters_ShouldUseDefaults()
         {
             // Arrange
-            var operation = new MoveElementOperation(_mockElementFinder.Object);
+            var operation = new MoveElementOperation(_mockElementFinder.Object, _mockOptions.Object);
             var request = new WorkerRequest
             {
                 Parameters = new Dictionary<string, object>
@@ -232,7 +237,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ResizeElementOperation_WithInvalidDimensions_ShouldReturnError(string widthValue, string heightValue)
         {
             // Arrange
-            var operation = new ResizeElementOperation(_mockElementFinder.Object);
+            var operation = new ResizeElementOperation(_mockElementFinder.Object, _mockOptions.Object);
             var request = new WorkerRequest
             {
                 Parameters = new Dictionary<string, object>
@@ -268,7 +273,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ResizeElementOperation_WithInvalidDimensionFormat_ShouldUseDefaultValues(string widthValue, string heightValue)
         {
             // Arrange
-            var operation = new ResizeElementOperation(_mockElementFinder.Object);
+            var operation = new ResizeElementOperation(_mockElementFinder.Object, _mockOptions.Object);
             var request = new WorkerRequest
             {
                 Parameters = new Dictionary<string, object>
@@ -304,7 +309,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ResizeElementOperation_WithValidDimensions_ShouldAttemptOperation(double width, double height)
         {
             // Arrange
-            var operation = new ResizeElementOperation(_mockElementFinder.Object);
+            var operation = new ResizeElementOperation(_mockElementFinder.Object, _mockOptions.Object);
             var request = new WorkerRequest
             {
                 Parameters = new Dictionary<string, object>
@@ -420,7 +425,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Arrange
             var operations = new List<(string Name, Func<Task<OperationResult>> Execute)>
             {
-                ("GetTransformCapabilities", () => {
+                ("GetTransformCapabilities", async () => {
                     var op = new GetTransformCapabilitiesOperation(_mockElementFinder.Object);
                     var req = new WorkerRequest
                     {
@@ -431,10 +436,10 @@ namespace UIAutomationMCP.Tests.UnitTests
                             { "processId", processIdValue }
                         }
                     };
-                    return op.ExecuteAsync(req);
+                    return await ((IUIAutomationOperation)op).ExecuteAsync(req);
                 }),
-                ("MoveElement", () => {
-                    var op = new MoveElementOperation(_mockElementFinder.Object);
+                ("MoveElement", async () => {
+                    var op = new MoveElementOperation(_mockElementFinder.Object, _mockOptions.Object);
                     var req = new WorkerRequest
                     {
                         Parameters = new Dictionary<string, object>
@@ -446,10 +451,10 @@ namespace UIAutomationMCP.Tests.UnitTests
                             { "processId", processIdValue }
                         }
                     };
-                    return op.ExecuteAsync(req);
+                    return await ((IUIAutomationOperation)op).ExecuteAsync(req);
                 }),
-                ("ResizeElement", () => {
-                    var op = new ResizeElementOperation(_mockElementFinder.Object);
+                ("ResizeElement", async () => {
+                    var op = new ResizeElementOperation(_mockElementFinder.Object, _mockOptions.Object);
                     var req = new WorkerRequest
                     {
                         Parameters = new Dictionary<string, object>
@@ -461,9 +466,9 @@ namespace UIAutomationMCP.Tests.UnitTests
                             { "processId", processIdValue }
                         }
                     };
-                    return op.ExecuteAsync(req);
+                    return await ((IUIAutomationOperation)op).ExecuteAsync(req);
                 }),
-                ("RotateElement", () => {
+                ("RotateElement", async () => {
                     var op = new RotateElementOperation(_mockElementFinder.Object);
                     var req = new WorkerRequest
                     {
@@ -475,7 +480,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                             { "processId", processIdValue }
                         }
                     };
-                    return op.ExecuteAsync(req);
+                    return await ((IUIAutomationOperation)op).ExecuteAsync(req);
                 })
             };
 

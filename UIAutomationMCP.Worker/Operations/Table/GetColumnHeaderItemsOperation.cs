@@ -20,7 +20,7 @@ namespace UIAutomationMCP.Worker.Operations.Table
             _options = options;
         }
 
-        public async Task<OperationResult<ElementSearchResult>> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<ElementSearchResult>> ExecuteAsync(WorkerRequest request)
         {
             var result = new ElementSearchResult();
             
@@ -36,14 +36,21 @@ namespace UIAutomationMCP.Worker.Operations.Table
 
                 var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
                 if (element == null)
-                    return new OperationResult<ElementSearchResult> { Success = false, Error = "Element not found", Data = result };
+                    return Task.FromResult(new OperationResult<ElementSearchResult> { Success = false, Error = "Element not found", Data = result });
 
-                if (!element.TryGetCurrentPattern(TableItemPattern.Pattern, out var pattern) || pattern is not TableItemPattern tableItemPattern)
-                    return new OperationResult<ElementSearchResult> { Success = false, Error = "TableItemPattern not supported", Data = result };
+                TableItemPattern tableItemPattern;
+                try
+                {
+                    tableItemPattern = (TableItemPattern)element.GetCurrentPattern(TableItemPattern.Pattern);
+                }
+                catch (InvalidOperationException)
+                {
+                    return Task.FromResult(new OperationResult<ElementSearchResult> { Success = false, Error = "TableItemPattern not supported", Data = result });
+                }
 
                 var columnHeaderItems = tableItemPattern.Current.GetColumnHeaderItems();
                 if (columnHeaderItems == null || columnHeaderItems.Length == 0)
-                    return new OperationResult<ElementSearchResult> { Success = false, Error = "No column header items found", Data = result };
+                    return Task.FromResult(new OperationResult<ElementSearchResult> { Success = false, Error = "No column header items found", Data = result });
 
                 foreach (var header in columnHeaderItems)
                 {
@@ -73,11 +80,11 @@ namespace UIAutomationMCP.Worker.Operations.Table
                     }
                 };
 
-                return new OperationResult<ElementSearchResult> { Success = true, Data = result };
+                return Task.FromResult(new OperationResult<ElementSearchResult> { Success = true, Data = result });
             }
             catch (Exception ex)
             {
-                return new OperationResult<ElementSearchResult> { Success = false, Error = $"Error getting column header items: {ex.Message}", Data = result };
+                return Task.FromResult(new OperationResult<ElementSearchResult> { Success = false, Error = $"Error getting column header items: {ex.Message}", Data = result });
             }
         }
 

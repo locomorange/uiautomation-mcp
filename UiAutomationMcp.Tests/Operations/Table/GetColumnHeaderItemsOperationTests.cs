@@ -1,7 +1,10 @@
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Options;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Operations.Table;
 using UIAutomationMCP.Worker.Helpers;
 using Xunit;
@@ -19,13 +22,16 @@ namespace UIAutomationMCP.Tests.Operations.Table
     {
         private readonly ITestOutputHelper _output;
         private readonly Mock<ElementFinderService> _mockElementFinderService;
+        private readonly Mock<IOptions<UIAutomationOptions>> _mockOptions;
         private readonly GetColumnHeaderItemsOperation _operation;
 
         public GetColumnHeaderItemsOperationTests(ITestOutputHelper output)
         {
             _output = output;
-            _mockElementFinderService = new Mock<ElementFinderService>();
-            _operation = new GetColumnHeaderItemsOperation(_mockElementFinderService.Object);
+            _mockElementFinderService = new Mock<ElementFinderService>(Mock.Of<ILogger<ElementFinderService>>());
+            _mockOptions = new Mock<IOptions<UIAutomationOptions>>();
+            _mockOptions.Setup(x => x.Value).Returns(new UIAutomationOptions());
+            _operation = new GetColumnHeaderItemsOperation(_mockElementFinderService.Object, _mockOptions.Object);
         }
 
         public void Dispose()
@@ -66,13 +72,9 @@ namespace UIAutomationMCP.Tests.Operations.Table
             // TableItemPatternのGetColumnHeaderItems()メソッドをモック
             mockTableItemPattern.Setup(p => p.Current.GetColumnHeaderItems()).Returns(columnHeaders);
             
-            // AutomationElementのTryGetCurrentPatternをモック
-            mockElement.Setup(e => e.TryGetCurrentPattern(TableItemPattern.Pattern, out It.Ref<object>.IsAny))
-                      .Returns((AutomationPattern pattern, out object patternObject) =>
-                      {
-                          patternObject = mockTableItemPattern.Object;
-                          return true;
-                      });
+            // AutomationElementのGetCurrentPatternをモック
+            mockElement.Setup(e => e.GetCurrentPattern(TableItemPattern.Pattern))
+                      .Returns(mockTableItemPattern.Object);
 
             _mockElementFinderService.Setup(s => s.FindElementById("tableCell1", "TestWindow", 0))
                                    .Returns(mockElement.Object);
@@ -94,21 +96,22 @@ namespace UIAutomationMCP.Tests.Operations.Table
             Assert.True(result.Success);
             Assert.NotNull(result.Data);
             
-            var headerInfos = result.Data as List<Dictionary<string, object>>;
-            Assert.NotNull(headerInfos);
-            Assert.Equal(2, headerInfos.Count);
+            Assert.IsType<ElementSearchResult>(result.Data);
+            var searchResult = (ElementSearchResult)result.Data;
+            Assert.NotNull(searchResult.Elements);
+            Assert.Equal(2, searchResult.Elements.Count);
             
             // 最初の列ヘッダーの検証
-            Assert.Equal("header_col1", headerInfos[0]["AutomationId"]);
-            Assert.Equal("Name", headerInfos[0]["Name"]);
-            Assert.Equal("Header", headerInfos[0]["ControlType"]);
-            Assert.True((bool)headerInfos[0]["IsEnabled"]);
+            Assert.Equal("header_col1", searchResult.Elements[0].AutomationId);
+            Assert.Equal("Name", searchResult.Elements[0].Name);
+            Assert.Equal("Header", searchResult.Elements[0].ControlType);
+            Assert.True(searchResult.Elements[0].IsEnabled);
             
             // 2番目の列ヘッダーの検証
-            Assert.Equal("header_col2", headerInfos[1]["AutomationId"]);
-            Assert.Equal("Age", headerInfos[1]["Name"]);
-            Assert.Equal("Header", headerInfos[1]["ControlType"]);
-            Assert.True((bool)headerInfos[1]["IsEnabled"]);
+            Assert.Equal("header_col2", searchResult.Elements[1].AutomationId);
+            Assert.Equal("Age", searchResult.Elements[1].Name);
+            Assert.Equal("Header", searchResult.Elements[1].ControlType);
+            Assert.True(searchResult.Elements[1].IsEnabled);
 
             _output.WriteLine("GetColumnHeaderItemsOperation test passed - TableItemPattern.GetColumnHeaderItems() verified");
         }

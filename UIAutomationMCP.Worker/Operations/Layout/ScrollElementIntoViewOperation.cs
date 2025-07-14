@@ -34,10 +34,15 @@ namespace UIAutomationMCP.Worker.Operations.Layout
             if (element == null)
                 return Task.FromResult(new OperationResult<ScrollActionResult> { Success = false, Error = $"Element '{elementId}' not found" });
 
-            if (!element.TryGetCurrentPattern(ScrollItemPattern.Pattern, out var pattern) || pattern is not ScrollItemPattern scrollItemPattern)
+            try
+            {
+                var scrollItemPattern = (ScrollItemPattern)element.GetCurrentPattern(ScrollItemPattern.Pattern);
+                scrollItemPattern.ScrollIntoView();
+            }
+            catch (InvalidOperationException)
+            {
                 return Task.FromResult(new OperationResult<ScrollActionResult> { Success = false, Error = "Element does not support ScrollItemPattern" });
-
-            scrollItemPattern.ScrollIntoView();
+            }
             
             var result = new ScrollActionResult
             {
