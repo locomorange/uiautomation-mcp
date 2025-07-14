@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -14,7 +15,7 @@ namespace UIAutomationMCP.Worker.Operations.Window
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<TransformActionResult>> ExecuteAsync(WorkerRequest request)
         {
             var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
             var action = request.Parameters?.GetValueOrDefault("action")?.ToString() ?? "";
@@ -28,10 +29,10 @@ namespace UIAutomationMCP.Worker.Operations.Window
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element not found" });
+                return Task.FromResult(new OperationResult<TransformActionResult> { Success = false, Error = "Element not found" });
 
             if (!element.TryGetCurrentPattern(TransformPattern.Pattern, out var pattern) || pattern is not TransformPattern transformPattern)
-                return Task.FromResult(new OperationResult { Success = false, Error = "TransformPattern not supported" });
+                return Task.FromResult(new OperationResult<TransformActionResult> { Success = false, Error = "TransformPattern not supported" });
 
             try
             {
@@ -39,33 +40,50 @@ namespace UIAutomationMCP.Worker.Operations.Window
                 {
                     case "move":
                         if (!transformPattern.Current.CanMove)
-                            return Task.FromResult(new OperationResult { Success = false, Error = "Element cannot be moved (CanMove = false)" });
+                            return Task.FromResult(new OperationResult<TransformActionResult> { Success = false, Error = "Element cannot be moved (CanMove = false)" });
                         if (x == 0 && y == 0)
-                            return Task.FromResult(new OperationResult { Success = false, Error = "Move action requires x and y coordinates" });
+                            return Task.FromResult(new OperationResult<TransformActionResult> { Success = false, Error = "Move action requires x and y coordinates" });
                         transformPattern.Move(x, y);
                         break;
                     case "resize":
                         if (!transformPattern.Current.CanResize)
-                            return Task.FromResult(new OperationResult { Success = false, Error = "Element cannot be resized (CanResize = false)" });
+                            return Task.FromResult(new OperationResult<TransformActionResult> { Success = false, Error = "Element cannot be resized (CanResize = false)" });
                         if (width <= 0 || height <= 0)
-                            return Task.FromResult(new OperationResult { Success = false, Error = "Resize action requires positive width and height values" });
+                            return Task.FromResult(new OperationResult<TransformActionResult> { Success = false, Error = "Resize action requires positive width and height values" });
                         transformPattern.Resize(width, height);
                         break;
                     case "rotate":
                         if (!transformPattern.Current.CanRotate)
-                            return Task.FromResult(new OperationResult { Success = false, Error = "Element cannot be rotated (CanRotate = false)" });
+                            return Task.FromResult(new OperationResult<TransformActionResult> { Success = false, Error = "Element cannot be rotated (CanRotate = false)" });
                         transformPattern.Rotate(x); // Use x as rotation degrees
                         break;
                     default:
-                        return Task.FromResult(new OperationResult { Success = false, Error = $"Unsupported transform action: {action}" });
+                        return Task.FromResult(new OperationResult<TransformActionResult> { Success = false, Error = $"Unsupported transform action: {action}" });
                 }
             }
             catch (InvalidOperationException ex)
             {
-                return Task.FromResult(new OperationResult { Success = false, Error = $"Transform operation failed: {ex.Message}" });
+                return Task.FromResult(new OperationResult<TransformActionResult> { Success = false, Error = $"Transform operation failed: {ex.Message}" });
             }
 
-            return Task.FromResult(new OperationResult { Success = true, Data = $"Element transformed with action '{action}' successfully" });
+            var newBounds = new BoundingRectangle
+            {
+                X = element.Current.BoundingRectangle.X,
+                Y = element.Current.BoundingRectangle.Y,
+                Width = element.Current.BoundingRectangle.Width,
+                Height = element.Current.BoundingRectangle.Height
+            };
+
+            var result = new TransformActionResult
+            {
+                ActionName = action,
+                Completed = true,
+                TransformType = action,
+                NewBounds = newBounds,
+                RotationAngle = action == "rotate" ? x : null
+            };
+
+            return Task.FromResult(new OperationResult<TransformActionResult> { Success = true, Data = result });
         }
 
         private double GetDoubleParameter(Dictionary<string, object>? parameters, string key, double defaultValue = 0.0)
@@ -73,6 +91,18 @@ namespace UIAutomationMCP.Worker.Operations.Window
             if (parameters?.GetValueOrDefault(key)?.ToString() is string value && double.TryParse(value, out var result))
                 return result;
             return defaultValue;
+        }
+
+        async Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = await ExecuteAsync(request);
+            return new OperationResult
+            {
+                Success = typedResult.Success,
+                Error = typedResult.Error,
+                Data = typedResult.Data,
+                ExecutionSeconds = typedResult.ExecutionSeconds
+            };
         }
     }
 }

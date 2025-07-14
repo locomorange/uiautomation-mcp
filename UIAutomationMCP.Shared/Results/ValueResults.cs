@@ -106,4 +106,28 @@ namespace UIAutomationMCP.Shared.Results
         public bool Value { get; set; }
         public string Description { get; set; } = "";
     }
+
+    /// <summary>
+    /// ウィンドウ相互作用状態の結果
+    /// </summary>
+    public class WindowInteractionStateResult
+    {
+        public string InteractionState { get; set; } = "";
+        public int InteractionStateValue { get; set; }
+        public string Description { get; set; } = "";
+        public bool IsRunning => InteractionState == "Running";
+        public bool IsClosing => InteractionState == "Closing";
+        public bool IsReady => InteractionState == "ReadyForUserInteraction";
+        public bool IsBlocked => InteractionState == "BlockedByModalWindow";
+        public bool IsNotResponding => InteractionState == "NotResponding";
+    }
+
+    /// <summary>
+    /// ビューの結果
+    /// </summary>
+    public class ViewResult
+    {
+        public int ViewId { get; set; }
+        public string ViewName { get; set; } = "";
+    }
 }

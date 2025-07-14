@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -14,7 +15,7 @@ namespace UIAutomationMCP.Worker.Operations.Layout
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<ScrollActionResult>> ExecuteAsync(WorkerRequest request)
         {
             var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
             var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
@@ -23,13 +24,33 @@ namespace UIAutomationMCP.Worker.Operations.Layout
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
-                return Task.FromResult(new OperationResult { Success = false, Error = $"Element '{elementId}' not found" });
+                return Task.FromResult(new OperationResult<ScrollActionResult> { Success = false, Error = $"Element '{elementId}' not found" });
 
             if (!element.TryGetCurrentPattern(ScrollItemPattern.Pattern, out var pattern) || pattern is not ScrollItemPattern scrollItemPattern)
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support ScrollItemPattern" });
+                return Task.FromResult(new OperationResult<ScrollActionResult> { Success = false, Error = "Element does not support ScrollItemPattern" });
 
             scrollItemPattern.ScrollIntoView();
-            return Task.FromResult(new OperationResult { Success = true, Data = "Element scrolled into view successfully" });
+            
+            var result = new ScrollActionResult
+            {
+                ActionName = "ScrollIntoView",
+                Completed = true,
+                ExecutedAt = DateTime.UtcNow
+            };
+            
+            return Task.FromResult(new OperationResult<ScrollActionResult> { Success = true, Data = result });
+        }
+
+        async Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = await ExecuteAsync(request);
+            return new OperationResult
+            {
+                Success = typedResult.Success,
+                Error = typedResult.Error,
+                Data = typedResult.Data,
+                ExecutionSeconds = typedResult.ExecutionSeconds
+            };
         }
     }
 }

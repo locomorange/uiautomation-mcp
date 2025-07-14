@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -14,7 +15,7 @@ namespace UIAutomationMCP.Worker.Operations.Window
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<WaitForInputIdleResult>> ExecuteAsync(WorkerRequest request)
         {
             var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
             var processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
@@ -26,39 +27,77 @@ namespace UIAutomationMCP.Worker.Operations.Window
             {
                 var window = _elementFinderService.GetSearchRoot(windowTitle, processId);
                 if (window == null)
-                    return Task.FromResult(new OperationResult { Success = false, Error = "Window not found" });
+                {
+                    var failureResult = new WaitForInputIdleResult
+                    {
+                        ActionName = "WaitForInputIdle",
+                        Completed = false,
+                        TimeoutMilliseconds = timeoutMilliseconds,
+                        ElapsedMilliseconds = 0,
+                        TimedOut = false,
+                        Message = "Window not found"
+                    };
+                    return Task.FromResult(new OperationResult<WaitForInputIdleResult> { Success = false, Error = "Window not found", Data = failureResult });
+                }
 
                 if (!window.TryGetCurrentPattern(WindowPattern.Pattern, out var pattern) || pattern is not WindowPattern windowPattern)
-                    return Task.FromResult(new OperationResult { Success = false, Error = "WindowPattern not supported" });
+                {
+                    var failureResult = new WaitForInputIdleResult
+                    {
+                        ActionName = "WaitForInputIdle",
+                        Completed = false,
+                        TimeoutMilliseconds = timeoutMilliseconds,
+                        ElapsedMilliseconds = 0,
+                        TimedOut = false,
+                        Message = "WindowPattern not supported"
+                    };
+                    return Task.FromResult(new OperationResult<WaitForInputIdleResult> { Success = false, Error = "WindowPattern not supported", Data = failureResult });
+                }
 
                 var startTime = DateTime.Now;
                 var success = windowPattern.WaitForInputIdle(timeoutMilliseconds);
                 var elapsed = DateTime.Now - startTime;
 
-                var result = new Dictionary<string, object>
+                var result = new WaitForInputIdleResult
                 {
-                    ["Success"] = success,
-                    ["TimeoutMilliseconds"] = timeoutMilliseconds,
-                    ["ElapsedMilliseconds"] = elapsed.TotalMilliseconds,
-                    ["TimedOut"] = !success,
-                    ["WindowInteractionState"] = windowPattern.Current.WindowInteractionState.ToString()
+                    ActionName = "WaitForInputIdle",
+                    Completed = success,
+                    TimeoutMilliseconds = timeoutMilliseconds,
+                    ElapsedMilliseconds = elapsed.TotalMilliseconds,
+                    TimedOut = !success,
+                    WindowInteractionState = windowPattern.Current.WindowInteractionState.ToString(),
+                    Message = success 
+                        ? "Window became idle within the specified timeout"
+                        : $"Window did not become idle within {timeoutMilliseconds}ms timeout"
                 };
 
-                if (success)
-                {
-                    result["Message"] = "Window became idle within the specified timeout";
-                }
-                else
-                {
-                    result["Message"] = $"Window did not become idle within {timeoutMilliseconds}ms timeout";
-                }
-
-                return Task.FromResult(new OperationResult { Success = true, Data = result });
+                return Task.FromResult(new OperationResult<WaitForInputIdleResult> { Success = true, Data = result });
             }
             catch (Exception ex)
             {
-                return Task.FromResult(new OperationResult { Success = false, Error = $"Error waiting for input idle: {ex.Message}" });
+                var failureResult = new WaitForInputIdleResult
+                {
+                    ActionName = "WaitForInputIdle",
+                    Completed = false,
+                    TimeoutMilliseconds = timeoutMilliseconds,
+                    ElapsedMilliseconds = 0,
+                    TimedOut = false,
+                    Message = $"Error waiting for input idle: {ex.Message}"
+                };
+                return Task.FromResult(new OperationResult<WaitForInputIdleResult> { Success = false, Error = $"Error waiting for input idle: {ex.Message}", Data = failureResult });
             }
+        }
+
+        async Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = await ExecuteAsync(request);
+            return new OperationResult
+            {
+                Success = typedResult.Success,
+                Error = typedResult.Error,
+                Data = typedResult.Data,
+                ExecutionSeconds = typedResult.ExecutionSeconds
+            };
         }
     }
 }

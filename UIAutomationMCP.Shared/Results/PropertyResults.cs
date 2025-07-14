@@ -150,6 +150,21 @@ namespace UIAutomationMCP.Shared.Results
     }
 
     /// <summary>
+    /// コントロールタイプ情報の結果
+    /// </summary>
+    public class ControlTypeInfoResult
+    {
+        public string ControlType { get; set; } = "";
+        public string ControlTypeName { get; set; } = "";
+        public string LocalizedControlType { get; set; } = "";
+        public string AutomationId { get; set; } = "";
+        public string Name { get; set; } = "";
+        public List<string> AvailablePatterns { get; set; } = new();
+        public object? PatternValidation { get; set; }
+        public object? DefaultProperties { get; set; }
+    }
+
+    /// <summary>
     /// スクロール情報の結果
     /// </summary>
     public class ScrollInfoResult
@@ -187,6 +202,17 @@ namespace UIAutomationMCP.Shared.Results
     }
 
     /// <summary>
+    /// グリッドアイテムの結果（単一アイテム）
+    /// </summary>
+    public class GridItemResult
+    {
+        public ElementInfo Element { get; set; } = new();
+        public int Row { get; set; }
+        public int Column { get; set; }
+        public bool HasElement => Element != null && !string.IsNullOrEmpty(Element.AutomationId);
+    }
+
+    /// <summary>
     /// デスクトップウィンドウの結果
     /// </summary>
     public class DesktopWindowsResult
@@ -220,5 +246,45 @@ namespace UIAutomationMCP.Shared.Results
         public string NavigationType { get; set; } = ""; // "Parent", "Children", "Siblings", "Ancestors", "Descendants"
         public int Count => Elements.Count;
         public bool HasElements => Count > 0;
+    }
+
+    /// <summary>
+    /// テキスト属性の結果
+    /// </summary>
+    public class TextAttributesResult
+    {
+        public List<TextRangeAttributes> TextRanges { get; set; } = new();
+        public int RangeCount => TextRanges.Count;
+        public bool HasRanges => RangeCount > 0;
+    }
+
+    /// <summary>
+    /// 単一テキスト範囲の属性情報
+    /// </summary>
+    public class TextRangeAttributes
+    {
+        public string Text { get; set; } = "";
+        public Dictionary<string, object> Attributes { get; set; } = new();
+        public double[] BoundingRectangle { get; set; } = Array.Empty<double>();
+    }
+
+    /// <summary>
+    /// テキストトラバーサル（移動）の結果
+    /// </summary>
+    public class TextTraversalResult
+    {
+        public List<TextMoveInfo> MoveResults { get; set; } = new();
+        public int MoveCount => MoveResults.Count;
+        public bool HasResults => MoveCount > 0;
+    }
+
+    /// <summary>
+    /// 単一のテキスト移動情報
+    /// </summary>
+    public class TextMoveInfo
+    {
+        public int MovedUnits { get; set; }
+        public string Text { get; set; } = "";
+        public double[] BoundingRectangle { get; set; } = Array.Empty<double>();
     }
 }

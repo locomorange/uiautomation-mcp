@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -14,7 +15,7 @@ namespace UIAutomationMCP.Worker.Operations.Transform
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<TransformActionResult>> ExecuteAsync(WorkerRequest request)
         {
             var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
             var degrees = GetDoubleParameter(request.Parameters, "degrees", 0);
@@ -24,27 +25,140 @@ namespace UIAutomationMCP.Worker.Operations.Transform
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element not found" });
+            {
+                var failureResult = new TransformActionResult
+                {
+                    ActionName = "Rotate",
+                    TransformType = "Rotate",
+                    Completed = false,
+                    ExecutedAt = DateTime.UtcNow,
+                    Details = new Dictionary<string, object>
+                    {
+                        { "TargetDegrees", degrees },
+                        { "ElementId", elementId }
+                    }
+                };
+                return Task.FromResult(new OperationResult<TransformActionResult> 
+                { 
+                    Success = false, 
+                    Error = "Element not found",
+                    Data = failureResult
+                });
+            }
 
             if (!element.TryGetCurrentPattern(TransformPattern.Pattern, out var pattern) || pattern is not TransformPattern transformPattern)
-                return Task.FromResult(new OperationResult { Success = false, Error = "TransformPattern not supported" });
+            {
+                var failureResult = new TransformActionResult
+                {
+                    ActionName = "Rotate",
+                    TransformType = "Rotate",
+                    Completed = false,
+                    ExecutedAt = DateTime.UtcNow,
+                    Details = new Dictionary<string, object>
+                    {
+                        { "TargetDegrees", degrees },
+                        { "ElementId", elementId }
+                    }
+                };
+                return Task.FromResult(new OperationResult<TransformActionResult> 
+                { 
+                    Success = false, 
+                    Error = "TransformPattern not supported",
+                    Data = failureResult
+                });
+            }
 
             if (!transformPattern.Current.CanRotate)
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element cannot be rotated (CanRotate = false)" });
+            {
+                var failureResult = new TransformActionResult
+                {
+                    ActionName = "Rotate",
+                    TransformType = "Rotate",
+                    Completed = false,
+                    ExecutedAt = DateTime.UtcNow,
+                    Details = new Dictionary<string, object>
+                    {
+                        { "TargetDegrees", degrees },
+                        { "ElementId", elementId }
+                    }
+                };
+                return Task.FromResult(new OperationResult<TransformActionResult> 
+                { 
+                    Success = false, 
+                    Error = "Element cannot be rotated (CanRotate = false)",
+                    Data = failureResult
+                });
+            }
 
             try
             {
                 transformPattern.Rotate(degrees);
-                return Task.FromResult(new OperationResult 
+                
+                // Get current bounds (rotation may affect positioning)
+                var currentRect = element.Current.BoundingRectangle;
+                var newBounds = new BoundingRectangle
+                {
+                    X = currentRect.X,
+                    Y = currentRect.Y,
+                    Width = currentRect.Width,
+                    Height = currentRect.Height
+                };
+
+                var successResult = new TransformActionResult
+                {
+                    ActionName = "Rotate",
+                    TransformType = "Rotate",
+                    Completed = true,
+                    ExecutedAt = DateTime.UtcNow,
+                    NewBounds = newBounds,
+                    RotationAngle = degrees,
+                    Details = new Dictionary<string, object>
+                    {
+                        { "TargetDegrees", degrees },
+                        { "ElementId", elementId }
+                    }
+                };
+
+                return Task.FromResult(new OperationResult<TransformActionResult> 
                 { 
                     Success = true, 
-                    Data = $"Element rotated by {degrees} degrees successfully" 
+                    Data = successResult
                 });
             }
             catch (InvalidOperationException ex)
             {
-                return Task.FromResult(new OperationResult { Success = false, Error = $"Rotate operation failed: {ex.Message}" });
+                var failureResult = new TransformActionResult
+                {
+                    ActionName = "Rotate",
+                    TransformType = "Rotate",
+                    Completed = false,
+                    ExecutedAt = DateTime.UtcNow,
+                    Details = new Dictionary<string, object>
+                    {
+                        { "TargetDegrees", degrees },
+                        { "ElementId", elementId },
+                        { "Exception", ex.Message }
+                    }
+                };
+                return Task.FromResult(new OperationResult<TransformActionResult> 
+                { 
+                    Success = false, 
+                    Error = $"Rotate operation failed: {ex.Message}",
+                    Data = failureResult
+                });
             }
+        }
+
+        async Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = await ExecuteAsync(request);
+            return new OperationResult
+            {
+                Success = typedResult.Success,
+                Error = typedResult.Error,
+                Data = typedResult.Data,
+                ExecutionSeconds = typedResult.ExecutionSeconds
+            };
         }
 
         private double GetDoubleParameter(Dictionary<string, object>? parameters, string key, double defaultValue = 0.0)

@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 using UIAutomationMCP.Worker.Services;
@@ -15,7 +16,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<SelectedTextResult>> ExecuteAsync(WorkerRequest request)
         {
             var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
             var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
@@ -24,24 +25,37 @@ namespace UIAutomationMCP.Worker.Operations.Text
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
-                return Task.FromResult(new OperationResult { Success = false, Error = $"Element '{elementId}' not found" });
+                return Task.FromResult(new OperationResult<SelectedTextResult> { Success = false, Error = $"Element '{elementId}' not found" });
 
             if (!element.TryGetCurrentPattern(TextPattern.Pattern, out var pattern) || pattern is not TextPattern textPattern)
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support TextPattern" });
+                return Task.FromResult(new OperationResult<SelectedTextResult> { Success = false, Error = "Element does not support TextPattern" });
 
             var selectionRanges = textPattern.GetSelection();
-            var selectionInfo = new List<object>();
+            var selectedTexts = new List<string>();
 
             foreach (var range in selectionRanges)
             {
-                selectionInfo.Add(new
-                {
-                    Text = range.GetText(-1),
-                    BoundingRectangle = range.GetBoundingRectangles()
-                });
+                selectedTexts.Add(range.GetText(-1));
             }
 
-            return Task.FromResult(new OperationResult { Success = true, Data = selectionInfo });
+            var result = new SelectedTextResult
+            {
+                SelectedTexts = selectedTexts
+            };
+
+            return Task.FromResult(new OperationResult<SelectedTextResult> { Success = true, Data = result });
+        }
+
+        async Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = await ExecuteAsync(request);
+            return new OperationResult
+            {
+                Success = typedResult.Success,
+                Error = typedResult.Error,
+                Data = typedResult.Data,
+                ExecutionSeconds = typedResult.ExecutionSeconds
+            };
         }
     }
 }

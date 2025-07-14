@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 using UIAutomationMCP.Worker.Services;
@@ -15,7 +16,7 @@ namespace UIAutomationMCP.Worker.Operations.Range
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<SetRangeValueResult>> ExecuteAsync(WorkerRequest request)
         {
             var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
             var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
@@ -26,10 +27,20 @@ namespace UIAutomationMCP.Worker.Operations.Range
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
-                return Task.FromResult(new OperationResult { Success = false, Error = $"Element '{elementId}' not found" });
+                return Task.FromResult(new OperationResult<SetRangeValueResult> 
+                { 
+                    Success = false, 
+                    Error = $"Element '{elementId}' not found",
+                    Data = new SetRangeValueResult { ActionName = "SetRangeValue" }
+                });
 
             if (!element.TryGetCurrentPattern(RangeValuePattern.Pattern, out var pattern) || pattern is not RangeValuePattern rangePattern)
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support RangeValuePattern" });
+                return Task.FromResult(new OperationResult<SetRangeValueResult> 
+                { 
+                    Success = false, 
+                    Error = "Element does not support RangeValuePattern",
+                    Data = new SetRangeValueResult { ActionName = "SetRangeValue" }
+                });
 
             var currentValue = rangePattern.Current.Value;
             var minimum = rangePattern.Current.Minimum;
@@ -37,30 +48,59 @@ namespace UIAutomationMCP.Worker.Operations.Range
             var isReadOnly = rangePattern.Current.IsReadOnly;
 
             if (isReadOnly)
-                return Task.FromResult(new OperationResult { Success = false, Error = "Range element is read-only" });
-
-            if (value < minimum || value > maximum)
-            {
-                return Task.FromResult(new OperationResult 
+                return Task.FromResult(new OperationResult<SetRangeValueResult> 
                 { 
                     Success = false, 
-                    Error = $"Value {value} is out of range. Valid range: {minimum} - {maximum}" 
+                    Error = "Range element is read-only",
+                    Data = new SetRangeValueResult { ActionName = "SetRangeValue" }
                 });
+
+            var wasClampedToRange = false;
+            var attemptedValue = value;
+
+            if (value < minimum)
+            {
+                value = minimum;
+                wasClampedToRange = true;
+            }
+            else if (value > maximum)
+            {
+                value = maximum;
+                wasClampedToRange = true;
             }
 
             rangePattern.SetValue(value);
             var newValue = rangePattern.Current.Value;
             
-            return Task.FromResult(new OperationResult 
+            var result = new SetRangeValueResult
+            {
+                ActionName = "SetRangeValue",
+                Completed = true,
+                ExecutedAt = DateTime.UtcNow,
+                PreviousState = currentValue,
+                CurrentState = newValue,
+                Minimum = minimum,
+                Maximum = maximum,
+                AttemptedValue = attemptedValue,
+                WasClampedToRange = wasClampedToRange
+            };
+
+            return Task.FromResult(new OperationResult<SetRangeValueResult> 
             { 
                 Success = true, 
-                Data = new 
-                { 
-                    PreviousValue = currentValue, 
-                    NewValue = newValue,
-                    Minimum = minimum,
-                    Maximum = maximum
-                }
+                Data = result
+            });
+        }
+
+        Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = ExecuteAsync(request);
+            return Task.FromResult(new OperationResult
+            {
+                Success = typedResult.Result.Success,
+                Error = typedResult.Result.Error,
+                Data = typedResult.Result.Data,
+                ExecutionSeconds = typedResult.Result.ExecutionSeconds
             });
         }
     }

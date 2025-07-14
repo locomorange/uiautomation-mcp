@@ -153,4 +153,17 @@ namespace UIAutomationMCP.Shared.Results
         public BoundingRectangle? NewBounds { get; set; }
         public double? RotationAngle { get; set; }
     }
+
+    /// <summary>
+    /// ウィンドウ入力アイドル待機の結果
+    /// </summary>
+    public class WaitForInputIdleResult : ActionResult
+    {
+        public int TimeoutMilliseconds { get; set; }
+        public double ElapsedMilliseconds { get; set; }
+        public bool TimedOut { get; set; }
+        public string WindowInteractionState { get; set; } = "";
+        public string Message { get; set; } = "";
+        public bool IdleAchieved => Completed && !TimedOut;
+    }
 }

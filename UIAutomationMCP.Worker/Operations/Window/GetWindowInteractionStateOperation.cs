@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -14,7 +15,7 @@ namespace UIAutomationMCP.Worker.Operations.Window
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<WindowInteractionStateResult>> ExecuteAsync(WorkerRequest request)
         {
             var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
             var processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
@@ -24,25 +25,56 @@ namespace UIAutomationMCP.Worker.Operations.Window
             {
                 var window = _elementFinderService.GetSearchRoot(windowTitle, processId);
                 if (window == null)
-                    return Task.FromResult(new OperationResult { Success = false, Error = "Window not found" });
+                {
+                    var failureResult = new WindowInteractionStateResult
+                    {
+                        InteractionState = "Unknown",
+                        Description = "Window not found"
+                    };
+                    return Task.FromResult(new OperationResult<WindowInteractionStateResult> { Success = false, Error = "Window not found", Data = failureResult });
+                }
 
                 if (!window.TryGetCurrentPattern(WindowPattern.Pattern, out var pattern) || pattern is not WindowPattern windowPattern)
-                    return Task.FromResult(new OperationResult { Success = false, Error = "WindowPattern not supported" });
+                {
+                    var failureResult = new WindowInteractionStateResult
+                    {
+                        InteractionState = "Unknown",
+                        Description = "WindowPattern not supported"
+                    };
+                    return Task.FromResult(new OperationResult<WindowInteractionStateResult> { Success = false, Error = "WindowPattern not supported", Data = failureResult });
+                }
 
                 var interactionState = windowPattern.Current.WindowInteractionState;
-                var stateInfo = new Dictionary<string, object>
+                var stateInfo = new WindowInteractionStateResult
                 {
-                    ["InteractionState"] = interactionState.ToString(),
-                    ["InteractionStateValue"] = (int)interactionState,
-                    ["Description"] = GetInteractionStateDescription(interactionState)
+                    InteractionState = interactionState.ToString(),
+                    InteractionStateValue = (int)interactionState,
+                    Description = GetInteractionStateDescription(interactionState)
                 };
 
-                return Task.FromResult(new OperationResult { Success = true, Data = stateInfo });
+                return Task.FromResult(new OperationResult<WindowInteractionStateResult> { Success = true, Data = stateInfo });
             }
             catch (Exception ex)
             {
-                return Task.FromResult(new OperationResult { Success = false, Error = $"Error getting window interaction state: {ex.Message}" });
+                var failureResult = new WindowInteractionStateResult
+                {
+                    InteractionState = "Error",
+                    Description = $"Error getting window interaction state: {ex.Message}"
+                };
+                return Task.FromResult(new OperationResult<WindowInteractionStateResult> { Success = false, Error = $"Error getting window interaction state: {ex.Message}", Data = failureResult });
             }
+        }
+
+        async Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = await ExecuteAsync(request);
+            return new OperationResult
+            {
+                Success = typedResult.Success,
+                Error = typedResult.Error,
+                Data = typedResult.Data,
+                ExecutionSeconds = typedResult.ExecutionSeconds
+            };
         }
 
         private static string GetInteractionStateDescription(WindowInteractionState state)

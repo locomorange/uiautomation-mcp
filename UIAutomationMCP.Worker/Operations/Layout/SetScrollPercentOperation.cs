@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -14,7 +15,7 @@ namespace UIAutomationMCP.Worker.Operations.Layout
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<ScrollActionResult>> ExecuteAsync(WorkerRequest request)
         {
             var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
             var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
@@ -25,24 +26,24 @@ namespace UIAutomationMCP.Worker.Operations.Layout
             var verticalPercentStr = request.Parameters?.GetValueOrDefault("verticalPercent")?.ToString() ?? "";
 
             if (!double.TryParse(horizontalPercentStr, out var horizontalPercent))
-                return Task.FromResult(new OperationResult { Success = false, Error = "Invalid horizontal percentage value" });
+                return Task.FromResult(new OperationResult<ScrollActionResult> { Success = false, Error = "Invalid horizontal percentage value" });
 
             if (!double.TryParse(verticalPercentStr, out var verticalPercent))
-                return Task.FromResult(new OperationResult { Success = false, Error = "Invalid vertical percentage value" });
+                return Task.FromResult(new OperationResult<ScrollActionResult> { Success = false, Error = "Invalid vertical percentage value" });
 
             // Validate percentage ranges (ScrollPattern uses -1 for NoScroll)
             if ((horizontalPercent < -1 || horizontalPercent > 100) && horizontalPercent != ScrollPattern.NoScroll)
-                return Task.FromResult(new OperationResult { Success = false, Error = "Horizontal percentage must be between 0-100 or -1 for no change" });
+                return Task.FromResult(new OperationResult<ScrollActionResult> { Success = false, Error = "Horizontal percentage must be between 0-100 or -1 for no change" });
 
             if ((verticalPercent < -1 || verticalPercent > 100) && verticalPercent != ScrollPattern.NoScroll)
-                return Task.FromResult(new OperationResult { Success = false, Error = "Vertical percentage must be between 0-100 or -1 for no change" });
+                return Task.FromResult(new OperationResult<ScrollActionResult> { Success = false, Error = "Vertical percentage must be between 0-100 or -1 for no change" });
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
-                return Task.FromResult(new OperationResult { Success = false, Error = $"Element '{elementId}' not found" });
+                return Task.FromResult(new OperationResult<ScrollActionResult> { Success = false, Error = $"Element '{elementId}' not found" });
 
             if (!element.TryGetCurrentPattern(ScrollPattern.Pattern, out var pattern) || pattern is not ScrollPattern scrollPattern)
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support ScrollPattern" });
+                return Task.FromResult(new OperationResult<ScrollActionResult> { Success = false, Error = "Element does not support ScrollPattern" });
 
             try
             {
@@ -53,28 +54,44 @@ namespace UIAutomationMCP.Worker.Operations.Layout
                 scrollPattern.SetScrollPercent(finalHorizontalPercent, finalVerticalPercent);
 
                 // Get current scroll position after setting
-                var currentInfo = new
+                var result = new ScrollActionResult
                 {
-                    HorizontalScrollPercent = scrollPattern.Current.HorizontalScrollPercent,
-                    VerticalScrollPercent = scrollPattern.Current.VerticalScrollPercent,
+                    ActionName = "SetScrollPercent",
+                    Completed = true,
+                    HorizontalPercent = scrollPattern.Current.HorizontalScrollPercent,
+                    VerticalPercent = scrollPattern.Current.VerticalScrollPercent,
                     HorizontalViewSize = scrollPattern.Current.HorizontalViewSize,
-                    VerticalViewSize = scrollPattern.Current.VerticalViewSize
+                    VerticalViewSize = scrollPattern.Current.VerticalViewSize,
+                    HorizontallyScrollable = scrollPattern.Current.HorizontallyScrollable,
+                    VerticallyScrollable = scrollPattern.Current.VerticallyScrollable
                 };
 
-                return Task.FromResult(new OperationResult { Success = true, Data = currentInfo });
+                return Task.FromResult(new OperationResult<ScrollActionResult> { Success = true, Data = result });
             }
             catch (ArgumentOutOfRangeException ex)
             {
-                return Task.FromResult(new OperationResult { Success = false, Error = $"Scroll percentage out of range: {ex.Message}" });
+                return Task.FromResult(new OperationResult<ScrollActionResult> { Success = false, Error = $"Scroll percentage out of range: {ex.Message}" });
             }
             catch (InvalidOperationException ex)
             {
-                return Task.FromResult(new OperationResult { Success = false, Error = $"Scroll operation not supported: {ex.Message}" });
+                return Task.FromResult(new OperationResult<ScrollActionResult> { Success = false, Error = $"Scroll operation not supported: {ex.Message}" });
             }
             catch (Exception ex)
             {
-                return Task.FromResult(new OperationResult { Success = false, Error = $"Failed to set scroll percentage: {ex.Message}" });
+                return Task.FromResult(new OperationResult<ScrollActionResult> { Success = false, Error = $"Failed to set scroll percentage: {ex.Message}" });
             }
+        }
+
+        async Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = await ExecuteAsync(request);
+            return new OperationResult
+            {
+                Success = typedResult.Success,
+                Error = typedResult.Error,
+                Data = typedResult.Data,
+                ExecutionSeconds = typedResult.ExecutionSeconds
+            };
         }
     }
 }

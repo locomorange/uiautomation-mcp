@@ -170,15 +170,78 @@ namespace UIAutomationMCP.Shared
         public Dictionary<string, object>? Parameters { get; set; }
     }
 
-    public class WorkerResponse
+    /// <summary>
+    /// 型安全なWorkerレスポンス（ジェネリック版）
+    /// </summary>
+    public class WorkerResponse<T>
     {
         [JsonPropertyName("success")]
         public bool Success { get; set; }
         
         [JsonPropertyName("data")]
-        public object? Data { get; set; }
+        public T? Data { get; set; }
         
         [JsonPropertyName("error")]
         public string? Error { get; set; }
+
+        /// <summary>
+        /// 成功レスポンスを作成
+        /// </summary>
+        public static WorkerResponse<T> CreateSuccess(T data)
+        {
+            return new WorkerResponse<T>
+            {
+                Success = true,
+                Data = data,
+                Error = null
+            };
+        }
+
+        /// <summary>
+        /// エラーレスポンスを作成
+        /// </summary>
+        public static WorkerResponse<T> CreateError(string error)
+        {
+            return new WorkerResponse<T>
+            {
+                Success = false,
+                Data = default,
+                Error = error
+            };
+        }
+    }
+
+    /// <summary>
+    /// 後方互換性のためのWorkerレスポンス（非ジェネリック版）
+    /// </summary>
+    public class WorkerResponse : WorkerResponse<object>
+    {
+        // 継承により既存の動作を維持
+        
+        /// <summary>
+        /// 成功レスポンスを作成（非ジェネリック版）
+        /// </summary>
+        public new static WorkerResponse CreateSuccess(object data)
+        {
+            return new WorkerResponse
+            {
+                Success = true,
+                Data = data,
+                Error = null
+            };
+        }
+
+        /// <summary>
+        /// エラーレスポンスを作成（非ジェネリック版）
+        /// </summary>
+        public new static WorkerResponse CreateError(string error)
+        {
+            return new WorkerResponse
+            {
+                Success = false,
+                Data = null,
+                Error = error
+            };
+        }
     }
 }

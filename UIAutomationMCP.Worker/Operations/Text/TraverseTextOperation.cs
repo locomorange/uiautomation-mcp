@@ -1,6 +1,7 @@
 using System.Windows.Automation;
 using System.Windows.Automation.Text;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 using UIAutomationMCP.Worker.Services;
@@ -16,7 +17,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<TextTraversalResult>> ExecuteAsync(WorkerRequest request)
         {
             var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
             var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
@@ -28,13 +29,13 @@ namespace UIAutomationMCP.Worker.Operations.Text
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
-                return Task.FromResult(new OperationResult { Success = false, Error = $"Element '{elementId}' not found" });
+                return Task.FromResult(new OperationResult<TextTraversalResult> { Success = false, Error = $"Element '{elementId}' not found" });
 
             if (!element.TryGetCurrentPattern(TextPattern.Pattern, out var pattern) || pattern is not TextPattern textPattern)
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support TextPattern" });
+                return Task.FromResult(new OperationResult<TextTraversalResult> { Success = false, Error = "Element does not support TextPattern" });
 
             var selectionRanges = textPattern.GetSelection();
-            var results = new List<object>();
+            var moveResults = new List<TextMoveInfo>();
 
             foreach (var range in selectionRanges)
             {
@@ -46,15 +47,25 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 workingRange.Select();
                 var newText = workingRange.GetText(-1);
                 
-                results.Add(new
+                var boundingRects = workingRange.GetBoundingRectangles();
+                var boundingRectArray = boundingRects?.Length > 0 
+                    ? new double[] { boundingRects[0].X, boundingRects[0].Y, boundingRects[0].Width, boundingRects[0].Height }
+                    : Array.Empty<double>();
+                    
+                moveResults.Add(new TextMoveInfo
                 {
                     MovedUnits = moved,
                     Text = newText,
-                    BoundingRectangle = workingRange.GetBoundingRectangles()
+                    BoundingRectangle = boundingRectArray
                 });
             }
 
-            return Task.FromResult(new OperationResult { Success = true, Data = results });
+            var result = new TextTraversalResult
+            {
+                MoveResults = moveResults
+            };
+
+            return Task.FromResult(new OperationResult<TextTraversalResult> { Success = true, Data = result });
         }
 
         private (TextUnit textUnit, int direction) ParseTraversalDirection(string direction)
@@ -70,6 +81,18 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 "paragraph" => (TextUnit.Paragraph, 1),
                 "paragraph-back" => (TextUnit.Paragraph, -1),
                 _ => (TextUnit.Character, 1)
+            };
+        }
+
+        async Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = await ExecuteAsync(request);
+            return new OperationResult
+            {
+                Success = typedResult.Success,
+                Error = typedResult.Error,
+                Data = typedResult.Data,
+                ExecutionSeconds = typedResult.ExecutionSeconds
             };
         }
     }

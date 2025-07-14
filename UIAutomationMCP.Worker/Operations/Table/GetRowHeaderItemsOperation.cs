@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -14,7 +15,7 @@ namespace UIAutomationMCP.Worker.Operations.Table
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<ElementSearchResult>> ExecuteAsync(WorkerRequest request)
         {
             var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
             var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
@@ -23,43 +24,59 @@ namespace UIAutomationMCP.Worker.Operations.Table
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element not found" });
+                return Task.FromResult(new OperationResult<ElementSearchResult> { Success = false, Error = "Element not found" });
 
             if (!element.TryGetCurrentPattern(TableItemPattern.Pattern, out var pattern) || pattern is not TableItemPattern tableItemPattern)
-                return Task.FromResult(new OperationResult { Success = false, Error = "TableItemPattern not supported" });
+                return Task.FromResult(new OperationResult<ElementSearchResult> { Success = false, Error = "TableItemPattern not supported" });
 
             try
             {
                 var rowHeaderItems = tableItemPattern.Current.GetRowHeaderItems();
                 if (rowHeaderItems == null || rowHeaderItems.Length == 0)
-                    return Task.FromResult(new OperationResult { Success = false, Error = "No row header items found" });
+                    return Task.FromResult(new OperationResult<ElementSearchResult> { Success = false, Error = "No row header items found" });
 
-                var headerInfos = new List<Dictionary<string, object>>();
+                var elements = new List<ElementInfo>();
                 foreach (var header in rowHeaderItems)
                 {
-                    var headerInfo = new Dictionary<string, object>
+                    elements.Add(new ElementInfo
                     {
-                        ["AutomationId"] = header.Current.AutomationId,
-                        ["Name"] = header.Current.Name,
-                        ["ControlType"] = header.Current.ControlType.LocalizedControlType,
-                        ["IsEnabled"] = header.Current.IsEnabled,
-                        ["BoundingRectangle"] = new BoundingRectangle
+                        AutomationId = header.Current.AutomationId,
+                        Name = header.Current.Name,
+                        ControlType = header.Current.ControlType.LocalizedControlType,
+                        IsEnabled = header.Current.IsEnabled,
+                        BoundingRectangle = new BoundingRectangle
                         {
                             X = header.Current.BoundingRectangle.X,
                             Y = header.Current.BoundingRectangle.Y,
                             Width = header.Current.BoundingRectangle.Width,
                             Height = header.Current.BoundingRectangle.Height
                         }
-                    };
-                    headerInfos.Add(headerInfo);
+                    });
                 }
 
-                return Task.FromResult(new OperationResult { Success = true, Data = headerInfos });
+                var result = new ElementSearchResult
+                {
+                    Elements = elements
+                };
+
+                return Task.FromResult(new OperationResult<ElementSearchResult> { Success = true, Data = result });
             }
             catch (Exception ex)
             {
-                return Task.FromResult(new OperationResult { Success = false, Error = $"Error getting row header items: {ex.Message}" });
+                return Task.FromResult(new OperationResult<ElementSearchResult> { Success = false, Error = $"Error getting row header items: {ex.Message}" });
             }
+        }
+
+        async Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = await ExecuteAsync(request);
+            return new OperationResult
+            {
+                Success = typedResult.Success,
+                Error = typedResult.Error,
+                Data = typedResult.Data,
+                ExecutionSeconds = typedResult.ExecutionSeconds
+            };
         }
     }
 }

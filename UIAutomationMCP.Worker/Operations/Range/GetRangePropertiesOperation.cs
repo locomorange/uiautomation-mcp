@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 using UIAutomationMCP.Worker.Services;
@@ -15,7 +16,7 @@ namespace UIAutomationMCP.Worker.Operations.Range
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<RangeValueResult>> ExecuteAsync(WorkerRequest request)
         {
             var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
             var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
@@ -24,24 +25,34 @@ namespace UIAutomationMCP.Worker.Operations.Range
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
-                return Task.FromResult(new OperationResult { Success = false, Error = $"Element '{elementId}' not found" });
+                return Task.FromResult(new OperationResult<RangeValueResult> { Success = false, Error = $"Element '{elementId}' not found" });
 
             if (!element.TryGetCurrentPattern(RangeValuePattern.Pattern, out var pattern) || pattern is not RangeValuePattern rangePattern)
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element does not support RangeValuePattern" });
+                return Task.FromResult(new OperationResult<RangeValueResult> { Success = false, Error = "Element does not support RangeValuePattern" });
 
-            var properties = new
+            var result = new RangeValueResult
             {
+                Value = rangePattern.Current.Value,
                 Minimum = rangePattern.Current.Minimum,
                 Maximum = rangePattern.Current.Maximum,
                 LargeChange = rangePattern.Current.LargeChange,
                 SmallChange = rangePattern.Current.SmallChange,
-                IsReadOnly = rangePattern.Current.IsReadOnly,
-                Range = rangePattern.Current.Maximum - rangePattern.Current.Minimum,
-                SupportsLargeChange = rangePattern.Current.LargeChange > 0,
-                SupportsSmallChange = rangePattern.Current.SmallChange > 0
+                IsReadOnly = rangePattern.Current.IsReadOnly
             };
 
-            return Task.FromResult(new OperationResult { Success = true, Data = properties });
+            return Task.FromResult(new OperationResult<RangeValueResult> { Success = true, Data = result });
+        }
+
+        async Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = await ExecuteAsync(request);
+            return new OperationResult
+            {
+                Success = typedResult.Success,
+                Error = typedResult.Error,
+                Data = typedResult.Data,
+                ExecutionSeconds = typedResult.ExecutionSeconds
+            };
         }
     }
 }

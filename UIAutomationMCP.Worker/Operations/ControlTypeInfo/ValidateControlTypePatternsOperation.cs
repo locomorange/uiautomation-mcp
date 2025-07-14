@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -35,7 +36,7 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<BooleanResult>> ExecuteAsync(WorkerRequest request)
         {
             try
             {
@@ -46,14 +47,14 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
 
                 var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
                 if (element == null)
-                    return Task.FromResult(new OperationResult { Success = false, Error = "Element not found" });
+                    return Task.FromResult(new OperationResult<BooleanResult> { Success = false, Error = "Element not found" });
 
                 var controlType = element.Current.ControlType;
                 var availablePatterns = element.GetSupportedPatterns()
                     .Select(pattern => pattern.ProgrammaticName)
                     .ToArray();
 
-                var validationResult = new Dictionary<string, object>
+                var validationDetails = new Dictionary<string, object>
                 {
                     ["ElementId"] = elementId,
                     ["ControlType"] = controlType.LocalizedControlType,
@@ -77,7 +78,7 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
 
                     var isValid = missingRequired.Length == 0;
 
-                    validationResult["ValidationDetails"] = new
+                    validationDetails["ValidationDetails"] = new
                     {
                         IsValid = isValid,
                         ExpectedRequiredPatterns = expectedPatterns.RequiredPatterns,
@@ -101,24 +102,50 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
                                 .Any(ep => pattern.Contains(ep))
                         });
                     }
-                    validationResult["PatternDetails"] = patternDetails;
+                    validationDetails["PatternDetails"] = patternDetails;
+
+                    var result = new BooleanResult
+                    {
+                        Value = isValid,
+                        Description = isValid ? "All required patterns are supported" : $"Missing {missingRequired.Length} required pattern(s)"
+                    };
+
+                    return Task.FromResult(new OperationResult<BooleanResult> { Success = true, Data = result });
                 }
                 else
                 {
-                    validationResult["ValidationDetails"] = new
+                    validationDetails["ValidationDetails"] = new
                     {
                         IsValid = true,
                         Message = $"No specific pattern requirements defined for control type: {controlType.LocalizedControlType}",
                         Note = "This control type may have custom or framework-specific pattern requirements"
                     };
-                }
 
-                return Task.FromResult(new OperationResult { Success = true, Data = validationResult });
+                    var result = new BooleanResult
+                    {
+                        Value = true,
+                        Description = $"No specific pattern requirements defined for control type: {controlType.LocalizedControlType}"
+                    };
+
+                    return Task.FromResult(new OperationResult<BooleanResult> { Success = true, Data = result });
+                }
             }
             catch (Exception ex)
             {
-                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+                return Task.FromResult(new OperationResult<BooleanResult> { Success = false, Error = ex.Message });
             }
+        }
+
+        async Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = await ExecuteAsync(request);
+            return new OperationResult
+            {
+                Success = typedResult.Success,
+                Error = typedResult.Error,
+                Data = typedResult.Data,
+                ExecutionSeconds = typedResult.ExecutionSeconds
+            };
         }
 
         private class ControlTypePatternInfo

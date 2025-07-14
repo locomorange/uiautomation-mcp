@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -14,7 +15,7 @@ namespace UIAutomationMCP.Worker.Operations.Transform
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<TransformActionResult>> ExecuteAsync(WorkerRequest request)
         {
             var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
             var width = GetDoubleParameter(request.Parameters, "width", 0);
@@ -24,31 +25,168 @@ namespace UIAutomationMCP.Worker.Operations.Transform
                 int.TryParse(processIdStr, out var parsedProcessId) ? parsedProcessId : 0;
 
             if (width <= 0 || height <= 0)
-                return Task.FromResult(new OperationResult { Success = false, Error = "Width and height must be greater than 0" });
+            {
+                var failureResult = new TransformActionResult
+                {
+                    ActionName = "Resize",
+                    TransformType = "Resize",
+                    Completed = false,
+                    ExecutedAt = DateTime.UtcNow,
+                    Details = new Dictionary<string, object>
+                    {
+                        { "TargetWidth", width },
+                        { "TargetHeight", height },
+                        { "ElementId", elementId }
+                    }
+                };
+                return Task.FromResult(new OperationResult<TransformActionResult> 
+                { 
+                    Success = false, 
+                    Error = "Width and height must be greater than 0",
+                    Data = failureResult
+                });
+            }
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element not found" });
+            {
+                var failureResult = new TransformActionResult
+                {
+                    ActionName = "Resize",
+                    TransformType = "Resize",
+                    Completed = false,
+                    ExecutedAt = DateTime.UtcNow,
+                    Details = new Dictionary<string, object>
+                    {
+                        { "TargetWidth", width },
+                        { "TargetHeight", height },
+                        { "ElementId", elementId }
+                    }
+                };
+                return Task.FromResult(new OperationResult<TransformActionResult> 
+                { 
+                    Success = false, 
+                    Error = "Element not found",
+                    Data = failureResult
+                });
+            }
 
             if (!element.TryGetCurrentPattern(TransformPattern.Pattern, out var pattern) || pattern is not TransformPattern transformPattern)
-                return Task.FromResult(new OperationResult { Success = false, Error = "TransformPattern not supported" });
+            {
+                var failureResult = new TransformActionResult
+                {
+                    ActionName = "Resize",
+                    TransformType = "Resize",
+                    Completed = false,
+                    ExecutedAt = DateTime.UtcNow,
+                    Details = new Dictionary<string, object>
+                    {
+                        { "TargetWidth", width },
+                        { "TargetHeight", height },
+                        { "ElementId", elementId }
+                    }
+                };
+                return Task.FromResult(new OperationResult<TransformActionResult> 
+                { 
+                    Success = false, 
+                    Error = "TransformPattern not supported",
+                    Data = failureResult
+                });
+            }
 
             if (!transformPattern.Current.CanResize)
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element cannot be resized (CanResize = false)" });
+            {
+                var failureResult = new TransformActionResult
+                {
+                    ActionName = "Resize",
+                    TransformType = "Resize",
+                    Completed = false,
+                    ExecutedAt = DateTime.UtcNow,
+                    Details = new Dictionary<string, object>
+                    {
+                        { "TargetWidth", width },
+                        { "TargetHeight", height },
+                        { "ElementId", elementId }
+                    }
+                };
+                return Task.FromResult(new OperationResult<TransformActionResult> 
+                { 
+                    Success = false, 
+                    Error = "Element cannot be resized (CanResize = false)",
+                    Data = failureResult
+                });
+            }
 
             try
             {
                 transformPattern.Resize(width, height);
-                return Task.FromResult(new OperationResult 
+                
+                // Get updated bounds after resize
+                var currentRect = element.Current.BoundingRectangle;
+                var newBounds = new BoundingRectangle
+                {
+                    X = currentRect.X,
+                    Y = currentRect.Y,
+                    Width = width,
+                    Height = height
+                };
+
+                var successResult = new TransformActionResult
+                {
+                    ActionName = "Resize",
+                    TransformType = "Resize",
+                    Completed = true,
+                    ExecutedAt = DateTime.UtcNow,
+                    NewBounds = newBounds,
+                    Details = new Dictionary<string, object>
+                    {
+                        { "TargetWidth", width },
+                        { "TargetHeight", height },
+                        { "ElementId", elementId }
+                    }
+                };
+
+                return Task.FromResult(new OperationResult<TransformActionResult> 
                 { 
                     Success = true, 
-                    Data = $"Element resized to ({width}, {height}) successfully" 
+                    Data = successResult
                 });
             }
             catch (InvalidOperationException ex)
             {
-                return Task.FromResult(new OperationResult { Success = false, Error = $"Resize operation failed: {ex.Message}" });
+                var failureResult = new TransformActionResult
+                {
+                    ActionName = "Resize",
+                    TransformType = "Resize",
+                    Completed = false,
+                    ExecutedAt = DateTime.UtcNow,
+                    Details = new Dictionary<string, object>
+                    {
+                        { "TargetWidth", width },
+                        { "TargetHeight", height },
+                        { "ElementId", elementId },
+                        { "Exception", ex.Message }
+                    }
+                };
+                return Task.FromResult(new OperationResult<TransformActionResult> 
+                { 
+                    Success = false, 
+                    Error = $"Resize operation failed: {ex.Message}",
+                    Data = failureResult
+                });
             }
+        }
+
+        async Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = await ExecuteAsync(request);
+            return new OperationResult
+            {
+                Success = typedResult.Success,
+                Error = typedResult.Error,
+                Data = typedResult.Data,
+                ExecutionSeconds = typedResult.ExecutionSeconds
+            };
         }
 
         private double GetDoubleParameter(Dictionary<string, object>? parameters, string key, double defaultValue = 0.0)

@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -14,7 +16,7 @@ namespace UIAutomationMCP.Worker.Operations.Window
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<WindowInfoResult>> ExecuteAsync(WorkerRequest request)
         {
             var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
             var processId = request.Parameters?.GetValueOrDefault("processId")?.ToString() is string processIdStr && 
@@ -38,46 +40,85 @@ namespace UIAutomationMCP.Worker.Operations.Window
 
                 if (windowElement == null)
                 {
-                    return Task.FromResult(new OperationResult { Success = false, Error = "Window not found" });
+                    return Task.FromResult(new OperationResult<WindowInfoResult> 
+                    { 
+                        Success = false, 
+                        Error = "Window not found",
+                        Data = new WindowInfoResult()
+                    });
                 }
 
                 var windowRect = windowElement.Current.BoundingRectangle;
-                var windowInfo = new Dictionary<string, object>
+                var result = new WindowInfoResult
                 {
-                    ["Title"] = windowElement.Current.Name,
-                    ["ProcessId"] = windowElement.Current.ProcessId,
-                    ["AutomationId"] = windowElement.Current.AutomationId,
-                    ["ClassName"] = windowElement.Current.ClassName,
-                    ["ControlType"] = windowElement.Current.ControlType.LocalizedControlType,
-                    ["IsEnabled"] = windowElement.Current.IsEnabled,
-                    ["IsOffscreen"] = windowElement.Current.IsOffscreen,
-                    ["BoundingRectangle"] = new Dictionary<string, object>
+                    Title = windowElement.Current.Name,
+                    ClassName = windowElement.Current.ClassName,
+                    ProcessId = windowElement.Current.ProcessId,
+                    Handle = windowElement.Current.NativeWindowHandle,
+                    BoundingRectangle = new BoundingRectangle
                     {
-                        ["X"] = windowRect.X,
-                        ["Y"] = windowRect.Y,
-                        ["Width"] = windowRect.Width,
-                        ["Height"] = windowRect.Height
+                        X = windowRect.X,
+                        Y = windowRect.Y,
+                        Width = windowRect.Width,
+                        Height = windowRect.Height
                     },
-                    ["WindowPatternAvailable"] = windowElement.GetSupportedPatterns().Any(p => p == WindowPattern.Pattern),
-                    ["TransformPatternAvailable"] = windowElement.GetSupportedPatterns().Any(p => p == TransformPattern.Pattern)
+                    IsEnabled = windowElement.Current.IsEnabled,
+                    IsVisible = !windowElement.Current.IsOffscreen,
+                    WindowState = "Normal", // Default
+                    CanMaximize = false,
+                    CanMinimize = false,
+                    IsModal = false,
+                    IsTopmost = false
                 };
+
+                // Get process name
+                try
+                {
+                    var process = Process.GetProcessById(result.ProcessId);
+                    result.ProcessName = process.ProcessName;
+                }
+                catch
+                {
+                    result.ProcessName = "";
+                }
 
                 // Get window state if WindowPattern is available
                 if (windowElement.TryGetCurrentPattern(WindowPattern.Pattern, out var windowPattern) && windowPattern is WindowPattern wp)
                 {
-                    windowInfo["WindowState"] = wp.Current.WindowVisualState.ToString();
-                    windowInfo["CanMaximize"] = wp.Current.CanMaximize;
-                    windowInfo["CanMinimize"] = wp.Current.CanMinimize;
-                    windowInfo["IsModal"] = wp.Current.IsModal;
-                    windowInfo["IsTopmost"] = wp.Current.IsTopmost;
+                    result.WindowState = wp.Current.WindowVisualState.ToString();
+                    result.CanMaximize = wp.Current.CanMaximize;
+                    result.CanMinimize = wp.Current.CanMinimize;
+                    result.IsModal = wp.Current.IsModal;
+                    result.IsTopmost = wp.Current.IsTopmost;
                 }
 
-                return Task.FromResult(new OperationResult { Success = true, Data = windowInfo });
+                return Task.FromResult(new OperationResult<WindowInfoResult> 
+                { 
+                    Success = true, 
+                    Data = result 
+                });
             }
             catch (Exception ex)
             {
-                return Task.FromResult(new OperationResult { Success = false, Error = $"Error getting window info: {ex.Message}" });
+                return Task.FromResult(new OperationResult<WindowInfoResult> 
+                { 
+                    Success = false, 
+                    Error = $"Error getting window info: {ex.Message}",
+                    Data = new WindowInfoResult()
+                });
             }
+        }
+
+        Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = ExecuteAsync(request);
+            return Task.FromResult(new OperationResult
+            {
+                Success = typedResult.Result.Success,
+                Error = typedResult.Result.Error,
+                Data = typedResult.Result.Data,
+                ExecutionSeconds = typedResult.Result.ExecutionSeconds
+            });
         }
     }
 }

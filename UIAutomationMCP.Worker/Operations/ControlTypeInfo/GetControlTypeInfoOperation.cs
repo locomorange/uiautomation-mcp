@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -35,7 +36,7 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<ControlTypeInfoResult>> ExecuteAsync(WorkerRequest request)
         {
             try
             {
@@ -48,24 +49,24 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
 
                 var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
                 if (element == null)
-                    return Task.FromResult(new OperationResult { Success = false, Error = "Element not found" });
+                    return Task.FromResult(new OperationResult<ControlTypeInfoResult> { Success = false, Error = "Element not found" });
 
                 var controlType = element.Current.ControlType;
-                var controlTypeInfo = new Dictionary<string, object>
+                var controlTypeInfo = new ControlTypeInfoResult
                 {
-                    ["ControlType"] = controlType.LocalizedControlType,
-                    ["ControlTypeName"] = controlType.ProgrammaticName,
-                    ["LocalizedControlType"] = element.Current.LocalizedControlType,
-                    ["AutomationId"] = element.Current.AutomationId,
-                    ["Name"] = element.Current.Name
+                    ControlType = controlType.LocalizedControlType,
+                    ControlTypeName = controlType.ProgrammaticName,
+                    LocalizedControlType = element.Current.LocalizedControlType,
+                    AutomationId = element.Current.AutomationId,
+                    Name = element.Current.Name
                 };
 
                 // Get available patterns
                 var availablePatterns = element.GetSupportedPatterns()
                     .Select(pattern => pattern.ProgrammaticName)
-                    .ToArray();
+                    .ToList();
 
-                controlTypeInfo["AvailablePatterns"] = availablePatterns;
+                controlTypeInfo.AvailablePatterns = availablePatterns;
 
                 // Pattern validation if requested
                 if (validatePatterns && ControlTypePatterns.TryGetValue(controlType, out var expectedPatterns))
@@ -79,7 +80,7 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
                             .Any(ep => ap.Contains(ep)))
                         .ToArray();
 
-                    controlTypeInfo["PatternValidation"] = new
+                    controlTypeInfo.PatternValidation = new
                     {
                         ExpectedRequired = expectedPatterns.RequiredPatterns,
                         ExpectedOptional = expectedPatterns.OptionalPatterns,
@@ -92,7 +93,7 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
                 // Include default properties if requested
                 if (includeDefaultProperties)
                 {
-                    controlTypeInfo["DefaultProperties"] = new
+                    controlTypeInfo.DefaultProperties = new
                     {
                         IsEnabled = element.Current.IsEnabled,
                         IsVisible = !element.Current.IsOffscreen,
@@ -103,12 +104,24 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
                     };
                 }
 
-                return Task.FromResult(new OperationResult { Success = true, Data = controlTypeInfo });
+                return Task.FromResult(new OperationResult<ControlTypeInfoResult> { Success = true, Data = controlTypeInfo });
             }
             catch (Exception ex)
             {
-                return Task.FromResult(new OperationResult { Success = false, Error = ex.Message });
+                return Task.FromResult(new OperationResult<ControlTypeInfoResult> { Success = false, Error = ex.Message });
             }
+        }
+
+        async Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = await ExecuteAsync(request);
+            return new OperationResult
+            {
+                Success = typedResult.Success,
+                Error = typedResult.Error,
+                Data = typedResult.Data,
+                ExecutionSeconds = typedResult.ExecutionSeconds
+            };
         }
 
         private class ControlTypePatternInfo

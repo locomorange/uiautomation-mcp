@@ -1,5 +1,6 @@
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 using UIAutomationMCP.Worker.Services;
@@ -15,7 +16,7 @@ namespace UIAutomationMCP.Worker.Operations.Selection
             _elementFinderService = elementFinderService;
         }
 
-        public Task<OperationResult> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult<ElementSearchResult>> ExecuteAsync(WorkerRequest request)
         {
             var elementId = request.Parameters?.GetValueOrDefault("elementId")?.ToString() ?? "";
             var windowTitle = request.Parameters?.GetValueOrDefault("windowTitle")?.ToString() ?? "";
@@ -24,35 +25,94 @@ namespace UIAutomationMCP.Worker.Operations.Selection
 
             var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
             if (element == null)
-                return Task.FromResult(new OperationResult { Success = false, Error = "Element not found" });
+                return Task.FromResult(new OperationResult<ElementSearchResult> 
+                { 
+                    Success = false, 
+                    Error = "Element not found",
+                    Data = new ElementSearchResult()
+                });
             
             if (!element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var patternObject))
             {
-                return Task.FromResult(new OperationResult { Success = false, Error = $"Element does not support SelectionItemPattern: {elementId}" });
+                return Task.FromResult(new OperationResult<ElementSearchResult> 
+                { 
+                    Success = false, 
+                    Error = $"Element does not support SelectionItemPattern: {elementId}",
+                    Data = new ElementSearchResult()
+                });
             }
 
-            var selectionItemPattern = (SelectionItemPattern)patternObject;
-            var selectionContainer = selectionItemPattern.Current.SelectionContainer;
-            
-            if (selectionContainer == null)
+            try
             {
-                return Task.FromResult(new OperationResult { Success = true, Data = new { SelectionContainer = (object?)null } });
-            }
-            
-            var containerData = new
-            {
-                SelectionContainer = new
+                var selectionItemPattern = (SelectionItemPattern)patternObject;
+                var selectionContainer = selectionItemPattern.Current.SelectionContainer;
+                
+                var result = new ElementSearchResult();
+                
+                if (selectionContainer != null)
                 {
-                    AutomationId = selectionContainer.Current.AutomationId,
-                    Name = selectionContainer.Current.Name,
-                    ControlType = selectionContainer.Current.ControlType.ProgrammaticName,
-                    ClassName = selectionContainer.Current.ClassName,
-                    ProcessId = selectionContainer.Current.ProcessId,
-                    RuntimeId = selectionContainer.GetRuntimeId()
+                    var containerElement = CreateElementInfo(selectionContainer);
+                    result.Elements.Add(containerElement);
                 }
+                
+                result.SearchCriteria = new SearchCriteria
+                {
+                    SearchText = elementId,
+                    PatternType = "SelectionItemPattern",
+                    WindowTitle = windowTitle,
+                    ProcessId = processId > 0 ? processId : null,
+                    Scope = "SelectionContainer"
+                };
+                
+                return Task.FromResult(new OperationResult<ElementSearchResult> 
+                { 
+                    Success = true, 
+                    Data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return Task.FromResult(new OperationResult<ElementSearchResult> 
+                { 
+                    Success = false, 
+                    Error = $"Failed to get selection container: {ex.Message}",
+                    Data = new ElementSearchResult()
+                });
+            }
+        }
+
+        Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        {
+            var typedResult = ExecuteAsync(request);
+            return Task.FromResult(new OperationResult
+            {
+                Success = typedResult.Result.Success,
+                Error = typedResult.Result.Error,
+                Data = typedResult.Result.Data,
+                ExecutionSeconds = typedResult.Result.ExecutionSeconds
+            });
+        }
+
+        private ElementInfo CreateElementInfo(AutomationElement element)
+        {
+            return new ElementInfo
+            {
+                AutomationId = element.Current.AutomationId,
+                Name = element.Current.Name,
+                ControlType = element.Current.ControlType.LocalizedControlType,
+                IsEnabled = element.Current.IsEnabled,
+                ProcessId = element.Current.ProcessId,
+                ClassName = element.Current.ClassName,
+                HelpText = element.Current.HelpText,
+                BoundingRectangle = new BoundingRectangle
+                {
+                    X = element.Current.BoundingRectangle.X,
+                    Y = element.Current.BoundingRectangle.Y,
+                    Width = element.Current.BoundingRectangle.Width,
+                    Height = element.Current.BoundingRectangle.Height
+                },
+                IsVisible = !element.Current.IsOffscreen
             };
-            
-            return Task.FromResult(new OperationResult { Success = true, Data = containerData });
         }
     }
 }
