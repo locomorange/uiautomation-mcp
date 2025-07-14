@@ -104,7 +104,7 @@ namespace UIAutomationMCP.Shared
     }
 
 
-    // 要素検索用のパラメータ（UIAutomationの依存を削除）
+    // Element search parameters (removes UIAutomation dependency)
     public class ElementSearchParameters
     {
         public string? ElementId { get; set; }
@@ -115,13 +115,13 @@ namespace UIAutomationMCP.Shared
         public string? TreeScope { get; set; } = "descendants";
         public string? Scope { get; set; } = "descendants";
         public int TimeoutSeconds { get; set; } = 30;
-        // AutomationElementの代わりに識別情報を使用
+        // Use identification information instead of AutomationElement
         public string? SearchRootId { get; set; }
         public Dictionary<string, object>? Conditions { get; set; }
         public string? SearchText { get; set; }
     }
 
-    // 要素操作の詳細な結果
+    // Detailed element operation results
     public class ElementOperationResult : OperationResult
     {
         public ElementInfo? Element { get; set; }
@@ -129,7 +129,7 @@ namespace UIAutomationMCP.Shared
     }
 
 
-    // パターン情報
+    // Pattern information
     public class PatternInfo
     {
         public string Name { get; set; } = string.Empty;
@@ -137,7 +137,7 @@ namespace UIAutomationMCP.Shared
         public Dictionary<string, object> Properties { get; set; } = new();
     }
 
-    // 高度な操作パラメータ
+    // Advanced operation parameters
     public class AdvancedOperationParameters
     {
         public string Operation { get; set; } = string.Empty;
@@ -171,7 +171,7 @@ namespace UIAutomationMCP.Shared
     }
 
     /// <summary>
-    /// 型安全なWorkerレスポンス（ジェネリック版）
+    /// Type-safe Worker response (generic version)
     /// </summary>
     public class WorkerResponse<T>
     {
@@ -185,7 +185,7 @@ namespace UIAutomationMCP.Shared
         public string? Error { get; set; }
 
         /// <summary>
-        /// 成功レスポンスを作成
+        /// Create success response
         /// </summary>
         public static WorkerResponse<T> CreateSuccess(T data)
         {
@@ -198,7 +198,7 @@ namespace UIAutomationMCP.Shared
         }
 
         /// <summary>
-        /// エラーレスポンスを作成
+        /// Create error response
         /// </summary>
         public static WorkerResponse<T> CreateError(string error)
         {
@@ -212,17 +212,17 @@ namespace UIAutomationMCP.Shared
     }
 
     /// <summary>
-    /// よく使用される型のエイリアス
+    /// Aliases for commonly used types
     /// </summary>
     public static class WorkerResponseAliases
     {
         /// <summary>
-        /// object型のWorkerResponseのエイリアス
+        /// Alias for object type WorkerResponse
         /// </summary>
         public static WorkerResponse<object> CreateSuccess(object data) => WorkerResponse<object>.CreateSuccess(data);
         
         /// <summary>
-        /// object型のWorkerResponseのエイリアス
+        /// Alias for object type WorkerResponse
         /// </summary>
         public static WorkerResponse<object> CreateError(string error) => WorkerResponse<object>.CreateError(error);
     }

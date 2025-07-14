@@ -41,12 +41,12 @@ namespace UIAutomationMCP.Worker.Operations.Layout
             if (typedRequest == null)
             {
                 // Legacy validation only when not using typed request
-                if (request.Parameters?.GetValueOrDefault("horizontalPercent")?.ToString() is string legacyHorizontalStr && 
-                    !double.TryParse(legacyHorizontalStr, out _))
+                if (request.Parameters?.GetValueOrDefault("horizontalPercent")?.ToString() is string legacyHorizontalPercentStr && 
+                    !double.TryParse(legacyHorizontalPercentStr, out _))
                     return Task.FromResult(new OperationResult<ScrollActionResult> { Success = false, Error = "Invalid horizontal percentage value" });
 
-                if (request.Parameters?.GetValueOrDefault("verticalPercent")?.ToString() is string legacyVerticalStr && 
-                    !double.TryParse(legacyVerticalStr, out _))
+                if (request.Parameters?.GetValueOrDefault("verticalPercent")?.ToString() is string legacyVerticalPercentStr && 
+                    !double.TryParse(legacyVerticalPercentStr, out _))
                     return Task.FromResult(new OperationResult<ScrollActionResult> { Success = false, Error = "Invalid vertical percentage value" });
             }
 
