@@ -5,6 +5,7 @@ using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Interfaces;
+using UIAutomationMCP.Server.Tools;
 
 namespace UIAutomationMCP.Server
 {
@@ -107,7 +108,7 @@ namespace UIAutomationMCP.Server
                     };
                 })
                 .WithStdioServerTransport()
-                .WithToolsFromAssembly();
+                .WithTools<UIAutomationTools>();
 
             var host = builder.Build();
 
