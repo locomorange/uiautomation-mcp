@@ -55,35 +55,39 @@ namespace UIAutomationMCP.Server
                 var logger = provider.GetRequiredService<ILogger<SubprocessExecutor>>();
                 var baseDir = AppDomain.CurrentDomain.BaseDirectory;
                 
-                // Look for Worker.exe in multiple possible locations
-                var possiblePaths = new[]
-                {
-                    Path.Combine(baseDir, "UIAutomationMCP.Worker.exe"), // Same directory
-                    Path.Combine(baseDir, "..", "UIAutomationMCP.Worker", "bin", "Debug", "net9.0-windows", "UIAutomationMCP.Worker.exe"), // Development layout
-                    Path.Combine(baseDir, "..", "UIAutomationMCP.Worker", "bin", "Debug", "net9.0-windows", "UIAutomationMCP.Worker.dll"), // Development DLL
-                    Path.Combine(baseDir, "worker", "UIAutomationMCP.Worker.exe"), // Deployed layout
-                    Path.Combine(baseDir, "..", "UIAutomationMCP.Worker"), // Project directory for dotnet run
-                };
-
+                // Determine if we're in development or production
+                var isDevelopment = baseDir.Contains("bin\\Debug") || baseDir.Contains("bin\\Release");
+                
                 string? workerPath = null;
-                foreach (var path in possiblePaths)
+                
+                if (isDevelopment)
                 {
-                    var fullPath = Path.GetFullPath(path);
-                    if (File.Exists(fullPath) || (path.EndsWith("UIAutomationMCP.Worker") && Directory.Exists(fullPath)))
+                    // In development, look for the Worker project
+                    var solutionDir = Directory.GetParent(baseDir)?.Parent?.Parent?.Parent?.Parent?.FullName;
+                    if (solutionDir != null)
                     {
-                        workerPath = fullPath;
-                        break;
+                        workerPath = Path.Combine(solutionDir, "UIAutomationMCP.Worker");
+                        if (!Directory.Exists(workerPath))
+                        {
+                            // Try the built executable
+                            var config = baseDir.Contains("Debug") ? "Debug" : "Release";
+                            workerPath = Path.Combine(solutionDir, "UIAutomationMCP.Worker", "bin", config, "net9.0-windows", "UIAutomationMCP.Worker.exe");
+                        }
                     }
                 }
-
-                if (workerPath == null)
+                else
                 {
-                    logger.LogError("Worker executable or project not found in any of these locations: {Paths}", string.Join(", ", possiblePaths.Select(Path.GetFullPath)));
-                    throw new InvalidOperationException("UIAutomationMCP.Worker not found");
+                    // In production/tool deployment, Worker should be in same directory
+                    workerPath = Path.Combine(baseDir, "UIAutomationMCP.Worker.exe");
+                }
+
+                if (workerPath == null || (!File.Exists(workerPath) && !Directory.Exists(workerPath)))
+                {
+                    logger.LogError("Worker not found. Searched path: {WorkerPath}", workerPath);
+                    throw new InvalidOperationException($"UIAutomationMCP.Worker not found at: {workerPath}");
                 }
 
                 logger.LogInformation("Worker path configured: {WorkerPath}", workerPath);
-                logger.LogInformation("Worker exists: {Exists}", File.Exists(workerPath));
                 return new SubprocessExecutor(logger, workerPath);
             });
             

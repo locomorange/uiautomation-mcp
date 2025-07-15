@@ -6,6 +6,13 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AssemblyName>uiautomation-mcp</AssemblyName>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>uiautomation-mcp</ToolCommandName>
+    <PackageId>UIAutomationMCP</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Locomorange</Authors>
+    <Description>Windows UI Automation Model Context Protocol (MCP) server</Description>
   </PropertyGroup>
 
   <ItemGroup>

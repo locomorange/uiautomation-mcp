@@ -211,16 +211,36 @@ namespace UIAutomationMCP.Server.Helpers
         {
             _logger.LogInformation("Starting worker process: {WorkerPath}", _workerPath);
 
-            // Check if it's a .dll file or executable
             ProcessStartInfo startInfo;
             
-            if (_workerPath.EndsWith(".dll"))
+            // Check if it's a project directory (for development)
+            if (Directory.Exists(_workerPath) && File.Exists(Path.Combine(_workerPath, "UIAutomationMCP.Worker.csproj")))
             {
-                // For .dll files, use dotnet to run them
+                // Use dotnet run for project directory
                 startInfo = new ProcessStartInfo
                 {
                     FileName = "dotnet",
-                    Arguments = _workerPath,
+                    Arguments = "run --project .",
+                    UseShellExecute = false,
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true,
+                    WorkingDirectory = _workerPath
+                };
+            }
+            else if (_workerPath.EndsWith(".dll"))
+            {
+                // For .dll files, use dotnet to run them
+                if (!File.Exists(_workerPath))
+                {
+                    throw new FileNotFoundException($"Worker DLL not found at: {_workerPath}");
+                }
+                
+                startInfo = new ProcessStartInfo
+                {
+                    FileName = "dotnet",
+                    Arguments = $"\"{_workerPath}\"",
                     UseShellExecute = false,
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true,
@@ -229,36 +249,11 @@ namespace UIAutomationMCP.Server.Helpers
                     WorkingDirectory = Path.GetDirectoryName(_workerPath)
                 };
             }
-            else if (_workerPath.Contains("UIAutomationMCP.Worker") && !File.Exists(_workerPath))
-            {
-                // For project directory, use dotnet run
-                var projectDir = Path.GetDirectoryName(_workerPath);
-                if (projectDir != null && Directory.Exists(projectDir))
-                {
-                    startInfo = new ProcessStartInfo
-                    {
-                        FileName = "dotnet",
-                        Arguments = "run --project UIAutomationMCP.Worker",
-                        UseShellExecute = false,
-                        RedirectStandardInput = true,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true,
-                        WorkingDirectory = Directory.GetParent(projectDir)?.FullName ?? projectDir
-                    };
-                }
-                else
-                {
-                    _logger.LogError("Worker project directory not found: {WorkerPath}", _workerPath);
-                    throw new FileNotFoundException($"Worker project directory not found: {_workerPath}");
-                }
-            }
             else
             {
                 // For executable files
                 if (!File.Exists(_workerPath))
                 {
-                    _logger.LogError("Worker executable not found at: {WorkerPath}", _workerPath);
                     throw new FileNotFoundException($"Worker executable not found at: {_workerPath}");
                 }
 
