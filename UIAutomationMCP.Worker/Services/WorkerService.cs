@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Serialization;
 using UIAutomationMCP.Worker.Contracts;
 
 namespace UIAutomationMCP.Worker.Services
@@ -37,7 +38,7 @@ namespace UIAutomationMCP.Worker.Services
                         break;
                     }
 
-                    var request = JsonSerializer.Deserialize<WorkerRequest>(input, JsonSerializationConfig.Options);
+                    var request = JsonSerializationHelper.DeserializeWorkerRequest(input);
                     if (request == null)
                     {
                         _logger.LogWarning("Failed to deserialize request: {Input}", input);
@@ -74,7 +75,7 @@ namespace UIAutomationMCP.Worker.Services
             try
             {
                 _logger.LogDebug("Processing operation: {Operation} with parameters: {Parameters}", 
-                    request.Operation, JsonSerializer.Serialize(request.Parameters, JsonSerializationConfig.Options));
+                    request.Operation, request.Parameters != null ? JsonSerializationHelper.SerializeObject(request.Parameters) : "null");
 
                 // Try to get the operation for this request
                 var operation = _serviceProvider.GetKeyedService<IUIAutomationOperation>(request.Operation);
@@ -97,7 +98,7 @@ namespace UIAutomationMCP.Worker.Services
             {
                 // Enhanced error logging with operation context
                 _logger.LogError(ex, "Error executing operation: {Operation} with parameters: {Parameters}. Exception type: {ExceptionType}", 
-                    request.Operation, JsonSerializer.Serialize(request.Parameters, JsonSerializationConfig.Options), ex.GetType().Name);
+                    request.Operation, request.Parameters != null ? JsonSerializationHelper.SerializeObject(request.Parameters) : "null", ex.GetType().Name);
 
                 // Provide detailed error information for better debugging
                 var detailedError = $"Operation '{request.Operation}' failed: {ex.Message}";
@@ -123,7 +124,7 @@ namespace UIAutomationMCP.Worker.Services
 
         private void WriteResponse(WorkerResponse<object> response)
         {
-            var json = JsonSerializer.Serialize(response, JsonSerializationConfig.Options);
+            var json = JsonSerializationHelper.SerializeWorkerResponse(response);
             Console.WriteLine(json);
             Console.Out.Flush(); // Ensure immediate output
         }

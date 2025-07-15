@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text.Json;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Serialization;
 using UIAutomationMCP.Server.Interfaces;
 
 namespace UIAutomationMCP.Server.Helpers
@@ -39,7 +40,7 @@ namespace UIAutomationMCP.Server.Helpers
                     Parameters = parameters as Dictionary<string, object>
                 };
 
-                var requestJson = JsonSerializer.Serialize(request);
+                var requestJson = JsonSerializationHelper.SerializeWorkerRequest(request);
                 _logger.LogInformation("Sending request to worker: {Request}", requestJson);
 
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
@@ -92,7 +93,7 @@ namespace UIAutomationMCP.Server.Helpers
                     var contextMessage = $"Worker process returned empty response for operation '{operation}'";
                     if (parameters != null)
                     {
-                        contextMessage += $" with parameters: {JsonSerializer.Serialize(parameters)}";
+                        contextMessage += $" with parameters: {JsonSerializationHelper.SerializeObject(parameters)}";
                     }
                     if (!string.IsNullOrEmpty(errorOutput))
                     {
@@ -109,7 +110,7 @@ namespace UIAutomationMCP.Server.Helpers
                 WorkerResponse<object>? response;
                 try
                 {
-                    response = JsonSerializer.Deserialize<WorkerResponse<object>>(responseJson);
+                    response = JsonSerializationHelper.DeserializeWorkerResponse<object>(responseJson);
                 }
                 catch (JsonException ex)
                 {
@@ -147,7 +148,7 @@ namespace UIAutomationMCP.Server.Helpers
                     var contextualErrorMessage = $"Worker operation '{operation}' failed: {errorMessage}";
                     if (parameters != null)
                     {
-                        contextualErrorMessage += $" (Parameters: {JsonSerializer.Serialize(parameters)})";
+                        contextualErrorMessage += $" (Parameters: {JsonSerializationHelper.SerializeObject(parameters)})";
                     }
                     
                     _logger.LogError("Worker operation failed with details: {@ErrorDetails}", errorDetails);
@@ -182,14 +183,16 @@ namespace UIAutomationMCP.Server.Helpers
 
                 try
                 {
-                    var result = JsonSerializer.Deserialize<TResult>(JsonSerializer.Serialize(response.Data))!;
+                    // Convert response.Data to TResult
+                    var dataJson = JsonSerializationHelper.SerializeObject(response.Data!);
+                    var result = JsonSerializationHelper.DeserializeObject<TResult>(dataJson)!;
                     _logger.LogInformation("Successfully deserialized worker response data to type {ResultType}", typeof(TResult).Name);
                     return result;
                 }
                 catch (JsonException ex)
                 {
                     _logger.LogError(ex, "Failed to deserialize response data to type {ResultType}. Data: {Data}", 
-                        typeof(TResult).Name, JsonSerializer.Serialize(response.Data));
+                        typeof(TResult).Name, JsonSerializationHelper.SerializeObject(response.Data!));
                     throw new InvalidOperationException($"Failed to deserialize response data to {typeof(TResult).Name}: {ex.Message}", ex);
                 }
             }

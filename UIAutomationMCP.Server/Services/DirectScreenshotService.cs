@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Serialization;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Interfaces;
 
@@ -57,7 +58,7 @@ namespace UIAutomationMCP.Server.Services
                         {
                             _logger.LogInformation("BoundingRectangle found, type: {Type}, value: {Value}", 
                                 boundingRectObj?.GetType().Name ?? "null", 
-                                System.Text.Json.JsonSerializer.Serialize(boundingRectObj));
+                                JsonSerializationHelper.SerializeObject(boundingRectObj));
                             
                             if (boundingRectObj is Dictionary<string, object> boundingRect)
                             {
@@ -278,7 +279,7 @@ namespace UIAutomationMCP.Server.Services
                 };
 
                 _logger.LogInformation("Calling Worker GetWindowInfo with parameters: {Parameters}", 
-                    System.Text.Json.JsonSerializer.Serialize(parameters));
+                    JsonSerializationHelper.SerializeObject(parameters));
 
                 var result = await _executor.ExecuteAsync<Dictionary<string, object>>("GetWindowInfo", parameters, 10);
                 
@@ -286,7 +287,7 @@ namespace UIAutomationMCP.Server.Services
                 if (result != null)
                 {
                     _logger.LogInformation("Worker returned window info keys: {Keys}", string.Join(", ", result.Keys));
-                    _logger.LogInformation("Worker returned window info: {WindowInfo}", System.Text.Json.JsonSerializer.Serialize(result));
+                    _logger.LogInformation("Worker returned window info: {WindowInfo}", JsonSerializationHelper.SerializeObject(result));
                 }
                 else
                 {
@@ -375,7 +376,7 @@ namespace UIAutomationMCP.Server.Services
                 else
                 {
                     _logger.LogWarning("Failed to activate window via Worker. Result: {Result}", 
-                        result != null ? System.Text.Json.JsonSerializer.Serialize(result) : "null");
+                        result != null ? JsonSerializationHelper.SerializeObject(result) : "null");
                 }
 
                 // Wait for window state changes

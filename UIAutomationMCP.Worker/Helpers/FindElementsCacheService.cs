@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Serialization;
 
 namespace UIAutomationMCP.Worker.Helpers
 {
@@ -85,7 +86,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
             }
 
-            var json = JsonSerializer.Serialize(keyParams, new JsonSerializerOptions { WriteIndented = false });
+            var json = JsonSerializationHelper.SerializeObject(keyParams);
             using var sha256 = SHA256.Create();
             var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(json));
             return Convert.ToBase64String(hashBytes);
