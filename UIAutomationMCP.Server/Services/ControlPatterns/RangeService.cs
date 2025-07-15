@@ -3,12 +3,12 @@ using UIAutomationMCP.Server.Helpers;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
-    public class SubprocessBasedRangeService : IRangeService
+    public class RangeService : IRangeService
     {
-        private readonly ILogger<SubprocessBasedRangeService> _logger;
+        private readonly ILogger<RangeService> _logger;
         private readonly SubprocessExecutor _executor;
 
-        public SubprocessBasedRangeService(ILogger<SubprocessBasedRangeService> logger, SubprocessExecutor executor)
+        public RangeService(ILogger<RangeService> logger, SubprocessExecutor executor)
         {
             _logger = logger;
             _executor = executor;

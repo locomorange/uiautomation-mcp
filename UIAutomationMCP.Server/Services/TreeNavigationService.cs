@@ -3,13 +3,13 @@ using UIAutomationMCP.Server.Helpers;
 
 namespace UIAutomationMCP.Server.Services
 {
-    public class SubprocessBasedTreeNavigationService : ITreeNavigationService
+    public class TreeNavigationService : ITreeNavigationService
     {
-        private readonly ILogger<SubprocessBasedTreeNavigationService> _logger;
+        private readonly ILogger<TreeNavigationService> _logger;
         private readonly SubprocessExecutor _executor;
 
-        public SubprocessBasedTreeNavigationService(
-            ILogger<SubprocessBasedTreeNavigationService> logger,
+        public TreeNavigationService(
+            ILogger<TreeNavigationService> logger,
             SubprocessExecutor executor)
         {
             _logger = logger;

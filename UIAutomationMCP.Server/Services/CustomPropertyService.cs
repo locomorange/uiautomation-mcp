@@ -3,12 +3,12 @@ using UIAutomationMCP.Server.Helpers;
 
 namespace UIAutomationMCP.Server.Services
 {
-    public class SubprocessBasedCustomPropertyService : ICustomPropertyService
+    public class CustomPropertyService : ICustomPropertyService
     {
-        private readonly ILogger<SubprocessBasedCustomPropertyService> _logger;
+        private readonly ILogger<CustomPropertyService> _logger;
         private readonly SubprocessExecutor _executor;
 
-        public SubprocessBasedCustomPropertyService(ILogger<SubprocessBasedCustomPropertyService> logger, SubprocessExecutor executor)
+        public CustomPropertyService(ILogger<CustomPropertyService> logger, SubprocessExecutor executor)
         {
             _logger = logger;
             _executor = executor;

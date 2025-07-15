@@ -4,12 +4,12 @@ using UIAutomationMCP.Shared;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
-    public class SubprocessBasedTransformService : ITransformService
+    public class TransformService : ITransformService
     {
-        private readonly ILogger<SubprocessBasedTransformService> _logger;
+        private readonly ILogger<TransformService> _logger;
         private readonly SubprocessExecutor _executor;
 
-        public SubprocessBasedTransformService(ILogger<SubprocessBasedTransformService> logger, SubprocessExecutor executor)
+        public TransformService(ILogger<TransformService> logger, SubprocessExecutor executor)
         {
             _logger = logger;
             _executor = executor;

@@ -4,12 +4,12 @@ using UIAutomationMCP.Server.Interfaces;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
-    public class SubprocessBasedSelectionService : ISelectionService
+    public class SelectionService : ISelectionService
     {
-        private readonly ILogger<SubprocessBasedSelectionService> _logger;
+        private readonly ILogger<SelectionService> _logger;
         private readonly ISubprocessExecutor _executor;
 
-        public SubprocessBasedSelectionService(ILogger<SubprocessBasedSelectionService> logger, ISubprocessExecutor executor)
+        public SelectionService(ILogger<SelectionService> logger, ISubprocessExecutor executor)
         {
             _logger = logger;
             _executor = executor;

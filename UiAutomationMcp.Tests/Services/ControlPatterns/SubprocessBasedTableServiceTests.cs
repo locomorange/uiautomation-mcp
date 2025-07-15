@@ -8,24 +8,24 @@ using Xunit.Abstractions;
 namespace UIAutomationMCP.Tests.Services.ControlPatterns
 {
     /// <summary>
-    /// Tests for SubprocessBasedTableService - Microsoft TableItemPattern仕様準拠
+    /// Tests for TableService - Microsoft TableItemPattern仕様準拠
     /// 安全性ポリシー準拠: サブプロセス実行とモック使用でUIAutomation直接実行を回避
     /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Unit")]
-    public class SubprocessBasedTableServiceTests : IDisposable
+    public class TableServiceTests : IDisposable
     {
         private readonly ITestOutputHelper _output;
-        private readonly Mock<ILogger<SubprocessBasedTableService>> _mockLogger;
+        private readonly Mock<ILogger<TableService>> _mockLogger;
         private readonly Mock<SubprocessExecutor> _mockExecutor;
-        private readonly SubprocessBasedTableService _service;
+        private readonly TableService _service;
 
-        public SubprocessBasedTableServiceTests(ITestOutputHelper output)
+        public TableServiceTests(ITestOutputHelper output)
         {
             _output = output;
-            _mockLogger = new Mock<ILogger<SubprocessBasedTableService>>();
+            _mockLogger = new Mock<ILogger<TableService>>();
             _mockExecutor = new Mock<SubprocessExecutor>();
-            _service = new SubprocessBasedTableService(_mockLogger.Object, _mockExecutor.Object);
+            _service = new TableService(_mockLogger.Object, _mockExecutor.Object);
         }
 
         public void Dispose()

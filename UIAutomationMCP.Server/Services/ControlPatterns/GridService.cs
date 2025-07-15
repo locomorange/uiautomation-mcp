@@ -3,12 +3,12 @@ using UIAutomationMCP.Server.Helpers;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
-    public class SubprocessBasedGridService : IGridService
+    public class GridService : IGridService
     {
-        private readonly ILogger<SubprocessBasedGridService> _logger;
+        private readonly ILogger<GridService> _logger;
         private readonly SubprocessExecutor _executor;
 
-        public SubprocessBasedGridService(ILogger<SubprocessBasedGridService> logger, SubprocessExecutor executor)
+        public GridService(ILogger<GridService> logger, SubprocessExecutor executor)
         {
             _logger = logger;
             _executor = executor;

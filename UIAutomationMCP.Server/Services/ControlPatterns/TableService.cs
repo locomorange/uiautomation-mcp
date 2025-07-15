@@ -3,12 +3,12 @@ using UIAutomationMCP.Server.Helpers;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
-    public class SubprocessBasedTableService : ITableService
+    public class TableService : ITableService
     {
-        private readonly ILogger<SubprocessBasedTableService> _logger;
+        private readonly ILogger<TableService> _logger;
         private readonly SubprocessExecutor _executor;
 
-        public SubprocessBasedTableService(ILogger<SubprocessBasedTableService> logger, SubprocessExecutor executor)
+        public TableService(ILogger<TableService> logger, SubprocessExecutor executor)
         {
             _logger = logger;
             _executor = executor;

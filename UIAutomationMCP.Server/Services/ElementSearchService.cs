@@ -4,13 +4,13 @@ using UIAutomationMCP.Shared;
 
 namespace UIAutomationMCP.Server.Services
 {
-    public class SubprocessBasedElementSearchService : IElementSearchService
+    public class ElementSearchService : IElementSearchService
     {
-        private readonly ILogger<SubprocessBasedElementSearchService> _logger;
+        private readonly ILogger<ElementSearchService> _logger;
         private readonly SubprocessExecutor _executor;
 
-        public SubprocessBasedElementSearchService(
-            ILogger<SubprocessBasedElementSearchService> logger,
+        public ElementSearchService(
+            ILogger<ElementSearchService> logger,
             SubprocessExecutor executor)
         {
             _logger = logger;

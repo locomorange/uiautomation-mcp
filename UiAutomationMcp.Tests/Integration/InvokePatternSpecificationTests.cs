@@ -19,7 +19,7 @@ namespace UIAutomationMCP.Tests.Integration
         private readonly ITestOutputHelper _output;
         private readonly ServiceProvider _serviceProvider;
         private readonly SubprocessExecutor _subprocessExecutor;
-        private readonly SubprocessBasedInvokeService _invokeService;
+        private readonly InvokeService _invokeService;
         private readonly string _workerPath;
 
         public InvokePatternSpecificationTests(ITestOutputHelper output)
@@ -45,8 +45,8 @@ namespace UIAutomationMCP.Tests.Integration
                 throw new InvalidOperationException("Worker executable not found");
 
             _subprocessExecutor = new SubprocessExecutor(logger, _workerPath);
-            _invokeService = new SubprocessBasedInvokeService(
-                _serviceProvider.GetRequiredService<ILogger<SubprocessBasedInvokeService>>(), 
+            _invokeService = new InvokeService(
+                _serviceProvider.GetRequiredService<ILogger<InvokeService>>(), 
                 _subprocessExecutor);
         }
 

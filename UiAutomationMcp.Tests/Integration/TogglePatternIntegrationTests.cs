@@ -20,8 +20,8 @@ namespace UIAutomationMCP.Tests.Integration
         private readonly ITestOutputHelper _output;
         private readonly ServiceProvider _serviceProvider;
         private readonly SubprocessExecutor _subprocessExecutor;
-        private readonly SubprocessBasedToggleService _toggleService;
-        private readonly SubprocessBasedElementSearchService _elementSearchService;
+        private readonly ToggleService _toggleService;
+        private readonly ElementSearchService _elementSearchService;
         private readonly string _workerPath;
 
         public TogglePatternIntegrationTests(ITestOutputHelper output)
@@ -47,11 +47,11 @@ namespace UIAutomationMCP.Tests.Integration
                 throw new InvalidOperationException("Worker executable not found");
 
             _subprocessExecutor = new SubprocessExecutor(logger, _workerPath);
-            _toggleService = new SubprocessBasedToggleService(
-                _serviceProvider.GetRequiredService<ILogger<SubprocessBasedToggleService>>(), 
+            _toggleService = new ToggleService(
+                _serviceProvider.GetRequiredService<ILogger<ToggleService>>(), 
                 _subprocessExecutor);
-            _elementSearchService = new SubprocessBasedElementSearchService(
-                _serviceProvider.GetRequiredService<ILogger<SubprocessBasedElementSearchService>>(), 
+            _elementSearchService = new ElementSearchService(
+                _serviceProvider.GetRequiredService<ILogger<ElementSearchService>>(), 
                 _subprocessExecutor);
         }
 

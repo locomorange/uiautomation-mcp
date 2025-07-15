@@ -16,16 +16,16 @@ namespace UIAutomationMCP.Tests.Integration
     public class TablePatternIntegrationTests : IDisposable
     {
         private readonly ITestOutputHelper _output;
-        private readonly ILogger<SubprocessBasedTableService> _logger;
+        private readonly ILogger<TableService> _logger;
         private readonly SubprocessExecutor _subprocessExecutor;
-        private readonly SubprocessBasedTableService _tableService;
+        private readonly TableService _tableService;
         private readonly string _workerPath;
 
         public TablePatternIntegrationTests(ITestOutputHelper output)
         {
             _output = output;
             var loggerFactory = new LoggerFactory();
-            _logger = loggerFactory.CreateLogger<SubprocessBasedTableService>();
+            _logger = loggerFactory.CreateLogger<TableService>();
             var executorLogger = loggerFactory.CreateLogger<SubprocessExecutor>();
 
             // Locate the Worker executable for subprocess testing
@@ -41,7 +41,7 @@ namespace UIAutomationMCP.Tests.Integration
                 throw new InvalidOperationException($"Worker executable not found. Searched paths: {string.Join(", ", possiblePaths)}");
 
             _subprocessExecutor = new SubprocessExecutor(executorLogger, _workerPath);
-            _tableService = new SubprocessBasedTableService(_logger, _subprocessExecutor);
+            _tableService = new TableService(_logger, _subprocessExecutor);
 
             _output.WriteLine($"Using Worker executable at: {_workerPath}");
         }

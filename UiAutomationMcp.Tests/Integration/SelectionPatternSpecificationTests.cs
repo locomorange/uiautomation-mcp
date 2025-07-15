@@ -18,7 +18,7 @@ namespace UIAutomationMCP.Tests.Integration
         private readonly ITestOutputHelper _output;
         private readonly ServiceProvider _serviceProvider;
         private readonly SubprocessExecutor _subprocessExecutor;
-        private readonly SubprocessBasedSelectionService _selectionService;
+        private readonly SelectionService _selectionService;
         private readonly string _workerPath;
 
         public SelectionPatternSpecificationTests(ITestOutputHelper output)
@@ -44,8 +44,8 @@ namespace UIAutomationMCP.Tests.Integration
                 throw new InvalidOperationException("Worker executable not found");
 
             _subprocessExecutor = new SubprocessExecutor(logger, _workerPath);
-            _selectionService = new SubprocessBasedSelectionService(
-                _serviceProvider.GetRequiredService<ILogger<SubprocessBasedSelectionService>>(), 
+            _selectionService = new SelectionService(
+                _serviceProvider.GetRequiredService<ILogger<SelectionService>>(), 
                 _subprocessExecutor);
             
             _output.WriteLine($"Worker path: {_workerPath}");

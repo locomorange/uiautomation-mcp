@@ -24,7 +24,7 @@ namespace UIAutomationMCP.Tests.Integration
         private readonly ITestOutputHelper _output;
         private readonly ServiceProvider _serviceProvider;
         private readonly SubprocessExecutor _subprocessExecutor;
-        private readonly SubprocessBasedTransformService _transformService;
+        private readonly TransformService _transformService;
         private readonly string _workerPath;
 
         public TransformPatternSpecificationTests(ITestOutputHelper output)
@@ -52,8 +52,8 @@ namespace UIAutomationMCP.Tests.Integration
             _subprocessExecutor = new SubprocessExecutor(logger, _workerPath);
             
             var transformLogger = _serviceProvider.GetRequiredService<ILoggerFactory>()
-                .CreateLogger<SubprocessBasedTransformService>();
-            _transformService = new SubprocessBasedTransformService(transformLogger, _subprocessExecutor);
+                .CreateLogger<TransformService>();
+            _transformService = new TransformService(transformLogger, _subprocessExecutor);
             
             _output.WriteLine("Transform Pattern Specification Tests initialized");
             _output.WriteLine("Testing compliance with Microsoft UI Automation Transform Control Pattern specification");

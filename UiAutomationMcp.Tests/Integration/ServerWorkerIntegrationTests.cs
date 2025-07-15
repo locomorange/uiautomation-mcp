@@ -114,7 +114,7 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task InvokeService_WhenCalledWithNonExistentElement_ShouldHandleTimeout()
         {
             // Given
-            var invokeService = new SubprocessBasedInvokeService(_serviceProvider.GetRequiredService<ILogger<SubprocessBasedInvokeService>>(), _subprocessExecutor);
+            var invokeService = new InvokeService(_serviceProvider.GetRequiredService<ILogger<InvokeService>>(), _subprocessExecutor);
 
             // When
             var result = await invokeService.InvokeElementAsync("NonExistentElement", null, null, 5);
@@ -132,7 +132,7 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task ValueService_ShouldCommunicateWithWorker()
         {
             // Arrange
-            var valueService = new SubprocessBasedValueService(_serviceProvider.GetRequiredService<ILogger<SubprocessBasedValueService>>(), _subprocessExecutor);
+            var valueService = new ValueService(_serviceProvider.GetRequiredService<ILogger<ValueService>>(), _subprocessExecutor);
 
             // Act
             var result = await valueService.SetValueAsync("NonExistentElement", "test value", null, null, 5);
@@ -150,7 +150,7 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task ToggleService_ShouldCommunicateWithWorker()
         {
             // Arrange
-            var toggleService = new SubprocessBasedToggleService(_serviceProvider.GetRequiredService<ILogger<SubprocessBasedToggleService>>(), _subprocessExecutor);
+            var toggleService = new ToggleService(_serviceProvider.GetRequiredService<ILogger<ToggleService>>(), _subprocessExecutor);
 
             // Act
             var result = await toggleService.ToggleElementAsync("NonExistentElement", null, null, 5);
@@ -168,8 +168,8 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task MultipleOperations_ShouldWorkSequentially()
         {
             // Arrange
-            var invokeService = new SubprocessBasedInvokeService(_serviceProvider.GetRequiredService<ILogger<SubprocessBasedInvokeService>>(), _subprocessExecutor);
-            var valueService = new SubprocessBasedValueService(_serviceProvider.GetRequiredService<ILogger<SubprocessBasedValueService>>(), _subprocessExecutor);
+            var invokeService = new InvokeService(_serviceProvider.GetRequiredService<ILogger<InvokeService>>(), _subprocessExecutor);
+            var valueService = new ValueService(_serviceProvider.GetRequiredService<ILogger<ValueService>>(), _subprocessExecutor);
 
             // Act
             var invokeResult = await invokeService.InvokeElementAsync("NonExistentElement1", null, null, 5);

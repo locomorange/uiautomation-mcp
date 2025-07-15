@@ -20,9 +20,9 @@ namespace UIAutomationMCP.Tests.Integration
         private readonly ITestOutputHelper _output;
         private readonly ServiceProvider _serviceProvider;
         private readonly SubprocessExecutor _subprocessExecutor;
-        private readonly SubprocessBasedElementSearchService _elementSearchService;
-        private readonly SubprocessBasedInvokeService _invokeService;
-        private readonly SubprocessBasedValueService _valueService;
+        private readonly ElementSearchService _elementSearchService;
+        private readonly InvokeService _invokeService;
+        private readonly ValueService _valueService;
         private readonly string _workerPath;
 
         public BasicE2ETests(ITestOutputHelper output)
@@ -48,14 +48,14 @@ namespace UIAutomationMCP.Tests.Integration
                 throw new InvalidOperationException("Worker executable not found");
 
             _subprocessExecutor = new SubprocessExecutor(logger, _workerPath);
-            _elementSearchService = new SubprocessBasedElementSearchService(
-                _serviceProvider.GetRequiredService<ILogger<SubprocessBasedElementSearchService>>(), 
+            _elementSearchService = new ElementSearchService(
+                _serviceProvider.GetRequiredService<ILogger<ElementSearchService>>(), 
                 _subprocessExecutor);
-            _invokeService = new SubprocessBasedInvokeService(
-                _serviceProvider.GetRequiredService<ILogger<SubprocessBasedInvokeService>>(), 
+            _invokeService = new InvokeService(
+                _serviceProvider.GetRequiredService<ILogger<InvokeService>>(), 
                 _subprocessExecutor);
-            _valueService = new SubprocessBasedValueService(
-                _serviceProvider.GetRequiredService<ILogger<SubprocessBasedValueService>>(), 
+            _valueService = new ValueService(
+                _serviceProvider.GetRequiredService<ILogger<ValueService>>(), 
                 _subprocessExecutor);
         }
 

@@ -16,9 +16,9 @@ namespace UIAutomationMCP.Tests.Integration
     public class SelectionPatternIntegrationTests : IDisposable
     {
         private readonly ITestOutputHelper _output;
-        private readonly ILogger<SubprocessBasedSelectionService> _logger;
+        private readonly ILogger<SelectionService> _logger;
         private readonly SubprocessExecutor _subprocessExecutor;
-        private readonly SubprocessBasedSelectionService _selectionService;
+        private readonly SelectionService _selectionService;
         private readonly string _workerPath;
 
         public SelectionPatternIntegrationTests(ITestOutputHelper output)
@@ -26,7 +26,7 @@ namespace UIAutomationMCP.Tests.Integration
             _output = output;
             
             // Use simple mock loggers for integration tests
-            _logger = Mock.Of<ILogger<SubprocessBasedSelectionService>>();
+            _logger = Mock.Of<ILogger<SelectionService>>();
             var executorLogger = Mock.Of<ILogger<SubprocessExecutor>>();
 
             // Locate the Worker executable for subprocess testing
@@ -42,7 +42,7 @@ namespace UIAutomationMCP.Tests.Integration
                 throw new InvalidOperationException($"Worker executable not found. Searched paths: {string.Join(", ", possiblePaths)}");
 
             _subprocessExecutor = new SubprocessExecutor(executorLogger, _workerPath);
-            _selectionService = new SubprocessBasedSelectionService(_logger, _subprocessExecutor);
+            _selectionService = new SelectionService(_logger, _subprocessExecutor);
 
             _output.WriteLine($"Using Worker executable at: {_workerPath}");
         }

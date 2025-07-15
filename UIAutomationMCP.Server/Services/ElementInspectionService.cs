@@ -3,13 +3,13 @@ using UIAutomationMCP.Server.Helpers;
 
 namespace UIAutomationMCP.Server.Services
 {
-    public class SubprocessBasedElementInspectionService : IElementInspectionService
+    public class ElementInspectionService : IElementInspectionService
     {
-        private readonly ILogger<SubprocessBasedElementInspectionService> _logger;
+        private readonly ILogger<ElementInspectionService> _logger;
         private readonly SubprocessExecutor _executor;
 
-        public SubprocessBasedElementInspectionService(
-            ILogger<SubprocessBasedElementInspectionService> logger,
+        public ElementInspectionService(
+            ILogger<ElementInspectionService> logger,
             SubprocessExecutor executor)
         {
             _logger = logger;

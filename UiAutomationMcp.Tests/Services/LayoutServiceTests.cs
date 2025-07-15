@@ -17,22 +17,22 @@ namespace UiAutomationMcp.Tests.Services
     public class LayoutServiceTests : IDisposable
     {
         private readonly ITestOutputHelper _output;
-        private readonly Mock<ILogger<SubprocessBasedLayoutService>> _mockLogger;
+        private readonly Mock<ILogger<LayoutService>> _mockLogger;
         private readonly Mock<ILogger<SubprocessExecutor>> _mockExecutorLogger;
         private readonly SubprocessExecutor _subprocessExecutor;
-        private readonly SubprocessBasedLayoutService _layoutService;
+        private readonly LayoutService _layoutService;
 
         public LayoutServiceTests(ITestOutputHelper output)
         {
             _output = output;
-            _mockLogger = new Mock<ILogger<SubprocessBasedLayoutService>>();
+            _mockLogger = new Mock<ILogger<LayoutService>>();
             _mockExecutorLogger = new Mock<ILogger<SubprocessExecutor>>();
             
             // Create a SubprocessExecutor with a non-existent worker path for unit testing
             // This will cause operations to fail predictably, which is what we want for unit tests
             _subprocessExecutor = new SubprocessExecutor(_mockExecutorLogger.Object, "mock-worker-path.exe");
             
-            _layoutService = new SubprocessBasedLayoutService(_mockLogger.Object, _subprocessExecutor);
+            _layoutService = new LayoutService(_mockLogger.Object, _subprocessExecutor);
         }
 
         #region ScrollElementIntoView Tests

@@ -9,9 +9,9 @@ using UIAutomationMCP.Server.Interfaces;
 
 namespace UIAutomationMCP.Server.Services
 {
-    public class DirectScreenshotService : IScreenshotService
+    public class ScreenshotService : IScreenshotService
     {
-        private readonly ILogger<DirectScreenshotService> _logger;
+        private readonly ILogger<ScreenshotService> _logger;
         private readonly ISubprocessExecutor _executor;
 
         // Win32 API declarations for screen dimensions
@@ -21,7 +21,7 @@ namespace UIAutomationMCP.Server.Services
         private const int SM_CXSCREEN = 0;  // Primary screen width
         private const int SM_CYSCREEN = 1;  // Primary screen height
 
-        public DirectScreenshotService(ILogger<DirectScreenshotService> logger, ISubprocessExecutor executor)
+        public ScreenshotService(ILogger<ScreenshotService> logger, ISubprocessExecutor executor)
         {
             _logger = logger;
             _executor = executor;

@@ -47,8 +47,8 @@ namespace UIAutomationMCP.Tests.Integration
                 throw new InvalidOperationException("Worker executable not found");
 
             var subprocessExecutor = new SubprocessExecutor(logger, workerPath);
-            _valueService = new SubprocessBasedValueService(
-                _serviceProvider.GetRequiredService<ILogger<SubprocessBasedValueService>>(), 
+            _valueService = new ValueService(
+                _serviceProvider.GetRequiredService<ILogger<ValueService>>(), 
                 subprocessExecutor);
         }
 

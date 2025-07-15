@@ -3,12 +3,12 @@ using UIAutomationMCP.Server.Helpers;
 
 namespace UIAutomationMCP.Server.Services
 {
-    public class SubprocessBasedAccessibilityService : IAccessibilityService
+    public class AccessibilityService : IAccessibilityService
     {
-        private readonly ILogger<SubprocessBasedAccessibilityService> _logger;
+        private readonly ILogger<AccessibilityService> _logger;
         private readonly SubprocessExecutor _executor;
 
-        public SubprocessBasedAccessibilityService(ILogger<SubprocessBasedAccessibilityService> logger, SubprocessExecutor executor)
+        public AccessibilityService(ILogger<AccessibilityService> logger, SubprocessExecutor executor)
         {
             _logger = logger;
             _executor = executor;

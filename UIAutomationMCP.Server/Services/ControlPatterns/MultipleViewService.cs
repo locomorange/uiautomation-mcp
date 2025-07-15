@@ -3,12 +3,12 @@ using UIAutomationMCP.Server.Helpers;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
-    public class SubprocessBasedMultipleViewService : IMultipleViewService
+    public class MultipleViewService : IMultipleViewService
     {
-        private readonly ILogger<SubprocessBasedMultipleViewService> _logger;
+        private readonly ILogger<MultipleViewService> _logger;
         private readonly SubprocessExecutor _executor;
 
-        public SubprocessBasedMultipleViewService(ILogger<SubprocessBasedMultipleViewService> logger, SubprocessExecutor executor)
+        public MultipleViewService(ILogger<MultipleViewService> logger, SubprocessExecutor executor)
         {
             _logger = logger;
             _executor = executor;

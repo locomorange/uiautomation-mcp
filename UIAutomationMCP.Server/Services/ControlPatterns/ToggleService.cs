@@ -3,12 +3,12 @@ using UIAutomationMCP.Server.Helpers;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
-    public class SubprocessBasedToggleService : IToggleService
+    public class ToggleService : IToggleService
     {
-        private readonly ILogger<SubprocessBasedToggleService> _logger;
+        private readonly ILogger<ToggleService> _logger;
         private readonly SubprocessExecutor _executor;
 
-        public SubprocessBasedToggleService(ILogger<SubprocessBasedToggleService> logger, SubprocessExecutor executor)
+        public ToggleService(ILogger<ToggleService> logger, SubprocessExecutor executor)
         {
             _logger = logger;
             _executor = executor;

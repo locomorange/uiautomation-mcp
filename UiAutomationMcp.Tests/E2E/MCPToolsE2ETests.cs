@@ -41,29 +41,29 @@ namespace UIAutomationMCP.Tests.E2E
 
             // Register application services
             services.AddSingleton<IApplicationLauncher, ApplicationLauncher>();
-            services.AddSingleton<IScreenshotService, DirectScreenshotService>();
+            services.AddSingleton<IScreenshotService, ScreenshotService>();
             
             // Register subprocess-based UI Automation services
-            services.AddSingleton<IElementSearchService, SubprocessBasedElementSearchService>();
-            services.AddSingleton<ITreeNavigationService, SubprocessBasedTreeNavigationService>();
-            services.AddSingleton<IInvokeService, SubprocessBasedInvokeService>();
-            services.AddSingleton<IValueService, SubprocessBasedValueService>();
-            services.AddSingleton<IToggleService, SubprocessBasedToggleService>();
-            services.AddSingleton<ISelectionService, SubprocessBasedSelectionService>();
-            services.AddSingleton<IWindowService, SubprocessBasedWindowService>();
-            services.AddSingleton<ITextService, SubprocessBasedTextService>();
-            services.AddSingleton<ILayoutService, SubprocessBasedLayoutService>();
-            services.AddSingleton<IRangeService, SubprocessBasedRangeService>();
-            services.AddSingleton<IElementInspectionService, SubprocessBasedElementInspectionService>();
+            services.AddSingleton<IElementSearchService, ElementSearchService>();
+            services.AddSingleton<ITreeNavigationService, TreeNavigationService>();
+            services.AddSingleton<IInvokeService, InvokeService>();
+            services.AddSingleton<IValueService, ValueService>();
+            services.AddSingleton<IToggleService, ToggleService>();
+            services.AddSingleton<ISelectionService, SelectionService>();
+            services.AddSingleton<IWindowService, WindowService>();
+            services.AddSingleton<ITextService, TextService>();
+            services.AddSingleton<ILayoutService, LayoutService>();
+            services.AddSingleton<IRangeService, RangeService>();
+            services.AddSingleton<IElementInspectionService, ElementInspectionService>();
             
             // Register additional subprocess-based UI Automation services
-            services.AddSingleton<IGridService, SubprocessBasedGridService>();
-            services.AddSingleton<ITableService, SubprocessBasedTableService>();
-            services.AddSingleton<IMultipleViewService, SubprocessBasedMultipleViewService>();
-            services.AddSingleton<IAccessibilityService, SubprocessBasedAccessibilityService>();
-            services.AddSingleton<ICustomPropertyService, SubprocessBasedCustomPropertyService>();
-            services.AddSingleton<ITransformService, SubprocessBasedTransformService>();
-            services.AddSingleton<IControlTypeService, SubprocessBasedControlTypeService>();
+            services.AddSingleton<IGridService, GridService>();
+            services.AddSingleton<ITableService, TableService>();
+            services.AddSingleton<IMultipleViewService, MultipleViewService>();
+            services.AddSingleton<IAccessibilityService, AccessibilityService>();
+            services.AddSingleton<ICustomPropertyService, CustomPropertyService>();
+            services.AddSingleton<ITransformService, TransformService>();
+            services.AddSingleton<IControlTypeService, ControlTypeService>();
 
             // Register subprocess executor
             services.AddSingleton<SubprocessExecutor>(provider =>

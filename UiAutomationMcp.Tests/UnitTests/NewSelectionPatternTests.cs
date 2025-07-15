@@ -17,16 +17,16 @@ namespace UIAutomationMCP.Tests.UnitTests
     public class NewSelectionPatternTests : IDisposable
     {
         private readonly ITestOutputHelper _output;
-        private readonly Mock<ILogger<SubprocessBasedSelectionService>> _mockLogger;
+        private readonly Mock<ILogger<SelectionService>> _mockLogger;
         private readonly Mock<ISubprocessExecutor> _mockExecutor;
-        private readonly SubprocessBasedSelectionService _selectionService;
+        private readonly SelectionService _selectionService;
 
         public NewSelectionPatternTests(ITestOutputHelper output)
         {
             _output = output;
-            _mockLogger = new Mock<ILogger<SubprocessBasedSelectionService>>();
+            _mockLogger = new Mock<ILogger<SelectionService>>();
             _mockExecutor = new Mock<ISubprocessExecutor>();
-            _selectionService = new SubprocessBasedSelectionService(_mockLogger.Object, _mockExecutor.Object);
+            _selectionService = new SelectionService(_mockLogger.Object, _mockExecutor.Object);
         }
 
         #region New SelectionItemPattern Properties Tests

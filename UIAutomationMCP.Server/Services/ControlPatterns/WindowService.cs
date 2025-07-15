@@ -3,12 +3,12 @@ using UIAutomationMCP.Server.Helpers;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
-    public class SubprocessBasedWindowService : IWindowService
+    public class WindowService : IWindowService
     {
-        private readonly ILogger<SubprocessBasedWindowService> _logger;
+        private readonly ILogger<WindowService> _logger;
         private readonly SubprocessExecutor _executor;
 
-        public SubprocessBasedWindowService(ILogger<SubprocessBasedWindowService> logger, SubprocessExecutor executor)
+        public WindowService(ILogger<WindowService> logger, SubprocessExecutor executor)
         {
             _logger = logger;
             _executor = executor;

@@ -16,17 +16,17 @@ namespace UIAutomationMCP.Tests.Services
     public class TableServiceTests : IDisposable
     {
         private readonly ITestOutputHelper _output;
-        private readonly Mock<ILogger<SubprocessBasedTableService>> _mockLogger;
+        private readonly Mock<ILogger<TableService>> _mockLogger;
         private readonly Mock<SubprocessExecutor> _mockExecutor;
-        private readonly SubprocessBasedTableService _tableService;
+        private readonly TableService _tableService;
 
         public TableServiceTests(ITestOutputHelper output)
         {
             _output = output;
-            _mockLogger = new Mock<ILogger<SubprocessBasedTableService>>();
+            _mockLogger = new Mock<ILogger<TableService>>();
             _mockExecutor = new Mock<SubprocessExecutor>();
             
-            _tableService = new SubprocessBasedTableService(_mockLogger.Object, _mockExecutor.Object);
+            _tableService = new TableService(_mockLogger.Object, _mockExecutor.Object);
         }
 
         #region GetRowOrColumnMajorAsync Tests
