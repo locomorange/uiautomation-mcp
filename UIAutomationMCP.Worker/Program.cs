@@ -2,6 +2,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
+using UIAutomationMCP.Shared.Configuration;
 using UIAutomationMCP.Worker.Services;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Operations.Invoke;
@@ -33,15 +35,12 @@ namespace UIAutomationMCP.Worker
         {
             var builder = Host.CreateApplicationBuilder(args);
 
-            // Configure Options Pattern
-            builder.Services.Configure<UIAutomationOptions>(
-                builder.Configuration.GetSection(UIAutomationOptions.SectionName));
-
-            // Enable validation for options
-            builder.Services.AddOptions<UIAutomationOptions>()
-                .Bind(builder.Configuration.GetSection(UIAutomationOptions.SectionName))
-                .ValidateDataAnnotations()
-                .ValidateOnStart();
+            // Configure Options Pattern using AOT-compatible smart binding
+            builder.Services.AddSingleton<UIAutomationOptions>(provider =>
+            {
+                var configuration = provider.GetRequiredService<IConfiguration>();
+                return UIAutomationOptionsBuilder.Build(configuration);
+            });
 
             // Add custom validation
             builder.Services.AddSingleton<IValidateOptions<UIAutomationOptions>, UIAutomationOptionsValidator>();
