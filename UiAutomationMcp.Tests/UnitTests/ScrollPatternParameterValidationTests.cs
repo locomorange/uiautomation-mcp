@@ -153,8 +153,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         public void SetScrollPercent_Should_Handle_Missing_Parameters_Gracefully()
         {
             // Arrange - 必須パラメータが欠損している場合をシミュレート
-            string missingHorizontal = null;
-            string missingVertical = null;
+            string? missingHorizontal = null;
+            string? missingVertical = null;
 
             // Act - パラメータ欠損のケースをテスト
             var horizontalValid = double.TryParse(missingHorizontal, out _);

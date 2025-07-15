@@ -54,7 +54,7 @@ namespace UiAutomationMcp.Tests.UnitTests
         [InlineData(4, "NotResponding", "The window is not responding")]
         [InlineData(999, "Unknown", "Unknown interaction state")]
         public void GetWindowInteractionState_Should_Return_Correct_Description(
-            int stateValue, string expectedState, string expectedDescription)
+            int stateValue, string _, string expectedDescription)
         {
             // Act - WindowInteractionStateの説明ロジックをテスト
             var description = stateValue switch

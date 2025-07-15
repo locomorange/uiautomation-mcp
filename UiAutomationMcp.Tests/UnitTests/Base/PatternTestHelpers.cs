@@ -22,7 +22,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
             // 空文字列パラメータのテスト
             foreach (var emptyString in CommonTestData.EmptyOrInvalidStrings.Where(s => s != null))
             {
-                var testParams = new object[] { emptyString, "TestWindow", 0 }.Concat(parameters).ToArray();
+                var testParams = new object[] { emptyString!, "TestWindow", 0 }.Concat(parameters).ToArray();
                 ExecuteParameterTest(mockService, methodName, testParams, output, $"empty elementId '{emptyString}'");
             }
 

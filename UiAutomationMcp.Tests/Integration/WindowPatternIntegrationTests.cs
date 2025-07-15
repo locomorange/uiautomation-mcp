@@ -197,7 +197,7 @@ namespace UiAutomationMcp.Tests.Integration
                 var result = await _subprocessExecutor.ExecuteAsync<object>(operationName, parameters, 10);
 
                 // この行に到達すべきではない（例外が発生するはず）
-                Assert.True(false, $"Expected exception for operation {operationName}");
+                Assert.Fail($"Expected exception for operation {operationName}");
             }
             catch (Exception ex)
             {
@@ -218,7 +218,7 @@ namespace UiAutomationMcp.Tests.Integration
                 if (!isRegistered)
                 {
                     // 未登録の場合は異なるエラーが発生
-                    Assert.True(false, $"Operation {operationName} may not be registered. Error: {ex.Message}");
+                    Assert.Fail($"Operation {operationName} may not be registered. Error: {ex.Message}");
                 }
 
                 _output.WriteLine($"Operation {operationName} is properly registered. Error (expected): {ex.Message}");

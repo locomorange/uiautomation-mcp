@@ -46,7 +46,7 @@ namespace UIAutomationMCP.Tests.E2E
                     if (TryGetFirstElementId(itemsElement, out var buttonNavId))
                     {
                         _output.WriteLine($"Attempting to invoke Button navigation item: {buttonNavId}");
-                        var invokeResult = await _tools.InvokeElement(buttonNavId, windowTitle: "WinUI 3 Gallery");
+                        var invokeResult = await _tools.InvokeElement(buttonNavId!, windowTitle: "WinUI 3 Gallery");
                         LogResult("Invoke result", invokeResult);
                         
                         // Wait for navigation
@@ -90,7 +90,7 @@ namespace UIAutomationMCP.Tests.E2E
                 // Step 2: Navigate to TextBox page
                 if (navItems != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(navItems)), out var textBoxNavId))
                 {
-                    await _tools.InvokeElement(textBoxNavId, windowTitle: "WinUI 3 Gallery");
+                    await _tools.InvokeElement(textBoxNavId!, windowTitle: "WinUI 3 Gallery");
                     await Task.Delay(1000);
                 }
 
@@ -107,11 +107,11 @@ namespace UIAutomationMCP.Tests.E2E
                     if (TryGetFirstElementId(textBoxElement, out var textBoxId))
                     {
                         _output.WriteLine($"Setting text in TextBox: {textBoxId}");
-                        var setValue = await _tools.SetElementValue(textBoxId, "Hello from MCP Test!", windowTitle: "WinUI 3 Gallery");
+                        var setValue = await _tools.SetElementValue(textBoxId!, "Hello from MCP Test!", windowTitle: "WinUI 3 Gallery");
                         LogResult("SetElementValue result", setValue);
                         
                         // Get the value back
-                        var getValue = await _tools.GetElementValue(textBoxId, windowTitle: "WinUI 3 Gallery");
+                        var getValue = await _tools.GetElementValue(textBoxId!, windowTitle: "WinUI 3 Gallery");
                         LogResult("GetElementValue result", getValue);
                     }
                 }
@@ -139,7 +139,7 @@ namespace UIAutomationMCP.Tests.E2E
                 // Step 2: Navigate to CheckBox page
                 if (navItems != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(navItems)), out var checkBoxNavId))
                 {
-                    await _tools.InvokeElement(checkBoxNavId, windowTitle: "WinUI 3 Gallery");
+                    await _tools.InvokeElement(checkBoxNavId!, windowTitle: "WinUI 3 Gallery");
                     await Task.Delay(1000);
                 }
 
@@ -151,7 +151,7 @@ namespace UIAutomationMCP.Tests.E2E
                 if (checkBoxes != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(checkBoxes)), out var checkBoxId))
                 {
                     _output.WriteLine($"Toggling CheckBox: {checkBoxId}");
-                    var toggleResult = await _tools.ToggleElement(checkBoxId, windowTitle: "WinUI 3 Gallery");
+                    var toggleResult = await _tools.ToggleElement(checkBoxId!, windowTitle: "WinUI 3 Gallery");
                     LogResult("Toggle result", toggleResult);
                 }
 
@@ -178,7 +178,7 @@ namespace UIAutomationMCP.Tests.E2E
                 // Step 2: Navigate to Slider page
                 if (navItems != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(navItems)), out var sliderNavId))
                 {
-                    await _tools.InvokeElement(sliderNavId, windowTitle: "WinUI 3 Gallery");
+                    await _tools.InvokeElement(sliderNavId!, windowTitle: "WinUI 3 Gallery");
                     await Task.Delay(1000);
                 }
 
@@ -190,11 +190,11 @@ namespace UIAutomationMCP.Tests.E2E
                 if (sliders != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(sliders)), out var sliderId))
                 {
                     // Get current range value
-                    var rangeInfo = await _tools.GetRangeValue(sliderId, windowTitle: "WinUI 3 Gallery");
+                    var rangeInfo = await _tools.GetRangeValue(sliderId!, windowTitle: "WinUI 3 Gallery");
                     LogResult("Current range value", rangeInfo);
                     
                     // Set new value
-                    var setResult = await _tools.SetRangeValue(sliderId, 50, windowTitle: "WinUI 3 Gallery");
+                    var setResult = await _tools.SetRangeValue(sliderId!, 50, windowTitle: "WinUI 3 Gallery");
                     LogResult("SetRangeValue result", setResult);
                 }
 
@@ -221,7 +221,7 @@ namespace UIAutomationMCP.Tests.E2E
                 // Step 2: Navigate to ScrollViewer page
                 if (navItems != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(navItems)), out var scrollViewerNavId))
                 {
-                    await _tools.InvokeElement(scrollViewerNavId, windowTitle: "WinUI 3 Gallery");
+                    await _tools.InvokeElement(scrollViewerNavId!, windowTitle: "WinUI 3 Gallery");
                     await Task.Delay(1000);
                 }
 
@@ -233,15 +233,15 @@ namespace UIAutomationMCP.Tests.E2E
                 if (scrollViewers != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(scrollViewers)), out var scrollViewerId))
                 {
                     // Get scroll info
-                    var scrollInfo = await _tools.GetScrollInfo(scrollViewerId, windowTitle: "WinUI 3 Gallery");
+                    var scrollInfo = await _tools.GetScrollInfo(scrollViewerId!, windowTitle: "WinUI 3 Gallery");
                     LogResult("Scroll info", scrollInfo);
                     
                     // Scroll down
-                    var scrollResult = await _tools.ScrollElement(scrollViewerId, "down", 2.0, windowTitle: "WinUI 3 Gallery");
+                    var scrollResult = await _tools.ScrollElement(scrollViewerId!, "down", 2.0, windowTitle: "WinUI 3 Gallery");
                     LogResult("Scroll down result", scrollResult);
                     
                     // Set scroll percentage
-                    var setScrollResult = await _tools.SetScrollPercent(scrollViewerId, -1, 50, windowTitle: "WinUI 3 Gallery");
+                    var setScrollResult = await _tools.SetScrollPercent(scrollViewerId!, -1, 50, windowTitle: "WinUI 3 Gallery");
                     LogResult("SetScrollPercent result", setScrollResult);
                 }
 
@@ -269,10 +269,10 @@ namespace UIAutomationMCP.Tests.E2E
                 var buttons = await _tools.FindElementsByControlType("Button", windowTitle: "WinUI 3 Gallery", maxResults: 1);
                 if (buttons != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(buttons)), out var buttonId))
                 {
-                    var controlTypeInfo = await _tools.GetControlTypeInfo(buttonId, windowTitle: "WinUI 3 Gallery");
+                    var controlTypeInfo = await _tools.GetControlTypeInfo(buttonId!, windowTitle: "WinUI 3 Gallery");
                     LogResult("Button control type info", controlTypeInfo);
                     
-                    var patternValidation = await _tools.ValidateControlTypePatterns(buttonId, windowTitle: "WinUI 3 Gallery");
+                    var patternValidation = await _tools.ValidateControlTypePatterns(buttonId!, windowTitle: "WinUI 3 Gallery");
                     LogResult("Button pattern validation", patternValidation);
                 }
 
@@ -282,7 +282,7 @@ namespace UIAutomationMCP.Tests.E2E
                 {
                     try
                     {
-                        var labeledBy = await _tools.GetLabeledBy(textBoxId, windowTitle: "WinUI 3 Gallery");
+                        var labeledBy = await _tools.GetLabeledBy(textBoxId!, windowTitle: "WinUI 3 Gallery");
                         LogResult("TextBox labeled by", labeledBy);
                     }
                     catch (Exception ex)
@@ -300,7 +300,7 @@ namespace UIAutomationMCP.Tests.E2E
             }
         }
 
-        private bool TryGetFirstElementId(JsonElement element, out string elementId)
+        private bool TryGetFirstElementId(JsonElement element, out string? elementId)
         {
             elementId = null;
             
@@ -314,12 +314,12 @@ namespace UIAutomationMCP.Tests.E2E
                         var firstItem = items[0];
                         if (firstItem.TryGetProperty("automationId", out var idElement) && !string.IsNullOrEmpty(idElement.GetString()))
                         {
-                            elementId = idElement.GetString();
+                            elementId = idElement.GetString()!;
                             return true;
                         }
                         if (firstItem.TryGetProperty("name", out var nameElement) && !string.IsNullOrEmpty(nameElement.GetString()))
                         {
-                            elementId = nameElement.GetString();
+                            elementId = nameElement.GetString()!;
                             return true;
                         }
                     }

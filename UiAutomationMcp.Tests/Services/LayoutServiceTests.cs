@@ -140,9 +140,9 @@ namespace UiAutomationMcp.Tests.Services
                 x => x.Log(
                     LogLevel.Error,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Failed to scroll element into view")),
+                    It.Is<It.IsAnyType>((v, t) => v != null && v.ToString()!.Contains("Failed to scroll element into view")),
                     It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.Once);
         }
 

@@ -28,7 +28,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
         /// <summary>
         /// 空または無効な文字列パラメータ
         /// </summary>
-        public static readonly string[] EmptyOrInvalidStrings = { "", "   ", "\t", "\n", null };
+        public static readonly string?[] EmptyOrInvalidStrings = { "", "   ", "\t", "\n", null };
 
         /// <summary>
         /// 有効な要素ID

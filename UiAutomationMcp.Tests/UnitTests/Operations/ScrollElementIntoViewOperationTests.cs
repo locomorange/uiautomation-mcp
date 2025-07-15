@@ -102,7 +102,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Operations
 
             _mockElementFinder
                 .Setup(x => x.FindElementById("non-existent-element", "Test Window", 0, TreeScope.Descendants, null))
-                .Returns((AutomationElement)null);
+                .Returns((AutomationElement?)null);
 
             // Act
             var result = await _operation.ExecuteAsync(request);
@@ -142,7 +142,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Operations
                 .Setup(x => x.TryGetCurrentPattern(ScrollItemPattern.Pattern, out It.Ref<object>.IsAny))
                 .Returns((AutomationPattern pattern, out object patternObject) =>
                 {
-                    patternObject = null;
+                    patternObject = null!;
                     return false;
                 });
 
@@ -220,7 +220,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Operations
 
             _mockElementFinder
                 .Setup(x => x.FindElementById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), TreeScope.Descendants, null))
-                .Returns((AutomationElement)null);
+                .Returns((AutomationElement?)null);
 
             // Act
             var result = await _operation.ExecuteAsync(request);
@@ -243,7 +243,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Operations
 
             _mockElementFinder
                 .Setup(x => x.FindElementById("", "", 0, TreeScope.Descendants, null))
-                .Returns((AutomationElement)null);
+                .Returns((AutomationElement?)null);
 
             // Act
             var result = await _operation.ExecuteAsync(request);
@@ -267,7 +267,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Operations
 
             _mockElementFinder
                 .Setup(x => x.FindElementById("", "", 0, TreeScope.Descendants, null))
-                .Returns((AutomationElement)null);
+                .Returns((AutomationElement?)null);
 
             // Act
             var result = await _operation.ExecuteAsync(request);
