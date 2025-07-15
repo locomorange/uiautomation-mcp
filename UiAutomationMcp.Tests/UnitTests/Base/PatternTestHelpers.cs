@@ -77,10 +77,10 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
                 {
                     var result = method.Invoke(mockService.Object, testParams);
                     
-                    // 結果がMCPResponseの場合、基本的な検証を実行
-                    if (result is MCPResponse mcpResponse)
+                    // 結果がOperationResultの場合、基本的な検証を実行
+                    if (result is OperationResult operationResult)
                     {
-                        Assert.NotNull(mcpResponse);
+                        Assert.NotNull(operationResult);
                         output.WriteLine($"✓ {methodName} success scenario test passed - Response received");
                     }
                     else
@@ -197,7 +197,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
                     var parameters = new object[] { elementId, "TestWindow", 0 };
                     var result = method.Invoke(mockService.Object, parameters);
                     
-                    if (result is MCPResponse mcpResponse)
+                    if (result is OperationResult operationResult)
                     {
                         // エラーレスポンスかどうかを確認
                         output.WriteLine($"✓ {methodName} error scenario test completed for {elementId}");

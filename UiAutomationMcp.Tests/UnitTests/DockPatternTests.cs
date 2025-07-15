@@ -76,7 +76,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var expectedResult = new { PreviousPosition = "None", NewPosition = "Top" };
-            _mockLayoutService.Setup(s => s.DockElementAsync("toolbar", "top", "MainWindow", null, 30))
+            _mockService.Setup(s => s.DockElementAsync("toolbar", "top", "MainWindow", null, 30))
                              .ReturnsAsync(expectedResult);
 
             // Act
@@ -84,7 +84,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockLayoutService.Verify(s => s.DockElementAsync("toolbar", "top", "MainWindow", null, 30), Times.Once);
+            _mockService.Verify(s => s.DockElementAsync("toolbar", "top", "MainWindow", null, 30), Times.Once);
             _output.WriteLine("Position change from None to Top test passed");
         }
 
@@ -93,7 +93,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var expectedResult = new { PreviousPosition = "Left", NewPosition = "Right" };
-            _mockLayoutService.Setup(s => s.DockElementAsync("sidebar", "right", "IDE", null, 30))
+            _mockService.Setup(s => s.DockElementAsync("sidebar", "right", "IDE", null, 30))
                              .ReturnsAsync(expectedResult);
 
             // Act
@@ -101,7 +101,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockLayoutService.Verify(s => s.DockElementAsync("sidebar", "right", "IDE", null, 30), Times.Once);
+            _mockService.Verify(s => s.DockElementAsync("sidebar", "right", "IDE", null, 30), Times.Once);
             _output.WriteLine("Position change from Left to Right test passed");
         }
 
@@ -110,7 +110,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var expectedResult = new { PreviousPosition = "None", NewPosition = "Fill" };
-            _mockLayoutService.Setup(s => s.DockElementAsync("contentArea", "fill", "App", null, 30))
+            _mockService.Setup(s => s.DockElementAsync("contentArea", "fill", "App", null, 30))
                              .ReturnsAsync(expectedResult);
 
             // Act
@@ -118,7 +118,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockLayoutService.Verify(s => s.DockElementAsync("contentArea", "fill", "App", null, 30), Times.Once);
+            _mockService.Verify(s => s.DockElementAsync("contentArea", "fill", "App", null, 30), Times.Once);
             _output.WriteLine("Fill dock position test passed");
         }
 

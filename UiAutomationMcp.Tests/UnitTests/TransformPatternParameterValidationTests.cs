@@ -1,6 +1,8 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Options;
+using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Operations.Transform;
 using UIAutomationMCP.Worker.Helpers;
 using Moq;

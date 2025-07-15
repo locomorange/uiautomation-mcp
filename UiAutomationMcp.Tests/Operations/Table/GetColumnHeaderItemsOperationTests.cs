@@ -76,7 +76,7 @@ namespace UIAutomationMCP.Tests.Operations.Table
             mockElement.Setup(e => e.GetCurrentPattern(TableItemPattern.Pattern))
                       .Returns(mockTableItemPattern.Object);
 
-            _mockElementFinderService.Setup(s => s.FindElementById("tableCell1", "TestWindow", 0))
+            _mockElementFinderService.Setup(s => s.FindElementById("tableCell1", "TestWindow", 0, TreeScope.Descendants, null))
                                    .Returns(mockElement.Object);
 
             var request = new WorkerRequest
@@ -123,7 +123,7 @@ namespace UIAutomationMCP.Tests.Operations.Table
         public async Task ExecuteAsync_ElementNotFound_ReturnsError()
         {
             // Arrange
-            _mockElementFinderService.Setup(s => s.FindElementById("nonExistentElement", "TestWindow", 0))
+            _mockElementFinderService.Setup(s => s.FindElementById("nonExistentElement", "TestWindow", 0, TreeScope.Descendants, null))
                                    .Returns((AutomationElement?)null);
 
             var request = new WorkerRequest
@@ -163,7 +163,7 @@ namespace UIAutomationMCP.Tests.Operations.Table
                           return false;
                       });
 
-            _mockElementFinderService.Setup(s => s.FindElementById("nonTableCell", "TestWindow", 0))
+            _mockElementFinderService.Setup(s => s.FindElementById("nonTableCell", "TestWindow", 0, TreeScope.Descendants, null))
                                    .Returns(mockElement.Object);
 
             var request = new WorkerRequest
@@ -205,7 +205,7 @@ namespace UIAutomationMCP.Tests.Operations.Table
                           return true;
                       });
 
-            _mockElementFinderService.Setup(s => s.FindElementById("emptyTableCell", "TestWindow", 0))
+            _mockElementFinderService.Setup(s => s.FindElementById("emptyTableCell", "TestWindow", 0, TreeScope.Descendants, null))
                                    .Returns(mockElement.Object);
 
             var request = new WorkerRequest
@@ -248,7 +248,7 @@ namespace UIAutomationMCP.Tests.Operations.Table
                           return true;
                       });
 
-            _mockElementFinderService.Setup(s => s.FindElementById("errorCell", "TestWindow", 0))
+            _mockElementFinderService.Setup(s => s.FindElementById("errorCell", "TestWindow", 0, TreeScope.Descendants, null))
                                    .Returns(mockElement.Object);
 
             var request = new WorkerRequest
@@ -298,7 +298,7 @@ namespace UIAutomationMCP.Tests.Operations.Table
                           return true;
                       });
 
-            _mockElementFinderService.Setup(s => s.FindElementById("cell1", "", 1234))
+            _mockElementFinderService.Setup(s => s.FindElementById("cell1", "", 1234, TreeScope.Descendants, null))
                                    .Returns(mockElement.Object);
 
             var request = new WorkerRequest
@@ -316,7 +316,7 @@ namespace UIAutomationMCP.Tests.Operations.Table
 
             // Assert
             Assert.True(result.Success);
-            _mockElementFinderService.Verify(s => s.FindElementById("cell1", "", 1234), Times.Once);
+            _mockElementFinderService.Verify(s => s.FindElementById("cell1", "", 1234, TreeScope.Descendants, null), Times.Once);
             _output.WriteLine("GetColumnHeaderItemsOperation processId parameter test passed");
         }
     }

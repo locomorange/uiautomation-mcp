@@ -124,7 +124,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Operations
             var request = CreateWorkerRequest("nonExistentTable", "Test Window", "1234");
 
             _mockElementFinder
-                .Setup(x => x.FindElementById("nonExistentTable", "Test Window", 1234))
+                .Setup(x => x.FindElementById("nonExistentTable", "Test Window", 1234, TreeScope.Descendants, null))
                 .Returns((AutomationElement?)null);
 
             // Act
@@ -372,7 +372,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Operations
         private void SetupElementFinderToReturnMockElement(string elementId, string windowTitle, int processId)
         {
             _mockElementFinder
-                .Setup(x => x.FindElementById(elementId, windowTitle, processId))
+                .Setup(x => x.FindElementById(elementId, windowTitle, processId, TreeScope.Descendants, null))
                 .Returns(_mockElement.Object);
         }
 

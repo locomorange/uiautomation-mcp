@@ -4,6 +4,7 @@ using Moq;
 using System.Windows.Automation;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Options;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 using UIAutomationMCP.Worker.Operations.Layout;
@@ -58,7 +59,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Operations
             var mockScrollItemPattern = new Mock<ScrollItemPattern>();
 
             _mockElementFinder
-                .Setup(x => x.FindElementById("scrollable-element", "Test Window", 1234))
+                .Setup(x => x.FindElementById("scrollable-element", "Test Window", 1234, TreeScope.Descendants, null))
                 .Returns(mockElement.Object);
 
             mockElement
@@ -100,7 +101,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Operations
             };
 
             _mockElementFinder
-                .Setup(x => x.FindElementById("non-existent-element", "Test Window", 0))
+                .Setup(x => x.FindElementById("non-existent-element", "Test Window", 0, TreeScope.Descendants, null))
                 .Returns((AutomationElement)null);
 
             // Act
@@ -134,7 +135,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Operations
             var mockElement = new Mock<AutomationElement>();
 
             _mockElementFinder
-                .Setup(x => x.FindElementById("non-scrollable-element", "Test Window", 0))
+                .Setup(x => x.FindElementById("non-scrollable-element", "Test Window", 0, TreeScope.Descendants, null))
                 .Returns(mockElement.Object);
 
             mockElement
@@ -180,7 +181,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Operations
             var mockScrollItemPattern = new Mock<ScrollItemPattern>();
 
             _mockElementFinder
-                .Setup(x => x.FindElementById("test-element", "My Application", 9876))
+                .Setup(x => x.FindElementById("test-element", "My Application", 9876, TreeScope.Descendants, null))
                 .Returns(mockElement.Object);
 
             mockElement
@@ -194,7 +195,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Operations
             Assert.True(result.Success);
             
             // Verify correct parameters were passed to ElementFinder
-            _mockElementFinder.Verify(x => x.FindElementById("test-element", "My Application", 9876), Times.Once);
+            _mockElementFinder.Verify(x => x.FindElementById("test-element", "My Application", 9876, TreeScope.Descendants, null), Times.Once);
         }
 
         /// <summary>
@@ -218,7 +219,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Operations
             var request = new WorkerRequest { Parameters = parameters };
 
             _mockElementFinder
-                .Setup(x => x.FindElementById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+                .Setup(x => x.FindElementById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), TreeScope.Descendants, null))
                 .Returns((AutomationElement)null);
 
             // Act
@@ -228,7 +229,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Operations
             Assert.False(result.Success); // Element not found due to mock setup
             
             // Verify correct parameter defaults were applied
-            _mockElementFinder.Verify(x => x.FindElementById(expectedElementId, expectedWindowTitle, expectedProcessId), Times.Once);
+            _mockElementFinder.Verify(x => x.FindElementById(expectedElementId, expectedWindowTitle, expectedProcessId, TreeScope.Descendants, null), Times.Once);
         }
 
         /// <summary>
@@ -241,7 +242,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Operations
             var request = new WorkerRequest { Parameters = new Dictionary<string, object>() };
 
             _mockElementFinder
-                .Setup(x => x.FindElementById("", "", 0))
+                .Setup(x => x.FindElementById("", "", 0, TreeScope.Descendants, null))
                 .Returns((AutomationElement)null);
 
             // Act
@@ -252,7 +253,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Operations
             Assert.Contains("not found", result.Error);
             
             // Verify default parameters were used
-            _mockElementFinder.Verify(x => x.FindElementById("", "", 0), Times.Once);
+            _mockElementFinder.Verify(x => x.FindElementById("", "", 0, TreeScope.Descendants, null), Times.Once);
         }
 
         /// <summary>
@@ -265,7 +266,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Operations
             var request = new WorkerRequest { Parameters = null };
 
             _mockElementFinder
-                .Setup(x => x.FindElementById("", "", 0))
+                .Setup(x => x.FindElementById("", "", 0, TreeScope.Descendants, null))
                 .Returns((AutomationElement)null);
 
             // Act
@@ -301,7 +302,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Operations
             var wrongPatternType = new Mock<InvokePattern>(); // 間違ったパターン型
 
             _mockElementFinder
-                .Setup(x => x.FindElementById("element-with-wrong-pattern", "Test Window", 0))
+                .Setup(x => x.FindElementById("element-with-wrong-pattern", "Test Window", 0, TreeScope.Descendants, null))
                 .Returns(mockElement.Object);
 
             mockElement
@@ -343,7 +344,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Operations
             var mockScrollItemPattern = new Mock<ScrollItemPattern>();
 
             _mockElementFinder
-                .Setup(x => x.FindElementById(elementId, "Control Test Window", 0))
+                .Setup(x => x.FindElementById(elementId, "Control Test Window", 0, TreeScope.Descendants, null))
                 .Returns(mockElement.Object);
 
             mockElement

@@ -58,7 +58,7 @@ namespace UiAutomationMcp.Tests.UnitTests
             var mockScrollItemPattern = new Mock<ScrollItemPattern>();
 
             _mockElementFinder
-                .Setup(x => x.FindElementById("scrollable-list-item", "Container Window", 1234))
+                .Setup(x => x.FindElementById("scrollable-list-item", "Container Window", 1234, TreeScope.Descendants, null))
                 .Returns(mockElement.Object);
 
             mockElement
@@ -103,7 +103,7 @@ namespace UiAutomationMcp.Tests.UnitTests
             var mockScrollItemPattern = new Mock<ScrollItemPattern>();
 
             _mockElementFinder
-                .Setup(x => x.FindElementById("cannot-scroll-element", "Test Window", 0))
+                .Setup(x => x.FindElementById("cannot-scroll-element", "Test Window", 0, TreeScope.Descendants, null))
                 .Returns(mockElement.Object);
 
             mockElement
@@ -155,7 +155,7 @@ namespace UiAutomationMcp.Tests.UnitTests
             mockElement.Setup(x => x.Current.ControlType).Returns(ControlType.ListItem);
 
             _mockElementFinder
-                .Setup(x => x.FindElementById("listview-item-5", "ListView Window", 0))
+                .Setup(x => x.FindElementById("listview-item-5", "ListView Window", 0, TreeScope.Descendants, null))
                 .Returns(mockElement.Object);
 
             mockElement
@@ -197,7 +197,7 @@ namespace UiAutomationMcp.Tests.UnitTests
             mockElement.Setup(x => x.Current.ControlType).Returns(ControlType.TreeItem);
 
             _mockElementFinder
-                .Setup(x => x.FindElementById("tree-node-deep-level", "TreeView Window", 0))
+                .Setup(x => x.FindElementById("tree-node-deep-level", "TreeView Window", 0, TreeScope.Descendants, null))
                 .Returns(mockElement.Object);
 
             mockElement
@@ -236,7 +236,7 @@ namespace UiAutomationMcp.Tests.UnitTests
             var mockElement = new Mock<AutomationElement>();
 
             _mockElementFinder
-                .Setup(x => x.FindElementById("canvas-child-element", "Canvas Container", 0))
+                .Setup(x => x.FindElementById("canvas-child-element", "Canvas Container", 0, TreeScope.Descendants, null))
                 .Returns(mockElement.Object);
 
             // Canvas内の要素はScrollItemPatternが必須ではない（Microsoft仕様）
@@ -281,7 +281,7 @@ namespace UiAutomationMcp.Tests.UnitTests
             };
 
             _mockElementFinder
-                .Setup(x => x.FindElementById(veryLongElementId, "Test Window", 0))
+                .Setup(x => x.FindElementById(veryLongElementId, "Test Window", 0, TreeScope.Descendants, null))
                 .Returns((AutomationElement)null);
 
             // Act
@@ -316,7 +316,7 @@ namespace UiAutomationMcp.Tests.UnitTests
             };
 
             _mockElementFinder
-                .Setup(x => x.FindElementById(specialElementId, "Test Window", 0))
+                .Setup(x => x.FindElementById(specialElementId, "Test Window", 0, TreeScope.Descendants, null))
                 .Returns((AutomationElement)null);
 
             // Act
@@ -336,7 +336,7 @@ namespace UiAutomationMcp.Tests.UnitTests
         public async Task ScrollIntoView_Should_Handle_Concurrent_Calls()
         {
             // Arrange - 複数の同時呼び出し
-            var tasks = new List<Task<OperationResult>>();
+            var tasks = new List<Task<OperationResult<ScrollActionResult>>>();
             
             for (int i = 0; i < 10; i++)
             {
@@ -355,7 +355,7 @@ namespace UiAutomationMcp.Tests.UnitTests
                 var mockScrollItemPattern = new Mock<ScrollItemPattern>();
 
                 _mockElementFinder
-                    .Setup(x => x.FindElementById(elementId, "Test Window", 0))
+                    .Setup(x => x.FindElementById(elementId, "Test Window", 0, TreeScope.Descendants, null))
                     .Returns(mockElement.Object);
 
                 mockElement
@@ -399,7 +399,7 @@ namespace UiAutomationMcp.Tests.UnitTests
             var mockScrollItemPattern = new Mock<ScrollItemPattern>();
 
             _mockElementFinder
-                .Setup(x => x.FindElementById("memory-test-element", "Memory Test Window", 0))
+                .Setup(x => x.FindElementById("memory-test-element", "Memory Test Window", 0, TreeScope.Descendants, null))
                 .Returns(mockElement.Object);
 
             mockElement
@@ -441,7 +441,7 @@ namespace UiAutomationMcp.Tests.UnitTests
             };
 
             _mockElementFinder
-                .Setup(x => x.FindElementById("test-element", "Test Window", processId))
+                .Setup(x => x.FindElementById("test-element", "Test Window", processId, TreeScope.Descendants, null))
                 .Returns((AutomationElement)null);
 
             // Act
@@ -484,7 +484,7 @@ namespace UiAutomationMcp.Tests.UnitTests
                 var mockScrollItemPattern = new Mock<ScrollItemPattern>();
 
                 _mockElementFinder
-                    .Setup(x => x.FindElementById($"perf-test-element-{i}", "Performance Test Window", 0))
+                    .Setup(x => x.FindElementById($"perf-test-element-{i}", "Performance Test Window", 0, TreeScope.Descendants, null))
                     .Returns(mockElement.Object);
 
                 mockElement
