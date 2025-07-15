@@ -58,7 +58,7 @@ namespace UIAutomationMCP.Server.Services
                         {
                             _logger.LogInformation("BoundingRectangle found, type: {Type}, value: {Value}", 
                                 boundingRectObj?.GetType().Name ?? "null", 
-                                JsonSerializationHelper.SerializeObject(boundingRectObj));
+                                boundingRectObj != null ? JsonSerializationHelper.SerializeObject(boundingRectObj) : "null");
                             
                             if (boundingRectObj is Dictionary<string, object> boundingRect)
                             {
