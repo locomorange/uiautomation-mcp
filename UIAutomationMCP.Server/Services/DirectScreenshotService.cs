@@ -13,6 +13,13 @@ namespace UIAutomationMCP.Server.Services
         private readonly ILogger<DirectScreenshotService> _logger;
         private readonly ISubprocessExecutor _executor;
 
+        // Win32 API declarations for screen dimensions
+        [DllImport("user32.dll")]
+        private static extern int GetSystemMetrics(int nIndex);
+
+        private const int SM_CXSCREEN = 0;  // Primary screen width
+        private const int SM_CYSCREEN = 1;  // Primary screen height
+
         public DirectScreenshotService(ILogger<DirectScreenshotService> logger, ISubprocessExecutor executor)
         {
             _logger = logger;
@@ -93,14 +100,18 @@ namespace UIAutomationMCP.Server.Services
                     }
                     else
                     {
-                        // Capture entire screen
-                        var primaryScreen = System.Windows.Forms.Screen.PrimaryScreen;
-                        if (primaryScreen == null)
+                        // Capture entire screen using Win32 API
+                        int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+                        int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+                        
+                        if (screenWidth <= 0 || screenHeight <= 0)
                         {
-                            _logger.LogError("Primary screen not found");
-                            return new ScreenshotResult { Success = false, Error = "Primary screen not found" };
+                            _logger.LogError("Failed to get screen dimensions");
+                            return new ScreenshotResult { Success = false, Error = "Failed to get screen dimensions" };
                         }
-                        captureArea = primaryScreen.Bounds;
+                        
+                        captureArea = new Rectangle(0, 0, screenWidth, screenHeight);
+                        _logger.LogInformation("Using primary screen dimensions: {Width}x{Height}", screenWidth, screenHeight);
                     }
 
                     // Validate capture area
