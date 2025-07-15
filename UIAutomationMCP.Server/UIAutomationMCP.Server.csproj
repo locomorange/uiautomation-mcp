@@ -5,13 +5,12 @@
     <TargetFramework>net9.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AssemblyName>uiautomation-mcp</AssemblyName>
+    <AssemblyName>UIAutomationMCP</AssemblyName>
     <Version>0.1.0</Version>
     <Authors>Locomorange</Authors>
     <Description>Windows UI Automation Model Context Protocol (MCP) server</Description>
     <PublishAot>true</PublishAot>
     <RuntimeIdentifiers>win-x64;win-x86;win-arm64</RuntimeIdentifiers>
-    <PublishSingleFile>true</PublishSingleFile>
     <InvariantGlobalization>false</InvariantGlobalization>
     <StripSymbols>true</StripSymbols>
   </PropertyGroup>
