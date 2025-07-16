@@ -289,6 +289,9 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(object))]
     [JsonSerializable(typeof(List<string>))]
     [JsonSerializable(typeof(string[]))]
+    // JSON element type for parameter processing
+    [JsonSerializable(typeof(System.Text.Json.JsonElement))]
+    [JsonSerializable(typeof(System.Text.Json.JsonDocument))]
     // MCP Response Models
     [JsonSerializable(typeof(ProcessLaunchResponse))]
     [JsonSerializable(typeof(UIOperationResponse))]
