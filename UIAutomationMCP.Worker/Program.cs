@@ -24,6 +24,7 @@ using UIAutomationMCP.Worker.Operations.Window;
 using UIAutomationMCP.Worker.Operations.Transform;
 using UIAutomationMCP.Worker.Operations.VirtualizedItem;
 using UIAutomationMCP.Worker.Operations.LegacyIAccessible;
+using UIAutomationMCP.Worker.Operations.Annotation;
 using UIAutomationMCP.Worker.Helpers;
 using UIAutomationMCP.Shared.Options;
 using UIAutomationMCP.Shared.Validation;
@@ -164,6 +165,10 @@ namespace UIAutomationMCP.Worker
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SelectLegacyItemOperation>("SelectLegacyItem");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SetLegacyValueOperation>("SetLegacyValue");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetLegacyStateOperation>("GetLegacyState");
+
+            // Annotation operations
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetAnnotationInfoOperation>("GetAnnotationInfo");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetAnnotationTargetOperation>("GetAnnotationTarget");
 
             // Register Worker service
             builder.Services.AddSingleton<WorkerService>();

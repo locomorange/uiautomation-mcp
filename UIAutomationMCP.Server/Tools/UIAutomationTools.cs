@@ -29,6 +29,7 @@ namespace UIAutomationMCP.Server.Tools
         private readonly ITransformService _transformService;
         private readonly IVirtualizedItemService _virtualizedItemService;
         private readonly ILegacyIAccessibleService _legacyIAccessibleService;
+        private readonly IAnnotationService _annotationService;
 
         public UIAutomationTools(
             IApplicationLauncher applicationLauncher,
@@ -51,7 +52,8 @@ namespace UIAutomationMCP.Server.Tools
             IControlTypeService controlTypeService,
             ITransformService transformService,
             IVirtualizedItemService virtualizedItemService,
-            ILegacyIAccessibleService legacyIAccessibleService)
+            ILegacyIAccessibleService legacyIAccessibleService,
+            IAnnotationService annotationService)
         {
             _applicationLauncher = applicationLauncher;
             _screenshotService = screenshotService;
@@ -74,6 +76,7 @@ namespace UIAutomationMCP.Server.Tools
             _transformService = transformService;
             _virtualizedItemService = virtualizedItemService;
             _legacyIAccessibleService = legacyIAccessibleService;
+            _annotationService = annotationService;
         }
 
         // Window and Element Discovery
@@ -695,5 +698,22 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Process ID of the target window (optional)")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => await _legacyIAccessibleService.GetLegacyStateAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        // Annotation Pattern
+        [McpServerTool, Description("Get annotation information (type, author, date, subject) for elements like comments or notes")]
+        public async Task<object> GetAnnotationInfo(
+            [Description("Automation ID or name of the annotation element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _annotationService.GetAnnotationInfoAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Get the target element that an annotation is associated with")]
+        public async Task<object> GetAnnotationTarget(
+            [Description("Automation ID or name of the annotation element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _annotationService.GetAnnotationTargetAsync(elementId, windowTitle, processId, timeoutSeconds);
     }
 }

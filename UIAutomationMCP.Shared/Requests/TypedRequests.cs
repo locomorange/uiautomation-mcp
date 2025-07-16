@@ -429,6 +429,18 @@ namespace UIAutomationMCP.Shared.Requests
         public override string Operation => "GetLegacyState";
     }
 
+    // === Annotation Pattern ===
+
+    public class GetAnnotationInfoRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetAnnotationInfo";
+    }
+
+    public class GetAnnotationTargetRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetAnnotationTarget";
+    }
+
     public class ExpandCollapseElementRequest : ElementTargetRequest
     {
         public override string Operation => "ExpandCollapseElement";

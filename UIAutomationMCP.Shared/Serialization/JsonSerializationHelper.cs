@@ -117,6 +117,10 @@ namespace UIAutomationMCP.Shared.Serialization
                 return (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseLegacyPropertiesResult;
             if (type == typeof(LegacyStateResult))
                 return (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseLegacyStateResult;
+            if (type == typeof(AnnotationInfoResult))
+                return (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseAnnotationInfoResult;
+            if (type == typeof(AnnotationTargetResult))
+                return (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseAnnotationTargetResult;
             if (type == typeof(object))
                 return (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseObject;
             
@@ -142,6 +146,10 @@ namespace UIAutomationMCP.Shared.Serialization
                 return (JsonTypeInfo<T>)(object)_context.LegacyPropertiesResult;
             if (type == typeof(LegacyStateResult))
                 return (JsonTypeInfo<T>)(object)_context.LegacyStateResult;
+            if (type == typeof(AnnotationInfoResult))
+                return (JsonTypeInfo<T>)(object)_context.AnnotationInfoResult;
+            if (type == typeof(AnnotationTargetResult))
+                return (JsonTypeInfo<T>)(object)_context.AnnotationTargetResult;
             
             return null;
         }
@@ -169,6 +177,8 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(WorkerResponse<WindowInfoResult>))]
     [JsonSerializable(typeof(WorkerResponse<LegacyPropertiesResult>))]
     [JsonSerializable(typeof(WorkerResponse<LegacyStateResult>))]
+    [JsonSerializable(typeof(WorkerResponse<AnnotationInfoResult>))]
+    [JsonSerializable(typeof(WorkerResponse<AnnotationTargetResult>))]
     [JsonSerializable(typeof(Dictionary<string, object>))]
     [JsonSerializable(typeof(List<Dictionary<string, object>>))]
     // Result types
@@ -190,6 +200,8 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(BooleanResult))]
     [JsonSerializable(typeof(LegacyPropertiesResult))]
     [JsonSerializable(typeof(LegacyStateResult))]
+    [JsonSerializable(typeof(AnnotationInfoResult))]
+    [JsonSerializable(typeof(AnnotationTargetResult))]
     // Basic types
     [JsonSerializable(typeof(string))]
     [JsonSerializable(typeof(int))]
