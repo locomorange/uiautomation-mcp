@@ -130,8 +130,16 @@ namespace UIAutomationMCP.Server
             }
             catch (Exception ex)
             {
-                var logger = host.Services.GetRequiredService<ILogger<Program>>();
-                logger.LogError(ex, "[Program] MCP Server terminated with error");
+                // Don't try to access disposed services during shutdown
+                try
+                {
+                    var logger = host.Services.GetRequiredService<ILogger<Program>>();
+                    logger.LogError(ex, "[Program] MCP Server terminated with error");
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Services already disposed during shutdown - ignore logging
+                }
                 throw;
             }
             finally
