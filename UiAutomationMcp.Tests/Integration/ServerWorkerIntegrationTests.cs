@@ -202,13 +202,11 @@ namespace UiAutomationMcp.Tests.Integration
             };
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            var exception = await Assert.ThrowsAsync<TimeoutException>(async () =>
                 await _subprocessExecutor.ExecuteAsync<object>("InvokeElement", parameters, 1)); // 1秒タイムアウト
             
-            // COM may be disabled or operation may fail due to missing element
-            Assert.True(exception.Message.Contains("COM has been disabled") || 
-                       exception.Message.Contains("not found") || 
-                       exception.Message.Contains("does not exist"));
+            // Worker searches for element and times out due to missing element
+            Assert.Contains("timed out", exception.Message);
             _output.WriteLine($"Timeout handling test completed: {exception.Message}");
         }
 
