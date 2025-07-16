@@ -611,11 +611,11 @@ namespace UIAutomationMCP.Server.Tools
         [McpServerTool, Description("Get custom properties from an element")]
         public async Task<object> GetCustomProperties(
             [Description("Automation ID or name of the element")] string elementId,
-            [Description("List of custom property IDs to retrieve")] string[] propertyIds,
+            [Description("Comma-separated list of custom property IDs to retrieve")] string propertyIds,
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _customPropertyService.GetCustomPropertiesAsync(elementId, propertyIds, windowTitle, processId, timeoutSeconds);
+            => await _customPropertyService.GetCustomPropertiesAsync(elementId, propertyIds.Split(','), windowTitle, processId, timeoutSeconds);
 
         // Control Type Operations
         [McpServerTool, Description("Get control type information and supported patterns")]

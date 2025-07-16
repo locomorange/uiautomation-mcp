@@ -1121,7 +1121,7 @@ namespace UIAutomationMCP.Tests.Tools
                                      .ReturnsAsync(expectedResult);
 
             // Act
-            var result = await _tools.GetCustomProperties("element1", new[] { "CustomProp1", "CustomProp2" }, "TestWindow");
+            var result = await _tools.GetCustomProperties("element1", "CustomProp1,CustomProp2", "TestWindow");
 
             // Assert
             Assert.NotNull(result);
