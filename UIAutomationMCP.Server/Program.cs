@@ -75,14 +75,14 @@ namespace UIAutomationMCP.Server
                         {
                             // Try the built executable
                             var config = baseDir.Contains("Debug") ? "Debug" : "Release";
-                            workerPath = Path.Combine(solutionDir, "UIAutomationMCP.Worker", "bin", config, "net9.0-windows", "UIAutomationMCP.Worker.exe");
+                            workerPath = Path.Combine(solutionDir, "UIAutomationMCP.Worker", "bin", config, "net9.0-windows", "UIAutomationMCP-Worker.exe");
                         }
                     }
                 }
                 else
                 {
                     // In production/tool deployment, Worker should be in same directory
-                    workerPath = Path.Combine(baseDir, "UIAutomationMCP.Worker.exe");
+                    workerPath = Path.Combine(baseDir, "UIAutomationMCP-Worker.exe");
                 }
 
                 if (workerPath == null || (!File.Exists(workerPath) && !Directory.Exists(workerPath)))
@@ -115,18 +115,47 @@ namespace UIAutomationMCP.Server
 
             var host = builder.Build();
 
-            // Setup graceful shutdown handling
+            // Setup graceful shutdown handling with proper cleanup
             var lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
+            var cancellationTokenSource = new CancellationTokenSource();
+            
+            // Handle console cancellation (Ctrl+C)
+            Console.CancelKeyPress += (_, e) =>
+            {
+                e.Cancel = true; // Prevent immediate termination
+                var logger = host.Services.GetRequiredService<ILogger<Program>>();
+                logger.LogInformation("[Program] Shutdown signal received, initiating graceful shutdown");
+                cancellationTokenSource.Cancel();
+            };
+
             lifetime.ApplicationStopping.Register(() =>
             {
                 var logger = host.Services.GetRequiredService<ILogger<Program>>();
-                logger.LogInformation("[Program] MCP Server shutdown requested - cleaning up threads");
+                logger.LogInformation("[Program] MCP Server shutdown requested - cleaning up resources");
+                
+                // Dispose SubprocessExecutor to ensure worker processes are terminated
+                try
+                {
+                    var executor = host.Services.GetRequiredService<SubprocessExecutor>();
+                    executor.Dispose();
+                    logger.LogInformation("[Program] SubprocessExecutor disposed successfully");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "[Program] Error disposing SubprocessExecutor");
+                }
             });
 
             // Run the MCP server with proper shutdown handling
             try
             {
-                await host.RunAsync();
+                await host.RunAsync(cancellationTokenSource.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected during graceful shutdown
+                var logger = host.Services.GetRequiredService<ILogger<Program>>();
+                logger.LogInformation("[Program] MCP Server shutdown completed");
             }
             catch (Exception ex)
             {
@@ -144,7 +173,23 @@ namespace UIAutomationMCP.Server
             }
             finally
             {
-                // Cleanup is now handled by the DI container automatically
+                // Ensure all resources are cleaned up
+                try
+                {
+                    host.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    try
+                    {
+                        var logger = host.Services.GetRequiredService<ILogger<Program>>();
+                        logger.LogWarning(ex, "[Program] Error during host disposal");
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // Ignore if services are already disposed
+                    }
+                }
             }
         }
     }

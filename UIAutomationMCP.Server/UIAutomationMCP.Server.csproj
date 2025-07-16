@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>UIAutomationMCP</AssemblyName>
+    <Product>UIAutomationMCP</Product>
     <Version>0.1.0</Version>
     <Authors>Locomorange</Authors>
     <Description>Windows UI Automation Model Context Protocol (MCP) server</Description>

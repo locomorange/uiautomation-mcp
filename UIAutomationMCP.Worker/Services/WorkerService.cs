@@ -24,49 +24,72 @@ namespace UIAutomationMCP.Worker.Services
         {
             _logger.LogInformation("Worker process started. Waiting for commands...");
 
-            while (true)
+            try
             {
-                string? input = null;
-                try
+                while (true)
                 {
-                    input = await Console.In.ReadLineAsync();
-                    _logger.LogDebug("Received input: {Input}", input ?? "null");
-                    
-                    if (string.IsNullOrEmpty(input))
+                    string? input = null;
+                    try
                     {
-                        _logger.LogDebug("Input is null or empty, breaking main loop");
+                        input = await Console.In.ReadLineAsync();
+                        _logger.LogDebug("Received input: {Input}", input ?? "null");
+                        
+                        // Check if stdin is closed or we received EOF
+                        if (input == null)
+                        {
+                            _logger.LogInformation("Standard input closed, shutting down worker process");
+                            break;
+                        }
+                        
+                        if (string.IsNullOrEmpty(input))
+                        {
+                            _logger.LogDebug("Empty input received, continuing");
+                            continue;
+                        }
+
+                        var request = JsonSerializationHelper.DeserializeWorkerRequest(input);
+                        if (request == null)
+                        {
+                            _logger.LogWarning("Failed to deserialize request: {Input}", input);
+                            WriteResponse(WorkerResponse<object>.CreateError("Invalid request format"));
+                            continue;
+                        }
+
+                        _logger.LogDebug("Successfully deserialized request for operation: {Operation}", request.Operation);
+                        var response = await ProcessRequestAsync(request);
+                        _logger.LogDebug("Processing completed, writing response: {Success}", response.Success);
+                        WriteResponse(response);
+                        _logger.LogDebug("Response written to stdout");
+                    }
+                    catch (EndOfStreamException)
+                    {
+                        _logger.LogInformation("End of stream reached, shutting down worker process");
                         break;
                     }
-
-                    var request = JsonSerializationHelper.DeserializeWorkerRequest(input);
-                    if (request == null)
+                    catch (Exception ex)
                     {
-                        _logger.LogWarning("Failed to deserialize request: {Input}", input);
-                        WriteResponse(WorkerResponse<object>.CreateError("Invalid request format"));
-                        continue;
-                    }
-
-                    _logger.LogDebug("Successfully deserialized request for operation: {Operation}", request.Operation);
-                    var response = await ProcessRequestAsync(request);
-                    _logger.LogDebug("Processing completed, writing response: {Success}", response.Success);
-                    WriteResponse(response);
-                    _logger.LogDebug("Response written to stdout");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error processing request. Input: {Input}", input ?? "null");
-                    WriteResponse(new WorkerResponse<object> 
-                    { 
-                        Success = false, 
-                        Error = $"Request processing failed: {ex.Message}",
-                        Data = new 
+                        _logger.LogError(ex, "Error processing request. Input: {Input}", input ?? "null");
+                        WriteResponse(new WorkerResponse<object> 
                         { 
-                            ExceptionType = ex.GetType().Name,
-                            Input = input ?? "null",
-                            StackTrace = ex.StackTrace
-                        }
-                    });
+                            Success = false, 
+                            Error = $"Request processing failed: {ex.Message}",
+                            Data = new 
+                            { 
+                                ExceptionType = ex.GetType().Name,
+                                Input = input ?? "null",
+                                StackTrace = ex.StackTrace
+                            }
+                        });
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Fatal error in worker main loop");
+            }
+            finally
+            {
+                _logger.LogInformation("Worker process is shutting down");
             }
         }
 

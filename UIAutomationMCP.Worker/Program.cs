@@ -171,8 +171,43 @@ namespace UIAutomationMCP.Worker
 
             var host = builder.Build();
 
-            var workerService = host.Services.GetRequiredService<WorkerService>();
-            await workerService.RunAsync();
+            // Setup cancellation handling
+            using var cts = new CancellationTokenSource();
+            
+            // Handle console cancellation
+            Console.CancelKeyPress += (_, e) =>
+            {
+                e.Cancel = true;
+                cts.Cancel();
+            };
+
+            try
+            {
+                var workerService = host.Services.GetRequiredService<WorkerService>();
+                
+                // Run the worker with cancellation support
+                var workerTask = workerService.RunAsync();
+                var cancellationTask = Task.Delay(Timeout.Infinite, cts.Token);
+                
+                await Task.WhenAny(workerTask, cancellationTask);
+                
+                if (cts.Token.IsCancellationRequested)
+                {
+                    // Cancellation requested
+                    return;
+                }
+                
+                await workerTask; // Wait for completion or propagate exception
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected during cancellation
+            }
+            finally
+            {
+                // Ensure host is disposed
+                host.Dispose();
+            }
         }
     }
 }

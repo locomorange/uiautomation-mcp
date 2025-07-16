@@ -7,13 +7,14 @@ using UIAutomationMCP.Server.Interfaces;
 
 namespace UIAutomationMCP.Server.Helpers
 {
-    public class SubprocessExecutor : ISubprocessExecutor
+    public class SubprocessExecutor : ISubprocessExecutor, IDisposable
     {
         private readonly ILogger<SubprocessExecutor> _logger;
         private readonly string _workerPath;
         private Process? _workerProcess;
         private readonly SemaphoreSlim _semaphore = new(1, 1);
         private bool _disposed = false;
+        private readonly object _lockObject = new object();
 
         public SubprocessExecutor(ILogger<SubprocessExecutor> logger, string workerPath)
         {
@@ -373,7 +374,13 @@ namespace UIAutomationMCP.Server.Helpers
         {
             if (_disposed) return;
 
-            _logger.LogInformation("Disposing SubprocessExecutor");
+            lock (_lockObject)
+            {
+                if (_disposed) return;
+                _disposed = true;
+            }
+
+            _logger.LogInformation("Disposing SubprocessExecutor - terminating worker processes");
 
             if (_workerProcess != null)
             {
@@ -383,27 +390,52 @@ namespace UIAutomationMCP.Server.Helpers
                     {
                         _logger.LogInformation("Terminating worker process PID: {ProcessId}", _workerProcess.Id);
                         
-                        // Try graceful shutdown first
+                        // Try graceful shutdown first by closing stdin
                         try
                         {
                             _workerProcess.StandardInput.Close();
+                            _logger.LogDebug("Closed standard input for worker process");
                         }
-                        catch { }
-                        
-                        // Give it a moment to exit gracefully
-                        if (!_workerProcess.WaitForExit(2000))
+                        catch (Exception ex)
                         {
-                            _logger.LogWarning("Worker process did not exit gracefully, forcing termination");
-                            _workerProcess.Kill(entireProcessTree: true);
+                            _logger.LogDebug(ex, "Error closing standard input");
+                        }
+                        
+                        // Give it a brief moment to exit gracefully
+                        if (!_workerProcess.WaitForExit(1000))
+                        {
+                            _logger.LogWarning("Worker process did not exit gracefully within 1 second, forcing termination");
                             
-                            if (!_workerProcess.WaitForExit(3000))
+                            try
                             {
-                                _logger.LogError("Worker process did not respond to termination");
+                                // Kill the entire process tree to ensure cleanup
+                                _workerProcess.Kill(entireProcessTree: true);
+                                _logger.LogDebug("Kill signal sent to worker process tree");
+                                
+                                // Wait for forced termination to complete
+                                if (!_workerProcess.WaitForExit(2000))
+                                {
+                                    _logger.LogError("Worker process did not respond to Kill signal within 2 seconds");
+                                }
+                                else
+                                {
+                                    _logger.LogInformation("Worker process terminated successfully");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogWarning(ex, "Error during forced termination of worker process");
                             }
                         }
+                        else
+                        {
+                            _logger.LogInformation("Worker process exited gracefully with code: {ExitCode}", _workerProcess.ExitCode);
+                        }
                     }
-                    
-                    _logger.LogInformation("Worker process terminated successfully");
+                    else
+                    {
+                        _logger.LogDebug("Worker process was already exited with code: {ExitCode}", _workerProcess.ExitCode);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -411,13 +443,30 @@ namespace UIAutomationMCP.Server.Helpers
                 }
                 finally
                 {
-                    _workerProcess.Dispose();
+                    try
+                    {
+                        _workerProcess.Dispose();
+                        _logger.LogDebug("Worker process disposed");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error disposing worker process");
+                    }
                     _workerProcess = null;
                 }
             }
 
-            _semaphore?.Dispose();
-            _disposed = true;
+            try
+            {
+                _semaphore?.Dispose();
+                _logger.LogDebug("Semaphore disposed");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error disposing semaphore");
+            }
+
+            _logger.LogInformation("SubprocessExecutor disposal completed");
         }
     }
 }
