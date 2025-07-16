@@ -21,19 +21,39 @@ namespace UiAutomationMcp.Tests.Infrastructure
         {
             // テスト開始前の初期化
             CleanupWorkerProcesses();
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
+            
+            // 複数回のガベージコレクションでリソース確実解放
+            for (int i = 0; i < 3; i++)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+            
+            // 短時間待機してプロセス終了を確実にする
+            System.Threading.Thread.Sleep(500);
         }
 
         public void Dispose()
         {
-            // テスト完了後のクリーンアップ
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-            
-            // 残っているWorkerプロセスを強制終了
-            CleanupWorkerProcesses();
+            try
+            {
+                // 複数回のガベージコレクションでリソース確実解放
+                for (int i = 0; i < 3; i++)
+                {
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                }
+                
+                // 残っているWorkerプロセスを強制終了
+                CleanupWorkerProcesses();
+                
+                // 最終的な待機
+                System.Threading.Thread.Sleep(1000);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Fixture disposal error: {ex.Message}");
+            }
         }
         
         private void CleanupWorkerProcesses()
