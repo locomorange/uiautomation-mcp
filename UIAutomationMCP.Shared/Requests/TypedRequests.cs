@@ -488,6 +488,43 @@ namespace UIAutomationMCP.Shared.Requests
         public override string Operation => "GetUnderlyingObjectModel";
     }
 
+    // === Styles Pattern ===
+
+    public class GetStyleIdRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetStyleId";
+    }
+
+    public class GetStyleNameRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetStyleName";
+    }
+
+    public class GetFillColorRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetFillColor";
+    }
+
+    public class GetFillPatternColorRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetFillPatternColor";
+    }
+
+    public class GetShapeRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetShape";
+    }
+
+    public class GetFillPatternStyleRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetFillPatternStyle";
+    }
+
+    public class GetExtendedPropertiesRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetExtendedProperties";
+    }
+
     public class ExpandCollapseElementRequest : ElementTargetRequest
     {
         public override string Operation => "ExpandCollapseElement";

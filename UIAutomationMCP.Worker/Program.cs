@@ -28,6 +28,7 @@ using UIAutomationMCP.Worker.Operations.Annotation;
 using UIAutomationMCP.Worker.Operations.ItemContainer;
 using UIAutomationMCP.Worker.Operations.SynchronizedInput;
 using UIAutomationMCP.Worker.Operations.ObjectModel;
+using UIAutomationMCP.Worker.Operations.Styles;
 using UIAutomationMCP.Worker.Helpers;
 using UIAutomationMCP.Shared.Options;
 using UIAutomationMCP.Shared.Validation;
@@ -182,6 +183,15 @@ namespace UIAutomationMCP.Worker
 
             // ObjectModel operations
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetUnderlyingObjectModelOperation>("GetUnderlyingObjectModel");
+
+            // Styles operations
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetStyleIdOperation>("GetStyleId");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetStyleNameOperation>("GetStyleName");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetFillColorOperation>("GetFillColor");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetFillPatternColorOperation>("GetFillPatternColor");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetShapeOperation>("GetShape");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetFillPatternStyleOperation>("GetFillPatternStyle");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetExtendedPropertiesOperation>("GetExtendedProperties");
 
             // Register Worker service
             builder.Services.AddSingleton<WorkerService>();

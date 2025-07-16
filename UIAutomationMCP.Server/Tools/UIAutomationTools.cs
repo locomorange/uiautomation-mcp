@@ -33,6 +33,7 @@ namespace UIAutomationMCP.Server.Tools
         private readonly IItemContainerService _itemContainerService;
         private readonly ISynchronizedInputService _synchronizedInputService;
         private readonly IObjectModelService _objectModelService;
+        private readonly IStylesService _stylesService;
 
         public UIAutomationTools(
             IApplicationLauncher applicationLauncher,
@@ -59,7 +60,8 @@ namespace UIAutomationMCP.Server.Tools
             IAnnotationService annotationService,
             IItemContainerService itemContainerService,
             ISynchronizedInputService synchronizedInputService,
-            IObjectModelService objectModelService)
+            IObjectModelService objectModelService,
+            IStylesService stylesService)
         {
             _applicationLauncher = applicationLauncher;
             _screenshotService = screenshotService;
@@ -86,6 +88,7 @@ namespace UIAutomationMCP.Server.Tools
             _itemContainerService = itemContainerService;
             _synchronizedInputService = synchronizedInputService;
             _objectModelService = objectModelService;
+            _stylesService = stylesService;
         }
 
         // Window and Element Discovery
@@ -764,5 +767,63 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Process ID of the target window (optional)")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => await _objectModelService.GetUnderlyingObjectModelAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        // === Styles Pattern Operations ===
+        
+        [McpServerTool, Description("Get the style ID from an element that supports StylesPattern")]
+        public async Task<object> GetStyleId(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _stylesService.GetStyleIdAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Get the style name from an element that supports StylesPattern")]
+        public async Task<object> GetStyleName(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _stylesService.GetStyleNameAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Get the fill color from an element that supports StylesPattern")]
+        public async Task<object> GetFillColor(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _stylesService.GetFillColorAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Get the fill pattern color from an element that supports StylesPattern")]
+        public async Task<object> GetFillPatternColor(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _stylesService.GetFillPatternColorAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Get the shape from an element that supports StylesPattern")]
+        public async Task<object> GetShape(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _stylesService.GetShapeAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Get the fill pattern style from an element that supports StylesPattern")]
+        public async Task<object> GetFillPatternStyle(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _stylesService.GetFillPatternStyleAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Get extended style properties from an element that supports StylesPattern")]
+        public async Task<object> GetExtendedProperties(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _stylesService.GetExtendedPropertiesAsync(elementId, windowTitle, processId, timeoutSeconds);
     }
 }
