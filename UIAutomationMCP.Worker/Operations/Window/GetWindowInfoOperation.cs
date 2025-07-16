@@ -37,19 +37,36 @@ namespace UIAutomationMCP.Worker.Operations.Window
 
             try
             {
-                AutomationElement? windowElement = null;
-                
-                // Find window by process ID or title
-                if (processId > 0)
+                // Check if UI Automation is available
+                if (!UIAutomationMCP.Worker.Helpers.UIAutomationEnvironment.IsAvailable)
                 {
-                    var processCondition = new PropertyCondition(AutomationElement.ProcessIdProperty, processId);
-                    windowElement = AutomationElement.RootElement.FindFirst(TreeScope.Children, processCondition);
+                    return Task.FromResult(new OperationResult<WindowInfoResult> 
+                    { 
+                        Success = false, 
+                        Error = $"UI Automation is not available: {UIAutomationMCP.Worker.Helpers.UIAutomationEnvironment.UnavailabilityReason}",
+                        Data = new WindowInfoResult()
+                    });
                 }
-                else if (!string.IsNullOrEmpty(windowTitle))
+
+                // Use timeout-protected element search
+                var windowElement = UIAutomationMCP.Worker.Helpers.UIAutomationEnvironment.ExecuteWithTimeout(() =>
                 {
-                    var titleCondition = new PropertyCondition(AutomationElement.NameProperty, windowTitle);
-                    windowElement = AutomationElement.RootElement.FindFirst(TreeScope.Children, titleCondition);
-                }
+                    AutomationElement? element = null;
+                    
+                    // Find window by process ID or title with timeout protection
+                    if (processId > 0)
+                    {
+                        var processCondition = new PropertyCondition(AutomationElement.ProcessIdProperty, processId);
+                        element = AutomationElement.RootElement.FindFirst(TreeScope.Children, processCondition);
+                    }
+                    else if (!string.IsNullOrEmpty(windowTitle))
+                    {
+                        var titleCondition = new PropertyCondition(AutomationElement.NameProperty, windowTitle);
+                        element = AutomationElement.RootElement.FindFirst(TreeScope.Children, titleCondition);
+                    }
+                    
+                    return element;
+                }, "FindWindow", 3);
 
                 if (windowElement == null)
                 {
@@ -109,6 +126,15 @@ namespace UIAutomationMCP.Worker.Operations.Window
                 { 
                     Success = true, 
                     Data = result 
+                });
+            }
+            catch (TimeoutException ex)
+            {
+                return Task.FromResult(new OperationResult<WindowInfoResult> 
+                { 
+                    Success = false, 
+                    Error = $"Window search timed out: {ex.Message}",
+                    Data = new WindowInfoResult()
                 });
             }
             catch (Exception ex)

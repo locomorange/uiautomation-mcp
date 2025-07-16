@@ -34,8 +34,81 @@ namespace UIAutomationMCP.Worker
 {
     class Program
     {
+        /// <summary>
+        /// Check if UI Automation is available in the current environment
+        /// This method performs a quick check and returns immediately on failure
+        /// </summary>
+        private static bool IsUIAutomationAvailable(out string errorReason)
+        {
+            errorReason = "";
+            try
+            {
+                // Quick timeout-based check
+                var task = Task.Run(() =>
+                {
+                    try
+                    {
+                        var rootElement = System.Windows.Automation.AutomationElement.RootElement;
+                        if (rootElement == null)
+                        {
+                            return (false, "AutomationElement.RootElement returned null");
+                        }
+                        
+                        // Try to get a basic property to ensure it's accessible
+                        var name = rootElement.Current.Name;
+                        return (true, "");
+                    }
+                    catch (TypeInitializationException ex)
+                    {
+                        return (false, $"UI Automation type initialization failed: {ex.Message}");
+                    }
+                    catch (System.ComponentModel.Win32Exception ex)
+                    {
+                        return (false, $"Win32 error: {ex.Message}");
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        return (false, $"Invalid operation: {ex.Message}");
+                    }
+                    catch (Exception ex)
+                    {
+                        return (false, $"Unexpected error: {ex.Message}");
+                    }
+                });
+
+                // Wait for maximum 2 seconds for UI Automation check
+                if (task.Wait(2000))
+                {
+                    var (success, reason) = task.Result;
+                    if (!success)
+                    {
+                        errorReason = reason;
+                    }
+                    return success;
+                }
+                else
+                {
+                    errorReason = "UI Automation initialization timed out after 2 seconds";
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                errorReason = $"Failed to check UI Automation availability: {ex.Message}";
+                return false;
+            }
+        }
+
         static async Task Main(string[] args)
         {
+            // Early UI Automation availability check
+            if (!IsUIAutomationAvailable(out string errorReason))
+            {
+                Console.Error.WriteLine($"UI Automation is not available in this environment: {errorReason}");
+                Environment.Exit(1);
+                return;
+            }
+
             var builder = Host.CreateApplicationBuilder(args);
 
             // Configure Options Pattern using AOT-compatible smart binding

@@ -23,13 +23,21 @@ namespace UIAutomationMCP.Worker.Helpers
         /// <param name="elementId">要素ID</param>
         /// <param name="windowTitle">ウィンドウタイトル（省略可）</param>
         /// <param name="processId">プロセスID（省略可）</param>
+        /// <param name="timeoutMs">検索タイムアウト（ミリ秒、デフォルト: 1000ms）</param>
         /// <returns>見つかった要素またはnull</returns>
         public AutomationElement? FindElementById(string elementId, string windowTitle = "", int processId = 0, 
-            TreeScope scope = TreeScope.Descendants, CacheRequest? cacheRequest = null)
+            TreeScope scope = TreeScope.Descendants, CacheRequest? cacheRequest = null, int timeoutMs = 1000)
         {
             if (string.IsNullOrEmpty(elementId))
             {
                 _logger?.LogWarning("Element ID is null or empty");
+                return null;
+            }
+
+            // Check UI Automation availability early
+            if (!UIAutomationMCP.Worker.Helpers.UIAutomationEnvironment.IsAvailable)
+            {
+                _logger?.LogError("UI Automation is not available: {Reason}", UIAutomationMCP.Worker.Helpers.UIAutomationEnvironment.UnavailabilityReason);
                 return null;
             }
 
@@ -46,18 +54,21 @@ namespace UIAutomationMCP.Worker.Helpers
             
             var condition = new PropertyCondition(AutomationElement.AutomationIdProperty, elementId);
             
-            _logger?.LogDebug("Searching for element with ID: {ElementId} in window: {WindowTitle} (PID: {ProcessId}), Scope: {Scope}", 
-                elementId, windowTitle, processId, scope);
+            _logger?.LogDebug("Searching for element with ID: {ElementId} in window: {WindowTitle} (PID: {ProcessId}), Scope: {Scope}, Timeout: {TimeoutMs}ms", 
+                elementId, windowTitle, processId, scope, timeoutMs);
             
-            if (cacheRequest != null)
+            return UIAutomationMCP.Worker.Helpers.UIAutomationEnvironment.ExecuteWithTimeout(() =>
             {
-                using (cacheRequest.Activate())
+                if (cacheRequest != null)
                 {
-                    return searchRoot.FindFirst(scope, condition);
+                    using (cacheRequest.Activate())
+                    {
+                        return searchRoot.FindFirst(scope, condition);
+                    }
                 }
-            }
-            
-            return searchRoot.FindFirst(scope, condition);
+                
+                return searchRoot.FindFirst(scope, condition);
+            }, $"FindElementById({elementId})", timeoutMs / 1000);
         }
 
         /// <summary>
