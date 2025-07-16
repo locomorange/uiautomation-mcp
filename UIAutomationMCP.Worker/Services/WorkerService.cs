@@ -73,12 +73,7 @@ namespace UIAutomationMCP.Worker.Services
                         { 
                             Success = false, 
                             Error = $"Request processing failed: {ex.Message}",
-                            Data = new 
-                            { 
-                                ExceptionType = ex.GetType().Name,
-                                Input = input ?? "null",
-                                StackTrace = ex.StackTrace
-                            }
+                            Data = null // Avoid complex anonymous types that cause serialization issues
                         });
                     }
                 }
@@ -98,7 +93,7 @@ namespace UIAutomationMCP.Worker.Services
             try
             {
                 _logger.LogDebug("Processing operation: {Operation} with parameters: {Parameters}", 
-                    request.Operation, request.Parameters != null ? JsonSerializationHelper.SerializeObject(request.Parameters) : "null");
+                    request.Operation, request.Parameters != null ? "present" : "null");
 
                 // Try to get the operation for this request
                 var operation = _serviceProvider.GetKeyedService<IUIAutomationOperation>(request.Operation);
@@ -120,8 +115,8 @@ namespace UIAutomationMCP.Worker.Services
             catch (Exception ex)
             {
                 // Enhanced error logging with operation context
-                _logger.LogError(ex, "Error executing operation: {Operation} with parameters: {Parameters}. Exception type: {ExceptionType}", 
-                    request.Operation, request.Parameters != null ? JsonSerializationHelper.SerializeObject(request.Parameters) : "null", ex.GetType().Name);
+                _logger.LogError(ex, "Error executing operation: {Operation}. Exception type: {ExceptionType}", 
+                    request.Operation, ex.GetType().Name);
 
                 // Provide detailed error information for better debugging
                 var detailedError = $"Operation '{request.Operation}' failed: {ex.Message}";
@@ -134,13 +129,7 @@ namespace UIAutomationMCP.Worker.Services
                 { 
                     Success = false, 
                     Error = detailedError,
-                    Data = new 
-                    { 
-                        ExceptionType = ex.GetType().Name,
-                        StackTrace = ex.StackTrace,
-                        Operation = request.Operation,
-                        Parameters = request.Parameters
-                    }
+                    Data = null // Avoid complex anonymous types that cause serialization issues
                 };
             }
         }

@@ -88,6 +88,7 @@ namespace UiAutomationMcp.Tests.Integration
                 await _subprocessExecutor.ExecuteAsync<object>("InvalidOperation", parameters, 10));
 
             Assert.NotNull(exception);
+            Assert.Contains("No operation found for: InvalidOperation", exception.Message);
             _output.WriteLine($"Invalid operation correctly threw exception: {exception.Message}");
         }
 
