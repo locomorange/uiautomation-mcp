@@ -28,12 +28,8 @@ namespace UIAutomationMCP.Server.Tools
         private readonly IControlTypeService _controlTypeService;
         private readonly ITransformService _transformService;
         private readonly IVirtualizedItemService _virtualizedItemService;
-        private readonly ILegacyIAccessibleService _legacyIAccessibleService;
-        private readonly IAnnotationService _annotationService;
         private readonly IItemContainerService _itemContainerService;
         private readonly ISynchronizedInputService _synchronizedInputService;
-        private readonly IObjectModelService _objectModelService;
-        private readonly IStylesService _stylesService;
 
         public UIAutomationTools(
             IApplicationLauncher applicationLauncher,
@@ -56,12 +52,8 @@ namespace UIAutomationMCP.Server.Tools
             IControlTypeService controlTypeService,
             ITransformService transformService,
             IVirtualizedItemService virtualizedItemService,
-            ILegacyIAccessibleService legacyIAccessibleService,
-            IAnnotationService annotationService,
             IItemContainerService itemContainerService,
-            ISynchronizedInputService synchronizedInputService,
-            IObjectModelService objectModelService,
-            IStylesService stylesService)
+            ISynchronizedInputService synchronizedInputService)
         {
             _applicationLauncher = applicationLauncher;
             _screenshotService = screenshotService;
@@ -83,12 +75,8 @@ namespace UIAutomationMCP.Server.Tools
             _controlTypeService = controlTypeService;
             _transformService = transformService;
             _virtualizedItemService = virtualizedItemService;
-            _legacyIAccessibleService = legacyIAccessibleService;
-            _annotationService = annotationService;
             _itemContainerService = itemContainerService;
             _synchronizedInputService = synchronizedInputService;
-            _objectModelService = objectModelService;
-            _stylesService = stylesService;
         }
 
         // Window and Element Discovery
@@ -668,65 +656,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => await _virtualizedItemService.RealizeItemAsync(elementId, windowTitle, processId, timeoutSeconds);
 
-        // LegacyIAccessible Pattern
-        [McpServerTool, Description("Get legacy MSAA properties (name, role, state, value, description, help, keyboard shortcut)")]
-        public async Task<object> GetLegacyProperties(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _legacyIAccessibleService.GetLegacyPropertiesAsync(elementId, windowTitle, processId, timeoutSeconds);
-
-        [McpServerTool, Description("Perform the default action for a legacy element")]
-        public async Task<object> DoLegacyDefaultAction(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _legacyIAccessibleService.DoDefaultActionAsync(elementId, windowTitle, processId, timeoutSeconds);
-
-        [McpServerTool, Description("Select a legacy item with specific flags")]
-        public async Task<object> SelectLegacyItem(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Selection flags (1=TAKEFOCUS, 2=TAKESELECTION, 4=EXTENDSELECTION, 8=ADDSELECTION, 16=REMOVESELECTION)")] int flagsSelect,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _legacyIAccessibleService.SelectLegacyItemAsync(elementId, flagsSelect, windowTitle, processId, timeoutSeconds);
-
-        [McpServerTool, Description("Set the value of a legacy element")]
-        public async Task<object> SetLegacyValue(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Value to set")] string value,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _legacyIAccessibleService.SetLegacyValueAsync(elementId, value, windowTitle, processId, timeoutSeconds);
-
-        [McpServerTool, Description("Get the state flags of a legacy element")]
-        public async Task<object> GetLegacyState(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _legacyIAccessibleService.GetLegacyStateAsync(elementId, windowTitle, processId, timeoutSeconds);
-
-        // Annotation Pattern
-        [McpServerTool, Description("Get annotation information (type, author, date, subject) for elements like comments or notes")]
-        public async Task<object> GetAnnotationInfo(
-            [Description("Automation ID or name of the annotation element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _annotationService.GetAnnotationInfoAsync(elementId, windowTitle, processId, timeoutSeconds);
-
-        [McpServerTool, Description("Get the target element that an annotation is associated with")]
-        public async Task<object> GetAnnotationTarget(
-            [Description("Automation ID or name of the annotation element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _annotationService.GetAnnotationTargetAsync(elementId, windowTitle, processId, timeoutSeconds);
 
         // ItemContainer Pattern
         [McpServerTool, Description("Find an item in a container by property value (useful for searching in lists, trees, and grids)")]
@@ -758,72 +687,5 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => await _synchronizedInputService.CancelAsync(elementId, windowTitle, processId, timeoutSeconds);
 
-        // === ObjectModel Pattern Operations ===
-        
-        [McpServerTool, Description("Get the underlying object model from an element that supports ObjectModelPattern")]
-        public async Task<object> GetUnderlyingObjectModel(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _objectModelService.GetUnderlyingObjectModelAsync(elementId, windowTitle, processId, timeoutSeconds);
-
-        // === Styles Pattern Operations ===
-        
-        [McpServerTool, Description("Get the style ID from an element that supports StylesPattern")]
-        public async Task<object> GetStyleId(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _stylesService.GetStyleIdAsync(elementId, windowTitle, processId, timeoutSeconds);
-
-        [McpServerTool, Description("Get the style name from an element that supports StylesPattern")]
-        public async Task<object> GetStyleName(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _stylesService.GetStyleNameAsync(elementId, windowTitle, processId, timeoutSeconds);
-
-        [McpServerTool, Description("Get the fill color from an element that supports StylesPattern")]
-        public async Task<object> GetFillColor(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _stylesService.GetFillColorAsync(elementId, windowTitle, processId, timeoutSeconds);
-
-        [McpServerTool, Description("Get the fill pattern color from an element that supports StylesPattern")]
-        public async Task<object> GetFillPatternColor(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _stylesService.GetFillPatternColorAsync(elementId, windowTitle, processId, timeoutSeconds);
-
-        [McpServerTool, Description("Get the shape from an element that supports StylesPattern")]
-        public async Task<object> GetShape(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _stylesService.GetShapeAsync(elementId, windowTitle, processId, timeoutSeconds);
-
-        [McpServerTool, Description("Get the fill pattern style from an element that supports StylesPattern")]
-        public async Task<object> GetFillPatternStyle(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _stylesService.GetFillPatternStyleAsync(elementId, windowTitle, processId, timeoutSeconds);
-
-        [McpServerTool, Description("Get extended style properties from an element that supports StylesPattern")]
-        public async Task<object> GetExtendedProperties(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _stylesService.GetExtendedPropertiesAsync(elementId, windowTitle, processId, timeoutSeconds);
     }
 }

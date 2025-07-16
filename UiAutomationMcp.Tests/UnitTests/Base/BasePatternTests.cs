@@ -36,6 +36,9 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
         protected readonly Mock<ICustomPropertyService> _mockCustomProperty;
         protected readonly Mock<IControlTypeService> _mockControlType;
         protected readonly Mock<ITransformService> _mockTransform;
+        protected readonly Mock<IVirtualizedItemService> _mockVirtualizedItem;
+        protected readonly Mock<IItemContainerService> _mockItemContainer;
+        protected readonly Mock<ISynchronizedInputService> _mockSynchronizedInput;
 
         protected BasePatternTests(ITestOutputHelper output)
         {
@@ -61,6 +64,9 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
             _mockCustomProperty = new Mock<ICustomPropertyService>();
             _mockControlType = new Mock<IControlTypeService>();
             _mockTransform = new Mock<ITransformService>();
+            _mockVirtualizedItem = new Mock<IVirtualizedItemService>();
+            _mockItemContainer = new Mock<IItemContainerService>();
+            _mockSynchronizedInput = new Mock<ISynchronizedInputService>();
 
             // テスト対象サービスのモック
             _mockService = CreateServiceMock();
@@ -98,7 +104,10 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
                 _mockAccessibility.Object,
                 _mockCustomProperty.Object,
                 _mockControlType.Object,
-                _mockTransform.Object
+                _mockTransform.Object,
+                _mockVirtualizedItem.Object,
+                _mockItemContainer.Object,
+                _mockSynchronizedInput.Object
             );
         }
 

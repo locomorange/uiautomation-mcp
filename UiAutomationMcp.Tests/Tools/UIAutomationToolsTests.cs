@@ -36,6 +36,9 @@ namespace UIAutomationMCP.Tests.Tools
         private readonly Mock<ICustomPropertyService> _mockCustomPropertyService;
         private readonly Mock<IControlTypeService> _mockControlTypeService;
         private readonly Mock<ITransformService> _mockTransformService;
+        private readonly Mock<IVirtualizedItemService> _mockVirtualizedItemService;
+        private readonly Mock<IItemContainerService> _mockItemContainerService;
+        private readonly Mock<ISynchronizedInputService> _mockSynchronizedInputService;
 
         public UIAutomationToolsTests(ITestOutputHelper output)
         {
@@ -61,6 +64,9 @@ namespace UIAutomationMCP.Tests.Tools
             _mockCustomPropertyService = new Mock<ICustomPropertyService>();
             _mockControlTypeService = new Mock<IControlTypeService>();
             _mockTransformService = new Mock<ITransformService>();
+            _mockVirtualizedItemService = new Mock<IVirtualizedItemService>();
+            _mockItemContainerService = new Mock<IItemContainerService>();
+            _mockSynchronizedInputService = new Mock<ISynchronizedInputService>();
             
             _tools = new UIAutomationTools(
                 _mockApplicationLauncher.Object,
@@ -81,7 +87,10 @@ namespace UIAutomationMCP.Tests.Tools
                 _mockAccessibilityService.Object,
                 _mockCustomPropertyService.Object,
                 _mockControlTypeService.Object,
-                _mockTransformService.Object
+                _mockTransformService.Object,
+                _mockVirtualizedItemService.Object,
+                _mockItemContainerService.Object,
+                _mockSynchronizedInputService.Object
             );
         }
 

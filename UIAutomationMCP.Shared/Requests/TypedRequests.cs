@@ -396,50 +396,6 @@ namespace UIAutomationMCP.Shared.Requests
         public override string Operation => "RealizeVirtualizedItem";
     }
 
-    // === LegacyIAccessible Pattern ===
-
-    public class GetLegacyPropertiesRequest : ElementTargetRequest
-    {
-        public override string Operation => "GetLegacyProperties";
-    }
-
-    public class DoLegacyDefaultActionRequest : ElementTargetRequest
-    {
-        public override string Operation => "DoLegacyDefaultAction";
-    }
-
-    public class SelectLegacyItemRequest : ElementTargetRequest
-    {
-        public override string Operation => "SelectLegacyItem";
-
-        [JsonPropertyName("flagsSelect")]
-        public int FlagsSelect { get; set; }
-    }
-
-    public class SetLegacyValueRequest : ElementTargetRequest
-    {
-        public override string Operation => "SetLegacyValue";
-
-        [JsonPropertyName("value")]
-        public string Value { get; set; } = "";
-    }
-
-    public class GetLegacyStateRequest : ElementTargetRequest
-    {
-        public override string Operation => "GetLegacyState";
-    }
-
-    // === Annotation Pattern ===
-
-    public class GetAnnotationInfoRequest : ElementTargetRequest
-    {
-        public override string Operation => "GetAnnotationInfo";
-    }
-
-    public class GetAnnotationTargetRequest : ElementTargetRequest
-    {
-        public override string Operation => "GetAnnotationTarget";
-    }
 
     // === ItemContainer Pattern ===
 
@@ -481,49 +437,6 @@ namespace UIAutomationMCP.Shared.Requests
         public override string Operation => "CancelSynchronizedInput";
     }
 
-    // === ObjectModel Pattern ===
-
-    public class GetUnderlyingObjectModelRequest : ElementTargetRequest
-    {
-        public override string Operation => "GetUnderlyingObjectModel";
-    }
-
-    // === Styles Pattern ===
-
-    public class GetStyleIdRequest : ElementTargetRequest
-    {
-        public override string Operation => "GetStyleId";
-    }
-
-    public class GetStyleNameRequest : ElementTargetRequest
-    {
-        public override string Operation => "GetStyleName";
-    }
-
-    public class GetFillColorRequest : ElementTargetRequest
-    {
-        public override string Operation => "GetFillColor";
-    }
-
-    public class GetFillPatternColorRequest : ElementTargetRequest
-    {
-        public override string Operation => "GetFillPatternColor";
-    }
-
-    public class GetShapeRequest : ElementTargetRequest
-    {
-        public override string Operation => "GetShape";
-    }
-
-    public class GetFillPatternStyleRequest : ElementTargetRequest
-    {
-        public override string Operation => "GetFillPatternStyle";
-    }
-
-    public class GetExtendedPropertiesRequest : ElementTargetRequest
-    {
-        public override string Operation => "GetExtendedProperties";
-    }
 
     public class ExpandCollapseElementRequest : ElementTargetRequest
     {

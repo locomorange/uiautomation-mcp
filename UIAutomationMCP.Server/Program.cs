@@ -46,12 +46,8 @@ namespace UIAutomationMCP.Server
             builder.Services.AddSingleton<ICustomPropertyService, CustomPropertyService>();
             builder.Services.AddSingleton<ITransformService, TransformService>();
             builder.Services.AddSingleton<IVirtualizedItemService, VirtualizedItemService>();
-            builder.Services.AddSingleton<ILegacyIAccessibleService, LegacyIAccessibleService>();
-            builder.Services.AddSingleton<IAnnotationService, AnnotationService>();
             builder.Services.AddSingleton<IItemContainerService, ItemContainerService>();
             builder.Services.AddSingleton<ISynchronizedInputService, SynchronizedInputService>();
-            builder.Services.AddSingleton<IObjectModelService, ObjectModelService>();
-            builder.Services.AddSingleton<IStylesService, StylesService>();
             
             
             // Register ControlType service

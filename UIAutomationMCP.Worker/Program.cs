@@ -23,12 +23,8 @@ using UIAutomationMCP.Worker.Operations.TreeNavigation;
 using UIAutomationMCP.Worker.Operations.Window;
 using UIAutomationMCP.Worker.Operations.Transform;
 using UIAutomationMCP.Worker.Operations.VirtualizedItem;
-using UIAutomationMCP.Worker.Operations.LegacyIAccessible;
-using UIAutomationMCP.Worker.Operations.Annotation;
 using UIAutomationMCP.Worker.Operations.ItemContainer;
 using UIAutomationMCP.Worker.Operations.SynchronizedInput;
-using UIAutomationMCP.Worker.Operations.ObjectModel;
-using UIAutomationMCP.Worker.Operations.Styles;
 using UIAutomationMCP.Worker.Helpers;
 using UIAutomationMCP.Shared.Options;
 using UIAutomationMCP.Shared.Validation;
@@ -163,35 +159,12 @@ namespace UIAutomationMCP.Worker
             // VirtualizedItem operations
             builder.Services.AddKeyedTransient<IUIAutomationOperation, RealizeVirtualizedItemOperation>("RealizeVirtualizedItem");
 
-            // LegacyIAccessible operations
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetLegacyPropertiesOperation>("GetLegacyProperties");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, DoLegacyDefaultActionOperation>("DoLegacyDefaultAction");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, SelectLegacyItemOperation>("SelectLegacyItem");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, SetLegacyValueOperation>("SetLegacyValue");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetLegacyStateOperation>("GetLegacyState");
-
-            // Annotation operations
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetAnnotationInfoOperation>("GetAnnotationInfo");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetAnnotationTargetOperation>("GetAnnotationTarget");
-
             // ItemContainer operations
             builder.Services.AddKeyedTransient<IUIAutomationOperation, FindItemByPropertyOperation>("FindItemByProperty");
 
             // SynchronizedInput operations
             builder.Services.AddKeyedTransient<IUIAutomationOperation, StartSynchronizedInputOperation>("StartSynchronizedInput");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, CancelSynchronizedInputOperation>("CancelSynchronizedInput");
-
-            // ObjectModel operations
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetUnderlyingObjectModelOperation>("GetUnderlyingObjectModel");
-
-            // Styles operations
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetStyleIdOperation>("GetStyleId");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetStyleNameOperation>("GetStyleName");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetFillColorOperation>("GetFillColor");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetFillPatternColorOperation>("GetFillPatternColor");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetShapeOperation>("GetShape");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetFillPatternStyleOperation>("GetFillPatternStyle");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetExtendedPropertiesOperation>("GetExtendedProperties");
 
             // Register Worker service
             builder.Services.AddSingleton<WorkerService>();

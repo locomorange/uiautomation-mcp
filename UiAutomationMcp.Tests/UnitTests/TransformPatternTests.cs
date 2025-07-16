@@ -44,6 +44,9 @@ namespace UIAutomationMCP.Tests.UnitTests
             var mockAccessibility = new Mock<IAccessibilityService>();
             var mockCustomProperty = new Mock<ICustomPropertyService>();
             var mockControlType = new Mock<IControlTypeService>();
+            var mockVirtualizedItem = new Mock<IVirtualizedItemService>();
+            var mockItemContainer = new Mock<IItemContainerService>();
+            var mockSynchronizedInput = new Mock<ISynchronizedInputService>();
 
             _tools = new UIAutomationTools(
                 mockAppLauncher.Object,
@@ -64,7 +67,10 @@ namespace UIAutomationMCP.Tests.UnitTests
                 mockAccessibility.Object,
                 mockCustomProperty.Object,
                 mockControlType.Object,
-                _mockTransformService.Object
+                _mockTransformService.Object,
+                mockVirtualizedItem.Object,
+                mockItemContainer.Object,
+                mockSynchronizedInput.Object
             );
         }
 

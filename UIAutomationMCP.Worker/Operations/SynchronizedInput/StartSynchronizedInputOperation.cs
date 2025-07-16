@@ -106,10 +106,10 @@ namespace UIAutomationMCP.Worker.Operations.SynchronizedInput
             {
                 "keyup" => SynchronizedInputType.KeyUp,
                 "keydown" => SynchronizedInputType.KeyDown,
-                "leftmouseup" => SynchronizedInputType.LeftMouseUp,
-                "leftmousedown" => SynchronizedInputType.LeftMouseDown,
-                "rightmouseup" => SynchronizedInputType.RightMouseUp,
-                "rightmousedown" => SynchronizedInputType.RightMouseDown,
+                "leftmouseup" => SynchronizedInputType.MouseLeftButtonUp,
+                "leftmousedown" => SynchronizedInputType.MouseLeftButtonDown,
+                "rightmouseup" => SynchronizedInputType.MouseRightButtonUp,
+                "rightmousedown" => SynchronizedInputType.MouseRightButtonDown,
                 _ => throw new ArgumentException($"Invalid input type: {inputType}")
             };
         }

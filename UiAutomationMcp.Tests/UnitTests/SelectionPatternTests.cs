@@ -45,7 +45,10 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Mock.Of<IAccessibilityService>(),
                 Mock.Of<ICustomPropertyService>(),
                 Mock.Of<IControlTypeService>(),
-                Mock.Of<ITransformService>()
+                Mock.Of<ITransformService>(),
+                Mock.Of<IVirtualizedItemService>(),
+                Mock.Of<IItemContainerService>(),
+                Mock.Of<ISynchronizedInputService>()
             );
         }
 
