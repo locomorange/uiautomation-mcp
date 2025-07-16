@@ -64,6 +64,9 @@ namespace UIAutomationMCP.Tests.E2E
             services.AddSingleton<ICustomPropertyService, CustomPropertyService>();
             services.AddSingleton<ITransformService, TransformService>();
             services.AddSingleton<IControlTypeService, ControlTypeService>();
+            services.AddSingleton<IVirtualizedItemService, VirtualizedItemService>();
+            services.AddSingleton<IItemContainerService, ItemContainerService>();
+            services.AddSingleton<ISynchronizedInputService, SynchronizedInputService>();
 
             // Register subprocess executor
             services.AddSingleton<SubprocessExecutor>(provider =>
