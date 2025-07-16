@@ -1,14 +1,14 @@
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Server.Interfaces;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
     public class ItemContainerService : IItemContainerService
     {
         private readonly ILogger<ItemContainerService> _logger;
-        private readonly SubprocessExecutor _executor;
+        private readonly ISubprocessExecutor _executor;
 
-        public ItemContainerService(ILogger<ItemContainerService> logger, SubprocessExecutor executor)
+        public ItemContainerService(ILogger<ItemContainerService> logger, ISubprocessExecutor executor)
         {
             _logger = logger;
             _executor = executor;

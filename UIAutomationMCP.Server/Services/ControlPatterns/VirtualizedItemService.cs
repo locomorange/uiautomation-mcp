@@ -1,14 +1,14 @@
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Server.Interfaces;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
     public class VirtualizedItemService : IVirtualizedItemService
     {
         private readonly ILogger<VirtualizedItemService> _logger;
-        private readonly SubprocessExecutor _executor;
+        private readonly ISubprocessExecutor _executor;
 
-        public VirtualizedItemService(ILogger<VirtualizedItemService> logger, SubprocessExecutor executor)
+        public VirtualizedItemService(ILogger<VirtualizedItemService> logger, ISubprocessExecutor executor)
         {
             _logger = logger;
             _executor = executor;

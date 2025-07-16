@@ -1,14 +1,14 @@
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Server.Interfaces;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
     public class SynchronizedInputService : ISynchronizedInputService
     {
         private readonly ILogger<SynchronizedInputService> _logger;
-        private readonly SubprocessExecutor _executor;
+        private readonly ISubprocessExecutor _executor;
 
-        public SynchronizedInputService(ILogger<SynchronizedInputService> logger, SubprocessExecutor executor)
+        public SynchronizedInputService(ILogger<SynchronizedInputService> logger, ISubprocessExecutor executor)
         {
             _logger = logger;
             _executor = executor;
