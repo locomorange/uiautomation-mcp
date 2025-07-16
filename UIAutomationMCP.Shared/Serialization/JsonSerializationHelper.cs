@@ -115,6 +115,8 @@ namespace UIAutomationMCP.Shared.Serialization
                 return (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseElementValueResult;
             if (type == typeof(FindItemResult))
                 return (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseFindItemResult;
+            if (type == typeof(ProcessResult))
+                return (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseProcessResult;
             if (type == typeof(object))
                 return (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseObject;
             
@@ -138,6 +140,8 @@ namespace UIAutomationMCP.Shared.Serialization
                 return (JsonTypeInfo<T>)(object)_context.ElementValueResult;
             if (type == typeof(FindItemResult))
                 return (JsonTypeInfo<T>)(object)_context.FindItemResult;
+            if (type == typeof(ProcessResult))
+                return (JsonTypeInfo<T>)(object)_context.ProcessResult;
             
             return null;
         }
@@ -164,10 +168,12 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(WorkerResponse<TransformCapabilitiesResult>))]
     [JsonSerializable(typeof(WorkerResponse<WindowInfoResult>))]
     [JsonSerializable(typeof(WorkerResponse<FindItemResult>))]
+    [JsonSerializable(typeof(WorkerResponse<ProcessResult>))]
     [JsonSerializable(typeof(Dictionary<string, object>))]
     [JsonSerializable(typeof(List<Dictionary<string, object>>))]
     // Result types
     [JsonSerializable(typeof(ScreenshotResult))]
+    [JsonSerializable(typeof(ProcessResult))]
     [JsonSerializable(typeof(BaseOperationResult))]
     [JsonSerializable(typeof(ElementSearchResult))]
     [JsonSerializable(typeof(ElementPropertiesResult))]
