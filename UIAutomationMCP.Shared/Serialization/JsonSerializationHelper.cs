@@ -15,7 +15,8 @@ namespace UIAutomationMCP.Shared.Serialization
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            WriteIndented = false
+            WriteIndented = false,
+            NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals
         });
 
         // Worker Request/Response serialization
@@ -111,6 +112,8 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(WindowCapabilitiesResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseWindowCapabilitiesResult,
                 Type t when t == typeof(FindItemResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseFindItemResult,
                 Type t when t == typeof(ProcessResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseProcessResult,
+                Type t when t == typeof(ErrorResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseErrorResult,
+                Type t when t == typeof(UniversalResponse) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseUniversalResponse,
                 Type t when t == typeof(object) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseObject,
                 _ => null
             };
@@ -130,6 +133,8 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(WindowCapabilitiesResult) => (JsonTypeInfo<T>)(object)_context.WindowCapabilitiesResult,
                 Type t when t == typeof(FindItemResult) => (JsonTypeInfo<T>)(object)_context.FindItemResult,
                 Type t when t == typeof(ProcessResult) => (JsonTypeInfo<T>)(object)_context.ProcessResult,
+                Type t when t == typeof(ErrorResult) => (JsonTypeInfo<T>)(object)_context.ErrorResult,
+                Type t when t == typeof(UniversalResponse) => (JsonTypeInfo<T>)(object)_context.UniversalResponse,
                 _ => null
             };
         }
@@ -266,6 +271,8 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(WorkerResponse<WindowCapabilitiesResult>))]
     [JsonSerializable(typeof(WorkerResponse<FindItemResult>))]
     [JsonSerializable(typeof(WorkerResponse<ProcessResult>))]
+    [JsonSerializable(typeof(WorkerResponse<ErrorResult>))]
+    [JsonSerializable(typeof(WorkerResponse<UniversalResponse>))]
     [JsonSerializable(typeof(Dictionary<string, object>))]
     [JsonSerializable(typeof(List<Dictionary<string, object>>))]
     // Result types
@@ -277,6 +284,8 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(PatternsInfoResult))]
     [JsonSerializable(typeof(ActionResult))]
     [JsonSerializable(typeof(ElementValueResult))]
+    [JsonSerializable(typeof(ErrorResult))]
+    [JsonSerializable(typeof(UniversalResponse))]
     [JsonSerializable(typeof(GridInfoResult))]
     [JsonSerializable(typeof(TableInfoResult))]
     [JsonSerializable(typeof(ScrollInfoResult))]
@@ -380,7 +389,8 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSourceGenerationOptions(
         WriteIndented = false, 
         PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals)]
     internal partial class UIAutomationJsonContext : JsonSerializerContext
     {
     }

@@ -6,6 +6,7 @@ using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
 using Xunit.Abstractions;
 using System.Threading;
+using System.Text.Json;
 
 namespace UIAutomationMCP.Tests.Tools
 {
@@ -111,7 +112,7 @@ namespace UIAutomationMCP.Tests.Tools
                 new WindowInfo { Title = "Window2", ProcessName = "App2", ProcessId = 5678, Handle = 1002 }
             };
             _mockElementSearchService.Setup(s => s.GetWindowsAsync(60))
-                            .Returns(Task.FromResult((object)expectedWindows));
+                            .Returns(Task.FromResult(JsonSerializer.SerializeToElement(expectedWindows)));
 
             // Act
             var result = await _tools.GetWindowInfo();
@@ -132,7 +133,7 @@ namespace UIAutomationMCP.Tests.Tools
                 new ElementInfo { AutomationId = "btn2", Name = "Button2", ControlType = "Button" }
             };
             _mockElementSearchService.Setup(s => s.FindElementsAsync("TestWindow", "Button", null, null, 60))
-                                   .Returns(Task.FromResult((object)expectedElements));
+                                   .Returns(Task.FromResult(JsonSerializer.SerializeToElement(expectedElements)));
 
             // Act
             var result = await _tools.FindElements("Button", windowTitle: "TestWindow");
@@ -548,7 +549,7 @@ namespace UIAutomationMCP.Tests.Tools
                 new ElementInfo { AutomationId = "textBox1", Name = "TextBox1", ControlType = "Edit" }
             };
             _mockElementSearchService.Setup(s => s.FindElementsAsync("TestWindow", null, "Edit", null, 60))
-                                   .ReturnsAsync(expectedElements);
+                                   .Returns(Task.FromResult(JsonSerializer.SerializeToElement(expectedElements)));
 
             // Act
             var result = await _tools.GetElementInfo("TestWindow", "Edit");

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using UIAutomationMCP.Shared.Results;
 
 namespace UIAutomationMCP.Server.Helpers
 {
@@ -6,13 +7,17 @@ namespace UIAutomationMCP.Server.Helpers
     {
         public static object HandleError(Exception ex, string operation, string elementId, int timeoutSeconds, ILogger logger)
         {
+            // Log the actual exception for debugging
+            logger.LogError(ex, "{Operation} operation failed for element: {ElementId}. Exception: {ExceptionType}", 
+                operation, elementId, ex.GetType().Name);
+
             return ex switch
             {
-                TimeoutException timeoutEx => HandleTimeoutError(timeoutEx, operation, elementId, timeoutSeconds, logger),
-                InvalidOperationException invalidOpEx => HandleInvalidOperationError(invalidOpEx, operation, elementId, logger),
-                ArgumentException argEx => HandleArgumentError(argEx, operation, elementId, logger),
-                UnauthorizedAccessException unauthorizedEx => HandleUnauthorizedError(unauthorizedEx, operation, elementId, logger),
-                _ => HandleGenericError(ex, operation, elementId, logger)
+                TimeoutException timeoutEx => ErrorResult.CreateTimeoutError(operation, elementId, timeoutSeconds, timeoutEx.Message),
+                InvalidOperationException invalidOpEx => ErrorResult.CreateInvalidOperationError(operation, elementId, invalidOpEx.Message),
+                ArgumentException argEx => ErrorResult.CreateArgumentError(operation, elementId, argEx.Message),
+                UnauthorizedAccessException unauthorizedEx => ErrorResult.CreateUnauthorizedError(operation, elementId, unauthorizedEx.Message),
+                _ => ErrorResult.CreateGenericError(operation, elementId, ex.GetType().Name, ex.Message)
             };
         }
 
@@ -140,19 +145,7 @@ namespace UIAutomationMCP.Server.Helpers
                 var validationError = $"Element ID is required for {GetOperationDisplayName(operation).ToLower()} operation and cannot be empty";
                 logger.LogWarning("{Operation} operation failed due to validation: {Error}", operation, validationError);
                 
-                return new
-                {
-                    Success = false,
-                    Error = validationError,
-                    Operation = operation,
-                    ErrorCategory = "Validation",
-                    Suggestions = new[]
-                    {
-                        "Provide a valid element ID",
-                        "Check the UI element's AutomationId property",
-                        "Use element inspection tools to find the correct ID"
-                    }
-                };
+                return ErrorResult.CreateValidationError(GetOperationDisplayName(operation).ToLower(), validationError);
             }
             
             return null; // Validation passed
