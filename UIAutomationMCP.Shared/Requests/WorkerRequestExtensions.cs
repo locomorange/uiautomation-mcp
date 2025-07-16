@@ -4,6 +4,7 @@ using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Options;
 using System.Reflection;
 using System.Collections.Concurrent;
+using UIAutomationMCP.Shared.Serialization;
 
 namespace UIAutomationMCP.Shared
 {
@@ -63,8 +64,8 @@ namespace UIAutomationMCP.Shared
 
             try
             {
-                var json = JsonSerializer.Serialize(request.Parameters);
-                var typedRequest = JsonSerializer.Deserialize<T>(json);
+                var json = JsonSerializationHelper.SerializeObject(request.Parameters);
+                var typedRequest = JsonSerializationHelper.DeserializeObject<T>(json);
                 
                 if (typedRequest != null)
                 {
@@ -103,8 +104,8 @@ namespace UIAutomationMCP.Shared
         /// </summary>
         public static WorkerRequest ToWorkerRequest(this TypedWorkerRequest typedRequest)
         {
-            var parametersJson = JsonSerializer.Serialize(typedRequest);
-            var parameters = JsonSerializer.Deserialize<Dictionary<string, object>>(parametersJson);
+            var parametersJson = JsonSerializationHelper.SerializeObject(typedRequest);
+            var parameters = JsonSerializationHelper.DeserializeObject<Dictionary<string, object>>(parametersJson);
 
             return new WorkerRequest
             {
