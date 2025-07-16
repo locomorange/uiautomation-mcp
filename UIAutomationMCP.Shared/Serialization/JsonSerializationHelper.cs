@@ -198,6 +198,10 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(object))]
     [JsonSerializable(typeof(List<string>))]
     [JsonSerializable(typeof(string[]))]
+    // MCP Response Models
+    [JsonSerializable(typeof(ProcessLaunchResponse))]
+    [JsonSerializable(typeof(UIOperationResponse))]
+    [JsonSerializable(typeof(ElementSearchResponse))]
     [JsonSourceGenerationOptions(
         WriteIndented = false, 
         PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,

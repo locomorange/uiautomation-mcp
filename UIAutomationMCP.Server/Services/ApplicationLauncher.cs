@@ -6,9 +6,9 @@ namespace UIAutomationMCP.Server.Services
 {
     public interface IApplicationLauncher
     {
-        Task<ProcessResult> LaunchWin32ApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default);
-        Task<ProcessResult> LaunchUWPApplicationAsync(string appsFolderPath, int timeoutSeconds = 60, CancellationToken cancellationToken = default);
-        Task<ProcessResult> LaunchApplicationByNameAsync(string applicationName, int timeoutSeconds = 60, CancellationToken cancellationToken = default);
+        Task<ProcessLaunchResponse> LaunchWin32ApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default);
+        Task<ProcessLaunchResponse> LaunchUWPApplicationAsync(string appsFolderPath, int timeoutSeconds = 60, CancellationToken cancellationToken = default);
+        Task<ProcessLaunchResponse> LaunchApplicationByNameAsync(string applicationName, int timeoutSeconds = 60, CancellationToken cancellationToken = default);
     }
 
     public class ApplicationLauncher : IApplicationLauncher
@@ -20,7 +20,7 @@ namespace UIAutomationMCP.Server.Services
             _logger = logger;
         }
 
-        public async Task<ProcessResult> LaunchWin32ApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
+        public async Task<ProcessLaunchResponse> LaunchWin32ApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -37,7 +37,7 @@ namespace UIAutomationMCP.Server.Services
                 var process = Process.Start(startInfo);
                 if (process == null)
                 {
-                    return new ProcessResult { Success = false, Error = "Failed to start process" };
+                    return ProcessLaunchResponse.CreateError("Failed to start process");
                 }
 
                 var processId = process.Id;
@@ -56,22 +56,16 @@ namespace UIAutomationMCP.Server.Services
                 await Task.Delay(500, cancellationToken);
                 var hasExited = process.HasExited;
 
-                return new ProcessResult
-                {
-                    Success = true,
-                    ProcessId = processId,
-                    ProcessName = processName,
-                    HasExited = hasExited
-                };
+                return ProcessLaunchResponse.CreateSuccess(processId, processName, hasExited);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error launching Win32 application: {ApplicationPath}", applicationPath);
-                return new ProcessResult { Success = false, Error = ex.Message };
+                return ProcessLaunchResponse.CreateError(ex.Message);
             }
         }
 
-        public async Task<ProcessResult> LaunchUWPApplicationAsync(string appsFolderPath, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
+        public async Task<ProcessLaunchResponse> LaunchUWPApplicationAsync(string appsFolderPath, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -79,7 +73,7 @@ namespace UIAutomationMCP.Server.Services
 
                 if (!appsFolderPath.StartsWith("shell:AppsFolder\\", StringComparison.OrdinalIgnoreCase))
                 {
-                    return new ProcessResult { Success = false, Error = "Invalid UWP app path. Must start with 'shell:AppsFolder\\'" };
+                    return ProcessLaunchResponse.CreateError("Invalid UWP app path. Must start with 'shell:AppsFolder\\'");
                 }
 
                 var startInfo = new ProcessStartInfo
@@ -93,7 +87,7 @@ namespace UIAutomationMCP.Server.Services
                 var process = Process.Start(startInfo);
                 if (process == null)
                 {
-                    return new ProcessResult { Success = false, Error = "Failed to start process" };
+                    return ProcessLaunchResponse.CreateError("Failed to start process");
                 }
 
                 var processId = process.Id;
@@ -102,22 +96,16 @@ namespace UIAutomationMCP.Server.Services
                 await Task.Delay(1000, cancellationToken); // UWPは起動に時間がかかる場合がある
                 var hasExited = process.HasExited;
 
-                return new ProcessResult
-                {
-                    Success = true,
-                    ProcessId = processId,
-                    ProcessName = "UWP App",
-                    HasExited = hasExited
-                };
+                return ProcessLaunchResponse.CreateSuccess(processId, "UWP App", hasExited);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error launching UWP application: {AppsFolderPath}", appsFolderPath);
-                return new ProcessResult { Success = false, Error = ex.Message };
+                return ProcessLaunchResponse.CreateError(ex.Message);
             }
         }
 
-        public async Task<ProcessResult> LaunchApplicationByNameAsync(string applicationName, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
+        public async Task<ProcessLaunchResponse> LaunchApplicationByNameAsync(string applicationName, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -137,7 +125,7 @@ namespace UIAutomationMCP.Server.Services
                 var searchProcess = Process.Start(searchStartInfo);
                 if (searchProcess == null)
                 {
-                    return new ProcessResult { Success = false, Error = "Failed to start PowerShell search process" };
+                    return ProcessLaunchResponse.CreateError("Failed to start PowerShell search process");
                 }
 
                 var searchOutput = await searchProcess.StandardOutput.ReadToEndAsync();
@@ -148,13 +136,13 @@ namespace UIAutomationMCP.Server.Services
 
                 if (searchProcess.ExitCode != 0 || !string.IsNullOrEmpty(searchError))
                 {
-                    return new ProcessResult { Success = false, Error = $"Application '{applicationName}' not found. Search output: {searchOutput}, Error: {searchError}" };
+                    return ProcessLaunchResponse.CreateError($"Application '{applicationName}' not found. Search output: {searchOutput}, Error: {searchError}");
                 }
 
                 var appId = searchOutput.Trim();
                 if (string.IsNullOrEmpty(appId))
                 {
-                    return new ProcessResult { Success = false, Error = $"Application '{applicationName}' not found or AppID is empty" };
+                    return ProcessLaunchResponse.CreateError($"Application '{applicationName}' not found or AppID is empty");
                 }
 
                 _logger.LogInformation("Found application: {ApplicationName} with AppID: {AppID}", applicationName, appId);
@@ -171,7 +159,7 @@ namespace UIAutomationMCP.Server.Services
                 var launchProcess = Process.Start(launchStartInfo);
                 if (launchProcess == null)
                 {
-                    return new ProcessResult { Success = false, Error = "Failed to start launch process" };
+                    return ProcessLaunchResponse.CreateError("Failed to start launch process");
                 }
 
                 _logger.LogInformation("Application launched by name: {ApplicationName}", applicationName);
@@ -181,6 +169,7 @@ namespace UIAutomationMCP.Server.Services
                 // 起動したプロセスを検索
                 var processId = 0;
                 var processName = applicationName;
+                Process? targetProcess = null;
                 
                 try
                 {
@@ -189,7 +178,7 @@ namespace UIAutomationMCP.Server.Services
                     var searchTerms = applicationName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                     
                     // より良いマッチングのために優先順位を付けて検索
-                    var targetProcess = processes
+                    targetProcess = processes
                         .Where(p => 
                         {
                             try
@@ -246,18 +235,12 @@ namespace UIAutomationMCP.Server.Services
                     _logger.LogWarning(ex, "Failed to find launched process for {ApplicationName}", applicationName);
                 }
 
-                return new ProcessResult
-                {
-                    Success = true,
-                    ProcessId = processId,
-                    ProcessName = processName,
-                    HasExited = false
-                };
+                return ProcessLaunchResponse.CreateSuccess(processId, processName, false, targetProcess?.MainWindowTitle);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error launching application by name: {ApplicationName}", applicationName);
-                return new ProcessResult { Success = false, Error = ex.Message };
+                return ProcessLaunchResponse.CreateError(ex.Message);
             }
         }
 

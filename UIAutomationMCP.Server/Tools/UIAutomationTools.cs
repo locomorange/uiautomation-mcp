@@ -2,6 +2,7 @@ using ModelContextProtocol.Server;
 using System.ComponentModel;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
+using UIAutomationMCP.Shared;
 
 namespace UIAutomationMCP.Server.Tools
 {
@@ -121,7 +122,7 @@ namespace UIAutomationMCP.Server.Tools
 
 
         [McpServerTool, Description("Launch a Win32 application by executable path")]
-        public async Task<object> LaunchWin32Application(
+        public async Task<ProcessLaunchResponse> LaunchWin32Application(
             [Description("Path to the executable to launch")] string applicationPath,
             [Description("Command line arguments (optional)")] string? arguments = null,
             [Description("Working directory (optional)")] string? workingDirectory = null,
@@ -129,13 +130,13 @@ namespace UIAutomationMCP.Server.Tools
             => await _applicationLauncher.LaunchWin32ApplicationAsync(applicationPath, arguments, workingDirectory, timeoutSeconds);
 
         [McpServerTool, Description("Launch a UWP application by shell:AppsFolder path")]
-        public async Task<object> LaunchUWPApplication(
+        public async Task<ProcessLaunchResponse> LaunchUWPApplication(
             [Description("shell:AppsFolder path to the UWP app")] string appsFolderPath,
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
             => await _applicationLauncher.LaunchUWPApplicationAsync(appsFolderPath, timeoutSeconds);
 
         [McpServerTool, Description("Launch an application by searching for its display name")]
-        public async Task<object> LaunchApplicationByName(
+        public async Task<ProcessLaunchResponse> LaunchApplicationByName(
             [Description("Display name of the application to launch")] string applicationName,
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
             => await _applicationLauncher.LaunchApplicationByNameAsync(applicationName, timeoutSeconds);

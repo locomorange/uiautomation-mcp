@@ -563,7 +563,7 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task LaunchWin32Application_Success_CallsApplicationLauncher()
         {
             // Arrange
-            var expectedResult = new ProcessResult { ProcessId = 1234, Success = true };
+            var expectedResult = ProcessLaunchResponse.CreateSuccess(1234, "notepad", false);
             _mockApplicationLauncher.Setup(s => s.LaunchWin32ApplicationAsync("notepad.exe", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                                   .ReturnsAsync(expectedResult);
 
@@ -580,7 +580,7 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task LaunchApplicationByName_Success_CallsApplicationLauncher()
         {
             // Arrange
-            var expectedResult = new ProcessResult { ProcessId = 5678, Success = true };
+            var expectedResult = ProcessLaunchResponse.CreateSuccess(5678, "Calculator", false);
             _mockApplicationLauncher.Setup(s => s.LaunchApplicationByNameAsync("Calculator", It.IsAny<int>(), It.IsAny<CancellationToken>()))
                                   .ReturnsAsync(expectedResult);
 
