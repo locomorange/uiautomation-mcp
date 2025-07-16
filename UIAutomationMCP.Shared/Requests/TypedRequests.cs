@@ -466,6 +466,21 @@ namespace UIAutomationMCP.Shared.Requests
         public int? ProcessId { get; set; }
     }
 
+    // === SynchronizedInput Pattern ===
+
+    public class StartSynchronizedInputRequest : ElementTargetRequest
+    {
+        public override string Operation => "StartSynchronizedInput";
+
+        [JsonPropertyName("inputType")]
+        public string InputType { get; set; } = "";
+    }
+
+    public class CancelSynchronizedInputRequest : ElementTargetRequest
+    {
+        public override string Operation => "CancelSynchronizedInput";
+    }
+
     public class ExpandCollapseElementRequest : ElementTargetRequest
     {
         public override string Operation => "ExpandCollapseElement";

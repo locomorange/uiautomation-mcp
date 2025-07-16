@@ -31,6 +31,7 @@ namespace UIAutomationMCP.Server.Tools
         private readonly ILegacyIAccessibleService _legacyIAccessibleService;
         private readonly IAnnotationService _annotationService;
         private readonly IItemContainerService _itemContainerService;
+        private readonly ISynchronizedInputService _synchronizedInputService;
 
         public UIAutomationTools(
             IApplicationLauncher applicationLauncher,
@@ -55,7 +56,8 @@ namespace UIAutomationMCP.Server.Tools
             IVirtualizedItemService virtualizedItemService,
             ILegacyIAccessibleService legacyIAccessibleService,
             IAnnotationService annotationService,
-            IItemContainerService itemContainerService)
+            IItemContainerService itemContainerService,
+            ISynchronizedInputService synchronizedInputService)
         {
             _applicationLauncher = applicationLauncher;
             _screenshotService = screenshotService;
@@ -80,6 +82,7 @@ namespace UIAutomationMCP.Server.Tools
             _legacyIAccessibleService = legacyIAccessibleService;
             _annotationService = annotationService;
             _itemContainerService = itemContainerService;
+            _synchronizedInputService = synchronizedInputService;
         }
 
         // Window and Element Discovery
@@ -730,5 +733,23 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Process ID of the target window (optional)")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => await _itemContainerService.FindItemByPropertyAsync(containerId, propertyName, value, startAfterId, windowTitle, processId, timeoutSeconds);
+
+        // SynchronizedInput Pattern
+        [McpServerTool, Description("Start listening for synchronized input on an element (mouse or keyboard events)")]
+        public async Task<object> StartSynchronizedInput(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Input type to synchronize: 'KeyUp', 'KeyDown', 'LeftMouseUp', 'LeftMouseDown', 'RightMouseUp', 'RightMouseDown'")] string inputType,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _synchronizedInputService.StartListeningAsync(elementId, inputType, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Cancel synchronized input listening on an element")]
+        public async Task<object> CancelSynchronizedInput(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _synchronizedInputService.CancelAsync(elementId, windowTitle, processId, timeoutSeconds);
     }
 }
