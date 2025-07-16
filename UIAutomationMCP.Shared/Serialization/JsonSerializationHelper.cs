@@ -107,6 +107,8 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(ElementSearchResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseElementSearchResult,
                 Type t when t == typeof(ActionResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseActionResult,
                 Type t when t == typeof(ElementValueResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseElementValueResult,
+                Type t when t == typeof(WindowInteractionStateResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseWindowInteractionStateResult,
+                Type t when t == typeof(WindowCapabilitiesResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseWindowCapabilitiesResult,
                 Type t when t == typeof(FindItemResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseFindItemResult,
                 Type t when t == typeof(ProcessResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseProcessResult,
                 Type t when t == typeof(object) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseObject,
@@ -124,6 +126,8 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(ElementSearchResult) => (JsonTypeInfo<T>)(object)_context.ElementSearchResult,
                 Type t when t == typeof(ActionResult) => (JsonTypeInfo<T>)(object)_context.ActionResult,
                 Type t when t == typeof(ElementValueResult) => (JsonTypeInfo<T>)(object)_context.ElementValueResult,
+                Type t when t == typeof(WindowInteractionStateResult) => (JsonTypeInfo<T>)(object)_context.WindowInteractionStateResult,
+                Type t when t == typeof(WindowCapabilitiesResult) => (JsonTypeInfo<T>)(object)_context.WindowCapabilitiesResult,
                 Type t when t == typeof(FindItemResult) => (JsonTypeInfo<T>)(object)_context.FindItemResult,
                 Type t when t == typeof(ProcessResult) => (JsonTypeInfo<T>)(object)_context.ProcessResult,
                 _ => null
@@ -258,6 +262,8 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(WorkerResponse<TextInfoResult>))]
     [JsonSerializable(typeof(WorkerResponse<TransformCapabilitiesResult>))]
     [JsonSerializable(typeof(WorkerResponse<WindowInfoResult>))]
+    [JsonSerializable(typeof(WorkerResponse<WindowInteractionStateResult>))]
+    [JsonSerializable(typeof(WorkerResponse<WindowCapabilitiesResult>))]
     [JsonSerializable(typeof(WorkerResponse<FindItemResult>))]
     [JsonSerializable(typeof(WorkerResponse<ProcessResult>))]
     [JsonSerializable(typeof(Dictionary<string, object>))]
@@ -278,6 +284,8 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(TextInfoResult))]
     [JsonSerializable(typeof(TransformCapabilitiesResult))]
     [JsonSerializable(typeof(WindowInfoResult))]
+    [JsonSerializable(typeof(WindowInteractionStateResult))]
+    [JsonSerializable(typeof(WindowCapabilitiesResult))]
     [JsonSerializable(typeof(DesktopWindowsResult))]
     [JsonSerializable(typeof(BooleanResult))]
     [JsonSerializable(typeof(FindItemResult))]
