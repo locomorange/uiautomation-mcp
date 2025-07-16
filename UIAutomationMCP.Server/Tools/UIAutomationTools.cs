@@ -32,6 +32,7 @@ namespace UIAutomationMCP.Server.Tools
         private readonly IAnnotationService _annotationService;
         private readonly IItemContainerService _itemContainerService;
         private readonly ISynchronizedInputService _synchronizedInputService;
+        private readonly IObjectModelService _objectModelService;
 
         public UIAutomationTools(
             IApplicationLauncher applicationLauncher,
@@ -57,7 +58,8 @@ namespace UIAutomationMCP.Server.Tools
             ILegacyIAccessibleService legacyIAccessibleService,
             IAnnotationService annotationService,
             IItemContainerService itemContainerService,
-            ISynchronizedInputService synchronizedInputService)
+            ISynchronizedInputService synchronizedInputService,
+            IObjectModelService objectModelService)
         {
             _applicationLauncher = applicationLauncher;
             _screenshotService = screenshotService;
@@ -83,6 +85,7 @@ namespace UIAutomationMCP.Server.Tools
             _annotationService = annotationService;
             _itemContainerService = itemContainerService;
             _synchronizedInputService = synchronizedInputService;
+            _objectModelService = objectModelService;
         }
 
         // Window and Element Discovery
@@ -751,5 +754,15 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Process ID of the target window (optional)")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => await _synchronizedInputService.CancelAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        // === ObjectModel Pattern Operations ===
+        
+        [McpServerTool, Description("Get the underlying object model from an element that supports ObjectModelPattern")]
+        public async Task<object> GetUnderlyingObjectModel(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _objectModelService.GetUnderlyingObjectModelAsync(elementId, windowTitle, processId, timeoutSeconds);
     }
 }

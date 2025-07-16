@@ -481,6 +481,13 @@ namespace UIAutomationMCP.Shared.Requests
         public override string Operation => "CancelSynchronizedInput";
     }
 
+    // === ObjectModel Pattern ===
+
+    public class GetUnderlyingObjectModelRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetUnderlyingObjectModel";
+    }
+
     public class ExpandCollapseElementRequest : ElementTargetRequest
     {
         public override string Operation => "ExpandCollapseElement";

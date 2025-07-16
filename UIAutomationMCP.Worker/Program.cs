@@ -27,6 +27,7 @@ using UIAutomationMCP.Worker.Operations.LegacyIAccessible;
 using UIAutomationMCP.Worker.Operations.Annotation;
 using UIAutomationMCP.Worker.Operations.ItemContainer;
 using UIAutomationMCP.Worker.Operations.SynchronizedInput;
+using UIAutomationMCP.Worker.Operations.ObjectModel;
 using UIAutomationMCP.Worker.Helpers;
 using UIAutomationMCP.Shared.Options;
 using UIAutomationMCP.Shared.Validation;
@@ -178,6 +179,9 @@ namespace UIAutomationMCP.Worker
             // SynchronizedInput operations
             builder.Services.AddKeyedTransient<IUIAutomationOperation, StartSynchronizedInputOperation>("StartSynchronizedInput");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, CancelSynchronizedInputOperation>("CancelSynchronizedInput");
+
+            // ObjectModel operations
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetUnderlyingObjectModelOperation>("GetUnderlyingObjectModel");
 
             // Register Worker service
             builder.Services.AddSingleton<WorkerService>();
