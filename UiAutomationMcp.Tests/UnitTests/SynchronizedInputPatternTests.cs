@@ -134,7 +134,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             _mockLogger.Verify(l => l.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Failed to start synchronized input listening")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Failed to start synchronized input listening")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
         }
@@ -161,7 +161,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             _mockLogger.Verify(l => l.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Failed to cancel synchronized input")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Failed to cancel synchronized input")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
         }
