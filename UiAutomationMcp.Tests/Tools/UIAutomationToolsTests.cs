@@ -572,6 +572,10 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
+            // Test that the result is a properly structured object
+            dynamic dynResult = result;
+            Assert.Equal(true, dynResult.success);
+            Assert.Equal(1234, dynResult.processId);
             _mockApplicationLauncher.Verify(s => s.LaunchWin32ApplicationAsync("notepad.exe", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Once);
             _output.WriteLine("LaunchWin32Application test passed");
         }
@@ -589,6 +593,10 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
+            // Test that the result is a properly structured object
+            dynamic dynResult = result;
+            Assert.Equal(true, dynResult.success);
+            Assert.Equal(5678, dynResult.processId);
             _mockApplicationLauncher.Verify(s => s.LaunchApplicationByNameAsync("Calculator", It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Once);
             _output.WriteLine("LaunchApplicationByName test passed");
         }
