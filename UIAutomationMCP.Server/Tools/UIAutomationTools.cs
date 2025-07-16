@@ -27,6 +27,8 @@ namespace UIAutomationMCP.Server.Tools
         private readonly ICustomPropertyService _customPropertyService;
         private readonly IControlTypeService _controlTypeService;
         private readonly ITransformService _transformService;
+        private readonly IVirtualizedItemService _virtualizedItemService;
+        private readonly ILegacyIAccessibleService _legacyIAccessibleService;
 
         public UIAutomationTools(
             IApplicationLauncher applicationLauncher,
@@ -47,7 +49,9 @@ namespace UIAutomationMCP.Server.Tools
             IAccessibilityService accessibilityService,
             ICustomPropertyService customPropertyService,
             IControlTypeService controlTypeService,
-            ITransformService transformService)
+            ITransformService transformService,
+            IVirtualizedItemService virtualizedItemService,
+            ILegacyIAccessibleService legacyIAccessibleService)
         {
             _applicationLauncher = applicationLauncher;
             _screenshotService = screenshotService;
@@ -68,6 +72,8 @@ namespace UIAutomationMCP.Server.Tools
             _customPropertyService = customPropertyService;
             _controlTypeService = controlTypeService;
             _transformService = transformService;
+            _virtualizedItemService = virtualizedItemService;
+            _legacyIAccessibleService = legacyIAccessibleService;
         }
 
         // Window and Element Discovery
@@ -637,5 +643,57 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Maximum number of elements to return (default: 100)")] int maxResults = 100,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => await _controlTypeService.FindElementsByControlTypeAsync(controlType, validatePatterns, scope, windowTitle, processId, maxResults, timeoutSeconds);
+
+        // VirtualizedItem Pattern
+        [McpServerTool, Description("Realize a virtualized item to make it fully available in the UI Automation tree")]
+        public async Task<object> RealizeVirtualizedItem(
+            [Description("Automation ID or name of the virtualized element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _virtualizedItemService.RealizeItemAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        // LegacyIAccessible Pattern
+        [McpServerTool, Description("Get legacy MSAA properties (name, role, state, value, description, help, keyboard shortcut)")]
+        public async Task<object> GetLegacyProperties(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _legacyIAccessibleService.GetLegacyPropertiesAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Perform the default action for a legacy element")]
+        public async Task<object> DoLegacyDefaultAction(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _legacyIAccessibleService.DoDefaultActionAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Select a legacy item with specific flags")]
+        public async Task<object> SelectLegacyItem(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Selection flags (1=TAKEFOCUS, 2=TAKESELECTION, 4=EXTENDSELECTION, 8=ADDSELECTION, 16=REMOVESELECTION)")] int flagsSelect,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _legacyIAccessibleService.SelectLegacyItemAsync(elementId, flagsSelect, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Set the value of a legacy element")]
+        public async Task<object> SetLegacyValue(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Value to set")] string value,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _legacyIAccessibleService.SetLegacyValueAsync(elementId, value, windowTitle, processId, timeoutSeconds);
+
+        [McpServerTool, Description("Get the state flags of a legacy element")]
+        public async Task<object> GetLegacyState(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _legacyIAccessibleService.GetLegacyStateAsync(elementId, windowTitle, processId, timeoutSeconds);
     }
 }

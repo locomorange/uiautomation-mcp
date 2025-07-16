@@ -22,6 +22,8 @@ using UIAutomationMCP.Worker.Operations.Text;
 using UIAutomationMCP.Worker.Operations.TreeNavigation;
 using UIAutomationMCP.Worker.Operations.Window;
 using UIAutomationMCP.Worker.Operations.Transform;
+using UIAutomationMCP.Worker.Operations.VirtualizedItem;
+using UIAutomationMCP.Worker.Operations.LegacyIAccessible;
 using UIAutomationMCP.Worker.Helpers;
 using UIAutomationMCP.Shared.Options;
 using UIAutomationMCP.Shared.Validation;
@@ -152,6 +154,16 @@ namespace UIAutomationMCP.Worker
             builder.Services.AddKeyedTransient<IUIAutomationOperation, ResizeElementOperation>("ResizeElement");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, RotateElementOperation>("RotateElement");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, WaitForInputIdleOperation>("WaitForInputIdle");
+
+            // VirtualizedItem operations
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, RealizeVirtualizedItemOperation>("RealizeVirtualizedItem");
+
+            // LegacyIAccessible operations
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetLegacyPropertiesOperation>("GetLegacyProperties");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, DoLegacyDefaultActionOperation>("DoLegacyDefaultAction");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, SelectLegacyItemOperation>("SelectLegacyItem");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, SetLegacyValueOperation>("SetLegacyValue");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetLegacyStateOperation>("GetLegacyState");
 
             // Register Worker service
             builder.Services.AddSingleton<WorkerService>();

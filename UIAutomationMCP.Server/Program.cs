@@ -45,6 +45,8 @@ namespace UIAutomationMCP.Server
             builder.Services.AddSingleton<IAccessibilityService, AccessibilityService>();
             builder.Services.AddSingleton<ICustomPropertyService, CustomPropertyService>();
             builder.Services.AddSingleton<ITransformService, TransformService>();
+            builder.Services.AddSingleton<IVirtualizedItemService, VirtualizedItemService>();
+            builder.Services.AddSingleton<ILegacyIAccessibleService, LegacyIAccessibleService>();
             
             
             // Register ControlType service

@@ -391,6 +391,44 @@ namespace UIAutomationMCP.Shared.Requests
         public string DockPosition { get; set; } = ""; // "top", "bottom", "left", "right", "fill", "none"
     }
 
+    public class RealizeVirtualizedItemRequest : ElementTargetRequest
+    {
+        public override string Operation => "RealizeVirtualizedItem";
+    }
+
+    // === LegacyIAccessible Pattern ===
+
+    public class GetLegacyPropertiesRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetLegacyProperties";
+    }
+
+    public class DoLegacyDefaultActionRequest : ElementTargetRequest
+    {
+        public override string Operation => "DoLegacyDefaultAction";
+    }
+
+    public class SelectLegacyItemRequest : ElementTargetRequest
+    {
+        public override string Operation => "SelectLegacyItem";
+
+        [JsonPropertyName("flagsSelect")]
+        public int FlagsSelect { get; set; }
+    }
+
+    public class SetLegacyValueRequest : ElementTargetRequest
+    {
+        public override string Operation => "SetLegacyValue";
+
+        [JsonPropertyName("value")]
+        public string Value { get; set; } = "";
+    }
+
+    public class GetLegacyStateRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetLegacyState";
+    }
+
     public class ExpandCollapseElementRequest : ElementTargetRequest
     {
         public override string Operation => "ExpandCollapseElement";

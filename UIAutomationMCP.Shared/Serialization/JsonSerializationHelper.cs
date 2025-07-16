@@ -113,6 +113,10 @@ namespace UIAutomationMCP.Shared.Serialization
                 return (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseActionResult;
             if (type == typeof(ElementValueResult))
                 return (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseElementValueResult;
+            if (type == typeof(LegacyPropertiesResult))
+                return (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseLegacyPropertiesResult;
+            if (type == typeof(LegacyStateResult))
+                return (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseLegacyStateResult;
             if (type == typeof(object))
                 return (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseObject;
             
@@ -134,6 +138,10 @@ namespace UIAutomationMCP.Shared.Serialization
                 return (JsonTypeInfo<T>)(object)_context.ActionResult;
             if (type == typeof(ElementValueResult))
                 return (JsonTypeInfo<T>)(object)_context.ElementValueResult;
+            if (type == typeof(LegacyPropertiesResult))
+                return (JsonTypeInfo<T>)(object)_context.LegacyPropertiesResult;
+            if (type == typeof(LegacyStateResult))
+                return (JsonTypeInfo<T>)(object)_context.LegacyStateResult;
             
             return null;
         }
@@ -159,6 +167,8 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(WorkerResponse<TextInfoResult>))]
     [JsonSerializable(typeof(WorkerResponse<TransformCapabilitiesResult>))]
     [JsonSerializable(typeof(WorkerResponse<WindowInfoResult>))]
+    [JsonSerializable(typeof(WorkerResponse<LegacyPropertiesResult>))]
+    [JsonSerializable(typeof(WorkerResponse<LegacyStateResult>))]
     [JsonSerializable(typeof(Dictionary<string, object>))]
     [JsonSerializable(typeof(List<Dictionary<string, object>>))]
     // Result types
@@ -178,6 +188,8 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(WindowInfoResult))]
     [JsonSerializable(typeof(DesktopWindowsResult))]
     [JsonSerializable(typeof(BooleanResult))]
+    [JsonSerializable(typeof(LegacyPropertiesResult))]
+    [JsonSerializable(typeof(LegacyStateResult))]
     // Basic types
     [JsonSerializable(typeof(string))]
     [JsonSerializable(typeof(int))]
