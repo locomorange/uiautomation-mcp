@@ -54,26 +54,23 @@ public class ItemContainerPatternIntegrationTests : IDisposable
             timeoutSeconds: 1);
 
         // Assert
-        var resultDict = result as Dictionary<string, object>;
-        Assert.NotNull(resultDict);
-        Assert.False((bool)resultDict["Success"]);
-        Assert.Contains("not found", (string)resultDict["ErrorMessage"]);
+        Assert.NotNull(result);
+        dynamic resultObj = result;
+        Assert.False(resultObj.Success);
+        Assert.Contains("not found", resultObj.ErrorMessage);
     }
 
     [Fact]
     public async Task FindItemByPropertyAsync_ServerWorkerCommunication_ShouldHandleCorrectly()
     {
         // Arrange
-        var successResponse = new Dictionary<string, object>
-        {
-            { "Success", true },
-            { "ElementInfo", new Dictionary<string, object>
-                {
-                    { "AutomationId", "item_1" },
-                    { "Name", "Item1" },
-                    { "ClassName", "ListItem" },
-                    { "ControlType", "ListItem" }
-                }
+        var successResponse = new {
+            Success = true,
+            ElementInfo = new {
+                AutomationId = "item_1",
+                Name = "Item1",
+                ClassName = "ListItem",
+                ControlType = "ListItem"
             }
         };
 
@@ -94,10 +91,10 @@ public class ItemContainerPatternIntegrationTests : IDisposable
             timeoutSeconds: 30);
 
         // Assert
-        var resultDict = result as Dictionary<string, object>;
-        Assert.NotNull(resultDict);
-        Assert.True((bool)resultDict["Success"]);
-        Assert.NotNull(resultDict["ElementInfo"]);
+        Assert.NotNull(result);
+        dynamic resultObj = result;
+        Assert.True(resultObj.Success);
+        Assert.NotNull(resultObj.ElementInfo);
     }
 
     [Fact]
@@ -111,45 +108,43 @@ public class ItemContainerPatternIntegrationTests : IDisposable
             ("ControlType", "Button")
         };
 
+        _mockSubprocessExecutor
+            .Setup(x => x.ExecuteAsync<object>(
+                It.IsAny<string>(),
+                It.IsAny<object>(),
+                It.IsAny<int>()))
+            .ReturnsAsync(new { Success = true });
+
+        // Act & Assert
         foreach (var (propertyName, value) in propertyTypes)
         {
-            _mockSubprocessExecutor
-                .Setup(x => x.ExecuteAsync<object>(
-                    It.IsAny<string>(),
-                    It.IsAny<object>(),
-                    It.IsAny<int>()))
-                .ReturnsAsync(new Dictionary<string, object> { { "Success", true } });
-
-            // Act
             var result = await _service.FindItemByPropertyAsync(
                 "FormContainer",
                 propertyName,
                 value,
                 timeoutSeconds: 10);
 
-            // Assert
             Assert.NotNull(result);
-            _mockSubprocessExecutor.Verify(x => x.ExecuteAsync<object>(
-                "FindItemByProperty",
-                It.IsAny<object>(),
-                10), Times.Once);
         }
+
+        // Verify the mock was called exactly 3 times (once per property type)
+        _mockSubprocessExecutor.Verify(x => x.ExecuteAsync<object>(
+            "FindItemByProperty",
+            It.IsAny<object>(),
+            10), Times.Exactly(3));
     }
 
     [Fact]
     public async Task FindItemByPropertyAsync_WithNullPropertyValue_ShouldFindItemsWithNullProperty()
     {
         // Arrange
-        var response = new Dictionary<string, object>
-        {
-            { "Success", true },
-            { "ElementInfo", new Dictionary<string, object>
-                {
-                    { "AutomationId", "unnamed_node" },
-                    { "Name", null! },
-                    { "ClassName", "TreeNode" },
-                    { "ControlType", "TreeItem" }
-                }
+        var response = new {
+            Success = true,
+            ElementInfo = new {
+                AutomationId = "unnamed_node",
+                Name = (string?)null,
+                ClassName = "TreeNode",
+                ControlType = "TreeItem"
             }
         };
 
@@ -168,9 +163,9 @@ public class ItemContainerPatternIntegrationTests : IDisposable
             timeoutSeconds: 15);
 
         // Assert
-        var resultDict = result as Dictionary<string, object>;
-        Assert.NotNull(resultDict);
-        Assert.True((bool)resultDict["Success"]);
+        Assert.NotNull(result);
+        dynamic resultObj = result;
+        Assert.True(resultObj.Success);
     }
 
     [Fact]
@@ -186,10 +181,9 @@ public class ItemContainerPatternIntegrationTests : IDisposable
             .ReturnsAsync(() =>
             {
                 callCount++;
-                return new Dictionary<string, object>
-                {
-                    { "Success", true },
-                    { "ElementInfo", new Dictionary<string, object> { { "AutomationId", $"item_{callCount}" } } }
+                return new {
+                    Success = true,
+                    ElementInfo = new { AutomationId = $"item_{callCount}" }
                 };
             });
 

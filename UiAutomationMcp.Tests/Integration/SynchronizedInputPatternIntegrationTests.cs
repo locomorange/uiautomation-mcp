@@ -35,14 +35,12 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
     public async Task StartListeningAsync_WithNonExistentElement_ShouldHandleGracefully()
     {
         // Arrange
-        var errorResponse = new { Success = false, ErrorMessage = "Element not found", Result = false };
-
         _mockSubprocessExecutor
             .Setup(x => x.ExecuteAsync<object>(
                 It.IsAny<string>(),
                 It.IsAny<object>(),
                 It.IsAny<int>()))
-            .ReturnsAsync(errorResponse);
+            .ThrowsAsync(new Exception("Element not found"));
 
         // Act
         var result = await _service.StartListeningAsync(
@@ -53,28 +51,22 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
             timeoutSeconds: 1);
 
         // Assert
-        var resultDict = result as Dictionary<string, object>;
-        Assert.NotNull(resultDict);
-        Assert.False((bool)resultDict["Success"]);
-        Assert.Contains("not found", (string)resultDict["ErrorMessage"]);
+        Assert.NotNull(result);
+        dynamic resultObj = result;
+        Assert.False(resultObj.Success);
+        Assert.Contains("not found", resultObj.Error);
     }
 
     [Fact]
     public async Task StartListeningAsync_ServerWorkerCommunication_ShouldHandleCorrectly()
     {
         // Arrange
-        var successResponse = new Dictionary<string, object>
-        {
-            { "Success", true },
-            { "Result", true }
-        };
-
         _mockSubprocessExecutor
             .Setup(x => x.ExecuteAsync<object>(
                 It.IsAny<string>(),
                 It.IsAny<object>(),
                 It.IsAny<int>()))
-            .ReturnsAsync(successResponse);
+            .ReturnsAsync(new object());
 
         // Act
         var result = await _service.StartListeningAsync(
@@ -85,10 +77,10 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
             timeoutSeconds: 30);
 
         // Assert
-        var resultDict = result as Dictionary<string, object>;
-        Assert.NotNull(resultDict);
-        Assert.True((bool)resultDict["Success"]);
-        Assert.True((bool)resultDict["Result"]);
+        Assert.NotNull(result);
+        dynamic resultObj = result;
+        Assert.True(resultObj.Success);
+        Assert.Equal("Synchronized input listening started", resultObj.Message);
         _mockSubprocessExecutor.Verify(x => x.ExecuteAsync<object>(
             "StartSynchronizedInput",
             It.IsAny<object>(),
@@ -99,27 +91,21 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
     public async Task CancelAsync_AfterStartListening_ShouldCancelSuccessfully()
     {
         // Arrange
-        var cancelResponse = new Dictionary<string, object>
-        {
-            { "Success", true },
-            { "Result", true }
-        };
-
         _mockSubprocessExecutor
             .Setup(x => x.ExecuteAsync<object>(
                 It.IsAny<string>(),
                 It.IsAny<object>(),
                 It.IsAny<int>()))
-            .ReturnsAsync(cancelResponse);
+            .ReturnsAsync(new object());
 
         // Act
         var result = await _service.CancelAsync("testElement", timeoutSeconds: 10);
 
         // Assert
-        var resultDict = result as Dictionary<string, object>;
-        Assert.NotNull(resultDict);
-        Assert.True((bool)resultDict["Success"]);
-        Assert.True((bool)resultDict["Result"]);
+        Assert.NotNull(result);
+        dynamic resultObj = result;
+        Assert.True(resultObj.Success);
+        Assert.Equal("Synchronized input canceled", resultObj.Message);
         _mockSubprocessExecutor.Verify(x => x.ExecuteAsync<object>(
             "CancelSynchronizedInput",
             It.IsAny<object>(),
@@ -140,47 +126,41 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
             "MouseRightButtonUp"
         };
 
+        _mockSubprocessExecutor
+            .Setup(x => x.ExecuteAsync<object>(
+                It.IsAny<string>(),
+                It.IsAny<object>(),
+                It.IsAny<int>()))
+            .ReturnsAsync(new object());
+
+        // Act & Assert
         foreach (var inputType in inputTypes)
         {
-            _mockSubprocessExecutor
-                .Setup(x => x.ExecuteAsync<object>(
-                    It.IsAny<string>(),
-                    It.IsAny<object>(),
-                    It.IsAny<int>()))
-                .ReturnsAsync(new Dictionary<string, object> { { "Success", true }, { "Result", true } });
-
-            // Act
             var result = await _service.StartListeningAsync(
                 "testElement",
                 inputType,
                 timeoutSeconds: 10);
 
-            // Assert
             Assert.NotNull(result);
-            _mockSubprocessExecutor.Verify(x => x.ExecuteAsync<object>(
-                "StartSynchronizedInput",
-                It.IsAny<object>(),
-                10), Times.Once);
         }
+
+        // Verify the mock was called exactly 6 times (once per input type)
+        _mockSubprocessExecutor.Verify(x => x.ExecuteAsync<object>(
+            "StartSynchronizedInput",
+            It.IsAny<object>(),
+            10), Times.Exactly(6));
     }
 
     [Fact]
     public async Task StartListeningAsync_PatternNotSupported_ShouldReturnError()
     {
         // Arrange
-        var errorResponse = new Dictionary<string, object>
-        {
-            { "Success", false },
-            { "ErrorMessage", "SynchronizedInputPattern is not supported by this element" },
-            { "Result", false }
-        };
-
         _mockSubprocessExecutor
             .Setup(x => x.ExecuteAsync<object>(
                 It.IsAny<string>(),
                 It.IsAny<object>(),
                 It.IsAny<int>()))
-            .ReturnsAsync(errorResponse);
+            .ThrowsAsync(new Exception("SynchronizedInputPattern is not supported by this element"));
 
         // Act
         var result = await _service.StartListeningAsync(
@@ -189,10 +169,10 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
             timeoutSeconds: 15);
 
         // Assert
-        var resultDict = result as Dictionary<string, object>;
-        Assert.NotNull(resultDict);
-        Assert.False((bool)resultDict["Success"]);
-        Assert.Contains("not supported", (string)resultDict["ErrorMessage"]);
+        Assert.NotNull(result);
+        dynamic resultObj = result;
+        Assert.False(resultObj.Success);
+        Assert.Contains("not supported", resultObj.Error);
     }
 
     [Fact]
@@ -210,7 +190,7 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
             .ReturnsAsync(() =>
             {
                 startCallCount++;
-                return new Dictionary<string, object> { { "Success", true }, { "Result", true } };
+                return new object();
             });
 
         _mockSubprocessExecutor
@@ -221,7 +201,7 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
             .ReturnsAsync(() =>
             {
                 cancelCallCount++;
-                return new Dictionary<string, object> { { "Success", true }, { "Result", true } };
+                return new object();
             });
 
         // Act - Simulate multiple start/cancel cycles
@@ -232,14 +212,14 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
                 "KeyDown",
                 timeoutSeconds: 5);
             
-            var startDict = startResult as Dictionary<string, object>;
-            Assert.NotNull(startDict);
-            Assert.True((bool)startDict["Success"]);
+            Assert.NotNull(startResult);
+            dynamic startObj = startResult;
+            Assert.True(startObj.Success);
 
             var cancelResult = await _service.CancelAsync($"element_{i}", timeoutSeconds: 5);
-            var cancelDict = cancelResult as Dictionary<string, object>;
-            Assert.NotNull(cancelDict);
-            Assert.True((bool)cancelDict["Success"]);
+            Assert.NotNull(cancelResult);
+            dynamic cancelObj = cancelResult;
+            Assert.True(cancelObj.Success);
         }
 
         // Assert
