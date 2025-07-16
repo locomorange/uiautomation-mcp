@@ -30,6 +30,7 @@ namespace UIAutomationMCP.Server.Tools
         private readonly IVirtualizedItemService _virtualizedItemService;
         private readonly ILegacyIAccessibleService _legacyIAccessibleService;
         private readonly IAnnotationService _annotationService;
+        private readonly IItemContainerService _itemContainerService;
 
         public UIAutomationTools(
             IApplicationLauncher applicationLauncher,
@@ -53,7 +54,8 @@ namespace UIAutomationMCP.Server.Tools
             ITransformService transformService,
             IVirtualizedItemService virtualizedItemService,
             ILegacyIAccessibleService legacyIAccessibleService,
-            IAnnotationService annotationService)
+            IAnnotationService annotationService,
+            IItemContainerService itemContainerService)
         {
             _applicationLauncher = applicationLauncher;
             _screenshotService = screenshotService;
@@ -77,6 +79,7 @@ namespace UIAutomationMCP.Server.Tools
             _virtualizedItemService = virtualizedItemService;
             _legacyIAccessibleService = legacyIAccessibleService;
             _annotationService = annotationService;
+            _itemContainerService = itemContainerService;
         }
 
         // Window and Element Discovery
@@ -715,5 +718,17 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Process ID of the target window (optional)")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => await _annotationService.GetAnnotationTargetAsync(elementId, windowTitle, processId, timeoutSeconds);
+
+        // ItemContainer Pattern
+        [McpServerTool, Description("Find an item in a container by property value (useful for searching in lists, trees, and grids)")]
+        public async Task<object> FindItemByProperty(
+            [Description("Automation ID or name of the container element")] string containerId,
+            [Description("Property name to search by (e.g., 'Name', 'AutomationId', 'ControlType'). Leave empty to find any item.")] string? propertyName = null,
+            [Description("Property value to match. Leave empty to find any item.")] string? value = null,
+            [Description("Start search after this element ID (for continued searches)")] string? startAfterId = null,
+            [Description("Title of the window containing the container (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => await _itemContainerService.FindItemByPropertyAsync(containerId, propertyName, value, startAfterId, windowTitle, processId, timeoutSeconds);
     }
 }

@@ -25,6 +25,7 @@ using UIAutomationMCP.Worker.Operations.Transform;
 using UIAutomationMCP.Worker.Operations.VirtualizedItem;
 using UIAutomationMCP.Worker.Operations.LegacyIAccessible;
 using UIAutomationMCP.Worker.Operations.Annotation;
+using UIAutomationMCP.Worker.Operations.ItemContainer;
 using UIAutomationMCP.Worker.Helpers;
 using UIAutomationMCP.Shared.Options;
 using UIAutomationMCP.Shared.Validation;
@@ -169,6 +170,9 @@ namespace UIAutomationMCP.Worker
             // Annotation operations
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetAnnotationInfoOperation>("GetAnnotationInfo");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetAnnotationTargetOperation>("GetAnnotationTarget");
+
+            // ItemContainer operations
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, FindItemByPropertyOperation>("FindItemByProperty");
 
             // Register Worker service
             builder.Services.AddSingleton<WorkerService>();

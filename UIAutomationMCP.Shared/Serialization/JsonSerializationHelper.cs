@@ -121,6 +121,8 @@ namespace UIAutomationMCP.Shared.Serialization
                 return (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseAnnotationInfoResult;
             if (type == typeof(AnnotationTargetResult))
                 return (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseAnnotationTargetResult;
+            if (type == typeof(FindItemResult))
+                return (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseFindItemResult;
             if (type == typeof(object))
                 return (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseObject;
             
@@ -150,6 +152,8 @@ namespace UIAutomationMCP.Shared.Serialization
                 return (JsonTypeInfo<T>)(object)_context.AnnotationInfoResult;
             if (type == typeof(AnnotationTargetResult))
                 return (JsonTypeInfo<T>)(object)_context.AnnotationTargetResult;
+            if (type == typeof(FindItemResult))
+                return (JsonTypeInfo<T>)(object)_context.FindItemResult;
             
             return null;
         }
@@ -179,6 +183,7 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(WorkerResponse<LegacyStateResult>))]
     [JsonSerializable(typeof(WorkerResponse<AnnotationInfoResult>))]
     [JsonSerializable(typeof(WorkerResponse<AnnotationTargetResult>))]
+    [JsonSerializable(typeof(WorkerResponse<FindItemResult>))]
     [JsonSerializable(typeof(Dictionary<string, object>))]
     [JsonSerializable(typeof(List<Dictionary<string, object>>))]
     // Result types
@@ -202,6 +207,7 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(LegacyStateResult))]
     [JsonSerializable(typeof(AnnotationInfoResult))]
     [JsonSerializable(typeof(AnnotationTargetResult))]
+    [JsonSerializable(typeof(FindItemResult))]
     // Basic types
     [JsonSerializable(typeof(string))]
     [JsonSerializable(typeof(int))]

@@ -48,6 +48,7 @@ namespace UIAutomationMCP.Server
             builder.Services.AddSingleton<IVirtualizedItemService, VirtualizedItemService>();
             builder.Services.AddSingleton<ILegacyIAccessibleService, LegacyIAccessibleService>();
             builder.Services.AddSingleton<IAnnotationService, AnnotationService>();
+            builder.Services.AddSingleton<IItemContainerService, ItemContainerService>();
             
             
             // Register ControlType service

@@ -441,6 +441,31 @@ namespace UIAutomationMCP.Shared.Requests
         public override string Operation => "GetAnnotationTarget";
     }
 
+    // === ItemContainer Pattern ===
+
+    public class FindItemByPropertyRequest : TypedWorkerRequest
+    {
+        public override string Operation => "FindItemByProperty";
+
+        [JsonPropertyName("containerId")]
+        public string ContainerId { get; set; } = "";
+
+        [JsonPropertyName("propertyName")]
+        public string PropertyName { get; set; } = "";
+
+        [JsonPropertyName("value")]
+        public string Value { get; set; } = "";
+
+        [JsonPropertyName("startAfterId")]
+        public string StartAfterId { get; set; } = "";
+
+        [JsonPropertyName("windowTitle")]
+        public string WindowTitle { get; set; } = "";
+
+        [JsonPropertyName("processId")]
+        public int? ProcessId { get; set; }
+    }
+
     public class ExpandCollapseElementRequest : ElementTargetRequest
     {
         public override string Operation => "ExpandCollapseElement";
