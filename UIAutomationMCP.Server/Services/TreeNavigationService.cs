@@ -674,13 +674,11 @@ namespace UIAutomationMCP.Server.Services
                     }
                 };
 
-                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(serverResponse);
-                
-                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                _logger.LogInformationWithOperation(operationId, "Successfully created enhanced response");
                 
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return jsonString;
+                return serverResponse;
             }
             catch (Exception ex)
             {
@@ -715,11 +713,9 @@ namespace UIAutomationMCP.Server.Services
                     }
                 };
                 
-                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
-                
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return errorJson;
+                return errorResponse;
             }
         }
 

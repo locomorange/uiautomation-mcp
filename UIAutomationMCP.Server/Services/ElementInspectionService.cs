@@ -30,7 +30,7 @@ namespace UIAutomationMCP.Server.Services
                 var validationError = "Element ID is required and cannot be empty";
                 _logger.LogWarningWithOperation(operationId, $"GetElementProperties validation failed: {validationError}");
                 
-                var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
+                var validationResponse = new ServerEnhancedResponse<ElementPropertiesResult>
                 {
                     Success = false,
                     ErrorMessage = validationError,
@@ -73,9 +73,9 @@ namespace UIAutomationMCP.Server.Services
                     { "processId", processId ?? 0 }
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("GetElementProperties", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ElementPropertiesResult>("GetElementProperties", parameters, timeoutSeconds);
 
-                var successResponse = new ServerEnhancedResponse<ElementSearchResult>
+                var successResponse = new ServerEnhancedResponse<ElementPropertiesResult>
                 {
                     Success = true,
                     Data = result,
@@ -104,7 +104,7 @@ namespace UIAutomationMCP.Server.Services
             }
             catch (Exception ex)
             {
-                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
+                var errorResponse = new ServerEnhancedResponse<ElementPropertiesResult>
                 {
                     Success = false,
                     ErrorMessage = ex.Message,
@@ -150,7 +150,7 @@ namespace UIAutomationMCP.Server.Services
                 var validationError = "Element ID is required and cannot be empty";
                 _logger.LogWarningWithOperation(operationId, $"GetElementPatterns validation failed: {validationError}");
                 
-                var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
+                var validationResponse = new ServerEnhancedResponse<PatternsInfoResult>
                 {
                     Success = false,
                     ErrorMessage = validationError,
@@ -193,9 +193,9 @@ namespace UIAutomationMCP.Server.Services
                     { "processId", processId ?? 0 }
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("GetElementPatterns", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<PatternsInfoResult>("GetElementPatterns", parameters, timeoutSeconds);
 
-                var successResponse = new ServerEnhancedResponse<ElementSearchResult>
+                var successResponse = new ServerEnhancedResponse<PatternsInfoResult>
                 {
                     Success = true,
                     Data = result,
@@ -224,7 +224,7 @@ namespace UIAutomationMCP.Server.Services
             }
             catch (Exception ex)
             {
-                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
+                var errorResponse = new ServerEnhancedResponse<PatternsInfoResult>
                 {
                     Success = false,
                     ErrorMessage = ex.Message,
