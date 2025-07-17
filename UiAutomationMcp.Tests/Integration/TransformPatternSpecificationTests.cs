@@ -59,6 +59,13 @@ namespace UIAutomationMCP.Tests.Integration
             _output.WriteLine("Testing compliance with Microsoft UI Automation Transform Control Pattern specification");
         }
 
+        private T DeserializeResult<T>(object jsonResult) where T : notnull
+        {
+            var result = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Deserialize<T>(jsonResult.ToString()!);
+            Assert.NotNull(result);
+            return result;
+        }
+
         public void Dispose()
         {
             try
@@ -90,31 +97,33 @@ namespace UIAutomationMCP.Tests.Integration
             _output.WriteLine("- CanRotate (boolean)");
 
             // Act
-            var result = await _transformService.GetTransformCapabilitiesAsync(
+            var jsonResult = await _transformService.GetTransformCapabilitiesAsync(
                 elementId, windowTitle, timeoutSeconds: timeout);
 
             // Assert
+            Assert.NotNull(jsonResult);
+            var result = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Deserialize<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.TransformCapabilitiesResult>>(jsonResult.ToString()!);
             Assert.NotNull(result);
             
             // 要素が存在しない場合でも、APIの構造は仕様に準拠している必要がある
             if (!result.Success)
             {
                 // エラーメッセージが適切であることを確認
-                Assert.NotNull(result.Error);
+                Assert.NotNull(result.ErrorMessageMessage);
                 Assert.True(
-                    result.Error.Contains("not found", StringComparison.OrdinalIgnoreCase) ||
-                    result.Error.Contains("TransformPattern not supported", StringComparison.OrdinalIgnoreCase),
-                    $"Error message should indicate element not found or pattern not supported. Actual: {result.Error}");
+                    result.ErrorMessage.Contains("not found", StringComparison.OrdinalIgnoreCase) ||
+                    result.ErrorMessage.Contains("TransformPattern not supported", StringComparison.OrdinalIgnoreCase),
+                    $"Error message should indicate element not found or pattern not supported. Actual: {result.ErrorMessage}");
                 
                 _output.WriteLine("✓ Required Properties API structure verified");
-                _output.WriteLine($"  Expected error for non-existent element: {result.Error}");
+                _output.WriteLine($"  Expected error for non-existent element: {result.ErrorMessage}");
             }
             else
             {
                 // 成功した場合は、データ構造を検証
-                Assert.NotNull(result.Data);
+                Assert.NotNull(result.Result);
                 _output.WriteLine("✓ Required Properties successfully retrieved");
-                _output.WriteLine($"  Data: {result.Data}");
+                _output.WriteLine($"  Data: {result.Result}");
             }
 
             _output.WriteLine("✓ Microsoft Specification: Required Properties - PASSED");
@@ -228,18 +237,19 @@ namespace UIAutomationMCP.Tests.Integration
             _output.WriteLine("Microsoft specification expects proper validation of width and height parameters");
 
             // Act
-            var result = await _transformService.ResizeElementAsync(
+            var jsonResult = await _transformService.ResizeElementAsync(
                 elementId, width, height, windowTitle, timeoutSeconds: timeout);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotNull(jsonResult);
+            var result = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(jsonResult);
             Assert.False(result.Success);
             
             if (width <= 0 || height <= 0)
             {
                 // 0以下の値は適切に検証されるべき
-                Assert.NotNull(result.Error);
-                _output.WriteLine($"✓ Invalid dimensions properly rejected: {result.Error}");
+                Assert.NotNull(result.ErrorMessageMessage);
+                _output.WriteLine($"✓ Invalid dimensions properly rejected: {result.ErrorMessage}");
             }
 
             _output.WriteLine("✓ Microsoft Specification: Invalid Dimensions Handling - PASSED");
@@ -280,15 +290,15 @@ namespace UIAutomationMCP.Tests.Integration
                 // 要素が存在しないため操作は失敗するが、これは正常
                 // 重要なのは、操作中にイベント関連のエラーが発生しないこと
                 Assert.False(result.Success); // 要素が存在しないため
-                Assert.NotNull(result.Error);
+                Assert.NotNull(result.ErrorMessageMessage);
                 
                 // イベント関連のエラーがないことを確認（"event"という単語が操作説明に含まれる場合は除外）
-                var errorLower = result.Error.ToLowerInvariant();
+                var errorLower = result.ErrorMessage.ToLowerInvariant();
                 var hasEventError = errorLower.Contains("event handler") || 
                                    errorLower.Contains("event listener") || 
                                    errorLower.Contains("event subscription") ||
                                    errorLower.Contains("event fire");
-                Assert.False(hasEventError, $"Operation should not have event-related errors: {result.Error}");
+                Assert.False(hasEventError, $"Operation should not have event-related errors: {result.ErrorMessage}");
                 
                 _output.WriteLine($"✓ {operationName} operation completed without event-related issues");
             }
@@ -314,16 +324,17 @@ namespace UIAutomationMCP.Tests.Integration
             _output.WriteLine("Microsoft specification requires clear indication of pattern support status");
 
             // Act
-            var result = await _transformService.GetTransformCapabilitiesAsync(
+            var jsonResult = await _transformService.GetTransformCapabilitiesAsync(
                 elementId, windowTitle, timeoutSeconds: timeout);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotNull(jsonResult);
+            var result = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(jsonResult);
             Assert.False(result.Success); // 要素が存在しないため
             
             // エラーメッセージが適切であることを確認
-            Assert.NotNull(result.Error);
-            var errorMessage = result.Error.ToLowerInvariant();
+            Assert.NotNull(result.ErrorMessage);
+            var errorMessage = result.ErrorMessage.ToLowerInvariant();
             
             // 適切なエラーメッセージのパターンを確認
             var validErrorPatterns = new[]
@@ -340,9 +351,9 @@ namespace UIAutomationMCP.Tests.Integration
                 errorMessage.Contains(pattern, StringComparison.OrdinalIgnoreCase));
             
             Assert.True(hasValidErrorPattern, 
-                $"Error message should indicate element not found or pattern not supported. Actual: {result.Error}");
+                $"Error message should indicate element not found or pattern not supported. Actual: {result.ErrorMessage}");
 
-            _output.WriteLine($"✓ Proper error indication provided: {result.Error}");
+            _output.WriteLine($"✓ Proper error indication provided: {result.ErrorMessage}");
             _output.WriteLine("✓ Microsoft Specification: Pattern Support Indication - PASSED");
         }
 
@@ -368,19 +379,20 @@ namespace UIAutomationMCP.Tests.Integration
             _output.WriteLine("Microsoft specification requires graceful handling of all valid double values");
 
             // Act
-            var result = await _transformService.MoveElementAsync(
+            var jsonResult = await _transformService.MoveElementAsync(
                 elementId, x, y, windowTitle, timeoutSeconds: timeout);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotNull(jsonResult);
+            var result = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(jsonResult);
             Assert.False(result.Success); // 要素が存在しないため
             
             // 座標値自体が原因でクラッシュしないことを確認
-            Assert.NotNull(result.Error);
-            Assert.DoesNotContain("crash", result.Error, StringComparison.OrdinalIgnoreCase);
-            Assert.DoesNotContain("exception", result.Error, StringComparison.OrdinalIgnoreCase);
+            Assert.NotNull(result.ErrorMessage);
+            Assert.DoesNotContain("crash", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("exception", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
             
-            _output.WriteLine($"✓ Extreme coordinates handled gracefully: {result.Error}");
+            _output.WriteLine($"✓ Extreme coordinates handled gracefully: {result.ErrorMessage}");
             _output.WriteLine("✓ Microsoft Specification: Extreme Coordinate Handling - PASSED");
         }
 
@@ -403,19 +415,20 @@ namespace UIAutomationMCP.Tests.Integration
             _output.WriteLine("Microsoft specification requires support for any valid double angle value");
 
             // Act
-            var result = await _transformService.RotateElementAsync(
+            var jsonResult = await _transformService.RotateElementAsync(
                 elementId, degrees, windowTitle, timeoutSeconds: timeout);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotNull(jsonResult);
+            var result = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(jsonResult);
             Assert.False(result.Success); // 要素が存在しないため
             
             // 角度値自体が原因でエラーにならないことを確認
-            Assert.NotNull(result.Error);
-            Assert.DoesNotContain("invalid angle", result.Error, StringComparison.OrdinalIgnoreCase);
-            Assert.DoesNotContain("angle out of range", result.Error, StringComparison.OrdinalIgnoreCase);
+            Assert.NotNull(result.ErrorMessage);
+            Assert.DoesNotContain("invalid angle", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("angle out of range", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
             
-            _output.WriteLine($"✓ Various angles handled gracefully: {result.Error}");
+            _output.WriteLine($"✓ Various angles handled gracefully: {result.ErrorMessage}");
             _output.WriteLine("✓ Microsoft Specification: Various Angle Handling - PASSED");
         }
 
