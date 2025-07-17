@@ -67,7 +67,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
             
             if (foundRange != null)
             {
-                var foundText = foundRange.GetText(-1);
+                var foundText = foundRange.GetText(-1) ?? "";
                 var boundingRects = foundRange.GetBoundingRectangles();
                 var boundingRect = boundingRects?.Length > 0 ? new BoundingRectangle
                 {
@@ -75,7 +75,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
                     Y = boundingRects[0].Y,
                     Width = boundingRects[0].Width,
                     Height = boundingRects[0].Height
-                } : null;
+                } : new BoundingRectangle();
 
                 return Task.FromResult(new OperationResult<TextSearchResult> 
                 { 

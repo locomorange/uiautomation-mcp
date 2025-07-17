@@ -56,7 +56,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementInspection
                 };
 
                 // Try to get current state for known patterns
-                patternInfo.CurrentState = GetPatternState(element, patternId);
+                patternInfo.CurrentState = GetPatternState(element, patternId) ?? new Dictionary<string, object>();
                 
                 result.Patterns.Add(patternInfo);
             }
