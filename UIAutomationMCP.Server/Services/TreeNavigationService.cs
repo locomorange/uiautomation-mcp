@@ -20,10 +20,50 @@ namespace UIAutomationMCP.Server.Services
 
         public async Task<object> GetChildrenAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(elementId))
+            {
+                var validationError = "Element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"GetChildren validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<TreeNavigationResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetChildren",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+            }
+            
             try
             {
-                _logger.LogInformation("Getting children for element: {ElementId}, WindowTitle={WindowTitle}, ProcessId={ProcessId}",
-                    elementId, windowTitle, processId);
+                _logger.LogInformationWithOperation(operationId, $"Getting children for element: {elementId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -34,36 +74,116 @@ namespace UIAutomationMCP.Server.Services
 
                 var result = await _executor.ExecuteAsync<TreeNavigationResult>("GetChildren", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Got children successfully for element: {ElementId}", elementId);
-                
-                // Convert TreeNavigationResult to Dictionary for MCP compatibility
-                var response = new Dictionary<string, object>
+                var successResponse = new ServerEnhancedResponse<TreeNavigationResult>
                 {
-                    ["success"] = result.Success,
-                    ["elementId"] = result.ElementId ?? "",
-                    ["childrenInfo"] = $"Found {result.Children.Count} children elements",
-                    ["childCount"] = result.ChildCount,
-                    ["executedAt"] = result.ExecutedAt
+                    Success = true,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetChildren",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
                 };
                 
-                if (!string.IsNullOrEmpty(result.ErrorMessage))
-                    response["error"] = result.ErrorMessage;
-                    
-                return new Dictionary<string, object> { ["success"] = true, ["data"] = response };
+                _logger.LogInformationWithOperation(operationId, $"Children retrieved successfully for element: {elementId}");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get children for element: {ElementId}", elementId);
-                return new Dictionary<string, object> { ["success"] = false, ["error"] = ex.Message };
+                var errorResponse = new ServerEnhancedResponse<TreeNavigationResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "ExecutionError",
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? ""
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetChildren",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get children for element: {elementId}");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
             }
         }
 
         public async Task<object> GetParentAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(elementId))
+            {
+                var validationError = "Element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"GetParent validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<TreeNavigationResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetParent",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+            }
+            
             try
             {
-                _logger.LogInformation("Getting parent for element: {ElementId}, WindowTitle={WindowTitle}, ProcessId={ProcessId}",
-                    elementId, windowTitle, processId);
+                _logger.LogInformationWithOperation(operationId, $"Getting parent for element: {elementId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -74,22 +194,116 @@ namespace UIAutomationMCP.Server.Services
 
                 var result = await _executor.ExecuteAsync<TreeNavigationResult>("GetParent", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Got parent successfully for element: {ElementId}", elementId);
-                return new Dictionary<string, object> { ["success"] = true, ["data"] = result };
+                var successResponse = new ServerEnhancedResponse<TreeNavigationResult>
+                {
+                    Success = true,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetParent",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogInformationWithOperation(operationId, $"Parent retrieved successfully for element: {elementId}");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get parent for element: {ElementId}", elementId);
-                return new Dictionary<string, object> { ["success"] = false, ["error"] = ex.Message };
+                var errorResponse = new ServerEnhancedResponse<TreeNavigationResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "ExecutionError",
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? ""
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetParent",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get parent for element: {elementId}");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
             }
         }
 
         public async Task<object> GetSiblingsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(elementId))
+            {
+                var validationError = "Element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"GetSiblings validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<TreeNavigationResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetSiblings",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+            }
+            
             try
             {
-                _logger.LogInformation("Getting siblings for element: {ElementId}, WindowTitle={WindowTitle}, ProcessId={ProcessId}",
-                    elementId, windowTitle, processId);
+                _logger.LogInformationWithOperation(operationId, $"Getting siblings for element: {elementId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -100,22 +314,116 @@ namespace UIAutomationMCP.Server.Services
 
                 var result = await _executor.ExecuteAsync<TreeNavigationResult>("GetSiblings", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Got siblings successfully for element: {ElementId}", elementId);
-                return new Dictionary<string, object> { ["success"] = true, ["data"] = result };
+                var successResponse = new ServerEnhancedResponse<TreeNavigationResult>
+                {
+                    Success = true,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetSiblings",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogInformationWithOperation(operationId, $"Siblings retrieved successfully for element: {elementId}");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get siblings for element: {ElementId}", elementId);
-                return new Dictionary<string, object> { ["success"] = false, ["error"] = ex.Message };
+                var errorResponse = new ServerEnhancedResponse<TreeNavigationResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "ExecutionError",
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? ""
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetSiblings",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get siblings for element: {elementId}");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
             }
         }
 
         public async Task<object> GetDescendantsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(elementId))
+            {
+                var validationError = "Element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"GetDescendants validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<TreeNavigationResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetDescendants",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+            }
+            
             try
             {
-                _logger.LogInformation("Getting descendants for element: {ElementId}, WindowTitle={WindowTitle}, ProcessId={ProcessId}",
-                    elementId, windowTitle, processId);
+                _logger.LogInformationWithOperation(operationId, $"Getting descendants for element: {elementId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -126,22 +434,116 @@ namespace UIAutomationMCP.Server.Services
 
                 var result = await _executor.ExecuteAsync<TreeNavigationResult>("GetDescendants", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Got descendants successfully for element: {ElementId}", elementId);
-                return new Dictionary<string, object> { ["success"] = true, ["data"] = result };
+                var successResponse = new ServerEnhancedResponse<TreeNavigationResult>
+                {
+                    Success = true,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetDescendants",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogInformationWithOperation(operationId, $"Descendants retrieved successfully for element: {elementId}");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get descendants for element: {ElementId}", elementId);
-                return new Dictionary<string, object> { ["success"] = false, ["error"] = ex.Message };
+                var errorResponse = new ServerEnhancedResponse<TreeNavigationResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "ExecutionError",
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? ""
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetDescendants",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get descendants for element: {elementId}");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
             }
         }
 
         public async Task<object> GetAncestorsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(elementId))
+            {
+                var validationError = "Element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"GetAncestors validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<TreeNavigationResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetAncestors",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+            }
+            
             try
             {
-                _logger.LogInformation("Getting ancestors for element: {ElementId}, WindowTitle={WindowTitle}, ProcessId={ProcessId}",
-                    elementId, windowTitle, processId);
+                _logger.LogInformationWithOperation(operationId, $"Getting ancestors for element: {elementId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -152,13 +554,67 @@ namespace UIAutomationMCP.Server.Services
 
                 var result = await _executor.ExecuteAsync<TreeNavigationResult>("GetAncestors", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Got ancestors successfully for element: {ElementId}", elementId);
-                return new Dictionary<string, object> { ["success"] = true, ["data"] = result };
+                var successResponse = new ServerEnhancedResponse<TreeNavigationResult>
+                {
+                    Success = true,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetAncestors",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogInformationWithOperation(operationId, $"Ancestors retrieved successfully for element: {elementId}");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get ancestors for element: {ElementId}", elementId);
-                return new Dictionary<string, object> { ["success"] = false, ["error"] = ex.Message };
+                var errorResponse = new ServerEnhancedResponse<TreeNavigationResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "ExecutionError",
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? ""
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetAncestors",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get ancestors for element: {elementId}");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
             }
         }
 

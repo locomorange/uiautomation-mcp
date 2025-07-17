@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
-using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
+using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
@@ -15,15 +16,52 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             _executor = executor;
         }
 
-        public async Task<OperationResult> GetTransformCapabilitiesAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<object> GetTransformCapabilitiesAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
-            var validationResult = SubprocessErrorHandler.ValidateElementId(elementId, "GetTransformCapabilities", _logger);
-            if (validationResult != null) 
-                return new OperationResult { Success = false, Error = validationResult.ToString() };
-
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(elementId))
+            {
+                var validationError = "Element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"GetTransformCapabilities validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<TransformCapabilitiesResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetTransformCapabilities",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+            }
+            
             try
             {
-                _logger.LogInformation("Getting transform capabilities for element: {ElementId}", elementId);
+                _logger.LogInformationWithOperation(operationId, $"Getting transform capabilities for element: {elementId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -32,31 +70,120 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                var result = await _executor.ExecuteAsync<object>("GetTransformCapabilities", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<TransformCapabilitiesResult>("GetTransformCapabilities", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Transform capabilities retrieved successfully for element: {ElementId}", elementId);
-                return new OperationResult 
-                { 
-                    Success = true, 
-                    Data = result
+                var successResponse = new ServerEnhancedResponse<TransformCapabilitiesResult>
+                {
+                    Success = true,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetTransformCapabilities",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
                 };
+                
+                _logger.LogInformationWithOperation(operationId, $"Transform capabilities retrieved successfully for element: {elementId}");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
             }
             catch (Exception ex)
             {
-                var errorResult = SubprocessErrorHandler.HandleError(ex, "GetTransformCapabilities", elementId, timeoutSeconds, _logger);
-                return new OperationResult { Success = false, Error = errorResult.ToString() };
+                var errorResponse = new ServerEnhancedResponse<TransformCapabilitiesResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "ExecutionError",
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? ""
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetTransformCapabilities",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get transform capabilities for element: {elementId}");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
             }
         }
 
-        public async Task<OperationResult> MoveElementAsync(string elementId, double x, double y, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<object> MoveElementAsync(string elementId, double x, double y, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
-            var validationResult = SubprocessErrorHandler.ValidateElementId(elementId, "MoveElement", _logger);
-            if (validationResult != null) 
-                return new OperationResult { Success = false, Error = validationResult.ToString() };
-
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(elementId))
+            {
+                var validationError = "Element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"MoveElement validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "MoveElement",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["x"] = x,
+                            ["y"] = y,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+            }
+            
             try
             {
-                _logger.LogInformation("Moving element: {ElementId} to position: ({X}, {Y})", elementId, x, y);
+                _logger.LogInformationWithOperation(operationId, $"Moving element: {elementId} to position: ({x}, {y})");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -67,31 +194,165 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                await _executor.ExecuteAsync<object>("MoveElement", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ActionResult>("MoveElement", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Element moved successfully: {ElementId} to ({X}, {Y})", elementId, x, y);
-                return new OperationResult 
-                { 
-                    Success = true, 
-                    Data = new { ElementId = elementId, X = x, Y = y, Operation = "Move" }
+                var successResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = true,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "MoveElement",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["x"] = x,
+                            ["y"] = y,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
                 };
+                
+                _logger.LogInformationWithOperation(operationId, $"Element moved successfully: {elementId} to ({x}, {y})");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
             }
             catch (Exception ex)
             {
-                var errorResult = SubprocessErrorHandler.HandleError(ex, "MoveElement", elementId, timeoutSeconds, _logger);
-                return new OperationResult { Success = false, Error = errorResult.ToString() };
+                var errorResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "ExecutionError",
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? ""
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "MoveElement",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["x"] = x,
+                            ["y"] = y,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to move element: {elementId} to ({x}, {y})");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
             }
         }
 
-        public async Task<OperationResult> ResizeElementAsync(string elementId, double width, double height, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<object> ResizeElementAsync(string elementId, double width, double height, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
-            var validationResult = SubprocessErrorHandler.ValidateElementId(elementId, "ResizeElement", _logger);
-            if (validationResult != null) 
-                return new OperationResult { Success = false, Error = validationResult.ToString() };
-
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(elementId))
+            {
+                var validationError = "Element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"ResizeElement validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "ResizeElement",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["width"] = width,
+                            ["height"] = height,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+            }
+            
+            if (width <= 0 || height <= 0)
+            {
+                var validationError = "Width and height must be positive values";
+                _logger.LogWarningWithOperation(operationId, $"ResizeElement validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["width"] = width,
+                            ["height"] = height,
+                            ["validationFailed"] = true,
+                            ["requirement"] = "Positive dimensions"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "ResizeElement",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["width"] = width,
+                            ["height"] = height,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+            }
+            
             try
             {
-                _logger.LogInformation("Resizing element: {ElementId} to size: ({Width}, {Height})", elementId, width, height);
+                _logger.LogInformationWithOperation(operationId, $"Resizing element: {elementId} to size: ({width}, {height})");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -102,31 +363,123 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                await _executor.ExecuteAsync<object>("ResizeElement", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ActionResult>("ResizeElement", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Element resized successfully: {ElementId} to ({Width}, {Height})", elementId, width, height);
-                return new OperationResult 
-                { 
-                    Success = true, 
-                    Data = new { ElementId = elementId, Width = width, Height = height, Operation = "Resize" }
+                var successResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = true,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "ResizeElement",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["width"] = width,
+                            ["height"] = height,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
                 };
+                
+                _logger.LogInformationWithOperation(operationId, $"Element resized successfully: {elementId} to ({width}, {height})");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
             }
             catch (Exception ex)
             {
-                var errorResult = SubprocessErrorHandler.HandleError(ex, "ResizeElement", elementId, timeoutSeconds, _logger);
-                return new OperationResult { Success = false, Error = errorResult.ToString() };
+                var errorResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "ExecutionError",
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? ""
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "ResizeElement",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["width"] = width,
+                            ["height"] = height,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to resize element: {elementId} to ({width}, {height})");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
             }
         }
 
-        public async Task<OperationResult> RotateElementAsync(string elementId, double degrees, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<object> RotateElementAsync(string elementId, double degrees, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
-            var validationResult = SubprocessErrorHandler.ValidateElementId(elementId, "RotateElement", _logger);
-            if (validationResult != null) 
-                return new OperationResult { Success = false, Error = validationResult.ToString() };
-
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(elementId))
+            {
+                var validationError = "Element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"RotateElement validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "RotateElement",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["degrees"] = degrees,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+            }
+            
             try
             {
-                _logger.LogInformation("Rotating element: {ElementId} by {Degrees} degrees", elementId, degrees);
+                _logger.LogInformationWithOperation(operationId, $"Rotating element: {elementId} by {degrees} degrees");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -136,19 +489,71 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                await _executor.ExecuteAsync<object>("RotateElement", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ActionResult>("RotateElement", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Element rotated successfully: {ElementId} by {Degrees} degrees", elementId, degrees);
-                return new OperationResult 
-                { 
-                    Success = true, 
-                    Data = new { ElementId = elementId, Degrees = degrees, Operation = "Rotate" }
+                var successResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = true,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "RotateElement",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["degrees"] = degrees,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
                 };
+                
+                _logger.LogInformationWithOperation(operationId, $"Element rotated successfully: {elementId} by {degrees} degrees");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
             }
             catch (Exception ex)
             {
-                var errorResult = SubprocessErrorHandler.HandleError(ex, "RotateElement", elementId, timeoutSeconds, _logger);
-                return new OperationResult { Success = false, Error = errorResult.ToString() };
+                var errorResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "ExecutionError",
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? ""
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "RotateElement",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["degrees"] = degrees,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to rotate element: {elementId} by {degrees} degrees");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
             }
         }
     }
