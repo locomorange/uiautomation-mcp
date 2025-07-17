@@ -157,6 +157,7 @@ dotnet test --filter "FullyQualifiedName~ParameterValidation"
 #### E2E Tests
 - `[Trait("Category", "E2E")]`属性を追加
 - 実際のアプリケーションを使用
+- **重要**: テスト中に実際のアプリを起動した場合は、必ずテスト終了時に終了させること
 - テスト前後の環境クリーンアップを確実に実行
 - 他のテストに影響しないよう独立性を保つ
 - 例: 実際のUIコントロールの操作、ユーザーシナリオ
