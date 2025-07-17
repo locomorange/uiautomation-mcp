@@ -118,7 +118,7 @@ namespace UIAutomationMCP.Worker.Operations.Selection
 
         private ElementInfo CreateElementInfo(AutomationElement element)
         {
-            return new ElementInfo
+            return new UIAutomationMCP.Shared.ElementInfo
             {
                 AutomationId = element.Current.AutomationId,
                 Name = element.Current.Name,

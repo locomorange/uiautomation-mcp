@@ -68,14 +68,7 @@ namespace UIAutomationMCP.Worker.Operations.Selection
                     result.Elements.Add(containerElement);
                 }
                 
-                result.SearchCriteria = new SearchCriteria
-                {
-                    SearchText = elementId,
-                    PatternType = "SelectionItemPattern",
-                    WindowTitle = windowTitle,
-                    ProcessId = processId > 0 ? processId : null,
-                    Scope = "SelectionContainer"
-                };
+                result.SearchCriteria = "Selection container search";
                 
                 return Task.FromResult(new OperationResult<ElementSearchResult> 
                 { 

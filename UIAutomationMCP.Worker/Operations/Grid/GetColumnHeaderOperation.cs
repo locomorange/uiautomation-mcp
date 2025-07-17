@@ -67,20 +67,22 @@ namespace UIAutomationMCP.Worker.Operations.Grid
                 };
 
                 result.Elements.Add(headerInfo);
-                result.SearchCriteria = new SearchCriteria
+                result.SearchCriteria = "Grid column header search";
+                result.SearchDuration = TimeSpan.FromMilliseconds(0);
+                
+                return Task.FromResult(new OperationResult<ElementSearchResult>
                 {
-                    AdditionalCriteria = new Dictionary<string, object>
-                    {
-                        ["Row"] = 0,
-                        ["Column"] = column
-                    }
-                };
-
-                return Task.FromResult(new OperationResult<ElementSearchResult> { Success = true, Data = result });
+                    Success = true,
+                    Data = result
+                });
             }
             catch (Exception ex)
             {
-                return Task.FromResult(new OperationResult<ElementSearchResult> { Success = false, Error = $"Error getting column header: {ex.Message}", Data = result });
+                return Task.FromResult(new OperationResult<ElementSearchResult>
+                {
+                    Success = false,
+                    Error = $"Failed to get column header: {ex.Message}"
+                });
             }
         }
 

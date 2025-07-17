@@ -55,14 +55,14 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
             {
                 if (child != null)
                 {
-                    result.Elements.Add(new ElementInfo
+                    result.Elements.Add(new TreeElement
                     {
                         AutomationId = child.Current.AutomationId ?? "",
                         Name = child.Current.Name ?? "",
                         ControlType = child.Current.ControlType.LocalizedControlType,
                         ClassName = child.Current.ClassName,
                         IsEnabled = child.Current.IsEnabled,
-                        IsVisible = !child.Current.IsOffscreen,
+                        IsOffscreen = child.Current.IsOffscreen,
                         ProcessId = child.Current.ProcessId,
                         BoundingRectangle = new BoundingRectangle
                         {

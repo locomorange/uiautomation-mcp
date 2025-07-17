@@ -52,11 +52,11 @@ namespace UIAutomationMCP.Server.Interfaces
         Task<ActionResult> ScrollElementAsync(string elementId, string direction, double amount = 1.0, string? windowTitle = null, int processId = 0, int timeoutSeconds = 30);
         
         // Screenshot
-        Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, int processId = 0, string? outputPath = null, int maxTokens = 0, int timeoutSeconds = 60);
+        Task<UIAutomationMCP.Shared.ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, int processId = 0, string? outputPath = null, int maxTokens = 0, int timeoutSeconds = 60);
         
         // Process Operations
-        Task<ProcessResult> LaunchApplicationByNameAsync(string applicationName, int timeoutSeconds = 60);
-        Task<ProcessResult> LaunchWin32ApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null, int timeoutSeconds = 60);
-        Task<ProcessResult> LaunchUWPApplicationAsync(string appsFolderPath, int timeoutSeconds = 60);
+        Task<UIAutomationMCP.Shared.Results.ProcessResult> LaunchApplicationByNameAsync(string applicationName, int timeoutSeconds = 60);
+        Task<UIAutomationMCP.Shared.Results.ProcessResult> LaunchWin32ApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null, int timeoutSeconds = 60);
+        Task<UIAutomationMCP.Shared.Results.ProcessResult> LaunchUWPApplicationAsync(string appsFolderPath, int timeoutSeconds = 60);
     }
 }

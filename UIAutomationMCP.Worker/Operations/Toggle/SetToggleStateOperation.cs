@@ -81,11 +81,7 @@ namespace UIAutomationMCP.Worker.Operations.Toggle
                             Completed = false,
                             PreviousState = initialState.ToString(),
                             CurrentState = currentState.ToString(),
-                            Details = new Dictionary<string, object>
-                            {
-                                ["TargetState"] = targetState.ToString(),
-                                ["ElementId"] = elementId
-                            }
+                            Details = $"Failed to set toggle state to {targetState} for element {elementId}"
                         }
                     });
                 }
@@ -100,12 +96,7 @@ namespace UIAutomationMCP.Worker.Operations.Toggle
                 ExecutedAt = DateTime.UtcNow,
                 PreviousState = initialState.ToString(),
                 CurrentState = currentState.ToString(),
-                Details = new Dictionary<string, object>
-                {
-                    ["TargetState"] = targetState.ToString(),
-                    ["ElementId"] = elementId,
-                    ["TogglesRequired"] = currentState != initialState ? 1 : 0
-                }
+                Details = $"Successfully toggled {elementId} to {targetState} (was {initialState})"
             };
 
             return Task.FromResult(new OperationResult<ToggleActionResult> 

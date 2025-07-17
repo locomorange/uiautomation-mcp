@@ -64,16 +64,14 @@ namespace UIAutomationMCP.Worker.Operations.Selection
             {
                 if (selectedElement != null)
                 {
-                    result.SelectedItems.Add(new ElementInfo
+                    result.SelectedItems.Add(new SelectionItem
                     {
                         AutomationId = selectedElement.Current.AutomationId,
                         Name = selectedElement.Current.Name,
                         ControlType = selectedElement.Current.ControlType.LocalizedControlType,
-                        ClassName = selectedElement.Current.ClassName,
                         IsEnabled = selectedElement.Current.IsEnabled,
-                        IsVisible = !selectedElement.Current.IsOffscreen,
-                        ProcessId = selectedElement.Current.ProcessId,
-                        BoundingRectangle = new BoundingRectangle
+                        IsOffscreen = selectedElement.Current.IsOffscreen,
+                        BoundingRectangle = new Rectangle
                         {
                             X = selectedElement.Current.BoundingRectangle.X,
                             Y = selectedElement.Current.BoundingRectangle.Y,

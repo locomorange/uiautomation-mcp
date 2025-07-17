@@ -83,10 +83,7 @@ namespace UIAutomationMCP.Worker.Operations.Layout
                 ExecutedAt = DateTime.UtcNow,
                 PreviousState = previousState,
                 CurrentState = newState.ToString(),
-                Details = new Dictionary<string, object>
-                {
-                    ["Action"] = action
-                }
+                Details = $"Expand/Collapse action: {action}"
             };
 
             return Task.FromResult(new OperationResult<ExpandCollapseResult> 

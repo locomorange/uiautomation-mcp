@@ -32,11 +32,7 @@ namespace UIAutomationMCP.Worker.Operations.Transform
                     TransformType = "Rotate",
                     Completed = false,
                     ExecutedAt = DateTime.UtcNow,
-                    Details = new Dictionary<string, object>
-                    {
-                        { "TargetDegrees", degrees },
-                        { "ElementId", elementId }
-                    }
+                    Details = $"Rotation operation for element {elementId} by {degrees} degrees"
                 };
                 return Task.FromResult(new OperationResult<TransformActionResult> 
                 { 
@@ -54,11 +50,7 @@ namespace UIAutomationMCP.Worker.Operations.Transform
                     TransformType = "Rotate",
                     Completed = false,
                     ExecutedAt = DateTime.UtcNow,
-                    Details = new Dictionary<string, object>
-                    {
-                        { "TargetDegrees", degrees },
-                        { "ElementId", elementId }
-                    }
+                    Details = $"Rotation operation for element {elementId} by {degrees} degrees"
                 };
                 return Task.FromResult(new OperationResult<TransformActionResult> 
                 { 
@@ -76,11 +68,7 @@ namespace UIAutomationMCP.Worker.Operations.Transform
                     TransformType = "Rotate",
                     Completed = false,
                     ExecutedAt = DateTime.UtcNow,
-                    Details = new Dictionary<string, object>
-                    {
-                        { "TargetDegrees", degrees },
-                        { "ElementId", elementId }
-                    }
+                    Details = $"Rotation operation for element {elementId} by {degrees} degrees"
                 };
                 return Task.FromResult(new OperationResult<TransformActionResult> 
                 { 
@@ -112,11 +100,7 @@ namespace UIAutomationMCP.Worker.Operations.Transform
                     ExecutedAt = DateTime.UtcNow,
                     NewBounds = newBounds,
                     RotationAngle = degrees,
-                    Details = new Dictionary<string, object>
-                    {
-                        { "TargetDegrees", degrees },
-                        { "ElementId", elementId }
-                    }
+                    Details = $"Rotation operation for element {elementId} by {degrees} degrees"
                 };
 
                 return Task.FromResult(new OperationResult<TransformActionResult> 
@@ -133,12 +117,7 @@ namespace UIAutomationMCP.Worker.Operations.Transform
                     TransformType = "Rotate",
                     Completed = false,
                     ExecutedAt = DateTime.UtcNow,
-                    Details = new Dictionary<string, object>
-                    {
-                        { "TargetDegrees", degrees },
-                        { "ElementId", elementId },
-                        { "Exception", ex.Message }
-                    }
+                    Details = $"Failed to rotate element {elementId} by {degrees} degrees: {ex.Message}"
                 };
                 return Task.FromResult(new OperationResult<TransformActionResult> 
                 { 

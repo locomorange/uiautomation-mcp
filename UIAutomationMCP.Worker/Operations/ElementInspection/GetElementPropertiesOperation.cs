@@ -77,7 +77,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementInspection
                     ["ItemType"] = element.Current.ItemType
                 },
                 FrameworkId = element.Current.FrameworkId,
-                RuntimeId = element.GetRuntimeId()
+                RuntimeId = string.Join(",", element.GetRuntimeId() ?? Array.Empty<int>())
             };
 
             // Get supported patterns

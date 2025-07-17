@@ -56,7 +56,13 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 {
                     MovedUnits = moved,
                     Text = newText,
-                    BoundingRectangle = boundingRectArray
+                    BoundingRectangle = new UIAutomationMCP.Shared.BoundingRectangle
+                    {
+                        X = boundingRectArray.Length > 0 ? boundingRectArray[0] : 0,
+                        Y = boundingRectArray.Length > 1 ? boundingRectArray[1] : 0,
+                        Width = boundingRectArray.Length > 2 ? boundingRectArray[2] : 0,
+                        Height = boundingRectArray.Length > 3 ? boundingRectArray[3] : 0
+                    }
                 });
             }
 

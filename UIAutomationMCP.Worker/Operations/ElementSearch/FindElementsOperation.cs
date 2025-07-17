@@ -226,7 +226,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     var cachedSearchResult = new ElementSearchResult
                     {
                         Elements = cachedResult,
-                        SearchCriteria = CreateSearchCriteria(request.Parameters)
+                        SearchCriteria = CreateSearchCriteriaString(request.Parameters)
                     };
                     return new OperationResult<ElementSearchResult>
                     {
@@ -269,7 +269,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     var searchResult = new ElementSearchResult
                     {
                         Elements = elementList,
-                        SearchCriteria = CreateSearchCriteria(request.Parameters)
+                        SearchCriteria = CreateSearchCriteriaString(request.Parameters)
                     };
                     
                     return new OperationResult<ElementSearchResult>
@@ -471,7 +471,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
 
         private ElementInfo CreateElementInfo(AutomationElement element)
         {
-            return new ElementInfo
+            return new UIAutomationMCP.Shared.ElementInfo
             {
                 AutomationId = element.Cached.AutomationId,
                 Name = element.Cached.Name,
@@ -488,6 +488,19 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     Height = element.Cached.BoundingRectangle.Height
                 }
             };
+        }
+
+        private string CreateSearchCriteriaString(Dictionary<string, object>? parameters)
+        {
+            if (parameters == null) return "No criteria specified";
+            
+            var criteria = new List<string>();
+            foreach (var param in parameters)
+            {
+                if (param.Value != null)
+                    criteria.Add($"{param.Key}: {param.Value}");
+            }
+            return string.Join(", ", criteria);
         }
 
         private SearchCriteria CreateSearchCriteria(Dictionary<string, object>? parameters)

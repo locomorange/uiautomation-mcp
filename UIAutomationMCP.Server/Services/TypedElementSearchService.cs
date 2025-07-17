@@ -63,9 +63,8 @@ namespace UIAutomationMCP.Server.Services
                 return new ElementSearchResult
                 {
                     Success = false,
-                    Message = $"Failed to find element: {ex.Message}",
-                    Elements = new List<Dictionary<string, object>>(),
-                    Count = 0,
+                    ErrorMessage = $"Failed to find element: {ex.Message}",
+                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>(),
                     Timestamp = DateTime.UtcNow
                 };
             }
@@ -91,9 +90,8 @@ namespace UIAutomationMCP.Server.Services
                 return new ElementSearchResult
                 {
                     Success = false,
-                    Message = $"Failed to find elements: {ex.Message}",
-                    Elements = new List<Dictionary<string, object>>(),
-                    Count = 0,
+                    ErrorMessage = $"Failed to find elements: {ex.Message}",
+                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>(),
                     Timestamp = DateTime.UtcNow
                 };
             }
@@ -120,9 +118,8 @@ namespace UIAutomationMCP.Server.Services
                 return new ElementSearchResult
                 {
                     Success = false,
-                    Message = $"Failed to find elements by control type '{controlType}': {ex.Message}",
-                    Elements = new List<Dictionary<string, object>>(),
-                    Count = 0,
+                    ErrorMessage = $"Failed to find elements by control type '{controlType}': {ex.Message}",
+                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>(),
                     Timestamp = DateTime.UtcNow
                 };
             }
@@ -149,9 +146,8 @@ namespace UIAutomationMCP.Server.Services
                 return new ElementSearchResult
                 {
                     Success = false,
-                    Message = $"Failed to get element tree: {ex.Message}",
-                    Elements = new List<Dictionary<string, object>>(),
-                    Count = 0,
+                    ErrorMessage = $"Failed to get element tree: {ex.Message}",
+                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>(),
                     Timestamp = DateTime.UtcNow
                 };
             }
@@ -177,9 +173,8 @@ namespace UIAutomationMCP.Server.Services
                 return new ElementSearchResult
                 {
                     Success = false,
-                    Message = $"Failed to get element info: {ex.Message}",
-                    Elements = new List<Dictionary<string, object>>(),
-                    Count = 0,
+                    ErrorMessage = $"Failed to get element info: {ex.Message}",
+                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>(),
                     Timestamp = DateTime.UtcNow
                 };
             }

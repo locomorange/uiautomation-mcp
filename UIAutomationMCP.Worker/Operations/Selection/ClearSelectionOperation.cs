@@ -76,28 +76,7 @@ namespace UIAutomationMCP.Worker.Operations.Selection
                     ExecutedAt = DateTime.UtcNow,
                     SelectionType = "Clear",
                     CurrentSelectionCount = 0, // Should be 0 after clearing
-                    Details = new Dictionary<string, object>
-                    {
-                        { "ClearedItemsCount", clearedCount },
-                        { "ContainerElement", new ElementInfo
-                            {
-                                AutomationId = element.Current.AutomationId,
-                                Name = element.Current.Name,
-                                ControlType = element.Current.ControlType.LocalizedControlType,
-                                ClassName = element.Current.ClassName,
-                                IsEnabled = element.Current.IsEnabled,
-                                IsVisible = !element.Current.IsOffscreen,
-                                ProcessId = element.Current.ProcessId,
-                                BoundingRectangle = new BoundingRectangle
-                                {
-                                    X = element.Current.BoundingRectangle.X,
-                                    Y = element.Current.BoundingRectangle.Y,
-                                    Width = element.Current.BoundingRectangle.Width,
-                                    Height = element.Current.BoundingRectangle.Height
-                                }
-                            }
-                        }
-                    }
+                    Details = $"Cleared {clearedCount} selected items from element: {element.Current.AutomationId}"
                 };
 
                 return Task.FromResult(new OperationResult<SelectionActionResult> 

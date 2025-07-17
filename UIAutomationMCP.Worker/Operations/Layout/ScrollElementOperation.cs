@@ -99,11 +99,7 @@ namespace UIAutomationMCP.Worker.Operations.Layout
                     VerticalViewSize = scrollPattern.Current.VerticalViewSize,
                     HorizontallyScrollable = scrollPattern.Current.HorizontallyScrollable,
                     VerticallyScrollable = scrollPattern.Current.VerticallyScrollable,
-                    Details = new Dictionary<string, object>
-                    {
-                        ["Direction"] = direction,
-                        ["Amount"] = amount
-                    }
+                    Details = $"Scrolled {direction} by {amount}"
                 };
 
                 return Task.FromResult(new OperationResult<ScrollActionResult> 

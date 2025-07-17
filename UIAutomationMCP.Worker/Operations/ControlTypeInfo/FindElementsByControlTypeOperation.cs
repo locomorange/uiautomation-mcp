@@ -185,18 +185,7 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
                 {
                     Elements = results,
                     SearchSummary = searchSummary,
-                    SearchCriteria = new SearchCriteria
-                    {
-                        ControlType = controlType,
-                        WindowTitle = windowTitle,
-                        ProcessId = processId > 0 ? processId : null,
-                        Scope = scope,
-                        AdditionalCriteria = new Dictionary<string, object>
-                        {
-                            ["validatePatterns"] = validatePatterns,
-                            ["maxResults"] = maxResults
-                        }
-                    }
+                    SearchCriteria = $"Control type: {controlType}, Window: {windowTitle}, Process: {processId}"
                 };
 
                 return Task.FromResult(new OperationResult<ControlTypeSearchResult> 

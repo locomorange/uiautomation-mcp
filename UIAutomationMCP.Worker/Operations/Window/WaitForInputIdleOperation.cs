@@ -75,7 +75,7 @@ namespace UIAutomationMCP.Worker.Operations.Window
                     ActionName = "WaitForInputIdle",
                     Completed = success,
                     TimeoutMilliseconds = timeoutMilliseconds,
-                    ElapsedMilliseconds = elapsed.TotalMilliseconds,
+                    ElapsedMilliseconds = (int)elapsed.TotalMilliseconds,
                     TimedOut = !success,
                     WindowInteractionState = windowPattern.Current.WindowInteractionState.ToString(),
                     Message = success 

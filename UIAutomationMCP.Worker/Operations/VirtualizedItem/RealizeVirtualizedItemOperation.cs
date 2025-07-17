@@ -65,13 +65,7 @@ namespace UIAutomationMCP.Worker.Operations.VirtualizedItem
                     ActionName = "RealizeVirtualizedItem",
                     Completed = true,
                     ExecutedAt = DateTime.UtcNow,
-                    Details = new Dictionary<string, object>
-                    {
-                        ["ElementName"] = elementInfo.Name,
-                        ["ElementType"] = elementInfo.ControlType,
-                        ["ElementId"] = elementInfo.AutomationId,
-                        ["Message"] = "Virtualized item has been realized"
-                    }
+                    Details = $"Realized virtualized item: {elementInfo.Name} ({elementInfo.ControlType}, ID: {elementInfo.AutomationId})"
                 };
                 
                 return Task.FromResult(new OperationResult<ActionResult> 

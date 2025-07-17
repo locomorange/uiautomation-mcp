@@ -92,7 +92,7 @@ namespace UIAutomationMCP.Worker.Operations.Window
                 Completed = true,
                 TransformType = action,
                 NewBounds = newBounds,
-                RotationAngle = action == "rotate" ? x : null
+                RotationAngle = action == "rotate" ? x : 0
             };
 
             return Task.FromResult(new OperationResult<TransformActionResult> { Success = true, Data = result });

@@ -321,21 +321,21 @@ namespace UIAutomationMCP.Server.Helpers
                 ("timeoutSeconds", timeoutSeconds)
             );
             
-            return await _executor.ExecuteAsync<ScreenshotResult>("TakeScreenshot", parameters, timeoutSeconds);
+            return await _executor.ExecuteAsync<UIAutomationMCP.Shared.ScreenshotResult>("TakeScreenshot", parameters, timeoutSeconds);
         }
 
         // Process Operations
-        public async Task<ProcessResult> LaunchApplicationByNameAsync(string applicationName, int timeoutSeconds = 60)
+        public async Task<UIAutomationMCP.Shared.Results.ProcessResult> LaunchApplicationByNameAsync(string applicationName, int timeoutSeconds = 60)
         {
             var parameters = CreateParameterDictionary(
                 ("applicationName", applicationName),
                 ("timeoutSeconds", timeoutSeconds)
             );
             
-            return await _executor.ExecuteAsync<ProcessResult>("LaunchApplicationByName", parameters, timeoutSeconds);
+            return await _executor.ExecuteAsync<UIAutomationMCP.Shared.Results.ProcessResult>("LaunchApplicationByName", parameters, timeoutSeconds);
         }
 
-        public async Task<ProcessResult> LaunchWin32ApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null, int timeoutSeconds = 60)
+        public async Task<UIAutomationMCP.Shared.Results.ProcessResult> LaunchWin32ApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null, int timeoutSeconds = 60)
         {
             var parameters = CreateParameterDictionary(
                 ("applicationPath", applicationPath),
@@ -344,17 +344,17 @@ namespace UIAutomationMCP.Server.Helpers
                 ("timeoutSeconds", timeoutSeconds)
             );
             
-            return await _executor.ExecuteAsync<ProcessResult>("LaunchWin32Application", parameters, timeoutSeconds);
+            return await _executor.ExecuteAsync<UIAutomationMCP.Shared.Results.ProcessResult>("LaunchWin32Application", parameters, timeoutSeconds);
         }
 
-        public async Task<ProcessResult> LaunchUWPApplicationAsync(string appsFolderPath, int timeoutSeconds = 60)
+        public async Task<UIAutomationMCP.Shared.Results.ProcessResult> LaunchUWPApplicationAsync(string appsFolderPath, int timeoutSeconds = 60)
         {
             var parameters = CreateParameterDictionary(
                 ("appsFolderPath", appsFolderPath),
                 ("timeoutSeconds", timeoutSeconds)
             );
             
-            return await _executor.ExecuteAsync<ProcessResult>("LaunchUWPApplication", parameters, timeoutSeconds);
+            return await _executor.ExecuteAsync<UIAutomationMCP.Shared.Results.ProcessResult>("LaunchUWPApplication", parameters, timeoutSeconds);
         }
 
         // Helper method to create parameter dictionary while filtering out null values

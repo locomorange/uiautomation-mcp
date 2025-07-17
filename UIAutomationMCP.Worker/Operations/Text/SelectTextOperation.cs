@@ -96,12 +96,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
                         ActionName = "SelectText", 
                         Completed = true, 
                         ExecutedAt = DateTime.UtcNow,
-                        Details = new Dictionary<string, object>
-                        {
-                            ["StartIndex"] = startIndex,
-                            ["Length"] = length,
-                            ["SelectedText"] = fullText.Substring(startIndex, length)
-                        }
+                        Details = $"Selected text from index {startIndex}, length {length}: '{fullText.Substring(startIndex, length)}'"
                     }
                 });
             }

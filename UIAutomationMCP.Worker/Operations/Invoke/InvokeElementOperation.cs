@@ -65,12 +65,7 @@ namespace UIAutomationMCP.Worker.Operations.Invoke
                     ActionName = "Invoke",
                     Completed = true,
                     ExecutedAt = DateTime.UtcNow,
-                    Details = new Dictionary<string, object>
-                    {
-                        ["ElementName"] = elementInfo.Name,
-                        ["ElementType"] = elementInfo.ControlType,
-                        ["ElementId"] = elementInfo.AutomationId
-                    }
+                    Details = $"Invoked element: {elementInfo.Name} (Type: {elementInfo.ControlType}, ID: {elementInfo.AutomationId})"
                 };
                 
                 return Task.FromResult(new OperationResult<ActionResult> 

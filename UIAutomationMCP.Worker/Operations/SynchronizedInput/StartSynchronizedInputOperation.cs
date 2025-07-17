@@ -69,14 +69,7 @@ namespace UIAutomationMCP.Worker.Operations.SynchronizedInput
                     ActionName = "StartSynchronizedInput",
                     Completed = true,
                     ExecutedAt = DateTime.UtcNow,
-                    Details = new Dictionary<string, object>
-                    {
-                        ["ElementName"] = elementInfo.Name,
-                        ["ElementType"] = elementInfo.ControlType,
-                        ["ElementId"] = elementInfo.AutomationId,
-                        ["InputType"] = inputType,
-                        ["Message"] = $"Started listening for {inputType} events"
-                    }
+                    Details = $"Started synchronized input listening on {elementInfo.Name} ({elementInfo.ControlType}) for {inputType} input"
                 };
                 
                 return Task.FromResult(new OperationResult<ActionResult> 

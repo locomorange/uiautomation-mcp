@@ -65,13 +65,7 @@ namespace UIAutomationMCP.Worker.Operations.SynchronizedInput
                     ActionName = "CancelSynchronizedInput",
                     Completed = true,
                     ExecutedAt = DateTime.UtcNow,
-                    Details = new Dictionary<string, object>
-                    {
-                        ["ElementName"] = elementInfo.Name,
-                        ["ElementType"] = elementInfo.ControlType,
-                        ["ElementId"] = elementInfo.AutomationId,
-                        ["Message"] = "Synchronized input listening canceled"
-                    }
+                    Details = $"Canceled synchronized input listening on {elementInfo.Name} ({elementInfo.ControlType})"
                 };
                 
                 return Task.FromResult(new OperationResult<ActionResult> 

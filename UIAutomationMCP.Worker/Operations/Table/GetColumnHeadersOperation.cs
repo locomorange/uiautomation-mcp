@@ -64,14 +64,7 @@ namespace UIAutomationMCP.Worker.Operations.Table
                     result.Elements.Add(headerInfo);
                 }
 
-                result.SearchCriteria = new SearchCriteria
-                {
-                    PatternType = "TablePattern",
-                    AdditionalCriteria = new Dictionary<string, object>
-                    {
-                        ["HeaderType"] = "Column"
-                    }
-                };
+                result.SearchCriteria = "Table column headers search (TablePattern)";
 
                 return Task.FromResult(new OperationResult<ElementSearchResult> { Success = true, Data = result });
             }

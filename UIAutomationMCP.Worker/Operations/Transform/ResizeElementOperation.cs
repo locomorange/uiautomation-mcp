@@ -53,12 +53,7 @@ namespace UIAutomationMCP.Worker.Operations.Transform
                     TransformType = "Resize",
                     Completed = false,
                     ExecutedAt = DateTime.UtcNow,
-                    Details = new Dictionary<string, object>
-                    {
-                        { "TargetWidth", width },
-                        { "TargetHeight", height },
-                        { "ElementId", elementId }
-                    }
+                    Details = $"Resize operation for element {elementId} to {width}x{height}"
                 };
                 return Task.FromResult(new OperationResult<TransformActionResult> 
                 { 
@@ -77,12 +72,7 @@ namespace UIAutomationMCP.Worker.Operations.Transform
                     TransformType = "Resize",
                     Completed = false,
                     ExecutedAt = DateTime.UtcNow,
-                    Details = new Dictionary<string, object>
-                    {
-                        { "TargetWidth", width },
-                        { "TargetHeight", height },
-                        { "ElementId", elementId }
-                    }
+                    Details = $"Resize operation for element {elementId} to {width}x{height}"
                 };
                 return Task.FromResult(new OperationResult<TransformActionResult> 
                 { 
@@ -100,12 +90,7 @@ namespace UIAutomationMCP.Worker.Operations.Transform
                     TransformType = "Resize",
                     Completed = false,
                     ExecutedAt = DateTime.UtcNow,
-                    Details = new Dictionary<string, object>
-                    {
-                        { "TargetWidth", width },
-                        { "TargetHeight", height },
-                        { "ElementId", elementId }
-                    }
+                    Details = $"Resize operation for element {elementId} to {width}x{height}"
                 };
                 return Task.FromResult(new OperationResult<TransformActionResult> 
                 { 
@@ -123,12 +108,7 @@ namespace UIAutomationMCP.Worker.Operations.Transform
                     TransformType = "Resize",
                     Completed = false,
                     ExecutedAt = DateTime.UtcNow,
-                    Details = new Dictionary<string, object>
-                    {
-                        { "TargetWidth", width },
-                        { "TargetHeight", height },
-                        { "ElementId", elementId }
-                    }
+                    Details = $"Resize operation for element {elementId} to {width}x{height}"
                 };
                 return Task.FromResult(new OperationResult<TransformActionResult> 
                 { 
@@ -159,12 +139,7 @@ namespace UIAutomationMCP.Worker.Operations.Transform
                     Completed = true,
                     ExecutedAt = DateTime.UtcNow,
                     NewBounds = newBounds,
-                    Details = new Dictionary<string, object>
-                    {
-                        { "TargetWidth", width },
-                        { "TargetHeight", height },
-                        { "ElementId", elementId }
-                    }
+                    Details = $"Resize operation for element {elementId} to {width}x{height}"
                 };
 
                 return Task.FromResult(new OperationResult<TransformActionResult> 
@@ -181,13 +156,7 @@ namespace UIAutomationMCP.Worker.Operations.Transform
                     TransformType = "Resize",
                     Completed = false,
                     ExecutedAt = DateTime.UtcNow,
-                    Details = new Dictionary<string, object>
-                    {
-                        { "TargetWidth", width },
-                        { "TargetHeight", height },
-                        { "ElementId", elementId },
-                        { "Exception", ex.Message }
-                    }
+                    Details = $"Failed to resize element {elementId} to {width}x{height}: {ex.Message}"
                 };
                 return Task.FromResult(new OperationResult<TransformActionResult> 
                 { 

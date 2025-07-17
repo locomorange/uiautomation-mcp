@@ -67,14 +67,7 @@ namespace UIAutomationMCP.Worker.Operations.Grid
                 };
 
                 result.Elements.Add(headerInfo);
-                result.SearchCriteria = new SearchCriteria
-                {
-                    AdditionalCriteria = new Dictionary<string, object>
-                    {
-                        ["Row"] = row,
-                        ["Column"] = 0
-                    }
-                };
+                result.SearchCriteria = "Grid row header search";
 
                 return Task.FromResult(new OperationResult<ElementSearchResult> { Success = true, Data = result });
             }

@@ -80,27 +80,24 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
                             .Any(ep => ap.Contains(ep)))
                         .ToArray();
 
-                    controlTypeInfo.PatternValidation = new
+                    controlTypeInfo.PatternValidation = new Dictionary<string, bool>
                     {
-                        ExpectedRequired = expectedPatterns.RequiredPatterns,
-                        ExpectedOptional = expectedPatterns.OptionalPatterns,
-                        MissingRequired = missingRequired,
-                        UnexpectedPatterns = unexpectedPatterns,
-                        IsValid = missingRequired.Length == 0
+                        ["HasAllRequiredPatterns"] = missingRequired.Length == 0,
+                        ["HasValidPatterns"] = unexpectedPatterns.Length == 0
                     };
                 }
 
                 // Include default properties if requested
                 if (includeDefaultProperties)
                 {
-                    controlTypeInfo.DefaultProperties = new
+                    controlTypeInfo.DefaultProperties = new Dictionary<string, object>
                     {
-                        IsEnabled = element.Current.IsEnabled,
-                        IsVisible = !element.Current.IsOffscreen,
-                        HasKeyboardFocus = element.Current.HasKeyboardFocus,
-                        IsKeyboardFocusable = element.Current.IsKeyboardFocusable,
-                        ClassName = element.Current.ClassName,
-                        FrameworkId = element.Current.FrameworkId
+                        ["IsEnabled"] = element.Current.IsEnabled,
+                        ["IsVisible"] = !element.Current.IsOffscreen,
+                        ["HasKeyboardFocus"] = element.Current.HasKeyboardFocus,
+                        ["IsKeyboardFocusable"] = element.Current.IsKeyboardFocusable,
+                        ["ClassName"] = element.Current.ClassName ?? "",
+                        ["FrameworkId"] = element.Current.FrameworkId ?? ""
                     };
                 }
 

@@ -90,12 +90,7 @@ namespace UIAutomationMCP.Worker.Operations.Layout
                         ExecutedAt = DateTime.UtcNow,
                         PreviousState = currentPosition.ToString(),
                         CurrentState = updatedPosition.ToString(),
-                        Details = new Dictionary<string, object>
-                        {
-                            ["ElementId"] = elementId,
-                            ["RequestedPosition"] = dockPosition,
-                            ["ActualPosition"] = updatedPosition.ToString()
-                        }
+                        Details = $"Docked element {elementId} to {dockPosition}, actual position: {updatedPosition}"
                     }
                 });
             }

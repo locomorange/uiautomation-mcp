@@ -113,18 +113,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                         Elements = elementList,
                         PatternSearched = patternName,
                         ValidationPerformed = validateAvailability,
-                        SearchCriteria = new SearchCriteria
-                        {
-                            WindowTitle = windowTitle,
-                            ProcessId = processId > 0 ? processId : null,
-                            Scope = scope,
-                            AdditionalCriteria = new Dictionary<string, object>
-                            {
-                                ["pattern"] = patternName,
-                                ["includeDescendantPatterns"] = includeDescendantPatterns,
-                                ["validateAvailability"] = validateAvailability
-                            }
-                        }
+                        SearchCriteria = $"Pattern search: {patternName}"
                     };
                     
                     return new OperationResult<PatternSearchResult>
@@ -252,7 +241,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
 
         private ElementInfo CreatePatternElementInfo(AutomationElement element, AutomationPattern patternId, bool includePatternState)
         {
-            var info = new ElementInfo
+            var info = new UIAutomationMCP.Shared.ElementInfo
             {
                 AutomationId = element.Current.AutomationId,
                 Name = element.Current.Name,

@@ -117,12 +117,7 @@ namespace UIAutomationMCP.Worker.Operations.Transform
                     Completed = true,
                     ExecutedAt = DateTime.UtcNow,
                     NewBounds = newBounds,
-                    Details = new Dictionary<string, object>
-                    {
-                        { "TargetX", x },
-                        { "TargetY", y },
-                        { "ElementId", elementId }
-                    }
+                    Details = $"Moved element {elementId} to position ({x}, {y})"
                 };
 
                 return Task.FromResult(new OperationResult<TransformActionResult> 
@@ -139,13 +134,7 @@ namespace UIAutomationMCP.Worker.Operations.Transform
                     TransformType = "Move",
                     Completed = false,
                     ExecutedAt = DateTime.UtcNow,
-                    Details = new Dictionary<string, object>
-                    {
-                        { "TargetX", x },
-                        { "TargetY", y },
-                        { "ElementId", elementId },
-                        { "Exception", ex.Message }
-                    }
+                    Details = $"Failed to move element {elementId} to ({x}, {y}): {ex.Message}"
                 };
                 return Task.FromResult(new OperationResult<TransformActionResult> 
                 { 
