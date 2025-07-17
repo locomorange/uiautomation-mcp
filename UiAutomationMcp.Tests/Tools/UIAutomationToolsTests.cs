@@ -504,7 +504,7 @@ namespace UIAutomationMCP.Tests.Tools
                 Height = 1080
             };
             _mockScreenshotService.Setup(s => s.TakeScreenshotAsync("TestWindow", null, 0, null, 60, It.IsAny<CancellationToken>()))
-                                .Returns(Task.FromResult(screenshotResult));
+                                .Returns(Task.FromResult<object>(screenshotResult));
 
             // Act
             var result = await _tools.TakeScreenshot("TestWindow");

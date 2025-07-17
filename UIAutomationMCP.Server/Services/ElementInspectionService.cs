@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Shared.Results;
+using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services
 {
@@ -18,9 +20,50 @@ namespace UIAutomationMCP.Server.Services
 
         public async Task<object> GetElementPropertiesAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(elementId))
+            {
+                var validationError = "Element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"GetElementProperties validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetElementProperties",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+            }
+            
             try
             {
-                _logger.LogInformation("Getting properties for element: {ElementId}", elementId);
+                _logger.LogInformationWithOperation(operationId, $"Getting properties for element: {elementId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -29,23 +72,118 @@ namespace UIAutomationMCP.Server.Services
                     { "processId", processId ?? 0 }
                 };
 
-                var properties = await _executor.ExecuteAsync<object>("GetElementProperties", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ElementSearchResult>("GetElementProperties", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Properties retrieved successfully for element: {ElementId}", elementId);
-                return new { Success = true, Data = properties };
+                var successResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = true,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetElementProperties",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogInformationWithOperation(operationId, $"Properties retrieved successfully for element: {elementId}");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get properties for element: {ElementId}", elementId);
-                return new { Success = false, Error = ex.Message };
+                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "ExecutionError",
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? ""
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetElementProperties",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get properties for element {elementId}");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
 
         public async Task<object> GetElementPatternsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(elementId))
+            {
+                var validationError = "Element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"GetElementPatterns validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetElementPatterns",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+            }
+            
             try
             {
-                _logger.LogInformation("Getting patterns for element: {ElementId}", elementId);
+                _logger.LogInformationWithOperation(operationId, $"Getting patterns for element: {elementId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -54,15 +192,69 @@ namespace UIAutomationMCP.Server.Services
                     { "processId", processId ?? 0 }
                 };
 
-                var patterns = await _executor.ExecuteAsync<List<object>>("GetElementPatterns", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ElementSearchResult>("GetElementPatterns", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Patterns retrieved successfully for element: {ElementId}", elementId);
-                return new { Success = true, Data = patterns };
+                var successResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = true,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetElementPatterns",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogInformationWithOperation(operationId, $"Patterns retrieved successfully for element: {elementId}");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get patterns for element: {ElementId}", elementId);
-                return new { Success = false, Error = ex.Message };
+                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "ExecutionError",
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? ""
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetElementPatterns",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get patterns for element {elementId}");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
     }

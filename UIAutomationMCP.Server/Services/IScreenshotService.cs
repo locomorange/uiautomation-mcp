@@ -4,6 +4,6 @@ namespace UIAutomationMCP.Server.Services
 {
     public interface IScreenshotService
     {
-        Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int? processId = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default);
+        Task<object> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int? processId = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default);
     }
 }

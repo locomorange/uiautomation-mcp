@@ -3,9 +3,11 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Serialization;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Interfaces;
+using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services
 {
@@ -27,15 +29,18 @@ namespace UIAutomationMCP.Server.Services
             _executor = executor;
         }
 
-        public async Task<ScreenshotResult> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int? processId = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
+        public async Task<object> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int? processId = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             try
             {
-                return await Task.Run(async () =>
+                var screenshotResult = await Task.Run(async () =>
                 {
                     _logger.LogInformation("Taking screenshot of window: {WindowTitle}, maxTokens: {MaxTokens}", windowTitle, maxTokens);
 
-                    Rectangle captureArea;
+                    System.Drawing.Rectangle captureArea;
                     IntPtr hwnd = IntPtr.Zero;
 
                     // Determine capture area
@@ -67,7 +72,7 @@ namespace UIAutomationMCP.Server.Services
                                 var width = Convert.ToInt32(boundingRect["Width"]);
                                 var height = Convert.ToInt32(boundingRect["Height"]);
                                 
-                                captureArea = new Rectangle(x, y, width, height);
+                                captureArea = new System.Drawing.Rectangle(x, y, width, height);
                                 _logger.LogInformation("Capture area set to: {X}, {Y}, {Width}, {Height}", x, y, width, height);
                             }
                             else if (boundingRectObj is System.Text.Json.JsonElement jsonElement && jsonElement.ValueKind == System.Text.Json.JsonValueKind.Object)
@@ -78,7 +83,7 @@ namespace UIAutomationMCP.Server.Services
                                 var width = jsonElement.GetProperty("Width").GetInt32();
                                 var height = jsonElement.GetProperty("Height").GetInt32();
                                 
-                                captureArea = new Rectangle(x, y, width, height);
+                                captureArea = new System.Drawing.Rectangle(x, y, width, height);
                                 _logger.LogInformation("Capture area set from JsonElement: {X}, {Y}, {Width}, {Height}", x, y, width, height);
                             }
                             else
@@ -111,7 +116,7 @@ namespace UIAutomationMCP.Server.Services
                             return new ScreenshotResult { Success = false, Error = "Failed to get screen dimensions" };
                         }
                         
-                        captureArea = new Rectangle(0, 0, screenWidth, screenHeight);
+                        captureArea = new System.Drawing.Rectangle(0, 0, screenWidth, screenHeight);
                         _logger.LogInformation("Using primary screen dimensions: {Width}x{Height}", screenWidth, screenHeight);
                     }
 
@@ -167,11 +172,78 @@ namespace UIAutomationMCP.Server.Services
                     _logger.LogInformation("Screenshot taken successfully: {OutputPath}, Size: {Width}x{Height}", outputPath, captureArea.Width, captureArea.Height);
                     return result;
                 }, cancellationToken);
+
+                // Convert ScreenshotResult to ServerEnhancedResponse
+                var successResponse = new ServerEnhancedResponse<ScreenshotResult>
+                {
+                    Success = screenshotResult.Success,
+                    Data = screenshotResult,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["captureWidth"] = screenshotResult.Width,
+                            ["captureHeight"] = screenshotResult.Height,
+                            ["fileSize"] = screenshotResult.FileSize,
+                            ["hasBase64"] = !string.IsNullOrEmpty(screenshotResult.Base64Image)
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "TakeScreenshot",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["outputPath"] = outputPath ?? "",
+                            ["maxTokens"] = maxTokens,
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogInformationWithOperation(operationId, $"Screenshot operation completed successfully: {screenshotResult.OutputPath}");
+                return JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to take screenshot for window: {WindowTitle}", windowTitle);
-                return new ScreenshotResult { Success = false, Error = ex.Message };
+                var errorResponse = new ServerEnhancedResponse<ScreenshotResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "ExecutionError",
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? ""
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "TakeScreenshot",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["outputPath"] = outputPath ?? "",
+                            ["maxTokens"] = maxTokens,
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to take screenshot for window: {windowTitle}");
+                return JsonSerializationHelper.Serialize(errorResponse);
             }
         }
 
