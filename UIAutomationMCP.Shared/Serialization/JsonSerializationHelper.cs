@@ -235,6 +235,7 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(ServerEnhancedResponse<TransformCapabilitiesResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTransformCapabilitiesResult,
                 Type t when t == typeof(ServerEnhancedResponse<GridInfoResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseGridInfoResult,
                 Type t when t == typeof(ServerEnhancedResponse<TableInfoResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTableInfoResult,
+                Type t when t == typeof(ServerEnhancedResponse<DesktopWindowsResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseDesktopWindowsResult,
 
                 // Basic types
                 Type t when t == typeof(Dictionary<string, object>) => (JsonTypeInfo<T>)(object)_context.DictionaryStringObject,
@@ -419,6 +420,7 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(ServerEnhancedResponse<TransformCapabilitiesResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<GridInfoResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<TableInfoResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<DesktopWindowsResult>))]
     [JsonSerializable(typeof(ProcessLaunchResponse))]
     [JsonSerializable(typeof(ServerExecutionInfo))]
     [JsonSerializable(typeof(RequestMetadata))]

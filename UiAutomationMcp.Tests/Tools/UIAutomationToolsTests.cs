@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
@@ -106,13 +107,29 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task GetWindowInfo_Success_ReturnsWindowList()
         {
             // Arrange
-            var expectedWindows = new List<WindowInfo>
+            var expectedWindows = new List<UIAutomationMCP.Shared.Results.WindowInfo>
             {
-                new WindowInfo { Title = "Window1", ProcessName = "App1", ProcessId = 1234, Handle = 1001 },
-                new WindowInfo { Title = "Window2", ProcessName = "App2", ProcessId = 5678, Handle = 1002 }
+                new UIAutomationMCP.Shared.Results.WindowInfo { Title = "Window1", ProcessName = "App1", ProcessId = 1234, Handle = 1001 },
+                new UIAutomationMCP.Shared.Results.WindowInfo { Title = "Window2", ProcessName = "App2", ProcessId = 5678, Handle = 1002 }
             };
+            
+            var desktopWindowsResult = new DesktopWindowsResult
+            {
+                Success = true,
+                Windows = expectedWindows,
+                TotalCount = expectedWindows.Count,
+                VisibleCount = expectedWindows.Count
+            };
+            var serverResponse = new ServerEnhancedResponse<DesktopWindowsResult>
+            {
+                Success = true,
+                Data = desktopWindowsResult,
+                ExecutionInfo = new ServerExecutionInfo(),
+                RequestMetadata = new RequestMetadata()
+            };
+            
             _mockElementSearchService.Setup(s => s.GetWindowsAsync(60))
-                            .Returns(Task.FromResult<object>(JsonSerializer.Serialize(expectedWindows)));
+                            .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetWindowInfo();
@@ -132,8 +149,23 @@ namespace UIAutomationMCP.Tests.Tools
                 new ElementInfo { AutomationId = "btn1", Name = "Button1", ControlType = "Button" },
                 new ElementInfo { AutomationId = "btn2", Name = "Button2", ControlType = "Button" }
             };
+            
+            var elementSearchResult = new ElementSearchResult
+            {
+                Success = true,
+                Elements = expectedElements,
+                // Count is read-only, set via Elements property
+            };
+            var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
+            {
+                Success = true,
+                Data = elementSearchResult,
+                ExecutionInfo = new ServerExecutionInfo(),
+                RequestMetadata = new RequestMetadata()
+            };
+            
             _mockElementSearchService.Setup(s => s.FindElementsAsync("TestWindow", "Button", null, null, 60))
-                                   .Returns(Task.FromResult<object>(JsonSerializer.Serialize(expectedElements)));
+                                   .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.FindElements("Button", windowTitle: "TestWindow");
@@ -152,9 +184,21 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task InvokeElement_Success_InvokesElement()
         {
             // Arrange
-            var expectedResult = "Element invoked successfully";
+            var invokeResult = new ActionResult
+            {
+                Success = true,
+                ErrorMessage = null
+            };
+            var serverResponse = new ServerEnhancedResponse<ActionResult>
+            {
+                Success = true,
+                Data = invokeResult,
+                ExecutionInfo = new ServerExecutionInfo(),
+                RequestMetadata = new RequestMetadata()
+            };
+            
             _mockInvokeService.Setup(s => s.InvokeElementAsync("testButton", "TestWindow", null, 30))
-                                 .ReturnsAsync(expectedResult);
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.InvokeElement("testButton", "TestWindow");
@@ -169,9 +213,21 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task InvokeElement_WithProcessId_Success()
         {
             // Arrange
-            var expectedResult = "Element invoked successfully";
+            var invokeResult = new ActionResult
+            {
+                Success = true,
+                ErrorMessage = null
+            };
+            var serverResponse = new ServerEnhancedResponse<ActionResult>
+            {
+                Success = true,
+                Data = invokeResult,
+                ExecutionInfo = new ServerExecutionInfo(),
+                RequestMetadata = new RequestMetadata()
+            };
+            
             _mockInvokeService.Setup(s => s.InvokeElementAsync("testButton", null, 1234, 30))
-                                 .ReturnsAsync(expectedResult);
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.InvokeElement("testButton", null, 1234);
@@ -186,10 +242,22 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task InvokeElement_WithCustomTimeout_Success()
         {
             // Arrange
-            var expectedResult = "Element invoked successfully";
+            var invokeResult = new ActionResult
+            {
+                Success = true,
+                ErrorMessage = null
+            };
+            var serverResponse = new ServerEnhancedResponse<ActionResult>
+            {
+                Success = true,
+                Data = invokeResult,
+                ExecutionInfo = new ServerExecutionInfo(),
+                RequestMetadata = new RequestMetadata()
+            };
+            
             var customTimeout = 60;
             _mockInvokeService.Setup(s => s.InvokeElementAsync("testButton", "TestWindow", null, customTimeout))
-                                 .ReturnsAsync(expectedResult);
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.InvokeElement("testButton", "TestWindow", null, customTimeout);
@@ -204,9 +272,22 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task InvokeElement_ElementNotFound_ReturnsError()
         {
             // Arrange
-            var errorResult = "Element not found";
+            var invokeResult = new ActionResult
+            {
+                Success = false,
+                ErrorMessage = "Element not found"
+            };
+            var serverResponse = new ServerEnhancedResponse<ActionResult>
+            {
+                Success = false,
+                Data = invokeResult,
+                ErrorMessage = "Element not found",
+                ExecutionInfo = new ServerExecutionInfo(),
+                RequestMetadata = new RequestMetadata()
+            };
+            
             _mockInvokeService.Setup(s => s.InvokeElementAsync("nonExistentButton", "TestWindow", null, 30))
-                                 .ReturnsAsync(errorResult);
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.InvokeElement("nonExistentButton", "TestWindow");
@@ -236,9 +317,21 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task InvokeElement_EmptyElementId_CallsService()
         {
             // Arrange
-            var expectedResult = "Invoked with empty ID";
+            var invokeResult = new ActionResult
+            {
+                Success = true,
+                ErrorMessage = null
+            };
+            var serverResponse = new ServerEnhancedResponse<ActionResult>
+            {
+                Success = true,
+                Data = invokeResult,
+                ExecutionInfo = new ServerExecutionInfo(),
+                RequestMetadata = new RequestMetadata()
+            };
+            
             _mockInvokeService.Setup(s => s.InvokeElementAsync("", "TestWindow", null, 30))
-                                 .ReturnsAsync(expectedResult);
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.InvokeElement("", "TestWindow");
@@ -528,8 +621,22 @@ namespace UIAutomationMCP.Tests.Tools
                 ["WindowTitle"] = "TestWindow",
                 ["Children"] = new List<object>()
             };
+            var elementTreeResult = new ElementTreeResult
+            {
+                Success = true,
+                RootNode = new TreeNode { Name = "TestWindow", ElementId = "root1" },
+                TotalElements = 1
+            };
+            var serverResponse = new ServerEnhancedResponse<ElementTreeResult>
+            {
+                Success = true,
+                Data = elementTreeResult,
+                ExecutionInfo = new ServerExecutionInfo(),
+                RequestMetadata = new RequestMetadata()
+            };
+            
             _mockTreeNavigationService.Setup(s => s.GetElementTreeAsync("TestWindow", null, 3, 60))
-                                   .ReturnsAsync(expectedTree);
+                                   .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetElementTree("TestWindow");
@@ -548,8 +655,21 @@ namespace UIAutomationMCP.Tests.Tools
             {
                 new ElementInfo { AutomationId = "textBox1", Name = "TextBox1", ControlType = "Edit" }
             };
+            var elementSearchResult = new ElementSearchResult
+            {
+                Success = true,
+                Elements = expectedElements
+            };
+            var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
+            {
+                Success = true,
+                Data = elementSearchResult,
+                ExecutionInfo = new ServerExecutionInfo(),
+                RequestMetadata = new RequestMetadata()
+            };
+            
             _mockElementSearchService.Setup(s => s.FindElementsAsync("TestWindow", null, "Edit", null, 60))
-                                   .Returns(Task.FromResult<object>(JsonSerializer.Serialize(expectedElements)));
+                                   .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetElementInfo("TestWindow", "Edit");
@@ -565,8 +685,16 @@ namespace UIAutomationMCP.Tests.Tools
         {
             // Arrange
             var expectedResult = ProcessLaunchResponse.CreateSuccess(1234, "notepad", false);
+            var serverResponse = new ServerEnhancedResponse<ProcessLaunchResponse>
+            {
+                Success = true,
+                Data = expectedResult,
+                ExecutionInfo = new ServerExecutionInfo(),
+                RequestMetadata = new RequestMetadata()
+            };
+            
             _mockApplicationLauncher.Setup(s => s.LaunchWin32ApplicationAsync("notepad.exe", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                                  .ReturnsAsync(expectedResult);
+                                  .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.LaunchWin32Application("notepad.exe");
@@ -586,8 +714,16 @@ namespace UIAutomationMCP.Tests.Tools
         {
             // Arrange
             var expectedResult = ProcessLaunchResponse.CreateSuccess(5678, "Calculator", false);
+            var serverResponse = new ServerEnhancedResponse<ProcessLaunchResponse>
+            {
+                Success = true,
+                Data = expectedResult,
+                ExecutionInfo = new ServerExecutionInfo(),
+                RequestMetadata = new RequestMetadata()
+            };
+            
             _mockApplicationLauncher.Setup(s => s.LaunchApplicationByNameAsync("Calculator", It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                                  .ReturnsAsync(expectedResult);
+                                  .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.LaunchApplicationByName("Calculator");
@@ -606,9 +742,26 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task GetSelection_Success_ReturnsSelection()
         {
             // Arrange
-            var expectedSelection = new List<string> { "item1", "item2" };
+            var selectionResult = new SelectionInfoResult
+            {
+                Success = true,
+                SelectedItems = new List<SelectionItem>
+                {
+                    new SelectionItem { ElementId = "item1", Name = "Item 1", IsSelected = true },
+                    new SelectionItem { ElementId = "item2", Name = "Item 2", IsSelected = true }
+                },
+                SelectedCount = 2
+            };
+            var serverResponse = new ServerEnhancedResponse<SelectionInfoResult>
+            {
+                Success = true,
+                Data = selectionResult,
+                ExecutionInfo = new ServerExecutionInfo(),
+                RequestMetadata = new RequestMetadata()
+            };
+            
             _mockSelectionService.Setup(s => s.GetSelectionAsync("listContainer", "TestWindow", null, 30))
-                                 .ReturnsAsync(expectedSelection);
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetSelection("listContainer", "TestWindow");
@@ -623,9 +776,23 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task WindowAction_Success_PerformsWindowAction()
         {
             // Arrange
-            var expectedResult = "Window minimized successfully";
+            var actionResult = new ActionResult
+            {
+                Success = true,
+                Action = "minimize",
+                WindowTitle = "TestWindow",
+                Completed = true
+            };
+            var serverResponse = new ServerEnhancedResponse<ActionResult>
+            {
+                Success = true,
+                Data = actionResult,
+                ExecutionInfo = new ServerExecutionInfo(),
+                RequestMetadata = new RequestMetadata()
+            };
+            
             _mockWindowService.Setup(s => s.WindowOperationAsync("minimize", "TestWindow", null, 30))
-                                 .ReturnsAsync(expectedResult);
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.WindowAction("minimize", "TestWindow");
