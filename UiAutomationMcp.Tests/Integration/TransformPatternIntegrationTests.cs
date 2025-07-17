@@ -172,7 +172,8 @@ namespace UIAutomationMCP.Tests.Integration
                 elementId, x, y, "TestWindow", timeoutSeconds: timeout);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotNull(jsonResult);
+            var result = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(jsonResult);
             // 要素が存在しないため失敗するが、座標は正しく処理される
             Assert.False(result.Success);
             
@@ -255,7 +256,8 @@ namespace UIAutomationMCP.Tests.Integration
                 elementId, width, height, "TestWindow", timeoutSeconds: timeout);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotNull(jsonResult);
+            var result = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(jsonResult);
             // 要素が存在しないため失敗するが、サイズは正しく処理される
             Assert.False(result.Success);
             
@@ -314,7 +316,8 @@ namespace UIAutomationMCP.Tests.Integration
                 elementId, degrees, "TestWindow", timeoutSeconds: timeout);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotNull(jsonResult);
+            var result = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(jsonResult);
             // 要素が存在しないため失敗するが、角度は正しく処理される
             Assert.False(result.Success);
             
@@ -346,7 +349,8 @@ namespace UIAutomationMCP.Tests.Integration
             var elapsed = stopwatch.Elapsed.TotalSeconds;
 
             Assert.NotNull(capabilitiesResult);
-            Assert.False(capabilitiesResult.Success);
+            var capabilitiesDeserialized = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.TransformCapabilitiesResult>>(capabilitiesResult);
+            Assert.False(capabilitiesDeserialized.Success);
             Assert.True(elapsed <= timeoutSeconds + 2, // 2秒のバッファ
                 $"Operation took {elapsed:F1}s, expected <= {timeoutSeconds + 2}s");
 
@@ -361,7 +365,8 @@ namespace UIAutomationMCP.Tests.Integration
             elapsed = stopwatch.Elapsed.TotalSeconds;
 
             Assert.NotNull(moveResult);
-            Assert.False(moveResult.Success);
+            var moveDeserialized = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(moveResult);
+            Assert.False(moveDeserialized.Success);
             Assert.True(elapsed <= timeoutSeconds + 2,
                 $"Move operation took {elapsed:F1}s, expected <= {timeoutSeconds + 2}s");
 
@@ -376,7 +381,8 @@ namespace UIAutomationMCP.Tests.Integration
             elapsed = stopwatch.Elapsed.TotalSeconds;
 
             Assert.NotNull(resizeResult);
-            Assert.False(resizeResult.Success);
+            var resizeDeserialized = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(resizeResult);
+            Assert.False(resizeDeserialized.Success);
             Assert.True(elapsed <= timeoutSeconds + 2,
                 $"Resize operation took {elapsed:F1}s, expected <= {timeoutSeconds + 2}s");
 
@@ -391,7 +397,8 @@ namespace UIAutomationMCP.Tests.Integration
             elapsed = stopwatch.Elapsed.TotalSeconds;
 
             Assert.NotNull(rotateResult);
-            Assert.False(rotateResult.Success);
+            var rotateDeserialized = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(rotateResult);
+            Assert.False(rotateDeserialized.Success);
             Assert.True(elapsed <= timeoutSeconds + 2,
                 $"Rotate operation took {elapsed:F1}s, expected <= {timeoutSeconds + 2}s");
 
@@ -419,7 +426,8 @@ namespace UIAutomationMCP.Tests.Integration
                 elementId, "TestWindow", processId, timeout);
 
             Assert.NotNull(capabilitiesResult);
-            Assert.False(capabilitiesResult.Success); // 要素が存在しないため
+            var capabilitiesDeserialized2 = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.TransformCapabilitiesResult>>(capabilitiesResult);
+            Assert.False(capabilitiesDeserialized2.Success); // 要素が存在しないため
             
             _output.WriteLine($"✓ GetTransformCapabilities processed processId: {processId}");
 
@@ -428,7 +436,8 @@ namespace UIAutomationMCP.Tests.Integration
                 elementId, 100.0, 200.0, "TestWindow", processId, timeout);
 
             Assert.NotNull(moveResult);
-            Assert.False(moveResult.Success);
+            var moveDeserialized2 = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(moveResult);
+            Assert.False(moveDeserialized2.Success);
             
             _output.WriteLine($"✓ MoveElement processed processId: {processId}");
 
@@ -437,7 +446,8 @@ namespace UIAutomationMCP.Tests.Integration
                 elementId, 800.0, 600.0, "TestWindow", processId, timeout);
 
             Assert.NotNull(resizeResult);
-            Assert.False(resizeResult.Success);
+            var resizeDeserialized2 = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(resizeResult);
+            Assert.False(resizeDeserialized2.Success);
             
             _output.WriteLine($"✓ ResizeElement processed processId: {processId}");
 
@@ -446,7 +456,8 @@ namespace UIAutomationMCP.Tests.Integration
                 elementId, 90.0, "TestWindow", processId, timeout);
 
             Assert.NotNull(rotateResult);
-            Assert.False(rotateResult.Success);
+            var rotateDeserialized2 = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(rotateResult);
+            Assert.False(rotateDeserialized2.Success);
             
             _output.WriteLine($"✓ RotateElement processed processId: {processId}");
         }
@@ -460,7 +471,7 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange
             const int concurrentOperations = 5;
-            var tasks = new List<Task<OperationResult>>();
+            var tasks = new List<Task<object>>();
 
             _output.WriteLine($"Testing {concurrentOperations} concurrent Transform operations");
 
@@ -486,8 +497,9 @@ namespace UIAutomationMCP.Tests.Integration
             {
                 Assert.NotNull(result);
                 // 要素が存在しないため全て失敗するはずだが、エラーハンドリングは正常
-                Assert.False(result.Success);
-                Assert.NotNull(result.ErrorMessage);
+                var deserializedResult = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(result);
+                Assert.False(deserializedResult.Success);
+                Assert.NotNull(deserializedResult.ErrorMessage);
             }
 
             _output.WriteLine($"✓ All {results.Length} concurrent operations completed correctly");
@@ -514,25 +526,29 @@ namespace UIAutomationMCP.Tests.Integration
                 var capabilitiesResult = await _transformService.GetTransformCapabilitiesAsync(
                     elementId, "TestWindow", timeoutSeconds: 5);
                 Assert.NotNull(capabilitiesResult);
-                Assert.False(capabilitiesResult.Success);
+                var capabilitiesSeq = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.TransformCapabilitiesResult>>(capabilitiesResult);
+                Assert.False(capabilitiesSeq.Success);
 
                 // MoveElement
                 var moveResult = await _transformService.MoveElementAsync(
                     elementId, i * 50.0, i * 50.0, "TestWindow", timeoutSeconds: 5);
                 Assert.NotNull(moveResult);
-                Assert.False(moveResult.Success);
+                var moveSeq = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(moveResult);
+                Assert.False(moveSeq.Success);
 
                 // ResizeElement
                 var resizeResult = await _transformService.ResizeElementAsync(
                     elementId, 400.0 + i * 50, 300.0 + i * 50, "TestWindow", timeoutSeconds: 5);
                 Assert.NotNull(resizeResult);
-                Assert.False(resizeResult.Success);
+                var resizeSeq = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(resizeResult);
+                Assert.False(resizeSeq.Success);
 
                 // RotateElement
                 var rotateResult = await _transformService.RotateElementAsync(
                     elementId, i * 36.0, "TestWindow", timeoutSeconds: 5);
                 Assert.NotNull(rotateResult);
-                Assert.False(rotateResult.Success);
+                var rotateSeq = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(rotateResult);
+                Assert.False(rotateSeq.Success);
 
                 _output.WriteLine($"✓ Operation set {i + 1}/{sequentialOperations} completed");
             }

@@ -109,7 +109,7 @@ namespace UIAutomationMCP.Tests.Integration
             if (!result.Success)
             {
                 // エラーメッセージが適切であることを確認
-                Assert.NotNull(result.ErrorMessageMessage);
+                Assert.NotNull(result.ErrorMessage);
                 Assert.True(
                     result.ErrorMessage.Contains("not found", StringComparison.OrdinalIgnoreCase) ||
                     result.ErrorMessage.Contains("TransformPattern not supported", StringComparison.OrdinalIgnoreCase),
@@ -121,9 +121,9 @@ namespace UIAutomationMCP.Tests.Integration
             else
             {
                 // 成功した場合は、データ構造を検証
-                Assert.NotNull(result.Result);
+                Assert.NotNull(result.Data);
                 _output.WriteLine("✓ Required Properties successfully retrieved");
-                _output.WriteLine($"  Data: {result.Result}");
+                _output.WriteLine($"  Data: {result.Data}");
             }
 
             _output.WriteLine("✓ Microsoft Specification: Required Properties - PASSED");
@@ -148,24 +148,24 @@ namespace UIAutomationMCP.Tests.Integration
             _output.WriteLine("- Rotate(double degrees)");
 
             // Act & Assert - Move Method
-            var moveResult = await _transformService.MoveElementAsync(
+            var moveJsonResult = await _transformService.MoveElementAsync(
                 elementId, 100.0, 200.0, windowTitle, timeoutSeconds: timeout);
             
-            Assert.NotNull(moveResult);
+            Assert.NotNull(moveJsonResult);
             _output.WriteLine("✓ Move method implemented and callable");
 
             // Act & Assert - Resize Method
-            var resizeResult = await _transformService.ResizeElementAsync(
+            var resizeJsonResult = await _transformService.ResizeElementAsync(
                 elementId, 800.0, 600.0, windowTitle, timeoutSeconds: timeout);
             
-            Assert.NotNull(resizeResult);
+            Assert.NotNull(resizeJsonResult);
             _output.WriteLine("✓ Resize method implemented and callable");
 
             // Act & Assert - Rotate Method
-            var rotateResult = await _transformService.RotateElementAsync(
+            var rotateJsonResult = await _transformService.RotateElementAsync(
                 elementId, 90.0, windowTitle, timeoutSeconds: timeout);
             
-            Assert.NotNull(rotateResult);
+            Assert.NotNull(rotateJsonResult);
             _output.WriteLine("✓ Rotate method implemented and callable");
 
             _output.WriteLine("✓ Microsoft Specification: Required Methods - PASSED");
@@ -190,26 +190,29 @@ namespace UIAutomationMCP.Tests.Integration
             _output.WriteLine("- InvalidOperationException when CanRotate = false");
 
             // Act & Assert - Move with non-movable element expectation
-            var moveResult = await _transformService.MoveElementAsync(
+            var moveJsonResult = await _transformService.MoveElementAsync(
                 elementId, 100.0, 200.0, windowTitle, timeoutSeconds: timeout);
             
-            Assert.NotNull(moveResult);
+            Assert.NotNull(moveJsonResult);
+            var moveResult = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(moveJsonResult);
             Assert.False(moveResult.Success); // 要素が存在しないため失敗
             _output.WriteLine("✓ Move operation handled appropriately");
 
             // Act & Assert - Resize with non-resizable element expectation
-            var resizeResult = await _transformService.ResizeElementAsync(
+            var resizeJsonResult = await _transformService.ResizeElementAsync(
                 elementId, 800.0, 600.0, windowTitle, timeoutSeconds: timeout);
             
-            Assert.NotNull(resizeResult);
+            Assert.NotNull(resizeJsonResult);
+            var resizeResult = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(resizeJsonResult);
             Assert.False(resizeResult.Success); // 要素が存在しないため失敗
             _output.WriteLine("✓ Resize operation handled appropriately");
 
             // Act & Assert - Rotate with non-rotatable element expectation
-            var rotateResult = await _transformService.RotateElementAsync(
+            var rotateJsonResult = await _transformService.RotateElementAsync(
                 elementId, 90.0, windowTitle, timeoutSeconds: timeout);
             
-            Assert.NotNull(rotateResult);
+            Assert.NotNull(rotateJsonResult);
+            var rotateResult = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(rotateJsonResult);
             Assert.False(rotateResult.Success); // 要素が存在しないため失敗
             _output.WriteLine("✓ Rotate operation handled appropriately");
 
@@ -248,7 +251,7 @@ namespace UIAutomationMCP.Tests.Integration
             if (width <= 0 || height <= 0)
             {
                 // 0以下の値は適切に検証されるべき
-                Assert.NotNull(result.ErrorMessageMessage);
+                Assert.NotNull(result.ErrorMessage);
                 _output.WriteLine($"✓ Invalid dimensions properly rejected: {result.ErrorMessage}");
             }
 
@@ -273,7 +276,7 @@ namespace UIAutomationMCP.Tests.Integration
             const int timeout = 5;
 
             // Act - 複数の変換操作を実行
-            var operations = new (string Name, Func<Task<OperationResult>> Operation)[]
+            var operations = new (string Name, Func<Task<object>> Operation)[]
             {
                 ("GetCapabilities", () => _transformService.GetTransformCapabilitiesAsync(elementId, windowTitle, timeoutSeconds: timeout)),
                 ("Move", () => _transformService.MoveElementAsync(elementId, 100.0, 200.0, windowTitle, timeoutSeconds: timeout)),
@@ -283,14 +286,15 @@ namespace UIAutomationMCP.Tests.Integration
 
             foreach (var (operationName, operation) in operations)
             {
-                var result = await operation();
+                var jsonResult = await operation();
+                var result = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(jsonResult);
                 
                 // Assert
                 Assert.NotNull(result);
                 // 要素が存在しないため操作は失敗するが、これは正常
                 // 重要なのは、操作中にイベント関連のエラーが発生しないこと
                 Assert.False(result.Success); // 要素が存在しないため
-                Assert.NotNull(result.ErrorMessageMessage);
+                Assert.NotNull(result.ErrorMessage);
                 
                 // イベント関連のエラーがないことを確認（"event"という単語が操作説明に含まれる場合は除外）
                 var errorLower = result.ErrorMessage.ToLowerInvariant();
@@ -474,7 +478,7 @@ namespace UIAutomationMCP.Tests.Integration
 
                     // Verify all operations return results (success or proper failure)
                     var results = new[] { capabilitiesResult, moveResult, resizeResult, rotateResult };
-                    var allResultsValid = results.All(r => r != null && !string.IsNullOrEmpty(r.Error));
+                    var allResultsValid = results.All(r => r != null && !string.IsNullOrEmpty(r.ToString()));
 
                     if (allResultsValid)
                     {
