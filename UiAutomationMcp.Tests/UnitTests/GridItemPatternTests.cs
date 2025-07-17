@@ -30,7 +30,6 @@ namespace UIAutomationMCP.Tests.UnitTests
             var mockAppLauncher = new Mock<IApplicationLauncher>();
             var mockScreenshot = new Mock<IScreenshotService>();
             var mockElementSearch = new Mock<IElementSearchService>();
-            var mockTypedElementSearch = new Mock<ITypedElementSearchService>();
             var mockTreeNavigation = new Mock<ITreeNavigationService>();
             var mockInvoke = new Mock<IInvokeService>();
             var mockValue = new Mock<IValueService>();
@@ -54,7 +53,6 @@ namespace UIAutomationMCP.Tests.UnitTests
                 mockAppLauncher.Object,
                 mockScreenshot.Object,
                 mockElementSearch.Object,
-                mockTypedElementSearch.Object,
                 mockTreeNavigation.Object,
                 mockInvoke.Object,
                 mockValue.Object,

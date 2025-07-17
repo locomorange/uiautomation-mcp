@@ -462,6 +462,20 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(GetElementTreeRequest))]
     [JsonSerializable(typeof(GetParentRequest))]
     [JsonSerializable(typeof(GetSiblingsRequest))]
+    // ServerEnhanced types
+    [JsonSerializable(typeof(ServerEnhancedResponse<ElementTreeResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<TreeNavigationResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<ElementSearchResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<ProcessResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<ActionResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<ElementValueResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<WindowInfoResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<WindowInteractionStateResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<WindowCapabilitiesResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<ScreenshotResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<BaseOperationResult>))]
+    [JsonSerializable(typeof(ServerExecutionInfo))]
+    [JsonSerializable(typeof(RequestMetadata))]
     [JsonSourceGenerationOptions(
         WriteIndented = false, 
         PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
