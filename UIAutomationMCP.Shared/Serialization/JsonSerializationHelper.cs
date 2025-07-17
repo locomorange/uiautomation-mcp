@@ -190,6 +190,7 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(ToggleStateResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseToggleStateResult,
                 Type t when t == typeof(RangeValueResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseRangeValueResult,
                 Type t when t == typeof(SelectionInfoResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseSelectionInfoResult,
+                Type t when t == typeof(TextInfoResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseTextInfoResult,
                 Type t when t == typeof(object) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseObject,
                 _ => null
             };
@@ -219,6 +220,7 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(ToggleStateResult) => (JsonTypeInfo<T>)(object)_context.ToggleStateResult,
                 Type t when t == typeof(RangeValueResult) => (JsonTypeInfo<T>)(object)_context.RangeValueResult,
                 Type t when t == typeof(SelectionInfoResult) => (JsonTypeInfo<T>)(object)_context.SelectionInfoResult,
+                Type t when t == typeof(TextInfoResult) => (JsonTypeInfo<T>)(object)_context.TextInfoResult,
                 _ => null
             };
         }
@@ -361,6 +363,7 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(WorkerResponse<ToggleStateResult>))]
     [JsonSerializable(typeof(WorkerResponse<RangeValueResult>))]
     [JsonSerializable(typeof(WorkerResponse<SelectionInfoResult>))]
+    [JsonSerializable(typeof(WorkerResponse<TextInfoResult>))]
     [JsonSerializable(typeof(WorkerResponse<ErrorResult>))]
     [JsonSerializable(typeof(WorkerResponse<UniversalResponse>))]
     [JsonSerializable(typeof(Dictionary<string, object>))]
@@ -391,6 +394,7 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(ToggleStateResult))]
     [JsonSerializable(typeof(RangeValueResult))]
     [JsonSerializable(typeof(SelectionInfoResult))]
+    [JsonSerializable(typeof(TextInfoResult))]
     [JsonSerializable(typeof(FindItemResult))]
     // Basic types
     [JsonSerializable(typeof(string))]
@@ -497,6 +501,7 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(ServerEnhancedResponse<ToggleStateResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<RangeValueResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<SelectionInfoResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<TextInfoResult>))]
     [JsonSerializable(typeof(ProcessLaunchResponse))]
     [JsonSerializable(typeof(ServerExecutionInfo))]
     [JsonSerializable(typeof(RequestMetadata))]
