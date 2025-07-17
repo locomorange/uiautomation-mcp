@@ -43,7 +43,7 @@ namespace UIAutomationMCP.Server.Services
 
         public bool IsEnabled(LogLevel logLevel)
         {
-            return logLevel >= LogLevel.Information;
+            return logLevel >= LogLevel.Debug;
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
@@ -56,6 +56,9 @@ namespace UIAutomationMCP.Server.Services
             {
                 logMessage += Environment.NewLine + exception.ToString();
             }
+
+            // Also output to stderr for debugging - MCP server stdout is reserved for protocol
+            Console.Error.WriteLine($"[MCP-SERVER] {logMessage}");
 
             lock (_lock)
             {

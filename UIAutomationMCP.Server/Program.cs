@@ -19,7 +19,7 @@ namespace UIAutomationMCP.Server
             builder.Logging.ClearProviders();
             var logPath = Path.Combine(Directory.GetCurrentDirectory(), "mcp_debug.log");
             builder.Logging.AddProvider(new FileLoggerProvider(logPath));
-            builder.Logging.SetMinimumLevel(LogLevel.Information);
+            builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
             // Register application services
             builder.Services.AddSingleton<IApplicationLauncher, ApplicationLauncher>();

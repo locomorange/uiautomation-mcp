@@ -280,7 +280,7 @@ namespace UIAutomationMCP.Server.Helpers
             {
                 if (!string.IsNullOrEmpty(e.Data))
                 {
-                    _logger.LogDebug("Worker stderr: {ErrorData}", e.Data);
+                    _logger.LogInformation("Worker stderr: {ErrorData}", e.Data);
                 }
             };
             

@@ -39,7 +39,7 @@ namespace UIAutomationMCP.Worker.Helpers
             
             // Write to debug output and stderr for debugging SubprocessExecutor communication
             Debug.WriteLine(logMessage);
-            Console.Error.WriteLine(logMessage);
+            Console.Error.WriteLine($"[WORKER] {logMessage}");
         }
 
         private class NullDisposable : IDisposable
