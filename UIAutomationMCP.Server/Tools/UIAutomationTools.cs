@@ -128,52 +128,21 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Command line arguments (optional)")] string? arguments = null,
             [Description("Working directory (optional)")] string? workingDirectory = null,
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
-        {
-            var response = await _applicationLauncher.LaunchWin32ApplicationAsync(applicationPath, arguments, workingDirectory, timeoutSeconds);
-            return new { 
-                success = response.Success,
-                processId = response.ProcessId,
-                processName = response.ProcessName,
-                hasExited = response.HasExited,
-                windowTitle = response.WindowTitle,
-                error = response.Error,
-                executedAt = response.ExecutedAt
-            };
-        }
+            => await _applicationLauncher.LaunchWin32ApplicationAsync(applicationPath, arguments, workingDirectory, timeoutSeconds);
+
 
         [McpServerTool, Description("Launch a UWP application by shell:AppsFolder path")]
         public async Task<object> LaunchUWPApplication(
             [Description("shell:AppsFolder path to the UWP app")] string appsFolderPath,
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
-        {
-            var response = await _applicationLauncher.LaunchUWPApplicationAsync(appsFolderPath, timeoutSeconds);
-            return new { 
-                success = response.Success,
-                processId = response.ProcessId,
-                processName = response.ProcessName,
-                hasExited = response.HasExited,
-                windowTitle = response.WindowTitle,
-                error = response.Error,
-                executedAt = response.ExecutedAt
-            };
-        }
+            => await _applicationLauncher.LaunchUWPApplicationAsync(appsFolderPath, timeoutSeconds);
+
 
         [McpServerTool, Description("Launch an application by searching for its display name")]
         public async Task<object> LaunchApplicationByName(
             [Description("Display name of the application to launch")] string applicationName,
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
-        {
-            var response = await _applicationLauncher.LaunchApplicationByNameAsync(applicationName, timeoutSeconds);
-            return new { 
-                success = response.Success,
-                processId = response.ProcessId,
-                processName = response.ProcessName,
-                hasExited = response.HasExited,
-                windowTitle = response.WindowTitle,
-                error = response.Error,
-                executedAt = response.ExecutedAt
-            };
-        }
+            => await _applicationLauncher.LaunchApplicationByNameAsync(applicationName, timeoutSeconds);
 
         // Core Interaction Patterns
         [McpServerTool, Description("Invoke an element (click button, activate menu item) using InvokePattern")]
