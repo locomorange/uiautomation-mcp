@@ -15,10 +15,9 @@ namespace UIAutomationMCP.Server
         {
             var builder = Host.CreateApplicationBuilder(args);
 
-            // Configure logging for MCP - disable console logging to avoid MCP protocol interference
+            // Configure logging for MCP - stderr logging to avoid MCP protocol interference
             builder.Logging.ClearProviders();
-            var logPath = Path.Combine(Directory.GetCurrentDirectory(), "mcp_debug.log");
-            builder.Logging.AddProvider(new FileLoggerProvider(logPath));
+            builder.Logging.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Debug);
             builder.Logging.SetMinimumLevel(LogLevel.Information);
 
             // Register application services
