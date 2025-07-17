@@ -186,6 +186,7 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(ProcessResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseProcessResult,
                 Type t when t == typeof(ErrorResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseErrorResult,
                 Type t when t == typeof(UniversalResponse) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseUniversalResponse,
+                Type t when t == typeof(BooleanResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseBooleanResult,
                 Type t when t == typeof(object) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseObject,
                 _ => null
             };
@@ -480,6 +481,7 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(ServerEnhancedResponse<ScreenshotResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<BaseOperationResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<ProcessLaunchResponse>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<BooleanResult>))]
     [JsonSerializable(typeof(ProcessLaunchResponse))]
     [JsonSerializable(typeof(ServerExecutionInfo))]
     [JsonSerializable(typeof(RequestMetadata))]

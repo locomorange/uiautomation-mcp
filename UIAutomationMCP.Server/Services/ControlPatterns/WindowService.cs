@@ -162,21 +162,103 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
         public async Task<object> TransformElementAsync(string elementId, string action, double? x = null, double? y = null, double? width = null, double? height = null, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             // Input validation
-            var validationResult = SubprocessErrorHandler.ValidateElementId(elementId, "TransformElement", _logger);
-            if (validationResult != null) return validationResult;
+            if (string.IsNullOrWhiteSpace(elementId))
+            {
+                var validationError = "Element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"TransformElement validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "TransformElement",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["action"] = action ?? "",
+                            ["x"] = x ?? 0,
+                            ["y"] = y ?? 0,
+                            ["width"] = width ?? 0,
+                            ["height"] = height ?? 0,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                return validationJson;
+            }
 
             if (string.IsNullOrWhiteSpace(action))
             {
                 var validationError = "Transform action is required and cannot be empty";
-                _logger.LogWarning("TransformElement operation failed due to validation: {Error}", validationError);
-                return new { Success = false, Error = validationError, ErrorCategory = "Validation" };
+                _logger.LogWarningWithOperation(operationId, $"TransformElement validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["action"] = action ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "TransformElement",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["action"] = action ?? "",
+                            ["x"] = x ?? 0,
+                            ["y"] = y ?? 0,
+                            ["width"] = width ?? 0,
+                            ["height"] = height ?? 0,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                return validationJson;
             }
 
             try
             {
-                _logger.LogInformation("Transforming element: {ElementId} with action: {Action} (x:{X}, y:{Y}, w:{Width}, h:{Height})", 
-                    elementId, action, x ?? 0, y ?? 0, width ?? 0, height ?? 0);
+                _logger.LogInformationWithOperation(operationId, $"Starting TransformElement: ElementId={elementId}, Action={action}, Coordinates=({x},{y}), Size=({width},{height})");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -190,30 +272,113 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                await _executor.ExecuteAsync<object>("TransformElement", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ActionResult>("TransformElement", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Element transformed successfully: {ElementId}", elementId);
-                return new { 
-                    Success = true, 
-                    Message = $"Element '{elementId}' transformed with action '{action}' successfully",
-                    ElementId = elementId,
-                    Action = action,
-                    Coordinates = new { X = x ?? 0, Y = y ?? 0, Width = width ?? 0, Height = height ?? 0 },
-                    Operation = "TransformElement"
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["action"] = action,
+                            ["coordinates"] = new { X = x ?? 0, Y = y ?? 0 },
+                            ["size"] = new { Width = width ?? 0, Height = height ?? 0 },
+                            ["operationType"] = "transformElement"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "TransformElement",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["action"] = action,
+                            ["x"] = x ?? 0,
+                            ["y"] = y ?? 0,
+                            ["width"] = width ?? 0,
+                            ["height"] = height ?? 0,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
                 };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                return SubprocessErrorHandler.HandleError(ex, "TransformElement", elementId, timeoutSeconds, _logger);
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in TransformElement operation");
+                
+                var errorResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["elementId"] = elementId,
+                            ["action"] = action,
+                            ["operationType"] = "transformElement"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "TransformElement",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["action"] = action,
+                            ["x"] = x ?? 0,
+                            ["y"] = y ?? 0,
+                            ["width"] = width ?? 0,
+                            ["height"] = height ?? 0,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
         public async Task<object> GetWindowStateAsync(string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             try
             {
-                _logger.LogInformation("Getting window state for window: {WindowTitle} (ProcessId: {ProcessId})", 
-                    windowTitle ?? "any", processId ?? 0);
+                _logger.LogInformationWithOperation(operationId, $"Starting GetWindowState for window: {windowTitle ?? "any"} (ProcessId: {processId ?? 0})");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -221,37 +386,140 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                var result = await _executor.ExecuteAsync<object>("GetWindowState", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<WindowInfoResult>("GetWindowState", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Window state retrieved successfully for window: {WindowTitle}", windowTitle ?? "any");
-                return new { 
-                    Success = true, 
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<WindowInfoResult>
+                {
+                    Success = result.Success,
                     Data = result,
-                    Message = $"Window state retrieved successfully",
-                    WindowTitle = windowTitle,
-                    Operation = "GetWindowState"
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["operationType"] = "getWindowState"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetWindowState",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
                 };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                return SubprocessErrorHandler.HandleError(ex, "GetWindowState", windowTitle ?? "unknown", timeoutSeconds, _logger);
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in GetWindowState operation");
+                
+                var errorResponse = new ServerEnhancedResponse<WindowInfoResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["operationType"] = "getWindowState"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetWindowState",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
         public async Task<object> SetWindowStateAsync(string windowState, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             // Input validation
             if (string.IsNullOrWhiteSpace(windowState))
             {
                 var validationError = "Window state is required and cannot be empty";
-                _logger.LogWarning("SetWindowState operation failed due to validation: {Error}", validationError);
-                return new { Success = false, Error = validationError, ErrorCategory = "Validation" };
+                _logger.LogWarningWithOperation(operationId, $"SetWindowState validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["windowState"] = windowState ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "SetWindowState",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowState"] = windowState ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                return validationJson;
             }
 
             try
             {
-                _logger.LogInformation("Setting window state to: {WindowState} for window: {WindowTitle} (ProcessId: {ProcessId})", 
-                    windowState, windowTitle ?? "any", processId ?? 0);
+                _logger.LogInformationWithOperation(operationId, $"Starting SetWindowState: {windowState} for window: {windowTitle ?? "any"} (ProcessId: {processId ?? 0})");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -260,29 +528,103 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                await _executor.ExecuteAsync<object>("SetWindowState", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ActionResult>("SetWindowState", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Window state set successfully to: {WindowState}", windowState);
-                return new { 
-                    Success = true, 
-                    Message = $"Window state set to '{windowState}' successfully",
-                    WindowState = windowState,
-                    WindowTitle = windowTitle,
-                    Operation = "SetWindowState"
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["windowState"] = windowState,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["operationType"] = "setWindowState"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "SetWindowState",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowState"] = windowState,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
                 };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                return SubprocessErrorHandler.HandleError(ex, "SetWindowState", windowTitle ?? "unknown", timeoutSeconds, _logger);
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in SetWindowState operation");
+                
+                var errorResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["windowState"] = windowState,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["operationType"] = "setWindowState"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "SetWindowState",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowState"] = windowState,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
         public async Task<object> MoveWindowAsync(int x, int y, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             try
             {
-                _logger.LogInformation("Moving window to position: ({X}, {Y}) for window: {WindowTitle} (ProcessId: {ProcessId})", 
-                    x, y, windowTitle ?? "any", processId ?? 0);
+                _logger.LogInformationWithOperation(operationId, $"Starting MoveWindow to position: ({x}, {y}) for window: {windowTitle ?? "any"} (ProcessId: {processId ?? 0})");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -292,29 +634,105 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                await _executor.ExecuteAsync<object>("MoveWindow", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ActionResult>("MoveWindow", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Window moved successfully to position: ({X}, {Y})", x, y);
-                return new { 
-                    Success = true, 
-                    Message = $"Window moved to position ({x}, {y}) successfully",
-                    Position = new { X = x, Y = y },
-                    WindowTitle = windowTitle,
-                    Operation = "MoveWindow"
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["position"] = new { X = x, Y = y },
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["operationType"] = "moveWindow"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "MoveWindow",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["x"] = x,
+                            ["y"] = y,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
                 };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                return SubprocessErrorHandler.HandleError(ex, "MoveWindow", windowTitle ?? "unknown", timeoutSeconds, _logger);
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in MoveWindow operation");
+                
+                var errorResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["position"] = new { X = x, Y = y },
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["operationType"] = "moveWindow"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "MoveWindow",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["x"] = x,
+                            ["y"] = y,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
         public async Task<object> ResizeWindowAsync(int width, int height, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             try
             {
-                _logger.LogInformation("Resizing window to size: ({Width}, {Height}) for window: {WindowTitle} (ProcessId: {ProcessId})", 
-                    width, height, windowTitle ?? "any", processId ?? 0);
+                _logger.LogInformationWithOperation(operationId, $"Starting ResizeWindow to size: ({width}, {height}) for window: {windowTitle ?? "any"} (ProcessId: {processId ?? 0})");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -324,29 +742,105 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                await _executor.ExecuteAsync<object>("ResizeWindow", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ActionResult>("ResizeWindow", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Window resized successfully to size: ({Width}, {Height})", width, height);
-                return new { 
-                    Success = true, 
-                    Message = $"Window resized to size ({width}, {height}) successfully",
-                    Size = new { Width = width, Height = height },
-                    WindowTitle = windowTitle,
-                    Operation = "ResizeWindow"
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["size"] = new { Width = width, Height = height },
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["operationType"] = "resizeWindow"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "ResizeWindow",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["width"] = width,
+                            ["height"] = height,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
                 };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                return SubprocessErrorHandler.HandleError(ex, "ResizeWindow", windowTitle ?? "unknown", timeoutSeconds, _logger);
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in ResizeWindow operation");
+                
+                var errorResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["size"] = new { Width = width, Height = height },
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["operationType"] = "resizeWindow"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "ResizeWindow",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["width"] = width,
+                            ["height"] = height,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
         public async Task<object> GetWindowInteractionStateAsync(string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             try
             {
-                _logger.LogInformation("Getting window interaction state for window: {WindowTitle} (ProcessId: {ProcessId})", 
-                    windowTitle ?? "any", processId ?? 0);
+                _logger.LogInformationWithOperation(operationId, $"Starting GetWindowInteractionState for window: {windowTitle ?? "any"} (ProcessId: {processId ?? 0})");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -354,29 +848,99 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                var result = await _executor.ExecuteAsync<object>("GetWindowInteractionState", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<WindowInteractionStateResult>("GetWindowInteractionState", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Window interaction state retrieved successfully for window: {WindowTitle}", windowTitle ?? "any");
-                return new { 
-                    Success = true, 
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<WindowInteractionStateResult>
+                {
+                    Success = result.Success,
                     Data = result,
-                    Message = "Window interaction state retrieved successfully",
-                    WindowTitle = windowTitle,
-                    Operation = "GetWindowInteractionState"
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["operationType"] = "getWindowInteractionState"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetWindowInteractionState",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
                 };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                return SubprocessErrorHandler.HandleError(ex, "GetWindowInteractionState", windowTitle ?? "unknown", timeoutSeconds, _logger);
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in GetWindowInteractionState operation");
+                
+                var errorResponse = new ServerEnhancedResponse<WindowInteractionStateResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["operationType"] = "getWindowInteractionState"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetWindowInteractionState",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
         public async Task<object> GetWindowCapabilitiesAsync(string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             try
             {
-                _logger.LogInformation("Getting window capabilities for window: {WindowTitle} (ProcessId: {ProcessId})", 
-                    windowTitle ?? "any", processId ?? 0);
+                _logger.LogInformationWithOperation(operationId, $"Starting GetWindowCapabilities for window: {windowTitle ?? "any"} (ProcessId: {processId ?? 0})");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -384,29 +948,99 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                var result = await _executor.ExecuteAsync<object>("GetWindowCapabilities", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<WindowCapabilitiesResult>("GetWindowCapabilities", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Window capabilities retrieved successfully for window: {WindowTitle}", windowTitle ?? "any");
-                return new { 
-                    Success = true, 
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<WindowCapabilitiesResult>
+                {
+                    Success = result.Success,
                     Data = result,
-                    Message = "Window capabilities retrieved successfully",
-                    WindowTitle = windowTitle,
-                    Operation = "GetWindowCapabilities"
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["operationType"] = "getWindowCapabilities"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetWindowCapabilities",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
                 };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                return SubprocessErrorHandler.HandleError(ex, "GetWindowCapabilities", windowTitle ?? "unknown", timeoutSeconds, _logger);
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in GetWindowCapabilities operation");
+                
+                var errorResponse = new ServerEnhancedResponse<WindowCapabilitiesResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["operationType"] = "getWindowCapabilities"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetWindowCapabilities",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
         public async Task<object> WaitForInputIdleAsync(int timeoutMilliseconds = 10000, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             try
             {
-                _logger.LogInformation("Waiting for input idle for window: {WindowTitle} (ProcessId: {ProcessId}, Timeout: {TimeoutMs}ms)", 
-                    windowTitle ?? "any", processId ?? 0, timeoutMilliseconds);
+                _logger.LogInformationWithOperation(operationId, $"Starting WaitForInputIdle for window: {windowTitle ?? "any"} (ProcessId: {processId ?? 0}, Timeout: {timeoutMilliseconds}ms)");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -415,20 +1049,93 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                var result = await _executor.ExecuteAsync<object>("WaitForInputIdle", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<BooleanResult>("WaitForInputIdle", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Wait for input idle completed for window: {WindowTitle}", windowTitle ?? "any");
-                return new { 
-                    Success = true, 
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<BooleanResult>
+                {
+                    Success = result.Success,
                     Data = result,
-                    Message = "Wait for input idle completed",
-                    WindowTitle = windowTitle,
-                    Operation = "WaitForInputIdle"
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["timeoutMilliseconds"] = timeoutMilliseconds,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["inputIdleAchieved"] = result.Value,
+                            ["operationType"] = "waitForInputIdle"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "WaitForInputIdle",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["timeoutMilliseconds"] = timeoutMilliseconds,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
                 };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                return SubprocessErrorHandler.HandleError(ex, "WaitForInputIdle", windowTitle ?? "unknown", timeoutSeconds, _logger);
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in WaitForInputIdle operation");
+                
+                var errorResponse = new ServerEnhancedResponse<BooleanResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["timeoutMilliseconds"] = timeoutMilliseconds,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["operationType"] = "waitForInputIdle"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "WaitForInputIdle",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["timeoutMilliseconds"] = timeoutMilliseconds,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
     }
