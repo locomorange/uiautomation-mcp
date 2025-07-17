@@ -21,10 +21,35 @@ namespace UIAutomationMCP.Shared.Serialization
 
         // Worker Request/Response serialization
         public static string SerializeWorkerRequest(WorkerRequest request)
-            => JsonSerializer.Serialize(request, _context.WorkerRequest);
+        {
+            try
+            {
+                return JsonSerializer.Serialize(request, _context.WorkerRequest);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to serialize WorkerRequest: {ex.Message}", ex);
+            }
+        }
 
         public static WorkerRequest? DeserializeWorkerRequest(string json)
-            => JsonSerializer.Deserialize(json, _context.WorkerRequest);
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(json))
+                    throw new ArgumentException("JSON string cannot be null or empty");
+                
+                return JsonSerializer.Deserialize(json, _context.WorkerRequest);
+            }
+            catch (JsonException ex)
+            {
+                throw new InvalidOperationException($"Failed to deserialize WorkerRequest from JSON: {json}. Error: {ex.Message}", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Unexpected error deserializing WorkerRequest: {ex.Message}", ex);
+            }
+        }
 
         // Generic WorkerResponse serialization with type detection
         public static string SerializeWorkerResponse<T>(WorkerResponse<T> response)
@@ -47,53 +72,100 @@ namespace UIAutomationMCP.Shared.Serialization
 
         public static WorkerResponse<T>? DeserializeWorkerResponse<T>(string json)
         {
-            JsonTypeInfo<WorkerResponse<T>>? typeInfo = GetWorkerResponseTypeInfo<T>();
-            
-            if (typeInfo != null)
-                return JsonSerializer.Deserialize(json, typeInfo);
-            
-            // Fallback: deserialize as object and convert
-            var objResponse = JsonSerializer.Deserialize(json, _context.WorkerResponseObject);
-            if (objResponse == null) return null;
-            
-            return new WorkerResponse<T>
+            try
             {
-                Success = objResponse.Success,
-                Data = (T)objResponse.Data!,
-                Error = objResponse.Error
-            };
+                if (string.IsNullOrEmpty(json))
+                    throw new ArgumentException("JSON string cannot be null or empty");
+
+                JsonTypeInfo<WorkerResponse<T>>? typeInfo = GetWorkerResponseTypeInfo<T>();
+                
+                if (typeInfo != null)
+                    return JsonSerializer.Deserialize(json, typeInfo);
+                
+                // Fallback: deserialize as object and convert
+                var objResponse = JsonSerializer.Deserialize(json, _context.WorkerResponseObject);
+                if (objResponse == null) return null;
+                
+                return new WorkerResponse<T>
+                {
+                    Success = objResponse.Success,
+                    Data = (T)objResponse.Data!,
+                    Error = objResponse.Error
+                };
+            }
+            catch (JsonException ex)
+            {
+                throw new InvalidOperationException($"Failed to deserialize WorkerResponse<{typeof(T).Name}> from JSON: {json}. Error: {ex.Message}", ex);
+            }
+            catch (InvalidCastException ex)
+            {
+                throw new InvalidOperationException($"Failed to cast response data to type {typeof(T).Name}. JSON: {json}. Error: {ex.Message}", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Unexpected error deserializing WorkerResponse<{typeof(T).Name}>: {ex.Message}", ex);
+            }
         }
 
         // Object serialization (for unknown types)
         public static string SerializeObject(object obj)
         {
-            return obj switch
+            try
             {
-                Dictionary<string, object> dict => JsonSerializer.Serialize(dict, _context.DictionaryStringObject),
-                List<Dictionary<string, object>> list => JsonSerializer.Serialize(list, _context.ListDictionaryStringObject),
-                WorkerRequest req => JsonSerializer.Serialize(req, _context.WorkerRequest),
-                _ => JsonSerializer.Serialize(obj, _context.Object)
-            };
+                return obj switch
+                {
+                    Dictionary<string, object> dict => JsonSerializer.Serialize(dict, _context.DictionaryStringObject),
+                    List<Dictionary<string, object>> list => JsonSerializer.Serialize(list, _context.ListDictionaryStringObject),
+                    WorkerRequest req => JsonSerializer.Serialize(req, _context.WorkerRequest),
+                    _ => JsonSerializer.Serialize(obj, _context.Object)
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to serialize object of type {obj?.GetType().Name ?? "null"}: {ex.Message}", ex);
+            }
         }
 
         public static T? DeserializeObject<T>(string json)
         {
-            return typeof(T) switch
+            try
             {
-                // Common types
-                Type t when t == typeof(Dictionary<string, object>) => (T?)(object?)JsonSerializer.Deserialize(json, _context.DictionaryStringObject),
-                Type t when t == typeof(List<Dictionary<string, object>>) => (T?)(object?)JsonSerializer.Deserialize(json, _context.ListDictionaryStringObject),
-                Type t when t == typeof(WorkerRequest) => (T?)(object?)JsonSerializer.Deserialize(json, _context.WorkerRequest),
-                
-                // Try result types first
-                _ when GetResultTypeInfo<T>() is JsonTypeInfo<T> resultTypeInfo => JsonSerializer.Deserialize(json, resultTypeInfo),
-                
-                // Try request types
-                _ when GetRequestTypeInfo<T>() is JsonTypeInfo<T> requestTypeInfo => JsonSerializer.Deserialize(json, requestTypeInfo),
-                
-                // Unsupported type
-                _ => throw new NotSupportedException($"Type {typeof(T)} is not supported for deserialization")
-            };
+                if (string.IsNullOrEmpty(json))
+                    throw new ArgumentException("JSON string cannot be null or empty");
+
+                return typeof(T) switch
+                {
+                    // Common types
+                    Type t when t == typeof(Dictionary<string, object>) => (T?)(object?)JsonSerializer.Deserialize(json, _context.DictionaryStringObject),
+                    Type t when t == typeof(List<Dictionary<string, object>>) => (T?)(object?)JsonSerializer.Deserialize(json, _context.ListDictionaryStringObject),
+                    Type t when t == typeof(WorkerRequest) => (T?)(object?)JsonSerializer.Deserialize(json, _context.WorkerRequest),
+                    
+                    // Try result types first
+                    _ when GetResultTypeInfo<T>() is JsonTypeInfo<T> resultTypeInfo => JsonSerializer.Deserialize(json, resultTypeInfo),
+                    
+                    // Try request types
+                    _ when GetRequestTypeInfo<T>() is JsonTypeInfo<T> requestTypeInfo => JsonSerializer.Deserialize(json, requestTypeInfo),
+                    
+                    // Unsupported type
+                    _ => throw new NotSupportedException($"Type {typeof(T)} is not supported for deserialization")
+                };
+            }
+            catch (JsonException ex)
+            {
+                throw new InvalidOperationException($"Failed to deserialize JSON to type {typeof(T).Name}. JSON: {json}. Error: {ex.Message}", ex);
+            }
+            catch (InvalidCastException ex)
+            {
+                throw new InvalidOperationException($"Failed to cast deserialized object to type {typeof(T).Name}. JSON: {json}. Error: {ex.Message}", ex);
+            }
+            catch (NotSupportedException)
+            {
+                throw; // Re-throw NotSupportedException as-is
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Unexpected error deserializing to type {typeof(T).Name}: {ex.Message}", ex);
+            }
         }
 
         // Helper method to get type info for different WorkerResponse types

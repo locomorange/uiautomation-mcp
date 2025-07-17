@@ -24,16 +24,21 @@ namespace UIAutomationMCP.Server.Helpers
 
         public async Task<TResult> ExecuteAsync<TResult>(string operation, object? parameters = null, int timeoutSeconds = 60)
         {
-            if (_disposed)
-                throw new ObjectDisposedException(nameof(SubprocessExecutor));
-            
-            if (string.IsNullOrWhiteSpace(operation))
-                throw new ArgumentException("Operation cannot be null or empty", nameof(operation));
-            
-            await _semaphore.WaitAsync();
             try
             {
-                await EnsureWorkerProcessAsync();
+                if (_disposed)
+                    throw new ObjectDisposedException(nameof(SubprocessExecutor));
+                
+                if (string.IsNullOrWhiteSpace(operation))
+                    throw new ArgumentException("Operation cannot be null or empty", nameof(operation));
+                
+                if (timeoutSeconds <= 0)
+                    throw new ArgumentException("Timeout must be greater than zero", nameof(timeoutSeconds));
+                
+                await _semaphore.WaitAsync();
+                try
+                {
+                    await EnsureWorkerProcessAsync();
                 
                 var request = new WorkerRequest
                 {
@@ -196,116 +201,143 @@ namespace UIAutomationMCP.Server.Helpers
                         typeof(TResult).Name, JsonSerializationHelper.SerializeObject(response.Data!));
                     throw new InvalidOperationException($"Failed to deserialize response data to {typeof(TResult).Name}: {ex.Message}", ex);
                 }
+                }
+                finally
+                {
+                    _semaphore.Release();
+                }
             }
-            finally
+            catch (Exception ex) when (!(ex is ArgumentException || ex is ObjectDisposedException))
             {
-                _semaphore.Release();
+                _logger.LogError(ex, "Unexpected error in ExecuteAsync for operation '{Operation}' with parameters: {Parameters}", 
+                    operation, parameters != null ? JsonSerializationHelper.SerializeObject(parameters) : "null");
+                throw new InvalidOperationException($"Internal server error occurred while executing operation '{operation}': {ex.Message}", ex);
             }
         }
 
         private async Task EnsureWorkerProcessAsync()
         {
-            if (_workerProcess == null || _workerProcess.HasExited)
+            try
             {
-                await StartWorkerProcessAsync();
+                if (_workerProcess == null || _workerProcess.HasExited)
+                {
+                    await StartWorkerProcessAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to ensure worker process is running. Worker path: {WorkerPath}", _workerPath);
+                throw new InvalidOperationException($"Failed to start or verify worker process: {ex.Message}", ex);
             }
         }
 
         private async Task StartWorkerProcessAsync()
         {
-            _logger.LogInformation("Starting worker process: {WorkerPath}", _workerPath);
-
-            ProcessStartInfo startInfo;
-            
-            // Check if it's a project directory (for development)
-            if (Directory.Exists(_workerPath) && File.Exists(Path.Combine(_workerPath, "UIAutomationMCP.Worker.csproj")))
-            {
-                // Use dotnet run for project directory
-                startInfo = new ProcessStartInfo
-                {
-                    FileName = "dotnet",
-                    Arguments = "run --project .",
-                    UseShellExecute = false,
-                    RedirectStandardInput = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true,
-                    WorkingDirectory = _workerPath
-                };
-            }
-            else if (_workerPath.EndsWith(".dll"))
-            {
-                // For .dll files, use dotnet to run them
-                if (!File.Exists(_workerPath))
-                {
-                    throw new FileNotFoundException($"Worker DLL not found at: {_workerPath}");
-                }
-                
-                startInfo = new ProcessStartInfo
-                {
-                    FileName = "dotnet",
-                    Arguments = $"\"{_workerPath}\"",
-                    UseShellExecute = false,
-                    RedirectStandardInput = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true,
-                    WorkingDirectory = Path.GetDirectoryName(_workerPath)
-                };
-            }
-            else
-            {
-                // For executable files
-                if (!File.Exists(_workerPath))
-                {
-                    throw new FileNotFoundException($"Worker executable not found at: {_workerPath}");
-                }
-
-                startInfo = new ProcessStartInfo
-                {
-                    FileName = _workerPath,
-                    UseShellExecute = false,
-                    RedirectStandardInput = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true,
-                    WorkingDirectory = Path.GetDirectoryName(_workerPath)
-                };
-            }
-
-            _workerProcess = new Process { StartInfo = startInfo };
-            
-            // Set up async stderr monitoring
-            _workerProcess.ErrorDataReceived += (sender, e) =>
-            {
-                if (!string.IsNullOrEmpty(e.Data))
-                {
-                    _logger.LogInformation("Worker stderr: {ErrorData}", e.Data);
-                }
-            };
-            
             try
             {
-                _workerProcess.Start();
-                _workerProcess.BeginErrorReadLine(); // Start async stderr reading
+                _logger.LogInformation("Starting worker process: {WorkerPath}", _workerPath);
+
+                ProcessStartInfo startInfo;
+                
+                // Check if it's a project directory (for development)
+                if (Directory.Exists(_workerPath) && File.Exists(Path.Combine(_workerPath, "UIAutomationMCP.Worker.csproj")))
+                {
+                    // Use dotnet run for project directory
+                    startInfo = new ProcessStartInfo
+                    {
+                        FileName = "dotnet",
+                        Arguments = "run --project .",
+                        UseShellExecute = false,
+                        RedirectStandardInput = true,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true,
+                        WorkingDirectory = _workerPath
+                    };
+                    _logger.LogDebug("Starting worker using dotnet run from directory: {WorkerPath}", _workerPath);
+                }
+                else if (_workerPath.EndsWith(".dll"))
+                {
+                    // For .dll files, use dotnet to run them
+                    if (!File.Exists(_workerPath))
+                    {
+                        throw new FileNotFoundException($"Worker DLL not found at: {_workerPath}");
+                    }
+                    
+                    startInfo = new ProcessStartInfo
+                    {
+                        FileName = "dotnet",
+                        Arguments = $"\"{_workerPath}\"",
+                        UseShellExecute = false,
+                        RedirectStandardInput = true,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true,
+                        WorkingDirectory = Path.GetDirectoryName(_workerPath)
+                    };
+                    _logger.LogDebug("Starting worker DLL: {WorkerPath}", _workerPath);
+                }
+                else
+                {
+                    // For executable files
+                    if (!File.Exists(_workerPath))
+                    {
+                        throw new FileNotFoundException($"Worker executable not found at: {_workerPath}");
+                    }
+
+                    startInfo = new ProcessStartInfo
+                    {
+                        FileName = _workerPath,
+                        UseShellExecute = false,
+                        RedirectStandardInput = true,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true,
+                        WorkingDirectory = Path.GetDirectoryName(_workerPath)
+                    };
+                    _logger.LogDebug("Starting worker executable: {WorkerPath}", _workerPath);
+                }
+
+                _workerProcess = new Process { StartInfo = startInfo };
+                
+                // Set up async stderr monitoring
+                _workerProcess.ErrorDataReceived += (sender, e) =>
+                {
+                    if (!string.IsNullOrEmpty(e.Data))
+                    {
+                        _logger.LogDebug("Worker stderr: {ErrorData}", e.Data);
+                    }
+                };
+                
+                try
+                {
+                    _workerProcess.Start();
+                    _workerProcess.BeginErrorReadLine(); // Start async stderr reading
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to start worker process: {WorkerPath}. StartInfo: FileName={FileName}, Arguments={Arguments}", 
+                        _workerPath, startInfo.FileName, startInfo.Arguments);
+                    throw new InvalidOperationException($"Failed to start worker process: {_workerPath}", ex);
+                }
+
+                // Wait a bit for the process to start
+                await Task.Delay(100);
+
+                if (_workerProcess.HasExited)
+                {
+                    var exitCode = _workerProcess.ExitCode;
+                    _logger.LogError("Worker process exited immediately with code: {ExitCode}", exitCode);
+                    throw new InvalidOperationException($"Worker process failed to start (exit code: {exitCode})");
+                }
+
+                _logger.LogInformation("Worker process started with PID: {ProcessId}", _workerProcess.Id);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!(ex is FileNotFoundException))
             {
-                _logger.LogError(ex, "Failed to start worker process: {WorkerPath}", _workerPath);
-                throw new InvalidOperationException($"Failed to start worker process: {_workerPath}", ex);
+                _logger.LogError(ex, "Unexpected error while starting worker process: {WorkerPath}", _workerPath);
+                throw new InvalidOperationException($"Failed to start worker process due to unexpected error: {ex.Message}", ex);
             }
-
-            // Wait a bit for the process to start
-            await Task.Delay(100);
-
-            if (_workerProcess.HasExited)
-            {
-                var exitCode = _workerProcess.ExitCode;
-                _logger.LogError("Worker process exited immediately with code: {ExitCode}", exitCode);
-                throw new InvalidOperationException($"Worker process failed to start (exit code: {exitCode})");
-            }
-
-            _logger.LogInformation("Worker process started with PID: {ProcessId}", _workerProcess.Id);
         }
 
         private async Task RestartWorkerProcessAsync()

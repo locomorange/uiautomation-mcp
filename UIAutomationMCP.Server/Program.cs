@@ -19,7 +19,7 @@ namespace UIAutomationMCP.Server
             builder.Logging.ClearProviders();
             var logPath = Path.Combine(Directory.GetCurrentDirectory(), "mcp_debug.log");
             builder.Logging.AddProvider(new FileLoggerProvider(logPath));
-            builder.Logging.SetMinimumLevel(LogLevel.Debug);
+            builder.Logging.SetMinimumLevel(LogLevel.Information);
 
             // Register application services
             builder.Services.AddSingleton<IApplicationLauncher, ApplicationLauncher>();
@@ -87,11 +87,30 @@ namespace UIAutomationMCP.Server
 
                 if (workerPath == null || (!File.Exists(workerPath) && !Directory.Exists(workerPath)))
                 {
-                    logger.LogError("Worker not found. Searched path: {WorkerPath}", workerPath);
-                    throw new InvalidOperationException($"UIAutomationMCP.Worker not found at: {workerPath}");
+                    var searchedPaths = new List<string>();
+                    if (!string.IsNullOrEmpty(workerPath))
+                        searchedPaths.Add(workerPath);
+                    
+                    // Add additional diagnostic information about searched paths
+                    var solutionDir = Directory.GetParent(baseDir)?.Parent?.Parent?.Parent?.Parent?.FullName;
+                    if (solutionDir != null)
+                    {
+                        searchedPaths.Add(Path.Combine(solutionDir, "UIAutomationMCP.Worker"));
+                        var config = baseDir.Contains("Debug") ? "Debug" : "Release";
+                        searchedPaths.Add(Path.Combine(solutionDir, "UIAutomationMCP.Worker", "bin", config, "net9.0-windows", "UIAutomationMCP-Worker.exe"));
+                    }
+                    searchedPaths.Add(Path.Combine(baseDir, "UIAutomationMCP-Worker.exe"));
+
+                    logger.LogError("Worker not found. Base directory: {BaseDir}. Searched paths: {SearchedPaths}", 
+                        baseDir, string.Join(", ", searchedPaths));
+                    
+                    throw new InvalidOperationException($"UIAutomationMCP.Worker not found. Searched: {string.Join(", ", searchedPaths)}");
                 }
 
-                logger.LogInformation("Worker path configured: {WorkerPath}", workerPath);
+                logger.LogInformation("Worker path configured: {WorkerPath}. Exists: {Exists}. IsDirectory: {IsDirectory}", 
+                    workerPath, 
+                    Directory.Exists(workerPath) || File.Exists(workerPath),
+                    Directory.Exists(workerPath));
                 return new SubprocessExecutor(logger, workerPath);
             });
             
