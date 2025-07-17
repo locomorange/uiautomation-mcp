@@ -64,8 +64,8 @@ namespace UIAutomationMCP.Shared
 
             try
             {
-                var json = JsonSerializationHelper.SerializeObject(request.Parameters);
-                var typedRequest = JsonSerializationHelper.DeserializeObject<T>(json);
+                var json = JsonSerializationHelper.Serialize(request.Parameters);
+                var typedRequest = JsonSerializationHelper.Deserialize<T>(json);
                 
                 if (typedRequest != null)
                 {
@@ -104,8 +104,8 @@ namespace UIAutomationMCP.Shared
         /// </summary>
         public static WorkerRequest ToWorkerRequest(this TypedWorkerRequest typedRequest)
         {
-            var parametersJson = JsonSerializationHelper.SerializeObject(typedRequest);
-            var parameters = JsonSerializationHelper.DeserializeObject<Dictionary<string, object>>(parametersJson);
+            var parametersJson = JsonSerializationHelper.Serialize(typedRequest);
+            var parameters = JsonSerializationHelper.Deserialize<Dictionary<string, object>>(parametersJson);
 
             return new WorkerRequest
             {

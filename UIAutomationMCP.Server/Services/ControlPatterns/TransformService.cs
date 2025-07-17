@@ -56,7 +56,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             try
@@ -97,7 +97,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Transform capabilities retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
@@ -132,7 +132,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get transform capabilities for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
 
@@ -178,7 +178,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             try
@@ -223,7 +223,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Element moved successfully: {elementId} to ({x}, {y})");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
@@ -260,7 +260,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to move element: {elementId} to ({x}, {y})");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
 
@@ -306,7 +306,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             if (width <= 0 || height <= 0)
@@ -347,7 +347,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             try
@@ -392,7 +392,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Element resized successfully: {elementId} to ({width}, {height})");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
@@ -429,7 +429,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to resize element: {elementId} to ({width}, {height})");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
 
@@ -474,7 +474,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             try
@@ -517,7 +517,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Element rotated successfully: {elementId} by {degrees} degrees");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
@@ -553,7 +553,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to rotate element: {elementId} by {degrees} degrees");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
     }

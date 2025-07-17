@@ -58,7 +58,7 @@ namespace UIAutomationMCP.Server.Services
                         {
                             _logger.LogInformation("BoundingRectangle found, type: {Type}, value: {Value}", 
                                 boundingRectObj?.GetType().Name ?? "null", 
-                                boundingRectObj != null ? JsonSerializationHelper.SerializeObject(boundingRectObj) : "null");
+                                boundingRectObj != null ? JsonSerializationHelper.Serialize(boundingRectObj) : "null");
                             
                             if (boundingRectObj is Dictionary<string, object> boundingRect)
                             {
@@ -279,7 +279,7 @@ namespace UIAutomationMCP.Server.Services
                 };
 
                 _logger.LogInformation("Calling Worker GetWindowInfo with parameters: {Parameters}", 
-                    JsonSerializationHelper.SerializeObject(parameters));
+                    JsonSerializationHelper.Serialize(parameters));
 
                 var result = await _executor.ExecuteAsync<Dictionary<string, object>>("GetWindowInfo", parameters, 10);
                 
@@ -287,7 +287,7 @@ namespace UIAutomationMCP.Server.Services
                 if (result != null)
                 {
                     _logger.LogInformation("Worker returned window info keys: {Keys}", string.Join(", ", result.Keys));
-                    _logger.LogInformation("Worker returned window info: {WindowInfo}", JsonSerializationHelper.SerializeObject(result));
+                    _logger.LogInformation("Worker returned window info: {WindowInfo}", JsonSerializationHelper.Serialize(result));
                 }
                 else
                 {
@@ -376,7 +376,7 @@ namespace UIAutomationMCP.Server.Services
                 else
                 {
                     _logger.LogWarning("Failed to activate window via Worker. Result: {Result}", 
-                        result != null ? JsonSerializationHelper.SerializeObject(result) : "null");
+                        result != null ? JsonSerializationHelper.Serialize(result) : "null");
                 }
 
                 // Wait for window state changes

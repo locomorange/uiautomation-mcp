@@ -56,7 +56,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             try
@@ -97,7 +97,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Table information retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
@@ -132,7 +132,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get table information for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
 
@@ -176,7 +176,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             try
@@ -217,7 +217,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Row headers retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
@@ -252,7 +252,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get row headers for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
 
@@ -296,7 +296,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             try
@@ -337,7 +337,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Column headers retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
@@ -372,7 +372,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get column headers for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
 
@@ -416,7 +416,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             try
@@ -457,7 +457,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"RowOrColumnMajor property retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
@@ -492,7 +492,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get RowOrColumnMajor property for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
 
@@ -536,7 +536,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             try
@@ -577,7 +577,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Column header items retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
@@ -612,7 +612,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get column header items for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
 
@@ -656,7 +656,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             try
@@ -697,7 +697,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Row header items retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
@@ -732,7 +732,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get row header items for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
     }

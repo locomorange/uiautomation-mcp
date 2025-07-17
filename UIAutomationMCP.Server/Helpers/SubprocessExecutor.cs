@@ -46,7 +46,7 @@ namespace UIAutomationMCP.Server.Helpers
                     Parameters = parameters as Dictionary<string, object>
                 };
 
-                var requestJson = JsonSerializationHelper.SerializeWorkerRequest(request);
+                var requestJson = JsonSerializationHelper.Serialize(request);
                 _logger.LogInformation("Sending request to worker: {Request}", requestJson);
 
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
@@ -99,7 +99,7 @@ namespace UIAutomationMCP.Server.Helpers
                     var contextMessage = $"Worker process returned empty response for operation '{operation}'";
                     if (parameters != null)
                     {
-                        contextMessage += $" with parameters: {JsonSerializationHelper.SerializeObject(parameters)}";
+                        contextMessage += $" with parameters: {JsonSerializationHelper.Serialize(parameters)}";
                     }
                     if (!string.IsNullOrEmpty(errorOutput))
                     {
@@ -116,7 +116,7 @@ namespace UIAutomationMCP.Server.Helpers
                 WorkerResponse<object>? response;
                 try
                 {
-                    response = JsonSerializationHelper.DeserializeWorkerResponse<object>(responseJson);
+                    response = JsonSerializationHelper.Deserialize<WorkerResponse<object>>(responseJson);
                 }
                 catch (JsonException ex)
                 {
@@ -154,7 +154,7 @@ namespace UIAutomationMCP.Server.Helpers
                     var contextualErrorMessage = $"Worker operation '{operation}' failed: {errorMessage}";
                     if (parameters != null)
                     {
-                        contextualErrorMessage += $" (Parameters: {JsonSerializationHelper.SerializeObject(parameters)})";
+                        contextualErrorMessage += $" (Parameters: {JsonSerializationHelper.Serialize(parameters)})";
                     }
                     
                     _logger.LogError("Worker operation failed with details: {@ErrorDetails}", errorDetails);
@@ -190,7 +190,7 @@ namespace UIAutomationMCP.Server.Helpers
                 try
                 {
                     // Convert response.Data to TResult
-                    var dataJson = JsonSerializationHelper.SerializeObject(response.Data!);
+                    var dataJson = JsonSerializationHelper.Serialize(response.Data!);
                     var result = JsonSerializationHelper.Deserialize<TResult>(dataJson)!;
                     _logger.LogInformation("Successfully deserialized worker response data to type {ResultType}", typeof(TResult).Name);
                     return result;
@@ -198,7 +198,7 @@ namespace UIAutomationMCP.Server.Helpers
                 catch (JsonException ex)
                 {
                     _logger.LogError(ex, "Failed to deserialize response data to type {ResultType}. Data: {Data}", 
-                        typeof(TResult).Name, JsonSerializationHelper.SerializeObject(response.Data!));
+                        typeof(TResult).Name, JsonSerializationHelper.Serialize(response.Data!));
                     throw new InvalidOperationException($"Failed to deserialize response data to {typeof(TResult).Name}: {ex.Message}", ex);
                 }
                 }
@@ -210,7 +210,7 @@ namespace UIAutomationMCP.Server.Helpers
             catch (Exception ex) when (!(ex is ArgumentException || ex is ObjectDisposedException))
             {
                 _logger.LogError(ex, "Unexpected error in ExecuteAsync for operation '{Operation}' with parameters: {Parameters}", 
-                    operation, parameters != null ? JsonSerializationHelper.SerializeObject(parameters) : "null");
+                    operation, parameters != null ? JsonSerializationHelper.Serialize(parameters) : "null");
                 throw new InvalidOperationException($"Internal server error occurred while executing operation '{operation}': {ex.Message}", ex);
             }
         }

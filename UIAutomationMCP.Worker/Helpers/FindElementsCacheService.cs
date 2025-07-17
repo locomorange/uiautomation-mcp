@@ -86,7 +86,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
             }
 
-            var json = JsonSerializationHelper.SerializeObject(keyParams);
+            var json = JsonSerializationHelper.Serialize(keyParams);
             using var sha256 = SHA256.Create();
             var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(json));
             return Convert.ToBase64String(hashBytes);

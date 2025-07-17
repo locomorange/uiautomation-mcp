@@ -57,7 +57,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             if (string.IsNullOrWhiteSpace(action) || !new[] { "expand", "collapse" }.Contains(action.ToLowerInvariant()))
@@ -96,7 +96,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             try
@@ -139,7 +139,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Expand/collapse action performed successfully: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
@@ -175,7 +175,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to perform expand/collapse action on element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
 
@@ -221,7 +221,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             if (string.IsNullOrWhiteSpace(direction) || !new[] { "up", "down", "left", "right" }.Contains(direction.ToLowerInvariant()))
@@ -261,7 +261,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             try
@@ -306,7 +306,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Element scrolled successfully: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
@@ -343,7 +343,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to scroll element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
 
@@ -387,7 +387,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             try
@@ -428,7 +428,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Element scrolled into view successfully: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
@@ -463,7 +463,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to scroll element into view: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
 
@@ -507,7 +507,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             try
@@ -548,7 +548,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Scroll information retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
@@ -583,7 +583,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get scroll information for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
 
@@ -629,7 +629,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             if (horizontalPercent < 0 || horizontalPercent > 100 || verticalPercent < 0 || verticalPercent > 100)
@@ -670,7 +670,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             try
@@ -715,7 +715,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Scroll percentage set successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
@@ -752,7 +752,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to set scroll percentage for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
 
@@ -797,7 +797,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             if (string.IsNullOrWhiteSpace(dockPosition) || !new[] { "top", "bottom", "left", "right", "fill", "none" }.Contains(dockPosition.ToLowerInvariant()))
@@ -836,7 +836,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             try
@@ -879,7 +879,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Element docked successfully: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
@@ -915,7 +915,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to dock element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
     }

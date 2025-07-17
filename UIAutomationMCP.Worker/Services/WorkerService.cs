@@ -47,7 +47,7 @@ namespace UIAutomationMCP.Worker.Services
                             continue;
                         }
 
-                        var request = JsonSerializationHelper.DeserializeWorkerRequest(input);
+                        var request = JsonSerializationHelper.Deserialize<WorkerRequest>(input);
                         if (request == null)
                         {
                             _logger.LogWarning("Failed to deserialize request: {Input}", input);
@@ -136,7 +136,7 @@ namespace UIAutomationMCP.Worker.Services
 
         private void WriteResponse(WorkerResponse<object> response)
         {
-            var json = JsonSerializationHelper.SerializeWorkerResponse(response);
+            var json = JsonSerializationHelper.Serialize(response);
             Console.WriteLine(json);
             Console.Out.Flush(); // Ensure immediate output
         }

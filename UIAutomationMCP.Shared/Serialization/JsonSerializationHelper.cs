@@ -244,50 +244,32 @@ namespace UIAutomationMCP.Shared.Serialization
             };
         }
 
-        // Worker Request/Response serialization
+        // Legacy API - Use Serialize<T>() and Deserialize<T>() for new code
+        [Obsolete("Use Serialize<WorkerRequest>(request) instead for better type safety and consistency")]
         public static string SerializeWorkerRequest(WorkerRequest request)
         {
-            try
-            {
-                return JsonSerializer.Serialize(request, _context.WorkerRequest);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Failed to serialize WorkerRequest: {ex.Message}", ex);
-            }
+            return Serialize(request);
         }
 
+        [Obsolete("Use Deserialize<WorkerRequest>(json) instead for better type safety and consistency")]
         public static WorkerRequest? DeserializeWorkerRequest(string json)
         {
-            try
-            {
-                if (string.IsNullOrEmpty(json))
-                    throw new ArgumentException("JSON string cannot be null or empty");
-                
-                return JsonSerializer.Deserialize(json, _context.WorkerRequest);
-            }
-            catch (JsonException ex)
-            {
-                throw new InvalidOperationException($"Failed to deserialize WorkerRequest from JSON: {json}. Error: {ex.Message}", ex);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Unexpected error deserializing WorkerRequest: {ex.Message}", ex);
-            }
+            return Deserialize<WorkerRequest>(json);
         }
 
-        // Generic WorkerResponse serialization with type detection (Phase 2: Delegated to unified API)
+        [Obsolete("Use Serialize<WorkerResponse<T>>(response) instead for better type safety and consistency")]
         public static string SerializeWorkerResponse<T>(WorkerResponse<T> response)
         {
             return Serialize(response);
         }
 
+        [Obsolete("Use Deserialize<WorkerResponse<T>>(json) instead for better type safety and consistency")]
         public static WorkerResponse<T>? DeserializeWorkerResponse<T>(string json)
         {
             return Deserialize<WorkerResponse<T>>(json);
         }
 
-        // Object serialization (Phase 2: Delegated to unified API for supported types)
+        [Obsolete("Use Serialize<T>(obj) instead for better type safety and consistency")]
         public static string SerializeObject(object obj)
         {
             try
@@ -307,6 +289,7 @@ namespace UIAutomationMCP.Shared.Serialization
             }
         }
 
+        [Obsolete("Use Deserialize<T>(json) instead for better type safety and consistency")]
         public static T? DeserializeObject<T>(string json) where T : notnull
         {
             return Deserialize<T>(json);

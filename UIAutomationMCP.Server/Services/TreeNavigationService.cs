@@ -58,7 +58,7 @@ namespace UIAutomationMCP.Server.Services
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             try
@@ -99,7 +99,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Children retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
@@ -134,7 +134,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get children for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
 
@@ -178,7 +178,7 @@ namespace UIAutomationMCP.Server.Services
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             try
@@ -219,7 +219,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Parent retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
@@ -254,7 +254,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get parent for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
 
@@ -298,7 +298,7 @@ namespace UIAutomationMCP.Server.Services
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             try
@@ -339,7 +339,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Siblings retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
@@ -374,7 +374,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get siblings for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
 
@@ -418,7 +418,7 @@ namespace UIAutomationMCP.Server.Services
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             try
@@ -459,7 +459,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Descendants retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
@@ -494,7 +494,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get descendants for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
 
@@ -538,7 +538,7 @@ namespace UIAutomationMCP.Server.Services
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
             }
             
             try
@@ -579,7 +579,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Ancestors retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(successResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
@@ -614,7 +614,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get ancestors for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
 
@@ -673,7 +673,7 @@ namespace UIAutomationMCP.Server.Services
                     }
                 };
 
-                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(serverResponse);
                 
                 _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
                 
@@ -714,7 +714,7 @@ namespace UIAutomationMCP.Server.Services
                     }
                 };
                 
-                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
                 
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
