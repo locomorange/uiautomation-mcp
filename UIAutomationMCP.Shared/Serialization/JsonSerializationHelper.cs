@@ -207,6 +207,10 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(ProcessResult) => (JsonTypeInfo<T>)(object)_context.ProcessResult,
                 Type t when t == typeof(ErrorResult) => (JsonTypeInfo<T>)(object)_context.ErrorResult,
                 Type t when t == typeof(UniversalResponse) => (JsonTypeInfo<T>)(object)_context.UniversalResponse,
+                Type t when t == typeof(ElementTreeResult) => (JsonTypeInfo<T>)(object)_context.ElementTreeResult,
+                Type t when t == typeof(TreeNavigationResult) => (JsonTypeInfo<T>)(object)_context.TreeNavigationResult,
+                Type t when t == typeof(DesktopWindowsResult) => (JsonTypeInfo<T>)(object)_context.DesktopWindowsResult,
+                Type t when t == typeof(BooleanResult) => (JsonTypeInfo<T>)(object)_context.BooleanResult,
                 _ => null
             };
         }

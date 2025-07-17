@@ -18,7 +18,7 @@ namespace UIAutomationMCP.Shared.Results
         /// <summary>
         /// 状態が変更されたか
         /// </summary>
-        public bool StateChanged => !EqualityComparer<T>.Default.Equals(PreviousState, CurrentState);
+        public new bool StateChanged => !EqualityComparer<T>.Default.Equals(PreviousState, CurrentState);
     }
 
     /// <summary>

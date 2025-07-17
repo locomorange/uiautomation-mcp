@@ -25,6 +25,6 @@ namespace UIAutomationMCP.Shared.Results
         public Dictionary<string, object> AfterState { get; set; } = new();
         public bool Completed { get; set; }
         public string? Details { get; set; }
-        public DateTime ExecutedAt { get; set; }
+        public new DateTime ExecutedAt { get; set; }
     }
 }
