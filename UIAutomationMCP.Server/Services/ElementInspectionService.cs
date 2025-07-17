@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services
@@ -18,7 +19,7 @@ namespace UIAutomationMCP.Server.Services
             _executor = executor;
         }
 
-        public async Task<object> GetElementPropertiesAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementPropertiesResult>> GetElementPropertiesAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -58,7 +59,7 @@ namespace UIAutomationMCP.Server.Services
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -99,7 +100,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Properties retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -134,11 +135,11 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get properties for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> GetElementPatternsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<PatternsInfoResult>> GetElementPatternsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -178,7 +179,7 @@ namespace UIAutomationMCP.Server.Services
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -219,7 +220,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Patterns retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -254,7 +255,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get patterns for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
     }

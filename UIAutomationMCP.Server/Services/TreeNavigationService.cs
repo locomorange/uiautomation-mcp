@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services
@@ -18,7 +19,7 @@ namespace UIAutomationMCP.Server.Services
             _executor = executor;
         }
 
-        public async Task<object> GetChildrenAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetChildrenAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -58,7 +59,7 @@ namespace UIAutomationMCP.Server.Services
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -99,7 +100,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Children retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -134,11 +135,11 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get children for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> GetParentAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetParentAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -178,7 +179,7 @@ namespace UIAutomationMCP.Server.Services
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -219,7 +220,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Parent retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -254,11 +255,11 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get parent for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> GetSiblingsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetSiblingsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -298,7 +299,7 @@ namespace UIAutomationMCP.Server.Services
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -339,7 +340,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Siblings retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -374,11 +375,11 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get siblings for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> GetDescendantsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetDescendantsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -418,7 +419,7 @@ namespace UIAutomationMCP.Server.Services
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -459,7 +460,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Descendants retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -494,11 +495,11 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get descendants for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> GetAncestorsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetAncestorsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -538,7 +539,7 @@ namespace UIAutomationMCP.Server.Services
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -579,7 +580,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Ancestors retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -614,11 +615,11 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get ancestors for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> GetElementTreeAsync(string? windowTitle = null, int? processId = null, int maxDepth = 3, int timeoutSeconds = 60)
+        public async Task<ServerEnhancedResponse<ElementTreeResult>> GetElementTreeAsync(string? windowTitle = null, int? processId = null, int maxDepth = 3, int timeoutSeconds = 60)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
