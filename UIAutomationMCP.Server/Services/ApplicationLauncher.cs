@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Server.Helpers;
 
 namespace UIAutomationMCP.Server.Services
 {
@@ -22,9 +24,12 @@ namespace UIAutomationMCP.Server.Services
 
         public async Task<object> LaunchWin32ApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             try
             {
-                _logger.LogInformation("Launching Win32 application: {ApplicationPath}", applicationPath);
+                _logger.LogInformationWithOperation(operationId, $"Starting LaunchWin32Application with Path={applicationPath}, Arguments={arguments}");
 
                 var startInfo = new ProcessStartInfo
                 {
@@ -34,10 +39,11 @@ namespace UIAutomationMCP.Server.Services
                     UseShellExecute = true
                 };
 
+                _logger.LogInformationWithOperation(operationId, "Starting process");
                 var process = Process.Start(startInfo);
                 if (process == null)
                 {
-                    var errorResponse = ProcessLaunchResponse.CreateError("Failed to start process");
+                    throw new InvalidOperationException("Failed to start process - Process.Start returned null");
                 }
 
                 var processId = process.Id;
@@ -51,50 +57,110 @@ namespace UIAutomationMCP.Server.Services
                     processName = Path.GetFileNameWithoutExtension(applicationPath);
                 }
 
-                _logger.LogInformation("Win32 process started: ProcessId={ProcessId}, ProcessName={ProcessName}", processId, processName);
+                _logger.LogInformationWithOperation(operationId, $"Process started successfully: ProcessId={processId}, ProcessName={processName}");
 
                 await Task.Delay(500, cancellationToken);
                 var hasExited = process.HasExited;
 
+                stopwatch.Stop();
+                
                 var response = ProcessLaunchResponse.CreateSuccess(processId, processName, hasExited);
-                return new Dictionary<string, object>
+                var serverResponse = new ServerEnhancedResponse<ProcessLaunchResponse>
                 {
-                    ["success"] = response.Success,
-                    ["processId"] = response.ProcessId,
-                    ["processName"] = response.ProcessName,
-                    ["hasExited"] = response.HasExited,
-                    ["windowTitle"] = response.WindowTitle ?? string.Empty,
-                    ["executedAt"] = response.ExecutedAt
+                    Success = response.Success,
+                    Data = response,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["processId"] = processId,
+                            ["processName"] = processName,
+                            ["hasExited"] = hasExited,
+                            ["applicationPath"] = applicationPath,
+                            ["arguments"] = arguments ?? "",
+                            ["workingDirectory"] = workingDirectory ?? ""
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "LaunchWin32Application",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["applicationPath"] = applicationPath,
+                            ["arguments"] = arguments ?? "",
+                            ["workingDirectory"] = workingDirectory ?? "",
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
                 };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error launching Win32 application: {ApplicationPath}", applicationPath);
-                var response = ProcessLaunchResponse.CreateError(ex.Message);
-                return new
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in LaunchWin32Application operation");
+                
+                var errorResponse = new ServerEnhancedResponse<ProcessLaunchResponse>
                 {
-                    success = response.Success,
-                    error = response.Error,
-                    executedAt = response.ExecutedAt
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["applicationPath"] = applicationPath
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "LaunchWin32Application",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["applicationPath"] = applicationPath,
+                            ["arguments"] = arguments ?? "",
+                            ["workingDirectory"] = workingDirectory ?? "",
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
                 };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
         public async Task<object> LaunchUWPApplicationAsync(string appsFolderPath, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             try
             {
-                _logger.LogInformation("Launching UWP application: {AppsFolderPath}", appsFolderPath);
+                _logger.LogInformationWithOperation(operationId, $"Starting LaunchUWPApplication with Path={appsFolderPath}");
 
                 if (!appsFolderPath.StartsWith("shell:AppsFolder\\", StringComparison.OrdinalIgnoreCase))
                 {
-                    var errorResponse = ProcessLaunchResponse.CreateError("Invalid UWP app path. Must start with 'shell:AppsFolder\\'");
-                    return new Dictionary<string, object>
-                    {
-                        ["success"] = errorResponse.Success,
-                        ["error"] = errorResponse.Error ?? string.Empty,
-                        ["executedAt"] = errorResponse.ExecutedAt
-                    };
+                    throw new ArgumentException("Invalid UWP app path. Must start with 'shell:AppsFolder\\'");
                 }
 
                 var startInfo = new ProcessStartInfo
@@ -105,53 +171,109 @@ namespace UIAutomationMCP.Server.Services
                     CreateNoWindow = true
                 };
 
+                _logger.LogInformationWithOperation(operationId, "Starting UWP launch process");
                 var process = Process.Start(startInfo);
                 if (process == null)
                 {
-                    var errorResponse = ProcessLaunchResponse.CreateError("Failed to start process");
-                    return new Dictionary<string, object>
-                    {
-                        ["success"] = errorResponse.Success,
-                        ["error"] = errorResponse.Error ?? string.Empty,
-                        ["executedAt"] = errorResponse.ExecutedAt
-                    };
+                    throw new InvalidOperationException("Failed to start process - Process.Start returned null");
                 }
 
                 var processId = process.Id;
-                _logger.LogInformation("UWP launch process started: ProcessId={ProcessId}", processId);
+                _logger.LogInformationWithOperation(operationId, $"UWP launch process started: ProcessId={processId}");
 
                 await Task.Delay(1000, cancellationToken); // UWPは起動に時間がかかる場合がある
                 var hasExited = process.HasExited;
 
+                stopwatch.Stop();
+                
                 var response = ProcessLaunchResponse.CreateSuccess(processId, "UWP App", hasExited);
-                return new Dictionary<string, object>
+                var serverResponse = new ServerEnhancedResponse<ProcessLaunchResponse>
                 {
-                    ["success"] = response.Success,
-                    ["processId"] = response.ProcessId,
-                    ["processName"] = response.ProcessName,
-                    ["hasExited"] = response.HasExited,
-                    ["windowTitle"] = response.WindowTitle ?? string.Empty,
-                    ["executedAt"] = response.ExecutedAt
+                    Success = response.Success,
+                    Data = response,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["processId"] = processId,
+                            ["processName"] = "UWP App",
+                            ["hasExited"] = hasExited,
+                            ["appsFolderPath"] = appsFolderPath,
+                            ["uwpLaunchDelay"] = "1000ms"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "LaunchUWPApplication",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["appsFolderPath"] = appsFolderPath,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
                 };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error launching UWP application: {AppsFolderPath}", appsFolderPath);
-                var response = ProcessLaunchResponse.CreateError(ex.Message);
-                return new
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in LaunchUWPApplication operation");
+                
+                var errorResponse = new ServerEnhancedResponse<ProcessLaunchResponse>
                 {
-                    success = response.Success,
-                    error = response.Error,
-                    executedAt = response.ExecutedAt
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["appsFolderPath"] = appsFolderPath
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "LaunchUWPApplication",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["appsFolderPath"] = appsFolderPath,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
                 };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
         public async Task<object> LaunchApplicationByNameAsync(string applicationName, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             try
             {
-                _logger.LogInformation("Launching application by name: {ApplicationName}", applicationName);
+                _logger.LogInformationWithOperation(operationId, $"Starting LaunchApplicationByName with ApplicationName={applicationName}");
 
                 // Step 1: アプリケーションを検索
                 var searchStartInfo = new ProcessStartInfo
@@ -167,13 +289,7 @@ namespace UIAutomationMCP.Server.Services
                 var searchProcess = Process.Start(searchStartInfo);
                 if (searchProcess == null)
                 {
-                    var errorResponse = ProcessLaunchResponse.CreateError("Failed to start PowerShell search process");
-                    return new Dictionary<string, object>
-                    {
-                        ["success"] = errorResponse.Success,
-                        ["error"] = errorResponse.Error ?? string.Empty,
-                        ["executedAt"] = errorResponse.ExecutedAt
-                    };
+                    throw new InvalidOperationException("Failed to start PowerShell search process");
                 }
 
                 var searchOutput = await searchProcess.StandardOutput.ReadToEndAsync();
@@ -184,25 +300,13 @@ namespace UIAutomationMCP.Server.Services
 
                 if (searchProcess.ExitCode != 0 || !string.IsNullOrEmpty(searchError))
                 {
-                    var errorResponse = ProcessLaunchResponse.CreateError($"Application '{applicationName}' not found. Search output: {searchOutput}, Error: {searchError}");
-                    return new Dictionary<string, object>
-                    {
-                        ["success"] = errorResponse.Success,
-                        ["error"] = errorResponse.Error ?? string.Empty,
-                        ["executedAt"] = errorResponse.ExecutedAt
-                    };
+                    throw new InvalidOperationException($"Application '{applicationName}' not found. Search output: {searchOutput}, Error: {searchError}");
                 }
 
                 var appId = searchOutput.Trim();
                 if (string.IsNullOrEmpty(appId))
                 {
-                    var errorResponse = ProcessLaunchResponse.CreateError($"Application '{applicationName}' not found or AppID is empty");
-                    return new Dictionary<string, object>
-                    {
-                        ["success"] = errorResponse.Success,
-                        ["error"] = errorResponse.Error ?? string.Empty,
-                        ["executedAt"] = errorResponse.ExecutedAt
-                    };
+                    throw new InvalidOperationException($"Application '{applicationName}' not found or AppID is empty");
                 }
 
                 _logger.LogInformation("Found application: {ApplicationName} with AppID: {AppID}", applicationName, appId);
@@ -219,13 +323,7 @@ namespace UIAutomationMCP.Server.Services
                 var launchProcess = Process.Start(launchStartInfo);
                 if (launchProcess == null)
                 {
-                    var errorResponse = ProcessLaunchResponse.CreateError("Failed to start launch process");
-                    return new Dictionary<string, object>
-                    {
-                        ["success"] = errorResponse.Success,
-                        ["error"] = errorResponse.Error ?? string.Empty,
-                        ["executedAt"] = errorResponse.ExecutedAt
-                    };
+                    throw new InvalidOperationException("Failed to start launch process");
                 }
 
                 _logger.LogInformation("Application launched by name: {ApplicationName}", applicationName);
@@ -301,27 +399,86 @@ namespace UIAutomationMCP.Server.Services
                     _logger.LogWarning(ex, "Failed to find launched process for {ApplicationName}", applicationName);
                 }
 
+                stopwatch.Stop();
+                
                 var response = ProcessLaunchResponse.CreateSuccess(processId, processName, false, targetProcess?.MainWindowTitle);
-                return new Dictionary<string, object>
+                var serverResponse = new ServerEnhancedResponse<ProcessLaunchResponse>
                 {
-                    ["success"] = response.Success,
-                    ["processId"] = response.ProcessId,
-                    ["processName"] = response.ProcessName,
-                    ["hasExited"] = response.HasExited,
-                    ["windowTitle"] = response.WindowTitle ?? string.Empty,
-                    ["executedAt"] = response.ExecutedAt
+                    Success = response.Success,
+                    Data = response,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["processId"] = processId,
+                            ["processName"] = processName,
+                            ["hasExited"] = false,
+                            ["applicationName"] = applicationName,
+                            ["windowTitle"] = targetProcess?.MainWindowTitle ?? "N/A",
+                            ["searchDelay"] = "2000ms"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "LaunchApplicationByName",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["applicationName"] = applicationName,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
                 };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error launching application by name: {ApplicationName}", applicationName);
-                var response = ProcessLaunchResponse.CreateError(ex.Message);
-                return new
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in LaunchApplicationByName operation");
+                
+                var errorResponse = new ServerEnhancedResponse<ProcessLaunchResponse>
                 {
-                    success = response.Success,
-                    error = response.Error,
-                    executedAt = response.ExecutedAt
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["applicationName"] = applicationName
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "LaunchApplicationByName",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["applicationName"] = applicationName,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
                 };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 

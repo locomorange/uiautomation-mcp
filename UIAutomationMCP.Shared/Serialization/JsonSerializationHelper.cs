@@ -211,6 +211,7 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(TreeNavigationResult) => (JsonTypeInfo<T>)(object)_context.TreeNavigationResult,
                 Type t when t == typeof(DesktopWindowsResult) => (JsonTypeInfo<T>)(object)_context.DesktopWindowsResult,
                 Type t when t == typeof(BooleanResult) => (JsonTypeInfo<T>)(object)_context.BooleanResult,
+                Type t when t == typeof(ProcessLaunchResponse) => (JsonTypeInfo<T>)(object)_context.ProcessLaunchResponse,
                 _ => null
             };
         }
@@ -478,6 +479,8 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(ServerEnhancedResponse<WindowCapabilitiesResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<ScreenshotResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<BaseOperationResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<ProcessLaunchResponse>))]
+    [JsonSerializable(typeof(ProcessLaunchResponse))]
     [JsonSerializable(typeof(ServerExecutionInfo))]
     [JsonSerializable(typeof(RequestMetadata))]
     [JsonSourceGenerationOptions(

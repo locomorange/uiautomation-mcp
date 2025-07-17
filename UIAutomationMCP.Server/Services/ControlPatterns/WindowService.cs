@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Shared.Results;
+using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
@@ -16,18 +18,53 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
         public async Task<object> WindowOperationAsync(string operation, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             // Input validation
             if (string.IsNullOrWhiteSpace(operation))
             {
                 var validationError = "Window operation is required and cannot be empty";
-                _logger.LogWarning("WindowAction operation failed due to validation: {Error}", validationError);
-                return new { Success = false, Error = validationError, ErrorCategory = "Validation" };
+                _logger.LogWarningWithOperation(operationId, $"WindowOperation validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["operation"] = operation ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "WindowOperation",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["operation"] = operation ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                return validationJson;
             }
 
             try
             {
-                _logger.LogInformation("Performing window operation: {Operation} on window: {WindowTitle} (ProcessId: {ProcessId})", 
-                    operation, windowTitle ?? "any", processId ?? 0);
+                _logger.LogInformationWithOperation(operationId, $"Starting WindowOperation: {operation} on window: {windowTitle ?? "any"} (ProcessId: {processId ?? 0})");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -36,19 +73,90 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                await _executor.ExecuteAsync<object>("WindowAction", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ActionResult>("WindowAction", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Window operation performed successfully: {Operation}", operation);
-                return new { 
-                    Success = true, 
-                    Message = $"Window operation '{operation}' performed successfully",
-                    Operation = operation,
-                    WindowTitle = windowTitle
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["operation"] = operation,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["operationType"] = "windowOperation"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "WindowOperation",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["operation"] = operation,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
                 };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                return SubprocessErrorHandler.HandleError(ex, "WindowAction", windowTitle ?? "unknown", timeoutSeconds, _logger);
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in WindowOperation");
+                
+                var errorResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["operation"] = operation,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["operationType"] = "windowOperation"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "WindowOperation",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["operation"] = operation,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 

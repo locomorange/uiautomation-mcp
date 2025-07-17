@@ -2,7 +2,9 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Serialization;
+using UIAutomationMCP.Shared.Results;
 using System.Text.Json;
+using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services
 {
@@ -19,12 +21,14 @@ namespace UIAutomationMCP.Server.Services
             _executor = executor;
         }
 
-        public async Task<JsonElement> FindElementAsync(string? windowTitle = null, int? processId = null, string? name = null, string? automationId = null, string? className = null, string? controlType = null, int timeoutSeconds = 30)
+        public async Task<object> FindElementAsync(string? windowTitle = null, int? processId = null, string? name = null, string? automationId = null, string? className = null, string? controlType = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             try
             {
-                _logger.LogInformation("Finding element with WindowTitle={WindowTitle}, ProcessId={ProcessId}, Name={Name}, AutomationId={AutomationId}, ClassName={ClassName}, ControlType={ControlType}",
-                    windowTitle, processId, name, automationId, className, controlType);
+                _logger.LogInformationWithOperation(operationId, $"Starting FindElement with WindowTitle={windowTitle}, ProcessId={processId}, Name={name}, AutomationId={automationId}, ClassName={className}, ControlType={controlType}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -36,25 +40,104 @@ namespace UIAutomationMCP.Server.Services
                     { "controlType", controlType ?? "" }
                 };
 
-                var result = await _executor.ExecuteAsync<object>("FindElement", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ElementSearchResult>("FindElement", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Found element successfully");
-                return ConvertToJsonElement(result);
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["elementsFound"] = result.Count,
+                            ["searchCriteria"] = $"WindowTitle={windowTitle}, ProcessId={processId}, Name={name}, AutomationId={automationId}, ClassName={className}, ControlType={controlType}"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "FindElement",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["name"] = name ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["className"] = className ?? "",
+                            ["controlType"] = controlType ?? "",
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to find element");
-                var errorResult = SubprocessErrorHandler.HandleError(ex, "FindElement", "", timeoutSeconds, _logger);
-                return ConvertToJsonElement(errorResult);
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in FindElement operation");
+                
+                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["searchCriteria"] = $"WindowTitle={windowTitle}, ProcessId={processId}, Name={name}, AutomationId={automationId}, ClassName={className}, ControlType={controlType}"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "FindElement",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["name"] = name ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["className"] = className ?? "",
+                            ["controlType"] = controlType ?? "",
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
-        public async Task<JsonElement> FindAllElementsAsync(string? windowTitle = null, int? processId = null, string? name = null, string? automationId = null, string? className = null, string? controlType = null, int timeoutSeconds = 30)
+        public async Task<object> FindAllElementsAsync(string? windowTitle = null, int? processId = null, string? name = null, string? automationId = null, string? className = null, string? controlType = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             try
             {
-                _logger.LogInformation("Finding all elements with WindowTitle={WindowTitle}, ProcessId={ProcessId}, Name={Name}, AutomationId={AutomationId}, ClassName={ClassName}, ControlType={ControlType}",
-                    windowTitle, processId, name, automationId, className, controlType);
+                _logger.LogInformationWithOperation(operationId, $"Starting FindAllElements with WindowTitle={windowTitle}, ProcessId={processId}, Name={name}, AutomationId={automationId}, ClassName={className}, ControlType={controlType}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -66,24 +149,105 @@ namespace UIAutomationMCP.Server.Services
                     { "controlType", controlType ?? "" }
                 };
 
-                var result = await _executor.ExecuteAsync<object>("FindAllElements", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ElementSearchResult>("FindAllElements", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Found all elements successfully");
-                return ConvertToJsonElement(result);
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["elementsFound"] = result.Count,
+                            ["totalResults"] = result.Items?.Count ?? 0,
+                            ["searchCriteria"] = $"WindowTitle={windowTitle}, ProcessId={processId}, Name={name}, AutomationId={automationId}, ClassName={className}, ControlType={controlType}"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "FindAllElements",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["name"] = name ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["className"] = className ?? "",
+                            ["controlType"] = controlType ?? "",
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to find all elements");
-                var errorResult = SubprocessErrorHandler.HandleError(ex, "FindAllElements", "", timeoutSeconds, _logger);
-                return ConvertToJsonElement(errorResult);
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in FindAllElements operation");
+                
+                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["searchCriteria"] = $"WindowTitle={windowTitle}, ProcessId={processId}, Name={name}, AutomationId={automationId}, ClassName={className}, ControlType={controlType}"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "FindAllElements",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["name"] = name ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["className"] = className ?? "",
+                            ["controlType"] = controlType ?? "",
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
-        public async Task<JsonElement> FindElementByXPathAsync(string xpath, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<object> FindElementByXPathAsync(string xpath, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             try
             {
-                _logger.LogInformation("Finding element by XPath: {XPath}", xpath);
+                _logger.LogInformationWithOperation(operationId, $"Starting FindElementByXPath with XPath={xpath}, WindowTitle={windowTitle}, ProcessId={processId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -92,24 +256,100 @@ namespace UIAutomationMCP.Server.Services
                     { "processId", processId ?? 0 }
                 };
 
-                var result = await _executor.ExecuteAsync<object>("FindElementByXPath", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ElementSearchResult>("FindElementByXPath", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Found element by XPath successfully");
-                return ConvertToJsonElement(result);
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["elementsFound"] = result.Count,
+                            ["xpath"] = xpath,
+                            ["searchCriteria"] = $"XPath={xpath}, WindowTitle={windowTitle}, ProcessId={processId}"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "FindElementByXPath",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["xpath"] = xpath,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to find element by XPath");
-                var errorResult = SubprocessErrorHandler.HandleError(ex, "FindElementByXPath", "", timeoutSeconds, _logger);
-                return ConvertToJsonElement(errorResult);
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in FindElementByXPath operation");
+                
+                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["xpath"] = xpath,
+                            ["searchCriteria"] = $"XPath={xpath}, WindowTitle={windowTitle}, ProcessId={processId}"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "FindElementByXPath",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["xpath"] = xpath,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
-        public async Task<JsonElement> FindElementsByTagNameAsync(string tagName, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<object> FindElementsByTagNameAsync(string tagName, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             try
             {
-                _logger.LogInformation("Finding elements by tag name: {TagName}", tagName);
+                _logger.LogInformationWithOperation(operationId, $"Starting FindElementsByTagName with TagName={tagName}, WindowTitle={windowTitle}, ProcessId={processId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -118,24 +358,101 @@ namespace UIAutomationMCP.Server.Services
                     { "processId", processId ?? 0 }
                 };
 
-                var result = await _executor.ExecuteAsync<object>("FindElementsByTagName", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ElementSearchResult>("FindElementsByTagName", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Found elements by tag name successfully");
-                return ConvertToJsonElement(result);
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["elementsFound"] = result.Count,
+                            ["totalResults"] = result.Items?.Count ?? 0,
+                            ["tagName"] = tagName,
+                            ["searchCriteria"] = $"TagName={tagName}, WindowTitle={windowTitle}, ProcessId={processId}"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "FindElementsByTagName",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["tagName"] = tagName,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to find elements by tag name");
-                var errorResult = SubprocessErrorHandler.HandleError(ex, "FindElementsByTagName", "", timeoutSeconds, _logger);
-                return ConvertToJsonElement(errorResult);
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in FindElementsByTagName operation");
+                
+                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["tagName"] = tagName,
+                            ["searchCriteria"] = $"TagName={tagName}, WindowTitle={windowTitle}, ProcessId={processId}"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "FindElementsByTagName",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["tagName"] = tagName,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
-        public async Task<JsonElement> GetWindowsAsync(int timeoutSeconds = 60)
+        public async Task<object> GetWindowsAsync(int timeoutSeconds = 60)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             try
             {
-                _logger.LogInformation("Getting desktop windows");
+                _logger.LogInformationWithOperation(operationId, "Starting GetWindows operation");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -143,25 +460,93 @@ namespace UIAutomationMCP.Server.Services
                     { "includeInvisible", false }
                 };
 
-                var result = await _executor.ExecuteAsync<object>("GetDesktopWindows", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<DesktopWindowsResult>("GetDesktopWindows", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Got desktop windows successfully");
-                return ConvertToJsonElement(result);
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<DesktopWindowsResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["windowsFound"] = result.Windows?.Count ?? 0,
+                            ["includeInvisible"] = false
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetWindows",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["timeoutSeconds"] = timeoutSeconds,
+                            ["includeInvisible"] = false
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get desktop windows");
-                var errorResult = SubprocessErrorHandler.HandleError(ex, "GetDesktopWindows", "", timeoutSeconds, _logger);
-                return ConvertToJsonElement(errorResult);
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in GetWindows operation");
+                
+                var errorResponse = new ServerEnhancedResponse<DesktopWindowsResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? ""
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetWindows",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["timeoutSeconds"] = timeoutSeconds,
+                            ["includeInvisible"] = false
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
-        public async Task<JsonElement> FindElementsAsync(string? windowTitle = null, string? searchText = null, string? controlType = null, int? processId = null, int timeoutSeconds = 60)
+        public async Task<object> FindElementsAsync(string? windowTitle = null, string? searchText = null, string? controlType = null, int? processId = null, int timeoutSeconds = 60)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             try
             {
-                _logger.LogInformation("Finding elements with WindowTitle={WindowTitle}, SearchText={SearchText}, ControlType={ControlType}, ProcessId={ProcessId}",
-                    windowTitle, searchText, controlType, processId);
+                _logger.LogInformationWithOperation(operationId, $"Starting FindElements with WindowTitle={windowTitle}, SearchText={searchText}, ControlType={controlType}, ProcessId={processId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -171,24 +556,92 @@ namespace UIAutomationMCP.Server.Services
                     { "processId", processId ?? 0 }
                 };
 
-                var result = await _executor.ExecuteAsync<object>("FindElements", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ElementSearchResult>("FindElements", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Found elements successfully");
-                return ConvertToJsonElement(result);
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["elementsFound"] = result.Count,
+                            ["totalResults"] = result.Items?.Count ?? 0,
+                            ["searchCriteria"] = $"WindowTitle={windowTitle}, SearchText={searchText}, ControlType={controlType}, ProcessId={processId}"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "FindElements",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["searchText"] = searchText ?? "",
+                            ["controlType"] = controlType ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to find elements");
-                var errorResult = SubprocessErrorHandler.HandleError(ex, "FindElements", "", timeoutSeconds, _logger);
-                return ConvertToJsonElement(errorResult);
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in FindElements operation");
+                
+                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["searchCriteria"] = $"WindowTitle={windowTitle}, SearchText={searchText}, ControlType={controlType}, ProcessId={processId}"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "FindElements",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["searchText"] = searchText ?? "",
+                            ["controlType"] = controlType ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
-        private static JsonElement ConvertToJsonElement(object obj)
-        {
-            var json = JsonSerializationHelper.SerializeObject(obj);
-            using var doc = JsonDocument.Parse(json);
-            return doc.RootElement.Clone();
-        }
     }
 }

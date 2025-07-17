@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Shared.Results;
+using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
@@ -16,9 +18,12 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
         public async Task<object> SetValueAsync(string elementId, string value, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             try
             {
-                _logger.LogInformation("Setting element value: {ElementId} = {Value}", elementId, value);
+                _logger.LogInformationWithOperation(operationId, $"Starting SetValue for ElementId={elementId}, Value={value}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -28,23 +33,103 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                await _executor.ExecuteAsync<object>("SetElementValue", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ActionResult>("SetElementValue", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Element value set successfully: {ElementId}", elementId);
-                return new { Success = true, Message = $"Element value set to: {value}" };
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["value"] = value,
+                            ["operationType"] = "setValue"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "SetValue",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["value"] = value,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to set element value: {ElementId}", elementId);
-                return new { Success = false, Error = ex.Message };
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in SetValue operation");
+                
+                var errorResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["elementId"] = elementId,
+                            ["value"] = value,
+                            ["operationType"] = "setValue"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "SetValue",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["value"] = value,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
         public async Task<object> GetValueAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             try
             {
-                _logger.LogInformation("Getting element value: {ElementId}", elementId);
+                _logger.LogInformationWithOperation(operationId, $"Starting GetValue for ElementId={elementId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -53,23 +138,100 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                var result = await _executor.ExecuteAsync<string>("GetElementValue", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ElementValueResult>("GetElementValue", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Element value retrieved successfully: {ElementId}", elementId);
-                return new { Success = true, Value = result };
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<ElementValueResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["retrievedValue"] = result.Value ?? "<null>",
+                            ["operationType"] = "getValue"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetValue",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get element value: {ElementId}", elementId);
-                return new { Success = false, Error = ex.Message };
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in GetValue operation");
+                
+                var errorResponse = new ServerEnhancedResponse<ElementValueResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["elementId"] = elementId,
+                            ["operationType"] = "getValue"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetValue",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
         public async Task<object> IsReadOnlyAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             try
             {
-                _logger.LogInformation("Checking if element is read-only: {ElementId}", elementId);
+                _logger.LogInformationWithOperation(operationId, $"Starting IsReadOnly check for ElementId={elementId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -78,15 +240,89 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                var result = await _executor.ExecuteAsync<bool>("IsReadOnly", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<BooleanResult>("IsReadOnly", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Read-only status retrieved successfully: {ElementId}", elementId);
-                return new { Success = true, IsReadOnly = result };
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<BooleanResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["isReadOnly"] = result.Value,
+                            ["operationType"] = "isReadOnly"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "IsReadOnly",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to check read-only status: {ElementId}", elementId);
-                return new { Success = false, Error = ex.Message };
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in IsReadOnly operation");
+                
+                var errorResponse = new ServerEnhancedResponse<BooleanResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["elementId"] = elementId,
+                            ["operationType"] = "isReadOnly"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "IsReadOnly",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
     }
