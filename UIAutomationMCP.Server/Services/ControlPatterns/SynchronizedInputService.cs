@@ -1,5 +1,8 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Interfaces;
+using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Shared.Results;
+using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
@@ -16,9 +19,91 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
         public async Task<object> StartListeningAsync(string elementId, string inputType, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(elementId))
+            {
+                var validationError = "Element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"StartListening validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = _executor is SubprocessExecutor executor ? LogCollectorExtensions.Instance.GetLogs(operationId) : new List<string>(),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId ?? "<null>",
+                            ["inputType"] = inputType ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "StartListening",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["inputType"] = inputType ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+            }
+            
+            if (string.IsNullOrWhiteSpace(inputType))
+            {
+                var validationError = "Input type is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"StartListening validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = _executor is SubprocessExecutor executor ? LogCollectorExtensions.Instance.GetLogs(operationId) : new List<string>(),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId,
+                            ["inputType"] = inputType ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "StartListening",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["inputType"] = inputType ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+            }
+            
             try
             {
-                _logger.LogInformation("Starting synchronized input listening for element: {ElementId} with input type: {InputType}", elementId, inputType);
+                _logger.LogInformationWithOperation(operationId, $"Starting synchronized input listening for element: {elementId} with input type: {inputType}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -28,23 +113,120 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                await _executor.ExecuteAsync<object>("StartSynchronizedInput", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ElementSearchResult>("StartSynchronizedInput", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Synchronized input listening started successfully for element: {ElementId}", elementId);
-                return new { Success = true, Message = "Synchronized input listening started" };
+                var successResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = true,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = _executor is SubprocessExecutor executor ? LogCollectorExtensions.Instance.GetLogs(operationId) : new List<string>()
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "StartListening",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["inputType"] = inputType,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogInformationWithOperation(operationId, $"Synchronized input listening started successfully for element: {elementId}");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to start synchronized input listening for element: {ElementId}", elementId);
-                return new { Success = false, Error = ex.Message };
+                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = _executor is SubprocessExecutor executor ? LogCollectorExtensions.Instance.GetLogs(operationId) : new List<string>(),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "ExecutionError",
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? ""
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "StartListening",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["inputType"] = inputType,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to start synchronized input listening for element: {elementId}");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
 
         public async Task<object> CancelAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(elementId))
+            {
+                var validationError = "Element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"Cancel validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = _executor is SubprocessExecutor executor ? LogCollectorExtensions.Instance.GetLogs(operationId) : new List<string>(),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "Cancel",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+            }
+            
             try
             {
-                _logger.LogInformation("Canceling synchronized input for element: {ElementId}", elementId);
+                _logger.LogInformationWithOperation(operationId, $"Canceling synchronized input for element: {elementId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -53,15 +235,69 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                await _executor.ExecuteAsync<object>("CancelSynchronizedInput", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ElementSearchResult>("CancelSynchronizedInput", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Synchronized input canceled successfully for element: {ElementId}", elementId);
-                return new { Success = true, Message = "Synchronized input canceled" };
+                var successResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = true,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = _executor is SubprocessExecutor executor ? LogCollectorExtensions.Instance.GetLogs(operationId) : new List<string>()
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "Cancel",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogInformationWithOperation(operationId, $"Synchronized input canceled successfully for element: {elementId}");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to cancel synchronized input for element: {ElementId}", elementId);
-                return new { Success = false, Error = ex.Message };
+                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = _executor is SubprocessExecutor executor ? LogCollectorExtensions.Instance.GetLogs(operationId) : new List<string>(),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "ExecutionError",
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? ""
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "Cancel",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to cancel synchronized input for element: {elementId}");
+                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
             }
         }
     }
