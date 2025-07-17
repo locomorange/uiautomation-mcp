@@ -22,7 +22,7 @@ namespace UIAutomationMCP.Server.Helpers
             _workerPath = !string.IsNullOrWhiteSpace(workerPath) ? workerPath : throw new ArgumentException("Worker path cannot be null or empty", nameof(workerPath));
         }
 
-        public async Task<TResult> ExecuteAsync<TResult>(string operation, object? parameters = null, int timeoutSeconds = 60)
+        public async Task<TResult> ExecuteAsync<TResult>(string operation, object? parameters = null, int timeoutSeconds = 60) where TResult : notnull
         {
             try
             {
@@ -191,7 +191,7 @@ namespace UIAutomationMCP.Server.Helpers
                 {
                     // Convert response.Data to TResult
                     var dataJson = JsonSerializationHelper.SerializeObject(response.Data!);
-                    var result = JsonSerializationHelper.DeserializeObject<TResult>(dataJson)!;
+                    var result = JsonSerializationHelper.Deserialize<TResult>(dataJson)!;
                     _logger.LogInformation("Successfully deserialized worker response data to type {ResultType}", typeof(TResult).Name);
                     return result;
                 }

@@ -19,6 +19,231 @@ namespace UIAutomationMCP.Shared.Serialization
             NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals
         });
 
+        // Phase 1: New unified type inference-based API
+        /// <summary>
+        /// Serializes an object using type inference to automatically select the appropriate JsonTypeInfo
+        /// </summary>
+        /// <typeparam name="T">The type to serialize</typeparam>
+        /// <param name="obj">The object to serialize</param>
+        /// <returns>JSON string representation</returns>
+        /// <exception cref="NotSupportedException">Thrown when the type is not supported for serialization</exception>
+        public static string Serialize<T>(T obj) where T : notnull
+        {
+            try
+            {
+                return GetTypeInfo<T>() switch
+                {
+                    JsonTypeInfo<T> typeInfo => JsonSerializer.Serialize(obj, typeInfo),
+                    null => throw new NotSupportedException($"Type {typeof(T).Name} is not supported for serialization")
+                };
+            }
+            catch (NotSupportedException)
+            {
+                throw; // Re-throw NotSupportedException as-is
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to serialize object of type {typeof(T).Name}: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Deserializes a JSON string using type inference to automatically select the appropriate JsonTypeInfo
+        /// </summary>
+        /// <typeparam name="T">The type to deserialize to</typeparam>
+        /// <param name="json">The JSON string to deserialize</param>
+        /// <returns>The deserialized object</returns>
+        /// <exception cref="NotSupportedException">Thrown when the type is not supported for deserialization</exception>
+        public static T? Deserialize<T>(string json) where T : notnull
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(json))
+                    throw new ArgumentException("JSON string cannot be null or empty");
+
+                return GetTypeInfo<T>() switch
+                {
+                    JsonTypeInfo<T> typeInfo => JsonSerializer.Deserialize(json, typeInfo),
+                    null => throw new NotSupportedException($"Type {typeof(T).Name} is not supported for deserialization")
+                };
+            }
+            catch (NotSupportedException)
+            {
+                throw; // Re-throw NotSupportedException as-is
+            }
+            catch (JsonException ex)
+            {
+                throw new InvalidOperationException($"Failed to deserialize JSON to type {typeof(T).Name}. JSON: {json}. Error: {ex.Message}", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Unexpected error deserializing to type {typeof(T).Name}: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Gets the unified JsonTypeInfo for a given type by consolidating all type mappings
+        /// </summary>
+        /// <typeparam name="T">The type to get JsonTypeInfo for</typeparam>
+        /// <returns>JsonTypeInfo for the specified type, or null if not supported</returns>
+        private static JsonTypeInfo<T>? GetTypeInfo<T>()
+        {
+            return typeof(T) switch
+            {
+                // WorkerResponse types (consolidated from GetWorkerResponseTypeInfo)
+                Type t when t == typeof(WorkerResponse<Dictionary<string, object>>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseDictionaryStringObject,
+                Type t when t == typeof(WorkerResponse<List<Dictionary<string, object>>>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseListDictionaryStringObject,
+                Type t when t == typeof(WorkerResponse<ScreenshotResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseScreenshotResult,
+                Type t when t == typeof(WorkerResponse<BaseOperationResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseBaseOperationResult,
+                Type t when t == typeof(WorkerResponse<ElementSearchResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseElementSearchResult,
+                Type t when t == typeof(WorkerResponse<ActionResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseActionResult,
+                Type t when t == typeof(WorkerResponse<ElementValueResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseElementValueResult,
+                Type t when t == typeof(WorkerResponse<WindowInteractionStateResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseWindowInteractionStateResult,
+                Type t when t == typeof(WorkerResponse<WindowCapabilitiesResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseWindowCapabilitiesResult,
+                Type t when t == typeof(WorkerResponse<FindItemResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseFindItemResult,
+                Type t when t == typeof(WorkerResponse<ProcessResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseProcessResult,
+                Type t when t == typeof(WorkerResponse<ErrorResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseErrorResult,
+                Type t when t == typeof(WorkerResponse<UniversalResponse>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseUniversalResponse,
+                Type t when t == typeof(WorkerResponse<BooleanResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseBooleanResult,
+                Type t when t == typeof(WorkerResponse<ToggleStateResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseToggleStateResult,
+                Type t when t == typeof(WorkerResponse<RangeValueResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseRangeValueResult,
+                Type t when t == typeof(WorkerResponse<SelectionInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseSelectionInfoResult,
+                Type t when t == typeof(WorkerResponse<TextInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTextInfoResult,
+                Type t when t == typeof(WorkerResponse<GridInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseGridInfoResult,
+                Type t when t == typeof(WorkerResponse<TableInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTableInfoResult,
+                Type t when t == typeof(WorkerResponse<ScrollInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseScrollInfoResult,
+                Type t when t == typeof(WorkerResponse<TransformCapabilitiesResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTransformCapabilitiesResult,
+                Type t when t == typeof(WorkerResponse<WindowInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseWindowInfoResult,
+                Type t when t == typeof(WorkerResponse<object>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseObject,
+
+                // Result types (consolidated from GetResultTypeInfo)
+                Type t when t == typeof(ScreenshotResult) => (JsonTypeInfo<T>)(object)_context.ScreenshotResult,
+                Type t when t == typeof(BaseOperationResult) => (JsonTypeInfo<T>)(object)_context.BaseOperationResult,
+                Type t when t == typeof(ElementSearchResult) => (JsonTypeInfo<T>)(object)_context.ElementSearchResult,
+                Type t when t == typeof(ActionResult) => (JsonTypeInfo<T>)(object)_context.ActionResult,
+                Type t when t == typeof(ElementValueResult) => (JsonTypeInfo<T>)(object)_context.ElementValueResult,
+                Type t when t == typeof(WindowInteractionStateResult) => (JsonTypeInfo<T>)(object)_context.WindowInteractionStateResult,
+                Type t when t == typeof(WindowCapabilitiesResult) => (JsonTypeInfo<T>)(object)_context.WindowCapabilitiesResult,
+                Type t when t == typeof(FindItemResult) => (JsonTypeInfo<T>)(object)_context.FindItemResult,
+                Type t when t == typeof(ProcessResult) => (JsonTypeInfo<T>)(object)_context.ProcessResult,
+                Type t when t == typeof(ErrorResult) => (JsonTypeInfo<T>)(object)_context.ErrorResult,
+                Type t when t == typeof(UniversalResponse) => (JsonTypeInfo<T>)(object)_context.UniversalResponse,
+                Type t when t == typeof(ElementTreeResult) => (JsonTypeInfo<T>)(object)_context.ElementTreeResult,
+                Type t when t == typeof(TreeNavigationResult) => (JsonTypeInfo<T>)(object)_context.TreeNavigationResult,
+                Type t when t == typeof(DesktopWindowsResult) => (JsonTypeInfo<T>)(object)_context.DesktopWindowsResult,
+                Type t when t == typeof(BooleanResult) => (JsonTypeInfo<T>)(object)_context.BooleanResult,
+                Type t when t == typeof(ProcessLaunchResponse) => (JsonTypeInfo<T>)(object)_context.ProcessLaunchResponse,
+                Type t when t == typeof(ToggleStateResult) => (JsonTypeInfo<T>)(object)_context.ToggleStateResult,
+                Type t when t == typeof(RangeValueResult) => (JsonTypeInfo<T>)(object)_context.RangeValueResult,
+                Type t when t == typeof(SelectionInfoResult) => (JsonTypeInfo<T>)(object)_context.SelectionInfoResult,
+                Type t when t == typeof(TextInfoResult) => (JsonTypeInfo<T>)(object)_context.TextInfoResult,
+                Type t when t == typeof(GridInfoResult) => (JsonTypeInfo<T>)(object)_context.GridInfoResult,
+                Type t when t == typeof(TableInfoResult) => (JsonTypeInfo<T>)(object)_context.TableInfoResult,
+                Type t when t == typeof(ScrollInfoResult) => (JsonTypeInfo<T>)(object)_context.ScrollInfoResult,
+                Type t when t == typeof(TransformCapabilitiesResult) => (JsonTypeInfo<T>)(object)_context.TransformCapabilitiesResult,
+                Type t when t == typeof(WindowInfoResult) => (JsonTypeInfo<T>)(object)_context.WindowInfoResult,
+
+                // Request types (consolidated from GetRequestTypeInfo)
+                Type t when t == typeof(InvokeElementRequest) => (JsonTypeInfo<T>)(object)_context.InvokeElementRequest,
+                Type t when t == typeof(ToggleElementRequest) => (JsonTypeInfo<T>)(object)_context.ToggleElementRequest,
+                Type t when t == typeof(GetToggleStateRequest) => (JsonTypeInfo<T>)(object)_context.GetToggleStateRequest,
+                Type t when t == typeof(SetToggleStateRequest) => (JsonTypeInfo<T>)(object)_context.SetToggleStateRequest,
+                Type t when t == typeof(SetElementValueRequest) => (JsonTypeInfo<T>)(object)_context.SetElementValueRequest,
+                Type t when t == typeof(GetElementValueRequest) => (JsonTypeInfo<T>)(object)_context.GetElementValueRequest,
+                Type t when t == typeof(IsReadOnlyRequest) => (JsonTypeInfo<T>)(object)_context.IsReadOnlyRequest,
+                Type t when t == typeof(FindElementsRequest) => (JsonTypeInfo<T>)(object)_context.FindElementsRequest,
+                Type t when t == typeof(FindElementsByControlTypeRequest) => (JsonTypeInfo<T>)(object)_context.FindElementsByControlTypeRequest,
+                Type t when t == typeof(FindElementsByPatternRequest) => (JsonTypeInfo<T>)(object)_context.FindElementsByPatternRequest,
+                Type t when t == typeof(GetDesktopWindowsRequest) => (JsonTypeInfo<T>)(object)_context.GetDesktopWindowsRequest,
+                Type t when t == typeof(WindowActionRequest) => (JsonTypeInfo<T>)(object)_context.WindowActionRequest,
+                Type t when t == typeof(GetWindowInfoRequest) => (JsonTypeInfo<T>)(object)_context.GetWindowInfoRequest,
+                Type t when t == typeof(GetWindowInteractionStateRequest) => (JsonTypeInfo<T>)(object)_context.GetWindowInteractionStateRequest,
+                Type t when t == typeof(GetWindowCapabilitiesRequest) => (JsonTypeInfo<T>)(object)_context.GetWindowCapabilitiesRequest,
+                Type t when t == typeof(SetRangeValueRequest) => (JsonTypeInfo<T>)(object)_context.SetRangeValueRequest,
+                Type t when t == typeof(GetRangeValueRequest) => (JsonTypeInfo<T>)(object)_context.GetRangeValueRequest,
+                Type t when t == typeof(GetRangePropertiesRequest) => (JsonTypeInfo<T>)(object)_context.GetRangePropertiesRequest,
+                Type t when t == typeof(SetTextRequest) => (JsonTypeInfo<T>)(object)_context.SetTextRequest,
+                Type t when t == typeof(GetTextRequest) => (JsonTypeInfo<T>)(object)_context.GetTextRequest,
+                Type t when t == typeof(FindTextRequest) => (JsonTypeInfo<T>)(object)_context.FindTextRequest,
+                Type t when t == typeof(SelectTextRequest) => (JsonTypeInfo<T>)(object)_context.SelectTextRequest,
+                Type t when t == typeof(TraverseTextRequest) => (JsonTypeInfo<T>)(object)_context.TraverseTextRequest,
+                Type t when t == typeof(TransformElementRequest) => (JsonTypeInfo<T>)(object)_context.TransformElementRequest,
+                Type t when t == typeof(MoveElementRequest) => (JsonTypeInfo<T>)(object)_context.MoveElementRequest,
+                Type t when t == typeof(ResizeElementRequest) => (JsonTypeInfo<T>)(object)_context.ResizeElementRequest,
+                Type t when t == typeof(RotateElementRequest) => (JsonTypeInfo<T>)(object)_context.RotateElementRequest,
+                Type t when t == typeof(WaitForInputIdleRequest) => (JsonTypeInfo<T>)(object)_context.WaitForInputIdleRequest,
+                Type t when t == typeof(GetGridInfoRequest) => (JsonTypeInfo<T>)(object)_context.GetGridInfoRequest,
+                Type t when t == typeof(GetGridItemRequest) => (JsonTypeInfo<T>)(object)_context.GetGridItemRequest,
+                Type t when t == typeof(GetColumnHeaderRequest) => (JsonTypeInfo<T>)(object)_context.GetColumnHeaderRequest,
+                Type t when t == typeof(GetRowHeaderRequest) => (JsonTypeInfo<T>)(object)_context.GetRowHeaderRequest,
+                Type t when t == typeof(DockElementRequest) => (JsonTypeInfo<T>)(object)_context.DockElementRequest,
+                Type t when t == typeof(RealizeVirtualizedItemRequest) => (JsonTypeInfo<T>)(object)_context.RealizeVirtualizedItemRequest,
+                Type t when t == typeof(FindItemByPropertyRequest) => (JsonTypeInfo<T>)(object)_context.FindItemByPropertyRequest,
+                Type t when t == typeof(StartSynchronizedInputRequest) => (JsonTypeInfo<T>)(object)_context.StartSynchronizedInputRequest,
+                Type t when t == typeof(CancelSynchronizedInputRequest) => (JsonTypeInfo<T>)(object)_context.CancelSynchronizedInputRequest,
+                Type t when t == typeof(ExpandCollapseElementRequest) => (JsonTypeInfo<T>)(object)_context.ExpandCollapseElementRequest,
+                Type t when t == typeof(GetScrollInfoRequest) => (JsonTypeInfo<T>)(object)_context.GetScrollInfoRequest,
+                Type t when t == typeof(ScrollElementIntoViewRequest) => (JsonTypeInfo<T>)(object)_context.ScrollElementIntoViewRequest,
+                Type t when t == typeof(ScrollElementRequest) => (JsonTypeInfo<T>)(object)_context.ScrollElementRequest,
+                Type t when t == typeof(SetScrollPercentRequest) => (JsonTypeInfo<T>)(object)_context.SetScrollPercentRequest,
+                Type t when t == typeof(GetAvailableViewsRequest) => (JsonTypeInfo<T>)(object)_context.GetAvailableViewsRequest,
+                Type t when t == typeof(GetCurrentViewRequest) => (JsonTypeInfo<T>)(object)_context.GetCurrentViewRequest,
+                Type t when t == typeof(GetViewNameRequest) => (JsonTypeInfo<T>)(object)_context.GetViewNameRequest,
+                Type t when t == typeof(SetViewRequest) => (JsonTypeInfo<T>)(object)_context.SetViewRequest,
+                Type t when t == typeof(GetColumnHeaderItemsRequest) => (JsonTypeInfo<T>)(object)_context.GetColumnHeaderItemsRequest,
+                Type t when t == typeof(GetColumnHeadersRequest) => (JsonTypeInfo<T>)(object)_context.GetColumnHeadersRequest,
+                Type t when t == typeof(GetRowHeaderItemsRequest) => (JsonTypeInfo<T>)(object)_context.GetRowHeaderItemsRequest,
+                Type t when t == typeof(GetRowHeadersRequest) => (JsonTypeInfo<T>)(object)_context.GetRowHeadersRequest,
+                Type t when t == typeof(GetRowOrColumnMajorRequest) => (JsonTypeInfo<T>)(object)_context.GetRowOrColumnMajorRequest,
+                Type t when t == typeof(GetTableInfoRequest) => (JsonTypeInfo<T>)(object)_context.GetTableInfoRequest,
+                Type t when t == typeof(AddToSelectionRequest) => (JsonTypeInfo<T>)(object)_context.AddToSelectionRequest,
+                Type t when t == typeof(CanSelectMultipleRequest) => (JsonTypeInfo<T>)(object)_context.CanSelectMultipleRequest,
+                Type t when t == typeof(ClearSelectionRequest) => (JsonTypeInfo<T>)(object)_context.ClearSelectionRequest,
+                Type t when t == typeof(GetSelectionContainerRequest) => (JsonTypeInfo<T>)(object)_context.GetSelectionContainerRequest,
+                Type t when t == typeof(GetSelectionRequest) => (JsonTypeInfo<T>)(object)_context.GetSelectionRequest,
+                Type t when t == typeof(IsSelectedRequest) => (JsonTypeInfo<T>)(object)_context.IsSelectedRequest,
+                Type t when t == typeof(IsSelectionRequiredRequest) => (JsonTypeInfo<T>)(object)_context.IsSelectionRequiredRequest,
+                Type t when t == typeof(RemoveFromSelectionRequest) => (JsonTypeInfo<T>)(object)_context.RemoveFromSelectionRequest,
+                Type t when t == typeof(SelectElementRequest) => (JsonTypeInfo<T>)(object)_context.SelectElementRequest,
+                Type t when t == typeof(SelectItemRequest) => (JsonTypeInfo<T>)(object)_context.SelectItemRequest,
+                Type t when t == typeof(GetElementPropertiesRequest) => (JsonTypeInfo<T>)(object)_context.GetElementPropertiesRequest,
+                Type t when t == typeof(GetElementPatternsRequest) => (JsonTypeInfo<T>)(object)_context.GetElementPatternsRequest,
+                Type t when t == typeof(GetAncestorsRequest) => (JsonTypeInfo<T>)(object)_context.GetAncestorsRequest,
+                Type t when t == typeof(GetChildrenRequest) => (JsonTypeInfo<T>)(object)_context.GetChildrenRequest,
+                Type t when t == typeof(GetDescendantsRequest) => (JsonTypeInfo<T>)(object)_context.GetDescendantsRequest,
+                Type t when t == typeof(GetElementTreeRequest) => (JsonTypeInfo<T>)(object)_context.GetElementTreeRequest,
+                Type t when t == typeof(GetParentRequest) => (JsonTypeInfo<T>)(object)_context.GetParentRequest,
+                Type t when t == typeof(GetSiblingsRequest) => (JsonTypeInfo<T>)(object)_context.GetSiblingsRequest,
+
+                // ServerEnhancedResponse types
+                Type t when t == typeof(ServerEnhancedResponse<ElementTreeResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseElementTreeResult,
+                Type t when t == typeof(ServerEnhancedResponse<TreeNavigationResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTreeNavigationResult,
+                Type t when t == typeof(ServerEnhancedResponse<ElementSearchResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseElementSearchResult,
+                Type t when t == typeof(ServerEnhancedResponse<ProcessResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseProcessResult,
+                Type t when t == typeof(ServerEnhancedResponse<ActionResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseActionResult,
+                Type t when t == typeof(ServerEnhancedResponse<ElementValueResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseElementValueResult,
+                Type t when t == typeof(ServerEnhancedResponse<WindowInfoResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseWindowInfoResult,
+                Type t when t == typeof(ServerEnhancedResponse<WindowInteractionStateResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseWindowInteractionStateResult,
+                Type t when t == typeof(ServerEnhancedResponse<WindowCapabilitiesResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseWindowCapabilitiesResult,
+                Type t when t == typeof(ServerEnhancedResponse<ScreenshotResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseScreenshotResult,
+                Type t when t == typeof(ServerEnhancedResponse<BaseOperationResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseBaseOperationResult,
+                Type t when t == typeof(ServerEnhancedResponse<ProcessLaunchResponse>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseProcessLaunchResponse,
+                Type t when t == typeof(ServerEnhancedResponse<BooleanResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseBooleanResult,
+                Type t when t == typeof(ServerEnhancedResponse<ToggleStateResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseToggleStateResult,
+                Type t when t == typeof(ServerEnhancedResponse<RangeValueResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseRangeValueResult,
+                Type t when t == typeof(ServerEnhancedResponse<SelectionInfoResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseSelectionInfoResult,
+                Type t when t == typeof(ServerEnhancedResponse<TextInfoResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTextInfoResult,
+
+                // Basic types
+                Type t when t == typeof(Dictionary<string, object>) => (JsonTypeInfo<T>)(object)_context.DictionaryStringObject,
+                Type t when t == typeof(List<Dictionary<string, object>>) => (JsonTypeInfo<T>)(object)_context.ListDictionaryStringObject,
+                Type t when t == typeof(WorkerRequest) => (JsonTypeInfo<T>)(object)_context.WorkerRequest,
+
+                // Unsupported type
+                _ => null
+            };
+        }
+
         // Worker Request/Response serialization
         public static string SerializeWorkerRequest(WorkerRequest request)
         {
@@ -51,72 +276,28 @@ namespace UIAutomationMCP.Shared.Serialization
             }
         }
 
-        // Generic WorkerResponse serialization with type detection
+        // Generic WorkerResponse serialization with type detection (Phase 2: Delegated to unified API)
         public static string SerializeWorkerResponse<T>(WorkerResponse<T> response)
         {
-            // Get the specific type info based on T
-            JsonTypeInfo<WorkerResponse<T>>? typeInfo = GetWorkerResponseTypeInfo<T>();
-            
-            if (typeInfo != null)
-                return JsonSerializer.Serialize(response, typeInfo);
-            
-            // Fallback to object type
-            var objResponse = new WorkerResponse<object>
-            {
-                Success = response.Success,
-                Data = response.Data,
-                Error = response.Error
-            };
-            return JsonSerializer.Serialize(objResponse, _context.WorkerResponseObject);
+            return Serialize(response);
         }
 
         public static WorkerResponse<T>? DeserializeWorkerResponse<T>(string json)
         {
-            try
-            {
-                if (string.IsNullOrEmpty(json))
-                    throw new ArgumentException("JSON string cannot be null or empty");
-
-                JsonTypeInfo<WorkerResponse<T>>? typeInfo = GetWorkerResponseTypeInfo<T>();
-                
-                if (typeInfo != null)
-                    return JsonSerializer.Deserialize(json, typeInfo);
-                
-                // Fallback: deserialize as object and convert
-                var objResponse = JsonSerializer.Deserialize(json, _context.WorkerResponseObject);
-                if (objResponse == null) return null;
-                
-                return new WorkerResponse<T>
-                {
-                    Success = objResponse.Success,
-                    Data = (T)objResponse.Data!,
-                    Error = objResponse.Error
-                };
-            }
-            catch (JsonException ex)
-            {
-                throw new InvalidOperationException($"Failed to deserialize WorkerResponse<{typeof(T).Name}> from JSON: {json}. Error: {ex.Message}", ex);
-            }
-            catch (InvalidCastException ex)
-            {
-                throw new InvalidOperationException($"Failed to cast response data to type {typeof(T).Name}. JSON: {json}. Error: {ex.Message}", ex);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Unexpected error deserializing WorkerResponse<{typeof(T).Name}>: {ex.Message}", ex);
-            }
+            return Deserialize<WorkerResponse<T>>(json);
         }
 
-        // Object serialization (for unknown types)
+        // Object serialization (Phase 2: Delegated to unified API for supported types)
         public static string SerializeObject(object obj)
         {
             try
             {
                 return obj switch
                 {
-                    Dictionary<string, object> dict => JsonSerializer.Serialize(dict, _context.DictionaryStringObject),
-                    List<Dictionary<string, object>> list => JsonSerializer.Serialize(list, _context.ListDictionaryStringObject),
-                    WorkerRequest req => JsonSerializer.Serialize(req, _context.WorkerRequest),
+                    Dictionary<string, object> dict => Serialize(dict),
+                    List<Dictionary<string, object>> list => Serialize(list),
+                    WorkerRequest req => Serialize(req),
+                    // For unsupported types, fall back to basic object serialization
                     _ => JsonSerializer.Serialize(obj, _context.Object)
                 };
             }
@@ -126,211 +307,12 @@ namespace UIAutomationMCP.Shared.Serialization
             }
         }
 
-        public static T? DeserializeObject<T>(string json)
+        public static T? DeserializeObject<T>(string json) where T : notnull
         {
-            try
-            {
-                if (string.IsNullOrEmpty(json))
-                    throw new ArgumentException("JSON string cannot be null or empty");
-
-                return typeof(T) switch
-                {
-                    // Common types
-                    Type t when t == typeof(Dictionary<string, object>) => (T?)(object?)JsonSerializer.Deserialize(json, _context.DictionaryStringObject),
-                    Type t when t == typeof(List<Dictionary<string, object>>) => (T?)(object?)JsonSerializer.Deserialize(json, _context.ListDictionaryStringObject),
-                    Type t when t == typeof(WorkerRequest) => (T?)(object?)JsonSerializer.Deserialize(json, _context.WorkerRequest),
-                    
-                    // Try result types first
-                    _ when GetResultTypeInfo<T>() is JsonTypeInfo<T> resultTypeInfo => JsonSerializer.Deserialize(json, resultTypeInfo),
-                    
-                    // Try request types
-                    _ when GetRequestTypeInfo<T>() is JsonTypeInfo<T> requestTypeInfo => JsonSerializer.Deserialize(json, requestTypeInfo),
-                    
-                    // Unsupported type
-                    _ => throw new NotSupportedException($"Type {typeof(T)} is not supported for deserialization")
-                };
-            }
-            catch (JsonException ex)
-            {
-                throw new InvalidOperationException($"Failed to deserialize JSON to type {typeof(T).Name}. JSON: {json}. Error: {ex.Message}", ex);
-            }
-            catch (InvalidCastException ex)
-            {
-                throw new InvalidOperationException($"Failed to cast deserialized object to type {typeof(T).Name}. JSON: {json}. Error: {ex.Message}", ex);
-            }
-            catch (NotSupportedException)
-            {
-                throw; // Re-throw NotSupportedException as-is
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Unexpected error deserializing to type {typeof(T).Name}: {ex.Message}", ex);
-            }
+            return Deserialize<T>(json);
         }
 
-        // Helper method to get type info for different WorkerResponse types
-        private static JsonTypeInfo<WorkerResponse<T>>? GetWorkerResponseTypeInfo<T>()
-        {
-            return typeof(T) switch
-            {
-                Type t when t == typeof(Dictionary<string, object>) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseDictionaryStringObject,
-                Type t when t == typeof(List<Dictionary<string, object>>) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseListDictionaryStringObject,
-                Type t when t == typeof(ScreenshotResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseScreenshotResult,
-                Type t when t == typeof(BaseOperationResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseBaseOperationResult,
-                Type t when t == typeof(ElementSearchResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseElementSearchResult,
-                Type t when t == typeof(ActionResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseActionResult,
-                Type t when t == typeof(ElementValueResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseElementValueResult,
-                Type t when t == typeof(WindowInteractionStateResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseWindowInteractionStateResult,
-                Type t when t == typeof(WindowCapabilitiesResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseWindowCapabilitiesResult,
-                Type t when t == typeof(FindItemResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseFindItemResult,
-                Type t when t == typeof(ProcessResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseProcessResult,
-                Type t when t == typeof(ErrorResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseErrorResult,
-                Type t when t == typeof(UniversalResponse) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseUniversalResponse,
-                Type t when t == typeof(BooleanResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseBooleanResult,
-                Type t when t == typeof(ToggleStateResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseToggleStateResult,
-                Type t when t == typeof(RangeValueResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseRangeValueResult,
-                Type t when t == typeof(SelectionInfoResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseSelectionInfoResult,
-                Type t when t == typeof(TextInfoResult) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseTextInfoResult,
-                Type t when t == typeof(object) => (JsonTypeInfo<WorkerResponse<T>>)(object)_context.WorkerResponseObject,
-                _ => null
-            };
-        }
-        
-        // Helper method to get type info for result types
-        private static JsonTypeInfo<T>? GetResultTypeInfo<T>()
-        {
-            return typeof(T) switch
-            {
-                Type t when t == typeof(ScreenshotResult) => (JsonTypeInfo<T>)(object)_context.ScreenshotResult,
-                Type t when t == typeof(BaseOperationResult) => (JsonTypeInfo<T>)(object)_context.BaseOperationResult,
-                Type t when t == typeof(ElementSearchResult) => (JsonTypeInfo<T>)(object)_context.ElementSearchResult,
-                Type t when t == typeof(ActionResult) => (JsonTypeInfo<T>)(object)_context.ActionResult,
-                Type t when t == typeof(ElementValueResult) => (JsonTypeInfo<T>)(object)_context.ElementValueResult,
-                Type t when t == typeof(WindowInteractionStateResult) => (JsonTypeInfo<T>)(object)_context.WindowInteractionStateResult,
-                Type t when t == typeof(WindowCapabilitiesResult) => (JsonTypeInfo<T>)(object)_context.WindowCapabilitiesResult,
-                Type t when t == typeof(FindItemResult) => (JsonTypeInfo<T>)(object)_context.FindItemResult,
-                Type t when t == typeof(ProcessResult) => (JsonTypeInfo<T>)(object)_context.ProcessResult,
-                Type t when t == typeof(ErrorResult) => (JsonTypeInfo<T>)(object)_context.ErrorResult,
-                Type t when t == typeof(UniversalResponse) => (JsonTypeInfo<T>)(object)_context.UniversalResponse,
-                Type t when t == typeof(ElementTreeResult) => (JsonTypeInfo<T>)(object)_context.ElementTreeResult,
-                Type t when t == typeof(TreeNavigationResult) => (JsonTypeInfo<T>)(object)_context.TreeNavigationResult,
-                Type t when t == typeof(DesktopWindowsResult) => (JsonTypeInfo<T>)(object)_context.DesktopWindowsResult,
-                Type t when t == typeof(BooleanResult) => (JsonTypeInfo<T>)(object)_context.BooleanResult,
-                Type t when t == typeof(ProcessLaunchResponse) => (JsonTypeInfo<T>)(object)_context.ProcessLaunchResponse,
-                Type t when t == typeof(ToggleStateResult) => (JsonTypeInfo<T>)(object)_context.ToggleStateResult,
-                Type t when t == typeof(RangeValueResult) => (JsonTypeInfo<T>)(object)_context.RangeValueResult,
-                Type t when t == typeof(SelectionInfoResult) => (JsonTypeInfo<T>)(object)_context.SelectionInfoResult,
-                Type t when t == typeof(TextInfoResult) => (JsonTypeInfo<T>)(object)_context.TextInfoResult,
-                _ => null
-            };
-        }
 
-        // Helper method to get type info for typed request classes
-        private static JsonTypeInfo<T>? GetRequestTypeInfo<T>()
-        {
-            return typeof(T) switch
-            {
-                // Basic operations
-                Type t when t == typeof(InvokeElementRequest) => (JsonTypeInfo<T>)(object)_context.InvokeElementRequest,
-                Type t when t == typeof(ToggleElementRequest) => (JsonTypeInfo<T>)(object)_context.ToggleElementRequest,
-                Type t when t == typeof(GetToggleStateRequest) => (JsonTypeInfo<T>)(object)_context.GetToggleStateRequest,
-                Type t when t == typeof(SetToggleStateRequest) => (JsonTypeInfo<T>)(object)_context.SetToggleStateRequest,
-                
-                // Value operations
-                Type t when t == typeof(SetElementValueRequest) => (JsonTypeInfo<T>)(object)_context.SetElementValueRequest,
-                Type t when t == typeof(GetElementValueRequest) => (JsonTypeInfo<T>)(object)_context.GetElementValueRequest,
-                Type t when t == typeof(IsReadOnlyRequest) => (JsonTypeInfo<T>)(object)_context.IsReadOnlyRequest,
-                
-                // Element search
-                Type t when t == typeof(FindElementsRequest) => (JsonTypeInfo<T>)(object)_context.FindElementsRequest,
-                Type t when t == typeof(FindElementsByControlTypeRequest) => (JsonTypeInfo<T>)(object)_context.FindElementsByControlTypeRequest,
-                Type t when t == typeof(FindElementsByPatternRequest) => (JsonTypeInfo<T>)(object)_context.FindElementsByPatternRequest,
-                
-                // Window operations
-                Type t when t == typeof(GetDesktopWindowsRequest) => (JsonTypeInfo<T>)(object)_context.GetDesktopWindowsRequest,
-                Type t when t == typeof(WindowActionRequest) => (JsonTypeInfo<T>)(object)_context.WindowActionRequest,
-                Type t when t == typeof(GetWindowInfoRequest) => (JsonTypeInfo<T>)(object)_context.GetWindowInfoRequest,
-                Type t when t == typeof(GetWindowInteractionStateRequest) => (JsonTypeInfo<T>)(object)_context.GetWindowInteractionStateRequest,
-                Type t when t == typeof(GetWindowCapabilitiesRequest) => (JsonTypeInfo<T>)(object)_context.GetWindowCapabilitiesRequest,
-                
-                // Range operations
-                Type t when t == typeof(SetRangeValueRequest) => (JsonTypeInfo<T>)(object)_context.SetRangeValueRequest,
-                Type t when t == typeof(GetRangeValueRequest) => (JsonTypeInfo<T>)(object)_context.GetRangeValueRequest,
-                Type t when t == typeof(GetRangePropertiesRequest) => (JsonTypeInfo<T>)(object)_context.GetRangePropertiesRequest,
-                
-                // Text operations
-                Type t when t == typeof(SetTextRequest) => (JsonTypeInfo<T>)(object)_context.SetTextRequest,
-                Type t when t == typeof(GetTextRequest) => (JsonTypeInfo<T>)(object)_context.GetTextRequest,
-                Type t when t == typeof(FindTextRequest) => (JsonTypeInfo<T>)(object)_context.FindTextRequest,
-                Type t when t == typeof(SelectTextRequest) => (JsonTypeInfo<T>)(object)_context.SelectTextRequest,
-                Type t when t == typeof(TraverseTextRequest) => (JsonTypeInfo<T>)(object)_context.TraverseTextRequest,
-                
-                // Transform operations
-                Type t when t == typeof(TransformElementRequest) => (JsonTypeInfo<T>)(object)_context.TransformElementRequest,
-                Type t when t == typeof(MoveElementRequest) => (JsonTypeInfo<T>)(object)_context.MoveElementRequest,
-                Type t when t == typeof(ResizeElementRequest) => (JsonTypeInfo<T>)(object)_context.ResizeElementRequest,
-                Type t when t == typeof(RotateElementRequest) => (JsonTypeInfo<T>)(object)_context.RotateElementRequest,
-                Type t when t == typeof(WaitForInputIdleRequest) => (JsonTypeInfo<T>)(object)_context.WaitForInputIdleRequest,
-                
-                // Grid operations
-                Type t when t == typeof(GetGridInfoRequest) => (JsonTypeInfo<T>)(object)_context.GetGridInfoRequest,
-                Type t when t == typeof(GetGridItemRequest) => (JsonTypeInfo<T>)(object)_context.GetGridItemRequest,
-                Type t when t == typeof(GetColumnHeaderRequest) => (JsonTypeInfo<T>)(object)_context.GetColumnHeaderRequest,
-                Type t when t == typeof(GetRowHeaderRequest) => (JsonTypeInfo<T>)(object)_context.GetRowHeaderRequest,
-                
-                // Layout operations
-                Type t when t == typeof(DockElementRequest) => (JsonTypeInfo<T>)(object)_context.DockElementRequest,
-                Type t when t == typeof(RealizeVirtualizedItemRequest) => (JsonTypeInfo<T>)(object)_context.RealizeVirtualizedItemRequest,
-                Type t when t == typeof(FindItemByPropertyRequest) => (JsonTypeInfo<T>)(object)_context.FindItemByPropertyRequest,
-                Type t when t == typeof(StartSynchronizedInputRequest) => (JsonTypeInfo<T>)(object)_context.StartSynchronizedInputRequest,
-                Type t when t == typeof(CancelSynchronizedInputRequest) => (JsonTypeInfo<T>)(object)_context.CancelSynchronizedInputRequest,
-                Type t when t == typeof(ExpandCollapseElementRequest) => (JsonTypeInfo<T>)(object)_context.ExpandCollapseElementRequest,
-                Type t when t == typeof(GetScrollInfoRequest) => (JsonTypeInfo<T>)(object)_context.GetScrollInfoRequest,
-                Type t when t == typeof(ScrollElementIntoViewRequest) => (JsonTypeInfo<T>)(object)_context.ScrollElementIntoViewRequest,
-                Type t when t == typeof(ScrollElementRequest) => (JsonTypeInfo<T>)(object)_context.ScrollElementRequest,
-                Type t when t == typeof(SetScrollPercentRequest) => (JsonTypeInfo<T>)(object)_context.SetScrollPercentRequest,
-                
-                // Multiple view operations
-                Type t when t == typeof(GetAvailableViewsRequest) => (JsonTypeInfo<T>)(object)_context.GetAvailableViewsRequest,
-                Type t when t == typeof(GetCurrentViewRequest) => (JsonTypeInfo<T>)(object)_context.GetCurrentViewRequest,
-                Type t when t == typeof(GetViewNameRequest) => (JsonTypeInfo<T>)(object)_context.GetViewNameRequest,
-                Type t when t == typeof(SetViewRequest) => (JsonTypeInfo<T>)(object)_context.SetViewRequest,
-                
-                // Table operations
-                Type t when t == typeof(GetColumnHeaderItemsRequest) => (JsonTypeInfo<T>)(object)_context.GetColumnHeaderItemsRequest,
-                Type t when t == typeof(GetColumnHeadersRequest) => (JsonTypeInfo<T>)(object)_context.GetColumnHeadersRequest,
-                Type t when t == typeof(GetRowHeaderItemsRequest) => (JsonTypeInfo<T>)(object)_context.GetRowHeaderItemsRequest,
-                Type t when t == typeof(GetRowHeadersRequest) => (JsonTypeInfo<T>)(object)_context.GetRowHeadersRequest,
-                Type t when t == typeof(GetRowOrColumnMajorRequest) => (JsonTypeInfo<T>)(object)_context.GetRowOrColumnMajorRequest,
-                Type t when t == typeof(GetTableInfoRequest) => (JsonTypeInfo<T>)(object)_context.GetTableInfoRequest,
-                
-                // Selection operations
-                Type t when t == typeof(AddToSelectionRequest) => (JsonTypeInfo<T>)(object)_context.AddToSelectionRequest,
-                Type t when t == typeof(CanSelectMultipleRequest) => (JsonTypeInfo<T>)(object)_context.CanSelectMultipleRequest,
-                Type t when t == typeof(ClearSelectionRequest) => (JsonTypeInfo<T>)(object)_context.ClearSelectionRequest,
-                Type t when t == typeof(GetSelectionContainerRequest) => (JsonTypeInfo<T>)(object)_context.GetSelectionContainerRequest,
-                Type t when t == typeof(GetSelectionRequest) => (JsonTypeInfo<T>)(object)_context.GetSelectionRequest,
-                Type t when t == typeof(IsSelectedRequest) => (JsonTypeInfo<T>)(object)_context.IsSelectedRequest,
-                Type t when t == typeof(IsSelectionRequiredRequest) => (JsonTypeInfo<T>)(object)_context.IsSelectionRequiredRequest,
-                Type t when t == typeof(RemoveFromSelectionRequest) => (JsonTypeInfo<T>)(object)_context.RemoveFromSelectionRequest,
-                Type t when t == typeof(SelectElementRequest) => (JsonTypeInfo<T>)(object)_context.SelectElementRequest,
-                Type t when t == typeof(SelectItemRequest) => (JsonTypeInfo<T>)(object)_context.SelectItemRequest,
-                
-                // Element inspection
-                Type t when t == typeof(GetElementPropertiesRequest) => (JsonTypeInfo<T>)(object)_context.GetElementPropertiesRequest,
-                Type t when t == typeof(GetElementPatternsRequest) => (JsonTypeInfo<T>)(object)_context.GetElementPatternsRequest,
-                
-                // Tree navigation
-                Type t when t == typeof(GetAncestorsRequest) => (JsonTypeInfo<T>)(object)_context.GetAncestorsRequest,
-                Type t when t == typeof(GetChildrenRequest) => (JsonTypeInfo<T>)(object)_context.GetChildrenRequest,
-                Type t when t == typeof(GetDescendantsRequest) => (JsonTypeInfo<T>)(object)_context.GetDescendantsRequest,
-                Type t when t == typeof(GetElementTreeRequest) => (JsonTypeInfo<T>)(object)_context.GetElementTreeRequest,
-                Type t when t == typeof(GetParentRequest) => (JsonTypeInfo<T>)(object)_context.GetParentRequest,
-                Type t when t == typeof(GetSiblingsRequest) => (JsonTypeInfo<T>)(object)_context.GetSiblingsRequest,
-                
-                _ => null
-            };
-        }
 
     }
 
