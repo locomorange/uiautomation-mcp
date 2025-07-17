@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared.Results;
+using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services
 {
@@ -163,10 +164,12 @@ namespace UIAutomationMCP.Server.Services
 
         public async Task<object> GetElementTreeAsync(string? windowTitle = null, int? processId = null, int maxDepth = 3, int timeoutSeconds = 60)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
             try
             {
-                _logger.LogInformation("Getting element tree with WindowTitle={WindowTitle}, ProcessId={ProcessId}, MaxDepth={MaxDepth}",
-                    windowTitle, processId, maxDepth);
+                _logger.LogInformationWithOperation(operationId, $"Starting GetElementTree operation with WindowTitle={windowTitle}, ProcessId={processId}, MaxDepth={maxDepth}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -175,66 +178,94 @@ namespace UIAutomationMCP.Server.Services
                     { "maxDepth", maxDepth }
                 };
 
-                var result = await _executor.ExecuteAsync<ElementTreeResult>("GetElementTree", parameters, timeoutSeconds);
-
-                _logger.LogInformation("Element tree built successfully");
+                _logger.LogInformationWithOperation(operationId, "Calling worker process for GetElementTree");
+                var workerResult = await _executor.ExecuteAsync<ElementTreeResult>("GetElementTree", parameters, timeoutSeconds);
                 
-                // Convert ElementTreeResult to Dictionary for MCP compatibility
-                var response = new Dictionary<string, object>
-                {
-                    ["success"] = result.Success,
-                    ["rootNode"] = ConvertTreeNodeToDict(result.RootNode),
-                    ["totalElements"] = result.TotalElements,
-                    ["maxDepth"] = result.MaxDepth,
-                    ["processId"] = result.ProcessId,
-                    ["buildDuration"] = result.BuildDuration.ToString(),
-                    ["executedAt"] = result.ExecutedAt
-                };
-                
-                if (!string.IsNullOrEmpty(result.ErrorMessage))
-                    response["error"] = result.ErrorMessage;
-                    
-                return new Dictionary<string, object> { ["success"] = true, ["data"] = response };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting element tree");
-                return new Dictionary<string, object> { ["success"] = false, ["error"] = ex.Message };
-            }
-        }
+                stopwatch.Stop();
+                _logger.LogInformationWithOperation(operationId, $"Worker completed successfully in {stopwatch.Elapsed.TotalMilliseconds:F2}ms");
 
-        public async Task<object> GetElementTreeAsJsonAsync(string? windowTitle = null, int? processId = null, int maxDepth = 3, int timeoutSeconds = 60)
-        {
-            try
-            {
-                _logger.LogInformation("Getting element tree as JSON with WindowTitle={WindowTitle}, ProcessId={ProcessId}, MaxDepth={MaxDepth}",
-                    windowTitle, processId, maxDepth);
-
-                var parameters = new Dictionary<string, object>
+                var serverResponse = new ServerEnhancedResponse<ElementTreeResult>
                 {
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 },
-                    { "maxDepth", maxDepth }
+                    Success = workerResult.Success,
+                    Data = workerResult,
+                    ErrorMessage = workerResult.ErrorMessage,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["workerProcessingTime"] = workerResult.ExecutionTime?.ToString() ?? "Unknown",
+                            ["totalElements"] = workerResult.TotalElements,
+                            ["maxDepthReached"] = workerResult.MaxDepth,
+                            ["buildDuration"] = workerResult.BuildDuration.ToString(),
+                            ["includeInvisible"] = workerResult.IncludeInvisible,
+                            ["includeOffscreen"] = workerResult.IncludeOffscreen
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetElementTree",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["maxDepth"] = maxDepth
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
                 };
 
-                var result = await _executor.ExecuteAsync<ElementTreeResult>("GetElementTree", parameters, timeoutSeconds);
-
-                _logger.LogInformation("Element tree built successfully, serializing to JSON");
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
                 
-                // Serialize the entire ElementTreeResult to JSON using our own serializer
-                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(result);
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
                 
-                _logger.LogInformation("Serialized ElementTreeResult to JSON (length: {Length})", jsonString.Length);
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                // Return the JSON string directly
                 return jsonString;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting element tree as JSON");
-                return $"{{\"success\": false, \"error\": \"{ex.Message}\"}}";
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in GetElementTree operation");
+                
+                var errorResponse = new ServerEnhancedResponse<ElementTreeResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? ""
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetElementTree",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["maxDepth"] = maxDepth
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
+
 
         private object? ConvertTreeNodeToDict(TreeNode? node)
         {
