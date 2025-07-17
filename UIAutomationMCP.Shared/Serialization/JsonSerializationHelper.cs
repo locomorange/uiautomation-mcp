@@ -19,7 +19,6 @@ namespace UIAutomationMCP.Shared.Serialization
             NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals
         });
 
-        // Phase 1: New unified type inference-based API
         /// <summary>
         /// Serializes an object using type inference to automatically select the appropriate JsonTypeInfo
         /// </summary>
@@ -244,62 +243,9 @@ namespace UIAutomationMCP.Shared.Serialization
             };
         }
 
-        // Legacy API - Use Serialize<T>() and Deserialize<T>() for new code
-        [Obsolete("Use Serialize<WorkerRequest>(request) instead for better type safety and consistency")]
-        public static string SerializeWorkerRequest(WorkerRequest request)
-        {
-            return Serialize(request);
-        }
-
-        [Obsolete("Use Deserialize<WorkerRequest>(json) instead for better type safety and consistency")]
-        public static WorkerRequest? DeserializeWorkerRequest(string json)
-        {
-            return Deserialize<WorkerRequest>(json);
-        }
-
-        [Obsolete("Use Serialize<WorkerResponse<T>>(response) instead for better type safety and consistency")]
-        public static string SerializeWorkerResponse<T>(WorkerResponse<T> response)
-        {
-            return Serialize(response);
-        }
-
-        [Obsolete("Use Deserialize<WorkerResponse<T>>(json) instead for better type safety and consistency")]
-        public static WorkerResponse<T>? DeserializeWorkerResponse<T>(string json)
-        {
-            return Deserialize<WorkerResponse<T>>(json);
-        }
-
-        [Obsolete("Use Serialize<T>(obj) instead for better type safety and consistency")]
-        public static string SerializeObject(object obj)
-        {
-            try
-            {
-                return obj switch
-                {
-                    Dictionary<string, object> dict => Serialize(dict),
-                    List<Dictionary<string, object>> list => Serialize(list),
-                    WorkerRequest req => Serialize(req),
-                    // For unsupported types, fall back to basic object serialization
-                    _ => JsonSerializer.Serialize(obj, _context.Object)
-                };
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Failed to serialize object of type {obj?.GetType().Name ?? "null"}: {ex.Message}", ex);
-            }
-        }
-
-        [Obsolete("Use Deserialize<T>(json) instead for better type safety and consistency")]
-        public static T? DeserializeObject<T>(string json) where T : notnull
-        {
-            return Deserialize<T>(json);
-        }
-
-
-
     }
 
-    // Source generation context with all types
+    #region JSON Source Generation Context
     [JsonSerializable(typeof(WorkerRequest))]
     [JsonSerializable(typeof(WorkerResponse<object>))]
     [JsonSerializable(typeof(WorkerResponse<Dictionary<string, object>>))]
@@ -478,4 +424,5 @@ namespace UIAutomationMCP.Shared.Serialization
     internal partial class UIAutomationJsonContext : JsonSerializerContext
     {
     }
+    #endregion
 }
