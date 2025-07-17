@@ -3,6 +3,7 @@ using System.ComponentModel;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 
 namespace UIAutomationMCP.Server.Tools
 {

@@ -56,7 +56,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 var result = await _executor.ExecuteAsync<string>("GetElementValue", parameters, timeoutSeconds);
 
                 _logger.LogInformation("Element value retrieved successfully: {ElementId}", elementId);
-                return new { Success = true, Data = result };
+                return new { Success = true, Value = result };
             }
             catch (Exception ex)
             {
@@ -81,7 +81,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 var result = await _executor.ExecuteAsync<bool>("IsReadOnly", parameters, timeoutSeconds);
 
                 _logger.LogInformation("Read-only status retrieved successfully: {ElementId}", elementId);
-                return new { Success = true, Data = result };
+                return new { Success = true, IsReadOnly = result };
             }
             catch (Exception ex)
             {

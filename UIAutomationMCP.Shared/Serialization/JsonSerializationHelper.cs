@@ -271,6 +271,9 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(WorkerResponse<WindowCapabilitiesResult>))]
     [JsonSerializable(typeof(WorkerResponse<FindItemResult>))]
     [JsonSerializable(typeof(WorkerResponse<ProcessResult>))]
+    [JsonSerializable(typeof(WorkerResponse<DesktopWindowsResult>))]
+    [JsonSerializable(typeof(WorkerResponse<ElementTreeResult>))]
+    [JsonSerializable(typeof(WorkerResponse<BooleanResult>))]
     [JsonSerializable(typeof(WorkerResponse<ErrorResult>))]
     [JsonSerializable(typeof(WorkerResponse<UniversalResponse>))]
     [JsonSerializable(typeof(Dictionary<string, object>))]
@@ -296,6 +299,7 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(WindowInteractionStateResult))]
     [JsonSerializable(typeof(WindowCapabilitiesResult))]
     [JsonSerializable(typeof(DesktopWindowsResult))]
+    [JsonSerializable(typeof(ElementTreeResult))]
     [JsonSerializable(typeof(BooleanResult))]
     [JsonSerializable(typeof(FindItemResult))]
     // Basic types
