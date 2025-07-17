@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Interfaces;
+using UIAutomationMCP.Shared.Results;
+using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
@@ -17,9 +19,53 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
         public async Task<object> SelectItemAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(elementId))
+            {
+                var validationError = "Element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"SelectItem validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "SelectItem",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                return validationJson;
+            }
+
             try
             {
-                _logger.LogInformation("Selecting element: {ElementId}", elementId);
+                _logger.LogInformationWithOperation(operationId, $"Starting SelectItem: ElementId={elementId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -28,23 +74,140 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                await _executor.ExecuteAsync<object>("SelectItem", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ActionResult>("SelectItem", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Element selected successfully: {ElementId}", elementId);
-                return new { Success = true, Message = "Element selected successfully" };
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["operationType"] = "selectItem"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "SelectItem",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to select element: {ElementId}", elementId);
-                return new { Success = false, Error = ex.Message };
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in SelectItem operation");
+                
+                var errorResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["elementId"] = elementId,
+                            ["operationType"] = "selectItem"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "SelectItem",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
         public async Task<object> GetSelectionAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(containerId))
+            {
+                var validationError = "Container ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"GetSelection validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<SelectionInfoResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["containerId"] = containerId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetSelection",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                return validationJson;
+            }
+
             try
             {
-                _logger.LogInformation("Getting selection from container: {ContainerId}", containerId);
+                _logger.LogInformationWithOperation(operationId, $"Starting GetSelection for ContainerId={containerId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -53,23 +216,142 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                var selectedItems = await _executor.ExecuteAsync<List<object>>("GetSelection", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<SelectionInfoResult>("GetSelection", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Selection retrieved successfully from container: {ContainerId}", containerId);
-                return new { Success = true, Data = selectedItems };
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<SelectionInfoResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId,
+                            ["selectedCount"] = result.SelectedCount,
+                            ["totalCount"] = result.TotalCount,
+                            ["operationType"] = "getSelection"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetSelection",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get selection from container: {ContainerId}", containerId);
-                return new { Success = false, Error = ex.Message };
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in GetSelection operation");
+                
+                var errorResponse = new ServerEnhancedResponse<SelectionInfoResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["containerId"] = containerId,
+                            ["operationType"] = "getSelection"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetSelection",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
         public async Task<object> AddToSelectionAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(elementId))
+            {
+                var validationError = "Element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"AddToSelection validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "AddToSelection",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                return validationJson;
+            }
+
             try
             {
-                _logger.LogInformation("Adding element to selection: {ElementId}", elementId);
+                _logger.LogInformationWithOperation(operationId, $"Starting AddToSelection: ElementId={elementId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -78,23 +360,140 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                await _executor.ExecuteAsync<object>("AddToSelection", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ActionResult>("AddToSelection", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Element added to selection successfully: {ElementId}", elementId);
-                return new { Success = true, Message = "Element added to selection successfully" };
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["operationType"] = "addToSelection"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "AddToSelection",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to add element to selection: {ElementId}", elementId);
-                return new { Success = false, Error = ex.Message };
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in AddToSelection operation");
+                
+                var errorResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["elementId"] = elementId,
+                            ["operationType"] = "addToSelection"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "AddToSelection",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
         public async Task<object> RemoveFromSelectionAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(elementId))
+            {
+                var validationError = "Element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"RemoveFromSelection validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "RemoveFromSelection",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                return validationJson;
+            }
+
             try
             {
-                _logger.LogInformation("Removing element from selection: {ElementId}", elementId);
+                _logger.LogInformationWithOperation(operationId, $"Starting RemoveFromSelection: ElementId={elementId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -103,23 +502,140 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                await _executor.ExecuteAsync<object>("RemoveFromSelection", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ActionResult>("RemoveFromSelection", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Element removed from selection successfully: {ElementId}", elementId);
-                return new { Success = true, Message = "Element removed from selection successfully" };
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["operationType"] = "removeFromSelection"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "RemoveFromSelection",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to remove element from selection: {ElementId}", elementId);
-                return new { Success = false, Error = ex.Message };
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in RemoveFromSelection operation");
+                
+                var errorResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["elementId"] = elementId,
+                            ["operationType"] = "removeFromSelection"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "RemoveFromSelection",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
         public async Task<object> ClearSelectionAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(containerId))
+            {
+                var validationError = "Container ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"ClearSelection validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["containerId"] = containerId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "ClearSelection",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                return validationJson;
+            }
+
             try
             {
-                _logger.LogInformation("Clearing selection in container: {ContainerId}", containerId);
+                _logger.LogInformationWithOperation(operationId, $"Starting ClearSelection: ContainerId={containerId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -128,23 +644,140 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                await _executor.ExecuteAsync<object>("ClearSelection", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ActionResult>("ClearSelection", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Selection cleared successfully in container: {ContainerId}", containerId);
-                return new { Success = true, Message = "Selection cleared successfully" };
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId,
+                            ["operationType"] = "clearSelection"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "ClearSelection",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to clear selection in container: {ContainerId}", containerId);
-                return new { Success = false, Error = ex.Message };
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in ClearSelection operation");
+                
+                var errorResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["containerId"] = containerId,
+                            ["operationType"] = "clearSelection"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "ClearSelection",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
         public async Task<object> CanSelectMultipleAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(containerId))
+            {
+                var validationError = "Container ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"CanSelectMultiple validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<BooleanResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["containerId"] = containerId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "CanSelectMultiple",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                return validationJson;
+            }
+
             try
             {
-                _logger.LogInformation("Checking if container supports multiple selection: {ContainerId}", containerId);
+                _logger.LogInformationWithOperation(operationId, $"Starting CanSelectMultiple for ContainerId={containerId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -153,23 +786,141 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                var result = await _executor.ExecuteAsync<object>("CanSelectMultiple", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<BooleanResult>("CanSelectMultiple", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Multiple selection check completed for container: {ContainerId}", containerId);
-                return new { Success = true, Data = result };
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<BooleanResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId,
+                            ["canSelectMultiple"] = result.Value,
+                            ["operationType"] = "canSelectMultiple"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "CanSelectMultiple",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to check multiple selection support for container: {ContainerId}", containerId);
-                return new { Success = false, Error = ex.Message };
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in CanSelectMultiple operation");
+                
+                var errorResponse = new ServerEnhancedResponse<BooleanResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["containerId"] = containerId,
+                            ["operationType"] = "canSelectMultiple"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "CanSelectMultiple",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
         public async Task<object> IsSelectionRequiredAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(containerId))
+            {
+                var validationError = "Container ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"IsSelectionRequired validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<BooleanResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["containerId"] = containerId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "IsSelectionRequired",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                return validationJson;
+            }
+
             try
             {
-                _logger.LogInformation("Checking if selection is required for container: {ContainerId}", containerId);
+                _logger.LogInformationWithOperation(operationId, $"Starting IsSelectionRequired for ContainerId={containerId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -178,23 +929,141 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                var result = await _executor.ExecuteAsync<object>("IsSelectionRequired", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<BooleanResult>("IsSelectionRequired", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Selection requirement check completed for container: {ContainerId}", containerId);
-                return new { Success = true, Data = result };
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<BooleanResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId,
+                            ["isSelectionRequired"] = result.Value,
+                            ["operationType"] = "isSelectionRequired"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "IsSelectionRequired",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to check selection requirement for container: {ContainerId}", containerId);
-                return new { Success = false, Error = ex.Message };
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in IsSelectionRequired operation");
+                
+                var errorResponse = new ServerEnhancedResponse<BooleanResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["containerId"] = containerId,
+                            ["operationType"] = "isSelectionRequired"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "IsSelectionRequired",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
         public async Task<object> IsSelectedAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(elementId))
+            {
+                var validationError = "Element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"IsSelected validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<BooleanResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "IsSelected",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                return validationJson;
+            }
+
             try
             {
-                _logger.LogInformation("Checking if element is selected: {ElementId}", elementId);
+                _logger.LogInformationWithOperation(operationId, $"Starting IsSelected for ElementId={elementId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -203,23 +1072,141 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                var result = await _executor.ExecuteAsync<object>("IsSelected", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<BooleanResult>("IsSelected", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Selection status check completed for element: {ElementId}", elementId);
-                return new { Success = true, Data = result };
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<BooleanResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["isSelected"] = result.Value,
+                            ["operationType"] = "isSelected"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "IsSelected",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to check selection status for element: {ElementId}", elementId);
-                return new { Success = false, Error = ex.Message };
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in IsSelected operation");
+                
+                var errorResponse = new ServerEnhancedResponse<BooleanResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["elementId"] = elementId,
+                            ["operationType"] = "isSelected"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "IsSelected",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
 
         public async Task<object> GetSelectionContainerAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(elementId))
+            {
+                var validationError = "Element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"GetSelectionContainer validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<SelectionInfoResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetSelectionContainer",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(validationResponse);
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                return validationJson;
+            }
+
             try
             {
-                _logger.LogInformation("Getting selection container for element: {ElementId}", elementId);
+                _logger.LogInformationWithOperation(operationId, $"Starting GetSelectionContainer for ElementId={elementId}");
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -228,15 +1215,90 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                var result = await _executor.ExecuteAsync<object>("GetSelectionContainer", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<SelectionInfoResult>("GetSelectionContainer", parameters, timeoutSeconds);
 
-                _logger.LogInformation("Selection container retrieved for element: {ElementId}", elementId);
-                return new { Success = true, Data = result };
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<SelectionInfoResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["containerElementId"] = result.ContainerElementId ?? "",
+                            ["containerName"] = result.ContainerName ?? "",
+                            ["operationType"] = "getSelectionContainer"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetSelectionContainer",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(serverResponse);
+                
+                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return jsonString;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get selection container for element: {ElementId}", elementId);
-                return new { Success = false, Error = ex.Message };
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in GetSelectionContainer operation");
+                
+                var errorResponse = new ServerEnhancedResponse<SelectionInfoResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["elementId"] = elementId,
+                            ["operationType"] = "getSelectionContainer"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetSelectionContainer",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.SerializeObject(errorResponse);
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorJson;
             }
         }
     }
