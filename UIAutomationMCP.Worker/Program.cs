@@ -11,6 +11,8 @@ using UIAutomationMCP.Worker.Operations.Value;
 using UIAutomationMCP.Worker.Operations.Grid;
 using UIAutomationMCP.Worker.Operations.Table;
 using UIAutomationMCP.Worker.Operations.Selection;
+using UIAutomationMCP.Worker.Operations.ElementInspection;
+using UIAutomationMCP.Worker.Operations.ControlTypeInfo;
 using UIAutomationMCP.Worker.Helpers;
 
 namespace UIAutomationMCP.Worker
@@ -128,6 +130,10 @@ namespace UIAutomationMCP.Worker
             builder.Services.AddKeyedTransient<IUIAutomationOperation, AddToSelectionOperation>("AddToSelection");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, RemoveFromSelectionOperation>("RemoveFromSelection");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, ClearSelectionOperation>("ClearSelection");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetElementPropertiesOperation>("GetElementProperties");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetElementPatternsOperation>("GetElementPatterns");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, ValidateControlTypePatternsOperation>("ValidateControlTypePatterns");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, FindElementsByPatternOperation>("FindElementsByPattern");
             
             // TODO: Phase 6 - Update remaining operations to new interface
             // The following operations need to be updated to use string parametersJson:
