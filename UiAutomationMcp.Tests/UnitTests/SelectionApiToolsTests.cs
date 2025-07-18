@@ -92,7 +92,8 @@ namespace UIAutomationMCP.Tests.UnitTests
                 _mockTransformService.Object,
                 _mockVirtualizedItemService.Object,
                 _mockItemContainerService.Object,
-                _mockSynchronizedInputService.Object
+                _mockSynchronizedInputService.Object,
+                Mock.Of<UIAutomationMCP.Server.Helpers.SubprocessExecutor>()
             );
         }
 

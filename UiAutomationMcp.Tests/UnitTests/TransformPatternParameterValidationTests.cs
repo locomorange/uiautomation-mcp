@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Options;
+using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Operations.Transform;
 using UIAutomationMCP.Worker.Helpers;
@@ -22,6 +23,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         private readonly ITestOutputHelper _output;
         private readonly Mock<ElementFinderService> _mockElementFinder;
         private readonly Mock<IOptions<UIAutomationOptions>> _mockOptions;
+        private readonly ILogger<GetTransformCapabilitiesOperation> _mockGetTransformCapabilitiesLogger;
+        private readonly ILogger<RotateElementOperation> _mockRotateElementLogger;
+        private readonly ILogger<ResizeElementOperation> _mockResizeElementLogger;
+        private readonly ILogger<MoveElementOperation> _mockMoveElementLogger;
 
         public TransformPatternParameterValidationTests(ITestOutputHelper output)
         {
@@ -29,6 +34,10 @@ namespace UIAutomationMCP.Tests.UnitTests
             _mockElementFinder = new Mock<ElementFinderService>(Mock.Of<ILogger<ElementFinderService>>());
             _mockOptions = new Mock<IOptions<UIAutomationOptions>>();
             _mockOptions.Setup(x => x.Value).Returns(new UIAutomationOptions());
+            _mockGetTransformCapabilitiesLogger = Mock.Of<ILogger<GetTransformCapabilitiesOperation>>();
+            _mockRotateElementLogger = Mock.Of<ILogger<RotateElementOperation>>();
+            _mockResizeElementLogger = Mock.Of<ILogger<ResizeElementOperation>>();
+            _mockMoveElementLogger = Mock.Of<ILogger<MoveElementOperation>>();
         }
 
         public void Dispose()
@@ -46,7 +55,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetTransformCapabilitiesOperation_WithInvalidElementId_ShouldReturnError(string invalidElementId)
         {
             // Arrange
-            var operation = new GetTransformCapabilitiesOperation(_mockElementFinder.Object);
+            var operation = new GetTransformCapabilitiesOperation(_mockElementFinder.Object, _mockGetTransformCapabilitiesLogger);
             var request = new WorkerRequest
             {
                 Parameters = new Dictionary<string, object>
@@ -60,7 +69,13 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine($"Testing GetTransformCapabilitiesOperation with invalid elementId: '{invalidElementId}'");
 
             // Act
-            var result = await operation.ExecuteAsync(request);
+            var typedRequest = new GetTransformCapabilitiesRequest 
+            { 
+                ElementId = (string)request.Parameters["elementId"], 
+                WindowTitle = (string)request.Parameters["windowTitle"], 
+                ProcessId = int.Parse((string)request.Parameters["processId"]) 
+            };
+            var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 
             // Assert
             Assert.NotNull(result);
@@ -75,7 +90,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetTransformCapabilitiesOperation_WithNullParameters_ShouldHandleGracefully()
         {
             // Arrange
-            var operation = new GetTransformCapabilitiesOperation(_mockElementFinder.Object);
+            var operation = new GetTransformCapabilitiesOperation(_mockElementFinder.Object, _mockGetTransformCapabilitiesLogger);
             var request = new WorkerRequest
             {
                 Parameters = null
@@ -84,7 +99,13 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine("Testing GetTransformCapabilitiesOperation with null parameters");
 
             // Act
-            var result = await operation.ExecuteAsync(request);
+            var typedRequest = new GetTransformCapabilitiesRequest 
+            { 
+                ElementId = (string)request.Parameters["elementId"], 
+                WindowTitle = (string)request.Parameters["windowTitle"], 
+                ProcessId = int.Parse((string)request.Parameters["processId"]) 
+            };
+            var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 
             // Assert
             Assert.NotNull(result);
@@ -99,7 +120,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetTransformCapabilitiesOperation_WithMissingElementIdParameter_ShouldUseEmptyString()
         {
             // Arrange
-            var operation = new GetTransformCapabilitiesOperation(_mockElementFinder.Object);
+            var operation = new GetTransformCapabilitiesOperation(_mockElementFinder.Object, _mockGetTransformCapabilitiesLogger);
             var request = new WorkerRequest
             {
                 Parameters = new Dictionary<string, object>
@@ -113,7 +134,13 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine("Testing GetTransformCapabilitiesOperation with missing elementId parameter");
 
             // Act
-            var result = await operation.ExecuteAsync(request);
+            var typedRequest = new GetTransformCapabilitiesRequest 
+            { 
+                ElementId = (string)request.Parameters["elementId"], 
+                WindowTitle = (string)request.Parameters["windowTitle"], 
+                ProcessId = int.Parse((string)request.Parameters["processId"]) 
+            };
+            var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 
             // Assert
             Assert.NotNull(result);
@@ -135,7 +162,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task MoveElementOperation_WithInvalidElementId_ShouldReturnError(string? invalidElementId)
         {
             // Arrange
-            var operation = new MoveElementOperation(_mockElementFinder.Object, _mockOptions.Object);
+            var operation = new MoveElementOperation(_mockElementFinder.Object, _mockMoveElementLogger);
             var request = new WorkerRequest
             {
                 Parameters = new Dictionary<string, object>
@@ -151,7 +178,15 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine($"Testing MoveElementOperation with invalid elementId: '{invalidElementId}'");
 
             // Act
-            var result = await operation.ExecuteAsync(request);
+            var typedRequest = new MoveElementRequest 
+            { 
+                ElementId = (string)request.Parameters["elementId"], 
+                WindowTitle = (string)request.Parameters["windowTitle"], 
+                ProcessId = int.Parse((string)request.Parameters["processId"]),
+                X = double.TryParse((string)request.Parameters["x"], out var x) ? x : 0.0,
+                Y = double.TryParse((string)request.Parameters["y"], out var y) ? y : 0.0
+            };
+            var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 
             // Assert
             Assert.NotNull(result);
@@ -171,7 +206,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task MoveElementOperation_WithInvalidCoordinates_ShouldUseDefaultValues(string xValue, string yValue)
         {
             // Arrange
-            var operation = new MoveElementOperation(_mockElementFinder.Object, _mockOptions.Object);
+            var operation = new MoveElementOperation(_mockElementFinder.Object, _mockMoveElementLogger);
             var request = new WorkerRequest
             {
                 Parameters = new Dictionary<string, object>
@@ -187,7 +222,15 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine($"Testing MoveElementOperation with invalid coordinates: x='{xValue}', y='{yValue}'");
 
             // Act
-            var result = await operation.ExecuteAsync(request);
+            var typedRequest = new MoveElementRequest 
+            { 
+                ElementId = (string)request.Parameters["elementId"], 
+                WindowTitle = (string)request.Parameters["windowTitle"], 
+                ProcessId = int.Parse((string)request.Parameters["processId"]),
+                X = double.TryParse((string)request.Parameters["x"], out var x) ? x : 0.0,
+                Y = double.TryParse((string)request.Parameters["y"], out var y) ? y : 0.0
+            };
+            var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 
             // Assert
             Assert.NotNull(result);
@@ -201,7 +244,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task MoveElementOperation_WithMissingCoordinateParameters_ShouldUseDefaults()
         {
             // Arrange
-            var operation = new MoveElementOperation(_mockElementFinder.Object, _mockOptions.Object);
+            var operation = new MoveElementOperation(_mockElementFinder.Object, _mockMoveElementLogger);
             var request = new WorkerRequest
             {
                 Parameters = new Dictionary<string, object>
@@ -216,7 +259,15 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine("Testing MoveElementOperation with missing coordinate parameters");
 
             // Act
-            var result = await operation.ExecuteAsync(request);
+            var typedRequest = new MoveElementRequest 
+            { 
+                ElementId = (string)request.Parameters["elementId"], 
+                WindowTitle = (string)request.Parameters["windowTitle"], 
+                ProcessId = int.Parse((string)request.Parameters["processId"]),
+                X = 0.0,  // Default values for missing coordinates
+                Y = 0.0
+            };
+            var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 
             // Assert
             Assert.NotNull(result);
@@ -239,7 +290,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ResizeElementOperation_WithInvalidDimensions_ShouldReturnError(string widthValue, string heightValue)
         {
             // Arrange
-            var operation = new ResizeElementOperation(_mockElementFinder.Object, _mockOptions.Object);
+            var operation = new ResizeElementOperation(_mockElementFinder.Object, _mockResizeElementLogger);
             var request = new WorkerRequest
             {
                 Parameters = new Dictionary<string, object>
@@ -255,7 +306,15 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine($"Testing ResizeElementOperation with invalid dimensions: width='{widthValue}', height='{heightValue}'");
 
             // Act
-            var result = await operation.ExecuteAsync(request);
+            var typedRequest = new ResizeElementRequest 
+            { 
+                ElementId = (string)request.Parameters["elementId"], 
+                WindowTitle = (string)request.Parameters["windowTitle"], 
+                ProcessId = int.Parse((string)request.Parameters["processId"]),
+                Width = double.TryParse((string)request.Parameters["width"], out var w) ? w : 0.0,
+                Height = double.TryParse((string)request.Parameters["height"], out var h) ? h : 0.0
+            };
+            var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 
             // Assert
             Assert.NotNull(result);
@@ -275,7 +334,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ResizeElementOperation_WithInvalidDimensionFormat_ShouldUseDefaultValues(string widthValue, string heightValue)
         {
             // Arrange
-            var operation = new ResizeElementOperation(_mockElementFinder.Object, _mockOptions.Object);
+            var operation = new ResizeElementOperation(_mockElementFinder.Object, _mockResizeElementLogger);
             var request = new WorkerRequest
             {
                 Parameters = new Dictionary<string, object>
@@ -291,7 +350,15 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine($"Testing ResizeElementOperation with invalid dimension format: width='{widthValue}', height='{heightValue}'");
 
             // Act
-            var result = await operation.ExecuteAsync(request);
+            var typedRequest = new ResizeElementRequest 
+            { 
+                ElementId = (string)request.Parameters["elementId"], 
+                WindowTitle = (string)request.Parameters["windowTitle"], 
+                ProcessId = int.Parse((string)request.Parameters["processId"]),
+                Width = double.TryParse((string)request.Parameters["width"], out var w) ? w : 0.0,
+                Height = double.TryParse((string)request.Parameters["height"], out var h) ? h : 0.0
+            };
+            var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 
             // Assert
             Assert.NotNull(result);
@@ -311,7 +378,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ResizeElementOperation_WithValidDimensions_ShouldAttemptOperation(double width, double height)
         {
             // Arrange
-            var operation = new ResizeElementOperation(_mockElementFinder.Object, _mockOptions.Object);
+            var operation = new ResizeElementOperation(_mockElementFinder.Object, _mockResizeElementLogger);
             var request = new WorkerRequest
             {
                 Parameters = new Dictionary<string, object>
@@ -327,7 +394,15 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine($"Testing ResizeElementOperation with valid dimensions: {width}x{height}");
 
             // Act
-            var result = await operation.ExecuteAsync(request);
+            var typedRequest = new ResizeElementRequest 
+            { 
+                ElementId = (string)request.Parameters["elementId"], 
+                WindowTitle = (string)request.Parameters["windowTitle"], 
+                ProcessId = int.Parse((string)request.Parameters["processId"]),
+                Width = width,
+                Height = height
+            };
+            var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 
             // Assert
             Assert.NotNull(result);
@@ -350,7 +425,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task RotateElementOperation_WithInvalidDegreesFormat_ShouldUseDefaultValue(string degreesValue)
         {
             // Arrange
-            var operation = new RotateElementOperation(_mockElementFinder.Object);
+            var operation = new RotateElementOperation(_mockElementFinder.Object, _mockRotateElementLogger);
             var request = new WorkerRequest
             {
                 Parameters = new Dictionary<string, object>
@@ -365,7 +440,14 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine($"Testing RotateElementOperation with invalid degrees format: '{degreesValue}'");
 
             // Act
-            var result = await operation.ExecuteAsync(request);
+            var typedRequest = new RotateElementRequest 
+            { 
+                ElementId = (string)request.Parameters["elementId"], 
+                WindowTitle = (string)request.Parameters["windowTitle"], 
+                ProcessId = int.Parse((string)request.Parameters["processId"]),
+                Degrees = double.TryParse((string)request.Parameters["degrees"], out var deg) ? deg : 0.0
+            };
+            var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 
             // Assert
             Assert.NotNull(result);
@@ -388,7 +470,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task RotateElementOperation_WithValidDegrees_ShouldAttemptOperation(double degrees)
         {
             // Arrange
-            var operation = new RotateElementOperation(_mockElementFinder.Object);
+            var operation = new RotateElementOperation(_mockElementFinder.Object, _mockRotateElementLogger);
             var request = new WorkerRequest
             {
                 Parameters = new Dictionary<string, object>
@@ -403,7 +485,14 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine($"Testing RotateElementOperation with valid degrees: {degrees}");
 
             // Act
-            var result = await operation.ExecuteAsync(request);
+            var typedRequest = new RotateElementRequest 
+            { 
+                ElementId = (string)request.Parameters["elementId"], 
+                WindowTitle = (string)request.Parameters["windowTitle"], 
+                ProcessId = int.Parse((string)request.Parameters["processId"]),
+                Degrees = degrees
+            };
+            var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 
             // Assert
             Assert.NotNull(result);
@@ -428,61 +517,49 @@ namespace UIAutomationMCP.Tests.UnitTests
             var operations = new List<(string Name, Func<Task<OperationResult>> Execute)>
             {
                 ("GetTransformCapabilities", async () => {
-                    var op = new GetTransformCapabilitiesOperation(_mockElementFinder.Object);
-                    var req = new WorkerRequest
-                    {
-                        Parameters = new Dictionary<string, object>
-                        {
-                            { "elementId", "TestElement" },
-                            { "windowTitle", "TestWindow" },
-                            { "processId", processIdValue }
-                        }
+                    var op = new GetTransformCapabilitiesOperation(_mockElementFinder.Object, _mockGetTransformCapabilitiesLogger);
+                    var typedRequest = new GetTransformCapabilitiesRequest 
+                    { 
+                        ElementId = "TestElement", 
+                        WindowTitle = "TestWindow", 
+                        ProcessId = int.Parse(processIdValue)
                     };
-                    return await ((IUIAutomationOperation)op).ExecuteAsync(req);
+                    return await op.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
                 }),
                 ("MoveElement", async () => {
-                    var op = new MoveElementOperation(_mockElementFinder.Object, _mockOptions.Object);
-                    var req = new WorkerRequest
-                    {
-                        Parameters = new Dictionary<string, object>
-                        {
-                            { "elementId", "TestElement" },
-                            { "x", "100.0" },
-                            { "y", "200.0" },
-                            { "windowTitle", "TestWindow" },
-                            { "processId", processIdValue }
-                        }
+                    var op = new MoveElementOperation(_mockElementFinder.Object, _mockMoveElementLogger);
+                    var typedRequest = new MoveElementRequest 
+                    { 
+                        ElementId = "TestElement", 
+                        WindowTitle = "TestWindow", 
+                        ProcessId = int.Parse(processIdValue),
+                        X = 100.0,
+                        Y = 200.0
                     };
-                    return await ((IUIAutomationOperation)op).ExecuteAsync(req);
+                    return await op.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
                 }),
                 ("ResizeElement", async () => {
-                    var op = new ResizeElementOperation(_mockElementFinder.Object, _mockOptions.Object);
-                    var req = new WorkerRequest
-                    {
-                        Parameters = new Dictionary<string, object>
-                        {
-                            { "elementId", "TestElement" },
-                            { "width", "800.0" },
-                            { "height", "600.0" },
-                            { "windowTitle", "TestWindow" },
-                            { "processId", processIdValue }
-                        }
+                    var op = new ResizeElementOperation(_mockElementFinder.Object, _mockResizeElementLogger);
+                    var typedRequest = new ResizeElementRequest 
+                    { 
+                        ElementId = "TestElement", 
+                        WindowTitle = "TestWindow", 
+                        ProcessId = int.Parse(processIdValue),
+                        Width = 800.0,
+                        Height = 600.0
                     };
-                    return await ((IUIAutomationOperation)op).ExecuteAsync(req);
+                    return await op.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
                 }),
                 ("RotateElement", async () => {
-                    var op = new RotateElementOperation(_mockElementFinder.Object);
-                    var req = new WorkerRequest
-                    {
-                        Parameters = new Dictionary<string, object>
-                        {
-                            { "elementId", "TestElement" },
-                            { "degrees", "90.0" },
-                            { "windowTitle", "TestWindow" },
-                            { "processId", processIdValue }
-                        }
+                    var op = new RotateElementOperation(_mockElementFinder.Object, _mockRotateElementLogger);
+                    var typedRequest = new RotateElementRequest 
+                    { 
+                        ElementId = "TestElement", 
+                        WindowTitle = "TestWindow", 
+                        ProcessId = int.Parse(processIdValue),
+                        Degrees = 90.0
                     };
-                    return await ((IUIAutomationOperation)op).ExecuteAsync(req);
+                    return await op.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
                 })
             };
 
@@ -509,7 +586,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task TransformOperations_WithInvalidProcessId_ShouldUseDefaultValue(string invalidProcessIdValue)
         {
             // Arrange
-            var operation = new GetTransformCapabilitiesOperation(_mockElementFinder.Object);
+            var operation = new GetTransformCapabilitiesOperation(_mockElementFinder.Object, _mockGetTransformCapabilitiesLogger);
             var request = new WorkerRequest
             {
                 Parameters = new Dictionary<string, object>
@@ -523,7 +600,13 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine($"Testing Transform operation with invalid processId: '{invalidProcessIdValue}'");
 
             // Act
-            var result = await operation.ExecuteAsync(request);
+            var typedRequest = new GetTransformCapabilitiesRequest 
+            { 
+                ElementId = (string)request.Parameters["elementId"], 
+                WindowTitle = (string)request.Parameters["windowTitle"], 
+                ProcessId = int.Parse((string)request.Parameters["processId"]) 
+            };
+            var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 
             // Assert
             Assert.NotNull(result);
@@ -547,7 +630,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task TransformOperations_WithVariousWindowTitles_ShouldHandleCorrectly(string windowTitle)
         {
             // Arrange
-            var operation = new GetTransformCapabilitiesOperation(_mockElementFinder.Object);
+            var operation = new GetTransformCapabilitiesOperation(_mockElementFinder.Object, _mockGetTransformCapabilitiesLogger);
             var request = new WorkerRequest
             {
                 Parameters = new Dictionary<string, object>
@@ -561,7 +644,13 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine($"Testing Transform operation with windowTitle: '{windowTitle}'");
 
             // Act
-            var result = await operation.ExecuteAsync(request);
+            var typedRequest = new GetTransformCapabilitiesRequest 
+            { 
+                ElementId = (string)request.Parameters["elementId"], 
+                WindowTitle = (string)request.Parameters["windowTitle"], 
+                ProcessId = int.Parse((string)request.Parameters["processId"]) 
+            };
+            var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 
             // Assert
             Assert.NotNull(result);

@@ -338,6 +338,11 @@ namespace UIAutomationMCP.Shared.Requests
         public double Degrees { get; set; }
     }
 
+    public class GetTransformCapabilitiesRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetTransformCapabilities";
+    }
+
     // === Wait操作 ===
 
     public class WaitForInputIdleRequest : TypedWorkerRequest
