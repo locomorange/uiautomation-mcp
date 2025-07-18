@@ -187,22 +187,14 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
                 "StartSynchronizedInput",
                 It.IsAny<object>(),
                 It.IsAny<int>()))
-            .Returns(Task.FromResult<object>((() =>
-            {
-                startCallCount++;
-                return new object();
-            })()));
+            .Returns(Task.FromResult<object>(new object()));
 
         _mockSubprocessExecutor
             .Setup(x => x.ExecuteAsync<object>(
                 "CancelSynchronizedInput",
                 It.IsAny<object>(),
                 It.IsAny<int>()))
-            .Returns(Task.FromResult<object>((() =>
-            {
-                cancelCallCount++;
-                return new object();
-            })()));
+            .Returns(Task.FromResult<object>(new object()));
 
         // Act - Simulate multiple start/cancel cycles
         for (int i = 0; i < 3; i++)

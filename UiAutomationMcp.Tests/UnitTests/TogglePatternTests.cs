@@ -4,6 +4,7 @@ using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
+using UIAutomationMCP.Server.Interfaces;
 using Xunit.Abstractions;
 
 namespace UIAutomationMCP.Tests.UnitTests
@@ -159,10 +160,9 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { 
                     Success = true, 
-                    Details = "Toggled", 
                     Action = "Toggle", 
                     ReturnValue = "On", 
-                    Details = "Previous state: Off", 
+                    Details = "Toggled - Previous state: Off", 
                     StateChanged = true,
                     Metadata = new Dictionary<string, object> { { "PropertyName", "TogglePattern.ToggleState" } } 
                 }
@@ -187,10 +187,9 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { 
                     Success = true, 
-                    Details = "Toggled", 
                     Action = "Toggle", 
                     ReturnValue = "Indeterminate", 
-                    Details = "Previous state: On", 
+                    Details = "Toggled - Previous state: On", 
                     StateChanged = true,
                     Metadata = new Dictionary<string, object> { { "PropertyName", "TogglePattern.ToggleState" } } 
                 }
@@ -215,10 +214,9 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { 
                     Success = true, 
-                    Details = "Toggled", 
                     Action = "Toggle", 
                     ReturnValue = "Off", 
-                    Details = "Previous state: Indeterminate", 
+                    Details = "Toggled - Previous state: Indeterminate", 
                     StateChanged = true,
                     Metadata = new Dictionary<string, object> { { "PropertyName", "TogglePattern.ToggleState" } } 
                 }
@@ -450,10 +448,9 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { 
                     Success = true, 
-                    Details = "Toggled", 
                     Action = "Toggle", 
                     ReturnValue = "On", 
-                    Details = "Previous state: Off", 
+                    Details = "Toggled - Previous state: Off", 
                     Metadata = new Dictionary<string, object> {
                         { "PropertyChanged", true },
                         { "EventFired", "TogglePattern.ToggleState" },
@@ -536,10 +533,9 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { 
                     Success = true, 
-                    Details = "Toggled", 
                     Action = "Toggle", 
                     ReturnValue = "On", 
-                    Details = "Previous state: Off",
+                    Details = "Toggled - Previous state: Off",
                     Metadata = new Dictionary<string, object> { { "GroupBehavior", "Exclusive" } }
                 }
             };
@@ -547,10 +543,9 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { 
                     Success = true, 
-                    Details = "Toggled", 
                     Action = "Toggle", 
                     ReturnValue = "On", 
-                    Details = "Previous state: Off",
+                    Details = "Toggled - Previous state: Off",
                     Metadata = new Dictionary<string, object> { 
                         { "GroupBehavior", "Exclusive" },
                         { "OtherRadioDeselected", "radioButton1" }
@@ -589,10 +584,9 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { 
                     Success = true, 
-                    Details = "Toggled", 
                     Action = "Toggle", 
                     ReturnValue = "On", 
-                    Details = "Previous state: Off",
+                    Details = "Toggled - Previous state: Off",
                     Metadata = new Dictionary<string, object> { 
                         { "MethodUsed", "Toggle" },
                         { "Note", "SetState method not provided per Microsoft specification" }

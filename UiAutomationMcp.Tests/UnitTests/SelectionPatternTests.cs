@@ -62,7 +62,11 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task CanSelectMultiple_WhenCalled_ShouldReturnSelectionCapability()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { CanSelectMultiple = true } };
+            var expectedResult = new ServerEnhancedResponse<BooleanResult> 
+            { 
+                Success = true, 
+                Data = new BooleanResult { Value = true, PropertyName = "CanSelectMultiple" } 
+            };
             _mockSelectionService.Setup(s => s.CanSelectMultipleAsync("list1", null, null, 30))
                 .Returns(Task.FromResult(expectedResult));
 
@@ -79,7 +83,11 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task CanSelectMultiple_WithSingleSelectionContainer_ShouldReturnFalse()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { CanSelectMultiple = false } };
+            var expectedResult = new ServerEnhancedResponse<BooleanResult> 
+            { 
+                Success = true, 
+                Data = new BooleanResult { Value = false, PropertyName = "CanSelectMultiple" } 
+            };
             _mockSelectionService.Setup(s => s.CanSelectMultipleAsync("radioGroup1", "Test Window", 1234, 30))
                 .Returns(Task.FromResult(expectedResult));
 
@@ -96,7 +104,11 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task IsSelectionRequired_WhenCalled_ShouldReturnSelectionRequirement()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { IsSelectionRequired = true } };
+            var expectedResult = new ServerEnhancedResponse<BooleanResult> 
+            { 
+                Success = true, 
+                Data = new BooleanResult { Value = true, PropertyName = "IsSelectionRequired" } 
+            };
             _mockSelectionService.Setup(s => s.IsSelectionRequiredAsync("tabControl1", null, null, 30))
                 .Returns(Task.FromResult(expectedResult));
 
@@ -113,7 +125,11 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task IsSelectionRequired_WithOptionalSelection_ShouldReturnFalse()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { IsSelectionRequired = false } };
+            var expectedResult = new ServerEnhancedResponse<BooleanResult> 
+            { 
+                Success = true, 
+                Data = new BooleanResult { Value = false, PropertyName = "IsSelectionRequired" } 
+            };
             _mockSelectionService.Setup(s => s.IsSelectionRequiredAsync("listBox1", "App Window", 5678, 30))
                 .Returns(Task.FromResult(expectedResult));
 
@@ -134,7 +150,11 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task IsElementSelected_WhenItemIsSelected_ShouldReturnTrue()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { IsSelected = true } };
+            var expectedResult = new ServerEnhancedResponse<BooleanResult> 
+            { 
+                Success = true, 
+                Data = new BooleanResult { Value = true, PropertyName = "IsSelected" } 
+            };
             _mockSelectionService.Setup(s => s.IsSelectedAsync("listItem1", null, null, 30))
                 .Returns(Task.FromResult(expectedResult));
 
@@ -151,7 +171,11 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task IsElementSelected_WhenItemIsNotSelected_ShouldReturnFalse()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { IsSelected = false } };
+            var expectedResult = new ServerEnhancedResponse<BooleanResult> 
+            { 
+                Success = true, 
+                Data = new BooleanResult { Value = false, PropertyName = "IsSelected" } 
+            };
             _mockSelectionService.Setup(s => s.IsSelectedAsync("listItem2", "Main Window", 9876, 30))
                 .Returns(Task.FromResult(expectedResult));
 
@@ -168,20 +192,15 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetSelectionContainer_WhenCalled_ShouldReturnContainerInfo()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object>
+            var expectedResult = new ServerEnhancedResponse<SelectionInfoResult>
             { 
                 Success = true, 
-                Data = new 
+                Data = new SelectionInfoResult
                 { 
-                    SelectionContainer = new 
-                    {
-                        AutomationId = "listBox1",
-                        Name = "Items List",
-                        ControlType = "ControlType.List",
-                        ClassName = "ListBox",
-                        ProcessId = 1234,
-                        RuntimeId = new int[] { 1, 2, 3, 4 }
-                    }
+                    ContainerElementId = "listBox1",
+                    ContainerName = "Items List",
+                    ContainerControlType = "ControlType.List",
+                    ProcessId = 1234
                 }
             };
             _mockSelectionService.Setup(s => s.GetSelectionContainerAsync("listItem1", null, null, 30))
@@ -200,7 +219,15 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetSelectionContainer_WhenNoContainer_ShouldReturnNull()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { SelectionContainer = (object?)null } };
+            var expectedResult = new ServerEnhancedResponse<SelectionInfoResult> 
+            { 
+                Success = true, 
+                Data = new SelectionInfoResult 
+                { 
+                    ContainerElementId = null,
+                    ContainerName = null
+                }
+            };
             _mockSelectionService.Setup(s => s.GetSelectionContainerAsync("orphanedItem", "Test App", 4321, 30))
                 .Returns(Task.FromResult(expectedResult));
 
@@ -221,7 +248,17 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task AddToSelection_WhenCalled_ShouldAddItemToSelection()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Message = "Element added to selection successfully" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> 
+            { 
+                Success = true, 
+                Data = new ActionResult 
+                {
+                    Action = "AddToSelection",
+                    ActionName = "Element added to selection successfully",
+                    ElementId = "item2",
+                    Completed = true
+                }
+            };
             _mockSelectionService.Setup(s => s.AddToSelectionAsync("item2", null, null, 30))
                 .Returns(Task.FromResult(expectedResult));
 
@@ -238,7 +275,17 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task RemoveFromSelection_WhenCalled_ShouldRemoveItemFromSelection()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Message = "Element removed from selection successfully" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> 
+            { 
+                Success = true, 
+                Data = new ActionResult 
+                {
+                    Action = "RemoveFromSelection",
+                    ActionName = "Element removed from selection successfully",
+                    ElementId = "item1",
+                    Completed = true
+                }
+            };
             _mockSelectionService.Setup(s => s.RemoveFromSelectionAsync("item1", "App Window", 2468, 30))
                 .Returns(Task.FromResult(expectedResult));
 
@@ -255,7 +302,17 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ClearSelection_WhenCalled_ShouldClearAllSelections()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Message = "Selection cleared successfully" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> 
+            { 
+                Success = true, 
+                Data = new ActionResult 
+                {
+                    Action = "ClearSelection",
+                    ActionName = "Selection cleared successfully",
+                    ElementId = "listContainer",
+                    Completed = true
+                }
+            };
             _mockSelectionService.Setup(s => s.ClearSelectionAsync("listContainer", null, null, 30))
                 .Returns(Task.FromResult(expectedResult));
 
@@ -272,13 +329,20 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetSelection_WhenCalled_ShouldReturnCurrentSelection()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object>
+            var expectedResult = new ServerEnhancedResponse<SelectionInfoResult>
             { 
                 Success = true, 
-                Data = new object[] 
-                { 
-                    new { AutomationId = "item1", Name = "Item One", ControlType = "ControlType.ListItem" },
-                    new { AutomationId = "item3", Name = "Item Three", ControlType = "ControlType.ListItem" }
+                Data = new SelectionInfoResult
+                {
+                    ContainerElementId = "multiSelectList",
+                    WindowTitle = "Test Window",
+                    ProcessId = 1357,
+                    SelectedItems = new List<SelectionItem>
+                    {
+                        new SelectionItem { AutomationId = "item1", Name = "Item One", ControlType = "ControlType.ListItem" },
+                        new SelectionItem { AutomationId = "item3", Name = "Item Three", ControlType = "ControlType.ListItem" }
+                    },
+                    SelectedCount = 2
                 }
             };
             _mockSelectionService.Setup(s => s.GetSelectionAsync("multiSelectList", "Test Window", 1357, 30))
@@ -305,7 +369,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             _mockSelectionService.Setup(s => s.IsSelectedAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<int?>(), It.IsAny<int>()))
-                .Returns(Task.FromResult(new ServerEnhancedResponse<object> { Success = false, Error = "Element not found" }));
+                .Returns(Task.FromResult(new ServerEnhancedResponse<BooleanResult> { Success = false, ErrorMessage = "Element not found" }));
 
             // Act & Assert - Should not throw exceptions
             var result = await _tools.IsElementSelected(invalidElementId ?? "");
@@ -323,7 +387,11 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             _mockSelectionService.Setup(s => s.CanSelectMultipleAsync("list1", null, null, timeout))
-                .Returns(Task.FromResult(new ServerEnhancedResponse<object> { Success = true, Data = new { CanSelectMultiple = true } }));
+                .Returns(Task.FromResult(new ServerEnhancedResponse<BooleanResult> 
+                { 
+                    Success = true, 
+                    Data = new BooleanResult { Value = true, PropertyName = "CanSelectMultiple" } 
+                }));
 
             // Act
             var result = await _tools.CanSelectMultiple("list1", null, null, timeout);
@@ -356,7 +424,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task SelectionMethods_WhenElementNotFound_ShouldReturnErrorResult()
         {
             // Arrange
-            var errorResult = new ServerEnhancedResponse<object> { Success = false, Error = "Element not found" };
+            var errorResult = new ServerEnhancedResponse<SelectionInfoResult> { Success = false, ErrorMessage = "Element not found" };
             _mockSelectionService.Setup(s => s.GetSelectionContainerAsync("nonExistentElement", null, null, 30))
                 .Returns(Task.FromResult(errorResult));
 

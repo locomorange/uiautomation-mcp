@@ -780,21 +780,17 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task SelectText_Success_SelectsText()
         {
             // Arrange
-            var resultObject = new TextInfoResult
+            var resultObject = new ActionResult
             {
                 Success = true,
                 ElementId = "textElement",
-                // WindowTitle not available in ElementSearchResult,
-                Text = "Sample text content",
-                SelectedText = "text ",
-                SelectionStart = 5,
-                SelectionEnd = 10,
-                SelectionLength = 5,
-                HasSelection = true,
-                CanSelectText = true,
-                TextPattern = "TextPattern"
+                Action = "SelectText",
+                ActionName = "SelectText",
+                TargetName = "textElement",
+                ReturnValue = "Selected text from index 5 to 10",
+                Details = "Text selection completed successfully"
             };
-            var serverResponse = new ServerEnhancedResponse<TextInfoResult>
+            var serverResponse = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
                 Data = resultObject,
@@ -821,12 +817,15 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task TakeScreenshot_Success_TakesScreenshot()
         {
             // Arrange
-            var resultObject = new JsonResult
+            var resultObject = new ScreenshotResult
             {
-                Json = "{\"success\":true,\"outputPath\":\"screenshot.png\",\"base64Image\":\"base64data\",\"width\":1920,\"height\":1080}",
-                DataType = "screenshot"
+                Success = true,
+                OutputPath = "screenshot.png",
+                Base64Image = "base64data",
+                Width = 1920,
+                Height = 1080
             };
-            var serverResponse = new ServerEnhancedResponse<JsonResult>
+            var serverResponse = new ServerEnhancedResponse<ScreenshotResult>
             {
                 Success = true,
                 Data = resultObject,

@@ -3,6 +3,8 @@ using Moq;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
+using UIAutomationMCP.Server.Interfaces;
+using UIAutomationMCP.Shared.Results;
 using Xunit.Abstractions;
 
 namespace UIAutomationMCP.Tests.UnitTests
@@ -110,7 +112,11 @@ namespace UIAutomationMCP.Tests.UnitTests
             var windowTitle = "Test Window";
             var processId = 1234;
             var timeoutSeconds = 45;
-            var expectedResult = new { Success = true, Data = new { IsSelected = true } };
+            var expectedResult = new ServerEnhancedResponse<BooleanResult> 
+            { 
+                Success = true, 
+                Data = new BooleanResult { Value = true, PropertyName = "IsSelected" } 
+            };
 
             _mockSelectionService
                 .Setup(s => s.IsSelectedAsync(elementId, windowTitle, processId, timeoutSeconds))
@@ -131,7 +137,11 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var elementId = "defaultTestItem";
-            var expectedResult = new { Success = true, Data = new { IsSelected = false } };
+            var expectedResult = new ServerEnhancedResponse<BooleanResult> 
+            { 
+                Success = true, 
+                Data = new BooleanResult { Value = false, PropertyName = "IsSelected" } 
+            };
 
             _mockSelectionService
                 .Setup(s => s.IsSelectedAsync(elementId, null, null, 30))
@@ -154,20 +164,16 @@ namespace UIAutomationMCP.Tests.UnitTests
             var elementId = "containerTestItem";
             var windowTitle = "Container Window";
             var processId = 5678;
-            var expectedResult = new 
+            var expectedResult = new ServerEnhancedResponse<SelectionInfoResult> 
             { 
                 Success = true, 
-                Data = new 
+                Data = new SelectionInfoResult 
                 { 
-                    SelectionContainer = new 
-                    {
-                        AutomationId = "parentListBox",
-                        Name = "Items Container",
-                        ControlType = "ControlType.List",
-                        ClassName = "ListBox",
-                        ProcessId = 5678,
-                        RuntimeId = new int[] { 1, 2, 3, 4 }
-                    }
+                    ContainerElementId = "parentListBox",
+                    ContainerName = "Items Container",
+                    ContainerControlType = "ControlType.List",
+                    ProcessId = 5678,
+                    WindowTitle = windowTitle
                 }
             };
 
@@ -190,7 +196,15 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var elementId = "orphanedItem";
-            var expectedResult = new { Success = true, Data = new { SelectionContainer = (object?)null } };
+            var expectedResult = new ServerEnhancedResponse<SelectionInfoResult> 
+            { 
+                Success = true, 
+                Data = new SelectionInfoResult 
+                { 
+                    ContainerElementId = null,
+                    ContainerName = null
+                }
+            };
 
             _mockSelectionService
                 .Setup(s => s.GetSelectionContainerAsync(elementId, null, null, 30))
@@ -218,7 +232,11 @@ namespace UIAutomationMCP.Tests.UnitTests
             var windowTitle = "Multi-Select Window";
             var processId = 9999;
             var timeoutSeconds = 60;
-            var expectedResult = new { Success = true, Data = new { CanSelectMultiple = true } };
+            var expectedResult = new ServerEnhancedResponse<BooleanResult> 
+            { 
+                Success = true, 
+                Data = new BooleanResult { Value = true, PropertyName = "CanSelectMultiple" } 
+            };
 
             _mockSelectionService
                 .Setup(s => s.CanSelectMultipleAsync(containerElementId, windowTitle, processId, timeoutSeconds))
@@ -239,7 +257,11 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var containerElementId = "singleSelectRadioGroup";
-            var expectedResult = new { Success = true, Data = new { CanSelectMultiple = false } };
+            var expectedResult = new ServerEnhancedResponse<BooleanResult> 
+            { 
+                Success = true, 
+                Data = new BooleanResult { Value = false, PropertyName = "CanSelectMultiple" } 
+            };
 
             _mockSelectionService
                 .Setup(s => s.CanSelectMultipleAsync(containerElementId, null, null, 30))
@@ -261,7 +283,11 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Arrange
             var containerElementId = "requiredTabControl";
             var windowTitle = "Tab Control Window";
-            var expectedResult = new { Success = true, Data = new { IsSelectionRequired = true } };
+            var expectedResult = new ServerEnhancedResponse<BooleanResult> 
+            { 
+                Success = true, 
+                Data = new BooleanResult { Value = true, PropertyName = "IsSelectionRequired" } 
+            };
 
             _mockSelectionService
                 .Setup(s => s.IsSelectionRequiredAsync(containerElementId, windowTitle, null, 30))
@@ -282,7 +308,11 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var containerElementId = "optionalSelectionList";
-            var expectedResult = new { Success = true, Data = new { IsSelectionRequired = false } };
+            var expectedResult = new ServerEnhancedResponse<BooleanResult> 
+            { 
+                Success = true, 
+                Data = new BooleanResult { Value = false, PropertyName = "IsSelectionRequired" } 
+            };
 
             _mockSelectionService
                 .Setup(s => s.IsSelectionRequiredAsync(containerElementId, null, null, 30))
@@ -309,7 +339,17 @@ namespace UIAutomationMCP.Tests.UnitTests
             var elementId = "additionalItem";
             var windowTitle = "Multi-Select List";
             var processId = 7777;
-            var expectedResult = new { Success = true, Message = "Element added to selection successfully" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> 
+            { 
+                Success = true, 
+                Data = new ActionResult 
+                { 
+                    Action = "AddToSelection",
+                    ActionName = "Element added to selection successfully",
+                    ElementId = elementId,
+                    Completed = true
+                }
+            };
 
             _mockSelectionService
                 .Setup(s => s.AddToSelectionAsync(elementId, windowTitle, processId, 30))
@@ -331,7 +371,17 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Arrange
             var elementId = "timeoutAddItem";
             var timeoutSeconds = 120;
-            var expectedResult = new { Success = true, Message = "Element added with custom timeout" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> 
+            { 
+                Success = true, 
+                Data = new ActionResult 
+                { 
+                    Action = "AddToSelection",
+                    ActionName = "Element added with custom timeout",
+                    ElementId = elementId,
+                    Completed = true
+                }
+            };
 
             _mockSelectionService
                 .Setup(s => s.AddToSelectionAsync(elementId, null, null, timeoutSeconds))
@@ -354,7 +404,17 @@ namespace UIAutomationMCP.Tests.UnitTests
             var elementId = "removeableItem";
             var windowTitle = "Editable Selection";
             var processId = 3333;
-            var expectedResult = new { Success = true, Message = "Element removed from selection successfully" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> 
+            { 
+                Success = true, 
+                Data = new ActionResult 
+                { 
+                    Action = "RemoveFromSelection",
+                    ActionName = "Element removed from selection successfully",
+                    ElementId = elementId,
+                    Completed = true
+                }
+            };
 
             _mockSelectionService
                 .Setup(s => s.RemoveFromSelectionAsync(elementId, windowTitle, processId, 30))
@@ -377,7 +437,17 @@ namespace UIAutomationMCP.Tests.UnitTests
             var containerElementId = "clearableContainer";
             var windowTitle = "Clearable Selection Window";
             var processId = 4444;
-            var expectedResult = new { Success = true, Message = "Selection cleared successfully" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> 
+            { 
+                Success = true, 
+                Data = new ActionResult 
+                { 
+                    Action = "ClearSelection",
+                    ActionName = "Selection cleared successfully",
+                    ElementId = containerElementId,
+                    Completed = true
+                }
+            };
 
             _mockSelectionService
                 .Setup(s => s.ClearSelectionAsync(containerElementId, windowTitle, processId, 30))
@@ -399,13 +469,19 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Arrange
             var containerElementId = "selectionContainer";
             var windowTitle = "Current Selection Window";
-            var expectedResult = new 
+            var expectedResult = new ServerEnhancedResponse<SelectionInfoResult> 
             { 
                 Success = true, 
-                Data = new List<object>
-                {
-                    new { AutomationId = "item1", Name = "First Selected Item" },
-                    new { AutomationId = "item3", Name = "Third Selected Item" }
+                Data = new SelectionInfoResult 
+                { 
+                    ContainerElementId = containerElementId,
+                    WindowTitle = windowTitle,
+                    SelectedItems = new List<SelectionItem>
+                    {
+                        new SelectionItem { AutomationId = "item1", Name = "First Selected Item" },
+                        new SelectionItem { AutomationId = "item3", Name = "Third Selected Item" }
+                    },
+                    SelectedCount = 2
                 }
             };
 
@@ -453,7 +529,11 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var emptyElementId = "";
-            var expectedResult = new { Success = true, Data = new { IsSelected = false } };
+            var expectedResult = new ServerEnhancedResponse<BooleanResult> 
+            { 
+                Success = true, 
+                Data = new BooleanResult { Value = false, PropertyName = "IsSelected" } 
+            };
 
             _mockSelectionService
                 .Setup(s => s.IsSelectedAsync(emptyElementId, null, null, 30))
@@ -481,7 +561,11 @@ namespace UIAutomationMCP.Tests.UnitTests
             string elementId, string windowTitle, int processId, int timeoutSeconds)
         {
             // Arrange
-            var expectedResult = new { Success = true, Data = new { IsSelected = true } };
+            var expectedResult = new ServerEnhancedResponse<BooleanResult> 
+            { 
+                Success = true, 
+                Data = new BooleanResult { Value = true, PropertyName = "IsSelected" } 
+            };
 
             _mockSelectionService
                 .Setup(s => s.IsSelectedAsync(elementId, windowTitle, processId, timeoutSeconds))
@@ -506,7 +590,11 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var containerElementId = "timeoutTestContainer";
-            var expectedResult = new { Success = true, Data = new { CanSelectMultiple = false } };
+            var expectedResult = new ServerEnhancedResponse<BooleanResult> 
+            { 
+                Success = true, 
+                Data = new BooleanResult { Value = false, PropertyName = "CanSelectMultiple" } 
+            };
 
             _mockSelectionService
                 .Setup(s => s.CanSelectMultipleAsync(containerElementId, null, null, timeoutSeconds))
