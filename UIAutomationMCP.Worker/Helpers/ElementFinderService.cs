@@ -18,7 +18,8 @@ namespace UIAutomationMCP.Worker.Helpers
         }
 
         /// <summary>
-        /// 要素IDで要素を検索
+        /// 要素IDで要素を検索（AutomationId OR Name の OR条件で検索）
+        /// FindElementsと同じ検索条件を使用してInvokeElementとの一貫性を保つ
         /// </summary>
         /// <param name="elementId">要素ID</param>
         /// <param name="windowTitle">ウィンドウタイトル（省略可）</param>
@@ -52,9 +53,13 @@ namespace UIAutomationMCP.Worker.Helpers
             
             searchRoot ??= AutomationElement.RootElement;
             
-            var condition = new PropertyCondition(AutomationElement.AutomationIdProperty, elementId);
+            // OR条件で検索：AutomationId OR Name
+            // これによりFindElementsと同じ検索条件を使用し、InvokeElementとの一貫性を保つ
+            var automationIdCondition = new PropertyCondition(AutomationElement.AutomationIdProperty, elementId);
+            var nameCondition = new PropertyCondition(AutomationElement.NameProperty, elementId);
+            var condition = new OrCondition(automationIdCondition, nameCondition);
             
-            _logger?.LogDebug("Searching for element with ID: {ElementId} in window: {WindowTitle} (PID: {ProcessId}), Scope: {Scope}, Timeout: {TimeoutMs}ms", 
+            _logger?.LogDebug("Searching for element with ID: {ElementId} (AutomationId OR Name) in window: {WindowTitle} (PID: {ProcessId}), Scope: {Scope}, Timeout: {TimeoutMs}ms", 
                 elementId, windowTitle, processId, scope, timeoutMs);
             
             return UIAutomationMCP.Worker.Helpers.UIAutomationEnvironment.ExecuteWithTimeout(() =>
