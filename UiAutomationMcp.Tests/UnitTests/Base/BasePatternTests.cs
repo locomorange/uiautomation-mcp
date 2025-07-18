@@ -2,6 +2,7 @@ using Moq;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
+using UIAutomationMCP.Server.Interfaces;
 using Xunit.Abstractions;
 
 namespace UIAutomationMCP.Tests.UnitTests.Base
@@ -39,7 +40,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
         protected readonly Mock<IVirtualizedItemService> _mockVirtualizedItem;
         protected readonly Mock<IItemContainerService> _mockItemContainer;
         protected readonly Mock<ISynchronizedInputService> _mockSynchronizedInput;
-        protected readonly UIAutomationMCP.Server.Helpers.SubprocessExecutor _mockSubprocessExecutor;
+        protected readonly Mock<ISubprocessExecutor> _mockSubprocessExecutor;
 
         protected BasePatternTests(ITestOutputHelper output)
         {
@@ -68,7 +69,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
             _mockVirtualizedItem = new Mock<IVirtualizedItemService>();
             _mockItemContainer = new Mock<IItemContainerService>();
             _mockSynchronizedInput = new Mock<ISynchronizedInputService>();
-            _mockSubprocessExecutor = Mock.Of<UIAutomationMCP.Server.Helpers.SubprocessExecutor>();
+            _mockSubprocessExecutor = new Mock<ISubprocessExecutor>();
 
             // テスト対象サービスのモック
             _mockService = CreateServiceMock();
@@ -110,7 +111,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
                 _mockVirtualizedItem.Object,
                 _mockItemContainer.Object,
                 _mockSynchronizedInput.Object,
-                _mockSubprocessExecutor
+                _mockSubprocessExecutor.Object
             );
         }
 

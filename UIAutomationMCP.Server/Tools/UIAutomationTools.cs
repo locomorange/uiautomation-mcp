@@ -2,6 +2,7 @@ using ModelContextProtocol.Server;
 using System.ComponentModel;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
+using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Serialization;
@@ -33,6 +34,7 @@ namespace UIAutomationMCP.Server.Tools
         private readonly IVirtualizedItemService _virtualizedItemService;
         private readonly IItemContainerService _itemContainerService;
         private readonly ISynchronizedInputService _synchronizedInputService;
+        private readonly ISubprocessExecutor _subprocessExecutor;
 
         public UIAutomationTools(
             IApplicationLauncher applicationLauncher,
@@ -57,7 +59,7 @@ namespace UIAutomationMCP.Server.Tools
             IVirtualizedItemService virtualizedItemService,
             IItemContainerService itemContainerService,
             ISynchronizedInputService synchronizedInputService,
-            UIAutomationMCP.Server.Helpers.SubprocessExecutor subprocessExecutor)
+            ISubprocessExecutor subprocessExecutor)
         {
             _applicationLauncher = applicationLauncher;
             _screenshotService = screenshotService;
@@ -81,6 +83,7 @@ namespace UIAutomationMCP.Server.Tools
             _virtualizedItemService = virtualizedItemService;
             _itemContainerService = itemContainerService;
             _synchronizedInputService = synchronizedInputService;
+            _subprocessExecutor = subprocessExecutor;
         }
 
         // Window and Element Discovery
