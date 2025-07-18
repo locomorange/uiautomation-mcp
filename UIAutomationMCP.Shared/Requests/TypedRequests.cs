@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using UIAutomationMCP.Shared.Serialization;
 
 namespace UIAutomationMCP.Shared.Requests
 {

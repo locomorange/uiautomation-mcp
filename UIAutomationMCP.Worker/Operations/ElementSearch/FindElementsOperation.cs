@@ -20,15 +20,15 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             _cacheService = cacheService ?? new FindElementsCacheService();
         }
 
-        public async Task<OperationResult<ElementSearchResult>> ExecuteAsync(WorkerRequest request)
+        public async Task<OperationResult<ElementSearchResult>> ExecuteAsync(string parametersJson)
         {
-            var result = await ExecuteInternalAsync(request);
+            var result = await ExecuteInternalAsync(parametersJson);
             return result;
         }
 
-        async Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
+        async Task<OperationResult> IUIAutomationOperation.ExecuteAsync(string parametersJson)
         {
-            var typedResult = await ExecuteAsync(request);
+            var typedResult = await ExecuteAsync(parametersJson);
             return new OperationResult
             {
                 Success = typedResult.Success,
@@ -38,11 +38,11 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             };
         }
 
-        private async Task<OperationResult<ElementSearchResult>> ExecuteInternalAsync(WorkerRequest request)
+        private async Task<OperationResult<ElementSearchResult>> ExecuteInternalAsync(string parametersJson)
         {
             // Direct deserialization from pre-serialized JSON
             // Defaults are already applied at Server level
-            var typedRequest = JsonSerializationHelper.Deserialize<FindElementsRequest>(request.ParametersJson!)!;
+            var typedRequest = JsonSerializationHelper.Deserialize<FindElementsRequest>(parametersJson)!;
             
             if (typedRequest == null)
             {
@@ -219,14 +219,14 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             // Check cache first if enabled
             if (useCache)
             {
-                var cacheKey = _cacheService.GenerateCacheKey(request.Parameters);
+                var cacheKey = _cacheService.GenerateCacheKey(CreateParametersDictionary(typedRequest));
                 var cachedResult = _cacheService.GetFromCache(cacheKey);
                 if (cachedResult != null)
                 {
                     var cachedSearchResult = new ElementSearchResult
                     {
                         Elements = cachedResult,
-                        SearchCriteria = CreateSearchCriteriaString(request.Parameters)
+                        SearchCriteria = CreateSearchCriteriaString(CreateParametersDictionary(typedRequest))
                     };
                     return new OperationResult<ElementSearchResult>
                     {
@@ -262,14 +262,14 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     // Cache the result if enabled
                     if (useCache && elementList.Count > 0)
                     {
-                        var cacheKey = _cacheService.GenerateCacheKey(request.Parameters);
+                        var cacheKey = _cacheService.GenerateCacheKey(CreateParametersDictionary(typedRequest));
                         _cacheService.AddToCache(cacheKey, elementList, TimeSpan.FromMinutes(cacheTimeoutMinutes));
                     }
                     
                     var searchResult = new ElementSearchResult
                     {
                         Elements = elementList,
-                        SearchCriteria = CreateSearchCriteriaString(request.Parameters)
+                        SearchCriteria = CreateSearchCriteriaString(CreateParametersDictionary(typedRequest))
                     };
                     
                     return new OperationResult<ElementSearchResult>
@@ -501,6 +501,23 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     criteria.Add($"{param.Key}: {param.Value}");
             }
             return string.Join(", ", criteria);
+        }
+
+        private Dictionary<string, object> CreateParametersDictionary(FindElementsRequest request)
+        {
+            return new Dictionary<string, object>
+            {
+                ["searchText"] = request.SearchText ?? "",
+                ["controlType"] = request.ControlType ?? "",
+                ["windowTitle"] = request.WindowTitle ?? "",
+                ["processId"] = request.ProcessId ?? 0,
+                ["scope"] = request.Scope ?? "",
+                ["className"] = request.ClassName ?? "",
+                ["maxResults"] = request.MaxResults,
+                ["useCache"] = request.UseCache,
+                ["useRegex"] = request.UseRegex,
+                ["useWildcard"] = request.UseWildcard
+            };
         }
 
         private SearchCriteria CreateSearchCriteria(Dictionary<string, object>? parameters)

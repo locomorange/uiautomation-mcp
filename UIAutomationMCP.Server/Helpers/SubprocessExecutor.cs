@@ -2,8 +2,8 @@ using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text.Json;
 using UIAutomationMCP.Shared;
-using UIAutomationMCP.Shared.Serialization;
 using UIAutomationMCP.Shared.Requests;
+using UIAutomationMCP.Shared.Serialization;
 using UIAutomationMCP.Server.Interfaces;
 
 namespace UIAutomationMCP.Server.Helpers
@@ -23,6 +23,200 @@ namespace UIAutomationMCP.Server.Helpers
             _workerPath = !string.IsNullOrWhiteSpace(workerPath) ? workerPath : throw new ArgumentException("Worker path cannot be null or empty", nameof(workerPath));
         }
 
+        /// <summary>
+        /// Type-safe overload for TypedWorkerRequest - Tools Level Serialization pattern
+        /// Accepts pre-serialized JSON string to avoid generic type inference issues
+        /// </summary>
+        /// <typeparam name="TResult">The expected result type</typeparam>
+        /// <param name="operation">The operation name</param>
+        /// <param name="requestJson">Pre-serialized JSON string of the request</param>
+        /// <param name="timeoutSeconds">Timeout in seconds</param>
+        /// <returns>The operation result</returns>
+        public async Task<TResult> ExecuteAsync<TResult>(string operation, string requestJson, int timeoutSeconds = 60) where TResult : notnull
+        {
+            try
+            {
+                if (_disposed)
+                    throw new ObjectDisposedException(nameof(SubprocessExecutor));
+                
+                if (string.IsNullOrWhiteSpace(operation))
+                    throw new ArgumentException("Operation cannot be null or empty", nameof(operation));
+                
+                if (string.IsNullOrWhiteSpace(requestJson))
+                    throw new ArgumentException("Request JSON cannot be null or empty", nameof(requestJson));
+                
+                if (timeoutSeconds <= 0)
+                    throw new ArgumentException("Timeout must be greater than zero", nameof(timeoutSeconds));
+                
+                await _semaphore.WaitAsync();
+                try
+                {
+                    await EnsureWorkerProcessAsync();
+                
+                    _logger.LogInformation("Sending request to worker: {Request}", requestJson);
+
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
+                    
+                    await _workerProcess!.StandardInput.WriteLineAsync(requestJson);
+                    await _workerProcess.StandardInput.FlushAsync();
+                    _logger.LogInformation("Request sent and flushed to worker process");
+
+                    var responseTask = _workerProcess.StandardOutput.ReadLineAsync();
+                    var timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeoutSeconds), cts.Token);
+                    var completedTask = await Task.WhenAny(responseTask, timeoutTask);
+
+                    if (completedTask == timeoutTask)
+                    {
+                        _logger.LogWarning("Worker operation timed out after {TimeoutSeconds}s: {Operation}", timeoutSeconds, operation);
+                        
+                        cts.Cancel();
+                        
+                        var gracefulShutdownTask = Task.Delay(TimeSpan.FromSeconds(2));
+                        var shutdownCompleted = await Task.WhenAny(responseTask, gracefulShutdownTask);
+                        
+                        if (shutdownCompleted == gracefulShutdownTask)
+                        {
+                            _logger.LogWarning("Worker process did not respond to cancellation, forcing restart");
+                            await RestartWorkerProcessAsync();
+                        }
+                        
+                        throw new TimeoutException($"Worker operation '{operation}' timed out after {timeoutSeconds} seconds");
+                    }
+
+                    var responseJson = await responseTask;
+                    if (string.IsNullOrEmpty(responseJson))
+                    {
+                        string errorOutput = "";
+                        try
+                        {
+                            if (_workerProcess?.StandardError != null && _workerProcess.StandardError.Peek() >= 0)
+                            {
+                                errorOutput = await _workerProcess.StandardError.ReadToEndAsync();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Failed to read stderr from worker process");
+                        }
+
+                        var contextMessage = $"Worker process returned empty response for operation '{operation}'";
+                        contextMessage += $" with JSON: {GetParameterSummary(requestJson)}";
+                        if (!string.IsNullOrEmpty(errorOutput))
+                        {
+                            contextMessage += $". Stderr: {errorOutput}";
+                        }
+                        _logger.LogError("Empty response received: {Context}", contextMessage);
+                        throw new InvalidOperationException(contextMessage);
+                    }
+
+                    _logger.LogInformation("Received response from worker (length: {Length}): {Response}", 
+                        responseJson.Length, 
+                        responseJson.Length > 1000 ? responseJson.Substring(0, 1000) + "..." : responseJson);
+
+                    WorkerResponse<object>? response;
+                    try
+                    {
+                        response = JsonSerializationHelper.Deserialize<WorkerResponse<object>>(responseJson);
+                    }
+                    catch (JsonException ex)
+                    {
+                        var errorMessage = $"Failed to deserialize worker response for operation '{operation}'. Response: {responseJson}";
+                        _logger.LogError(ex, "JSON deserialization failed: {ErrorMessage}", errorMessage);
+                        throw new InvalidOperationException(errorMessage, ex);
+                    }
+                    
+                    if (response == null)
+                    {
+                        var errorMessage = $"Deserialized response is null for operation '{operation}'. Raw response: {responseJson}";
+                        _logger.LogError("Null response after deserialization: {ErrorMessage}", errorMessage);
+                        throw new InvalidOperationException(errorMessage);
+                    }
+
+                    if (!response.Success)
+                    {
+                        var errorDetails = new
+                        {
+                            Operation = operation,
+                            RequestJson = requestJson,
+                            Error = response.Error,
+                            ErrorIsNull = response.Error == null,
+                            ErrorIsEmpty = string.IsNullOrEmpty(response.Error),
+                            Data = response.Data,
+                            Timestamp = DateTime.UtcNow,
+                            WorkerPid = _workerProcess?.Id
+                        };
+                        
+                        var errorMessage = string.IsNullOrEmpty(response.Error) ? 
+                            "Unknown error occurred" : response.Error;
+                        
+                        var contextualErrorMessage = $"Worker operation '{operation}' failed: {errorMessage}";
+                        contextualErrorMessage += $" (JSON: {GetParameterSummary(requestJson)})";
+                        
+                        _logger.LogError("Worker operation failed with details: {@ErrorDetails}", errorDetails);
+                        
+                        var errorLower = errorMessage.ToLowerInvariant();
+                        
+                        if (errorLower.Contains("not found") || errorLower.Contains("element") && errorLower.Contains("not") ||
+                            errorLower.Contains("invalid") && errorLower.Contains("id"))
+                        {
+                            throw new ArgumentException(contextualErrorMessage);
+                        }
+                        else if (errorLower.Contains("not supported") || errorLower.Contains("pattern") && errorLower.Contains("not") ||
+                                 errorLower.Contains("control") && errorLower.Contains("not"))
+                        {
+                            throw new NotSupportedException(contextualErrorMessage);
+                        }
+                        else if (errorLower.Contains("read-only") || errorLower.Contains("access") && errorLower.Contains("denied") ||
+                                 errorLower.Contains("permission") || errorLower.Contains("unauthorized"))
+                        {
+                            throw new UnauthorizedAccessException(contextualErrorMessage);
+                        }
+                        else if (errorLower.Contains("timeout") || errorLower.Contains("time") && errorLower.Contains("out"))
+                        {
+                            throw new TimeoutException(contextualErrorMessage);
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException(contextualErrorMessage);
+                        }
+                    }
+
+                    try
+                    {
+                        var dataJson = JsonSerializationHelper.Serialize(response.Data!);
+                        var result = JsonSerializationHelper.Deserialize<TResult>(dataJson)!;
+                        _logger.LogInformation("Successfully deserialized worker response data to type {ResultType}", typeof(TResult).Name);
+                        return result;
+                    }
+                    catch (JsonException ex)
+                    {
+                        _logger.LogError(ex, "Failed to deserialize response data to type {ResultType}. Data: {Data}", 
+                            typeof(TResult).Name, JsonSerializationHelper.Serialize(response.Data!));
+                        throw new InvalidOperationException($"Failed to deserialize response data to {typeof(TResult).Name}: {ex.Message}", ex);
+                    }
+                }
+                finally
+                {
+                    _semaphore.Release();
+                }
+            }
+            catch (Exception ex) when (!(ex is ArgumentException || ex is ObjectDisposedException))
+            {
+                _logger.LogError(ex, "Unexpected error in ExecuteAsync for operation '{Operation}' with JSON: {RequestJson}", 
+                    operation, GetParameterSummary(requestJson));
+                throw new InvalidOperationException($"Internal server error occurred while executing operation '{operation}': {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Legacy overload for backward compatibility - handles object parameters
+        /// For new code, prefer the JSON string overload for better type safety
+        /// </summary>
+        /// <typeparam name="TResult">The expected result type</typeparam>
+        /// <param name="operation">The operation name</param>
+        /// <param name="parameters">The parameters object (Dictionary or TypedWorkerRequest)</param>
+        /// <param name="timeoutSeconds">Timeout in seconds</param>
+        /// <returns>The operation result</returns>
         public async Task<TResult> ExecuteAsync<TResult>(string operation, object? parameters = null, int timeoutSeconds = 60) where TResult : notnull
         {
             try
@@ -43,12 +237,7 @@ namespace UIAutomationMCP.Server.Helpers
                 
                 string requestJson;
                 
-                if (parameters is TypedWorkerRequest typedRequest)
-                {
-                    // New path: Send typed request directly as JSON
-                    requestJson = JsonSerializationHelper.Serialize(typedRequest);
-                }
-                else if (parameters is Dictionary<string, object> dict)
+                if (parameters is Dictionary<string, object> dict)
                 {
                     // Legacy path: Wrap in WorkerRequest
                     var request = new WorkerRequest
@@ -84,10 +273,8 @@ namespace UIAutomationMCP.Server.Helpers
                 {
                     _logger.LogWarning("Worker operation timed out after {TimeoutSeconds}s: {Operation}", timeoutSeconds, operation);
                     
-                    // Give the process a chance to respond to cancellation
                     cts.Cancel();
                     
-                    // Wait a short time for graceful shutdown
                     var gracefulShutdownTask = Task.Delay(TimeSpan.FromSeconds(2));
                     var shutdownCompleted = await Task.WhenAny(responseTask, gracefulShutdownTask);
                     
@@ -103,7 +290,6 @@ namespace UIAutomationMCP.Server.Helpers
                 var responseJson = await responseTask;
                 if (string.IsNullOrEmpty(responseJson))
                 {
-                    // Check stderr for error output
                     string errorOutput = "";
                     try
                     {
@@ -120,7 +306,7 @@ namespace UIAutomationMCP.Server.Helpers
                     var contextMessage = $"Worker process returned empty response for operation '{operation}'";
                     if (parameters != null)
                     {
-                        contextMessage += $" with parameters: {JsonSerializationHelper.Serialize(parameters)}";
+                        contextMessage += $" with parameters: {GetParameterSummary(parameters)}";
                     }
                     if (!string.IsNullOrEmpty(errorOutput))
                     {
@@ -155,7 +341,6 @@ namespace UIAutomationMCP.Server.Helpers
 
                 if (!response.Success)
                 {
-                    // Enhanced error propagation with operation context
                     var errorDetails = new
                     {
                         Operation = operation,
@@ -168,19 +353,17 @@ namespace UIAutomationMCP.Server.Helpers
                         WorkerPid = _workerProcess?.Id
                     };
                     
-                    // Fix empty error message handling
                     var errorMessage = string.IsNullOrEmpty(response.Error) ? 
                         "Unknown error occurred" : response.Error;
                     
                     var contextualErrorMessage = $"Worker operation '{operation}' failed: {errorMessage}";
                     if (parameters != null)
                     {
-                        contextualErrorMessage += $" (Parameters: {JsonSerializationHelper.Serialize(parameters)})";
+                        contextualErrorMessage += $" (Parameters: {GetParameterSummary(parameters)})";
                     }
                     
                     _logger.LogError("Worker operation failed with details: {@ErrorDetails}", errorDetails);
                     
-                    // Categorize errors for appropriate exception types
                     var errorLower = errorMessage.ToLowerInvariant();
                     
                     if (errorLower.Contains("not found") || errorLower.Contains("element") && errorLower.Contains("not") ||
@@ -210,7 +393,6 @@ namespace UIAutomationMCP.Server.Helpers
 
                 try
                 {
-                    // Convert response.Data to TResult
                     var dataJson = JsonSerializationHelper.Serialize(response.Data!);
                     var result = JsonSerializationHelper.Deserialize<TResult>(dataJson)!;
                     _logger.LogInformation("Successfully deserialized worker response data to type {ResultType}", typeof(TResult).Name);
@@ -231,8 +413,59 @@ namespace UIAutomationMCP.Server.Helpers
             catch (Exception ex) when (!(ex is ArgumentException || ex is ObjectDisposedException))
             {
                 _logger.LogError(ex, "Unexpected error in ExecuteAsync for operation '{Operation}' with parameters: {Parameters}", 
-                    operation, parameters != null ? JsonSerializationHelper.Serialize(parameters) : "null");
+                    operation, parameters != null ? $"Type: {parameters.GetType().Name}" : "null");
                 throw new InvalidOperationException($"Internal server error occurred while executing operation '{operation}': {ex.Message}", ex);
+            }
+        }
+
+
+        /// <summary>
+        /// Generate a concise summary of parameters for logging purposes
+        /// </summary>
+        /// <param name="parameters">The parameters object to summarize</param>
+        /// <returns>A safe string representation of the parameters</returns>
+        private string GetParameterSummary(object parameters)
+        {
+            try
+            {
+                return parameters switch
+                {
+                    FindElementsRequest findReq => $"FindElementsRequest(SearchText={findReq.SearchText}, WindowTitle={findReq.WindowTitle})",
+                    InvokeElementRequest invokeReq => $"InvokeElementRequest(ElementId={invokeReq.ElementId})",
+                    TypedWorkerRequest typedReq => $"{typedReq.GetType().Name}(Operation={typedReq.Operation})",
+                    string json => GetParameterSummary(json),
+                    _ => parameters.GetType().Name
+                };
+            }
+            catch
+            {
+                return parameters.GetType().Name;
+            }
+        }
+
+        /// <summary>
+        /// Generate a concise summary of JSON parameters for logging purposes
+        /// </summary>
+        /// <param name="json">The JSON string to summarize</param>
+        /// <returns>A safe string representation of the JSON parameters</returns>
+        private string GetParameterSummary(string json)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(json))
+                    return "empty";
+                
+                // Truncate long JSON strings for logging
+                if (json.Length > 200)
+                {
+                    return json.Substring(0, 200) + "...";
+                }
+                
+                return json;
+            }
+            catch
+            {
+                return "invalid-json";
             }
         }
 

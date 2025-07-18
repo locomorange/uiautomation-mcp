@@ -48,33 +48,14 @@ namespace UIAutomationMCP.Worker.Services
                         }
 
                         // Extract operation name from JSON for KeyedService lookup
-                        var jsonDoc = JsonDocument.Parse(input);
-                        var root = jsonDoc.RootElement;
-                        
-                        if (!root.TryGetProperty("Operation", out var opElement))
-                        {
-                            _logger.LogWarning("Missing Operation property in request: {Input}", input);
-                            WriteResponse(WorkerResponse<object>.CreateError("Missing Operation property"));
-                            continue;
-                        }
-                        
-                        var operation = opElement.GetString();
+                        var operation = ExtractOperationName(input);
                         if (string.IsNullOrEmpty(operation))
                         {
-                            _logger.LogWarning("Empty Operation property in request: {Input}", input);
-                            WriteResponse(WorkerResponse<object>.CreateError("Empty Operation property"));
-                            continue;
+                            continue; // Error already logged and response sent
                         }
                         
-                        // Create WorkerRequest with raw JSON for operations to consume
-                        var request = new WorkerRequest 
-                        { 
-                            Operation = operation, 
-                            ParametersJson = input  // Pass the entire JSON to the operation
-                        };
-
-                        _logger.LogDebug("Successfully deserialized request for operation: {Operation}", request.Operation);
-                        var response = await ProcessRequestAsync(request);
+                        _logger.LogDebug("Successfully extracted operation: {Operation}", operation);
+                        var response = await ProcessRequestAsync(operation, input);
                         _logger.LogDebug("Processing completed, writing response: {Success}", response.Success);
                         WriteResponse(response);
                         _logger.LogDebug("Response written to stdout");
@@ -106,18 +87,17 @@ namespace UIAutomationMCP.Worker.Services
             }
         }
 
-        private async Task<WorkerResponse<object>> ProcessRequestAsync(WorkerRequest request)
+        private async Task<WorkerResponse<object>> ProcessRequestAsync(string operationName, string parametersJson)
         {
             try
             {
-                _logger.LogDebug("Processing operation: {Operation} with parameters: {Parameters}", 
-                    request.Operation, request.Parameters != null ? "present" : "null");
+                _logger.LogDebug("Processing operation: {Operation} with JSON parameters", operationName);
 
                 // Try to get the operation for this request
-                var operation = _serviceProvider.GetKeyedService<IUIAutomationOperation>(request.Operation);
+                var operation = _serviceProvider.GetKeyedService<IUIAutomationOperation>(operationName);
                 if (operation != null)
                 {
-                    var operationResult = await operation.ExecuteAsync(request);
+                    var operationResult = await operation.ExecuteAsync(parametersJson);
                     return new WorkerResponse<object> 
                     { 
                         Success = operationResult.Success, 
@@ -128,16 +108,16 @@ namespace UIAutomationMCP.Worker.Services
 
                 // All operations are now handled by operation classes
                 // This should never be reached if all operations are registered properly
-                return WorkerResponse<object>.CreateError($"No operation found for: {request.Operation}");
+                return WorkerResponse<object>.CreateError($"No operation found for: {operationName}");
             }
             catch (Exception ex)
             {
                 // Enhanced error logging with operation context
                 _logger.LogError(ex, "Error executing operation: {Operation}. Exception type: {ExceptionType}", 
-                    request.Operation, ex.GetType().Name);
+                    operationName, ex.GetType().Name);
 
                 // Provide detailed error information for better debugging
-                var detailedError = $"Operation '{request.Operation}' failed: {ex.Message}";
+                var detailedError = $"Operation '{operationName}' failed: {ex.Message}";
                 if (ex.InnerException != null)
                 {
                     detailedError += $" Inner exception: {ex.InnerException.Message}";
@@ -149,6 +129,43 @@ namespace UIAutomationMCP.Worker.Services
                     Error = detailedError,
                     Data = null // Avoid complex anonymous types that cause serialization issues
                 };
+            }
+        }
+
+        /// <summary>
+        /// Extract operation name from JSON input for KeyedService lookup
+        /// </summary>
+        /// <param name="input">JSON string containing the operation property</param>
+        /// <returns>Operation name, or null if extraction fails</returns>
+        private string? ExtractOperationName(string input)
+        {
+            try
+            {
+                var jsonDoc = JsonDocument.Parse(input);
+                var root = jsonDoc.RootElement;
+                
+                if (!root.TryGetProperty("operation", out var opElement))
+                {
+                    _logger.LogWarning("Missing operation property in request: {Input}", input);
+                    WriteResponse(WorkerResponse<object>.CreateError("Missing operation property"));
+                    return null;
+                }
+                
+                var operation = opElement.GetString();
+                if (string.IsNullOrEmpty(operation))
+                {
+                    _logger.LogWarning("Empty operation property in request: {Input}", input);
+                    WriteResponse(WorkerResponse<object>.CreateError("Empty operation property"));
+                    return null;
+                }
+                
+                return operation;
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogWarning(ex, "Failed to parse JSON input: {Input}", input);
+                WriteResponse(WorkerResponse<object>.CreateError($"Invalid JSON: {ex.Message}"));
+                return null;
             }
         }
 

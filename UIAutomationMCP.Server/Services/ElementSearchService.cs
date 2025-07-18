@@ -525,7 +525,11 @@ namespace UIAutomationMCP.Server.Services
             }
         }
 
-        // New typed method with default application
+        /// <summary>
+        /// Find elements using typed request with configuration defaults applied at server level
+        /// </summary>
+        /// <param name="request">Typed request with search criteria</param>
+        /// <returns>Enhanced server response with element search results</returns>
         public async Task<ServerEnhancedResponse<ElementSearchResult>> FindElementsAsync(FindElementsRequest request)
         {
             var stopwatch = Stopwatch.StartNew();
@@ -549,8 +553,9 @@ namespace UIAutomationMCP.Server.Services
                 
                 _logger.LogInformationWithOperation(operationId, $"Starting FindElements with WindowTitle={request.WindowTitle}, SearchText={request.SearchText}, ControlType={request.ControlType}, ProcessId={request.ProcessId}");
 
-                // Pass typed request to subprocess
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("FindElements", request, request.TimeoutSeconds);
+                // Serialize typed request to JSON and pass to subprocess
+                var requestJson = JsonSerializationHelper.Serialize(request);
+                var result = await _executor.ExecuteAsync<ElementSearchResult>("FindElements", requestJson, request.TimeoutSeconds);
 
                 stopwatch.Stop();
                 
@@ -591,7 +596,9 @@ namespace UIAutomationMCP.Server.Services
             }
         }
         
-        // Legacy method for backward compatibility
+        /// <summary>
+        /// Legacy method for backward compatibility - converts parameters to typed request
+        /// </summary>
         public async Task<ServerEnhancedResponse<ElementSearchResult>> FindElementsAsync(string? windowTitle = null, string? searchText = null, string? controlType = null, int? processId = null, int timeoutSeconds = 60)
         {
             var request = new FindElementsRequest
@@ -604,107 +611,6 @@ namespace UIAutomationMCP.Server.Services
             };
             
             return await FindElementsAsync(request);
-        }
-
-        // Original method preserved for compatibility
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> FindElementsAsync_Original(string? windowTitle = null, string? searchText = null, string? controlType = null, int? processId = null, int timeoutSeconds = 60)
-        {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Starting FindElements with WindowTitle={windowTitle}, SearchText={searchText}, ControlType={controlType}, ProcessId={processId}");
-
-                var parameters = new Dictionary<string, object>
-                {
-                    { "windowTitle", windowTitle ?? "" },
-                    { "searchText", searchText ?? "" },
-                    { "controlType", controlType ?? "" },
-                    { "processId", processId ?? 0 }
-                };
-
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("FindElements", parameters, timeoutSeconds);
-
-                stopwatch.Stop();
-                
-                var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = result.Success,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["elementsFound"] = result.Count,
-                            ["totalResults"] = result.Items?.Count ?? 0,
-                            ["searchCriteria"] = $"WindowTitle={windowTitle}, SearchText={searchText}, ControlType={controlType}, ProcessId={processId}"
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "FindElements",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["windowTitle"] = windowTitle ?? "",
-                            ["searchText"] = searchText ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-
-                _logger.LogInformationWithOperation(operationId, "Successfully created enhanced response");
-                
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
-                
-                return serverResponse;
-            }
-            catch (Exception ex)
-            {
-                stopwatch.Stop();
-                _logger.LogErrorWithOperation(operationId, ex, "Error in FindElements operation");
-                
-                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? "",
-                            ["searchCriteria"] = $"WindowTitle={windowTitle}, SearchText={searchText}, ControlType={controlType}, ProcessId={processId}"
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "FindElements",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["windowTitle"] = windowTitle ?? "",
-                            ["searchText"] = searchText ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
-                
-                return errorResponse;
-            }
         }
 
     }
