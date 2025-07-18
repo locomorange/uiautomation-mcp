@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Options;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
@@ -48,9 +50,14 @@ namespace UIAutomationMCP.Tests.Integration
                 throw new InvalidOperationException("Worker executable not found");
 
             _subprocessExecutor = new SubprocessExecutor(logger, _workerPath);
+            
+            // Create options
+            var options = Options.Create(new UIAutomationOptions());
+            
             _elementSearchService = new ElementSearchService(
                 _serviceProvider.GetRequiredService<ILogger<ElementSearchService>>(), 
-                _subprocessExecutor);
+                _subprocessExecutor, 
+                options);
             _invokeService = new InvokeService(
                 _serviceProvider.GetRequiredService<ILogger<InvokeService>>(), 
                 _subprocessExecutor);

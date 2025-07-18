@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Options;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
@@ -47,12 +49,17 @@ namespace UIAutomationMCP.Tests.Integration
                 throw new InvalidOperationException("Worker executable not found");
 
             _subprocessExecutor = new SubprocessExecutor(logger, _workerPath);
+            
+            // Create options
+            var options = Options.Create(new UIAutomationOptions());
+            
             _toggleService = new ToggleService(
                 _serviceProvider.GetRequiredService<ILogger<ToggleService>>(), 
                 _subprocessExecutor);
             _elementSearchService = new ElementSearchService(
                 _serviceProvider.GetRequiredService<ILogger<ElementSearchService>>(), 
-                _subprocessExecutor);
+                _subprocessExecutor, 
+                options);
         }
 
         #region 基本的なTogglePattern統合テスト

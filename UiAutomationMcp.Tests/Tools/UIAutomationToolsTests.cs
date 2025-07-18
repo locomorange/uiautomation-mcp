@@ -5,6 +5,7 @@ using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
+using UIAutomationMCP.Server.Helpers;
 using Xunit.Abstractions;
 using System.Threading;
 using System.Text.Json;
@@ -42,6 +43,7 @@ namespace UIAutomationMCP.Tests.Tools
         private readonly Mock<IVirtualizedItemService> _mockVirtualizedItemService;
         private readonly Mock<IItemContainerService> _mockItemContainerService;
         private readonly Mock<ISynchronizedInputService> _mockSynchronizedInputService;
+        private readonly Mock<SubprocessExecutor> _mockSubprocessExecutor;
 
         public UIAutomationToolsTests(ITestOutputHelper output)
         {
@@ -70,6 +72,7 @@ namespace UIAutomationMCP.Tests.Tools
             _mockVirtualizedItemService = new Mock<IVirtualizedItemService>();
             _mockItemContainerService = new Mock<IItemContainerService>();
             _mockSynchronizedInputService = new Mock<ISynchronizedInputService>();
+            _mockSubprocessExecutor = new Mock<SubprocessExecutor>();
             
             _tools = new UIAutomationTools(
                 _mockApplicationLauncher.Object,
@@ -93,7 +96,8 @@ namespace UIAutomationMCP.Tests.Tools
                 _mockTransformService.Object,
                 _mockVirtualizedItemService.Object,
                 _mockItemContainerService.Object,
-                _mockSynchronizedInputService.Object
+                _mockSynchronizedInputService.Object,
+                _mockSubprocessExecutor.Object
             );
         }
 

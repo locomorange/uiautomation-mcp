@@ -1,27 +1,17 @@
-using Microsoft.Extensions.Options;
-using Moq;
-using UIAutomationMCP.Shared;
-using UIAutomationMCP.Shared.Options;
 using UIAutomationMCP.Shared.Requests;
+using UIAutomationMCP.Shared.Serialization;
 using System.Text.Json;
 
 namespace UiAutomationMcp.Tests.Requests
 {
     /// <summary>
-    /// 型安全なリクエストシステムのテスト
+    /// 型安全なリクエストシステムのテスト (新しいTools Level Serializationパターン)
     /// </summary>
     [Collection("UIAutomationTestCollection")]
     public class TypedRequestTests
     {
-        private readonly Mock<IOptions<UIAutomationOptions>> _mockOptions;
-
-        public TypedRequestTests()
-        {
-            _mockOptions = new Mock<IOptions<UIAutomationOptions>>();
-            _mockOptions.Setup(x => x.Value).Returns(new UIAutomationOptions());
-        }
         [Fact]
-        public void InvokeElementRequest_ShouldConvertToWorkerRequest()
+        public void InvokeElementRequest_ShouldSerializeAndDeserialize()
         {
             // Arrange
             var typedRequest = new InvokeElementRequest
@@ -32,70 +22,76 @@ namespace UiAutomationMcp.Tests.Requests
             };
 
             // Act
-            var workerRequest = typedRequest.ToWorkerRequest();
+            var json = JsonSerializationHelper.Serialize(typedRequest);
+            var deserialized = JsonSerializationHelper.Deserialize<InvokeElementRequest>(json);
 
             // Assert
-            Assert.Equal("InvokeElement", workerRequest.Operation);
-            Assert.NotNull(workerRequest.Parameters);
-            Assert.Equal("btn_test", workerRequest.Parameters["elementId"]?.ToString());
-            Assert.Equal("Test Window", workerRequest.Parameters["windowTitle"]?.ToString());
-            Assert.Equal("1234", workerRequest.Parameters["processId"]?.ToString());
+            Assert.NotNull(deserialized);
+            Assert.Equal("btn_test", deserialized.ElementId);
+            Assert.Equal("Test Window", deserialized.WindowTitle);
+            Assert.Equal(1234, deserialized.ProcessId);
         }
 
         [Fact]
-        public void WorkerRequest_ShouldConvertToTypedRequest()
+        public void JsonSerialization_ShouldHandleComplexRequest()
         {
             // Arrange
-            var workerRequest = new WorkerRequest
+            var typedRequest = new FindElementsRequest
             {
-                Operation = "InvokeElement",
-                Parameters = new Dictionary<string, object>
-                {
-                    ["elementId"] = "btn_test",
-                    ["windowTitle"] = "Test Window",
-                    ["processId"] = 1234
-                }
+                WindowTitle = "Test Window",
+                ProcessId = 1234,
+                SearchText = "Button",
+                AutomationId = "btn_test",
+                ControlType = "Button",
+                TimeoutSeconds = 30,
+                UseRegex = true
             };
 
             // Act
-            var typedRequest = workerRequest.GetTypedRequest<InvokeElementRequest>(_mockOptions.Object);
+            var json = JsonSerializationHelper.Serialize(typedRequest);
+            var deserialized = JsonSerializationHelper.Deserialize<FindElementsRequest>(json);
 
             // Assert
-            Assert.NotNull(typedRequest);
-            Assert.Equal("InvokeElement", typedRequest.Operation);
-            Assert.Equal("btn_test", typedRequest.ElementId);
-            Assert.Equal("Test Window", typedRequest.WindowTitle);
-            Assert.Equal(1234, typedRequest.ProcessId);
+            Assert.NotNull(deserialized);
+            Assert.Equal("Test Window", deserialized.WindowTitle);
+            Assert.Equal(1234, deserialized.ProcessId);
+            Assert.Equal("Button", deserialized.SearchText);
+            Assert.Equal("btn_test", deserialized.AutomationId);
+            Assert.Equal("Button", deserialized.ControlType);
+            Assert.Equal(30, deserialized.TimeoutSeconds);
+            Assert.True(deserialized.UseRegex);
         }
 
         [Fact]
-        public void GetTypedRequestByOperation_ShouldReturnCorrectType()
+        public void JsonSerialization_ShouldPreserveAllProperties()
         {
             // Arrange - FindElements request
-            var workerRequest = new WorkerRequest
+            var request = new FindElementsRequest
             {
-                Operation = "FindElements",
-                Parameters = new Dictionary<string, object>
-                {
-                    ["windowTitle"] = "Test Window",
-                    ["searchText"] = "Button",
-                    ["useRegex"] = true,
-                    ["timeoutSeconds"] = 15
-                }
+                WindowTitle = "Test Window",
+                SearchText = "Button",
+                UseRegex = true,
+                TimeoutSeconds = 15,
+                ProcessId = 1234,
+                AutomationId = "btn_search",
+                ControlType = "Button",
+                ClassName = "WinButton"
             };
 
             // Act
-            var typedRequest = workerRequest.GetTypedRequestByOperation(_mockOptions.Object);
+            var json = JsonSerializationHelper.Serialize(request);
+            var deserialized = JsonSerializationHelper.Deserialize<FindElementsRequest>(json);
 
             // Assert
-            Assert.NotNull(typedRequest);
-            Assert.IsType<FindElementsRequest>(typedRequest);
-            
-            var findRequest = (FindElementsRequest)typedRequest;
-            Assert.Equal("Test Window", findRequest.WindowTitle);
-            Assert.Equal("Button", findRequest.SearchText);
-            Assert.True(findRequest.UseRegex);
-            Assert.Equal(15, findRequest.TimeoutSeconds);
+            Assert.NotNull(deserialized);
+            Assert.Equal("Test Window", deserialized.WindowTitle);
+            Assert.Equal("Button", deserialized.SearchText);
+            Assert.True(deserialized.UseRegex);
+            Assert.Equal(15, deserialized.TimeoutSeconds);
+            Assert.Equal(1234, deserialized.ProcessId);
+            Assert.Equal("btn_search", deserialized.AutomationId);
+            Assert.Equal("Button", deserialized.ControlType);
+            Assert.Equal("WinButton", deserialized.ClassName);
         }
 
         [Fact]
@@ -111,41 +107,15 @@ namespace UiAutomationMcp.Tests.Requests
             };
 
             // Act
-            var json = JsonSerializer.Serialize(request);
-            var deserialized = JsonSerializer.Deserialize<SetElementValueRequest>(json);
+            var json = JsonSerializationHelper.Serialize(request);
+            var deserialized = JsonSerializationHelper.Deserialize<SetElementValueRequest>(json);
 
             // Assert
             Assert.NotNull(deserialized);
-            Assert.Equal("SetElementValue", deserialized.Operation);
             Assert.Equal("input_field", deserialized.ElementId);
             Assert.Equal("Test Value", deserialized.Value);
             Assert.Equal("Test Application", deserialized.WindowTitle);
             Assert.Equal(5678, deserialized.ProcessId);
-        }
-
-        [Fact]
-        public void TypedWorkerRequestFactory_ShouldCreateValidRequests()
-        {
-            // Test CreateInvokeElement
-            var invokeRequest = TypedWorkerRequestFactory.CreateInvokeElement("btn1", "App", 123);
-            Assert.Equal("InvokeElement", invokeRequest.Operation);
-
-            // Test CreateSetElementValue
-            var valueRequest = TypedWorkerRequestFactory.CreateSetElementValue("input1", "value", "App", 123);
-            Assert.Equal("SetElementValue", valueRequest.Operation);
-
-            // Test CreateFindElements
-            var findRequest = TypedWorkerRequestFactory.CreateFindElements(
-                windowTitle: "Test App",
-                searchText: "Button",
-                useRegex: true,
-                timeoutSeconds: 20
-            );
-            Assert.Equal("FindElements", findRequest.Operation);
-
-            // Test CreateWindowAction
-            var windowRequest = TypedWorkerRequestFactory.CreateWindowAction("close", "Test Window", 456);
-            Assert.Equal("WindowAction", windowRequest.Operation);
         }
 
         [Fact]
@@ -168,8 +138,8 @@ namespace UiAutomationMcp.Tests.Requests
             };
 
             // Act
-            var workerRequest = complexRequest.ToWorkerRequest();
-            var roundTrip = workerRequest.GetTypedRequest<FindElementsRequest>(_mockOptions.Object);
+            var json = JsonSerializationHelper.Serialize(complexRequest);
+            var roundTrip = JsonSerializationHelper.Deserialize<FindElementsRequest>(json);
 
             // Assert
             Assert.NotNull(roundTrip);
@@ -186,57 +156,98 @@ namespace UiAutomationMcp.Tests.Requests
             Assert.Equal(complexRequest.UseWildcard, roundTrip.UseWildcard);
         }
 
-        [Theory]
-        [InlineData("SetRangeValue", typeof(SetRangeValueRequest))]
-        [InlineData("GetText", typeof(GetTextRequest))]
-        [InlineData("MoveElement", typeof(MoveElementRequest))]
-        [InlineData("WaitForInputIdle", typeof(WaitForInputIdleRequest))]
-        public void GetTypedRequestByOperation_ShouldReturnCorrectTypeForOperation(string operation, Type expectedType)
+        [Fact]
+        public void JsonSerialization_ShouldWorkForSetRangeValueRequest()
         {
             // Arrange
-            var workerRequest = new WorkerRequest
+            var request = new SetRangeValueRequest
             {
-                Operation = operation,
-                Parameters = new Dictionary<string, object>
-                {
-                    ["elementId"] = "test",
-                    ["windowTitle"] = "Test"
-                }
+                ElementId = "slider1",
+                Value = 50,
+                WindowTitle = "Test Window"
             };
 
             // Act
-            var typedRequest = workerRequest.GetTypedRequestByOperation(_mockOptions.Object);
+            var json = JsonSerializationHelper.Serialize(request);
+            var deserialized = JsonSerializationHelper.Deserialize<SetRangeValueRequest>(json);
 
             // Assert
-            Assert.NotNull(typedRequest);
-            Assert.IsType(expectedType, typedRequest);
+            Assert.NotNull(deserialized);
+            Assert.Equal(request.ElementId, deserialized.ElementId);
+            Assert.Equal(request.Value, deserialized.Value);
+            Assert.Equal(request.WindowTitle, deserialized.WindowTitle);
         }
 
         [Fact]
-        public void GetTypedRequest_ShouldReturnNullForIncompatibleData()
+        public void JsonSerialization_ShouldWorkForGetTextRequest()
         {
-            // Arrange - Request with missing required fields
-            var invalidRequest = new WorkerRequest
+            // Arrange
+            var request = new GetTextRequest
             {
-                Operation = "SetRangeValue",
-                Parameters = new Dictionary<string, object>
-                {
-                    ["invalidField"] = "invalid"
-                    // Missing required fields like value
-                }
+                ElementId = "text1",
+                WindowTitle = "Test Window"
             };
 
             // Act
-            var typedRequest = invalidRequest.GetTypedRequest<SetRangeValueRequest>(_mockOptions.Object);
+            var json = JsonSerializationHelper.Serialize(request);
+            var deserialized = JsonSerializationHelper.Deserialize<GetTextRequest>(json);
 
             // Assert
-            Assert.NotNull(typedRequest); // Deserialization will succeed but with default values
-            Assert.Equal("", typedRequest.ElementId); // Default value
-            Assert.Equal(0, typedRequest.Value); // Default value
+            Assert.NotNull(deserialized);
+            Assert.Equal(request.ElementId, deserialized.ElementId);
+            Assert.Equal(request.WindowTitle, deserialized.WindowTitle);
         }
 
         [Fact]
-        public void ElementTargetRequest_ShouldInheritCommonProperties()
+        public void JsonSerialization_ShouldWorkForMoveElementRequest()
+        {
+            // Arrange
+            var request = new MoveElementRequest
+            {
+                ElementId = "element1",
+                X = 100,
+                Y = 200,
+                WindowTitle = "Test Window"
+            };
+
+            // Act
+            var json = JsonSerializationHelper.Serialize(request);
+            var deserialized = JsonSerializationHelper.Deserialize<MoveElementRequest>(json);
+
+            // Assert
+            Assert.NotNull(deserialized);
+            Assert.Equal(request.ElementId, deserialized.ElementId);
+            Assert.Equal(request.X, deserialized.X);
+            Assert.Equal(request.Y, deserialized.Y);
+            Assert.Equal(request.WindowTitle, deserialized.WindowTitle);
+        }
+
+        [Fact]
+        public void JsonSerialization_ShouldHandleEmptyValues()
+        {
+            // Arrange - Request with empty optional fields
+            var request = new SetRangeValueRequest
+            {
+                ElementId = "slider1",
+                Value = 50,
+                WindowTitle = "", // Empty string instead of null
+                ProcessId = 0
+            };
+
+            // Act
+            var json = JsonSerializationHelper.Serialize(request);
+            var deserialized = JsonSerializationHelper.Deserialize<SetRangeValueRequest>(json);
+
+            // Assert
+            Assert.NotNull(deserialized);
+            Assert.Equal("slider1", deserialized.ElementId);
+            Assert.Equal(50, deserialized.Value);
+            Assert.Equal("", deserialized.WindowTitle);
+            Assert.Equal(0, deserialized.ProcessId);
+        }
+
+        [Fact]
+        public void JsonSerialization_ShouldHandleInheritance()
         {
             // Arrange
             var request = new SetElementValueRequest
@@ -247,10 +258,17 @@ namespace UiAutomationMcp.Tests.Requests
                 Value = "Test Value"
             };
 
-            // Act & Assert
-            Assert.IsAssignableFrom<ElementTargetRequest>(request);
-            Assert.IsAssignableFrom<TypedWorkerRequest>(request);
-            Assert.Equal("SetElementValue", request.Operation);
+            // Act
+            var json = JsonSerializationHelper.Serialize(request);
+            var deserialized = JsonSerializationHelper.Deserialize<SetElementValueRequest>(json);
+
+            // Assert
+            Assert.NotNull(deserialized);
+            Assert.IsAssignableFrom<ElementTargetRequest>(deserialized);
+            Assert.Equal("input1", deserialized.ElementId);
+            Assert.Equal("Test Window", deserialized.WindowTitle);
+            Assert.Equal(1234, deserialized.ProcessId);
+            Assert.Equal("Test Value", deserialized.Value);
         }
     }
 }
