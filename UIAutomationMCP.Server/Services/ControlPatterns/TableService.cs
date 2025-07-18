@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Shared.Results;
 using System.Diagnostics;
 
@@ -8,9 +9,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
     public class TableService : ITableService
     {
         private readonly ILogger<TableService> _logger;
-        private readonly SubprocessExecutor _executor;
+        private readonly ISubprocessExecutor _executor;
 
-        public TableService(ILogger<TableService> logger, SubprocessExecutor executor)
+        public TableService(ILogger<TableService> logger, ISubprocessExecutor executor)
         {
             _logger = logger;
             _executor = executor;
@@ -430,7 +431,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                var result = await _executor.ExecuteAsync<BaseOperationResult>("GetRowOrColumnMajor", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<PropertyResult>("GetRowOrColumnMajor", parameters, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<BaseOperationResult>
                 {

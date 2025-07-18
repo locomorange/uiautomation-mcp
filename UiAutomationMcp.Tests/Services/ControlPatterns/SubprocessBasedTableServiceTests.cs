@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Server.Interfaces;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -17,14 +18,14 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
     {
         private readonly ITestOutputHelper _output;
         private readonly Mock<ILogger<TableService>> _mockLogger;
-        private readonly Mock<SubprocessExecutor> _mockExecutor;
+        private readonly Mock<ISubprocessExecutor> _mockExecutor;
         private readonly TableService _service;
 
         public TableServiceTests(ITestOutputHelper output)
         {
             _output = output;
             _mockLogger = new Mock<ILogger<TableService>>();
-            _mockExecutor = new Mock<SubprocessExecutor>();
+            _mockExecutor = new Mock<ISubprocessExecutor>();
             _service = new TableService(_mockLogger.Object, _mockExecutor.Object);
         }
 
