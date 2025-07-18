@@ -1,10 +1,9 @@
 using System.Windows.Automation;
 using System.Text.RegularExpressions;
-using Microsoft.Extensions.Options;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
-using UIAutomationMCP.Shared.Options;
+using UIAutomationMCP.Shared.Serialization;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -14,12 +13,10 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
     {
         private readonly ElementFinderService _elementFinderService;
         private readonly FindElementsCacheService _cacheService;
-        private readonly IOptions<UIAutomationOptions> _options;
 
-        public FindElementsOperation(ElementFinderService elementFinderService, IOptions<UIAutomationOptions> options, FindElementsCacheService? cacheService = null)
+        public FindElementsOperation(ElementFinderService elementFinderService, FindElementsCacheService? cacheService = null)
         {
             _elementFinderService = elementFinderService;
-            _options = options;
             _cacheService = cacheService ?? new FindElementsCacheService();
         }
 
@@ -43,7 +40,10 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
 
         private async Task<OperationResult<ElementSearchResult>> ExecuteInternalAsync(WorkerRequest request)
         {
-            var typedRequest = request.GetTypedRequest<FindElementsRequest>(_options);
+            // Direct deserialization from pre-serialized JSON
+            // Defaults are already applied at Server level
+            var typedRequest = JsonSerializationHelper.Deserialize<FindElementsRequest>(request.ParametersJson!)!;
+            
             if (typedRequest == null)
             {
                 return new OperationResult<ElementSearchResult>
@@ -59,7 +59,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             var windowTitle = typedRequest.WindowTitle ?? "";
             var processId = typedRequest.ProcessId ?? 0;
             var scope = typedRequest.Scope;
-            var maxResults = _options.Value.ElementSearch.MaxResults; // 設定値から取得
+            var maxResults = typedRequest.MaxResults; // Default already applied at server level
             var timeoutMs = 30000; // タイムアウト処理はworkerで行わない
             
             var className = typedRequest.ClassName ?? "";

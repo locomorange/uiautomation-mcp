@@ -109,6 +109,12 @@ namespace UIAutomationMCP.Shared.Requests
 
         [JsonPropertyName("useWildcard")]
         public bool UseWildcard { get; set; } = false;
+
+        [JsonPropertyName("maxResults")]
+        public int MaxResults { get; set; } = 100;
+
+        [JsonPropertyName("validatePatterns")]
+        public bool ValidatePatterns { get; set; } = true;
     }
 
     public class FindElementsByControlTypeRequest : TypedWorkerRequest

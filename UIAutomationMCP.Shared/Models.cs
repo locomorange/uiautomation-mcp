@@ -168,6 +168,7 @@ namespace UIAutomationMCP.Shared
     {
         public string Operation { get; set; } = "";
         public Dictionary<string, object>? Parameters { get; set; }
+        public string? ParametersJson { get; set; }  // Raw JSON string for typed requests
     }
 
     /// <summary>

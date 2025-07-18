@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Serialization;
+using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Server.Interfaces;
 
 namespace UIAutomationMCP.Server.Helpers
@@ -40,13 +41,33 @@ namespace UIAutomationMCP.Server.Helpers
                 {
                     await EnsureWorkerProcessAsync();
                 
-                var request = new WorkerRequest
+                string requestJson;
+                
+                if (parameters is TypedWorkerRequest typedRequest)
                 {
-                    Operation = operation,
-                    Parameters = parameters as Dictionary<string, object>
-                };
-
-                var requestJson = JsonSerializationHelper.Serialize(request);
+                    // New path: Send typed request directly as JSON
+                    requestJson = JsonSerializationHelper.Serialize(typedRequest);
+                }
+                else if (parameters is Dictionary<string, object> dict)
+                {
+                    // Legacy path: Wrap in WorkerRequest
+                    var request = new WorkerRequest
+                    {
+                        Operation = operation,
+                        Parameters = dict
+                    };
+                    requestJson = JsonSerializationHelper.Serialize(request);
+                }
+                else
+                {
+                    // Legacy path: Current behavior
+                    var request = new WorkerRequest
+                    {
+                        Operation = operation,
+                        Parameters = parameters as Dictionary<string, object>
+                    };
+                    requestJson = JsonSerializationHelper.Serialize(request);
+                }
                 _logger.LogInformation("Sending request to worker: {Request}", requestJson);
 
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));

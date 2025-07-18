@@ -47,13 +47,31 @@ namespace UIAutomationMCP.Worker.Services
                             continue;
                         }
 
-                        var request = JsonSerializationHelper.Deserialize<WorkerRequest>(input);
-                        if (request == null)
+                        // Extract operation name from JSON for KeyedService lookup
+                        var jsonDoc = JsonDocument.Parse(input);
+                        var root = jsonDoc.RootElement;
+                        
+                        if (!root.TryGetProperty("Operation", out var opElement))
                         {
-                            _logger.LogWarning("Failed to deserialize request: {Input}", input);
-                            WriteResponse(WorkerResponse<object>.CreateError("Invalid request format"));
+                            _logger.LogWarning("Missing Operation property in request: {Input}", input);
+                            WriteResponse(WorkerResponse<object>.CreateError("Missing Operation property"));
                             continue;
                         }
+                        
+                        var operation = opElement.GetString();
+                        if (string.IsNullOrEmpty(operation))
+                        {
+                            _logger.LogWarning("Empty Operation property in request: {Input}", input);
+                            WriteResponse(WorkerResponse<object>.CreateError("Empty Operation property"));
+                            continue;
+                        }
+                        
+                        // Create WorkerRequest with raw JSON for operations to consume
+                        var request = new WorkerRequest 
+                        { 
+                            Operation = operation, 
+                            ParametersJson = input  // Pass the entire JSON to the operation
+                        };
 
                         _logger.LogDebug("Successfully deserialized request for operation: {Operation}", request.Operation);
                         var response = await ProcessRequestAsync(request);
