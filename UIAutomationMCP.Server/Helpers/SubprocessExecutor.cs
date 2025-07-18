@@ -113,10 +113,10 @@ namespace UIAutomationMCP.Server.Helpers
                         responseJson.Length, 
                         responseJson.Length > 1000 ? responseJson.Substring(0, 1000) + "..." : responseJson);
 
-                    WorkerResponse<object>? response;
+                    WorkerResponse<TResult>? response;
                     try
                     {
-                        response = JsonSerializationHelper.Deserialize<WorkerResponse<object>>(responseJson);
+                        response = JsonSerializationHelper.Deserialize<WorkerResponse<TResult>>(responseJson);
                     }
                     catch (JsonException ex)
                     {
@@ -391,19 +391,27 @@ namespace UIAutomationMCP.Server.Helpers
                     }
                 }
 
-                try
+                if (response.Data != null)
                 {
-                    var dataJson = JsonSerializationHelper.Serialize(response.Data!);
-                    var result = JsonSerializationHelper.Deserialize<TResult>(dataJson)!;
-                    _logger.LogInformation("Successfully deserialized worker response data to type {ResultType}", typeof(TResult).Name);
-                    return result;
+                    // Handle JsonElement deserialization
+                    if (response.Data is System.Text.Json.JsonElement jsonElement)
+                    {
+                        var result = JsonSerializationHelper.Deserialize<TResult>(jsonElement.GetRawText())!;
+                        _logger.LogInformation("Successfully deserialized JsonElement to type {ResultType}", typeof(TResult).Name);
+                        return result;
+                    }
+                    
+                    // Direct cast if possible
+                    if (response.Data is TResult directResult)
+                    {
+                        _logger.LogInformation("Successfully cast worker response data to type {ResultType}", typeof(TResult).Name);
+                        return directResult;
+                    }
+                    
+                    throw new InvalidOperationException($"Cannot convert worker response data from {response.Data.GetType().Name} to {typeof(TResult).Name}");
                 }
-                catch (JsonException ex)
-                {
-                    _logger.LogError(ex, "Failed to deserialize response data to type {ResultType}. Data: {Data}", 
-                        typeof(TResult).Name, JsonSerializationHelper.Serialize(response.Data!));
-                    throw new InvalidOperationException($"Failed to deserialize response data to {typeof(TResult).Name}: {ex.Message}", ex);
-                }
+                
+                throw new InvalidOperationException($"Worker response data is null for type {typeof(TResult).Name}");
                 }
                 finally
                 {

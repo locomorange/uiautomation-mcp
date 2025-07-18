@@ -56,7 +56,8 @@ namespace UIAutomationMCP.Server.Tools
             ITransformService transformService,
             IVirtualizedItemService virtualizedItemService,
             IItemContainerService itemContainerService,
-            ISynchronizedInputService synchronizedInputService)
+            ISynchronizedInputService synchronizedInputService,
+            UIAutomationMCP.Server.Helpers.SubprocessExecutor subprocessExecutor)
         {
             _applicationLauncher = applicationLauncher;
             _screenshotService = screenshotService;
@@ -85,7 +86,8 @@ namespace UIAutomationMCP.Server.Tools
         // Window and Element Discovery
         [McpServerTool, Description("Get information about all open windows")]
         public async Task<object> GetWindowInfo([Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
-            => await _elementSearchService.GetWindowsAsync(timeoutSeconds);
+            => JsonSerializationHelper.Serialize(await _elementSearchService.GetWindowsAsync(timeoutSeconds));
+
 
         [McpServerTool, Description("Get information about UI elements in a specific window")]
         public async Task<object> GetElementInfo(
@@ -93,7 +95,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Type of control to filter by (optional)")] string? controlType = null, 
             [Description("Process ID of the target window (optional)")] int? processId = null, 
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
-            => await _elementSearchService.FindElementsAsync(windowTitle, null, controlType, processId, timeoutSeconds);
+            => JsonSerializationHelper.Serialize(await _elementSearchService.FindElementsAsync(windowTitle, null, controlType, processId, timeoutSeconds));
 
         [McpServerTool, Description("Find UI elements by various criteria")]
         public async Task<object> FindElements(
@@ -102,7 +104,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Title of the window to search in (optional)")] string? windowTitle = null, 
             [Description("Process ID of the target window (optional)")] int? processId = null, 
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
-            => await _elementSearchService.FindElementsAsync(windowTitle, searchText, controlType, processId, timeoutSeconds);
+            => JsonSerializationHelper.Serialize(await _elementSearchService.FindElementsAsync(windowTitle, searchText, controlType, processId, timeoutSeconds));
 
         [McpServerTool, Description("Get the element tree structure for navigation and analysis")]
         public async Task<object> GetElementTree(

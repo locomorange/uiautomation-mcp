@@ -1,10 +1,9 @@
 using System.Windows.Automation;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
-using UIAutomationMCP.Shared.Options;
+using UIAutomationMCP.Shared.Serialization;
 using UIAutomationMCP.Worker.Contracts;
 using System.Diagnostics;
 
@@ -13,29 +12,17 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
     public class GetDesktopWindowsOperation : IUIAutomationOperation
     {
         private readonly ILogger<GetDesktopWindowsOperation> _logger;
-        private readonly IOptions<UIAutomationOptions> _options;
 
-        public GetDesktopWindowsOperation(ILogger<GetDesktopWindowsOperation> logger, IOptions<UIAutomationOptions> options)
+        public GetDesktopWindowsOperation(ILogger<GetDesktopWindowsOperation> logger)
         {
             _logger = logger;
-            _options = options;
         }
 
-        public Task<OperationResult<DesktopWindowsResult>> ExecuteAsync(WorkerRequest request)
+        public Task<OperationResult> ExecuteAsync(string parametersJson)
         {
             try
             {
-                var typedRequest = request.GetTypedRequest<GetDesktopWindowsRequest>(_options);
-                if (typedRequest == null)
-                {
-                    return Task.FromResult(new OperationResult<DesktopWindowsResult>
-                    {
-                        Success = false,
-                        Error = "Invalid request format. Expected GetDesktopWindowsRequest.",
-                        Data = new DesktopWindowsResult()
-                    });
-                }
-                
+                var typedRequest = JsonSerializationHelper.Deserialize<GetDesktopWindowsRequest>(parametersJson)!;
                 var includeInvisible = typedRequest.IncludeInvisible;
                 
                 _logger.LogInformation("Starting GetDesktopWindows operation");
@@ -45,7 +32,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 if (rootElement == null)
                 {
                     _logger.LogError("Root element is null!");
-                    return Task.FromResult(new OperationResult<DesktopWindowsResult>
+                    return Task.FromResult(new OperationResult
                     {
                         Success = false,
                         Error = "Root element is null - UIAutomation may not be available",
@@ -114,7 +101,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 }
 
                 _logger.LogDebug("GetDesktopWindows operation completed successfully with {Count} windows", result.Count);
-                return Task.FromResult(new OperationResult<DesktopWindowsResult>
+                return Task.FromResult(new OperationResult
                 {
                     Success = true,
                     Data = result
@@ -131,25 +118,13 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     errorMessage += $" Inner: {ex.InnerException.Message}";
                 }
                 
-                return Task.FromResult(new OperationResult<DesktopWindowsResult>
+                return Task.FromResult(new OperationResult
                 {
                     Success = false,
                     Error = errorMessage,
                     Data = new DesktopWindowsResult()
                 });
             }
-        }
-
-        Task<OperationResult> IUIAutomationOperation.ExecuteAsync(WorkerRequest request)
-        {
-            var typedResult = ExecuteAsync(request);
-            return Task.FromResult(new OperationResult
-            {
-                Success = typedResult.Result.Success,
-                Error = typedResult.Result.Error,
-                Data = typedResult.Result.Data,
-                ExecutionSeconds = typedResult.Result.ExecutionSeconds
-            });
         }
     }
 }

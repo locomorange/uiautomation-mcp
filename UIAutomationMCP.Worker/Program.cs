@@ -5,6 +5,8 @@ using UIAutomationMCP.Shared.Configuration;
 using UIAutomationMCP.Worker.Services;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Operations.ElementSearch;
+using UIAutomationMCP.Worker.Operations.Invoke;
+using UIAutomationMCP.Worker.Operations.Toggle;
 using UIAutomationMCP.Worker.Helpers;
 
 namespace UIAutomationMCP.Worker
@@ -104,6 +106,11 @@ namespace UIAutomationMCP.Worker
             // Register operations as keyed services - Tools Level Serialization pattern
             // Only operations updated to use ExecuteAsync(string parametersJson) interface
             builder.Services.AddKeyedTransient<IUIAutomationOperation, FindElementsOperation>("FindElements");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, InvokeElementOperation>("InvokeElement");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetDesktopWindowsOperation>("GetDesktopWindows");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, ToggleElementOperation>("ToggleElement");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetToggleStateOperation>("GetToggleState");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, SetToggleStateOperation>("SetToggleState");
             
             // TODO: Phase 6 - Update remaining operations to new interface
             // The following operations need to be updated to use string parametersJson:
