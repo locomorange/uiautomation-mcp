@@ -286,8 +286,8 @@ namespace UIAutomationMCP.Tests.UnitTests
                             IsEnabled = true,
                             AvailableActions = new Dictionary<string, string>
                             {
-                                ["Row"] = anchorRow,
-                                ["Column"] = anchorColumn,
+                                ["Row"] = anchorRow.ToString(),
+                                ["Column"] = anchorColumn.ToString(),
                                 ["RowSpan"] = rowSpan.ToString(),
                                 ["ColumnSpan"] = columnSpan.ToString(),
                                 ["ContainingGrid"] = "mergeGrid"
@@ -331,8 +331,8 @@ namespace UIAutomationMCP.Tests.UnitTests
                             IsEnabled = true,
                             AvailableActions = new Dictionary<string, string>
                             {
-                                ["Row"] = anchorRow,
-                                ["Column"] = anchorColumn,
+                                ["Row"] = anchorRow.ToString(),
+                                ["Column"] = anchorColumn.ToString(),
                                 ["RowSpan"] = "2",
                                 ["ColumnSpan"] = "2",
                                 ["ContainingGrid"] = "mergeGrid"
@@ -422,8 +422,8 @@ namespace UIAutomationMCP.Tests.UnitTests
                             IsEnabled = true,
                             AvailableActions = new Dictionary<string, string>
                             {
-                                ["Row"] = row,
-                                ["Column"] = column,
+                                ["Row"] = row.ToString(),
+                                ["Column"] = column.ToString(),
                                 ["RowSpan"] = "1",
                                 ["ColumnSpan"] = "1",
                                 ["ContainingGrid"] = "consistencyGrid"
@@ -558,8 +558,8 @@ namespace UIAutomationMCP.Tests.UnitTests
                             IsEnabled = true,
                             AvailableActions = new Dictionary<string, string>
                             {
-                                ["Row"] = row,
-                                ["Column"] = column,
+                                ["Row"] = row.ToString(),
+                                ["Column"] = column.ToString(),
                                 ["RowSpan"] = rowSpan.ToString(),
                                 ["ColumnSpan"] = columnSpan.ToString(),
                                 ["ContainingGrid"] = "spanValidGrid"
@@ -640,8 +640,8 @@ namespace UIAutomationMCP.Tests.UnitTests
                             IsEnabled = true,
                             AvailableActions = new Dictionary<string, string>
                             {
-                                ["Row"] = row,
-                                ["Column"] = column,
+                                ["Row"] = row.ToString(),
+                                ["Column"] = column.ToString(),
                                 ["RowSpan"] = "1",
                                 ["ColumnSpan"] = "1",
                                 ["ContainingGrid"] = elementId

@@ -90,11 +90,12 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetRangeValue_ShouldReturnAllRequiredProperties()
         {
             // Arrange - Microsoft仕様の必須プロパティ
-            var expectedResult = new ServerEnhancedResponse<object>
+            var expectedResult = new ServerEnhancedResponse<RangeValueResult>
             {
                 Success = true,
-                Data = new
+                Data = new RangeValueResult
                 {
+                    Success = true,
                     Value = 50.0,
                     Minimum = 0.0,
                     Maximum = 100.0,
@@ -119,11 +120,12 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetRangeValue_ShouldReturnCurrentValue()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object>
+            var expectedResult = new ServerEnhancedResponse<RangeValueResult>
             {
                 Success = true,
-                Data = new
+                Data = new RangeValueResult
                 {
+                    Success = true,
                     Value = 75.5,
                     Minimum = 0.0,
                     Maximum = 100.0,
@@ -156,15 +158,15 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task SetRangeValue_WithValidValues_ShouldSucceed(double value)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object>
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
-                Data = new
+                Data = new ActionResult
                 {
-                    PreviousValue = 10.0,
-                    NewValue = value,
-                    Minimum = 0.0,
-                    Maximum = 100.0
+                    Success = true,
+                    Action = "SetValue",
+                    ReturnValue = value,
+                    Details = $"Set value from 10.0 to {value}"
                 }
             };
             _mockRangeService.Setup(s => s.SetRangeValueAsync("volumeSlider", value, "MediaPlayer", null, 30))
@@ -222,11 +224,12 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetRangeValue_ReadOnlyElement_ShouldReturnIsReadOnlyTrue()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object>
+            var expectedResult = new ServerEnhancedResponse<RangeValueResult>
             {
                 Success = true,
-                Data = new
+                Data = new RangeValueResult
                 {
+                    Success = true,
                     Value = 65.0,
                     Minimum = 0.0,
                     Maximum = 100.0,
@@ -255,15 +258,15 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task SetRangeValue_AtMinimumBoundary_ShouldSucceed()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object>
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
-                Data = new
+                Data = new ActionResult
                 {
-                    PreviousValue = 50.0,
-                    NewValue = 0.0,
-                    Minimum = 0.0,
-                    Maximum = 100.0
+                    Success = true,
+                    Action = "SetValue",
+                    ReturnValue = 0.0,
+                    Details = "Set value from 50.0 to 0.0"
                 }
             };
             _mockRangeService.Setup(s => s.SetRangeValueAsync("brightnessSlider", 0.0, "Settings", null, 30))
@@ -282,15 +285,15 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task SetRangeValue_AtMaximumBoundary_ShouldSucceed()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object>
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
-                Data = new
+                Data = new ActionResult
                 {
-                    PreviousValue = 50.0,
-                    NewValue = 100.0,
-                    Minimum = 0.0,
-                    Maximum = 100.0
+                    Success = true,
+                    Action = "SetValue",
+                    ReturnValue = 100.0,
+                    Details = "Set value from 50.0 to 100.0"
                 }
             };
             _mockRangeService.Setup(s => s.SetRangeValueAsync("temperatureControl", 100.0, "Thermostat", null, 30))
@@ -316,15 +319,15 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task SetRangeValue_WithCustomRanges_ShouldSucceed(double min, double max, double value)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object>
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
-                Data = new
+                Data = new ActionResult
                 {
-                    PreviousValue = min,
-                    NewValue = value,
-                    Minimum = min,
-                    Maximum = max
+                    Success = true,
+                    Action = "SetValue",
+                    ReturnValue = value,
+                    Details = $"Set value from {min} to {value}"
                 }
             };
             _mockRangeService.Setup(s => s.SetRangeValueAsync("customRange", value, "AdvancedApp", null, 30))
@@ -383,7 +386,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task SetRangeValue_WithEmptyParameters_ShouldCallService(string elementId, double value, string windowTitle)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> { Success = true, Data = new ActionResult { Success = true, Action = "SetValue", ReturnValue = value, Details = $"Set value to {value}" } };
             _mockRangeService.Setup(s => s.SetRangeValueAsync(elementId, value, 
                 string.IsNullOrEmpty(windowTitle) ? null : windowTitle, null, 30))
                            .Returns(Task.FromResult(expectedResult));
@@ -406,7 +409,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task SetRangeValue_WithProcessId_ShouldCallServiceCorrectly(int processId)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { PreviousValue = 10.0, NewValue = 75.0 } };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> { Success = true, Data = new ActionResult { Success = true, Action = "SetValue", ReturnValue = 75.0, Details = "Set value from 10.0 to 75.0" } };
             _mockRangeService.Setup(s => s.SetRangeValueAsync("volumeSlider", 75.0, "AudioApp", processId, 30))
                            .Returns(Task.FromResult(expectedResult));
 
@@ -426,7 +429,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetRangeValue_WithCustomTimeout_ShouldCallServiceCorrectly(int timeoutSeconds)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { Value = 25.0, Minimum = 0.0, Maximum = 100.0 } };
+            var expectedResult = new ServerEnhancedResponse<RangeValueResult> { Success = true, Data = new RangeValueResult { Success = true, Value = 25.0, Minimum = 0.0, Maximum = 100.0, LargeChange = 1.0, SmallChange = 0.1, IsReadOnly = false } };
             _mockRangeService.Setup(s => s.GetRangeValueAsync("progressBar", "App", null, timeoutSeconds))
                            .Returns(Task.FromResult(expectedResult));
 
@@ -447,10 +450,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task SetRangeValue_MultipleValueChanges_ShouldExecuteInSequence()
         {
             // Arrange
-            var result1 = new ServerEnhancedResponse<object> { Success = true, Data = new { PreviousValue = 0.0, NewValue = 25.0, Minimum = 0.0, Maximum = 100.0 } };
-            var result2 = new ServerEnhancedResponse<object> { Success = true, Data = new { PreviousValue = 25.0, NewValue = 50.0, Minimum = 0.0, Maximum = 100.0 } };
-            var result3 = new ServerEnhancedResponse<object> { Success = true, Data = new { PreviousValue = 50.0, NewValue = 75.0, Minimum = 0.0, Maximum = 100.0 } };
-            var result4 = new ServerEnhancedResponse<object> { Success = true, Data = new { PreviousValue = 75.0, NewValue = 100.0, Minimum = 0.0, Maximum = 100.0 } };
+            var result1 = new ServerEnhancedResponse<ActionResult> { Success = true, Data = new ActionResult { Success = true, Action = "SetValue", ReturnValue = 25.0, Details = "Set value from 0.0 to 25.0" } };
+            var result2 = new ServerEnhancedResponse<ActionResult> { Success = true, Data = new ActionResult { Success = true, Action = "SetValue", ReturnValue = 50.0, Details = "Set value from 25.0 to 50.0" } };
+            var result3 = new ServerEnhancedResponse<ActionResult> { Success = true, Data = new ActionResult { Success = true, Action = "SetValue", ReturnValue = 75.0, Details = "Set value from 50.0 to 75.0" } };
+            var result4 = new ServerEnhancedResponse<ActionResult> { Success = true, Data = new ActionResult { Success = true, Action = "SetValue", ReturnValue = 100.0, Details = "Set value from 75.0 to 100.0" } };
 
             _mockRangeService.Setup(s => s.SetRangeValueAsync("animatedSlider", 25.0, "Presentation", null, 30))
                            .Returns(Task.FromResult(result1));

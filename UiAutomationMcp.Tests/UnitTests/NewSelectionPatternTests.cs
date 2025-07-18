@@ -40,10 +40,10 @@ namespace UIAutomationMCP.Tests.UnitTests
             var elementId = "selectedListItem";
             var windowTitle = "Test Window";
             var processId = 1234;
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { IsSelected = true } };
+            var expectedResult = new { IsSelected = true };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<object>("IsSelected", It.IsAny<Dictionary<string, object>>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+                .Returns(Task.FromResult<object>(expectedResult));
 
             // Act
             var result = await _selectionService.IsSelectedAsync(elementId, windowTitle, processId, 30);
@@ -64,10 +64,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var elementId = "unselectedListItem";
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { IsSelected = false } };
+            var expectedResult = new { IsSelected = false };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<object>("IsSelected", It.IsAny<Dictionary<string, object>>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+                .Returns(Task.FromResult<object>(expectedResult));
 
             // Act
             var result = await _selectionService.IsSelectedAsync(elementId, null, null, 30);
@@ -85,25 +85,21 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var elementId = "listItem1";
-            var expectedResult = new ServerEnhancedResponse<object>
+            var expectedResult = new 
             { 
-                Success = true, 
-                Data = new 
-                { 
-                    SelectionContainer = new 
-                    {
-                        AutomationId = "parentListBox",
-                        Name = "Items Container",
-                        ControlType = "ControlType.List",
-                        ClassName = "ListBox",
-                        ProcessId = 1234,
-                        RuntimeId = new int[] { 1, 2, 3, 4 }
-                    }
+                SelectionContainer = new 
+                {
+                    AutomationId = "parentListBox",
+                    Name = "Items Container",
+                    ControlType = "ControlType.List",
+                    ClassName = "ListBox",
+                    ProcessId = 1234,
+                    RuntimeId = new int[] { 1, 2, 3, 4 }
                 }
             };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<object>("GetSelectionContainer", It.IsAny<Dictionary<string, object>>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+                .Returns(Task.FromResult<object>(expectedResult));
 
             // Act
             var result = await _selectionService.GetSelectionContainerAsync(elementId, null, null, 30);
@@ -121,10 +117,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var elementId = "orphanedElement";
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { SelectionContainer = (object?)null } };
+            var expectedResult = new { SelectionContainer = (object?)null };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<object>("GetSelectionContainer", It.IsAny<Dictionary<string, object>>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+                .Returns(Task.FromResult<object>(expectedResult));
 
             // Act
             var result = await _selectionService.GetSelectionContainerAsync(elementId, null, null, 30);
@@ -148,10 +144,10 @@ namespace UIAutomationMCP.Tests.UnitTests
             var containerId = "multiSelectListBox";
             var windowTitle = "Multi-Select Window";
             var processId = 5678;
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { CanSelectMultiple = true } };
+            var expectedResult = new { CanSelectMultiple = true };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<object>("CanSelectMultiple", It.IsAny<Dictionary<string, object>>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+                .Returns(Task.FromResult<object>(expectedResult));
 
             // Act
             var result = await _selectionService.CanSelectMultipleAsync(containerId, windowTitle, processId, 30);
@@ -172,10 +168,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var containerId = "singleSelectRadioGroup";
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { CanSelectMultiple = false } };
+            var expectedResult = new { CanSelectMultiple = false };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<object>("CanSelectMultiple", It.IsAny<Dictionary<string, object>>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+                .Returns(Task.FromResult<object>(expectedResult));
 
             // Act
             var result = await _selectionService.CanSelectMultipleAsync(containerId, null, null, 30);
@@ -194,10 +190,10 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Arrange
             var containerId = "tabControl";
             var windowTitle = "Tabbed Interface";
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { IsSelectionRequired = true } };
+            var expectedResult = new { IsSelectionRequired = true };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<object>("IsSelectionRequired", It.IsAny<Dictionary<string, object>>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+                .Returns(Task.FromResult<object>(expectedResult));
 
             // Act
             var result = await _selectionService.IsSelectionRequiredAsync(containerId, windowTitle, null, 30);
@@ -217,10 +213,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var containerId = "optionalSelectionList";
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { IsSelectionRequired = false } };
+            var expectedResult = new { IsSelectionRequired = false };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<object>("IsSelectionRequired", It.IsAny<Dictionary<string, object>>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+                .Returns(Task.FromResult<object>(expectedResult));
 
             // Act
             var result = await _selectionService.IsSelectionRequiredAsync(containerId, null, null, 30);
@@ -248,10 +244,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var elementId = $"element_{controlTypeName}";
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { IsSelected = false } };
+            var expectedResult = new { IsSelected = false };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<object>("IsSelected", It.IsAny<Dictionary<string, object>>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+                .Returns(Task.FromResult<object>(expectedResult));
 
             // Act
             var result = await _selectionService.IsSelectedAsync(elementId, null, null, 30);
@@ -275,10 +271,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var containerId = $"container_{controlTypeName}";
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { CanSelectMultiple = true } };
+            var expectedResult = new { CanSelectMultiple = true };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<object>("CanSelectMultiple", It.IsAny<Dictionary<string, object>>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+                .Returns(Task.FromResult<object>(expectedResult));
 
             // Act
             var result = await _selectionService.CanSelectMultipleAsync(containerId, null, null, 30);
@@ -303,10 +299,10 @@ namespace UIAutomationMCP.Tests.UnitTests
             string elementId, string windowTitle, int processId, int timeoutSeconds)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { IsSelected = true } };
+            var expectedResult = new { IsSelected = true };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<object>("IsSelected", It.IsAny<Dictionary<string, object>>(), timeoutSeconds))
-                .Returns(Task.FromResult(expectedResult));
+                .Returns(Task.FromResult<object>(expectedResult));
 
             // Act
             var result = await _selectionService.IsSelectedAsync(elementId, windowTitle, processId, timeoutSeconds);
@@ -331,10 +327,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var containerId = "timeoutTestContainer";
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { CanSelectMultiple = false } };
+            var expectedResult = new { CanSelectMultiple = false };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<object>("CanSelectMultiple", It.IsAny<Dictionary<string, object>>(), timeoutSeconds))
-                .Returns(Task.FromResult(expectedResult));
+                .Returns(Task.FromResult<object>(expectedResult));
 
             // Act
             var result = await _selectionService.CanSelectMultipleAsync(containerId, null, null, timeoutSeconds);
@@ -390,10 +386,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var emptyElementId = "";
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { IsSelected = false } };
+            var expectedResult = new { IsSelected = false };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<object>("IsSelected", It.IsAny<Dictionary<string, object>>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+                .Returns(Task.FromResult<object>(expectedResult));
 
             // Act
             var result = await _selectionService.IsSelectedAsync(emptyElementId, null, null, 30);
@@ -415,19 +411,19 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var elementId = "testElement";
-            var expectedIsSelectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { IsSelected = true } };
-            var expectedContainerResult = new ServerEnhancedResponse<object> { Success = true, Data = new { SelectionContainer = new { AutomationId = "container" } } };
-            var expectedAddResult = new ServerEnhancedResponse<object> { Success = true, Message = "Added to selection" };
-            var expectedRemoveResult = new ServerEnhancedResponse<object> { Success = true, Message = "Removed from selection" };
+            var expectedIsSelectedResult = new { IsSelected = true };
+            var expectedContainerResult = new { SelectionContainer = new { AutomationId = "container" } };
+            var expectedAddResult = new { Success = true, Message = "Added to selection" };
+            var expectedRemoveResult = new { Success = true, Message = "Removed from selection" };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<object>("IsSelected", It.IsAny<Dictionary<string, object>>(), 30))
-                .Returns(Task.FromResult(expectedIsSelectedResult));
+                .Returns(Task.FromResult<object>(expectedIsSelectedResult));
             _mockExecutor.Setup(e => e.ExecuteAsync<object>("GetSelectionContainer", It.IsAny<Dictionary<string, object>>(), 30))
-                .Returns(Task.FromResult(expectedContainerResult));
+                .Returns(Task.FromResult<object>(expectedContainerResult));
             _mockExecutor.Setup(e => e.ExecuteAsync<object>("AddToSelection", It.IsAny<Dictionary<string, object>>(), 30))
-                .Returns(Task.FromResult(expectedAddResult));
+                .Returns(Task.FromResult<object>(expectedAddResult));
             _mockExecutor.Setup(e => e.ExecuteAsync<object>("RemoveFromSelection", It.IsAny<Dictionary<string, object>>(), 30))
-                .Returns(Task.FromResult(expectedRemoveResult));
+                .Returns(Task.FromResult<object>(expectedRemoveResult));
 
             // Act & Assert - Test all required SelectionItem members
             var isSelectedResult = await _selectionService.IsSelectedAsync(elementId, null, null, 30);
@@ -448,19 +444,19 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var containerId = "testContainer";
-            var expectedCanSelectResult = new ServerEnhancedResponse<object> { Success = true, Data = new { CanSelectMultiple = true } };
-            var expectedRequiredResult = new ServerEnhancedResponse<object> { Success = true, Data = new { IsSelectionRequired = false } };
-            var expectedSelectionResult = new ServerEnhancedResponse<object> { Success = true, Data = new List<object>() };
-            var expectedClearResult = new ServerEnhancedResponse<object> { Success = true, Message = "Selection cleared" };
+            var expectedCanSelectResult = new { CanSelectMultiple = true };
+            var expectedRequiredResult = new { IsSelectionRequired = false };
+            var expectedSelectionResult = new List<object>();
+            var expectedClearResult = new { Success = true, Message = "Selection cleared" };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<object>("CanSelectMultiple", It.IsAny<Dictionary<string, object>>(), 30))
-                .Returns(Task.FromResult(expectedCanSelectResult));
+                .Returns(Task.FromResult<object>(expectedCanSelectResult));
             _mockExecutor.Setup(e => e.ExecuteAsync<object>("IsSelectionRequired", It.IsAny<Dictionary<string, object>>(), 30))
-                .Returns(Task.FromResult(expectedRequiredResult));
+                .Returns(Task.FromResult<object>(expectedRequiredResult));
             _mockExecutor.Setup(e => e.ExecuteAsync<object>("GetSelection", It.IsAny<Dictionary<string, object>>(), 30))
-                .Returns(Task.FromResult(expectedSelectionResult));
+                .Returns(Task.FromResult<object>(expectedSelectionResult));
             _mockExecutor.Setup(e => e.ExecuteAsync<object>("ClearSelection", It.IsAny<Dictionary<string, object>>(), 30))
-                .Returns(Task.FromResult(expectedClearResult));
+                .Returns(Task.FromResult<object>(expectedClearResult));
 
             // Act & Assert - Test all required Selection members
             var canSelectResult = await _selectionService.CanSelectMultipleAsync(containerId, null, null, 30);
