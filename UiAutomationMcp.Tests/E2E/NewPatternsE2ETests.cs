@@ -31,12 +31,12 @@ public class NewPatternsE2ETests : BaseE2ETest
         // 4. Realizing it
         // 5. Verifying the item is now accessible
 
-        // Arrange
-        var explorerProcess = Process.Start("explorer.exe");
-        await Task.Delay(2000); // Wait for Explorer to open
-
-        try
+        await ProcessCleanupHelper.ExecuteWithCleanup(async () =>
         {
+            // Arrange
+            var explorerProcess = Process.Start("explorer.exe");
+            await Task.Delay(2000); // Wait for Explorer to open
+
             // Act
             var result = await Tools.RealizeVirtualizedItem(
                 "VirtualizedListItem",
@@ -47,11 +47,9 @@ public class NewPatternsE2ETests : BaseE2ETest
             // Assert
             _output.WriteLine($"Realize result: {System.Text.Json.JsonSerializer.Serialize(result)}");
             // In a real scenario, we would verify the item is now visible
-        }
-        finally
-        {
-            explorerProcess?.Kill();
-        }
+
+            return explorerProcess;
+        }, _output, "File Explorer", 6000);
     }
 
     [Fact(Skip = "Requires a WPF application with virtualized DataGrid")]
@@ -63,13 +61,13 @@ public class NewPatternsE2ETests : BaseE2ETest
         // 3. Realize it
         // 4. Verify it's now in the UI tree
 
-        // Example implementation:
-        var testAppPath = @"C:\TestApps\VirtualizedDataGridApp.exe";
-        var testApp = Process.Start(testAppPath);
-        await Task.Delay(2000);
-
-        try
+        await ProcessCleanupHelper.ExecuteWithCleanup(async () =>
         {
+            // Example implementation:
+            var testAppPath = @"C:\TestApps\VirtualizedDataGridApp.exe";
+            var testApp = Process.Start(testAppPath);
+            await Task.Delay(2000);
+
             // Find a virtualized item in the DataGrid
             var result = await Tools.RealizeVirtualizedItem(
                 "DataGridRow_100", // A row that's likely virtualized
@@ -82,11 +80,9 @@ public class NewPatternsE2ETests : BaseE2ETest
 
             Assert.NotNull(elementInfo);
             // In a real scenario, we would verify the specific element is now in the tree
-        }
-        finally
-        {
-            testApp?.Kill();
-        }
+
+            return testApp;
+        }, _output, "DataGrid Test App", 8000);
     }
 
     #endregion
@@ -101,12 +97,12 @@ public class NewPatternsE2ETests : BaseE2ETest
         // 2. Use ItemContainerPattern to find items by various properties
         // 3. Verify the found items match the search criteria
 
-        // Example: Using Windows Settings app
-        var settingsProcess = Process.Start("ms-settings:");
-        await Task.Delay(3000);
-
-        try
+        await ProcessCleanupHelper.ExecuteWithCleanup(async () =>
         {
+            // Example: Using Windows Settings app
+            var settingsProcess = Process.Start("ms-settings:");
+            await Task.Delay(3000);
+
             // Find an item by name
             var result = await Tools.FindItemByProperty(
                 "SettingsList",
@@ -122,22 +118,20 @@ public class NewPatternsE2ETests : BaseE2ETest
             var elementInfo = resultDict["ElementInfo"] as Dictionary<string, object>;
             Assert.NotNull(elementInfo);
             Assert.Equal("System", elementInfo["Name"]);
-        }
-        finally
-        {
-            settingsProcess?.Kill();
-        }
+
+            return settingsProcess;
+        }, _output, "Settings", 8000);
     }
 
     [Fact(Skip = "Requires File Explorer")]
     public async Task ItemContainerPattern_FindMultipleItems_InFileExplorer()
     {
         // Test finding multiple items with null property value
-        var explorerProcess = Process.Start("explorer.exe", @"C:\Windows");
-        await Task.Delay(2000);
-
-        try
+        await ProcessCleanupHelper.ExecuteWithCleanup(async () =>
         {
+            var explorerProcess = Process.Start("explorer.exe", @"C:\Windows");
+            await Task.Delay(2000);
+
             // Find all items without a specific property value
             var result = await Tools.FindItemByProperty(
                 "FilesList",
@@ -147,11 +141,9 @@ public class NewPatternsE2ETests : BaseE2ETest
                 timeoutSeconds: 10);
 
             _output.WriteLine($"Found item: {System.Text.Json.JsonSerializer.Serialize(result)}");
-        }
-        finally
-        {
-            explorerProcess?.Kill();
-        }
+
+            return explorerProcess;
+        }, _output, "File Explorer", 6000);
     }
 
     #endregion
@@ -167,13 +159,13 @@ public class NewPatternsE2ETests : BaseE2ETest
         // 3. Verify input is properly synchronized
         // 4. Cancel synchronization
 
-        // Example with a hypothetical app
-        var testAppPath = @"C:\TestApps\SynchronizedInputTestApp.exe";
-        var testApp = Process.Start(testAppPath);
-        await Task.Delay(2000);
-
-        try
+        await ProcessCleanupHelper.ExecuteWithCleanup(async () =>
         {
+            // Example with a hypothetical app
+            var testAppPath = @"C:\TestApps\SynchronizedInputTestApp.exe";
+            var testApp = Process.Start(testAppPath);
+            await Task.Delay(2000);
+
             // Start listening for mouse clicks
             var startResult = await Tools.StartSynchronizedInput(
                 "SyncButton",
@@ -199,22 +191,20 @@ public class NewPatternsE2ETests : BaseE2ETest
             Assert.NotNull(cancelDict);
             Assert.True((bool)cancelDict["Success"]);
             Assert.True((bool)cancelDict["Result"]);
-        }
-        finally
-        {
-            testApp?.Kill();
-        }
+
+            return testApp;
+        }, _output, "Sync Input Test", 8000);
     }
 
     [Fact(Skip = "Requires a game or drawing application")]
     public async Task SynchronizedInputPattern_KeyboardInput_InGame()
     {
         // Test keyboard input synchronization in a game scenario
-        var gameProcess = Process.Start(@"C:\Games\TestGame.exe");
-        await Task.Delay(3000);
-
-        try
+        await ProcessCleanupHelper.ExecuteWithCleanup(async () =>
         {
+            var gameProcess = Process.Start(@"C:\Games\TestGame.exe");
+            await Task.Delay(3000);
+
             // Synchronize keyboard input
             var result = await Tools.StartSynchronizedInput(
                 "GameCanvas",
@@ -233,11 +223,9 @@ public class NewPatternsE2ETests : BaseE2ETest
             await Tools.CancelSynchronizedInput(
                 "GameCanvas",
                 windowTitle: "Test Game");
-        }
-        finally
-        {
-            gameProcess?.Kill();
-        }
+
+            return gameProcess;
+        }, _output, "Test Game", 10000);
     }
 
     #endregion
@@ -252,11 +240,11 @@ public class NewPatternsE2ETests : BaseE2ETest
         // 2. Use VirtualizedItemPattern to realize items
         // 3. Use SynchronizedInputPattern for selection
 
-        var testApp = Process.Start(@"C:\TestApps\ComplexListApp.exe");
-        await Task.Delay(2000);
-
-        try
+        await ProcessCleanupHelper.ExecuteWithCleanup(async () =>
         {
+            var testApp = Process.Start(@"C:\TestApps\ComplexListApp.exe");
+            await Task.Delay(2000);
+
             // Find the list container
             var containerResult = await Tools.FindItemByProperty(
                 "MainList",
@@ -294,11 +282,9 @@ public class NewPatternsE2ETests : BaseE2ETest
             await Tools.CancelSynchronizedInput(
                 "ListItem_500",
                 windowTitle: "Complex List App");
-        }
-        finally
-        {
-            testApp?.Kill();
-        }
+
+            return testApp;
+        }, _output, "Complex List App", 10000);
     }
 
     #endregion
@@ -309,11 +295,11 @@ public class NewPatternsE2ETests : BaseE2ETest
     public async Task VirtualizedItemPattern_Performance_LargeDataset()
     {
         // Test performance with large virtualized lists
-        var testApp = Process.Start(@"C:\TestApps\LargeDatasetApp.exe");
-        await Task.Delay(3000);
-
-        try
+        await ProcessCleanupHelper.ExecuteWithCleanup(async () =>
         {
+            var testApp = Process.Start(@"C:\TestApps\LargeDatasetApp.exe");
+            await Task.Delay(3000);
+
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             
             // Realize multiple items in sequence
@@ -334,11 +320,9 @@ public class NewPatternsE2ETests : BaseE2ETest
             
             // Performance should be reasonable even with virtualization
             Assert.True(stopwatch.ElapsedMilliseconds < 10000, "Realization took too long");
-        }
-        finally
-        {
-            testApp?.Kill();
-        }
+
+            return testApp;
+        }, _output, "Large Dataset App", 12000);
     }
 
     #endregion

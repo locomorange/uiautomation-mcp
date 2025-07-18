@@ -28,11 +28,11 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
         // 2. ItemContainerPattern - finding specific cells by property
         // 3. SynchronizedInputPattern - ensuring input is processed in order
 
-        var excelProcess = Process.Start("excel.exe");
-        await Task.Delay(5000); // Wait for Excel to fully load
-
-        try
+        await ProcessCleanupHelper.ExecuteWithCleanup(async () =>
         {
+            var excelProcess = Process.Start("excel.exe");
+            await Task.Delay(5000); // Wait for Excel to fully load
+
             // Step 1: Find the worksheet container
             var worksheetResult = await Tools.FindItemByProperty(
                 "WorksheetGrid",
@@ -77,11 +77,9 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
                 "Cell_A1000",
                 windowTitle: "Microsoft Excel");
             _output.WriteLine("Completed Excel automation scenario");
-        }
-        finally
-        {
-            excelProcess?.Kill();
-        }
+
+            return excelProcess;
+        }, _output, "Excel", 10000);
     }
 
     [Fact(Skip = "Demonstration of Visual Studio solution explorer automation")]
@@ -90,11 +88,11 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
         // Scenario: Navigating a large Visual Studio solution with virtualized tree nodes
         // This demonstrates finding and expanding virtualized project nodes
 
-        var vsProcess = Process.Start("devenv.exe", "/nosplash");
-        await Task.Delay(10000); // VS takes time to load
-
-        try
+        await ProcessCleanupHelper.ExecuteWithCleanup(async () =>
         {
+            var vsProcess = Process.Start("devenv.exe", "/nosplash");
+            await Task.Delay(10000); // VS takes time to load
+
             // Find Solution Explorer
             var solutionExplorerResult = await Tools.FindItemByProperty(
                 "SolutionExplorer",
@@ -143,11 +141,9 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
             Assert.NotNull(projectDict);
             Assert.True((bool)projectDict["Success"]);
             _output.WriteLine("Successfully navigated to project in large solution");
-        }
-        finally
-        {
-            vsProcess?.Kill();
-        }
+
+            return vsProcess;
+        }, _output, "Visual Studio", 15000);
     }
 
     [Fact(Skip = "Demonstration of Windows File Explorer batch operations")]
@@ -156,11 +152,11 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
         // Scenario: Selecting multiple files in a large directory with virtualization
         // This demonstrates synchronized input for multi-selection
 
-        var explorerProcess = Process.Start("explorer.exe", @"C:\Windows\System32");
-        await Task.Delay(3000);
-
-        try
+        await ProcessCleanupHelper.ExecuteWithCleanup(async () =>
         {
+            var explorerProcess = Process.Start("explorer.exe", @"C:\Windows\System32");
+            await Task.Delay(3000);
+
             // Find the files list container
             var filesListResult = await Tools.FindItemByProperty(
                 "ItemsView",
@@ -221,11 +217,9 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
                 filesId,
                 windowTitle: "System32");
             _output.WriteLine("Completed batch file selection scenario");
-        }
-        finally
-        {
-            explorerProcess?.Kill();
-        }
+
+            return explorerProcess;
+        }, _output, "File Explorer", 8000);
     }
 
     [Fact(Skip = "Demonstration of web browser virtualized content")]
@@ -234,11 +228,11 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
         // Scenario: Automating a web page with infinite scroll (virtualized content)
         // This demonstrates accessing virtualized web content
 
-        var edgeProcess = Process.Start("msedge.exe", "https://example.com/infinite-scroll");
-        await Task.Delay(5000);
-
-        try
+        await ProcessCleanupHelper.ExecuteWithCleanup(async () =>
         {
+            var edgeProcess = Process.Start("msedge.exe", "https://example.com/infinite-scroll");
+            await Task.Delay(5000);
+
             // Find the main content area
             var contentResult = await Tools.FindItemByProperty(
                 "ContentArea",
@@ -273,11 +267,9 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
             }
 
             _output.WriteLine("Completed infinite scroll automation");
-        }
-        finally
-        {
-            edgeProcess?.Kill();
-        }
+
+            return edgeProcess;
+        }, _output, "Microsoft Edge", 8000);
     }
 
     [Fact(Skip = "Demonstration of database application automation")]
@@ -286,11 +278,11 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
         // Scenario: Navigating large query results in a database application
         // This demonstrates all three patterns working together
 
-        var dbAppProcess = Process.Start(@"C:\Program Files\DatabaseApp\dbapp.exe");
-        await Task.Delay(5000);
-
-        try
+        await ProcessCleanupHelper.ExecuteWithCleanup(async () =>
         {
+            var dbAppProcess = Process.Start(@"C:\Program Files\DatabaseApp\dbapp.exe");
+            await Task.Delay(5000);
+
             // Step 1: Find the results grid
             var resultsGridResult = await Tools.FindItemByProperty(
                 "QueryResults",
@@ -353,10 +345,8 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
                 gridId,
                 windowTitle: "Database Application");
             _output.WriteLine("Completed database navigation scenario");
-        }
-        finally
-        {
-            dbAppProcess?.Kill();
-        }
+
+            return dbAppProcess;
+        }, _output, "Database Application", 12000);
     }
 }

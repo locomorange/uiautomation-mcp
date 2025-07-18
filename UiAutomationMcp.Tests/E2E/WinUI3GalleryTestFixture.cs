@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using UIAutomationMCP.Server.Tools;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace UIAutomationMCP.Tests.E2E
 {
@@ -25,7 +26,7 @@ namespace UIAutomationMCP.Tests.E2E
             
             if (existingProcesses.Any())
             {
-                // Use existing instance
+                // Use existing instance - don't set _winUI3GalleryProcess so we won't try to close it
                 return;
             }
 
@@ -61,30 +62,40 @@ namespace UIAutomationMCP.Tests.E2E
             }
         }
 
-        public Task DisposeAsync()
+        public async Task DisposeAsync()
         {
             // Close WinUI 3 Gallery if we launched it
             if (_winUI3GalleryProcess != null && !_winUI3GalleryProcess.HasExited)
             {
                 try
                 {
-                    _winUI3GalleryProcess.CloseMainWindow();
-                    if (!_winUI3GalleryProcess.WaitForExit(5000))
-                    {
-                        _winUI3GalleryProcess.Kill();
-                    }
+                    // Use ProcessCleanupHelper for more robust cleanup
+                    await ProcessCleanupHelper.CleanupProcess(
+                        _winUI3GalleryProcess,
+                        new TestOutputHelper(), // Simple output helper for logging
+                        "WinUI 3 Gallery",
+                        8000);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Ignore errors during cleanup
-                }
-                finally
-                {
-                    _winUI3GalleryProcess.Dispose();
+                    // Log the error but don't throw during cleanup
+                    Console.WriteLine($"Error during WinUI 3 Gallery cleanup: {ex.Message}");
                 }
             }
-            
-            return Task.CompletedTask;
+        }
+    }
+
+    // Simple test output helper for fixture cleanup logging
+    internal class TestOutputHelper : ITestOutputHelper
+    {
+        public void WriteLine(string message)
+        {
+            Console.WriteLine($"[WinUI3GalleryTestFixture] {message}");
+        }
+
+        public void WriteLine(string format, params object[] args)
+        {
+            Console.WriteLine($"[WinUI3GalleryTestFixture] {format}", args);
         }
     }
 }

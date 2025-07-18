@@ -64,23 +64,16 @@ namespace UIAutomationMCP.Tests.E2E
         {
             try
             {
-                var workerProcesses = Process.GetProcessesByName("UIAutomationMCP.Worker");
-                foreach (var process in workerProcesses)
-                {
-                    try
-                    {
-                        if (!process.HasExited)
-                        {
-                            Output.WriteLine($"Cleaning up remaining Worker process PID: {process.Id}");
-                            process.Kill(entireProcessTree: true);
-                            process.WaitForExit(1000);
-                        }
-                        process.Dispose();
-                    }
-                    catch { }
-                }
+                Output.WriteLine("Starting cleanup of remaining Worker processes...");
+                // Use the new ProcessCleanupHelper for more robust cleanup
+                ProcessCleanupHelper.CleanupProcessesByName("UIAutomationMCP.Worker", Output, 3000)
+                    .GetAwaiter()
+                    .GetResult();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Output.WriteLine($"Error during Worker process cleanup: {ex.Message}");
+            }
         }
     }
 }

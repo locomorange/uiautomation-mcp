@@ -20,6 +20,7 @@ namespace UIAutomationMCP.Tests.E2E
         private readonly ITestOutputHelper _output;
         private readonly IServiceProvider _serviceProvider;
         private readonly UIAutomationTools _tools;
+        private readonly List<Process> _launchedProcesses = new();
 
         public MCPToolsE2ETests(ITestOutputHelper output)
         {
@@ -149,6 +150,14 @@ namespace UIAutomationMCP.Tests.E2E
                 // Wait for application to start
                 await Task.Delay(2000);
                 
+                // Track the launched Notepad process
+                var notepadProcess = Process.GetProcessesByName("notepad").OrderByDescending(p => p.StartTime).FirstOrDefault();
+                if (notepadProcess != null)
+                {
+                    _launchedProcesses.Add(notepadProcess);
+                    _output.WriteLine($"Tracked Notepad process ID: {notepadProcess.Id}");
+                }
+                
                 // Try to get window info for Notepad
                 var windowInfo = await _tools.GetWindowInfo();
                 _output.WriteLine($"Window info after launch: {JsonSerializer.Serialize(windowInfo, new JsonSerializerOptions { WriteIndented = true })}");
@@ -173,6 +182,14 @@ namespace UIAutomationMCP.Tests.E2E
                 // First launch Notepad
                 await _tools.LaunchApplicationByName("Notepad");
                 await Task.Delay(2000);
+                
+                // Track the launched Notepad process
+                var notepadProcess = Process.GetProcessesByName("notepad").OrderByDescending(p => p.StartTime).FirstOrDefault();
+                if (notepadProcess != null)
+                {
+                    _launchedProcesses.Add(notepadProcess);
+                    _output.WriteLine($"Tracked Notepad process ID: {notepadProcess.Id}");
+                }
                 
                 // Find elements in Notepad window
                 var result = await _tools.FindElements(windowTitle: "Notepad");
@@ -242,32 +259,50 @@ namespace UIAutomationMCP.Tests.E2E
         {
             try
             {
-                // Clean up any Notepad processes we might have launched
-                var notepadProcesses = Process.GetProcessesByName("notepad");
-                foreach (var process in notepadProcesses)
-                {
-                    try
+                // Clean up only the processes we explicitly launched using ProcessCleanupHelper
+                var cleanupTasks = _launchedProcesses
+                    .Where(p => 
                     {
-                        process.CloseMainWindow();
-                        if (!process.WaitForExit(5000))
-                        {
-                            process.Kill();
+                        try 
+                        { 
+                            return !p.HasExited; 
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        _output.WriteLine($"Failed to close Notepad process: {ex.Message}");
-                    }
+                        catch 
+                        { 
+                            return false; // Process may have already been disposed
+                        }
+                    })
+                    .Select(process => 
+                        ProcessCleanupHelper.CleanupProcess(
+                            process,
+                            _output,
+                            $"{process.ProcessName}({process.Id})",
+                            5000))
+                    .ToList();
+
+                if (cleanupTasks.Any())
+                {
+                    _output.WriteLine($"Cleaning up {cleanupTasks.Count} launched processes...");
+                    Task.WhenAll(cleanupTasks).Wait(TimeSpan.FromSeconds(30));
+                }
+
+                _launchedProcesses.Clear();
+            }
+            catch (Exception ex)
+            {
+                _output.WriteLine($"Error during process cleanup: {ex.Message}");
+            }
+            
+            try
+            {
+                if (_serviceProvider is IDisposable disposable)
+                {
+                    disposable.Dispose();
                 }
             }
             catch (Exception ex)
             {
-                _output.WriteLine($"Error during cleanup: {ex.Message}");
-            }
-            
-            if (_serviceProvider is IDisposable disposable)
-            {
-                disposable.Dispose();
+                _output.WriteLine($"Error during service provider cleanup: {ex.Message}");
             }
         }
     }
