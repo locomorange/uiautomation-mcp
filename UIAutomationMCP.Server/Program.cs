@@ -53,7 +53,7 @@ namespace UIAutomationMCP.Server
             builder.Services.AddSingleton<IControlTypeService, ControlTypeService>();
             
             // Register subprocess executor
-            builder.Services.AddSingleton<ISubprocessExecutor>(provider =>
+            builder.Services.AddSingleton<SubprocessExecutor>(provider =>
             {
                 var logger = provider.GetRequiredService<ILogger<SubprocessExecutor>>();
                 var baseDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -113,6 +113,9 @@ namespace UIAutomationMCP.Server
                 return new SubprocessExecutor(logger, workerPath);
             });
             
+            // Register as interface for services that expect ISubprocessExecutor
+            builder.Services.AddSingleton<ISubprocessExecutor>(provider => provider.GetRequiredService<SubprocessExecutor>());
+            
             // All UI Automation services are now handled through subprocess executor
 
             // Configure MCP Server
@@ -151,9 +154,12 @@ namespace UIAutomationMCP.Server
                 // Dispose SubprocessExecutor to ensure worker processes are terminated
                 try
                 {
-                    var executor = host.Services.GetRequiredService<SubprocessExecutor>();
-                    executor.Dispose();
-                    logger.LogInformation("[Program] SubprocessExecutor disposed successfully");
+                    var executor = host.Services.GetRequiredService<ISubprocessExecutor>();
+                    if (executor is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                        logger.LogInformation("[Program] SubprocessExecutor disposed successfully");
+                    }
                 }
                 catch (Exception ex)
                 {

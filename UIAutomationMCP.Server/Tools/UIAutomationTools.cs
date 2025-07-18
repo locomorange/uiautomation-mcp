@@ -9,6 +9,20 @@ using UIAutomationMCP.Shared.Serialization;
 
 namespace UIAutomationMCP.Server.Tools
 {
+    /// <summary>
+    /// UI Automation MCP Tools - Provides MCP tool implementations for UI Automation operations.
+    /// 
+    /// IMPORTANT: This class uses two different JSON serialization patterns based on service interface types.
+    /// See JSON_SERIALIZATION_PATTERNS.md for detailed documentation on when to use JsonSerializationHelper.Serialize().
+    /// 
+    /// Key Points:
+    /// - Pattern 1: Services returning ServerEnhancedResponse&lt;T&gt; MUST use JsonSerializationHelper.Serialize()
+    /// - Pattern 2: Services returning Task&lt;object&gt; (JSON strings) must NOT use JsonSerializationHelper.Serialize()
+    /// - Incorrect usage causes runtime JSON serialization errors or double-serialization issues
+    /// 
+    /// For complete implementation guidelines, examples, and troubleshooting, refer to:
+    /// @UIAutomationMCP.Server\Tools\JSON_SERIALIZATION_PATTERNS.md
+    /// </summary>
     [McpServerToolType]
     public class UIAutomationTools
     {
@@ -115,7 +129,9 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Maximum depth to traverse (default: 3)")] int maxDepth = 3, 
             [Description("Process ID of the target window (optional)")] int? processId = null, 
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
-            => await _treeNavigationService.GetElementTreeAsync(windowTitle, processId, maxDepth, timeoutSeconds);
+            // FIXED: Added JsonSerializationHelper.Serialize() to handle ServerEnhancedResponse<ElementTreeResult> JSON serialization
+            // This was causing "JsonTypeInfo metadata was not provided" errors at MCP server level
+            => JsonSerializationHelper.Serialize(await _treeNavigationService.GetElementTreeAsync(windowTitle, processId, maxDepth, timeoutSeconds));
 
 
         // Application Management
@@ -135,21 +151,21 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Command line arguments (optional)")] string? arguments = null,
             [Description("Working directory (optional)")] string? workingDirectory = null,
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
-            => await _applicationLauncher.LaunchWin32ApplicationAsync(applicationPath, arguments, workingDirectory, timeoutSeconds);
+            => JsonSerializationHelper.Serialize(await _applicationLauncher.LaunchWin32ApplicationAsync(applicationPath, arguments, workingDirectory, timeoutSeconds));
 
 
         [McpServerTool, Description("Launch a UWP application by shell:AppsFolder path")]
         public async Task<object> LaunchUWPApplication(
             [Description("shell:AppsFolder path to the UWP app")] string appsFolderPath,
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
-            => await _applicationLauncher.LaunchUWPApplicationAsync(appsFolderPath, timeoutSeconds);
+            => JsonSerializationHelper.Serialize(await _applicationLauncher.LaunchUWPApplicationAsync(appsFolderPath, timeoutSeconds));
 
 
         [McpServerTool, Description("Launch an application by searching for its display name")]
         public async Task<object> LaunchApplicationByName(
             [Description("Display name of the application to launch")] string applicationName,
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
-            => await _applicationLauncher.LaunchApplicationByNameAsync(applicationName, timeoutSeconds);
+            => JsonSerializationHelper.Serialize(await _applicationLauncher.LaunchApplicationByNameAsync(applicationName, timeoutSeconds));
 
         // Core Interaction Patterns
         [McpServerTool, Description("Invoke an element (click button, activate menu item) using InvokePattern")]
@@ -158,7 +174,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
             [Description("Process ID of the target window (optional)")] int? processId = null, 
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => await _invokeService.InvokeElementAsync(elementId, windowTitle, processId, timeoutSeconds);
+            => JsonSerializationHelper.Serialize(await _invokeService.InvokeElementAsync(elementId, windowTitle, processId, timeoutSeconds));
 
         [McpServerTool, Description("Set the value of an element (text input, etc.) using ValuePattern")]
         public async Task<object> SetElementValue(
