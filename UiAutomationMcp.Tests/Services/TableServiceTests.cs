@@ -99,10 +99,8 @@ namespace UIAutomationMCP.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            var resultString = result as string;
-            Assert.NotNull(resultString);
-            Assert.Contains("\"success\":false", resultString, StringComparison.OrdinalIgnoreCase);
-            Assert.Contains(expectedError, resultString);
+            Assert.False(result.Success);
+            Assert.Contains(expectedError, result.ErrorMessage);
             
             _output.WriteLine("GetRowOrColumnMajorAsync error handling test passed");
         }
@@ -125,9 +123,9 @@ namespace UIAutomationMCP.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            var resultString = result as string;
-            Assert.NotNull(resultString);
-            Assert.Contains("\"success\":true", resultString, StringComparison.OrdinalIgnoreCase);
+            Assert.True(result.Success);
+            Assert.NotNull(result.Data);
+            Assert.Equal(expectedValue, result.Data.Value);
             
             _output.WriteLine($"GetRowOrColumnMajorAsync test passed for value: {expectedValue}");
         }

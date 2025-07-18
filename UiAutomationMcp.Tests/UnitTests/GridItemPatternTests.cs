@@ -4,6 +4,7 @@ using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
 using UIAutomationMCP.Server.Interfaces;
+using UIAutomationMCP.Shared.Results;
 using Xunit.Abstractions;
 
 namespace UIAutomationMCP.Tests.UnitTests
@@ -91,17 +92,31 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridItem_WithValidCoordinates_ShouldReturnRowAndColumnProperties(int expectedRow, int expectedColumn)
         {
             // Arrange - Microsoft仕様: Row, Columnプロパティは0ベースの座標を返す
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
-                AutomationId = $"cell_{expectedRow}_{expectedColumn}",
-                Name = $"Cell({expectedRow},{expectedColumn})",
-                ControlType = "DataItem",
-                IsEnabled = true,
-                Row = expectedRow,
-                Column = expectedColumn,
-                RowSpan = 1,
-                ColumnSpan = 1,
-                ContainingGrid = "parentGrid"
+                Success = true,
+                Data = new ElementSearchResult
+                {
+                    Success = true,
+                    Elements = new List<ElementInfo>
+                    {
+                        new ElementInfo
+                        {
+                            AutomationId = $"cell_{expectedRow}_{expectedColumn}",
+                            Name = $"Cell({expectedRow},{expectedColumn})",
+                            ControlType = "DataItem",
+                            IsEnabled = true,
+                            Properties = new Dictionary<string, object>
+                            {
+                                ["Row"] = expectedRow,
+                                ["Column"] = expectedColumn,
+                                ["RowSpan"] = 1,
+                                ["ColumnSpan"] = 1,
+                                ["ContainingGrid"] = "parentGrid"
+                            }
+                        }
+                    }
+                }
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("dataGrid", expectedRow, expectedColumn, "TestWindow", null, 30))
                            .Returns(Task.FromResult(expectedResult));
@@ -122,17 +137,31 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridItem_WithSpannedCells_ShouldReturnRowSpanAndColumnSpanProperties(int rowSpan, int columnSpan)
         {
             // Arrange - Microsoft仕様: RowSpan, ColumnSpanプロパティはセルが跨ぐ行数/列数を返す
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
-                AutomationId = "spanned_cell",
-                Name = "Spanned Cell",
-                ControlType = "DataItem",
-                IsEnabled = true,
-                Row = 0,
-                Column = 0,
-                RowSpan = rowSpan,
-                ColumnSpan = columnSpan,
-                ContainingGrid = "parentGrid"
+                Success = true,
+                Data = new ElementSearchResult
+                {
+                    Success = true,
+                    Elements = new List<ElementInfo>
+                    {
+                        new ElementInfo
+                        {
+                            AutomationId = "spanned_cell",
+                            Name = "Spanned Cell",
+                            ControlType = "DataItem",
+                            IsEnabled = true,
+                            Properties = new Dictionary<string, object>
+                            {
+                                ["Row"] = 0,
+                                ["Column"] = 0,
+                                ["RowSpan"] = rowSpan,
+                                ["ColumnSpan"] = columnSpan,
+                                ["ContainingGrid"] = "parentGrid"
+                            }
+                        }
+                    }
+                }
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("spanGrid", 0, 0, "TestWindow", null, 30))
                            .Returns(Task.FromResult(expectedResult));
@@ -150,17 +179,31 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridItem_WithSingleCell_ShouldReturnSpanOfOne()
         {
             // Arrange - Microsoft仕様: 単一セルのRowSpan, ColumnSpanは1
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
-                AutomationId = "single_cell",
-                Name = "Single Cell",
-                ControlType = "DataItem",
-                IsEnabled = true,
-                Row = 2,
-                Column = 3,
-                RowSpan = 1,
-                ColumnSpan = 1,
-                ContainingGrid = "parentGrid"
+                Success = true,
+                Data = new ElementSearchResult
+                {
+                    Success = true,
+                    Elements = new List<ElementInfo>
+                    {
+                        new ElementInfo
+                        {
+                            AutomationId = "single_cell",
+                            Name = "Single Cell",
+                            ControlType = "DataItem",
+                            IsEnabled = true,
+                            Properties = new Dictionary<string, object>
+                            {
+                                ["Row"] = 2,
+                                ["Column"] = 3,
+                                ["RowSpan"] = 1,
+                                ["ColumnSpan"] = 1,
+                                ["ContainingGrid"] = "parentGrid"
+                            }
+                        }
+                    }
+                }
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("normalGrid", 2, 3, "TestWindow", null, 30))
                            .Returns(Task.FromResult(expectedResult));
@@ -178,17 +221,31 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridItem_WithContainingGridReference_ShouldReturnValidReference()
         {
             // Arrange - Microsoft仕様: ContainingGridプロパティは親グリッドへの参照を返す
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
-                AutomationId = "grid_item_1",
-                Name = "Grid Item 1",
-                ControlType = "DataItem",
-                IsEnabled = true,
-                Row = 1,
-                Column = 1,
-                RowSpan = 1,
-                ColumnSpan = 1,
-                ContainingGrid = "mainDataGrid"
+                Success = true,
+                Data = new ElementSearchResult
+                {
+                    Success = true,
+                    Elements = new List<ElementInfo>
+                    {
+                        new ElementInfo
+                        {
+                            AutomationId = "grid_item_1",
+                            Name = "Grid Item 1",
+                            ControlType = "DataItem",
+                            IsEnabled = true,
+                            Properties = new Dictionary<string, object>
+                            {
+                                ["Row"] = 1,
+                                ["Column"] = 1,
+                                ["RowSpan"] = 1,
+                                ["ColumnSpan"] = 1,
+                                ["ContainingGrid"] = "mainDataGrid"
+                            }
+                        }
+                    }
+                }
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("mainDataGrid", 1, 1, "TestWindow", null, 30))
                            .Returns(Task.FromResult(expectedResult));
@@ -213,17 +270,31 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridItem_WithMergedCells_ShouldReportAnchorCellCoordinates(int anchorRow, int anchorColumn, int rowSpan, int columnSpan)
         {
             // Arrange - Microsoft仕様: マージされたセルはアンカーセルの座標を報告する
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
-                AutomationId = $"merged_cell_{anchorRow}_{anchorColumn}",
-                Name = $"Merged Cell Anchor({anchorRow},{anchorColumn})",
-                ControlType = "DataItem",
-                IsEnabled = true,
-                Row = anchorRow,
-                Column = anchorColumn,
-                RowSpan = rowSpan,
-                ColumnSpan = columnSpan,
-                ContainingGrid = "mergeGrid"
+                Success = true,
+                Data = new ElementSearchResult
+                {
+                    Success = true,
+                    Elements = new List<ElementInfo>
+                    {
+                        new ElementInfo
+                        {
+                            AutomationId = $"merged_cell_{anchorRow}_{anchorColumn}",
+                            Name = $"Merged Cell Anchor({anchorRow},{anchorColumn})",
+                            ControlType = "DataItem",
+                            IsEnabled = true,
+                            Properties = new Dictionary<string, object>
+                            {
+                                ["Row"] = anchorRow,
+                                ["Column"] = anchorColumn,
+                                ["RowSpan"] = rowSpan,
+                                ["ColumnSpan"] = columnSpan,
+                                ["ContainingGrid"] = "mergeGrid"
+                            }
+                        }
+                    }
+                }
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("mergeGrid", anchorRow, anchorColumn, "TestWindow", null, 30))
                            .Returns(Task.FromResult(expectedResult));
@@ -244,17 +315,31 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridItem_WithCellsInMergeRange_ShouldReturnAnchorCellProperties(int requestRow, int requestColumn, int anchorRow, int anchorColumn)
         {
             // Arrange - Microsoft仕様: マージ範囲内のどの座標でも同じアンカーセルのプロパティを返す
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
-                AutomationId = $"merged_anchor_{anchorRow}_{anchorColumn}",
-                Name = $"Merged Anchor Cell({anchorRow},{anchorColumn})",
-                ControlType = "DataItem",
-                IsEnabled = true,
-                Row = anchorRow,
-                Column = anchorColumn,
-                RowSpan = 2,
-                ColumnSpan = 2,
-                ContainingGrid = "mergeGrid"
+                Success = true,
+                Data = new ElementSearchResult
+                {
+                    Success = true,
+                    Elements = new List<ElementInfo>
+                    {
+                        new ElementInfo
+                        {
+                            AutomationId = $"merged_anchor_{anchorRow}_{anchorColumn}",
+                            Name = $"Merged Anchor Cell({anchorRow},{anchorColumn})",
+                            ControlType = "DataItem",
+                            IsEnabled = true,
+                            Properties = new Dictionary<string, object>
+                            {
+                                ["Row"] = anchorRow,
+                                ["Column"] = anchorColumn,
+                                ["RowSpan"] = 2,
+                                ["ColumnSpan"] = 2,
+                                ["ContainingGrid"] = "mergeGrid"
+                            }
+                        }
+                    }
+                }
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("mergeGrid", requestRow, requestColumn, "TestWindow", null, 30))
                            .Returns(Task.FromResult(expectedResult));
@@ -276,17 +361,31 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridItem_WithZeroBasedCoordinates_ShouldReturnCorrectItem()
         {
             // Arrange - Microsoft仕様: 座標系は0ベース、左上が(0,0)
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
-                AutomationId = "top_left_cell",
-                Name = "Top Left Cell",
-                ControlType = "DataItem",
-                IsEnabled = true,
-                Row = 0,
-                Column = 0,
-                RowSpan = 1,
-                ColumnSpan = 1,
-                ContainingGrid = "coordGrid"
+                Success = true,
+                Data = new ElementSearchResult
+                {
+                    Success = true,
+                    Elements = new List<ElementInfo>
+                    {
+                        new ElementInfo
+                        {
+                            AutomationId = "top_left_cell",
+                            Name = "Top Left Cell",
+                            ControlType = "DataItem",
+                            IsEnabled = true,
+                            Properties = new Dictionary<string, object>
+                            {
+                                ["Row"] = 0,
+                                ["Column"] = 0,
+                                ["RowSpan"] = 1,
+                                ["ColumnSpan"] = 1,
+                                ["ContainingGrid"] = "coordGrid"
+                            }
+                        }
+                    }
+                }
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("coordGrid", 0, 0, "TestWindow", null, 30))
                            .Returns(Task.FromResult(expectedResult));
@@ -307,17 +406,31 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridItem_WithVariousCoordinates_ShouldMaintainCoordinateConsistency(int row, int column)
         {
             // Arrange - Microsoft仕様: 返されるRow/Columnプロパティは要求された座標と一致する必要がある
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
-                AutomationId = $"consistency_cell_{row}_{column}",
-                Name = $"Consistency Cell({row},{column})",
-                ControlType = "DataItem",
-                IsEnabled = true,
-                Row = row,
-                Column = column,
-                RowSpan = 1,
-                ColumnSpan = 1,
-                ContainingGrid = "consistencyGrid"
+                Success = true,
+                Data = new ElementSearchResult
+                {
+                    Success = true,
+                    Elements = new List<ElementInfo>
+                    {
+                        new ElementInfo
+                        {
+                            AutomationId = $"consistency_cell_{row}_{column}",
+                            Name = $"Consistency Cell({row},{column})",
+                            ControlType = "DataItem",
+                            IsEnabled = true,
+                            Properties = new Dictionary<string, object>
+                            {
+                                ["Row"] = row,
+                                ["Column"] = column,
+                                ["RowSpan"] = 1,
+                                ["ColumnSpan"] = 1,
+                                ["ContainingGrid"] = "consistencyGrid"
+                            }
+                        }
+                    }
+                }
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("consistencyGrid", row, column, "TestWindow", null, 30))
                            .Returns(Task.FromResult(expectedResult));
@@ -384,17 +497,31 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridItem_WithValidItem_ShouldHaveConsistentProperties()
         {
             // Arrange - すべてのGridItem必須プロパティが適切に設定されていることを確認
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
-                AutomationId = "consistent_item",
-                Name = "Consistent Item",
-                ControlType = "DataItem",
-                IsEnabled = true,
-                Row = 2,
-                Column = 3,
-                RowSpan = 1,
-                ColumnSpan = 1,
-                ContainingGrid = "propertyGrid"
+                Success = true,
+                Data = new ElementSearchResult
+                {
+                    Success = true,
+                    Elements = new List<ElementInfo>
+                    {
+                        new ElementInfo
+                        {
+                            AutomationId = "consistent_item",
+                            Name = "Consistent Item",
+                            ControlType = "DataItem",
+                            IsEnabled = true,
+                            Properties = new Dictionary<string, object>
+                            {
+                                ["Row"] = 2,
+                                ["Column"] = 3,
+                                ["RowSpan"] = 1,
+                                ["ColumnSpan"] = 1,
+                                ["ContainingGrid"] = "propertyGrid"
+                            }
+                        }
+                    }
+                }
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("propertyGrid", 2, 3, "TestWindow", null, 30))
                            .Returns(Task.FromResult(expectedResult));
@@ -415,17 +542,31 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridItem_WithSpannedItems_ShouldHaveValidSpanValues(int row, int column, int rowSpan, int columnSpan)
         {
             // Arrange - RowSpan/ColumnSpanが1以上の有効な値であることを確認
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
-                AutomationId = $"span_item_{row}_{column}",
-                Name = $"Span Item({row},{column})",
-                ControlType = "DataItem",
-                IsEnabled = true,
-                Row = row,
-                Column = column,
-                RowSpan = rowSpan,
-                ColumnSpan = columnSpan,
-                ContainingGrid = "spanValidGrid"
+                Success = true,
+                Data = new ElementSearchResult
+                {
+                    Success = true,
+                    Elements = new List<ElementInfo>
+                    {
+                        new ElementInfo
+                        {
+                            AutomationId = $"span_item_{row}_{column}",
+                            Name = $"Span Item({row},{column})",
+                            ControlType = "DataItem",
+                            IsEnabled = true,
+                            Properties = new Dictionary<string, object>
+                            {
+                                ["Row"] = row,
+                                ["Column"] = column,
+                                ["RowSpan"] = rowSpan,
+                                ["ColumnSpan"] = columnSpan,
+                                ["ContainingGrid"] = "spanValidGrid"
+                            }
+                        }
+                    }
+                }
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("spanValidGrid", row, column, "TestWindow", null, 30))
                            .Returns(Task.FromResult(expectedResult));
@@ -483,17 +624,31 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridItem_WithEmptyParameters_ShouldCallService(string elementId, int row, int column, string windowTitle)
         {
             // Arrange
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
-                AutomationId = "empty_param_cell",
-                Name = "Empty Param Cell",
-                ControlType = "DataItem",
-                IsEnabled = true,
-                Row = row,
-                Column = column,
-                RowSpan = 1,
-                ColumnSpan = 1,
-                ContainingGrid = elementId
+                Success = true,
+                Data = new ElementSearchResult
+                {
+                    Success = true,
+                    Elements = new List<ElementInfo>
+                    {
+                        new ElementInfo
+                        {
+                            AutomationId = "empty_param_cell",
+                            Name = "Empty Param Cell",
+                            ControlType = "DataItem",
+                            IsEnabled = true,
+                            Properties = new Dictionary<string, object>
+                            {
+                                ["Row"] = row,
+                                ["Column"] = column,
+                                ["RowSpan"] = 1,
+                                ["ColumnSpan"] = 1,
+                                ["ContainingGrid"] = elementId
+                            }
+                        }
+                    }
+                }
             };
             _mockGridService.Setup(s => s.GetGridItemAsync(elementId, row, column, 
                 string.IsNullOrEmpty(windowTitle) ? null : windowTitle, null, 30))
@@ -517,17 +672,31 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridItem_WithProcessId_ShouldCallServiceCorrectly(int processId)
         {
             // Arrange
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
-                AutomationId = "process_cell",
-                Name = "Process Cell",
-                ControlType = "DataItem",
-                IsEnabled = true,
-                Row = 1,
-                Column = 1,
-                RowSpan = 1,
-                ColumnSpan = 1,
-                ContainingGrid = "processGrid"
+                Success = true,
+                Data = new ElementSearchResult
+                {
+                    Success = true,
+                    Elements = new List<ElementInfo>
+                    {
+                        new ElementInfo
+                        {
+                            AutomationId = "process_cell",
+                            Name = "Process Cell",
+                            ControlType = "DataItem",
+                            IsEnabled = true,
+                            Properties = new Dictionary<string, object>
+                            {
+                                ["Row"] = 1,
+                                ["Column"] = 1,
+                                ["RowSpan"] = 1,
+                                ["ColumnSpan"] = 1,
+                                ["ContainingGrid"] = "processGrid"
+                            }
+                        }
+                    }
+                }
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("processGrid", 1, 1, "TestWindow", processId, 30))
                            .Returns(Task.FromResult(expectedResult));
@@ -548,17 +717,31 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridItem_WithCustomTimeout_ShouldCallServiceCorrectly(int timeoutSeconds)
         {
             // Arrange
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
-                AutomationId = "timeout_cell",
-                Name = "Timeout Cell",
-                ControlType = "DataItem",
-                IsEnabled = true,
-                Row = 0,
-                Column = 0,
-                RowSpan = 1,
-                ColumnSpan = 1,
-                ContainingGrid = "timeoutGrid"
+                Success = true,
+                Data = new ElementSearchResult
+                {
+                    Success = true,
+                    Elements = new List<ElementInfo>
+                    {
+                        new ElementInfo
+                        {
+                            AutomationId = "timeout_cell",
+                            Name = "Timeout Cell",
+                            ControlType = "DataItem",
+                            IsEnabled = true,
+                            Properties = new Dictionary<string, object>
+                            {
+                                ["Row"] = 0,
+                                ["Column"] = 0,
+                                ["RowSpan"] = 1,
+                                ["ColumnSpan"] = 1,
+                                ["ContainingGrid"] = "timeoutGrid"
+                            }
+                        }
+                    }
+                }
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("timeoutGrid", 0, 0, "TestWindow", null, timeoutSeconds))
                            .Returns(Task.FromResult(expectedResult));

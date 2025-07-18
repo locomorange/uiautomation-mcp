@@ -101,7 +101,6 @@ namespace UIAutomationMCP.Tests.Tools
                 _mockItemContainerService.Object,
                 _mockSynchronizedInputService.Object,
                 _mockEventMonitorService.Object,
-                _mockEventMonitorService.Object,
                 _mockSubprocessExecutor.Object
             );
         }
@@ -374,7 +373,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockValueService.Setup(s => s.SetValueAsync("textBox", "Test Value", "TestWindow", null, 30))
-                                 .Returns(Task.FromResult<object>(serverResponse));
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.SetElementValue("textBox", "Test Value", "TestWindow");
@@ -407,7 +406,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockValueService.Setup(s => s.GetValueAsync("textBox", "TestWindow", null, 30))
-                                 .Returns(Task.FromResult<object>(serverResponse));
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetElementValue("textBox", "TestWindow");
@@ -441,7 +440,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockValueService.Setup(s => s.IsReadOnlyAsync("textBox", "TestWindow", null, 30))
-                                 .Returns(Task.FromResult<object>(serverResponse));
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.IsElementReadOnly("textBox", "TestWindow");
@@ -476,7 +475,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockValueService.Setup(s => s.IsReadOnlyAsync("nonExistentElement", "TestWindow", null, 30))
-                                 .Returns(Task.FromResult<object>(serverResponse));
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.IsElementReadOnly("nonExistentElement", "TestWindow");
@@ -511,7 +510,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockValueService.Setup(s => s.IsReadOnlyAsync("unsupportedElement", "TestWindow", null, 30))
-                                 .Returns(Task.FromResult<object>(serverResponse));
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.IsElementReadOnly("unsupportedElement", "TestWindow");
@@ -545,7 +544,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockValueService.Setup(s => s.IsReadOnlyAsync("editableTextBox", "TestWindow", null, 60))
-                                 .Returns(Task.FromResult<object>(serverResponse));
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.IsElementReadOnly("editableTextBox", "TestWindow", timeoutSeconds: 60);
@@ -581,7 +580,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockToggleService.Setup(s => s.ToggleElementAsync("checkbox", "TestWindow", null, 30))
-                                 .Returns(Task.FromResult<object>(serverResponse));
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.ToggleElement("checkbox", "TestWindow");
@@ -613,7 +612,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockSelectionService.Setup(s => s.SelectItemAsync("listItem", "TestWindow", null, 30))
-                                 .Returns(Task.FromResult<object>(serverResponse));
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.SelectElement("listItem", "TestWindow");
@@ -649,7 +648,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockLayoutService.Setup(s => s.ScrollElementAsync("scrollableList", "down", 1.0, "TestWindow", null, 30))
-                                 .Returns(Task.FromResult<object>(serverResponse));
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.ScrollElement("scrollableList", "down", windowTitle: "TestWindow");
@@ -691,7 +690,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockRangeService.Setup(s => s.SetRangeValueAsync("slider", 50.0, "TestWindow", null, 30))
-                                 .Returns(Task.FromResult<object>(serverResponse));
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.SetRangeValue("slider", 50.0, "TestWindow");
@@ -729,7 +728,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockRangeService.Setup(s => s.GetRangeValueAsync("slider", "TestWindow", null, 30))
-                                 .Returns(Task.FromResult<object>(serverResponse));
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetRangeValue("slider", "TestWindow");
@@ -772,7 +771,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockTextService.Setup(s => s.GetTextAsync("textElement", "TestWindow", null, 30))
-                                 .Returns(Task.FromResult<object>(serverResponse));
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetText("textElement", "TestWindow");
@@ -809,7 +808,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockTextService.Setup(s => s.SelectTextAsync("textElement", 5, 10, "TestWindow", null, 30))
-                                 .Returns(Task.FromResult<object>(serverResponse));
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.SelectText("textElement", 5, 10, "TestWindow");
@@ -841,7 +840,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockScreenshotService.Setup(s => s.TakeScreenshotAsync("TestWindow", null, 0, null, 60, It.IsAny<CancellationToken>()))
-                                .Returns(Task.FromResult<object>(serverResponse));
+                                .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.TakeScreenshot("TestWindow");
@@ -1001,7 +1000,7 @@ namespace UIAutomationMCP.Tests.Tools
             };
             
             _mockSelectionService.Setup(s => s.GetSelectionAsync("listContainer", "TestWindow", null, 30))
-                                 .Returns(Task.FromResult<object>(serverResponse));
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetSelection("listContainer", "TestWindow");
@@ -1032,7 +1031,7 @@ namespace UIAutomationMCP.Tests.Tools
             };
             
             _mockWindowService.Setup(s => s.WindowOperationAsync("minimize", "TestWindow", null, 30))
-                                 .Returns(Task.FromResult<object>(serverResponse));
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.WindowAction("minimize", "TestWindow");
@@ -1067,7 +1066,7 @@ namespace UIAutomationMCP.Tests.Tools
             };
             
             _mockWindowService.Setup(s => s.GetWindowInteractionStateAsync("TestWindow", null, 30))
-                                 .Returns(Task.FromResult<object>(serverResponse));
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetWindowInteractionState("TestWindow");
@@ -1107,7 +1106,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockWindowService.Setup(s => s.GetWindowCapabilitiesAsync("TestWindow", null, 30))
-                                 .Returns(Task.FromResult<object>(serverResponse));
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetWindowCapabilities("TestWindow");
@@ -1143,7 +1142,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockWindowService.Setup(s => s.WaitForInputIdleAsync(5000, "TestWindow", null, 30))
-                                 .Returns(Task.FromResult<object>(serverResponse));
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.WaitForWindowInputIdle(5000, "TestWindow");
@@ -1178,7 +1177,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockWindowService.Setup(s => s.WindowOperationAsync(action, windowTitle, processId, 30))
-                                 .Returns(Task.FromResult<object>(serverResponse));
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.WindowAction(action, windowTitle, processId);
@@ -1215,7 +1214,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockWindowService.Setup(s => s.WaitForInputIdleAsync(timeoutMs, It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<int>()))
-                                 .Returns(Task.FromResult<object>(serverResponse));
+                                 .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.WaitForWindowInputIdle(timeoutMs);
@@ -1258,7 +1257,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockGridService.Setup(s => s.GetGridInfoAsync("grid1", "TestWindow", null, 30))
-                           .Returns(Task.FromResult<object>(serverResponse));
+                           .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetGridInfo("grid1", "TestWindow");
@@ -1299,7 +1298,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("grid1", 1, 2, "TestWindow", null, 30))
-                           .Returns(Task.FromResult<object>(serverResponse));
+                           .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetGridItem("grid1", 1, 2, "TestWindow");
@@ -1339,7 +1338,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockTableService.Setup(s => s.GetTableInfoAsync("table1", "TestWindow", null, 30))
-                            .Returns(Task.FromResult<object>(serverResponse));
+                            .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetTableInfo("table1", "TestWindow");
@@ -1378,7 +1377,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockMultipleViewService.Setup(s => s.GetAvailableViewsAsync("viewContainer1", "TestWindow", null, 30))
-                                  .Returns(Task.FromResult<object>(serverResponse));
+                                  .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetAvailableViews("viewContainer1", "TestWindow");
@@ -1416,7 +1415,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockMultipleViewService.Setup(s => s.GetAvailableViewsAsync("viewContainer1", null, 1234, 30))
-                                  .Returns(Task.FromResult<object>(serverResponse));
+                                  .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetAvailableViews("viewContainer1", null, 1234);
@@ -1453,7 +1452,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockMultipleViewService.Setup(s => s.GetAvailableViewsAsync("viewContainer1", "TestWindow", null, 60))
-                                  .Returns(Task.FromResult<object>(serverResponse));
+                                  .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetAvailableViews("viewContainer1", "TestWindow", null, 60);
@@ -1487,7 +1486,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockMultipleViewService.Setup(s => s.GetAvailableViewsAsync("", "TestWindow", null, 30))
-                                  .Returns(Task.FromResult<object>(serverResponse));
+                                  .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetAvailableViews("", "TestWindow");
@@ -1539,7 +1538,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockMultipleViewService.Setup(s => s.GetCurrentViewAsync("viewContainer1", "TestWindow", null, 30))
-                                  .Returns(Task.FromResult<object>(serverResponse));
+                                  .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetCurrentView("viewContainer1", "TestWindow");
@@ -1573,7 +1572,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockMultipleViewService.Setup(s => s.GetCurrentViewAsync("viewContainer1", null, 1234, 30))
-                                  .Returns(Task.FromResult<object>(serverResponse));
+                                  .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetCurrentView("viewContainer1", null, 1234);
@@ -1608,7 +1607,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockMultipleViewService.Setup(s => s.GetCurrentViewAsync("viewContainer1", "TestWindow", null, 60))
-                                  .Returns(Task.FromResult<object>(serverResponse));
+                                  .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetCurrentView("viewContainer1", "TestWindow", null, 60);
@@ -1662,7 +1661,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockMultipleViewService.Setup(s => s.SetViewAsync("viewContainer1", 2, "TestWindow", null, 30))
-                                  .Returns(Task.FromResult<object>(serverResponse));
+                                  .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.SetView("viewContainer1", 2, "TestWindow");
@@ -1698,7 +1697,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockMultipleViewService.Setup(s => s.SetViewAsync("viewContainer1", 1, null, 1234, 30))
-                                  .Returns(Task.FromResult<object>(serverResponse));
+                                  .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.SetView("viewContainer1", 1, null, 1234);
@@ -1803,7 +1802,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockAccessibilityService.Setup(s => s.GetAccessibilityInfoAsync("button1", "TestWindow", null, 30))
-                                   .Returns(Task.FromResult<object>(serverResponse));
+                                   .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetAccessibilityInfo("button1", "TestWindow");
@@ -1833,7 +1832,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockCustomPropertyService.Setup(s => s.GetCustomPropertiesAsync("element1", new[] { "CustomProp1", "CustomProp2" }, "TestWindow", null, 30))
-                                     .Returns(Task.FromResult<object>(serverResponse));
+                                     .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetCustomProperties("element1", "CustomProp1,CustomProp2", "TestWindow");
@@ -1869,7 +1868,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockValueService.Setup(s => s.SetValueAsync("", "testValue", null, null, 30))
-                            .Returns(Task.FromResult<object>(serverResponse));
+                            .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.SetElementValue("", "testValue");
@@ -1906,7 +1905,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockRangeService.Setup(s => s.SetRangeValueAsync("slider1", 0.0, null, null, 30))
-                           .Returns(Task.FromResult<object>(serverResponse));
+                           .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.SetRangeValue("slider1", 0.0);
@@ -1937,7 +1936,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockLayoutService.Setup(s => s.ScrollElementAsync("scrollable1", "down", 2.5, null, null, 30))
-                             .Returns(Task.FromResult<object>(serverResponse));
+                             .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.ScrollElement("scrollable1", "down", 2.5);
@@ -1976,7 +1975,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockLayoutService.Setup(s => s.GetScrollInfoAsync("scrollableElement", "TestWindow", 1234, 30))
-                             .Returns(Task.FromResult<object>(serverResponse));
+                             .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetScrollInfo("scrollableElement", "TestWindow", 1234, 30);
@@ -2013,7 +2012,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockLayoutService.Setup(s => s.SetScrollPercentAsync("scrollContainer", 75.0, 25.0, "TestWindow", 1234, 30))
-                             .Returns(Task.FromResult<object>(serverResponse));
+                             .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.SetScrollPercent("scrollContainer", 75.0, 25.0, "TestWindow", 1234, 30);
@@ -2046,7 +2045,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockLayoutService.Setup(s => s.SetScrollPercentAsync("scrollElement", -1.0, 50.0, null, null, 30))
-                             .Returns(Task.FromResult<object>(serverResponse));
+                             .Returns(Task.FromResult(serverResponse));
 
             // Act - 水平方向にNoScroll(-1)、垂直方向に50%を指定
             var result = await _tools.SetScrollPercent("scrollElement", -1.0, 50.0);
@@ -2083,7 +2082,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockLayoutService.Setup(s => s.SetScrollPercentAsync("testElement", horizontal, vertical, null, null, 30))
-                             .Returns(Task.FromResult<object>(serverResponse));
+                             .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.SetScrollPercent("testElement", horizontal, vertical);
@@ -2106,10 +2105,16 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task ScrollElementIntoView_Should_Call_LayoutService_With_Correct_Parameters()
         {
             // Arrange - Microsoft ScrollItemPattern.ScrollIntoView()仕様をテスト
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
-                Data = "Element scrolled into view successfully"
+                Data = new ActionResult
+                {
+                    Success = true,
+                    OperationName = "Element scrolled into view successfully"
+                },
+                ExecutionInfo = new ServerExecutionInfo(),
+                RequestMetadata = new RequestMetadata()
             };
             
             _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync("scrollableItem", "TestWindow", 1234, 30))
@@ -2148,7 +2153,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync("listItem", null, null, 30))
-                             .Returns(Task.FromResult<object>(serverResponse));
+                             .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.ScrollElementIntoView("listItem");
@@ -2227,7 +2232,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync("slowElement", "TestWindow", null, 60))
-                             .Returns(Task.FromResult<object>(serverResponse));
+                             .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.ScrollElementIntoView("slowElement", "TestWindow", null, 60);
@@ -2249,10 +2254,16 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task ScrollElementIntoView_Should_Work_With_Expected_Control_Types(string elementId)
         {
             // Arrange - ListItem、TreeItem、DataItemでScrollItemPatternがサポートされることをテスト
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
-                Data = $"Element {elementId} scrolled into view successfully"
+                Data = new ActionResult
+                {
+                    Success = true,
+                    OperationName = $"Element {elementId} scrolled into view successfully"
+                },
+                ExecutionInfo = new ServerExecutionInfo(),
+                RequestMetadata = new RequestMetadata()
             };
             
             _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync(elementId, "TestApplication", null, 30))
@@ -2349,7 +2360,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockTableService.Setup(s => s.GetColumnHeaderItemsAsync("tableCell1", "TestWindow", null, 30))
-                           .Returns(Task.FromResult<object>(serverResponse));
+                           .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetColumnHeaderItems("tableCell1", "TestWindow");
@@ -2386,7 +2397,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockTableService.Setup(s => s.GetColumnHeaderItemsAsync("cell2_3", null, 1234, 60))
-                           .Returns(Task.FromResult<object>(serverResponse));
+                           .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetColumnHeaderItems("cell2_3", null, 1234, 60);
@@ -2427,10 +2438,16 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task GetColumnHeaderItems_Should_Handle_No_Column_Headers_Found()
         {
             // Arrange
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = false,
-                Error = "No column header items found"
+                Data = new ElementSearchResult
+                {
+                    Success = false,
+                    ErrorMessage = "No column header items found"
+                },
+                ExecutionInfo = new ServerExecutionInfo(),
+                RequestMetadata = new RequestMetadata()
             };
             
             _mockTableService.Setup(s => s.GetColumnHeaderItemsAsync("emptyTableCell", "TestWindow", null, 30))
@@ -2487,7 +2504,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockTableService.Setup(s => s.GetRowHeaderItemsAsync("tableCell2", "TestWindow", null, 30))
-                           .Returns(Task.FromResult<object>(serverResponse));
+                           .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetRowHeaderItems("tableCell2", "TestWindow");
@@ -2506,13 +2523,19 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task GetRowHeaderItems_Should_Use_Default_Parameters()
         {
             // Arrange
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
-                Data = new List<Dictionary<string, object>>
+                Data = new ElementSearchResult
                 {
-                    new Dictionary<string, object> { ["Name"] = "Row Header 1" }
-                }
+                    Success = true,
+                    Elements = new List<ElementInfo>
+                    {
+                        new ElementInfo { Name = "Row Header 1" }
+                    }
+                },
+                ExecutionInfo = new ServerExecutionInfo(),
+                RequestMetadata = new RequestMetadata()
             };
             
             _mockTableService.Setup(s => s.GetRowHeaderItemsAsync("defaultCell", null, null, 30))
@@ -2573,7 +2596,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockTableService.Setup(s => s.GetRowHeaderItemsAsync("emptyRowTableCell", "TestWindow", null, 30))
-                           .Returns(Task.FromResult<object>(serverResponse));
+                           .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetRowHeaderItems("emptyRowTableCell", "TestWindow");
@@ -2615,7 +2638,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             _mockTableService.Setup(s => s.GetRowHeaderItemsAsync("specialCell", null, 5678, 45))
-                           .Returns(Task.FromResult<object>(serverResponse));
+                           .Returns(Task.FromResult(serverResponse));
 
             // Act
             var result = await _tools.GetRowHeaderItems("specialCell", null, 5678, 45);
@@ -2675,9 +2698,9 @@ namespace UIAutomationMCP.Tests.Tools
             };
             
             _mockTableService.Setup(s => s.GetColumnHeaderItemsAsync(cellId, "TestApplication", null, 30))
-                           .Returns(Task.FromResult<object>(columnServerResponse));
+                           .Returns(Task.FromResult(columnServerResponse));
             _mockTableService.Setup(s => s.GetRowHeaderItemsAsync(cellId, "TestApplication", null, 30))
-                           .Returns(Task.FromResult<object>(rowServerResponse));
+                           .Returns(Task.FromResult(rowServerResponse));
 
             // Act
             var columnResult = await _tools.GetColumnHeaderItems(cellId, "TestApplication");
@@ -2717,9 +2740,9 @@ namespace UIAutomationMCP.Tests.Tools
             };
             
             _mockTableService.Setup(s => s.GetColumnHeaderItemsAsync(elementId, windowTitle, null, 30))
-                           .Returns(Task.FromResult<object>(serverResponse));
+                           .Returns(Task.FromResult(serverResponse));
             _mockTableService.Setup(s => s.GetRowHeaderItemsAsync(elementId, windowTitle, null, 30))
-                           .Returns(Task.FromResult<object>(serverResponse));
+                           .Returns(Task.FromResult(serverResponse));
 
             // Act
             var columnResult = await _tools.GetColumnHeaderItems(elementId, windowTitle);
