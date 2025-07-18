@@ -16,7 +16,7 @@ namespace UIAutomationMCP.Server.Services
             _executor = executor;
         }
 
-        public async Task<object> GetControlTypeInfoAsync(
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetControlTypeInfoAsync(
             string elementId, 
             bool validatePatterns = true, 
             bool includeDefaultProperties = true, 
@@ -64,7 +64,7 @@ namespace UIAutomationMCP.Server.Services
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -109,7 +109,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Control type info retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -146,11 +146,11 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get control type info for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> ValidateControlTypePatternsAsync(
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> ValidateControlTypePatternsAsync(
             string elementId, 
             string? windowTitle = null, 
             int? processId = null, 
@@ -194,7 +194,7 @@ namespace UIAutomationMCP.Server.Services
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -235,7 +235,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Control type patterns validated successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -270,11 +270,11 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to validate control type patterns for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> FindElementsByControlTypeAsync(
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> FindElementsByControlTypeAsync(
             string controlType, 
             bool validatePatterns = true, 
             string scope = "descendants", 
@@ -324,7 +324,7 @@ namespace UIAutomationMCP.Server.Services
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -371,7 +371,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Elements found successfully for control type: {controlType}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -409,7 +409,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to find elements by control type: {controlType}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
     }

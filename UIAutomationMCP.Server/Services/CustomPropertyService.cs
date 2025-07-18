@@ -16,7 +16,7 @@ namespace UIAutomationMCP.Server.Services
             _executor = executor;
         }
 
-        public async Task<object> GetCustomPropertiesAsync(string elementId, string[] propertyIds, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetCustomPropertiesAsync(string elementId, string[] propertyIds, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -57,7 +57,7 @@ namespace UIAutomationMCP.Server.Services
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -100,7 +100,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Custom properties retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -136,11 +136,11 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get custom properties for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> SetCustomPropertyAsync(string elementId, string propertyId, object value, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> SetCustomPropertyAsync(string elementId, string propertyId, object value, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -183,7 +183,7 @@ namespace UIAutomationMCP.Server.Services
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             if (string.IsNullOrWhiteSpace(propertyId))
@@ -223,7 +223,7 @@ namespace UIAutomationMCP.Server.Services
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -268,7 +268,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Custom property set successfully for element: {elementId}, Property: {propertyId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -305,7 +305,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to set custom property {propertyId} for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
     }

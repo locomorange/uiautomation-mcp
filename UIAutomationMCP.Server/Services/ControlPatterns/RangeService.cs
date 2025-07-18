@@ -16,7 +16,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             _executor = executor;
         }
 
-        public async Task<object> SetRangeValueAsync(string elementId, double value, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> SetRangeValueAsync(string elementId, double value, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -58,9 +58,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
-                return validationJson;
+                return validationResponse;
             }
 
             try
@@ -110,13 +109,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
 
-                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(serverResponse);
-                
-                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
                 
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return jsonString;
+                return serverResponse;
             }
             catch (Exception ex)
             {
@@ -156,15 +153,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
-                
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return errorJson;
+                return errorResponse;
             }
         }
 
-        public async Task<object> GetRangeValueAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<RangeValueResult>> GetRangeValueAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -205,9 +200,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
-                return validationJson;
+                return validationResponse;
             }
 
             try
@@ -255,13 +249,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
 
-                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(serverResponse);
-                
-                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
                 
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return jsonString;
+                return serverResponse;
             }
             catch (Exception ex)
             {
@@ -299,15 +291,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
-                
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return errorJson;
+                return errorResponse;
             }
         }
 
-        public async Task<object> GetRangePropertiesAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<RangeValueResult>> GetRangePropertiesAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -348,9 +338,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
-                return validationJson;
+                return validationResponse;
             }
 
             try
@@ -400,13 +389,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
 
-                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(serverResponse);
-                
-                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
                 
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return jsonString;
+                return serverResponse;
             }
             catch (Exception ex)
             {
@@ -444,11 +431,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
-                
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return errorJson;
+                return errorResponse;
             }
         }
     }

@@ -16,7 +16,7 @@ namespace UIAutomationMCP.Server.Services
             _executor = executor;
         }
 
-        public async Task<object> GetAccessibilityInfoAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetAccessibilityInfoAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -56,7 +56,7 @@ namespace UIAutomationMCP.Server.Services
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -97,7 +97,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Accessibility info retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -132,11 +132,11 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get accessibility info for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> VerifyAccessibilityAsync(string? elementId = null, string? windowTitle = null, int? processId = null, int timeoutSeconds = 60)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> VerifyAccessibilityAsync(string? elementId = null, string? windowTitle = null, int? processId = null, int timeoutSeconds = 60)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -179,7 +179,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Accessibility verification completed for element: {elementId ?? "window"}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -214,11 +214,11 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to verify accessibility for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> GetLabeledByAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetLabeledByAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -258,7 +258,7 @@ namespace UIAutomationMCP.Server.Services
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -299,7 +299,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Labeled by info retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -334,11 +334,11 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get labeled by info for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> GetDescribedByAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetDescribedByAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -378,7 +378,7 @@ namespace UIAutomationMCP.Server.Services
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -419,7 +419,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Described by info retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -454,7 +454,7 @@ namespace UIAutomationMCP.Server.Services
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get described by info for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
     }

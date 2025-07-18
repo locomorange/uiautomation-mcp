@@ -17,7 +17,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             _executor = executor;
         }
 
-        public async Task<object> FindItemByPropertyAsync(string containerId, string? propertyName = null, string? value = null, string? startAfterId = null, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> FindItemByPropertyAsync(string containerId, string? propertyName = null, string? value = null, string? startAfterId = null, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -60,7 +60,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -107,7 +107,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Item search completed in container: {containerId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -145,7 +145,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to find item in container: {containerId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
     }

@@ -17,7 +17,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             _executor = executor;
         }
 
-        public async Task<object> SelectItemAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> SelectItemAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -58,9 +58,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
-                return validationJson;
+                return validationResponse;
             }
 
             try
@@ -107,13 +106,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
 
-                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(serverResponse);
-                
-                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
                 
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return jsonString;
+                return serverResponse;
             }
             catch (Exception ex)
             {
@@ -151,15 +148,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
-                
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return errorJson;
+                return errorResponse;
             }
         }
 
-        public async Task<object> GetSelectionAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<SelectionInfoResult>> GetSelectionAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -200,9 +195,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
-                return validationJson;
+                return validationResponse;
             }
 
             try
@@ -251,13 +245,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
 
-                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(serverResponse);
-                
-                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
                 
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return jsonString;
+                return serverResponse;
             }
             catch (Exception ex)
             {
@@ -295,15 +287,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
-                
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return errorJson;
+                return errorResponse;
             }
         }
 
-        public async Task<object> AddToSelectionAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> AddToSelectionAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -344,9 +334,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
-                return validationJson;
+                return validationResponse;
             }
 
             try
@@ -393,13 +382,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
 
-                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(serverResponse);
-                
-                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
                 
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return jsonString;
+                return serverResponse;
             }
             catch (Exception ex)
             {
@@ -437,15 +424,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
-                
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return errorJson;
+                return errorResponse;
             }
         }
 
-        public async Task<object> RemoveFromSelectionAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> RemoveFromSelectionAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -486,9 +471,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
-                return validationJson;
+                return validationResponse;
             }
 
             try
@@ -535,13 +519,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
 
-                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(serverResponse);
-                
-                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
                 
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return jsonString;
+                return serverResponse;
             }
             catch (Exception ex)
             {
@@ -579,15 +561,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
-                
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return errorJson;
+                return errorResponse;
             }
         }
 
-        public async Task<object> ClearSelectionAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> ClearSelectionAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -628,9 +608,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
-                return validationJson;
+                return validationResponse;
             }
 
             try
@@ -677,13 +656,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
 
-                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(serverResponse);
-                
-                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
                 
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return jsonString;
+                return serverResponse;
             }
             catch (Exception ex)
             {
@@ -721,15 +698,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
-                
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return errorJson;
+                return errorResponse;
             }
         }
 
-        public async Task<object> CanSelectMultipleAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<BooleanResult>> CanSelectMultipleAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -770,9 +745,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
-                return validationJson;
+                return validationResponse;
             }
 
             try
@@ -820,13 +794,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
 
-                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(serverResponse);
-                
-                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
                 
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return jsonString;
+                return serverResponse;
             }
             catch (Exception ex)
             {
@@ -864,15 +836,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
-                
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return errorJson;
+                return errorResponse;
             }
         }
 
-        public async Task<object> IsSelectionRequiredAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<BooleanResult>> IsSelectionRequiredAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -913,9 +883,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
-                return validationJson;
+                return validationResponse;
             }
 
             try
@@ -963,13 +932,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
 
-                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(serverResponse);
-                
-                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
                 
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return jsonString;
+                return serverResponse;
             }
             catch (Exception ex)
             {
@@ -1007,15 +974,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
-                
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return errorJson;
+                return errorResponse;
             }
         }
 
-        public async Task<object> IsSelectedAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<BooleanResult>> IsSelectedAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -1056,9 +1021,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
-                return validationJson;
+                return validationResponse;
             }
 
             try
@@ -1106,13 +1070,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
 
-                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(serverResponse);
-                
-                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
                 
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return jsonString;
+                return serverResponse;
             }
             catch (Exception ex)
             {
@@ -1150,15 +1112,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
-                
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return errorJson;
+                return errorResponse;
             }
         }
 
-        public async Task<object> GetSelectionContainerAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<SelectionInfoResult>> GetSelectionContainerAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -1199,9 +1159,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var validationJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
-                return validationJson;
+                return validationResponse;
             }
 
             try
@@ -1250,13 +1209,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
 
-                var jsonString = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(serverResponse);
-                
-                _logger.LogInformationWithOperation(operationId, $"Successfully serialized enhanced response (length: {jsonString.Length})");
+                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
                 
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return jsonString;
+                return serverResponse;
             }
             catch (Exception ex)
             {
@@ -1294,11 +1251,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                var errorJson = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
-                
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
-                return errorJson;
+                return errorResponse;
             }
         }
     }

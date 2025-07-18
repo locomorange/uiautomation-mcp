@@ -16,7 +16,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             _executor = executor;
         }
 
-        public async Task<object> GetAvailableViewsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetAvailableViewsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -56,7 +56,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -97,7 +97,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Available views retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -132,11 +132,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get available views for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> SetViewAsync(string elementId, int viewId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> SetViewAsync(string elementId, int viewId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -178,7 +178,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -221,7 +221,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"View set successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -257,11 +257,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to set view {viewId} for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> GetCurrentViewAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetCurrentViewAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -301,7 +301,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -342,7 +342,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Current view retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -377,11 +377,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get current view for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> GetViewNameAsync(string elementId, int viewId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetViewNameAsync(string elementId, int viewId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -423,7 +423,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -466,7 +466,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"View name retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -502,7 +502,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get view name for view {viewId} in element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
     }

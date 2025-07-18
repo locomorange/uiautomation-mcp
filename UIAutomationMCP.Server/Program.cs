@@ -47,6 +47,7 @@ namespace UIAutomationMCP.Server
             builder.Services.AddSingleton<IVirtualizedItemService, VirtualizedItemService>();
             builder.Services.AddSingleton<IItemContainerService, ItemContainerService>();
             builder.Services.AddSingleton<ISynchronizedInputService, SynchronizedInputService>();
+            builder.Services.AddSingleton<IEventMonitorService, EventMonitorService>();
             
             
             // Register ControlType service

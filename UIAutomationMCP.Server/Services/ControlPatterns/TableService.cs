@@ -17,7 +17,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             _executor = executor;
         }
 
-        public async Task<object> GetTableInfoAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<TableInfoResult>> GetTableInfoAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -57,7 +57,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -98,7 +98,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Table information retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -133,11 +133,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get table information for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> GetRowHeadersAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetRowHeadersAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -177,7 +177,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -218,7 +218,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Row headers retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -253,11 +253,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get row headers for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> GetColumnHeadersAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetColumnHeadersAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -297,7 +297,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -338,7 +338,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Column headers retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -373,11 +373,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get column headers for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> GetRowOrColumnMajorAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<PropertyResult>> GetRowOrColumnMajorAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -388,7 +388,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 var validationError = "Element ID is required and cannot be empty";
                 _logger.LogWarningWithOperation(operationId, $"GetRowOrColumnMajor validation failed: {validationError}");
                 
-                var validationResponse = new ServerEnhancedResponse<BaseOperationResult>
+                var validationResponse = new ServerEnhancedResponse<PropertyResult>
                 {
                     Success = false,
                     ErrorMessage = validationError,
@@ -417,7 +417,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -433,7 +433,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
                 var result = await _executor.ExecuteAsync<PropertyResult>("GetRowOrColumnMajor", parameters, timeoutSeconds);
 
-                var successResponse = new ServerEnhancedResponse<BaseOperationResult>
+                var successResponse = new ServerEnhancedResponse<PropertyResult>
                 {
                     Success = true,
                     Data = result,
@@ -458,11 +458,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"RowOrColumnMajor property retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
-                var errorResponse = new ServerEnhancedResponse<BaseOperationResult>
+                var errorResponse = new ServerEnhancedResponse<PropertyResult>
                 {
                     Success = false,
                     ErrorMessage = ex.Message,
@@ -493,11 +493,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get RowOrColumnMajor property for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> GetColumnHeaderItemsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetColumnHeaderItemsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -537,7 +537,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -578,7 +578,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Column header items retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -613,11 +613,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get column header items for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> GetRowHeaderItemsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetRowHeaderItemsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -657,7 +657,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -698,7 +698,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Row header items retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -733,7 +733,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get row header items for element {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
     }

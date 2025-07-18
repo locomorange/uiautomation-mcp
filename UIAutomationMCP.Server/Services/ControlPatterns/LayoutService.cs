@@ -16,7 +16,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             _executor = executor;
         }
 
-        public async Task<object> ExpandCollapseElementAsync(string elementId, string action, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> ExpandCollapseElementAsync(string elementId, string action, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -57,7 +57,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             if (string.IsNullOrWhiteSpace(action) || !new[] { "expand", "collapse" }.Contains(action.ToLowerInvariant()))
@@ -96,7 +96,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -139,7 +139,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Expand/collapse action performed successfully: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -175,11 +175,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to perform expand/collapse action on element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> ScrollElementAsync(string elementId, string direction, double amount = 1.0, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> ScrollElementAsync(string elementId, string direction, double amount = 1.0, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -221,7 +221,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             if (string.IsNullOrWhiteSpace(direction) || !new[] { "up", "down", "left", "right" }.Contains(direction.ToLowerInvariant()))
@@ -261,7 +261,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -306,7 +306,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Element scrolled successfully: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -343,11 +343,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to scroll element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> ScrollElementIntoViewAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> ScrollElementIntoViewAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -387,7 +387,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -428,7 +428,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Element scrolled into view successfully: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -463,11 +463,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to scroll element into view: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> GetScrollInfoAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ScrollInfoResult>> GetScrollInfoAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -507,7 +507,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -548,7 +548,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Scroll information retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -583,11 +583,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get scroll information for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> SetScrollPercentAsync(string elementId, double horizontalPercent, double verticalPercent, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> SetScrollPercentAsync(string elementId, double horizontalPercent, double verticalPercent, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -629,7 +629,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             if (horizontalPercent < 0 || horizontalPercent > 100 || verticalPercent < 0 || verticalPercent > 100)
@@ -670,7 +670,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -715,7 +715,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Scroll percentage set successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -752,11 +752,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to set scroll percentage for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> DockElementAsync(string elementId, string dockPosition, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> DockElementAsync(string elementId, string dockPosition, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -797,7 +797,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             if (string.IsNullOrWhiteSpace(dockPosition) || !new[] { "top", "bottom", "left", "right", "fill", "none" }.Contains(dockPosition.ToLowerInvariant()))
@@ -836,7 +836,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -879,7 +879,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Element docked successfully: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -915,7 +915,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to dock element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
     }

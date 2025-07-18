@@ -16,7 +16,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             _executor = executor;
         }
 
-        public async Task<object> GetTransformCapabilitiesAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<TransformCapabilitiesResult>> GetTransformCapabilitiesAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -56,7 +56,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -97,7 +97,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Transform capabilities retrieved successfully for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -132,11 +132,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to get transform capabilities for element: {elementId}");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> MoveElementAsync(string elementId, double x, double y, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> MoveElementAsync(string elementId, double x, double y, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -178,7 +178,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -223,7 +223,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Element moved successfully: {elementId} to ({x}, {y})");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -260,11 +260,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to move element: {elementId} to ({x}, {y})");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> ResizeElementAsync(string elementId, double width, double height, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> ResizeElementAsync(string elementId, double width, double height, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -306,7 +306,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             if (width <= 0 || height <= 0)
@@ -347,7 +347,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -392,7 +392,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Element resized successfully: {elementId} to ({width}, {height})");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -429,11 +429,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to resize element: {elementId} to ({width}, {height})");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
 
-        public async Task<object> RotateElementAsync(string elementId, double degrees, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> RotateElementAsync(string elementId, double degrees, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -474,7 +474,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(validationResponse);
+                return validationResponse;
             }
             
             try
@@ -517,7 +517,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogInformationWithOperation(operationId, $"Element rotated successfully: {elementId} by {degrees} degrees");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(successResponse);
+                return successResponse;
             }
             catch (Exception ex)
             {
@@ -553,7 +553,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 };
                 
                 _logger.LogErrorWithOperation(operationId, ex, $"Failed to rotate element: {elementId} by {degrees} degrees");
-                return UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Serialize(errorResponse);
+                return errorResponse;
             }
         }
     }

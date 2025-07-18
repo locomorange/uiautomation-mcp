@@ -1,10 +1,11 @@
 using System.Threading.Tasks;
+using UIAutomationMCP.Shared.Results;
 
 namespace UIAutomationMCP.Server.Services
 {
     public interface IControlTypeService
     {
-        Task<object> GetControlTypeInfoAsync(
+        Task<ServerEnhancedResponse<ElementSearchResult>> GetControlTypeInfoAsync(
             string elementId, 
             bool validatePatterns = true, 
             bool includeDefaultProperties = true, 
@@ -12,13 +13,13 @@ namespace UIAutomationMCP.Server.Services
             int? processId = null, 
             int timeoutSeconds = 30);
 
-        Task<object> ValidateControlTypePatternsAsync(
+        Task<ServerEnhancedResponse<ElementSearchResult>> ValidateControlTypePatternsAsync(
             string elementId, 
             string? windowTitle = null, 
             int? processId = null, 
             int timeoutSeconds = 30);
 
-        Task<object> FindElementsByControlTypeAsync(
+        Task<ServerEnhancedResponse<ElementSearchResult>> FindElementsByControlTypeAsync(
             string controlType, 
             bool validatePatterns = true, 
             string scope = "descendants", 
