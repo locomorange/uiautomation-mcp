@@ -558,20 +558,21 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task ToggleElement_Success_TogglesElement()
         {
             // Arrange
-            var resultObject = new ToggleStateResult
+            var resultObject = new ActionResult
             {
                 Success = true,
                 ElementId = "checkbox",
-                // WindowTitle not available in ElementSearchResult,
-                ToggleState = "On",
-                IsToggled = true,
-                CanToggle = true,
+                Action = "Toggle",
+                ActionName = "Toggle",
+                TargetName = "checkbox",
+                TargetControlType = "CheckBox",
                 Pattern = "TogglePattern",
-                StateDescription = "Element toggled successfully",
-                IsChecked = true,
-                State = "On"
+                PatternMethod = "Toggle",
+                ReturnValue = "On",
+                Completed = true,
+                Details = "Element toggled successfully"
             };
-            var serverResponse = new ServerEnhancedResponse<ToggleStateResult>
+            var serverResponse = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
                 Data = resultObject,
@@ -1670,19 +1671,25 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task SetView_WithProcessId_CallsCorrectService()
         {
             // Arrange
-            var resultObject = new ViewResult
+            var resultObject = new ElementSearchResult
             {
                 Success = true,
-                ElementId = "viewContainer1",
-                ProcessId = 1234,
-                ViewId = 1,
-                ViewName = "List View",
-                CurrentView = 1,
-                CurrentViewName = "List View",
-                ViewChanged = true,
-                Pattern = "MultipleViewPattern"
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                {
+                    new UIAutomationMCP.Shared.ElementInfo
+                    {
+                        AutomationId = "viewContainer1",
+                        ProcessId = 1234,
+                        ControlType = "MultipleView",
+                        Name = "List View",
+                        IsEnabled = true,
+                        IsVisible = true,
+                        BoundingRectangle = new UIAutomationMCP.Shared.BoundingRectangle()
+                    }
+                },
+                SearchCriteria = "View set to List View"
             };
-            var serverResponse = new ServerEnhancedResponse<ViewResult>
+            var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
                 Data = resultObject,
@@ -1706,7 +1713,18 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task SetView_WithCustomTimeout_CallsCorrectService()
         {
             // Arrange
-            var expectedResult = "View set successfully";
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
+            {
+                Success = true,
+                Data = new ElementSearchResult
+                {
+                    Success = true,
+                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>(),
+                    SearchCriteria = "View set successfully"
+                },
+                ExecutionInfo = new ServerExecutionInfo(),
+                RequestMetadata = new RequestMetadata()
+            };
             _mockMultipleViewService.Setup(s => s.SetViewAsync("viewContainer1", 3, "TestWindow", null, 60))
                                   .Returns(Task.FromResult(expectedResult));
 
@@ -1740,7 +1758,18 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task SetView_WithZeroViewId_CallsService()
         {
             // Arrange
-            var expectedResult = "View set to default";
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
+            {
+                Success = true,
+                Data = new ElementSearchResult
+                {
+                    Success = true,
+                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>(),
+                    SearchCriteria = "View set to default"
+                },
+                ExecutionInfo = new ServerExecutionInfo(),
+                RequestMetadata = new RequestMetadata()
+            };
             _mockMultipleViewService.Setup(s => s.SetViewAsync("viewContainer1", 0, "TestWindow", null, 30))
                                   .Returns(Task.FromResult(expectedResult));
 
@@ -1780,16 +1809,14 @@ namespace UIAutomationMCP.Tests.Tools
                 {
                     new UIAutomationMCP.Shared.ElementInfo
                     {
-                        ElementId = "button1",
                         Name = "Submit",
                         AutomationId = "button1",
                         ControlType = "Button",
                         IsEnabled = true,
                         IsVisible = true,
-                        BoundingRectangle = new System.Windows.Rect(100, 200, 80, 30)
+                        BoundingRectangle = new UIAutomationMCP.Shared.BoundingRectangle { X = 100, Y = 200, Width = 80, Height = 30 }
                     }
                 },
-                Count = 1,
                 SearchCriteria = "Accessibility info for button1"
             };
             var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
@@ -1822,16 +1849,14 @@ namespace UIAutomationMCP.Tests.Tools
                 {
                     new UIAutomationMCP.Shared.ElementInfo
                     {
-                        ElementId = "element1",
                         Name = "Element1",
                         ControlType = "Custom",
                         AutomationId = "element1",
                         IsEnabled = true,
                         IsVisible = true,
-                        BoundingRectangle = new System.Windows.Rect(0, 0, 100, 50)
+                        BoundingRectangle = new UIAutomationMCP.Shared.BoundingRectangle { X = 0, Y = 0, Width = 100, Height = 50 }
                     }
                 },
-                Count = 1,
                 SearchCriteria = "Custom properties for element1"
             };
             var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
@@ -1996,20 +2021,13 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task SetScrollPercent_Should_Call_LayoutService_With_Valid_Percentages()
         {
             // Arrange - Microsoft ScrollPattern仕様のSetScrollPercentメソッドをテスト
-            var resultObject = new ScrollInfoResult
+            var resultObject = new ActionResult
             {
                 Success = true,
-                ElementId = "scrollContainer",
-                // WindowTitle not available in ElementSearchResult,
-                // ProcessId not available in ElementSearchResult,
-                HorizontalScrollPercent = 75.0,
-                VerticalScrollPercent = 25.0,
-                HorizontalViewSize = 100.0,
-                VerticalViewSize = 100.0,
-                HorizontallyScrollable = true,
-                VerticallyScrollable = true
+                ActionName = "SetScrollPercent",
+                ElementId = "scrollContainer"
             };
-            var serverResponse = new ServerEnhancedResponse<ScrollInfoResult>
+            var serverResponse = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
                 Data = resultObject,
@@ -2033,16 +2051,13 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task SetScrollPercent_Should_Handle_NoScroll_Values()
         {
             // Arrange - Microsoft仕様の-1値（NoScroll）をテスト
-            var resultObject = new ScrollInfoResult
+            var resultObject = new ActionResult
             {
                 Success = true,
-                ElementId = "scrollElement",
-                HorizontalScrollPercent = -1.0,
-                VerticalScrollPercent = 50.0,
-                HorizontallyScrollable = false,
-                VerticallyScrollable = true
+                ActionName = "SetScrollPercent",
+                ElementId = "scrollElement"
             };
-            var serverResponse = new ServerEnhancedResponse<ScrollInfoResult>
+            var serverResponse = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
                 Data = resultObject,
@@ -2070,16 +2085,13 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task SetScrollPercent_Should_Accept_Valid_Range_Values(double horizontal, double vertical)
         {
             // Arrange - Microsoft仕様の有効範囲（0-100、-1）をテスト
-            var resultObject = new ScrollInfoResult
+            var resultObject = new ActionResult
             {
                 Success = true,
-                ElementId = "testElement",
-                HorizontalScrollPercent = horizontal,
-                VerticalScrollPercent = vertical,
-                HorizontallyScrollable = horizontal != -1.0,
-                VerticallyScrollable = vertical != -1.0
+                ActionName = "SetScrollPercent",
+                ElementId = "testElement"
             };
-            var serverResponse = new ServerEnhancedResponse<ScrollInfoResult>
+            var serverResponse = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
                 Data = resultObject,

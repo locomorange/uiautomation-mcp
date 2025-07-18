@@ -90,11 +90,13 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetTransformCapabilities_ShouldReturnAllRequiredProperties()
         {
             // Arrange - Microsoft仕様の必須プロパティ
-            var expectedResult = new ServerEnhancedResponse<object>
+            var expectedResult = new ServerEnhancedResponse<TransformCapabilitiesResult>
             {
                 Success = true,
-                Data = new
+                Data = new TransformCapabilitiesResult
                 {
+                    Success = true,
+                    ElementId = "window1",
                     CanMove = true,
                     CanResize = true,
                     CanRotate = false
@@ -121,11 +123,13 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetTransformCapabilities_ShouldReturnCorrectCapabilities(bool canMove, bool canResize, bool canRotate)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object>
+            var expectedResult = new ServerEnhancedResponse<TransformCapabilitiesResult>
             {
                 Success = true,
-                Data = new
+                Data = new TransformCapabilitiesResult
                 {
+                    Success = true,
+                    ElementId = "element1",
                     CanMove = canMove,
                     CanResize = canResize,
                     CanRotate = canRotate
@@ -155,10 +159,16 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task MoveElement_WithValidCoordinates_ShouldSucceed(double x, double y)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object>
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
-                Data = new { ElementId = "movableWindow", X = x, Y = y, Operation = "Move" }
+                Data = new ActionResult
+                {
+                    Success = true,
+                    ElementId = "movableWindow",
+                    Action = "Move",
+                    ActionParameters = new Dictionary<string, object> { { "X", x }, { "Y", y } }
+                }
             };
             _mockTransformService.Setup(s => s.MoveElementAsync("movableWindow", x, y, "MainApp", null, 30))
                                .Returns(Task.FromResult(expectedResult));
@@ -177,10 +187,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange - Microsoft仕様：CanMove=falseの場合にInvalidOperationExceptionをスロー
             _mockTransformService.Setup(s => s.MoveElementAsync("fixedElement", 100.0, 200.0, "App", null, 30))
-                               .Returns(Task.FromResult(new ServerEnhancedResponse<object>
+                               .Returns(Task.FromResult(new ServerEnhancedResponse<ActionResult>
                                {
                                    Success = false,
-                                   Error = "Element cannot be moved (CanMove = false)"
+                                   ErrorMessage = "Element cannot be moved (CanMove = false)"
                                }));
 
             // Act
@@ -204,10 +214,16 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ResizeElement_WithValidDimensions_ShouldSucceed(double width, double height)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object>
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
-                Data = new { ElementId = "resizableWindow", Width = width, Height = height, Operation = "Resize" }
+                Data = new ActionResult
+                {
+                    Success = true,
+                    ElementId = "resizableWindow",
+                    Action = "Resize",
+                    ActionParameters = new Dictionary<string, object> { { "Width", width }, { "Height", height } }
+                }
             };
             _mockTransformService.Setup(s => s.ResizeElementAsync("resizableWindow", width, height, "Designer", null, 30))
                                .Returns(Task.FromResult(expectedResult));
@@ -230,10 +246,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             _mockTransformService.Setup(s => s.ResizeElementAsync("window1", width, height, "App", null, 30))
-                               .Returns(Task.FromResult(new ServerEnhancedResponse<object>
+                               .Returns(Task.FromResult(new ServerEnhancedResponse<ActionResult>
                                {
                                    Success = false,
-                                   Error = "Width and height must be greater than 0"
+                                   ErrorMessage = "Width and height must be greater than 0"
                                }));
 
             // Act
@@ -250,10 +266,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange - Microsoft仕様：CanResize=falseの場合にInvalidOperationExceptionをスロー
             _mockTransformService.Setup(s => s.ResizeElementAsync("fixedSizeDialog", 800.0, 600.0, "App", null, 30))
-                               .Returns(Task.FromResult(new ServerEnhancedResponse<object>
+                               .Returns(Task.FromResult(new ServerEnhancedResponse<ActionResult>
                                {
                                    Success = false,
-                                   Error = "Element cannot be resized (CanResize = false)"
+                                   ErrorMessage = "Element cannot be resized (CanResize = false)"
                                }));
 
             // Act
@@ -279,10 +295,16 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task RotateElement_WithValidDegrees_ShouldSucceed(double degrees)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object>
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
-                Data = new { ElementId = "rotatableImage", Degrees = degrees, Operation = "Rotate" }
+                Data = new ActionResult
+                {
+                    Success = true,
+                    ElementId = "rotatableImage",
+                    Action = "Rotate",
+                    ActionParameters = new Dictionary<string, object> { { "Degrees", degrees } }
+                }
             };
             _mockTransformService.Setup(s => s.RotateElementAsync("rotatableImage", degrees, "GraphicsApp", null, 30))
                                .Returns(Task.FromResult(expectedResult));
@@ -301,10 +323,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange - Microsoft仕様：CanRotate=falseの場合にInvalidOperationExceptionをスロー
             _mockTransformService.Setup(s => s.RotateElementAsync("textBox", 45.0, "Editor", null, 30))
-                               .Returns(Task.FromResult(new ServerEnhancedResponse<object>
+                               .Returns(Task.FromResult(new ServerEnhancedResponse<ActionResult>
                                {
                                    Success = false,
-                                   Error = "Element cannot be rotated (CanRotate = false)"
+                                   ErrorMessage = "Element cannot be rotated (CanRotate = false)"
                                }));
 
             // Act
@@ -325,10 +347,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             _mockTransformService.Setup(s => s.GetTransformCapabilitiesAsync("nonExistentElement", "TestWindow", null, 30))
-                               .Returns(Task.FromResult(new ServerEnhancedResponse<object>
+                               .Returns(Task.FromResult(new ServerEnhancedResponse<TransformCapabilitiesResult>
                                {
                                    Success = false,
-                                   Error = "Element 'nonExistentElement' not found"
+                                   ErrorMessage = "Element 'nonExistentElement' not found"
                                }));
 
             // Act
@@ -345,10 +367,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             _mockTransformService.Setup(s => s.MoveElementAsync("unsupportedElement", 100.0, 200.0, "App", null, 30))
-                               .Returns(Task.FromResult(new ServerEnhancedResponse<object>
+                               .Returns(Task.FromResult(new ServerEnhancedResponse<ActionResult>
                                {
                                    Success = false,
-                                   Error = "TransformPattern not supported"
+                                   ErrorMessage = "TransformPattern not supported"
                                }));
 
             // Act
@@ -370,7 +392,18 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetTransformCapabilities_WithEmptyParameters_ShouldCallService(string elementId, string windowTitle)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { CanMove = true, CanResize = true, CanRotate = false } };
+            var expectedResult = new ServerEnhancedResponse<TransformCapabilitiesResult> 
+            { 
+                Success = true, 
+                Data = new TransformCapabilitiesResult 
+                { 
+                    Success = true, 
+                    ElementId = elementId, 
+                    CanMove = true, 
+                    CanResize = true, 
+                    CanRotate = false 
+                } 
+            };
             _mockTransformService.Setup(s => s.GetTransformCapabilitiesAsync(elementId, 
                 string.IsNullOrEmpty(windowTitle) ? null : windowTitle, null, 30))
                                .Returns(Task.FromResult(expectedResult));
@@ -393,7 +426,17 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task MoveElement_WithProcessId_ShouldCallServiceCorrectly(int processId)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { ElementId = "window1", X = 100.0, Y = 200.0 } };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> 
+            { 
+                Success = true, 
+                Data = new ActionResult 
+                { 
+                    Success = true, 
+                    ElementId = "window1", 
+                    Action = "Move", 
+                    ActionParameters = new Dictionary<string, object> { { "X", 100.0 }, { "Y", 200.0 } } 
+                } 
+            };
             _mockTransformService.Setup(s => s.MoveElementAsync("window1", 100.0, 200.0, "App", processId, 30))
                                .Returns(Task.FromResult(expectedResult));
 
@@ -413,7 +456,17 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ResizeElement_WithCustomTimeout_ShouldCallServiceCorrectly(int timeoutSeconds)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object> { Success = true, Data = new { ElementId = "window1", Width = 800.0, Height = 600.0 } };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> 
+            { 
+                Success = true, 
+                Data = new ActionResult 
+                { 
+                    Success = true, 
+                    ElementId = "window1", 
+                    Action = "Resize", 
+                    ActionParameters = new Dictionary<string, object> { { "Width", 800.0 }, { "Height", 600.0 } } 
+                } 
+            };
             _mockTransformService.Setup(s => s.ResizeElementAsync("window1", 800.0, 600.0, "App", null, timeoutSeconds))
                                .Returns(Task.FromResult(expectedResult));
 
@@ -434,9 +487,39 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task TransformElement_MultipleTransformations_ShouldExecuteInSequence()
         {
             // Arrange
-            var moveResult = new ServerEnhancedResponse<object> { Success = true, Data = new { ElementId = "transformableWindow", X = 200.0, Y = 300.0, Operation = "Move" } };
-            var resizeResult = new ServerEnhancedResponse<object> { Success = true, Data = new { ElementId = "transformableWindow", Width = 1024.0, Height = 768.0, Operation = "Resize" } };
-            var rotateResult = new ServerEnhancedResponse<object> { Success = true, Data = new { ElementId = "transformableWindow", Degrees = 45.0, Operation = "Rotate" } };
+            var moveResult = new ServerEnhancedResponse<ActionResult> 
+            { 
+                Success = true, 
+                Data = new ActionResult 
+                { 
+                    Success = true, 
+                    ElementId = "transformableWindow", 
+                    Action = "Move", 
+                    ActionParameters = new Dictionary<string, object> { { "X", 200.0 }, { "Y", 300.0 } } 
+                } 
+            };
+            var resizeResult = new ServerEnhancedResponse<ActionResult> 
+            { 
+                Success = true, 
+                Data = new ActionResult 
+                { 
+                    Success = true, 
+                    ElementId = "transformableWindow", 
+                    Action = "Resize", 
+                    ActionParameters = new Dictionary<string, object> { { "Width", 1024.0 }, { "Height", 768.0 } } 
+                } 
+            };
+            var rotateResult = new ServerEnhancedResponse<ActionResult> 
+            { 
+                Success = true, 
+                Data = new ActionResult 
+                { 
+                    Success = true, 
+                    ElementId = "transformableWindow", 
+                    Action = "Rotate", 
+                    ActionParameters = new Dictionary<string, object> { { "Degrees", 45.0 } } 
+                } 
+            };
 
             _mockTransformService.Setup(s => s.MoveElementAsync("transformableWindow", 200.0, 300.0, "CADApp", null, 30))
                                .Returns(Task.FromResult(moveResult));
@@ -473,10 +556,16 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task MoveElement_WithExtremeBoundaryValues_ShouldHandleCorrectly(double x, double y)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<object>
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
-                Data = new { ElementId = "element1", X = x, Y = y, Operation = "Move" }
+                Data = new ActionResult
+                {
+                    Success = true,
+                    ElementId = "element1",
+                    Action = "Move",
+                    ActionParameters = new Dictionary<string, object> { { "X", x }, { "Y", y } }
+                }
             };
             _mockTransformService.Setup(s => s.MoveElementAsync("element1", x, y, "TestApp", null, 30))
                                .Returns(Task.FromResult(expectedResult));

@@ -204,7 +204,7 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.NotNull(tableInfoResult);
 
             // All should have Success/Error structure when handling errors
-            var results = new[] { rowOrColumnResult, columnHeadersResult, rowHeadersResult, tableInfoResult };
+            var results = new object[] { rowOrColumnResult, columnHeadersResult, rowHeadersResult, tableInfoResult };
             
             foreach (var result in results)
             {

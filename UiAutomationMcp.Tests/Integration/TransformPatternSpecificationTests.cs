@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using Xunit.Abstractions;
@@ -102,7 +103,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Assert
             Assert.NotNull(jsonResult);
-            var result = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Deserialize<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.TransformCapabilitiesResult>>(jsonResult.ToString()!);
+            var result = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Deserialize<ServerEnhancedResponse<TransformCapabilitiesResult>>(jsonResult.ToString()!);
             Assert.NotNull(result);
             
             // 要素が存在しない場合でも、APIの構造は仕様に準拠している必要がある
@@ -245,7 +246,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Assert
             Assert.NotNull(jsonResult);
-            var result = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(jsonResult);
+            var result = DeserializeResult<ServerEnhancedResponse<ActionResult>>(jsonResult);
             Assert.False(result.Success);
             
             if (width <= 0 || height <= 0)
@@ -278,16 +279,16 @@ namespace UIAutomationMCP.Tests.Integration
             // Act - 複数の変換操作を実行
             var operations = new (string Name, Func<Task<object>> Operation)[]
             {
-                ("GetCapabilities", () => _transformService.GetTransformCapabilitiesAsync(elementId, windowTitle, timeoutSeconds: timeout)),
-                ("Move", () => _transformService.MoveElementAsync(elementId, 100.0, 200.0, windowTitle, timeoutSeconds: timeout)),
-                ("Resize", () => _transformService.ResizeElementAsync(elementId, 800.0, 600.0, windowTitle, timeoutSeconds: timeout)),
-                ("Rotate", () => _transformService.RotateElementAsync(elementId, 90.0, windowTitle, timeoutSeconds: timeout))
+                ("GetCapabilities", async () => await _transformService.GetTransformCapabilitiesAsync(elementId, windowTitle, timeoutSeconds: timeout)),
+                ("Move", async () => await _transformService.MoveElementAsync(elementId, 100.0, 200.0, windowTitle, timeoutSeconds: timeout)),
+                ("Resize", async () => await _transformService.ResizeElementAsync(elementId, 800.0, 600.0, windowTitle, timeoutSeconds: timeout)),
+                ("Rotate", async () => await _transformService.RotateElementAsync(elementId, 90.0, windowTitle, timeoutSeconds: timeout))
             };
 
             foreach (var (operationName, operation) in operations)
             {
                 var jsonResult = await operation();
-                var result = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(jsonResult);
+                var result = DeserializeResult<ServerEnhancedResponse<ActionResult>>(jsonResult);
                 
                 // Assert
                 Assert.NotNull(result);
@@ -333,7 +334,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Assert
             Assert.NotNull(jsonResult);
-            var result = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(jsonResult);
+            var result = DeserializeResult<ServerEnhancedResponse<TransformCapabilitiesResult>>(jsonResult);
             Assert.False(result.Success); // 要素が存在しないため
             
             // エラーメッセージが適切であることを確認
@@ -388,7 +389,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Assert
             Assert.NotNull(jsonResult);
-            var result = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(jsonResult);
+            var result = DeserializeResult<ServerEnhancedResponse<ActionResult>>(jsonResult);
             Assert.False(result.Success); // 要素が存在しないため
             
             // 座標値自体が原因でクラッシュしないことを確認
@@ -424,7 +425,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Assert
             Assert.NotNull(jsonResult);
-            var result = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(jsonResult);
+            var result = DeserializeResult<ServerEnhancedResponse<ActionResult>>(jsonResult);
             Assert.False(result.Success); // 要素が存在しないため
             
             // 角度値自体が原因でエラーにならないことを確認
@@ -477,7 +478,7 @@ namespace UIAutomationMCP.Tests.Integration
                         scenario.ElementId, 90.0, "SpecWindow", timeoutSeconds: 5);
 
                     // Verify all operations return results (success or proper failure)
-                    var results = new[] { capabilitiesResult, moveResult, resizeResult, rotateResult };
+                    var results = new object[] { capabilitiesResult, moveResult, resizeResult, rotateResult };
                     var allResultsValid = results.All(r => r != null && !string.IsNullOrEmpty(r.ToString()));
 
                     if (allResultsValid)

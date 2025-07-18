@@ -255,9 +255,9 @@ namespace UIAutomationMCP.Tests.Integration
                 var containerId = $"ConcurrentContainer_{i}";
                 
                 // Add different types of selection operations
-                tasks.Add(_selectionService.IsSelectedAsync(elementId, "ConcurrentWindow", 12345, 3));
-                tasks.Add(_selectionService.CanSelectMultipleAsync(containerId, "ConcurrentWindow", 12345, 3));
-                tasks.Add(_selectionService.AddToSelectionAsync(elementId, "ConcurrentWindow", 12345, 3));
+                tasks.Add(Task.FromResult<object>(await _selectionService.IsSelectedAsync(elementId, "ConcurrentWindow", 12345, 3)));
+                tasks.Add(Task.FromResult<object>(await _selectionService.CanSelectMultipleAsync(containerId, "ConcurrentWindow", 12345, 3)));
+                tasks.Add(Task.FromResult<object>(await _selectionService.AddToSelectionAsync(elementId, "ConcurrentWindow", 12345, 3)));
             }
 
             // Act
@@ -402,7 +402,7 @@ namespace UIAutomationMCP.Tests.Integration
             for (int i = 0; i < operationCount; i++)
             {
                 var elementId = $"PerformanceTest_Element_{i}";
-                tasks.Add(_selectionService.IsSelectedAsync(elementId, "PerformanceWindow", null, 3));
+                tasks.Add(Task.FromResult<object>(await _selectionService.IsSelectedAsync(elementId, "PerformanceWindow", null, 3)));
             }
 
             var results = await Task.WhenAll(tasks);

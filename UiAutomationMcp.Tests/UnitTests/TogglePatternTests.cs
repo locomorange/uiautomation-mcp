@@ -94,14 +94,14 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_WithSupportedControls_ShouldSucceed(string elementSelector)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ToggleActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { 
+                Data = new ActionResult { 
                     Success = true, 
                     OperationName = "Toggle", 
-                    ToggleState = "On", 
-                    CurrentState = "On", 
-                    PreviousState = "Off", 
+                    Action = "Toggle", 
+                    ReturnValue = "On", 
+                    Details = "Previous state: Off", 
                     StateChanged = true 
                 }
             };
@@ -124,14 +124,14 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_WithStateTransitions_ShouldFollowCorrectCycle(string fromState, string toState)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ToggleActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { 
+                Data = new ActionResult { 
                     Success = true, 
                     OperationName = "Toggle", 
-                    ToggleState = toState, 
-                    CurrentState = toState, 
-                    PreviousState = fromState, 
+                    Action = "Toggle", 
+                    ReturnValue = toState, 
+                    Details = $"Toggled from {fromState} to {toState}", 
                     StateChanged = true 
                 }
             };
@@ -155,14 +155,14 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_OffToOn_ShouldReturnCorrectStates()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ToggleActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { 
+                Data = new ActionResult { 
                     Success = true, 
-                    Message = "Toggled", 
-                    ToggleState = "On", 
-                    CurrentState = "On", 
-                    PreviousState = "Off", 
+                    Details = "Toggled", 
+                    Action = "Toggle", 
+                    ReturnValue = "On", 
+                    Details = "Previous state: Off", 
                     StateChanged = true,
                     Metadata = new Dictionary<string, object> { { "PropertyName", "TogglePattern.ToggleState" } } 
                 }
@@ -183,14 +183,14 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_OnToIndeterminate_ShouldReturnCorrectStates()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ToggleActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { 
+                Data = new ActionResult { 
                     Success = true, 
-                    Message = "Toggled", 
-                    ToggleState = "Indeterminate", 
-                    CurrentState = "Indeterminate", 
-                    PreviousState = "On", 
+                    Details = "Toggled", 
+                    Action = "Toggle", 
+                    ReturnValue = "Indeterminate", 
+                    Details = "Previous state: On", 
                     StateChanged = true,
                     Metadata = new Dictionary<string, object> { { "PropertyName", "TogglePattern.ToggleState" } } 
                 }
@@ -211,14 +211,14 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_IndeterminateToOff_ShouldReturnCorrectStates()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ToggleActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { 
+                Data = new ActionResult { 
                     Success = true, 
-                    Message = "Toggled", 
-                    ToggleState = "Off", 
-                    CurrentState = "Off", 
-                    PreviousState = "Indeterminate", 
+                    Details = "Toggled", 
+                    Action = "Toggle", 
+                    ReturnValue = "Off", 
+                    Details = "Previous state: Indeterminate", 
                     StateChanged = true,
                     Metadata = new Dictionary<string, object> { { "PropertyName", "TogglePattern.ToggleState" } } 
                 }
@@ -243,17 +243,17 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_CompleteToggleCycle_ShouldFollowSpecifiedOrder()
         {
             // Arrange
-            var firstToggleResult = new ServerEnhancedResponse<ToggleActionResult> {
+            var firstToggleResult = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { Success = true, OperationName = "Toggle", ToggleState = "On", CurrentState = "On", PreviousState = "Off" }
+                Data = new ActionResult { Success = true, OperationName = "Toggle", Action = "Toggle", ReturnValue = "On", Details = "Previous state: Off" }
             };
-            var secondToggleResult = new ServerEnhancedResponse<ToggleActionResult> {
+            var secondToggleResult = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { Success = true, Message = "Toggled", ToggleState = "Indeterminate", CurrentState = "Indeterminate", PreviousState = "On" }
+                Data = new ActionResult { Success = true, Action = "Toggle", ReturnValue = "Indeterminate", Details = "Toggled - Previous state: On" }
             };
-            var thirdToggleResult = new ServerEnhancedResponse<ToggleActionResult> {
+            var thirdToggleResult = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { Success = true, Message = "Toggled", ToggleState = "Off", CurrentState = "Off", PreviousState = "Indeterminate" }
+                Data = new ActionResult { Success = true, Action = "Toggle", ReturnValue = "Off", Details = "Toggled - Previous state: Indeterminate" }
             };
 
             _mockToggleService.SetupSequence(s => s.ToggleElementAsync("triStateControl", "Window", null, 30))
@@ -279,17 +279,17 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_TwoStateToggle_ShouldAlternateBetweenOnAndOff()
         {
             // Arrange
-            var firstToggleResult = new ServerEnhancedResponse<ToggleActionResult> {
+            var firstToggleResult = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { Success = true, OperationName = "Toggle", ToggleState = "On", CurrentState = "On", PreviousState = "Off" }
+                Data = new ActionResult { Success = true, OperationName = "Toggle", Action = "Toggle", ReturnValue = "On", Details = "Previous state: Off" }
             };
-            var secondToggleResult = new ServerEnhancedResponse<ToggleActionResult> {
+            var secondToggleResult = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { Success = true, OperationName = "Toggle", ToggleState = "Off", CurrentState = "Off", PreviousState = "On" }
+                Data = new ActionResult { Success = true, OperationName = "Toggle", Action = "Toggle", ReturnValue = "Off", Details = "Previous state: On" }
             };
-            var thirdToggleResult = new ServerEnhancedResponse<ToggleActionResult> {
+            var thirdToggleResult = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { Success = true, OperationName = "Toggle", ToggleState = "On", CurrentState = "On", PreviousState = "Off" }
+                Data = new ActionResult { Success = true, OperationName = "Toggle", Action = "Toggle", ReturnValue = "On", Details = "Previous state: Off" }
             };
 
             _mockToggleService.SetupSequence(s => s.ToggleElementAsync("binaryToggle", "Application", null, 30))
@@ -373,9 +373,9 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_WithEmptyParameters_ShouldCallService(string elementSelector, string windowTitle)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ToggleActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { Success = true, OperationName = "Toggle" }
+                Data = new ActionResult { Success = true, OperationName = "Toggle" }
             };
             _mockToggleService.Setup(s => s.ToggleElementAsync(elementSelector,
                 string.IsNullOrEmpty(windowTitle) ? null : windowTitle, null, 30))
@@ -399,9 +399,9 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_WithProcessId_ShouldCallServiceCorrectly(int processId)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ToggleActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { Success = true, OperationName = "Toggle", ToggleState = "On", CurrentState = "On", PreviousState = "Off" }
+                Data = new ActionResult { Success = true, OperationName = "Toggle", Action = "Toggle", ReturnValue = "On", Details = "Previous state: Off" }
             };
             _mockToggleService.Setup(s => s.ToggleElementAsync("element1", "TestWindow", processId, 30))
                              .Returns(Task.FromResult(expectedResult));
@@ -422,9 +422,9 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_WithCustomTimeout_ShouldCallServiceCorrectly(int timeoutSeconds)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ToggleActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { Success = true, OperationName = "Toggle", ToggleState = "Off", CurrentState = "Off", PreviousState = "On" }
+                Data = new ActionResult { Success = true, OperationName = "Toggle", Action = "Toggle", ReturnValue = "Off", Details = "Previous state: On" }
             };
             _mockToggleService.Setup(s => s.ToggleElementAsync("element1", "TestWindow", null, timeoutSeconds))
                              .Returns(Task.FromResult(expectedResult));
@@ -446,14 +446,14 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_PropertyChange_ShouldTriggerToggleStatePropertyChangedEvent()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ToggleActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { 
+                Data = new ActionResult { 
                     Success = true, 
-                    Message = "Toggled", 
-                    ToggleState = "On", 
-                    CurrentState = "On", 
-                    PreviousState = "Off", 
+                    Details = "Toggled", 
+                    Action = "Toggle", 
+                    ReturnValue = "On", 
+                    Details = "Previous state: Off", 
                     Metadata = new Dictionary<string, object> {
                         { "PropertyChanged", true },
                         { "EventFired", "TogglePattern.ToggleState" },
@@ -482,21 +482,21 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_MultipleToggleControls_ShouldExecuteIndependently()
         {
             // Arrange
-            var checkbox1Result = new ServerEnhancedResponse<ToggleActionResult> {
+            var checkbox1Result = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { Success = true, OperationName = "Toggle", ToggleState = "On", CurrentState = "On", PreviousState = "Off" }
+                Data = new ActionResult { Success = true, OperationName = "Toggle", Action = "Toggle", ReturnValue = "On", Details = "Previous state: Off" }
             };
-            var checkbox2Result = new ServerEnhancedResponse<ToggleActionResult> {
+            var checkbox2Result = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { Success = true, OperationName = "Toggle", ToggleState = "Indeterminate", CurrentState = "Indeterminate", PreviousState = "Off" }
+                Data = new ActionResult { Success = true, OperationName = "Toggle", Action = "Toggle", ReturnValue = "Indeterminate", Details = "Previous state: Off" }
             };
-            var radioButton1Result = new ServerEnhancedResponse<ToggleActionResult> {
+            var radioButton1Result = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { Success = true, OperationName = "Toggle", ToggleState = "On", CurrentState = "On", PreviousState = "Off" }
+                Data = new ActionResult { Success = true, OperationName = "Toggle", Action = "Toggle", ReturnValue = "On", Details = "Previous state: Off" }
             };
-            var toggleButton1Result = new ServerEnhancedResponse<ToggleActionResult> {
+            var toggleButton1Result = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { Success = true, OperationName = "Toggle", ToggleState = "On", CurrentState = "On", PreviousState = "Off" }
+                Data = new ActionResult { Success = true, OperationName = "Toggle", Action = "Toggle", ReturnValue = "On", Details = "Previous state: Off" }
             };
 
             _mockToggleService.Setup(s => s.ToggleElementAsync("checkBox1", "Form", null, 30))
@@ -532,25 +532,25 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_RadioButtonGroup_ShouldHandleGroupBehavior()
         {
             // Arrange - Radio buttons in a group should behave differently (only one can be selected)
-            var radio1SelectResult = new ServerEnhancedResponse<ToggleActionResult> {
+            var radio1SelectResult = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { 
+                Data = new ActionResult { 
                     Success = true, 
-                    Message = "Toggled", 
-                    ToggleState = "On", 
-                    CurrentState = "On", 
-                    PreviousState = "Off",
+                    Details = "Toggled", 
+                    Action = "Toggle", 
+                    ReturnValue = "On", 
+                    Details = "Previous state: Off",
                     Metadata = new Dictionary<string, object> { { "GroupBehavior", "Exclusive" } }
                 }
             };
-            var radio2SelectResult = new ServerEnhancedResponse<ToggleActionResult> {
+            var radio2SelectResult = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { 
+                Data = new ActionResult { 
                     Success = true, 
-                    Message = "Toggled", 
-                    ToggleState = "On", 
-                    CurrentState = "On", 
-                    PreviousState = "Off",
+                    Details = "Toggled", 
+                    Action = "Toggle", 
+                    ReturnValue = "On", 
+                    Details = "Previous state: Off",
                     Metadata = new Dictionary<string, object> { 
                         { "GroupBehavior", "Exclusive" },
                         { "OtherRadioDeselected", "radioButton1" }
@@ -585,14 +585,14 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_SetStateMethodNotAvailable_ShouldOnlyProvideToggleMethod()
         {
             // Arrange - Microsoft仕様では SetState(newState) メソッドは提供されない
-            var expectedResult = new ServerEnhancedResponse<ToggleActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { 
+                Data = new ActionResult { 
                     Success = true, 
-                    Message = "Toggled", 
-                    ToggleState = "On", 
-                    CurrentState = "On", 
-                    PreviousState = "Off",
+                    Details = "Toggled", 
+                    Action = "Toggle", 
+                    ReturnValue = "On", 
+                    Details = "Previous state: Off",
                     Metadata = new Dictionary<string, object> { 
                         { "MethodUsed", "Toggle" },
                         { "Note", "SetState method not provided per Microsoft specification" }
@@ -617,14 +617,14 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_TwoStateControl_ShouldNotUseIndeterminateState(string fromState, string toState)
         {
             // Arrange - 2状態コントロールはIndeterminateを使用しない
-            var expectedResult = new ServerEnhancedResponse<ToggleActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
-                Data = new ToggleActionResult { 
+                Data = new ActionResult { 
                     Success = true, 
-                    Message = "Toggled", 
-                    ToggleState = toState, 
-                    CurrentState = toState, 
-                    PreviousState = fromState,
+                    Details = "Toggled", 
+                    Action = "Toggle", 
+                    ReturnValue = toState, 
+                    Details = $"Toggled from {fromState} to {toState}",
                     Metadata = new Dictionary<string, object> { 
                         { "StateType", "TwoState" },
                         { "IndeterminateSupported", false }
