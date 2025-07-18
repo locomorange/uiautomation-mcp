@@ -14,6 +14,10 @@ using UIAutomationMCP.Worker.Operations.Selection;
 using UIAutomationMCP.Worker.Operations.ElementInspection;
 using UIAutomationMCP.Worker.Operations.ControlTypeInfo;
 using UIAutomationMCP.Worker.Operations.Text;
+using UIAutomationMCP.Worker.Operations.Layout;
+using UIAutomationMCP.Worker.Operations.Transform;
+using UIAutomationMCP.Worker.Operations.Window;
+using UIAutomationMCP.Worker.Operations.Range;
 using UIAutomationMCP.Worker.Helpers;
 
 namespace UIAutomationMCP.Worker
@@ -149,6 +153,23 @@ namespace UIAutomationMCP.Worker
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetTextOperation>("GetText");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SetTextOperation>("SetText");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, FindTextOperation>("FindText");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, ScrollElementOperation>("ScrollElement");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, ExpandCollapseElementOperation>("ExpandCollapseElement");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, DockElementOperation>("DockElement");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, SetScrollPercentOperation>("SetScrollPercent");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, ScrollElementIntoViewOperation>("ScrollElementIntoView");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetScrollInfoOperation>("GetScrollInfo");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, MoveElementOperation>("MoveElement");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, ResizeElementOperation>("ResizeElement");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, RotateElementOperation>("RotateElement");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, WindowActionOperation>("WindowAction");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetWindowInfoOperation>("GetWindowInfo");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetWindowCapabilitiesOperation>("GetWindowCapabilities");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetWindowInteractionStateOperation>("GetWindowInteractionState");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, WaitForInputIdleOperation>("WaitForInputIdle");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, SetRangeValueOperation>("SetRangeValue");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetRangeValueOperation>("GetRangeValue");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetRangePropertiesOperation>("GetRangeProperties");
             
             // TODO: Phase 6 - Update remaining operations to new interface
             // The following operations need to be updated to use string parametersJson:
