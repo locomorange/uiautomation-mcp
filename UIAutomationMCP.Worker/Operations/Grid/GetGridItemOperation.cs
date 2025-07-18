@@ -1,0 +1,105 @@
+using System.Windows.Automation;
+using Microsoft.Extensions.Logging;
+using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
+using UIAutomationMCP.Shared.Serialization;
+using UIAutomationMCP.Worker.Contracts;
+using UIAutomationMCP.Worker.Helpers;
+
+namespace UIAutomationMCP.Worker.Operations.Grid
+{
+    public class GetGridItemOperation : IUIAutomationOperation
+    {
+        private readonly ElementFinderService _elementFinderService;
+        private readonly ILogger<GetGridItemOperation> _logger;
+
+        public GetGridItemOperation(
+            ElementFinderService elementFinderService, 
+            ILogger<GetGridItemOperation> logger)
+        {
+            _elementFinderService = elementFinderService;
+            _logger = logger;
+        }
+
+        public Task<OperationResult> ExecuteAsync(string parametersJson)
+        {
+            try
+            {
+                var typedRequest = JsonSerializationHelper.Deserialize<GetGridItemRequest>(parametersJson)!;
+                
+                var element = _elementFinderService.FindElementById(
+                    typedRequest.ElementId, 
+                    typedRequest.WindowTitle, 
+                    typedRequest.ProcessId ?? 0);
+                
+                if (element == null)
+                {
+                    return Task.FromResult(new OperationResult 
+                    { 
+                        Success = false, 
+                        Error = "Element not found",
+                        Data = new GridItemResult()
+                    });
+                }
+
+                if (!element.TryGetCurrentPattern(GridPattern.Pattern, out var pattern) || pattern is not GridPattern gridPattern)
+                {
+                    return Task.FromResult(new OperationResult 
+                    { 
+                        Success = false, 
+                        Error = "GridPattern not supported",
+                        Data = new GridItemResult()
+                    });
+                }
+
+                var gridItem = gridPattern.GetItem(typedRequest.Row, typedRequest.Column);
+                if (gridItem == null)
+                {
+                    return Task.FromResult(new OperationResult 
+                    { 
+                        Success = false, 
+                        Error = "Grid item not found",
+                        Data = new GridItemResult()
+                    });
+                }
+
+                var result = new GridItemResult
+                {
+                    Row = typedRequest.Row,
+                    Column = typedRequest.Column,
+                    Element = new ElementInfo
+                    {
+                        AutomationId = gridItem.Current.AutomationId,
+                        Name = gridItem.Current.Name,
+                        ControlType = gridItem.Current.ControlType.LocalizedControlType,
+                        IsEnabled = gridItem.Current.IsEnabled,
+                        BoundingRectangle = new BoundingRectangle
+                        {
+                            X = gridItem.Current.BoundingRectangle.X,
+                            Y = gridItem.Current.BoundingRectangle.Y,
+                            Width = gridItem.Current.BoundingRectangle.Width,
+                            Height = gridItem.Current.BoundingRectangle.Height
+                        }
+                    }
+                };
+
+                return Task.FromResult(new OperationResult 
+                { 
+                    Success = true, 
+                    Data = result 
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetGridItem operation failed");
+                return Task.FromResult(new OperationResult 
+                { 
+                    Success = false, 
+                    Error = $"Failed to get grid item: {ex.Message}",
+                    Data = new GridItemResult()
+                });
+            }
+        }
+    }
+}
