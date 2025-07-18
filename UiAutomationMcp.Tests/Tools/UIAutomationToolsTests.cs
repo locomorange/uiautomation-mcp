@@ -1114,20 +1114,15 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task WaitForWindowInputIdle_Success_WaitsForIdle()
         {
             // Arrange
-            var resultObject = new WaitForInputIdleResult
+            var resultObject = new BooleanResult
             {
                 Success = true,
-                // WindowTitle not available in ElementSearchResult,
-                TimeoutMilliseconds = 5000,
-                ElapsedMilliseconds = 1234,
-                TimedOut = false,
-                InputIdle = true,
-                WindowInteractionState = "ReadyForUserInteraction",
-                Message = "Window became idle within the specified timeout",
-                ProcessStillRunning = true,
-                Completed = true
+                Value = true,
+                PropertyName = "WaitForInputIdle",
+                ExecutedAt = DateTime.UtcNow,
+                OperationName = "WaitForInputIdle"
             };
-            var serverResponse = new ServerEnhancedResponse<WaitForInputIdleResult>
+            var serverResponse = new ServerEnhancedResponse<BooleanResult>
             {
                 Success = true,
                 Data = resultObject,
@@ -1188,18 +1183,15 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task WaitForWindowInputIdle_WithCustomTimeout_UsesCorrectTimeout(int timeoutMs)
         {
             // Arrange
-            var resultObject = new WaitForInputIdleResult
+            var resultObject = new BooleanResult
             {
                 Success = true,
-                TimeoutMilliseconds = timeoutMs,
-                ElapsedMilliseconds = timeoutMs / 2,
-                TimedOut = false,
-                InputIdle = true,
-                Message = "Idle operation completed",
-                ProcessStillRunning = true,
-                Completed = true
+                Value = true,
+                PropertyName = "WaitForInputIdle",
+                ExecutedAt = DateTime.UtcNow,
+                OperationName = "WaitForInputIdle"
             };
-            var serverResponse = new ServerEnhancedResponse<WaitForInputIdleResult>
+            var serverResponse = new ServerEnhancedResponse<BooleanResult>
             {
                 Success = true,
                 Data = resultObject,
@@ -1265,25 +1257,21 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task GetGridItem_WithValidCoordinates_CallsCorrectService()
         {
             // Arrange
-            var resultObject = new GridItemResult
+            var resultObject = new ElementSearchResult
             {
                 Success = true,
-                ElementId = "cell_1_2",
-                ElementName = "Cell Content",
-                ElementAutomationId = "cell_1_2",
-                ElementControlType = "DataItem",
-                // WindowTitle not available in ElementSearchResult,
-                Row = 1,
-                Column = 2,
-                RowSpan = 1,
-                ColumnSpan = 1,
-                ContainerElementId = "grid1",
-                IsSelected = false,
-                IsEnabled = true,
-                Value = "Cell Content",
-                Pattern = "GridItemPattern"
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                {
+                    new UIAutomationMCP.Shared.ElementInfo
+                    {
+                        AutomationId = "cell_1_2",
+                        Name = "Cell Content",
+                        ControlType = "DataItem"
+                    }
+                },
+                SearchCriteria = "GridItem at row 1, column 2"
             };
-            var serverResponse = new ServerEnhancedResponse<GridItemResult>
+            var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
                 Data = resultObject,
@@ -1347,22 +1335,21 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task GetAvailableViews_WithValidParameters_CallsCorrectService()
         {
             // Arrange
-            var resultObject = new AvailableViewsResult
+            var resultObject = new ElementSearchResult
             {
                 Success = true,
-                ElementId = "viewContainer1",
-                // WindowTitle not available in ElementSearchResult,
-                AvailableViews = new List<ViewInfo>
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
                 {
-                    new ViewInfo { ViewId = 1, ViewName = "View1", IsSelectable = true },
-                    new ViewInfo { ViewId = 2, ViewName = "View2", IsSelectable = true },
-                    new ViewInfo { ViewId = 3, ViewName = "View3", IsSelectable = true }
+                    new UIAutomationMCP.Shared.ElementInfo
+                    {
+                        AutomationId = "viewContainer1",
+                        Name = "View Container",
+                        ControlType = "List"
+                    }
                 },
-                ViewCount = 3,
-                HasMultipleViews = true,
-                Pattern = "MultipleViewPattern"
+                SearchCriteria = "Available views for viewContainer1"
             };
-            var serverResponse = new ServerEnhancedResponse<AvailableViewsResult>
+            var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
                 Data = resultObject,
@@ -1386,21 +1373,21 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task GetAvailableViews_WithProcessId_CallsCorrectService()
         {
             // Arrange
-            var resultObject = new AvailableViewsResult
+            var resultObject = new ElementSearchResult
             {
                 Success = true,
-                ElementId = "viewContainer1",
-                // ProcessId not available in ElementSearchResult,
-                AvailableViews = new List<ViewInfo>
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
                 {
-                    new ViewInfo { ViewId = 1, ViewName = "List View", IsSelectable = true },
-                    new ViewInfo { ViewId = 2, ViewName = "Details View", IsSelectable = true }
+                    new UIAutomationMCP.Shared.ElementInfo
+                    {
+                        AutomationId = "viewContainer1",
+                        Name = "View Container",
+                        ControlType = "List"
+                    }
                 },
-                ViewCount = 2,
-                HasMultipleViews = true,
-                Pattern = "MultipleViewPattern"
+                SearchCriteria = "Available views for viewContainer1 with ProcessId 1234"
             };
-            var serverResponse = new ServerEnhancedResponse<AvailableViewsResult>
+            var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
                 Data = resultObject,
@@ -1424,20 +1411,21 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task GetAvailableViews_WithCustomTimeout_CallsCorrectService()
         {
             // Arrange
-            var resultObject = new AvailableViewsResult
+            var resultObject = new ElementSearchResult
             {
                 Success = true,
-                ElementId = "viewContainer1",
-                // WindowTitle not available in ElementSearchResult,
-                AvailableViews = new List<ViewInfo>
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
                 {
-                    new ViewInfo { ViewId = 1, ViewName = "Thumbnail View", IsSelectable = true }
+                    new UIAutomationMCP.Shared.ElementInfo
+                    {
+                        AutomationId = "viewContainer1",
+                        Name = "View Container",
+                        ControlType = "List"
+                    }
                 },
-                ViewCount = 1,
-                HasMultipleViews = false,
-                Pattern = "MultipleViewPattern"
+                SearchCriteria = "Available views for viewContainer1 with custom timeout"
             };
-            var serverResponse = new ServerEnhancedResponse<AvailableViewsResult>
+            var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
                 Data = resultObject,
@@ -1461,17 +1449,13 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task GetAvailableViews_EmptyElementId_CallsService()
         {
             // Arrange
-            var resultObject = new AvailableViewsResult
+            var resultObject = new ElementSearchResult
             {
                 Success = true,
-                ElementId = "",
-                // WindowTitle not available in ElementSearchResult,
-                AvailableViews = new List<ViewInfo>(),
-                ViewCount = 0,
-                HasMultipleViews = false,
-                Pattern = "MultipleViewPattern"
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>(),
+                SearchCriteria = "Available views for empty element ID"
             };
-            var serverResponse = new ServerEnhancedResponse<AvailableViewsResult>
+            var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
                 Data = resultObject,
@@ -1511,19 +1495,21 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task GetCurrentView_WithValidParameters_CallsCorrectService()
         {
             // Arrange
-            var resultObject = new ViewResult
+            var resultObject = new ElementSearchResult
             {
                 Success = true,
-                ElementId = "viewContainer1",
-                // WindowTitle not available in ElementSearchResult,
-                CurrentView = 2,
-                CurrentViewName = "Details View",
-                ViewId = 2,
-                ViewName = "Details View",
-                CanSetView = true,
-                Pattern = "MultipleViewPattern"
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                {
+                    new UIAutomationMCP.Shared.ElementInfo
+                    {
+                        AutomationId = "viewContainer1",
+                        Name = "View Container",
+                        ControlType = "List"
+                    }
+                },
+                SearchCriteria = "Current view for viewContainer1"
             };
-            var serverResponse = new ServerEnhancedResponse<ViewResult>
+            var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
                 Data = resultObject,
@@ -1547,17 +1533,21 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task GetCurrentView_WithProcessId_CallsCorrectService()
         {
             // Arrange
-            var resultObject = new ViewResult
+            var resultObject = new ElementSearchResult
             {
                 Success = true,
-                ElementId = "viewContainer1",
-                ViewId = 1,
-                ViewName = "List View",
-                CurrentView = 1,
-                CurrentViewName = "List View",
-                Pattern = "MultipleViewPattern"
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                {
+                    new UIAutomationMCP.Shared.ElementInfo
+                    {
+                        AutomationId = "viewContainer1",
+                        Name = "View Container",
+                        ControlType = "List"
+                    }
+                },
+                SearchCriteria = "Current view for viewContainer1 with ProcessId 1234"
             };
-            var serverResponse = new ServerEnhancedResponse<ViewResult>
+            var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
                 Data = resultObject,
@@ -1581,18 +1571,21 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task GetCurrentView_WithCustomTimeout_CallsCorrectService()
         {
             // Arrange
-            var resultObject = new ViewResult
+            var resultObject = new ElementSearchResult
             {
                 Success = true,
-                ElementId = "viewContainer1",
-                // WindowTitle not available in ElementSearchResult,
-                ViewId = 3,
-                ViewName = "Thumbnail View",
-                CurrentView = 3,
-                CurrentViewName = "Thumbnail View",
-                Pattern = "MultipleViewPattern"
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                {
+                    new UIAutomationMCP.Shared.ElementInfo
+                    {
+                        AutomationId = "viewContainer1",
+                        Name = "View Container",
+                        ControlType = "List"
+                    }
+                },
+                SearchCriteria = "Current view for viewContainer1 with custom timeout"
             };
-            var serverResponse = new ServerEnhancedResponse<ViewResult>
+            var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
                 Data = resultObject,
@@ -1632,21 +1625,21 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task SetView_WithValidParameters_CallsCorrectService()
         {
             // Arrange
-            var resultObject = new ViewResult
+            var resultObject = new ElementSearchResult
             {
                 Success = true,
-                ElementId = "viewContainer1",
-                // WindowTitle not available in ElementSearchResult,
-                CurrentView = 2,
-                CurrentViewName = "Details View",
-                ViewId = 2,
-                ViewName = "Details View",
-                ViewChanged = true,
-                PreviousView = 1,
-                PreviousViewName = "List View",
-                Pattern = "MultipleViewPattern"
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                {
+                    new UIAutomationMCP.Shared.ElementInfo
+                    {
+                        AutomationId = "viewContainer1",
+                        Name = "View Container",
+                        ControlType = "List"
+                    }
+                },
+                SearchCriteria = "Set view to ViewId 2 for viewContainer1"
             };
-            var serverResponse = new ServerEnhancedResponse<ViewResult>
+            var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
                 Data = resultObject,

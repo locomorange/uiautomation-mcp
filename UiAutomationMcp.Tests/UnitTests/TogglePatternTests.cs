@@ -615,7 +615,6 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { 
                     Success = true, 
-                    Details = "Toggled", 
                     Action = "Toggle", 
                     ReturnValue = toState, 
                     Details = $"Toggled from {fromState} to {toState}",
