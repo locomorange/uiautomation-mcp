@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Serialization;
+using UIAutomationMCP.Shared.Helpers;
 using UIAutomationMCP.Worker.Contracts;
 
 namespace UIAutomationMCP.Worker.Services

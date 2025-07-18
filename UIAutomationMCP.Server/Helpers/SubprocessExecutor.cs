@@ -535,7 +535,7 @@ namespace UIAutomationMCP.Server.Helpers
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
                         CreateNoWindow = true,
-                        WorkingDirectory = Path.GetDirectoryName(_workerPath)
+                        WorkingDirectory = Path.GetDirectoryName(_workerPath) ?? ""
                     };
                     _logger.LogDebug("Starting worker DLL: {WorkerPath}", _workerPath);
                 }
@@ -550,12 +550,13 @@ namespace UIAutomationMCP.Server.Helpers
                     startInfo = new ProcessStartInfo
                     {
                         FileName = _workerPath,
+                        Arguments = "",
                         UseShellExecute = false,
                         RedirectStandardInput = true,
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
                         CreateNoWindow = true,
-                        WorkingDirectory = Path.GetDirectoryName(_workerPath)
+                        WorkingDirectory = Path.GetDirectoryName(_workerPath) ?? ""
                     };
                     _logger.LogDebug("Starting worker executable: {WorkerPath}", _workerPath);
                 }

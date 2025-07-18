@@ -13,6 +13,7 @@ namespace UIAutomationMCP.Server
     {
         static async Task Main(string[] args)
         {
+
             var builder = Host.CreateApplicationBuilder(args);
 
             // Configure logging for MCP - stderr logging to avoid MCP protocol interference

@@ -4,8 +4,10 @@ using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Serialization;
+using UIAutomationMCP.Shared.Helpers;
 using UIAutomationMCP.Worker.Contracts;
 using System.Diagnostics;
+using static UIAutomationMCP.Worker.Helpers.UIAutomationPropertyHelper;
 
 namespace UIAutomationMCP.Worker.Operations.ElementSearch
 {
@@ -72,21 +74,23 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                                 if (!includeInvisible && !isVisible)
                                     continue;
                                     
+                                var rect = GetBoundingRectangle(window);
                                 var windowInfo = new UIAutomationMCP.Shared.Results.WindowInfo
                                 {
-                                    Title = window.Current.Name,
-                                    ClassName = window.Current.ClassName,
-                                    ProcessId = window.Current.ProcessId,
+                                    // UI Automationプロパティヘルパーを使用して適切なエンコーディング処理
+                                    Title = GetName(window),
+                                    ClassName = GetClassName(window),
+                                    ProcessId = GetProcessId(window),
                                     ProcessName = processName,
-                                    Handle = window.Current.NativeWindowHandle,
+                                    Handle = GetNativeWindowHandle(window),
                                     IsVisible = isVisible,
-                                    IsEnabled = window.Current.IsEnabled,
+                                    IsEnabled = IsEnabled(window),
                                     BoundingRectangle = new BoundingRectangle
                                     {
-                                        X = window.Current.BoundingRectangle.X,
-                                        Y = window.Current.BoundingRectangle.Y,
-                                        Width = window.Current.BoundingRectangle.Width,
-                                        Height = window.Current.BoundingRectangle.Height
+                                        X = rect.X,
+                                        Y = rect.Y,
+                                        Width = rect.Width,
+                                        Height = rect.Height
                                     }
                                 };
                                 result.Windows.Add(windowInfo);

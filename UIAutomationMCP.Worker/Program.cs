@@ -92,6 +92,7 @@ namespace UIAutomationMCP.Worker
 
         static async Task Main(string[] args)
         {
+
             // Early UI Automation availability check
             if (!IsUIAutomationAvailable(out string errorReason))
             {
