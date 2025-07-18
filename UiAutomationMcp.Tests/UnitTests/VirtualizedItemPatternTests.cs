@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Interfaces;
+using UIAutomationMCP.Shared.Results;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -36,17 +37,28 @@ namespace UIAutomationMCP.Tests.UnitTests
             var elementId = "virtualizedItem1";
             var windowTitle = "Test Window";
             var processId = 1234;
-            var expectedResult = new { Success = true, Message = "Item realized successfully" };
+            var expectedResult = new ElementSearchResult
+            {
+                Success = true,
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                {
+                    new UIAutomationMCP.Shared.ElementInfo
+                    {
+                        AutomationId = elementId,
+                        Name = "Realized Item"
+                    }
+                }
+            };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<object>("RealizeVirtualizedItem", It.IsAny<Dictionary<string, object>>(), 30))
-                .ReturnsAsync(expectedResult);
+            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("RealizeVirtualizedItem", It.IsAny<Dictionary<string, object>>(), 30))
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _service.RealizeItemAsync(elementId, windowTitle, processId, 30);
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<object>("RealizeVirtualizedItem", 
+            _mockExecutor.Verify(e => e.ExecuteAsync<ElementSearchResult>("RealizeVirtualizedItem", 
                 It.Is<Dictionary<string, object>>(p => 
                     p["elementId"].ToString() == elementId &&
                     p["windowTitle"].ToString() == windowTitle &&
@@ -60,17 +72,28 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var elementId = "item1";
-            var expectedResult = new { Success = true };
+            var expectedResult = new ElementSearchResult
+            {
+                Success = true,
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                {
+                    new UIAutomationMCP.Shared.ElementInfo
+                    {
+                        AutomationId = elementId,
+                        Name = "Realized Item"
+                    }
+                }
+            };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<object>("RealizeVirtualizedItem", It.IsAny<Dictionary<string, object>>(), 30))
-                .ReturnsAsync(expectedResult);
+            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("RealizeVirtualizedItem", It.IsAny<Dictionary<string, object>>(), 30))
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _service.RealizeItemAsync(elementId, null, null, 30);
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<object>("RealizeVirtualizedItem", 
+            _mockExecutor.Verify(e => e.ExecuteAsync<ElementSearchResult>("RealizeVirtualizedItem", 
                 It.Is<Dictionary<string, object>>(p => 
                     p["elementId"].ToString() == elementId &&
                     p["windowTitle"].ToString() == "" &&
@@ -84,7 +107,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             var elementId = "item1";
             var exceptionMessage = "Failed to realize item";
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<object>("RealizeVirtualizedItem", It.IsAny<Dictionary<string, object>>(), 30))
+            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("RealizeVirtualizedItem", It.IsAny<Dictionary<string, object>>(), 30))
                 .ThrowsAsync(new Exception(exceptionMessage));
 
             // Act
@@ -92,9 +115,8 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            dynamic response = result;
-            Assert.False(response.Success);
-            Assert.Equal(exceptionMessage, response.Error);
+            Assert.False(result.Success);
+            Assert.Equal(exceptionMessage, result.ErrorMessage);
             
             _mockLogger.Verify(l => l.Log(
                 LogLevel.Error,

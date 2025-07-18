@@ -40,6 +40,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         private readonly Mock<IVirtualizedItemService> _mockVirtualizedItemService;
         private readonly Mock<IItemContainerService> _mockItemContainerService;
         private readonly Mock<ISynchronizedInputService> _mockSynchronizedInputService;
+        private readonly Mock<IEventMonitorService> _mockEventMonitorService;
 
         public SelectionApiToolsTests(ITestOutputHelper output)
         {
@@ -68,6 +69,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             _mockVirtualizedItemService = new Mock<IVirtualizedItemService>();
             _mockItemContainerService = new Mock<IItemContainerService>();
             _mockSynchronizedInputService = new Mock<ISynchronizedInputService>();
+            _mockEventMonitorService = new Mock<IEventMonitorService>();
 
             // Create UIAutomationTools with all mocked dependencies
             _tools = new UIAutomationTools(
@@ -93,7 +95,8 @@ namespace UIAutomationMCP.Tests.UnitTests
                 _mockVirtualizedItemService.Object,
                 _mockItemContainerService.Object,
                 _mockSynchronizedInputService.Object,
-                Mock.Of<UIAutomationMCP.Server.Helpers.SubprocessExecutor>()
+                _mockEventMonitorService.Object,
+                Mock.Of<ISubprocessExecutor>()
             );
         }
 
@@ -111,7 +114,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             _mockSelectionService
                 .Setup(s => s.IsSelectedAsync(elementId, windowTitle, processId, timeoutSeconds))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.IsElementSelected(elementId, windowTitle, processId, timeoutSeconds);
@@ -132,7 +135,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             _mockSelectionService
                 .Setup(s => s.IsSelectedAsync(elementId, null, null, 30))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.IsElementSelected(elementId);
@@ -170,7 +173,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             _mockSelectionService
                 .Setup(s => s.GetSelectionContainerAsync(elementId, windowTitle, processId, 30))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetSelectionContainer(elementId, windowTitle, processId);
@@ -191,7 +194,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             _mockSelectionService
                 .Setup(s => s.GetSelectionContainerAsync(elementId, null, null, 30))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetSelectionContainer(elementId);
@@ -219,7 +222,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             _mockSelectionService
                 .Setup(s => s.CanSelectMultipleAsync(containerElementId, windowTitle, processId, timeoutSeconds))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.CanSelectMultiple(containerElementId, windowTitle, processId, timeoutSeconds);
@@ -240,7 +243,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             _mockSelectionService
                 .Setup(s => s.CanSelectMultipleAsync(containerElementId, null, null, 30))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.CanSelectMultiple(containerElementId);
@@ -262,7 +265,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             _mockSelectionService
                 .Setup(s => s.IsSelectionRequiredAsync(containerElementId, windowTitle, null, 30))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.IsSelectionRequired(containerElementId, windowTitle);
@@ -283,7 +286,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             _mockSelectionService
                 .Setup(s => s.IsSelectionRequiredAsync(containerElementId, null, null, 30))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.IsSelectionRequired(containerElementId);
@@ -310,7 +313,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             _mockSelectionService
                 .Setup(s => s.AddToSelectionAsync(elementId, windowTitle, processId, 30))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.AddToSelection(elementId, windowTitle, processId);
@@ -332,7 +335,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             _mockSelectionService
                 .Setup(s => s.AddToSelectionAsync(elementId, null, null, timeoutSeconds))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.AddToSelection(elementId, null, null, timeoutSeconds);
@@ -355,7 +358,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             _mockSelectionService
                 .Setup(s => s.RemoveFromSelectionAsync(elementId, windowTitle, processId, 30))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.RemoveFromSelection(elementId, windowTitle, processId);
@@ -378,7 +381,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             _mockSelectionService
                 .Setup(s => s.ClearSelectionAsync(containerElementId, windowTitle, processId, 30))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ClearSelection(containerElementId, windowTitle, processId);
@@ -408,7 +411,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             _mockSelectionService
                 .Setup(s => s.GetSelectionAsync(containerElementId, windowTitle, null, 30))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetSelection(containerElementId, windowTitle);
@@ -454,7 +457,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             _mockSelectionService
                 .Setup(s => s.IsSelectedAsync(emptyElementId, null, null, 30))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.IsElementSelected(emptyElementId);
@@ -482,7 +485,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             _mockSelectionService
                 .Setup(s => s.IsSelectedAsync(elementId, windowTitle, processId, timeoutSeconds))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.IsElementSelected(elementId, windowTitle, processId, timeoutSeconds);
@@ -507,7 +510,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             _mockSelectionService
                 .Setup(s => s.CanSelectMultipleAsync(containerElementId, null, null, timeoutSeconds))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.CanSelectMultiple(containerElementId, null, null, timeoutSeconds);

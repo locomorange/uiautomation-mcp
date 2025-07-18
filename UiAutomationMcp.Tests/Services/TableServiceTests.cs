@@ -43,7 +43,7 @@ namespace UIAutomationMCP.Tests.Services
             var expectedResult = new PropertyResult { Success = true };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<PropertyResult>("GetRowOrColumnMajor", It.IsAny<Dictionary<string, object>>(), 30))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tableService.GetRowOrColumnMajorAsync(elementId, windowTitle, processId, 30);
@@ -67,7 +67,7 @@ namespace UIAutomationMCP.Tests.Services
             var expectedResult = new PropertyResult { Success = true };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<PropertyResult>("GetRowOrColumnMajor", It.IsAny<Dictionary<string, object>>(), 30))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tableService.GetRowOrColumnMajorAsync(elementId, null, null, 30);
@@ -118,7 +118,7 @@ namespace UIAutomationMCP.Tests.Services
             var expectedResult = new PropertyResult { Success = true };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<PropertyResult>("GetRowOrColumnMajor", It.IsAny<Dictionary<string, object>>(), 30))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tableService.GetRowOrColumnMajorAsync(elementId, "Test Window", 1234, 30);
@@ -152,7 +152,7 @@ namespace UIAutomationMCP.Tests.Services
             };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<TableInfoResult>("GetTableInfo", It.IsAny<Dictionary<string, object>>(), 30))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tableService.GetTableInfoAsync(elementId, windowTitle, processId, 30);
@@ -189,7 +189,7 @@ namespace UIAutomationMCP.Tests.Services
             };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("GetRowHeaders", It.IsAny<Dictionary<string, object>>(), 30))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tableService.GetRowHeadersAsync(elementId, "Test Window", 1234, 30);
@@ -224,7 +224,7 @@ namespace UIAutomationMCP.Tests.Services
             };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("GetColumnHeaders", It.IsAny<Dictionary<string, object>>(), 30))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tableService.GetColumnHeadersAsync(elementId, "Test Window", 1234, 30);
@@ -258,10 +258,10 @@ namespace UIAutomationMCP.Tests.Services
 
             // Setup mock responses for all required members
             _mockExecutor.Setup(e => e.ExecuteAsync<PropertyResult>("GetRowOrColumnMajor", It.IsAny<Dictionary<string, object>>(), 30))
-                .ReturnsAsync(new PropertyResult { Success = true });
+                .Returns(Task.FromResult(new PropertyResult { Success = true }));
             
             _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("GetColumnHeaders", It.IsAny<Dictionary<string, object>>(), 30))
-                .ReturnsAsync(new ElementSearchResult 
+                .Returns(Task.FromResult(new ElementSearchResult 
                 { 
                     Success = true,
                     Elements = new List<UIAutomationMCP.Shared.ElementInfo>
@@ -269,10 +269,10 @@ namespace UIAutomationMCP.Tests.Services
                         new UIAutomationMCP.Shared.ElementInfo { Name = "Header1" },
                         new UIAutomationMCP.Shared.ElementInfo { Name = "Header2" }
                     }
-                });
+                }));
             
             _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("GetRowHeaders", It.IsAny<Dictionary<string, object>>(), 30))
-                .ReturnsAsync(new ElementSearchResult 
+                .Returns(Task.FromResult(new ElementSearchResult 
                 { 
                     Success = true,
                     Elements = new List<UIAutomationMCP.Shared.ElementInfo>
@@ -280,7 +280,7 @@ namespace UIAutomationMCP.Tests.Services
                         new UIAutomationMCP.Shared.ElementInfo { Name = "Row1" },
                         new UIAutomationMCP.Shared.ElementInfo { Name = "Row2" }
                     }
-                });
+                }));
 
             // Act & Assert - Test all required members
             var rowOrColumnResult = await _tableService.GetRowOrColumnMajorAsync(elementId, windowTitle, processId, 30);
@@ -311,7 +311,7 @@ namespace UIAutomationMCP.Tests.Services
             var expectedResult = new PropertyResult { Success = true };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<PropertyResult>("GetRowOrColumnMajor", It.IsAny<Dictionary<string, object>>(), timeout))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tableService.GetRowOrColumnMajorAsync(elementId, "Test", 1234, timeout);
@@ -335,7 +335,7 @@ namespace UIAutomationMCP.Tests.Services
             var expectedResult = new PropertyResult { Success = true };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<PropertyResult>("GetRowOrColumnMajor", It.IsAny<Dictionary<string, object>>(), 30))
-                .ReturnsAsync(expectedResult);
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tableService.GetRowOrColumnMajorAsync(elementId, "Test", 1234, 30);

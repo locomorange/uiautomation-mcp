@@ -6,6 +6,7 @@ using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
 using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Server.Interfaces;
 using Xunit.Abstractions;
 using System.Threading;
 using System.Text.Json;
@@ -43,7 +44,8 @@ namespace UIAutomationMCP.Tests.Tools
         private readonly Mock<IVirtualizedItemService> _mockVirtualizedItemService;
         private readonly Mock<IItemContainerService> _mockItemContainerService;
         private readonly Mock<ISynchronizedInputService> _mockSynchronizedInputService;
-        private readonly Mock<SubprocessExecutor> _mockSubprocessExecutor;
+        private readonly Mock<IEventMonitorService> _mockEventMonitorService;
+        private readonly Mock<ISubprocessExecutor> _mockSubprocessExecutor;
 
         public UIAutomationToolsTests(ITestOutputHelper output)
         {
@@ -72,7 +74,8 @@ namespace UIAutomationMCP.Tests.Tools
             _mockVirtualizedItemService = new Mock<IVirtualizedItemService>();
             _mockItemContainerService = new Mock<IItemContainerService>();
             _mockSynchronizedInputService = new Mock<ISynchronizedInputService>();
-            _mockSubprocessExecutor = new Mock<SubprocessExecutor>();
+            _mockEventMonitorService = new Mock<IEventMonitorService>();
+            _mockSubprocessExecutor = new Mock<ISubprocessExecutor>();
             
             _tools = new UIAutomationTools(
                 _mockApplicationLauncher.Object,
@@ -97,6 +100,8 @@ namespace UIAutomationMCP.Tests.Tools
                 _mockVirtualizedItemService.Object,
                 _mockItemContainerService.Object,
                 _mockSynchronizedInputService.Object,
+                _mockEventMonitorService.Object,
+                _mockEventMonitorService.Object,
                 _mockSubprocessExecutor.Object
             );
         }
@@ -1711,7 +1716,7 @@ namespace UIAutomationMCP.Tests.Tools
             // Arrange
             var expectedResult = "View set successfully";
             _mockMultipleViewService.Setup(s => s.SetViewAsync("viewContainer1", 3, "TestWindow", null, 60))
-                                  .ReturnsAsync(expectedResult);
+                                  .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.SetView("viewContainer1", 3, "TestWindow", null, 60);
@@ -1745,7 +1750,7 @@ namespace UIAutomationMCP.Tests.Tools
             // Arrange
             var expectedResult = "View set to default";
             _mockMultipleViewService.Setup(s => s.SetViewAsync("viewContainer1", 0, "TestWindow", null, 30))
-                                  .ReturnsAsync(expectedResult);
+                                  .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.SetView("viewContainer1", 0, "TestWindow");
@@ -2108,7 +2113,7 @@ namespace UIAutomationMCP.Tests.Tools
             };
             
             _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync("scrollableItem", "TestWindow", 1234, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ScrollElementIntoView("scrollableItem", "TestWindow", 1234, 30);
@@ -2251,7 +2256,7 @@ namespace UIAutomationMCP.Tests.Tools
             };
             
             _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync(elementId, "TestApplication", null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ScrollElementIntoView(elementId, "TestApplication");
@@ -2272,10 +2277,22 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task ScrollElementIntoView_Should_Handle_Empty_String_Parameters(string elementId, string windowTitle)
         {
             // Arrange
-            var expectedResult = new { Success = false, Error = "Invalid parameters" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
+                Success = false,
+                ErrorMessage = "Invalid parameters",
+                Data = new ActionResult
+                {
+                    Action = "ScrollElementIntoView",
+                    ElementId = elementId,
+                    WindowTitle = windowTitle,
+                    Success = false,
+                    ErrorMessage = "Invalid parameters"
+                }
+            };
             
             _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync(elementId, windowTitle, null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ScrollElementIntoView(elementId, windowTitle);
@@ -2417,7 +2434,7 @@ namespace UIAutomationMCP.Tests.Tools
             };
             
             _mockTableService.Setup(s => s.GetColumnHeaderItemsAsync("emptyTableCell", "TestWindow", null, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetColumnHeaderItems("emptyTableCell", "TestWindow");
@@ -2499,7 +2516,7 @@ namespace UIAutomationMCP.Tests.Tools
             };
             
             _mockTableService.Setup(s => s.GetRowHeaderItemsAsync("defaultCell", null, null, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetRowHeaderItems("defaultCell");

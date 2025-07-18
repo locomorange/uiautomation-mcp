@@ -1,5 +1,6 @@
 using Moq;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
@@ -46,6 +47,8 @@ namespace UIAutomationMCP.Tests.UnitTests
             var mockVirtualizedItem = new Mock<IVirtualizedItemService>();
             var mockItemContainer = new Mock<IItemContainerService>();
             var mockSynchronizedInput = new Mock<ISynchronizedInputService>();
+            var mockEventMonitor = new Mock<IEventMonitorService>();
+            var mockSubprocessExecutor = new Mock<ISubprocessExecutor>();
 
             _tools = new UIAutomationTools(
                 mockAppLauncher.Object,
@@ -70,7 +73,8 @@ namespace UIAutomationMCP.Tests.UnitTests
                 mockVirtualizedItem.Object,
                 mockItemContainer.Object,
                 mockSynchronizedInput.Object,
-                Mock.Of<UIAutomationMCP.Server.Helpers.SubprocessExecutor>()
+                mockEventMonitor.Object,
+                mockSubprocessExecutor.Object
             );
         }
 
@@ -90,13 +94,19 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_WithSupportedControls_ShouldSucceed(string elementSelector)
         {
             // Arrange
-            var expectedResult = new { 
-                ToggleState = "On", 
-                PreviousState = "Off",
-                StateChanged = true
+            var expectedResult = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { 
+                    Success = true, 
+                    OperationName = "Toggle", 
+                    ToggleState = "On", 
+                    CurrentState = "On", 
+                    PreviousState = "Off", 
+                    StateChanged = true 
+                }
             };
             _mockToggleService.Setup(s => s.ToggleElementAsync(elementSelector, "TestWindow", null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ToggleElement(elementSelector, "TestWindow");
@@ -114,13 +124,19 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_WithStateTransitions_ShouldFollowCorrectCycle(string fromState, string toState)
         {
             // Arrange
-            var expectedResult = new { 
-                ToggleState = toState, 
-                PreviousState = fromState,
-                StateChanged = true
+            var expectedResult = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { 
+                    Success = true, 
+                    OperationName = "Toggle", 
+                    ToggleState = toState, 
+                    CurrentState = toState, 
+                    PreviousState = fromState, 
+                    StateChanged = true 
+                }
             };
             _mockToggleService.Setup(s => s.ToggleElementAsync("checkBox1", "Form", null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ToggleElement("checkBox1", "Form");
@@ -139,14 +155,20 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_OffToOn_ShouldReturnCorrectStates()
         {
             // Arrange
-            var expectedResult = new { 
-                ToggleState = "On", 
-                PreviousState = "Off",
-                PropertyName = "TogglePattern.ToggleState",
-                StateChanged = true
+            var expectedResult = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { 
+                    Success = true, 
+                    Message = "Toggled", 
+                    ToggleState = "On", 
+                    CurrentState = "On", 
+                    PreviousState = "Off", 
+                    StateChanged = true,
+                    Metadata = new Dictionary<string, object> { { "PropertyName", "TogglePattern.ToggleState" } } 
+                }
             };
             _mockToggleService.Setup(s => s.ToggleElementAsync("checkBox", "Dialog", null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ToggleElement("checkBox", "Dialog");
@@ -161,14 +183,20 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_OnToIndeterminate_ShouldReturnCorrectStates()
         {
             // Arrange
-            var expectedResult = new { 
-                ToggleState = "Indeterminate", 
-                PreviousState = "On",
-                PropertyName = "TogglePattern.ToggleState",
-                StateChanged = true
+            var expectedResult = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { 
+                    Success = true, 
+                    Message = "Toggled", 
+                    ToggleState = "Indeterminate", 
+                    CurrentState = "Indeterminate", 
+                    PreviousState = "On", 
+                    StateChanged = true,
+                    Metadata = new Dictionary<string, object> { { "PropertyName", "TogglePattern.ToggleState" } } 
+                }
             };
             _mockToggleService.Setup(s => s.ToggleElementAsync("triStateCheckBox", "Options", null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ToggleElement("triStateCheckBox", "Options");
@@ -183,14 +211,20 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_IndeterminateToOff_ShouldReturnCorrectStates()
         {
             // Arrange
-            var expectedResult = new { 
-                ToggleState = "Off", 
-                PreviousState = "Indeterminate",
-                PropertyName = "TogglePattern.ToggleState",
-                StateChanged = true
+            var expectedResult = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { 
+                    Success = true, 
+                    Message = "Toggled", 
+                    ToggleState = "Off", 
+                    CurrentState = "Off", 
+                    PreviousState = "Indeterminate", 
+                    StateChanged = true,
+                    Metadata = new Dictionary<string, object> { { "PropertyName", "TogglePattern.ToggleState" } } 
+                }
             };
             _mockToggleService.Setup(s => s.ToggleElementAsync("triStateCheckBox", "Settings", null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ToggleElement("triStateCheckBox", "Settings");
@@ -209,14 +243,23 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_CompleteToggleCycle_ShouldFollowSpecifiedOrder()
         {
             // Arrange
-            var firstToggleResult = new { ToggleState = "On", PreviousState = "Off" };
-            var secondToggleResult = new { ToggleState = "Indeterminate", PreviousState = "On" };
-            var thirdToggleResult = new { ToggleState = "Off", PreviousState = "Indeterminate" };
+            var firstToggleResult = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { Success = true, OperationName = "Toggle", ToggleState = "On", CurrentState = "On", PreviousState = "Off" }
+            };
+            var secondToggleResult = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { Success = true, Message = "Toggled", ToggleState = "Indeterminate", CurrentState = "Indeterminate", PreviousState = "On" }
+            };
+            var thirdToggleResult = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { Success = true, Message = "Toggled", ToggleState = "Off", CurrentState = "Off", PreviousState = "Indeterminate" }
+            };
 
             _mockToggleService.SetupSequence(s => s.ToggleElementAsync("triStateControl", "Window", null, 30))
-                             .ReturnsAsync(firstToggleResult)
-                             .ReturnsAsync(secondToggleResult)
-                             .ReturnsAsync(thirdToggleResult);
+                             .Returns(Task.FromResult(firstToggleResult))
+                             .Returns(Task.FromResult(secondToggleResult))
+                             .Returns(Task.FromResult(thirdToggleResult));
 
             // Act
             var result1 = await _tools.ToggleElement("triStateControl", "Window");
@@ -236,14 +279,23 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_TwoStateToggle_ShouldAlternateBetweenOnAndOff()
         {
             // Arrange
-            var firstToggleResult = new { ToggleState = "On", PreviousState = "Off" };
-            var secondToggleResult = new { ToggleState = "Off", PreviousState = "On" };
-            var thirdToggleResult = new { ToggleState = "On", PreviousState = "Off" };
+            var firstToggleResult = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { Success = true, OperationName = "Toggle", ToggleState = "On", CurrentState = "On", PreviousState = "Off" }
+            };
+            var secondToggleResult = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { Success = true, OperationName = "Toggle", ToggleState = "Off", CurrentState = "Off", PreviousState = "On" }
+            };
+            var thirdToggleResult = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { Success = true, OperationName = "Toggle", ToggleState = "On", CurrentState = "On", PreviousState = "Off" }
+            };
 
             _mockToggleService.SetupSequence(s => s.ToggleElementAsync("binaryToggle", "Application", null, 30))
-                             .ReturnsAsync(firstToggleResult)
-                             .ReturnsAsync(secondToggleResult)
-                             .ReturnsAsync(thirdToggleResult);
+                             .Returns(Task.FromResult(firstToggleResult))
+                             .Returns(Task.FromResult(secondToggleResult))
+                             .Returns(Task.FromResult(thirdToggleResult));
 
             // Act
             var result1 = await _tools.ToggleElement("binaryToggle", "Application");
@@ -321,10 +373,13 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_WithEmptyParameters_ShouldCallService(string elementSelector, string windowTitle)
         {
             // Arrange
-            var expectedResult = new { Success = true };
+            var expectedResult = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { Success = true, OperationName = "Toggle" }
+            };
             _mockToggleService.Setup(s => s.ToggleElementAsync(elementSelector,
                 string.IsNullOrEmpty(windowTitle) ? null : windowTitle, null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ToggleElement(elementSelector,
@@ -344,9 +399,12 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_WithProcessId_ShouldCallServiceCorrectly(int processId)
         {
             // Arrange
-            var expectedResult = new { ToggleState = "On", PreviousState = "Off" };
+            var expectedResult = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { Success = true, OperationName = "Toggle", ToggleState = "On", CurrentState = "On", PreviousState = "Off" }
+            };
             _mockToggleService.Setup(s => s.ToggleElementAsync("element1", "TestWindow", processId, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ToggleElement("element1", "TestWindow", processId);
@@ -364,9 +422,12 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_WithCustomTimeout_ShouldCallServiceCorrectly(int timeoutSeconds)
         {
             // Arrange
-            var expectedResult = new { ToggleState = "Off", PreviousState = "On" };
+            var expectedResult = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { Success = true, OperationName = "Toggle", ToggleState = "Off", CurrentState = "Off", PreviousState = "On" }
+            };
             _mockToggleService.Setup(s => s.ToggleElementAsync("element1", "TestWindow", null, timeoutSeconds))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ToggleElement("element1", "TestWindow", timeoutSeconds: timeoutSeconds);
@@ -385,16 +446,24 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_PropertyChange_ShouldTriggerToggleStatePropertyChangedEvent()
         {
             // Arrange
-            var expectedResult = new { 
-                ToggleState = "On", 
-                PreviousState = "Off",
-                PropertyChanged = true,
-                EventFired = "TogglePattern.ToggleState",
-                OldValue = "Off",
-                NewValue = "On"
+            var expectedResult = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { 
+                    Success = true, 
+                    Message = "Toggled", 
+                    ToggleState = "On", 
+                    CurrentState = "On", 
+                    PreviousState = "Off", 
+                    Metadata = new Dictionary<string, object> {
+                        { "PropertyChanged", true },
+                        { "EventFired", "TogglePattern.ToggleState" },
+                        { "OldValue", "Off" },
+                        { "NewValue", "On" }
+                    }
+                }
             };
             _mockToggleService.Setup(s => s.ToggleElementAsync("checkBox", "Form", null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ToggleElement("checkBox", "Form");
@@ -413,19 +482,31 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_MultipleToggleControls_ShouldExecuteIndependently()
         {
             // Arrange
-            var checkbox1Result = new { ToggleState = "On", PreviousState = "Off" };
-            var checkbox2Result = new { ToggleState = "Indeterminate", PreviousState = "Off" };
-            var radioButton1Result = new { ToggleState = "On", PreviousState = "Off" };
-            var toggleButton1Result = new { ToggleState = "On", PreviousState = "Off" };
+            var checkbox1Result = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { Success = true, OperationName = "Toggle", ToggleState = "On", CurrentState = "On", PreviousState = "Off" }
+            };
+            var checkbox2Result = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { Success = true, OperationName = "Toggle", ToggleState = "Indeterminate", CurrentState = "Indeterminate", PreviousState = "Off" }
+            };
+            var radioButton1Result = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { Success = true, OperationName = "Toggle", ToggleState = "On", CurrentState = "On", PreviousState = "Off" }
+            };
+            var toggleButton1Result = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { Success = true, OperationName = "Toggle", ToggleState = "On", CurrentState = "On", PreviousState = "Off" }
+            };
 
             _mockToggleService.Setup(s => s.ToggleElementAsync("checkBox1", "Form", null, 30))
-                             .ReturnsAsync(checkbox1Result);
+                             .Returns(Task.FromResult(checkbox1Result));
             _mockToggleService.Setup(s => s.ToggleElementAsync("checkBox2", "Form", null, 30))
-                             .ReturnsAsync(checkbox2Result);
+                             .Returns(Task.FromResult(checkbox2Result));
             _mockToggleService.Setup(s => s.ToggleElementAsync("radioButton1", "Form", null, 30))
-                             .ReturnsAsync(radioButton1Result);
+                             .Returns(Task.FromResult(radioButton1Result));
             _mockToggleService.Setup(s => s.ToggleElementAsync("toggleButton1", "Form", null, 30))
-                             .ReturnsAsync(toggleButton1Result);
+                             .Returns(Task.FromResult(toggleButton1Result));
 
             // Act
             var result1 = await _tools.ToggleElement("checkBox1", "Form");
@@ -451,14 +532,36 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_RadioButtonGroup_ShouldHandleGroupBehavior()
         {
             // Arrange - Radio buttons in a group should behave differently (only one can be selected)
-            var radio1SelectResult = new { ToggleState = "On", PreviousState = "Off", GroupBehavior = "Exclusive" };
-            var radio2SelectResult = new { ToggleState = "On", PreviousState = "Off", GroupBehavior = "Exclusive", 
-                                          OtherRadioDeselected = "radioButton1" };
+            var radio1SelectResult = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { 
+                    Success = true, 
+                    Message = "Toggled", 
+                    ToggleState = "On", 
+                    CurrentState = "On", 
+                    PreviousState = "Off",
+                    Metadata = new Dictionary<string, object> { { "GroupBehavior", "Exclusive" } }
+                }
+            };
+            var radio2SelectResult = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { 
+                    Success = true, 
+                    Message = "Toggled", 
+                    ToggleState = "On", 
+                    CurrentState = "On", 
+                    PreviousState = "Off",
+                    Metadata = new Dictionary<string, object> { 
+                        { "GroupBehavior", "Exclusive" },
+                        { "OtherRadioDeselected", "radioButton1" }
+                    }
+                }
+            };
 
             _mockToggleService.Setup(s => s.ToggleElementAsync("radioButton1", "GroupBox", null, 30))
-                             .ReturnsAsync(radio1SelectResult);
+                             .Returns(Task.FromResult(radio1SelectResult));
             _mockToggleService.Setup(s => s.ToggleElementAsync("radioButton2", "GroupBox", null, 30))
-                             .ReturnsAsync(radio2SelectResult);
+                             .Returns(Task.FromResult(radio2SelectResult));
 
             // Act
             var result1 = await _tools.ToggleElement("radioButton1", "GroupBox");
@@ -482,14 +585,22 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_SetStateMethodNotAvailable_ShouldOnlyProvideToggleMethod()
         {
             // Arrange - Microsoft仕様では SetState(newState) メソッドは提供されない
-            var expectedResult = new { 
-                ToggleState = "On", 
-                PreviousState = "Off",
-                MethodUsed = "Toggle",
-                Note = "SetState method not provided per Microsoft specification"
+            var expectedResult = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { 
+                    Success = true, 
+                    Message = "Toggled", 
+                    ToggleState = "On", 
+                    CurrentState = "On", 
+                    PreviousState = "Off",
+                    Metadata = new Dictionary<string, object> { 
+                        { "MethodUsed", "Toggle" },
+                        { "Note", "SetState method not provided per Microsoft specification" }
+                    }
+                }
             };
             _mockToggleService.Setup(s => s.ToggleElementAsync("checkBox", "Window", null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ToggleElement("checkBox", "Window");
@@ -506,14 +617,22 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_TwoStateControl_ShouldNotUseIndeterminateState(string fromState, string toState)
         {
             // Arrange - 2状態コントロールはIndeterminateを使用しない
-            var expectedResult = new { 
-                ToggleState = toState, 
-                PreviousState = fromState,
-                StateType = "TwoState",
-                IndeterminateSupported = false
+            var expectedResult = new ServerEnhancedResponse<ToggleActionResult> {
+                Success = true,
+                Data = new ToggleActionResult { 
+                    Success = true, 
+                    Message = "Toggled", 
+                    ToggleState = toState, 
+                    CurrentState = toState, 
+                    PreviousState = fromState,
+                    Metadata = new Dictionary<string, object> { 
+                        { "StateType", "TwoState" },
+                        { "IndeterminateSupported", false }
+                    }
+                }
             };
             _mockToggleService.Setup(s => s.ToggleElementAsync("simpleCheckBox", "Dialog", null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ToggleElement("simpleCheckBox", "Dialog");

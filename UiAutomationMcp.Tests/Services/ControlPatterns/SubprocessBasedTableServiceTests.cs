@@ -3,6 +3,7 @@ using Moq;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Interfaces;
+using UIAutomationMCP.Shared.Results;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -44,40 +45,42 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
         public async Task GetColumnHeaderItemsAsync_ValidTableCell_ReturnsColumnHeaders()
         {
             // Arrange - Microsoft TableItemPattern仕様のGetColumnHeaderItems()をテスト
-            var expectedColumnHeaders = new List<Dictionary<string, object>>
+            var expectedColumnHeaders = new ElementSearchResult
             {
-                new Dictionary<string, object>
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
                 {
-                    ["AutomationId"] = "header_col1",
-                    ["Name"] = "Product Name",
-                    ["ControlType"] = "Header",
-                    ["IsEnabled"] = true,
-                    ["BoundingRectangle"] = new { X = 10, Y = 5, Width = 120, Height = 25 }
-                },
-                new Dictionary<string, object>
-                {
-                    ["AutomationId"] = "header_col2",
-                    ["Name"] = "Price",
-                    ["ControlType"] = "Header",
-                    ["IsEnabled"] = true,
-                    ["BoundingRectangle"] = new { X = 130, Y = 5, Width = 80, Height = 25 }
+                    new UIAutomationMCP.Shared.ElementInfo
+                    {
+                        AutomationId = "header_col1",
+                        Name = "Product Name",
+                        ControlType = "Header",
+                        IsEnabled = true,
+                        BoundingRectangle = new UIAutomationMCP.Shared.BoundingRectangle { X = 10, Y = 5, Width = 120, Height = 25 }
+                    },
+                    new UIAutomationMCP.Shared.ElementInfo
+                    {
+                        AutomationId = "header_col2",
+                        Name = "Price",
+                        ControlType = "Header",
+                        IsEnabled = true,
+                        BoundingRectangle = new UIAutomationMCP.Shared.BoundingRectangle { X = 130, Y = 5, Width = 80, Height = 25 }
+                    }
                 }
             };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<object>("GetColumnHeaderItems", It.IsAny<Dictionary<string, object>>(), 30))
-                        .ReturnsAsync(expectedColumnHeaders);
+            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("GetColumnHeaderItems", It.IsAny<Dictionary<string, object>>(), 30))
+                        .Returns(Task.FromResult(expectedColumnHeaders));
 
             // Act
             var result = await _service.GetColumnHeaderItemsAsync("tableCell1", "TestWindow", null, 30);
 
             // Assert
             Assert.NotNull(result);
-            var response = result as dynamic;
-            Assert.True(response.Success);
-            Assert.Equal(expectedColumnHeaders, response.Data);
+            Assert.True(result.Success);
+            Assert.Equal(expectedColumnHeaders, result.Data);
 
             // サブプロセス実行の検証
-            _mockExecutor.Verify(e => e.ExecuteAsync<object>("GetColumnHeaderItems", 
+            _mockExecutor.Verify(e => e.ExecuteAsync<ElementSearchResult>("GetColumnHeaderItems", 
                 It.Is<Dictionary<string, object>>(d => 
                     d["elementId"].ToString() == "tableCell1" &&
                     d["windowTitle"].ToString() == "TestWindow" &&
@@ -93,25 +96,27 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
         public async Task GetColumnHeaderItemsAsync_WithProcessIdAndCustomTimeout_ExecutesCorrectly()
         {
             // Arrange
-            var expectedResult = new List<Dictionary<string, object>>
+            var expectedResult = new ElementSearchResult
             {
-                new Dictionary<string, object> { ["Name"] = "Column Header 1" }
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                {
+                    new UIAutomationMCP.Shared.ElementInfo { Name = "Column Header 1" }
+                }
             };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<object>("GetColumnHeaderItems", It.IsAny<Dictionary<string, object>>(), 60))
-                        .ReturnsAsync(expectedResult);
+            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("GetColumnHeaderItems", It.IsAny<Dictionary<string, object>>(), 60))
+                        .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _service.GetColumnHeaderItemsAsync("cell2_3", null, 1234, 60);
 
             // Assert
             Assert.NotNull(result);
-            var response = result as dynamic;
-            Assert.True(response.Success);
-            Assert.Equal(expectedResult, response.Data);
+            Assert.True(result.Success);
+            Assert.Equal(expectedResult, result.Data);
 
             // パラメータの検証
-            _mockExecutor.Verify(e => e.ExecuteAsync<object>("GetColumnHeaderItems", 
+            _mockExecutor.Verify(e => e.ExecuteAsync<ElementSearchResult>("GetColumnHeaderItems", 
                 It.Is<Dictionary<string, object>>(d => 
                     d["elementId"].ToString() == "cell2_3" &&
                     d["windowTitle"].ToString() == "" &&
@@ -128,7 +133,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
         {
             // Arrange
             var expectedException = new InvalidOperationException("TableItemPattern not supported");
-            _mockExecutor.Setup(e => e.ExecuteAsync<object>("GetColumnHeaderItems", It.IsAny<Dictionary<string, object>>(), 30))
+            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("GetColumnHeaderItems", It.IsAny<Dictionary<string, object>>(), 30))
                         .ThrowsAsync(expectedException);
 
             // Act
@@ -136,9 +141,8 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
 
             // Assert
             Assert.NotNull(result);
-            var response = result as dynamic;
-            Assert.False(response.Success);
-            Assert.Equal("TableItemPattern not supported", response.Error);
+            Assert.False(result.Success);
+            Assert.Equal("TableItemPattern not supported", result.ErrorMessage);
 
             _output.WriteLine("GetColumnHeaderItemsAsync exception handling test passed");
         }
@@ -155,40 +159,42 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
         public async Task GetRowHeaderItemsAsync_ValidTableCell_ReturnsRowHeaders()
         {
             // Arrange - Microsoft TableItemPattern仕様のGetRowHeaderItems()をテスト
-            var expectedRowHeaders = new List<Dictionary<string, object>>
+            var expectedRowHeaders = new ElementSearchResult
             {
-                new Dictionary<string, object>
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
                 {
-                    ["AutomationId"] = "header_row1",
-                    ["Name"] = "Customer 1",
-                    ["ControlType"] = "Header",
-                    ["IsEnabled"] = true,
-                    ["BoundingRectangle"] = new { X = 5, Y = 30, Width = 90, Height = 20 }
-                },
-                new Dictionary<string, object>
-                {
-                    ["AutomationId"] = "header_row2",
-                    ["Name"] = "Customer 2",
-                    ["ControlType"] = "Header",
-                    ["IsEnabled"] = true,
-                    ["BoundingRectangle"] = new { X = 5, Y = 50, Width = 90, Height = 20 }
+                    new UIAutomationMCP.Shared.ElementInfo
+                    {
+                        AutomationId = "header_row1",
+                        Name = "Customer 1",
+                        ControlType = "Header",
+                        IsEnabled = true,
+                        BoundingRectangle = new UIAutomationMCP.Shared.BoundingRectangle { X = 5, Y = 30, Width = 90, Height = 20 }
+                    },
+                    new UIAutomationMCP.Shared.ElementInfo
+                    {
+                        AutomationId = "header_row2",
+                        Name = "Customer 2",
+                        ControlType = "Header",
+                        IsEnabled = true,
+                        BoundingRectangle = new UIAutomationMCP.Shared.BoundingRectangle { X = 5, Y = 50, Width = 90, Height = 20 }
+                    }
                 }
             };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<object>("GetRowHeaderItems", It.IsAny<Dictionary<string, object>>(), 30))
-                        .ReturnsAsync(expectedRowHeaders);
+            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("GetRowHeaderItems", It.IsAny<Dictionary<string, object>>(), 30))
+                        .Returns(Task.FromResult(expectedRowHeaders));
 
             // Act
             var result = await _service.GetRowHeaderItemsAsync("tableCell2", "TestWindow", null, 30);
 
             // Assert
             Assert.NotNull(result);
-            var response = result as dynamic;
-            Assert.True(response.Success);
-            Assert.Equal(expectedRowHeaders, response.Data);
+            Assert.True(result.Success);
+            Assert.Equal(expectedRowHeaders, result.Data);
 
             // サブプロセス実行の検証
-            _mockExecutor.Verify(e => e.ExecuteAsync<object>("GetRowHeaderItems", 
+            _mockExecutor.Verify(e => e.ExecuteAsync<ElementSearchResult>("GetRowHeaderItems", 
                 It.Is<Dictionary<string, object>>(d => 
                     d["elementId"].ToString() == "tableCell2" &&
                     d["windowTitle"].ToString() == "TestWindow" &&
@@ -204,25 +210,27 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
         public async Task GetRowHeaderItemsAsync_WithDefaultParameters_ExecutesCorrectly()
         {
             // Arrange
-            var expectedResult = new List<Dictionary<string, object>>
+            var expectedResult = new ElementSearchResult
             {
-                new Dictionary<string, object> { ["Name"] = "Default Row Header" }
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                {
+                    new UIAutomationMCP.Shared.ElementInfo { Name = "Default Row Header" }
+                }
             };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<object>("GetRowHeaderItems", It.IsAny<Dictionary<string, object>>(), 30))
-                        .ReturnsAsync(expectedResult);
+            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("GetRowHeaderItems", It.IsAny<Dictionary<string, object>>(), 30))
+                        .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _service.GetRowHeaderItemsAsync("defaultCell");
 
             // Assert
             Assert.NotNull(result);
-            var response = result as dynamic;
-            Assert.True(response.Success);
-            Assert.Equal(expectedResult, response.Data);
+            Assert.True(result.Success);
+            Assert.Equal(expectedResult, result.Data);
 
             // デフォルトパラメータの検証
-            _mockExecutor.Verify(e => e.ExecuteAsync<object>("GetRowHeaderItems", 
+            _mockExecutor.Verify(e => e.ExecuteAsync<ElementSearchResult>("GetRowHeaderItems", 
                 It.Is<Dictionary<string, object>>(d => 
                     d["elementId"].ToString() == "defaultCell" &&
                     d["windowTitle"].ToString() == "" &&
@@ -239,7 +247,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
         {
             // Arrange
             var expectedException = new ArgumentException("Element not found: nonExistentCell");
-            _mockExecutor.Setup(e => e.ExecuteAsync<object>("GetRowHeaderItems", It.IsAny<Dictionary<string, object>>(), 30))
+            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("GetRowHeaderItems", It.IsAny<Dictionary<string, object>>(), 30))
                         .ThrowsAsync(expectedException);
 
             // Act
@@ -247,9 +255,8 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
 
             // Assert
             Assert.NotNull(result);
-            var response = result as dynamic;
-            Assert.False(response.Success);
-            Assert.Equal("Element not found: nonExistentCell", response.Error);
+            Assert.False(result.Success);
+            Assert.Equal("Element not found: nonExistentCell", result.ErrorMessage);
 
             _output.WriteLine("GetRowHeaderItemsAsync exception handling test passed");
         }
@@ -269,20 +276,26 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
         public async Task TableItem_Pattern_Methods_Should_Work_Together(string cellId, string description)
         {
             // Arrange - 異なるタイプのテーブルセルでの動作確認
-            var columnHeadersResult = new List<Dictionary<string, object>>
+            var columnHeadersResult = new ElementSearchResult
             {
-                new Dictionary<string, object> { ["Name"] = $"Column Header for {cellId}" }
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                {
+                    new UIAutomationMCP.Shared.ElementInfo { Name = $"Column Header for {cellId}" }
+                }
             };
             
-            var rowHeadersResult = new List<Dictionary<string, object>>
+            var rowHeadersResult = new ElementSearchResult
             {
-                new Dictionary<string, object> { ["Name"] = $"Row Header for {cellId}" }
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                {
+                    new UIAutomationMCP.Shared.ElementInfo { Name = $"Row Header for {cellId}" }
+                }
             };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<object>("GetColumnHeaderItems", It.IsAny<Dictionary<string, object>>(), 30))
-                        .ReturnsAsync(columnHeadersResult);
-            _mockExecutor.Setup(e => e.ExecuteAsync<object>("GetRowHeaderItems", It.IsAny<Dictionary<string, object>>(), 30))
-                        .ReturnsAsync(rowHeadersResult);
+            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("GetColumnHeaderItems", It.IsAny<Dictionary<string, object>>(), 30))
+                        .Returns(Task.FromResult(columnHeadersResult));
+            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("GetRowHeaderItems", It.IsAny<Dictionary<string, object>>(), 30))
+                        .Returns(Task.FromResult(rowHeadersResult));
 
             // Act
             var columnResult = await _service.GetColumnHeaderItemsAsync(cellId, "TestApplication", null, 30);
@@ -292,15 +305,13 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             Assert.NotNull(columnResult);
             Assert.NotNull(rowResult);
             
-            var columnResponse = columnResult as dynamic;
-            var rowResponse = rowResult as dynamic;
-            Assert.True(columnResponse.Success);
-            Assert.True(rowResponse.Success);
+            Assert.True(columnResult.Success);
+            Assert.True(rowResult.Success);
 
             // 両方のメソッドが正しく実行されたことを検証
-            _mockExecutor.Verify(e => e.ExecuteAsync<object>("GetColumnHeaderItems", 
+            _mockExecutor.Verify(e => e.ExecuteAsync<ElementSearchResult>("GetColumnHeaderItems", 
                 It.Is<Dictionary<string, object>>(d => d["elementId"].ToString() == cellId), 30), Times.Once);
-            _mockExecutor.Verify(e => e.ExecuteAsync<object>("GetRowHeaderItems", 
+            _mockExecutor.Verify(e => e.ExecuteAsync<ElementSearchResult>("GetRowHeaderItems", 
                 It.Is<Dictionary<string, object>>(d => d["elementId"].ToString() == cellId), 30), Times.Once);
 
             _output.WriteLine($"TableItem pattern integration test passed for {description}");
@@ -313,11 +324,11 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
         public async Task TableItem_Pattern_Should_Log_Correctly()
         {
             // Arrange
-            var expectedResult = new List<Dictionary<string, object>>();
-            _mockExecutor.Setup(e => e.ExecuteAsync<object>("GetColumnHeaderItems", It.IsAny<Dictionary<string, object>>(), 30))
-                        .ReturnsAsync(expectedResult);
-            _mockExecutor.Setup(e => e.ExecuteAsync<object>("GetRowHeaderItems", It.IsAny<Dictionary<string, object>>(), 30))
-                        .ReturnsAsync(expectedResult);
+            var expectedResult = new ElementSearchResult { Elements = new List<UIAutomationMCP.Shared.ElementInfo>() };
+            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("GetColumnHeaderItems", It.IsAny<Dictionary<string, object>>(), 30))
+                        .Returns(Task.FromResult(expectedResult));
+            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("GetRowHeaderItems", It.IsAny<Dictionary<string, object>>(), 30))
+                        .Returns(Task.FromResult(expectedResult));
 
             // Act
             await _service.GetColumnHeaderItemsAsync("testCell", "TestApp", null, 30);
@@ -355,19 +366,19 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
         public async Task TableItem_Pattern_Should_Handle_Custom_Timeouts(int timeoutSeconds)
         {
             // Arrange
-            var expectedResult = new List<Dictionary<string, object>>();
-            _mockExecutor.Setup(e => e.ExecuteAsync<object>("GetColumnHeaderItems", It.IsAny<Dictionary<string, object>>(), timeoutSeconds))
-                        .ReturnsAsync(expectedResult);
-            _mockExecutor.Setup(e => e.ExecuteAsync<object>("GetRowHeaderItems", It.IsAny<Dictionary<string, object>>(), timeoutSeconds))
-                        .ReturnsAsync(expectedResult);
+            var expectedResult = new ElementSearchResult { Elements = new List<UIAutomationMCP.Shared.ElementInfo>() };
+            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("GetColumnHeaderItems", It.IsAny<Dictionary<string, object>>(), timeoutSeconds))
+                        .Returns(Task.FromResult(expectedResult));
+            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("GetRowHeaderItems", It.IsAny<Dictionary<string, object>>(), timeoutSeconds))
+                        .Returns(Task.FromResult(expectedResult));
 
             // Act
             await _service.GetColumnHeaderItemsAsync("timeoutTestCell", "TestApp", null, timeoutSeconds);
             await _service.GetRowHeaderItemsAsync("timeoutTestCell", "TestApp", null, timeoutSeconds);
 
             // Assert
-            _mockExecutor.Verify(e => e.ExecuteAsync<object>("GetColumnHeaderItems", It.IsAny<Dictionary<string, object>>(), timeoutSeconds), Times.Once);
-            _mockExecutor.Verify(e => e.ExecuteAsync<object>("GetRowHeaderItems", It.IsAny<Dictionary<string, object>>(), timeoutSeconds), Times.Once);
+            _mockExecutor.Verify(e => e.ExecuteAsync<ElementSearchResult>("GetColumnHeaderItems", It.IsAny<Dictionary<string, object>>(), timeoutSeconds), Times.Once);
+            _mockExecutor.Verify(e => e.ExecuteAsync<ElementSearchResult>("GetRowHeaderItems", It.IsAny<Dictionary<string, object>>(), timeoutSeconds), Times.Once);
 
             _output.WriteLine($"TableItem pattern custom timeout test passed for {timeoutSeconds} seconds");
         }
@@ -384,16 +395,19 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
         public async Task TableService_Should_Support_Both_Table_And_TableItem_Patterns()
         {
             // Arrange - TablePatternとTableItemPatternの両方をサポートすることを確認
-            var tableInfoResult = new { RowCount = 5, ColumnCount = 3 };
-            var columnHeaderItemsResult = new List<Dictionary<string, object>>
+            var tableInfoResult = new UIAutomationMCP.Shared.Results.TableInfoResult { RowCount = 5, ColumnCount = 3 };
+            var columnHeaderItemsResult = new ElementSearchResult
             {
-                new Dictionary<string, object> { ["Name"] = "Header 1" }
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                {
+                    new UIAutomationMCP.Shared.ElementInfo { Name = "Header 1" }
+                }
             };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<object>("GetTableInfo", It.IsAny<Dictionary<string, object>>(), 30))
-                        .ReturnsAsync(tableInfoResult);
-            _mockExecutor.Setup(e => e.ExecuteAsync<object>("GetColumnHeaderItems", It.IsAny<Dictionary<string, object>>(), 30))
-                        .ReturnsAsync(columnHeaderItemsResult);
+            _mockExecutor.Setup(e => e.ExecuteAsync<UIAutomationMCP.Shared.Results.TableInfoResult>("GetTableInfo", It.IsAny<Dictionary<string, object>>(), 30))
+                        .Returns(Task.FromResult(tableInfoResult));
+            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("GetColumnHeaderItems", It.IsAny<Dictionary<string, object>>(), 30))
+                        .Returns(Task.FromResult(columnHeaderItemsResult));
 
             // Act
             var tableInfoResponse = await _service.GetTableInfoAsync("table1", "TestApp", null, 30);
@@ -404,8 +418,8 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             Assert.NotNull(columnHeaderItemsResponse);
 
             // 両方のパターンが正しく動作することを検証
-            _mockExecutor.Verify(e => e.ExecuteAsync<object>("GetTableInfo", It.IsAny<Dictionary<string, object>>(), 30), Times.Once);
-            _mockExecutor.Verify(e => e.ExecuteAsync<object>("GetColumnHeaderItems", It.IsAny<Dictionary<string, object>>(), 30), Times.Once);
+            _mockExecutor.Verify(e => e.ExecuteAsync<UIAutomationMCP.Shared.Results.TableInfoResult>("GetTableInfo", It.IsAny<Dictionary<string, object>>(), 30), Times.Once);
+            _mockExecutor.Verify(e => e.ExecuteAsync<ElementSearchResult>("GetColumnHeaderItems", It.IsAny<Dictionary<string, object>>(), 30), Times.Once);
 
             _output.WriteLine("TableService integration test passed - both Table and TableItem patterns supported");
         }

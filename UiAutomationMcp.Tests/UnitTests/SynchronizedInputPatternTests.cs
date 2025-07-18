@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Interfaces;
+using UIAutomationMCP.Shared.Results;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -42,17 +43,28 @@ namespace UIAutomationMCP.Tests.UnitTests
             var elementId = "element1";
             var windowTitle = "Test Window";
             var processId = 1234;
-            var expectedResult = new { Success = true, Message = $"Listening for {inputType}" };
+            var expectedResult = new ElementSearchResult
+            {
+                Success = true,
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                {
+                    new UIAutomationMCP.Shared.ElementInfo
+                    {
+                        AutomationId = elementId,
+                        Name = $"Listening for {inputType}"
+                    }
+                }
+            };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<object>("StartSynchronizedInput", It.IsAny<Dictionary<string, object>>(), 30))
-                .ReturnsAsync(expectedResult);
+            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("StartSynchronizedInput", It.IsAny<Dictionary<string, object>>(), 30))
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _service.StartListeningAsync(elementId, inputType, windowTitle, processId, 30);
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<object>("StartSynchronizedInput", 
+            _mockExecutor.Verify(e => e.ExecuteAsync<ElementSearchResult>("StartSynchronizedInput", 
                 It.Is<Dictionary<string, object>>(p => 
                     p["elementId"].ToString() == elementId &&
                     p["inputType"].ToString() == inputType &&
@@ -69,17 +81,28 @@ namespace UIAutomationMCP.Tests.UnitTests
             var elementId = "element1";
             var windowTitle = "Test Window";
             var processId = 1234;
-            var expectedResult = new { Success = true, Message = "Listening canceled" };
+            var expectedResult = new ElementSearchResult
+            {
+                Success = true,
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                {
+                    new UIAutomationMCP.Shared.ElementInfo
+                    {
+                        AutomationId = elementId,
+                        Name = "Listening canceled"
+                    }
+                }
+            };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<object>("CancelSynchronizedInput", It.IsAny<Dictionary<string, object>>(), 30))
-                .ReturnsAsync(expectedResult);
+            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("CancelSynchronizedInput", It.IsAny<Dictionary<string, object>>(), 30))
+                .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _service.CancelAsync(elementId, windowTitle, processId, 30);
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<object>("CancelSynchronizedInput", 
+            _mockExecutor.Verify(e => e.ExecuteAsync<ElementSearchResult>("CancelSynchronizedInput", 
                 It.Is<Dictionary<string, object>>(p => 
                     p["elementId"].ToString() == elementId &&
                     p["windowTitle"].ToString() == windowTitle &&
@@ -95,15 +118,15 @@ namespace UIAutomationMCP.Tests.UnitTests
             var elementId = "element1";
             var inputType = "KeyUp";
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<object>("StartSynchronizedInput", It.IsAny<Dictionary<string, object>>(), 30))
-                .ReturnsAsync(new object());
+            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("StartSynchronizedInput", It.IsAny<Dictionary<string, object>>(), 30))
+                .Returns(Task.FromResult(new ElementSearchResult { Success = true }));
 
             // Act
             var result = await _service.StartListeningAsync(elementId, inputType, null, null, 30);
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<object>("StartSynchronizedInput", 
+            _mockExecutor.Verify(e => e.ExecuteAsync<ElementSearchResult>("StartSynchronizedInput", 
                 It.Is<Dictionary<string, object>>(p => 
                     p["elementId"].ToString() == elementId &&
                     p["inputType"].ToString() == inputType &&
@@ -119,7 +142,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             var inputType = "KeyDown";
             var exceptionMessage = "Failed to start listening";
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<object>("StartSynchronizedInput", It.IsAny<Dictionary<string, object>>(), 30))
+            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("StartSynchronizedInput", It.IsAny<Dictionary<string, object>>(), 30))
                 .ThrowsAsync(new Exception(exceptionMessage));
 
             // Act
@@ -127,9 +150,8 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            dynamic response = result;
-            Assert.False(response.Success);
-            Assert.Equal(exceptionMessage, response.Error);
+            Assert.False(result.Success);
+            Assert.Equal(exceptionMessage, result.ErrorMessage);
             
             _mockLogger.Verify(l => l.Log(
                 LogLevel.Error,
@@ -146,7 +168,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             var elementId = "element1";
             var exceptionMessage = "Failed to cancel";
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<object>("CancelSynchronizedInput", It.IsAny<Dictionary<string, object>>(), 30))
+            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("CancelSynchronizedInput", It.IsAny<Dictionary<string, object>>(), 30))
                 .ThrowsAsync(new Exception(exceptionMessage));
 
             // Act
@@ -154,9 +176,8 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            dynamic response = result;
-            Assert.False(response.Success);
-            Assert.Equal(exceptionMessage, response.Error);
+            Assert.False(result.Success);
+            Assert.Equal(exceptionMessage, result.ErrorMessage);
             
             _mockLogger.Verify(l => l.Log(
                 LogLevel.Error,

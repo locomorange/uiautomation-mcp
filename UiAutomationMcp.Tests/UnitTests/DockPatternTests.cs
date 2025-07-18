@@ -1,5 +1,6 @@
 using Moq;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Tests.UnitTests.Base;
 using Xunit.Abstractions;
@@ -30,9 +31,12 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task DockElement_WithValidDockPositions_ShouldSucceed(string dockPosition)
         {
             // Arrange
-            var expectedResult = new { PreviousPosition = "None", NewPosition = dockPosition };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Dock", Details = $"Docked to {dockPosition}", Metadata = new Dictionary<string, object> { { "PreviousPosition", "None" }, { "NewPosition", dockPosition } } }
+            };
             _mockService.Setup(s => s.DockElementAsync("dockablePane", dockPosition, "TestWindow", null, 30))
-                       .ReturnsAsync(expectedResult);
+                       .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.DockElement("dockablePane", dockPosition, "TestWindow");
@@ -75,9 +79,12 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task DockElement_ChangingFromNoneToTop_ShouldReturnCorrectPositions()
         {
             // Arrange
-            var expectedResult = new { PreviousPosition = "None", NewPosition = "Top" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Dock", Details = "Docked to Top", Metadata = new Dictionary<string, object> { { "PreviousPosition", "None" }, { "NewPosition", "Top" } } }
+            };
             _mockService.Setup(s => s.DockElementAsync("toolbar", "top", "MainWindow", null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.DockElement("toolbar", "top", "MainWindow");
@@ -92,9 +99,12 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task DockElement_ChangingFromLeftToRight_ShouldReturnCorrectPositions()
         {
             // Arrange
-            var expectedResult = new { PreviousPosition = "Left", NewPosition = "Right" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Dock", Details = "Docked to Right", Metadata = new Dictionary<string, object> { { "PreviousPosition", "Left" }, { "NewPosition", "Right" } } }
+            };
             _mockService.Setup(s => s.DockElementAsync("sidebar", "right", "IDE", null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.DockElement("sidebar", "right", "IDE");
@@ -109,9 +119,12 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task DockElement_SettingToFill_ShouldExpandElement()
         {
             // Arrange
-            var expectedResult = new { PreviousPosition = "None", NewPosition = "Fill" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Dock", Details = "Docked to Fill", Metadata = new Dictionary<string, object> { { "PreviousPosition", "None" }, { "NewPosition", "Fill" } } }
+            };
             _mockService.Setup(s => s.DockElementAsync("contentArea", "fill", "App", null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.DockElement("contentArea", "fill", "App");
@@ -192,9 +205,12 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task DockElement_WithProcessId_ShouldCallServiceCorrectly(int processId)
         {
             // Arrange
-            var expectedResult = new { PreviousPosition = "None", NewPosition = "Top" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Dock", Details = "Docked to Top", Metadata = new Dictionary<string, object> { { "PreviousPosition", "None" }, { "NewPosition", "Top" } } }
+            };
             _mockService.Setup(s => s.DockElementAsync("element1", "top", "TestWindow", processId, 30))
-                       .ReturnsAsync(expectedResult);
+                       .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.DockElement("element1", "top", "TestWindow", processId);
@@ -210,9 +226,12 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task DockElement_WithCustomTimeout_ShouldCallServiceCorrectly(int timeoutSeconds)
         {
             // Arrange
-            var expectedResult = new { PreviousPosition = "None", NewPosition = "Bottom" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Dock", Details = "Docked to Bottom", Metadata = new Dictionary<string, object> { { "PreviousPosition", "None" }, { "NewPosition", "Bottom" } } }
+            };
             _mockService.Setup(s => s.DockElementAsync("element1", "bottom", "TestWindow", null, timeoutSeconds))
-                       .ReturnsAsync(expectedResult);
+                       .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.DockElement("element1", "bottom", "TestWindow", timeoutSeconds: timeoutSeconds);

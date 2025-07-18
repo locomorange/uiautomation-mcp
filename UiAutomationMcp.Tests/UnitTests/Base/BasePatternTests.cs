@@ -40,6 +40,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
         protected readonly Mock<IVirtualizedItemService> _mockVirtualizedItem;
         protected readonly Mock<IItemContainerService> _mockItemContainer;
         protected readonly Mock<ISynchronizedInputService> _mockSynchronizedInput;
+        protected readonly Mock<IEventMonitorService> _mockEventMonitor;
         protected readonly Mock<ISubprocessExecutor> _mockSubprocessExecutor;
 
         protected BasePatternTests(ITestOutputHelper output)
@@ -69,6 +70,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
             _mockVirtualizedItem = new Mock<IVirtualizedItemService>();
             _mockItemContainer = new Mock<IItemContainerService>();
             _mockSynchronizedInput = new Mock<ISynchronizedInputService>();
+            _mockEventMonitor = new Mock<IEventMonitorService>();
             _mockSubprocessExecutor = new Mock<ISubprocessExecutor>();
 
             // テスト対象サービスのモック
@@ -111,6 +113,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
                 _mockVirtualizedItem.Object,
                 _mockItemContainer.Object,
                 _mockSynchronizedInput.Object,
+                _mockEventMonitor.Object,
                 _mockSubprocessExecutor.Object
             );
         }

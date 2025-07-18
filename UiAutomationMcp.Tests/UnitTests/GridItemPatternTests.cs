@@ -72,7 +72,8 @@ namespace UIAutomationMCP.Tests.UnitTests
                 mockVirtualizedItem.Object,
                 mockItemContainer.Object,
                 mockSynchronizedInput.Object,
-                Mock.Of<UIAutomationMCP.Server.Helpers.SubprocessExecutor>()
+                Mock.Of<IEventMonitorService>(),
+                Mock.Of<ISubprocessExecutor>()
             );
         }
 
@@ -103,7 +104,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 ContainingGrid = "parentGrid"
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("dataGrid", expectedRow, expectedColumn, "TestWindow", null, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridItem("dataGrid", expectedRow, expectedColumn, "TestWindow");
@@ -134,7 +135,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 ContainingGrid = "parentGrid"
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("spanGrid", 0, 0, "TestWindow", null, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridItem("spanGrid", 0, 0, "TestWindow");
@@ -162,7 +163,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 ContainingGrid = "parentGrid"
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("normalGrid", 2, 3, "TestWindow", null, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridItem("normalGrid", 2, 3, "TestWindow");
@@ -190,7 +191,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 ContainingGrid = "mainDataGrid"
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("mainDataGrid", 1, 1, "TestWindow", null, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridItem("mainDataGrid", 1, 1, "TestWindow");
@@ -225,7 +226,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 ContainingGrid = "mergeGrid"
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("mergeGrid", anchorRow, anchorColumn, "TestWindow", null, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridItem("mergeGrid", anchorRow, anchorColumn, "TestWindow");
@@ -256,7 +257,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 ContainingGrid = "mergeGrid"
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("mergeGrid", requestRow, requestColumn, "TestWindow", null, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridItem("mergeGrid", requestRow, requestColumn, "TestWindow");
@@ -288,7 +289,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 ContainingGrid = "coordGrid"
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("coordGrid", 0, 0, "TestWindow", null, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridItem("coordGrid", 0, 0, "TestWindow");
@@ -319,7 +320,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 ContainingGrid = "consistencyGrid"
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("consistencyGrid", row, column, "TestWindow", null, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridItem("consistencyGrid", row, column, "TestWindow");
@@ -396,7 +397,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 ContainingGrid = "propertyGrid"
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("propertyGrid", 2, 3, "TestWindow", null, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridItem("propertyGrid", 2, 3, "TestWindow");
@@ -427,7 +428,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 ContainingGrid = "spanValidGrid"
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("spanValidGrid", row, column, "TestWindow", null, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridItem("spanValidGrid", row, column, "TestWindow");
@@ -496,7 +497,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             };
             _mockGridService.Setup(s => s.GetGridItemAsync(elementId, row, column, 
                 string.IsNullOrEmpty(windowTitle) ? null : windowTitle, null, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridItem(elementId, row, column, 
@@ -529,7 +530,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 ContainingGrid = "processGrid"
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("processGrid", 1, 1, "TestWindow", processId, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridItem("processGrid", 1, 1, "TestWindow", processId);
@@ -560,7 +561,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 ContainingGrid = "timeoutGrid"
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("timeoutGrid", 0, 0, "TestWindow", null, timeoutSeconds))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridItem("timeoutGrid", 0, 0, "TestWindow", timeoutSeconds: timeoutSeconds);

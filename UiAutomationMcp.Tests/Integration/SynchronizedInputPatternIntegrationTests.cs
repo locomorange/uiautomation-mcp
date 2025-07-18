@@ -66,7 +66,7 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
                 It.IsAny<string>(),
                 It.IsAny<object>(),
                 It.IsAny<int>()))
-            .ReturnsAsync(new object());
+            .Returns(Task.FromResult(new object()));
 
         // Act
         var result = await _service.StartListeningAsync(
@@ -96,7 +96,7 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
                 It.IsAny<string>(),
                 It.IsAny<object>(),
                 It.IsAny<int>()))
-            .ReturnsAsync(new object());
+            .Returns(Task.FromResult(new object()));
 
         // Act
         var result = await _service.CancelAsync("testElement", timeoutSeconds: 10);
@@ -131,7 +131,7 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
                 It.IsAny<string>(),
                 It.IsAny<object>(),
                 It.IsAny<int>()))
-            .ReturnsAsync(new object());
+            .Returns(Task.FromResult(new object()));
 
         // Act & Assert
         foreach (var inputType in inputTypes)
@@ -187,22 +187,22 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
                 "StartSynchronizedInput",
                 It.IsAny<object>(),
                 It.IsAny<int>()))
-            .ReturnsAsync(() =>
+            .Returns(Task.FromResult(() =>
             {
                 startCallCount++;
                 return new object();
-            });
+            }));
 
         _mockSubprocessExecutor
             .Setup(x => x.ExecuteAsync<object>(
                 "CancelSynchronizedInput",
                 It.IsAny<object>(),
                 It.IsAny<int>()))
-            .ReturnsAsync(() =>
+            .Returns(Task.FromResult(() =>
             {
                 cancelCallCount++;
                 return new object();
-            });
+            }));
 
         // Act - Simulate multiple start/cancel cycles
         for (int i = 0; i < 3; i++)

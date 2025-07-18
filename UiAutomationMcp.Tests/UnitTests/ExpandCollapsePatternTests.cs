@@ -1,5 +1,6 @@
 using Moq;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
@@ -46,6 +47,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             var mockVirtualizedItem = new Mock<IVirtualizedItemService>();
             var mockItemContainer = new Mock<IItemContainerService>();
             var mockSynchronizedInput = new Mock<ISynchronizedInputService>();
+            var mockEventMonitor = new Mock<IEventMonitorService>();
 
             _tools = new UIAutomationTools(
                 mockAppLauncher.Object,
@@ -70,6 +72,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 mockVirtualizedItem.Object,
                 mockItemContainer.Object,
                 mockSynchronizedInput.Object,
+                mockEventMonitor.Object,
                 Mock.Of<UIAutomationMCP.Server.Helpers.SubprocessExecutor>()
             );
         }
@@ -89,9 +92,12 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_WithExpandAction_ShouldSucceed(string elementSelector)
         {
             // Arrange
-            var expectedResult = new { State = "Expanded", PreviousState = "Collapsed" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Expand", Details = "Expanded" }
+            };
             _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync(elementSelector, "expand", "TestWindow", null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ExpandCollapseElement(elementSelector, "expand", "TestWindow");
@@ -110,9 +116,12 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_WithCollapseAction_ShouldSucceed(string elementSelector)
         {
             // Arrange
-            var expectedResult = new { State = "Collapsed", PreviousState = "Expanded" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Collapse", Details = "Collapsed" }
+            };
             _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync(elementSelector, "collapse", "TestWindow", null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ExpandCollapseElement(elementSelector, "collapse", "TestWindow");
@@ -131,9 +140,12 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_WithToggleAction_ShouldSucceed(string elementSelector)
         {
             // Arrange
-            var expectedResult = new { State = "Expanded", PreviousState = "Collapsed" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Expand", Details = "Expanded" }
+            };
             _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync(elementSelector, "toggle", "TestWindow", null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ExpandCollapseElement(elementSelector, "toggle", "TestWindow");
@@ -152,9 +164,12 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_FromCollapsedToExpanded_ShouldReturnCorrectStates()
         {
             // Arrange
-            var expectedResult = new { State = "Expanded", PreviousState = "Collapsed" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Expand", Details = "Expanded" }
+            };
             _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync("treeNode1", "expand", "Explorer", null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ExpandCollapseElement("treeNode1", "expand", "Explorer");
@@ -169,9 +184,12 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_FromExpandedToCollapsed_ShouldReturnCorrectStates()
         {
             // Arrange
-            var expectedResult = new { State = "Collapsed", PreviousState = "Expanded" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Collapse", Details = "Collapsed" }
+            };
             _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync("menuItem", "collapse", "MainMenu", null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ExpandCollapseElement("menuItem", "collapse", "MainMenu");
@@ -186,9 +204,12 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_ToggleFromCollapsedToExpanded_ShouldReturnCorrectStates()
         {
             // Arrange
-            var expectedResult = new { State = "Expanded", PreviousState = "Collapsed" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Expand", Details = "Expanded" }
+            };
             _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync("comboBox1", "toggle", "Form", null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ExpandCollapseElement("comboBox1", "toggle", "Form");
@@ -203,9 +224,12 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_ToggleFromExpandedToCollapsed_ShouldReturnCorrectStates()
         {
             // Arrange
-            var expectedResult = new { State = "Collapsed", PreviousState = "Expanded" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Collapse", Details = "Collapsed" }
+            };
             _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync("accordion1", "toggle", "Panel", null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ExpandCollapseElement("accordion1", "toggle", "Panel");
@@ -303,9 +327,12 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_WithAlreadyExpandedElementToggle_ShouldCollapseCorrectly()
         {
             // Arrange
-            var expectedResult = new { State = "Collapsed", PreviousState = "Expanded" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Collapse", Details = "Collapsed" }
+            };
             _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync("expandedNode", "toggle", "TreeView", null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ExpandCollapseElement("expandedNode", "toggle", "TreeView");
@@ -327,10 +354,13 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_WithEmptyParameters_ShouldCallService(string elementSelector, string action, string windowTitle)
         {
             // Arrange
-            var expectedResult = new { Success = true };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "ExpandCollapse", Details = "Operation completed" }
+            };
             _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync(elementSelector, action,
                 string.IsNullOrEmpty(windowTitle) ? null : windowTitle, null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ExpandCollapseElement(elementSelector, action,
@@ -350,9 +380,12 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_WithProcessId_ShouldCallServiceCorrectly(int processId)
         {
             // Arrange
-            var expectedResult = new { State = "Collapsed", PreviousState = "Expanded" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Collapse", Details = "Collapsed" }
+            };
             _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync("element1", "collapse", "TestWindow", processId, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ExpandCollapseElement("element1", "collapse", "TestWindow", processId);
@@ -370,9 +403,12 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_WithCustomTimeout_ShouldCallServiceCorrectly(int timeoutSeconds)
         {
             // Arrange
-            var expectedResult = new { State = "Expanded", PreviousState = "Collapsed" };
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Expand", Details = "Expanded" }
+            };
             _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync("element1", "expand", "TestWindow", null, timeoutSeconds))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ExpandCollapseElement("element1", "expand", "TestWindow", timeoutSeconds: timeoutSeconds);
@@ -391,19 +427,31 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_NestedTreeNodes_ShouldExecuteInHierarchicalOrder()
         {
             // Arrange
-            var rootExpandResult = new { State = "Expanded", PreviousState = "Collapsed" };
-            var childExpandResult = new { State = "Expanded", PreviousState = "Collapsed" };
-            var grandChildExpandResult = new { State = "Expanded", PreviousState = "Collapsed" };
-            var childCollapseResult = new { State = "Collapsed", PreviousState = "Expanded" };
+            var rootExpandResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Expand", Details = "Expanded" }
+            };
+            var childExpandResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Expand", Details = "Expanded" }
+            };
+            var grandChildExpandResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Expand", Details = "Expanded" }
+            };
+            var childCollapseResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Collapse", Details = "Collapsed" }
+            };
 
             _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync("rootNode", "expand", "TreeView", null, 30))
-                             .ReturnsAsync(rootExpandResult);
+                             .Returns(Task.FromResult(rootExpandResult));
             _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync("childNode", "expand", "TreeView", null, 30))
-                             .ReturnsAsync(childExpandResult);
+                             .Returns(Task.FromResult(childExpandResult));
             _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync("grandChildNode", "expand", "TreeView", null, 30))
-                             .ReturnsAsync(grandChildExpandResult);
+                             .Returns(Task.FromResult(grandChildExpandResult));
             _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync("childNode", "collapse", "TreeView", null, 30))
-                             .ReturnsAsync(childCollapseResult);
+                             .Returns(Task.FromResult(childCollapseResult));
 
             // Act
             var result1 = await _tools.ExpandCollapseElement("rootNode", "expand", "TreeView");
@@ -429,14 +477,23 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_MultipleToggles_ShouldAlternateStates()
         {
             // Arrange
-            var firstToggleResult = new { State = "Expanded", PreviousState = "Collapsed" };
-            var secondToggleResult = new { State = "Collapsed", PreviousState = "Expanded" };
-            var thirdToggleResult = new { State = "Expanded", PreviousState = "Collapsed" };
+            var firstToggleResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Toggle", Details = "Expanded" }
+            };
+            var secondToggleResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Toggle", Details = "Collapsed" }
+            };
+            var thirdToggleResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { Success = true, OperationName = "Toggle", Details = "Expanded" }
+            };
 
             _mockLayoutService.SetupSequence(s => s.ExpandCollapseElementAsync("accordionPanel", "toggle", "Form", null, 30))
-                             .ReturnsAsync(firstToggleResult)
-                             .ReturnsAsync(secondToggleResult)
-                             .ReturnsAsync(thirdToggleResult);
+                             .Returns(Task.FromResult(firstToggleResult))
+                             .Returns(Task.FromResult(secondToggleResult))
+                             .Returns(Task.FromResult(thirdToggleResult));
 
             // Act
             var result1 = await _tools.ExpandCollapseElement("accordionPanel", "toggle", "Form");
@@ -460,14 +517,20 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_PropertyChange_ShouldTriggerEvent()
         {
             // Arrange
-            var expectedResult = new { 
-                State = "Expanded", 
-                PreviousState = "Collapsed",
-                PropertyChanged = true,
-                EventFired = "ExpandCollapseState"
+            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+                Success = true,
+                Data = new ActionResult { 
+                    Success = true, 
+                    OperationName = "Expand", 
+                    Details = "Expanded",
+                    Metadata = new Dictionary<string, object> {
+                        { "PropertyChanged", true },
+                        { "EventFired", "ExpandCollapseState" }
+                    }
+                }
             };
             _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync("treeItem", "expand", "Explorer", null, 30))
-                             .ReturnsAsync(expectedResult);
+                             .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.ExpandCollapseElement("treeItem", "expand", "Explorer");

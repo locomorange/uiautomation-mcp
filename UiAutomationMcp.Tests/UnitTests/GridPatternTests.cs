@@ -1,5 +1,6 @@
 using Moq;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
@@ -70,7 +71,8 @@ namespace UIAutomationMCP.Tests.UnitTests
                 mockVirtualizedItem.Object,
                 mockItemContainer.Object,
                 mockSynchronizedInput.Object,
-                Mock.Of<UIAutomationMCP.Server.Helpers.SubprocessExecutor>()
+                Mock.Of<IEventMonitorService>(),
+Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
             );
         }
 
@@ -85,13 +87,17 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridInfo_WithValidGrid_ShouldReturnRowAndColumnCount()
         {
             // Arrange
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<GridInfoResult>
             {
-                RowCount = 5,
-                ColumnCount = 3
+                Success = true,
+                Data = new GridInfoResult
+                {
+                    RowCount = 5,
+                    ColumnCount = 3
+                }
             };
             _mockGridService.Setup(s => s.GetGridInfoAsync("dataGrid", "TestWindow", null, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridInfo("dataGrid", "TestWindow");
@@ -110,13 +116,17 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridInfo_WithVariousGridSizes_ShouldReturnCorrectDimensions(int rowCount, int columnCount)
         {
             // Arrange
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<GridInfoResult>
             {
-                RowCount = rowCount,
-                ColumnCount = columnCount
+                Success = true,
+                Data = new GridInfoResult
+                {
+                    RowCount = rowCount,
+                    ColumnCount = columnCount
+                }
             };
             _mockGridService.Setup(s => s.GetGridInfoAsync("grid", "TestApp", null, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridInfo("grid", "TestApp");
@@ -131,13 +141,17 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridInfo_WithSingleItemGrid_ShouldStillBeValidGrid()
         {
             // Arrange - Microsoft仕様: 単一アイテムでもグリッドとして有効
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<GridInfoResult>
             {
-                RowCount = 1,
-                ColumnCount = 1
+                Success = true,
+                Data = new GridInfoResult
+                {
+                    RowCount = 1,
+                    ColumnCount = 1
+                }
             };
             _mockGridService.Setup(s => s.GetGridInfoAsync("singleItemGrid", "TestWindow", null, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridInfo("singleItemGrid", "TestWindow");
@@ -159,22 +173,32 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridItem_WithValidCoordinates_ShouldReturnItem(int row, int column)
         {
             // Arrange
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
-                AutomationId = $"cell_{row}_{column}",
-                Name = $"Cell({row},{column})",
-                ControlType = "DataItem",
-                IsEnabled = true,
-                BoundingRectangle = new
+                Success = true,
+                Data = new ElementSearchResult
                 {
-                    X = 100 + column * 80,
-                    Y = 50 + row * 25,
-                    Width = 80,
-                    Height = 25
+                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                    {
+                        new UIAutomationMCP.Shared.ElementInfo
+                        {
+                            AutomationId = $"cell_{row}_{column}",
+                            Name = $"Cell({row},{column})",
+                            ControlType = "DataItem",
+                            IsEnabled = true,
+                            BoundingRectangle = new UIAutomationMCP.Shared.BoundingRectangle
+                            {
+                                X = 100 + column * 80,
+                                Y = 50 + row * 25,
+                                Width = 80,
+                                Height = 25
+                            }
+                        }
+                    }
                 }
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("dataGrid", row, column, "TestWindow", null, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridItem("dataGrid", row, column, "TestWindow");
@@ -189,15 +213,25 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridItem_WithZeroBasedCoordinates_ShouldReturnFirstItem()
         {
             // Arrange - Microsoft仕様: グリッド座標は0ベース
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
-                AutomationId = "cell_0_0",
-                Name = "First Cell",
-                ControlType = "DataItem",
-                IsEnabled = true
+                Success = true,
+                Data = new ElementSearchResult
+                {
+                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                    {
+                        new UIAutomationMCP.Shared.ElementInfo
+                        {
+                            AutomationId = "cell_0_0",
+                            Name = "First Cell",
+                            ControlType = "DataItem",
+                            IsEnabled = true
+                        }
+                    }
+                }
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("grid", 0, 0, "TestApp", null, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridItem("grid", 0, 0, "TestApp");
@@ -212,22 +246,32 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridItem_WithEmptyCell_ShouldStillReturnElement()
         {
             // Arrange - Microsoft仕様: 空のセルでもUI Automation要素を返す必要がある
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
-                AutomationId = "empty_cell_1_2",
-                Name = "",
-                ControlType = "DataItem",
-                IsEnabled = true,
-                BoundingRectangle = new
+                Success = true,
+                Data = new ElementSearchResult
                 {
-                    X = 260,
-                    Y = 75,
-                    Width = 80,
-                    Height = 25
+                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                    {
+                        new UIAutomationMCP.Shared.ElementInfo
+                        {
+                            AutomationId = "empty_cell_1_2",
+                            Name = "",
+                            ControlType = "DataItem",
+                            IsEnabled = true,
+                            BoundingRectangle = new UIAutomationMCP.Shared.BoundingRectangle
+                            {
+                                X = 260,
+                                Y = 75,
+                                Width = 80,
+                                Height = 25
+                            }
+                        }
+                    }
                 }
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("dataGrid", 1, 2, "TestWindow", null, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridItem("dataGrid", 1, 2, "TestWindow");
@@ -342,10 +386,14 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridInfo_WithEmptyParameters_ShouldCallService(string elementId, string windowTitle)
         {
             // Arrange
-            var expectedResult = new { RowCount = 3, ColumnCount = 2 };
+            var expectedResult = new ServerEnhancedResponse<GridInfoResult>
+            {
+                Success = true,
+                Data = new GridInfoResult { RowCount = 3, ColumnCount = 2 }
+            };
             _mockGridService.Setup(s => s.GetGridInfoAsync(elementId, 
                 string.IsNullOrEmpty(windowTitle) ? null : windowTitle, null, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridInfo(elementId, 
@@ -365,9 +413,13 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridInfo_WithProcessId_ShouldCallServiceCorrectly(int processId)
         {
             // Arrange
-            var expectedResult = new { RowCount = 4, ColumnCount = 6 };
+            var expectedResult = new ServerEnhancedResponse<GridInfoResult>
+            {
+                Success = true,
+                Data = new GridInfoResult { RowCount = 4, ColumnCount = 6 }
+            };
             _mockGridService.Setup(s => s.GetGridInfoAsync("grid1", "TestWindow", processId, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridInfo("grid1", "TestWindow", processId);
@@ -385,9 +437,13 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridInfo_WithCustomTimeout_ShouldCallServiceCorrectly(int timeoutSeconds)
         {
             // Arrange
-            var expectedResult = new { RowCount = 2, ColumnCount = 4 };
+            var expectedResult = new ServerEnhancedResponse<GridInfoResult>
+            {
+                Success = true,
+                Data = new GridInfoResult { RowCount = 2, ColumnCount = 4 }
+            };
             _mockGridService.Setup(s => s.GetGridInfoAsync("grid1", "TestWindow", null, timeoutSeconds))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridInfo("grid1", "TestWindow", timeoutSeconds: timeoutSeconds);
@@ -404,10 +460,20 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridItem_WithEmptyParameters_ShouldCallService(string elementId, int row, int column, string windowTitle)
         {
             // Arrange
-            var expectedResult = new { AutomationId = "cell", Name = "Test Cell" };
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
+            {
+                Success = true,
+                Data = new ElementSearchResult
+                {
+                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                    {
+                        new UIAutomationMCP.Shared.ElementInfo { AutomationId = "cell", Name = "Test Cell" }
+                    }
+                }
+            };
             _mockGridService.Setup(s => s.GetGridItemAsync(elementId, row, column, 
                 string.IsNullOrEmpty(windowTitle) ? null : windowTitle, null, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridItem(elementId, row, column, 
@@ -428,22 +494,66 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GridOperations_FullWorkflow_ShouldExecuteCorrectly()
         {
             // Arrange
-            var gridInfoResult = new { RowCount = 3, ColumnCount = 2 };
-            var cell00Result = new { AutomationId = "cell_0_0", Name = "Header 1" };
-            var cell01Result = new { AutomationId = "cell_0_1", Name = "Header 2" };
-            var cell10Result = new { AutomationId = "cell_1_0", Name = "Data 1" };
-            var cell11Result = new { AutomationId = "cell_1_1", Name = "Data 2" };
+            var gridInfoResult = new ServerEnhancedResponse<GridInfoResult>
+            {
+                Success = true,
+                Data = new GridInfoResult { RowCount = 3, ColumnCount = 2 }
+            };
+            var cell00Result = new ServerEnhancedResponse<ElementSearchResult>
+            {
+                Success = true,
+                Data = new ElementSearchResult
+                {
+                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                    {
+                        new UIAutomationMCP.Shared.ElementInfo { AutomationId = "cell_0_0", Name = "Header 1" }
+                    }
+                }
+            };
+            var cell01Result = new ServerEnhancedResponse<ElementSearchResult>
+            {
+                Success = true,
+                Data = new ElementSearchResult
+                {
+                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                    {
+                        new UIAutomationMCP.Shared.ElementInfo { AutomationId = "cell_0_1", Name = "Header 2" }
+                    }
+                }
+            };
+            var cell10Result = new ServerEnhancedResponse<ElementSearchResult>
+            {
+                Success = true,
+                Data = new ElementSearchResult
+                {
+                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                    {
+                        new UIAutomationMCP.Shared.ElementInfo { AutomationId = "cell_1_0", Name = "Data 1" }
+                    }
+                }
+            };
+            var cell11Result = new ServerEnhancedResponse<ElementSearchResult>
+            {
+                Success = true,
+                Data = new ElementSearchResult
+                {
+                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                    {
+                        new UIAutomationMCP.Shared.ElementInfo { AutomationId = "cell_1_1", Name = "Data 2" }
+                    }
+                }
+            };
 
             _mockGridService.Setup(s => s.GetGridInfoAsync("dataTable", "TestApp", null, 30))
-                           .ReturnsAsync(gridInfoResult);
+                           .Returns(Task.FromResult(gridInfoResult));
             _mockGridService.Setup(s => s.GetGridItemAsync("dataTable", 0, 0, "TestApp", null, 30))
-                           .ReturnsAsync(cell00Result);
+                           .Returns(Task.FromResult(cell00Result));
             _mockGridService.Setup(s => s.GetGridItemAsync("dataTable", 0, 1, "TestApp", null, 30))
-                           .ReturnsAsync(cell01Result);
+                           .Returns(Task.FromResult(cell01Result));
             _mockGridService.Setup(s => s.GetGridItemAsync("dataTable", 1, 0, "TestApp", null, 30))
-                           .ReturnsAsync(cell10Result);
+                           .Returns(Task.FromResult(cell10Result));
             _mockGridService.Setup(s => s.GetGridItemAsync("dataTable", 1, 1, "TestApp", null, 30))
-                           .ReturnsAsync(cell11Result);
+                           .Returns(Task.FromResult(cell11Result));
 
             // Act
             var gridInfo = await _tools.GetGridInfo("dataTable", "TestApp");
@@ -479,15 +589,25 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridItem_WithBoundaryCoordinates_ShouldSucceed(int row, int column, int maxRow, int maxColumn)
         {
             // Arrange - 境界値での正常動作テスト
-            var expectedResult = new
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
-                AutomationId = $"boundary_cell_{row}_{column}",
-                Name = $"Boundary Cell ({row},{column})",
-                ControlType = "DataItem",
-                IsEnabled = true
+                Success = true,
+                Data = new ElementSearchResult
+                {
+                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                    {
+                        new UIAutomationMCP.Shared.ElementInfo
+                        {
+                            AutomationId = $"boundary_cell_{row}_{column}",
+                            Name = $"Boundary Cell ({row},{column})",
+                            ControlType = "DataItem",
+                            IsEnabled = true
+                        }
+                    }
+                }
             };
             _mockGridService.Setup(s => s.GetGridItemAsync("boundaryGrid", row, column, "TestApp", null, 30))
-                           .ReturnsAsync(expectedResult);
+                           .Returns(Task.FromResult(expectedResult));
 
             // Act
             var result = await _tools.GetGridItem("boundaryGrid", row, column, "TestApp");

@@ -5,6 +5,7 @@ using Moq;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Shared.Requests;
+using UIAutomationMCP.Shared.Results;
 using Xunit;
 
 namespace UiAutomationMcp.Tests.Integration;
@@ -35,14 +36,18 @@ public class ItemContainerPatternIntegrationTests : IDisposable
     public async Task FindItemByPropertyAsync_WithNonExistentElement_ShouldHandleTimeoutGracefully()
     {
         // Arrange
-        var errorResponse = new { Success = false, ErrorMessage = "Container element not found" };
+        var errorResponse = new ElementSearchResult
+        {
+            Success = false,
+            ErrorMessage = "Container element not found"
+        };
 
         _mockSubprocessExecutor
-            .Setup(x => x.ExecuteAsync<object>(
+            .Setup(x => x.ExecuteAsync<ElementSearchResult>(
                 It.IsAny<string>(),
                 It.IsAny<object>(),
                 It.IsAny<int>()))
-            .ReturnsAsync(errorResponse);
+            .Returns(Task.FromResult(errorResponse));
 
         // Act
         var result = await _service.FindItemByPropertyAsync(
@@ -55,31 +60,35 @@ public class ItemContainerPatternIntegrationTests : IDisposable
 
         // Assert
         Assert.NotNull(result);
-        dynamic resultObj = result;
-        Assert.False(resultObj.Success);
-        Assert.Contains("not found", resultObj.ErrorMessage);
+        Assert.False(result.Success);
+        Assert.Contains("not found", result.ErrorMessage);
     }
 
     [Fact]
     public async Task FindItemByPropertyAsync_ServerWorkerCommunication_ShouldHandleCorrectly()
     {
         // Arrange
-        var successResponse = new {
+        var successResponse = new ElementSearchResult
+        {
             Success = true,
-            ElementInfo = new {
-                AutomationId = "item_1",
-                Name = "Item1",
-                ClassName = "ListItem",
-                ControlType = "ListItem"
+            Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+            {
+                new UIAutomationMCP.Shared.ElementInfo
+                {
+                    AutomationId = "item_1",
+                    Name = "Item1",
+                    ClassName = "ListItem",
+                    ControlType = "ListItem"
+                }
             }
         };
 
         _mockSubprocessExecutor
-            .Setup(x => x.ExecuteAsync<object>(
+            .Setup(x => x.ExecuteAsync<ElementSearchResult>(
                 It.IsAny<string>(),
                 It.IsAny<object>(),
                 It.IsAny<int>()))
-            .ReturnsAsync(successResponse);
+            .Returns(Task.FromResult(successResponse));
 
         // Act
         var result = await _service.FindItemByPropertyAsync(
@@ -92,9 +101,9 @@ public class ItemContainerPatternIntegrationTests : IDisposable
 
         // Assert
         Assert.NotNull(result);
-        dynamic resultObj = result;
-        Assert.True(resultObj.Success);
-        Assert.NotNull(resultObj.ElementInfo);
+        Assert.True(result.Success);
+        Assert.NotNull(result.Data);
+        Assert.NotEmpty(result.Data.Elements);
     }
 
     [Fact]
@@ -109,11 +118,11 @@ public class ItemContainerPatternIntegrationTests : IDisposable
         };
 
         _mockSubprocessExecutor
-            .Setup(x => x.ExecuteAsync<object>(
+            .Setup(x => x.ExecuteAsync<ElementSearchResult>(
                 It.IsAny<string>(),
                 It.IsAny<object>(),
                 It.IsAny<int>()))
-            .ReturnsAsync(new { Success = true });
+            .Returns(Task.FromResult(new ElementSearchResult { Success = true }));
 
         // Act & Assert
         foreach (var (propertyName, value) in propertyTypes)
@@ -128,7 +137,7 @@ public class ItemContainerPatternIntegrationTests : IDisposable
         }
 
         // Verify the mock was called exactly 3 times (once per property type)
-        _mockSubprocessExecutor.Verify(x => x.ExecuteAsync<object>(
+        _mockSubprocessExecutor.Verify(x => x.ExecuteAsync<ElementSearchResult>(
             "FindItemByProperty",
             It.IsAny<object>(),
             10), Times.Exactly(3));
@@ -138,22 +147,27 @@ public class ItemContainerPatternIntegrationTests : IDisposable
     public async Task FindItemByPropertyAsync_WithNullPropertyValue_ShouldFindItemsWithNullProperty()
     {
         // Arrange
-        var response = new {
+        var response = new ElementSearchResult
+        {
             Success = true,
-            ElementInfo = new {
-                AutomationId = "unnamed_node",
-                Name = (string?)null,
-                ClassName = "TreeNode",
-                ControlType = "TreeItem"
+            Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+            {
+                new UIAutomationMCP.Shared.ElementInfo
+                {
+                    AutomationId = "unnamed_node",
+                    Name = (string?)null,
+                    ClassName = "TreeNode",
+                    ControlType = "TreeItem"
+                }
             }
         };
 
         _mockSubprocessExecutor
-            .Setup(x => x.ExecuteAsync<object>(
+            .Setup(x => x.ExecuteAsync<ElementSearchResult>(
                 It.IsAny<string>(),
                 It.IsAny<object>(),
                 It.IsAny<int>()))
-            .ReturnsAsync(response);
+            .Returns(Task.FromResult(response));
 
         // Act
         var result = await _service.FindItemByPropertyAsync(
@@ -164,8 +178,7 @@ public class ItemContainerPatternIntegrationTests : IDisposable
 
         // Assert
         Assert.NotNull(result);
-        dynamic resultObj = result;
-        Assert.True(resultObj.Success);
+        Assert.True(result.Success);
     }
 
     [Fact]
@@ -174,18 +187,18 @@ public class ItemContainerPatternIntegrationTests : IDisposable
         // Arrange
         var callCount = 0;
         _mockSubprocessExecutor
-            .Setup(x => x.ExecuteAsync<object>(
+            .Setup(x => x.ExecuteAsync<ElementSearchResult>(
                 It.IsAny<string>(),
                 It.IsAny<object>(),
                 It.IsAny<int>()))
-            .ReturnsAsync(() =>
+            .Returns(() => Task.FromResult(new ElementSearchResult
             {
-                callCount++;
-                return new {
-                    Success = true,
-                    ElementInfo = new { AutomationId = $"item_{callCount}" }
-                };
-            });
+                Success = true,
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                {
+                    new UIAutomationMCP.Shared.ElementInfo { AutomationId = $"item_{++callCount}" }
+                }
+            }));
 
         // Act - Multiple sequential calls
         for (int i = 0; i < 3; i++)
@@ -201,7 +214,7 @@ public class ItemContainerPatternIntegrationTests : IDisposable
 
         // Assert
         Assert.Equal(3, callCount);
-        _mockSubprocessExecutor.Verify(x => x.ExecuteAsync<object>(
+        _mockSubprocessExecutor.Verify(x => x.ExecuteAsync<ElementSearchResult>(
             It.IsAny<string>(),
             It.IsAny<object>(),
             It.IsAny<int>()), Times.Exactly(3));
