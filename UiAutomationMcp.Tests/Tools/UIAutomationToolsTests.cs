@@ -355,17 +355,16 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task SetElementValue_Success_SetsValue()
         {
             // Arrange
-            var resultObject = new ElementValueResult
+            var resultObject = new ActionResult
             {
                 Success = true,
                 ElementId = "textBox",
-                Value = "Test Value",
-                StringValue = "Test Value",
-                // WindowTitle not available in ElementSearchResult,
-                HasValue = true,
-                IsValid = true
+                Action = "SetValue",
+                ActionName = "SetValue",
+                Completed = true,
+                ExecutedAt = DateTime.Now
             };
-            var serverResponse = new ServerEnhancedResponse<ElementValueResult>
+            var serverResponse = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
                 Data = resultObject,
@@ -667,22 +666,16 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task SetRangeValue_Success_SetsRangeValue()
         {
             // Arrange
-            var resultObject = new RangeValueResult
+            var resultObject = new ActionResult
             {
                 Success = true,
                 ElementId = "slider",
-                // WindowTitle not available in ElementSearchResult,
-                CurrentValue = 50.0,
-                Value = 50.0,
-                MinimumValue = 0.0,
-                Minimum = 0.0,
-                MaximumValue = 100.0,
-                Maximum = 100.0,
-                SmallChange = 1.0,
-                LargeChange = 10.0,
-                IsReadOnly = false
+                Action = "SetRangeValue",
+                ActionName = "SetRangeValue",
+                Completed = true,
+                ExecutedAt = DateTime.Now
             };
-            var serverResponse = new ServerEnhancedResponse<RangeValueResult>
+            var serverResponse = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
                 Data = resultObject,
@@ -1780,21 +1773,26 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task GetAccessibilityInfo_WithValidParameters_CallsCorrectService()
         {
             // Arrange
-            var resultObject = new AccessibilityInfoResult
+            var resultObject = new ElementSearchResult
             {
                 Success = true,
-                Name = "Submit",
-                AutomationId = "button1",
-                ControlType = "Button",
-                LocalizedControlType = "Button",
-                IsEnabled = true,
-                IsKeyboardFocusable = true,
-                HasKeyboardFocus = false,
-                IsPassword = false,
-                HelpText = "Submit the form",
-                BoundingRectangle = new Rectangle { X = 100, Y = 200, Width = 80, Height = 30 }
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                {
+                    new UIAutomationMCP.Shared.ElementInfo
+                    {
+                        ElementId = "button1",
+                        Name = "Submit",
+                        AutomationId = "button1",
+                        ControlType = "Button",
+                        IsEnabled = true,
+                        IsVisible = true,
+                        BoundingRectangle = new System.Windows.Rect(100, 200, 80, 30)
+                    }
+                },
+                Count = 1,
+                SearchCriteria = "Accessibility info for button1"
             };
-            var serverResponse = new ServerEnhancedResponse<AccessibilityInfoResult>
+            var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
                 Data = resultObject,
@@ -1817,14 +1815,26 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task GetCustomProperties_WithValidParameters_CallsCorrectService()
         {
             // Arrange
-            var resultObject = new PropertyResult
+            var resultObject = new ElementSearchResult
             {
                 Success = true,
-                ElementId = "element1",
-                // WindowTitle not available in ElementSearchResult,
-                Properties = new Dictionary<string, object> { ["CustomProp1"] = "Value1", ["CustomProp2"] = "Value2" }
+                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                {
+                    new UIAutomationMCP.Shared.ElementInfo
+                    {
+                        ElementId = "element1",
+                        Name = "Element1",
+                        ControlType = "Custom",
+                        AutomationId = "element1",
+                        IsEnabled = true,
+                        IsVisible = true,
+                        BoundingRectangle = new System.Windows.Rect(0, 0, 100, 50)
+                    }
+                },
+                Count = 1,
+                SearchCriteria = "Custom properties for element1"
             };
-            var serverResponse = new ServerEnhancedResponse<PropertyResult>
+            var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
                 Data = resultObject,
@@ -1851,16 +1861,16 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task SetElementValue_WithEmptyElementId_ShouldCallService()
         {
             // Arrange
-            var resultObject = new ElementValueResult
+            var resultObject = new ActionResult
             {
                 Success = true,
                 ElementId = "",
-                Value = "testValue",
-                StringValue = "testValue",
-                HasValue = true,
-                IsValid = true
+                Action = "SetValue",
+                ActionName = "SetValue",
+                Completed = true,
+                ExecutedAt = DateTime.Now
             };
-            var serverResponse = new ServerEnhancedResponse<ElementValueResult>
+            var serverResponse = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
                 Data = resultObject,
@@ -1883,21 +1893,16 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task SetRangeValue_WithBoundaryValues_ShouldCallService()
         {
             // Arrange
-            var resultObject = new RangeValueResult
+            var resultObject = new ActionResult
             {
                 Success = true,
                 ElementId = "slider1",
-                CurrentValue = 0.0,
-                Value = 0.0,
-                MinimumValue = 0.0,
-                Minimum = 0.0,
-                MaximumValue = 100.0,
-                Maximum = 100.0,
-                SmallChange = 1.0,
-                LargeChange = 10.0,
-                IsReadOnly = false
+                Action = "SetRangeValue",
+                ActionName = "SetRangeValue",
+                Completed = true,
+                ExecutedAt = DateTime.Now
             };
-            var serverResponse = new ServerEnhancedResponse<RangeValueResult>
+            var serverResponse = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
                 Data = resultObject,

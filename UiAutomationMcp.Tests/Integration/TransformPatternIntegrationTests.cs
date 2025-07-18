@@ -281,12 +281,11 @@ namespace UIAutomationMCP.Tests.Integration
             _output.WriteLine($"  Target rotation: {degrees} degrees");
 
             // Act
-            var jsonResult = await _transformService.RotateElementAsync(
+            var result = await _transformService.RotateElementAsync(
                 nonExistentElementId, degrees, "TestWindow", timeoutSeconds: timeout);
 
             // Assert
-            Assert.NotNull(jsonResult);
-            var result = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(jsonResult);
+            Assert.NotNull(result);
             Assert.False(result.Success);
             Assert.Contains("not found", result.ErrorMessage ?? "", StringComparison.OrdinalIgnoreCase);
             
@@ -312,12 +311,11 @@ namespace UIAutomationMCP.Tests.Integration
             _output.WriteLine($"Testing RotateElement with degrees: {degrees}");
 
             // Act
-            var jsonResult = await _transformService.RotateElementAsync(
+            var result = await _transformService.RotateElementAsync(
                 elementId, degrees, "TestWindow", timeoutSeconds: timeout);
 
             // Assert
-            Assert.NotNull(jsonResult);
-            var result = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(jsonResult);
+            Assert.NotNull(result);
             // 要素が存在しないため失敗するが、角度は正しく処理される
             Assert.False(result.Success);
             
@@ -471,7 +469,7 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange
             const int concurrentOperations = 5;
-            var tasks = new List<Task<object>>();
+            var tasks = new List<Task<ServerEnhancedResponse<ActionResult>>>();
 
             _output.WriteLine($"Testing {concurrentOperations} concurrent Transform operations");
 
@@ -497,8 +495,7 @@ namespace UIAutomationMCP.Tests.Integration
             {
                 Assert.NotNull(result);
                 // 要素が存在しないため全て失敗するはずだが、エラーハンドリングは正常
-                var deserializedResult = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(result);
-                Assert.False(deserializedResult.Success);
+                Assert.False(result.Success);
                 Assert.NotNull(deserializedResult.ErrorMessage);
             }
 

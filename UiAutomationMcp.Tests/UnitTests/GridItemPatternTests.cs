@@ -106,12 +106,12 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = $"Cell({expectedRow},{expectedColumn})",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            Properties = new Dictionary<string, object>
+                            AvailableActions = new Dictionary<string, string>
                             {
-                                ["Row"] = expectedRow,
-                                ["Column"] = expectedColumn,
-                                ["RowSpan"] = 1,
-                                ["ColumnSpan"] = 1,
+                                ["Row"] = expectedRow.ToString(),
+                                ["Column"] = expectedColumn.ToString(),
+                                ["RowSpan"] = "1",
+                                ["ColumnSpan"] = "1",
                                 ["ContainingGrid"] = "parentGrid"
                             }
                         }
