@@ -212,7 +212,7 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
                     Height = element.Current.BoundingRectangle.Height
                 },
                 HelpText = $"Pattern: {GetPatternName(patternId)}",
-                AvailableActions = GetPatternActions(patternId),
+                SupportedPatterns = new List<string> { GetPatternName(patternId) },
                 IsVisible = !element.Current.IsOffscreen
             };
         }
@@ -267,33 +267,5 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
             return "Unknown";
         }
 
-        private Dictionary<string, string> GetPatternActions(AutomationPattern patternId)
-        {
-            var actions = new Dictionary<string, string>();
-            
-            if (patternId == InvokePattern.Pattern)
-                actions["Invoke"] = "Click or activate the element";
-            else if (patternId == ValuePattern.Pattern)
-                actions["SetValue"] = "Set the element's value";
-            else if (patternId == TogglePattern.Pattern)
-                actions["Toggle"] = "Toggle the element's state";
-            else if (patternId == SelectionItemPattern.Pattern)
-                actions["Select"] = "Select this item";
-            else if (patternId == ExpandCollapsePattern.Pattern)
-            {
-                actions["Expand"] = "Expand the element";
-                actions["Collapse"] = "Collapse the element";
-            }
-            else if (patternId == ScrollPattern.Pattern)
-                actions["Scroll"] = "Scroll the element";
-            else if (patternId == WindowPattern.Pattern)
-            {
-                actions["Close"] = "Close the window";
-                actions["Maximize"] = "Maximize the window";
-                actions["Minimize"] = "Minimize the window";
-            }
-            
-            return actions;
-        }
     }
 }

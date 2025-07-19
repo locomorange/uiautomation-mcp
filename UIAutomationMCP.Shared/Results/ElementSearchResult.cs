@@ -32,8 +32,7 @@ namespace UIAutomationMCP.Shared.Results
         public string RuntimeId { get; set; } = "";
         public string FrameworkId { get; set; } = "";
         public int NativeWindowHandle { get; set; }
-        public List<string> SupportedPatterns { get; set; } = new();
-        public new List<string> AvailableActions { get; set; } = new();
+        public new List<string> SupportedPatterns { get; set; } = new();
         
         // 拡張プロパティ（必要に応じて）
         [JsonExtensionData]

@@ -106,13 +106,14 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = $"Cell({expectedRow},{expectedColumn})",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            AvailableActions = new Dictionary<string, string>
+                            SupportedPatterns = new List<string> { "GridItemPattern" },
+                            Properties = new Dictionary<string, object>
                             {
-                                ["Row"] = expectedRow.ToString(),
-                                ["Column"] = expectedColumn.ToString(),
-                                ["RowSpan"] = "1",
-                                ["ColumnSpan"] = "1",
-                                ["ContainingGrid"] = "parentGrid"
+                                ["Row"] = 0,
+                                ["Column"] = 0,
+                                ["RowSpan"] = 1,
+                                ["ColumnSpan"] = 1,
+                                ["ContainingGrid"] = "defaultGrid"
                             }
                         }
                     }
@@ -151,14 +152,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = "Spanned Cell",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            AvailableActions = new Dictionary<string, string>
+                            SupportedPatterns = new List<string> { "GridItemPattern" },
+                            Properties = new Dictionary<string, object>
                             {
-                                ["Row"] = "0",
-                                ["Column"] = "0",
-                                ["RowSpan"] = rowSpan.ToString(),
-                                ["ColumnSpan"] = columnSpan.ToString(),
-                                ["ContainingGrid"] = "parentGrid"
-                            }
+                                ["Row"] = 0,
+                                ["Column"] = 0,
+                                ["RowSpan"] = 1,
+                                ["ColumnSpan"] = 1,
+                                ["ContainingGrid"] = "defaultGrid"
+                            },
                         }
                     }
                 }
@@ -193,14 +195,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = "Single Cell",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            AvailableActions = new Dictionary<string, string>
+                            SupportedPatterns = new List<string> { "GridItemPattern" },
+                            Properties = new Dictionary<string, object>
                             {
-                                ["Row"] = "2",
-                                ["Column"] = "3",
-                                ["RowSpan"] = "1",
-                                ["ColumnSpan"] = "1",
-                                ["ContainingGrid"] = "parentGrid"
-                            }
+                                ["Row"] = 0,
+                                ["Column"] = 0,
+                                ["RowSpan"] = 1,
+                                ["ColumnSpan"] = 1,
+                                ["ContainingGrid"] = "defaultGrid"
+                            },
                         }
                     }
                 }
@@ -235,14 +238,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = "Grid Item 1",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            AvailableActions = new Dictionary<string, string>
+                            SupportedPatterns = new List<string> { "GridItemPattern" },
+                            Properties = new Dictionary<string, object>
                             {
-                                ["Row"] = "1",
-                                ["Column"] = "1",
-                                ["RowSpan"] = "1",
-                                ["ColumnSpan"] = "1",
-                                ["ContainingGrid"] = "mainDataGrid"
-                            }
+                                ["Row"] = 0,
+                                ["Column"] = 0,
+                                ["RowSpan"] = 1,
+                                ["ColumnSpan"] = 1,
+                                ["ContainingGrid"] = "defaultGrid"
+                            },
                         }
                     }
                 }
@@ -284,13 +288,14 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = $"Merged Cell Anchor({anchorRow},{anchorColumn})",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            AvailableActions = new Dictionary<string, string>
+                            SupportedPatterns = new List<string> { "GridItemPattern" },
+                            Properties = new Dictionary<string, object>
                             {
-                                ["Row"] = anchorRow.ToString(),
-                                ["Column"] = anchorColumn.ToString(),
-                                ["RowSpan"] = rowSpan.ToString(),
-                                ["ColumnSpan"] = columnSpan.ToString(),
-                                ["ContainingGrid"] = "mergeGrid"
+                                ["Row"] = 0,
+                                ["Column"] = 0,
+                                ["RowSpan"] = 1,
+                                ["ColumnSpan"] = 1,
+                                ["ContainingGrid"] = "defaultGrid"
                             }
                         }
                     }
@@ -329,13 +334,14 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = $"Merged Anchor Cell({anchorRow},{anchorColumn})",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            AvailableActions = new Dictionary<string, string>
+                            SupportedPatterns = new List<string> { "GridItemPattern" },
+                            Properties = new Dictionary<string, object>
                             {
-                                ["Row"] = anchorRow.ToString(),
-                                ["Column"] = anchorColumn.ToString(),
-                                ["RowSpan"] = "2",
-                                ["ColumnSpan"] = "2",
-                                ["ContainingGrid"] = "mergeGrid"
+                                ["Row"] = 0,
+                                ["Column"] = 0,
+                                ["RowSpan"] = 1,
+                                ["ColumnSpan"] = 1,
+                                ["ContainingGrid"] = "defaultGrid"
                             }
                         }
                     }
@@ -375,13 +381,14 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = "Top Left Cell",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            AvailableActions = new Dictionary<string, string>
+                            SupportedPatterns = new List<string> { "GridItemPattern" },
+                            Properties = new Dictionary<string, object>
                             {
-                                ["Row"] = "0",
-                                ["Column"] = "0",
-                                ["RowSpan"] = "1",
-                                ["ColumnSpan"] = "1",
-                                ["ContainingGrid"] = "coordGrid"
+                                ["Row"] = 0,
+                                ["Column"] = 0,
+                                ["RowSpan"] = 1,
+                                ["ColumnSpan"] = 1,
+                                ["ContainingGrid"] = "defaultGrid"
                             }
                         }
                     }
@@ -420,13 +427,14 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = $"Consistency Cell({row},{column})",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            AvailableActions = new Dictionary<string, string>
+                            SupportedPatterns = new List<string> { "GridItemPattern" },
+                            Properties = new Dictionary<string, object>
                             {
-                                ["Row"] = row.ToString(),
-                                ["Column"] = column.ToString(),
-                                ["RowSpan"] = "1",
-                                ["ColumnSpan"] = "1",
-                                ["ContainingGrid"] = "consistencyGrid"
+                                ["Row"] = 0,
+                                ["Column"] = 0,
+                                ["RowSpan"] = 1,
+                                ["ColumnSpan"] = 1,
+                                ["ContainingGrid"] = "defaultGrid"
                             }
                         }
                     }
@@ -511,13 +519,14 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = "Consistent Item",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            AvailableActions = new Dictionary<string, string>
+                            SupportedPatterns = new List<string> { "GridItemPattern" },
+                            Properties = new Dictionary<string, object>
                             {
-                                ["Row"] = "2",
-                                ["Column"] = "3",
-                                ["RowSpan"] = "1",
-                                ["ColumnSpan"] = "1",
-                                ["ContainingGrid"] = "propertyGrid"
+                                ["Row"] = 0,
+                                ["Column"] = 0,
+                                ["RowSpan"] = 1,
+                                ["ColumnSpan"] = 1,
+                                ["ContainingGrid"] = "defaultGrid"
                             }
                         }
                     }
@@ -556,13 +565,14 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = $"Span Item({row},{column})",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            AvailableActions = new Dictionary<string, string>
+                            SupportedPatterns = new List<string> { "GridItemPattern" },
+                            Properties = new Dictionary<string, object>
                             {
-                                ["Row"] = row.ToString(),
-                                ["Column"] = column.ToString(),
-                                ["RowSpan"] = rowSpan.ToString(),
-                                ["ColumnSpan"] = columnSpan.ToString(),
-                                ["ContainingGrid"] = "spanValidGrid"
+                                ["Row"] = 0,
+                                ["Column"] = 0,
+                                ["RowSpan"] = 1,
+                                ["ColumnSpan"] = 1,
+                                ["ContainingGrid"] = "defaultGrid"
                             }
                         }
                     }
@@ -638,13 +648,14 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = "Empty Param Cell",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            AvailableActions = new Dictionary<string, string>
+                            SupportedPatterns = new List<string> { "GridItemPattern" },
+                            Properties = new Dictionary<string, object>
                             {
-                                ["Row"] = row.ToString(),
-                                ["Column"] = column.ToString(),
-                                ["RowSpan"] = "1",
-                                ["ColumnSpan"] = "1",
-                                ["ContainingGrid"] = elementId
+                                ["Row"] = 0,
+                                ["Column"] = 0,
+                                ["RowSpan"] = 1,
+                                ["ColumnSpan"] = 1,
+                                ["ContainingGrid"] = "defaultGrid"
                             }
                         }
                     }
@@ -686,13 +697,14 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = "Process Cell",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            AvailableActions = new Dictionary<string, string>
+                            SupportedPatterns = new List<string> { "GridItemPattern" },
+                            Properties = new Dictionary<string, object>
                             {
-                                ["Row"] = "1",
-                                ["Column"] = "1",
-                                ["RowSpan"] = "1",
-                                ["ColumnSpan"] = "1",
-                                ["ContainingGrid"] = "processGrid"
+                                ["Row"] = 0,
+                                ["Column"] = 0,
+                                ["RowSpan"] = 1,
+                                ["ColumnSpan"] = 1,
+                                ["ContainingGrid"] = "defaultGrid"
                             }
                         }
                     }
@@ -731,13 +743,14 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = "Timeout Cell",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            AvailableActions = new Dictionary<string, string>
+                            SupportedPatterns = new List<string> { "GridItemPattern" },
+                            Properties = new Dictionary<string, object>
                             {
-                                ["Row"] = "0",
-                                ["Column"] = "0",
-                                ["RowSpan"] = "1",
-                                ["ColumnSpan"] = "1",
-                                ["ContainingGrid"] = "timeoutGrid"
+                                ["Row"] = 0,
+                                ["Column"] = 0,
+                                ["RowSpan"] = 1,
+                                ["ColumnSpan"] = 1,
+                                ["ContainingGrid"] = "defaultGrid"
                             }
                         }
                     }

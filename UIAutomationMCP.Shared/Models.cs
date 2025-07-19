@@ -59,7 +59,8 @@ namespace UIAutomationMCP.Shared
         public bool IsVisible { get; set; }
         public string HelpText { get; set; } = string.Empty;
         public string? Value { get; set; }
-        public Dictionary<string, string> AvailableActions { get; set; } = new();
+        public List<string> SupportedPatterns { get; set; } = new();
+        public Dictionary<string, object> Properties { get; set; } = new();
     }
 
     public class BoundingRectangle
