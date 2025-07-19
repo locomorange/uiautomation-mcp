@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services
@@ -26,14 +27,14 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformationWithOperation(operationId, $"Verifying accessibility for element: {elementId ?? "window"}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new VerifyAccessibilityRequest
                 {
-                    { "elementId", elementId ?? "" },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId ?? "",
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("VerifyAccessibility", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<VerifyAccessibilityRequest, ElementSearchResult>("VerifyAccessibility", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ElementSearchResult>
                 {
@@ -146,14 +147,14 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformationWithOperation(operationId, $"Getting labeled by info for element: {elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetLabeledByRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("GetLabeledBy", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<GetLabeledByRequest, ElementSearchResult>("GetLabeledBy", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ElementSearchResult>
                 {
@@ -266,14 +267,14 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformationWithOperation(operationId, $"Getting described by info for element: {elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetDescribedByRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("GetDescribedBy", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<GetDescribedByRequest, ElementSearchResult>("GetDescribedBy", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ElementSearchResult>
                 {

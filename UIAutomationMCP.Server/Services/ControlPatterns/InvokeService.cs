@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Requests;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
@@ -26,14 +27,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting InvokeElement for ElementId={elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new InvokeElementRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("InvokeElement", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<InvokeElementRequest, ActionResult>("InvokeElement", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 

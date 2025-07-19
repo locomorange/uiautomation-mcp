@@ -208,23 +208,6 @@ namespace UIAutomationMCP.Server.Helpers
             }
         }
 
-        /// <summary>
-        /// TEMPORARY: Legacy compatibility method - will be removed after all services are updated
-        /// Creates a temporary WorkerRequest wrapper for legacy parameters
-        /// </summary>
-        [Obsolete("Use ExecuteAsync<TRequest, TResult> with typed request objects")]
-        public async Task<TResult> ExecuteAsync<TResult>(string operation, object? parameters = null, int timeoutSeconds = 60) 
-            where TResult : notnull
-        {
-            // Create a temporary WorkerRequest wrapper for legacy calls
-            var legacyRequest = new WorkerRequest
-            {
-                Operation = operation,
-                Parameters = (parameters as Dictionary<string, object>) ?? new Dictionary<string, object>()
-            };
-
-            return await ExecuteAsync<WorkerRequest, TResult>(operation, legacyRequest, timeoutSeconds);
-        }
 
         /// <summary>
         /// Generate a concise summary of JSON parameters for logging purposes
