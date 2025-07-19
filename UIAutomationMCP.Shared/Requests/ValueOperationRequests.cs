@@ -21,11 +21,4 @@ namespace UIAutomationMCP.Shared.Requests
         public string Value { get; set; } = "";
     }
 
-    /// <summary>
-    /// Is read-only request parameters
-    /// </summary>
-    public class IsReadOnlyRequest : ElementTargetRequest
-    {
-        public override string Operation => "IsReadOnly";
-    }
 }

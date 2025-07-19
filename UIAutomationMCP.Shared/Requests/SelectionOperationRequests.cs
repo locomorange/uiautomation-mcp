@@ -9,10 +9,6 @@ namespace UIAutomationMCP.Shared.Requests
         public override string Operation => "AddToSelection";
     }
 
-    public class CanSelectMultipleRequest : ElementTargetRequest
-    {
-        public override string Operation => "CanSelectMultiple";
-    }
 
     public class ClearSelectionRequest : ElementTargetRequest
     {
@@ -34,10 +30,6 @@ namespace UIAutomationMCP.Shared.Requests
         public override string Operation => "IsSelected";
     }
 
-    public class IsSelectionRequiredRequest : ElementTargetRequest
-    {
-        public override string Operation => "IsSelectionRequired";
-    }
 
     public class RemoveFromSelectionRequest : ElementTargetRequest
     {

@@ -111,7 +111,6 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(WorkerResponse<SelectionInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseSelectionInfoResult,
                 Type t when t == typeof(WorkerResponse<TextInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTextInfoResult,
                 Type t when t == typeof(WorkerResponse<GridInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseGridInfoResult,
-                Type t when t == typeof(WorkerResponse<TableInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTableInfoResult,
                 Type t when t == typeof(WorkerResponse<ScrollInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseScrollInfoResult,
                 Type t when t == typeof(WorkerResponse<TransformCapabilitiesResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTransformCapabilitiesResult,
                 Type t when t == typeof(WorkerResponse<WindowInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseWindowInfoResult,
@@ -140,7 +139,6 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(SelectionInfoResult) => (JsonTypeInfo<T>)(object)_context.SelectionInfoResult,
                 Type t when t == typeof(TextInfoResult) => (JsonTypeInfo<T>)(object)_context.TextInfoResult,
                 Type t when t == typeof(GridInfoResult) => (JsonTypeInfo<T>)(object)_context.GridInfoResult,
-                Type t when t == typeof(TableInfoResult) => (JsonTypeInfo<T>)(object)_context.TableInfoResult,
                 Type t when t == typeof(ScrollInfoResult) => (JsonTypeInfo<T>)(object)_context.ScrollInfoResult,
                 Type t when t == typeof(TransformCapabilitiesResult) => (JsonTypeInfo<T>)(object)_context.TransformCapabilitiesResult,
                 Type t when t == typeof(WindowInfoResult) => (JsonTypeInfo<T>)(object)_context.WindowInfoResult,
@@ -191,15 +189,11 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(GetColumnHeadersRequest) => (JsonTypeInfo<T>)(object)_context.GetColumnHeadersRequest,
                 Type t when t == typeof(GetRowHeaderItemsRequest) => (JsonTypeInfo<T>)(object)_context.GetRowHeaderItemsRequest,
                 Type t when t == typeof(GetRowHeadersRequest) => (JsonTypeInfo<T>)(object)_context.GetRowHeadersRequest,
-                Type t when t == typeof(GetRowOrColumnMajorRequest) => (JsonTypeInfo<T>)(object)_context.GetRowOrColumnMajorRequest,
-                Type t when t == typeof(GetTableInfoRequest) => (JsonTypeInfo<T>)(object)_context.GetTableInfoRequest,
                 Type t when t == typeof(AddToSelectionRequest) => (JsonTypeInfo<T>)(object)_context.AddToSelectionRequest,
-                Type t when t == typeof(CanSelectMultipleRequest) => (JsonTypeInfo<T>)(object)_context.CanSelectMultipleRequest,
                 Type t when t == typeof(ClearSelectionRequest) => (JsonTypeInfo<T>)(object)_context.ClearSelectionRequest,
                 Type t when t == typeof(GetSelectionContainerRequest) => (JsonTypeInfo<T>)(object)_context.GetSelectionContainerRequest,
                 Type t when t == typeof(GetSelectionRequest) => (JsonTypeInfo<T>)(object)_context.GetSelectionRequest,
                 Type t when t == typeof(IsSelectedRequest) => (JsonTypeInfo<T>)(object)_context.IsSelectedRequest,
-                Type t when t == typeof(IsSelectionRequiredRequest) => (JsonTypeInfo<T>)(object)_context.IsSelectionRequiredRequest,
                 Type t when t == typeof(RemoveFromSelectionRequest) => (JsonTypeInfo<T>)(object)_context.RemoveFromSelectionRequest,
                 Type t when t == typeof(SelectElementRequest) => (JsonTypeInfo<T>)(object)_context.SelectElementRequest,
                 Type t when t == typeof(SelectItemRequest) => (JsonTypeInfo<T>)(object)_context.SelectItemRequest,
@@ -232,7 +226,6 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(ServerEnhancedResponse<TextInfoResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTextInfoResult,
                 Type t when t == typeof(ServerEnhancedResponse<TransformCapabilitiesResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTransformCapabilitiesResult,
                 Type t when t == typeof(ServerEnhancedResponse<GridInfoResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseGridInfoResult,
-                Type t when t == typeof(ServerEnhancedResponse<TableInfoResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTableInfoResult,
                 Type t when t == typeof(ServerEnhancedResponse<ScrollInfoResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseScrollInfoResult,
                 Type t when t == typeof(ServerEnhancedResponse<DesktopWindowsResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseDesktopWindowsResult,
 
@@ -261,7 +254,6 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(WorkerResponse<ActionResult>))]
     [JsonSerializable(typeof(WorkerResponse<ElementValueResult>))]
     [JsonSerializable(typeof(WorkerResponse<GridInfoResult>))]
-    [JsonSerializable(typeof(WorkerResponse<TableInfoResult>))]
     [JsonSerializable(typeof(WorkerResponse<ScrollInfoResult>))]
     [JsonSerializable(typeof(WorkerResponse<SelectionInfoResult>))]
     [JsonSerializable(typeof(WorkerResponse<TextInfoResult>))]
@@ -294,7 +286,6 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(ErrorResult))]
     [JsonSerializable(typeof(UniversalResponse))]
     [JsonSerializable(typeof(GridInfoResult))]
-    [JsonSerializable(typeof(TableInfoResult))]
     [JsonSerializable(typeof(ScrollInfoResult))]
     [JsonSerializable(typeof(SelectionInfoResult))]
     [JsonSerializable(typeof(TextInfoResult))]
@@ -373,15 +364,11 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(GetColumnHeadersRequest))]
     [JsonSerializable(typeof(GetRowHeaderItemsRequest))]
     [JsonSerializable(typeof(GetRowHeadersRequest))]
-    [JsonSerializable(typeof(GetRowOrColumnMajorRequest))]
-    [JsonSerializable(typeof(GetTableInfoRequest))]
     [JsonSerializable(typeof(AddToSelectionRequest))]
-    [JsonSerializable(typeof(CanSelectMultipleRequest))]
     [JsonSerializable(typeof(ClearSelectionRequest))]
     [JsonSerializable(typeof(GetSelectionContainerRequest))]
     [JsonSerializable(typeof(GetSelectionRequest))]
     [JsonSerializable(typeof(IsSelectedRequest))]
-    [JsonSerializable(typeof(IsSelectionRequiredRequest))]
     [JsonSerializable(typeof(RemoveFromSelectionRequest))]
     [JsonSerializable(typeof(SelectElementRequest))]
     [JsonSerializable(typeof(SelectItemRequest))]
@@ -413,7 +400,6 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(ServerEnhancedResponse<TextInfoResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<TransformCapabilitiesResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<GridInfoResult>))]
-    [JsonSerializable(typeof(ServerEnhancedResponse<TableInfoResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<ScrollInfoResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<DesktopWindowsResult>))]
     [JsonSerializable(typeof(ProcessLaunchResponse))]
