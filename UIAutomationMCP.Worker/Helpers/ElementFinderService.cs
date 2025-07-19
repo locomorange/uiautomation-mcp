@@ -47,7 +47,7 @@ namespace UIAutomationMCP.Worker.Helpers
             // Prevent searching from RootElement without scope limitation
             if (searchRoot == null && string.IsNullOrEmpty(windowTitle) && processId == 0)
             {
-                _logger?.LogWarning("Search scope too broad. Consider specifying windowTitle or processId.");
+                _logger?.LogWarning("Search scope too broad. Consider specifying windowTitle or processId for better performance. Full desktop search may take significant time.");
                 searchRoot = AutomationElement.RootElement;
             }
             
@@ -97,7 +97,7 @@ namespace UIAutomationMCP.Worker.Helpers
             // Prevent searching from RootElement without scope limitation
             if (searchRoot == null && string.IsNullOrEmpty(windowTitle) && processId == 0)
             {
-                _logger?.LogWarning("Search scope too broad. Consider specifying windowTitle or processId.");
+                _logger?.LogWarning("Search scope too broad. Consider specifying windowTitle or processId for better performance. Full desktop search may take significant time.");
                 searchRoot = AutomationElement.RootElement;
             }
             
@@ -140,7 +140,7 @@ namespace UIAutomationMCP.Worker.Helpers
             // Prevent searching from RootElement without scope limitation
             if (searchRoot == null && string.IsNullOrEmpty(windowTitle) && processId == 0)
             {
-                _logger?.LogWarning("Search scope too broad. Consider specifying windowTitle or processId.");
+                _logger?.LogWarning("Search scope too broad. Consider specifying windowTitle or processId for better performance. Full desktop search may take significant time.");
                 searchRoot = AutomationElement.RootElement;
             }
             
@@ -177,7 +177,7 @@ namespace UIAutomationMCP.Worker.Helpers
             // Prevent searching from RootElement without scope limitation
             if (searchRoot == null && string.IsNullOrEmpty(windowTitle) && processId == 0)
             {
-                _logger?.LogWarning("Search scope too broad. Consider specifying windowTitle or processId.");
+                _logger?.LogWarning("Search scope too broad. Consider specifying windowTitle or processId for better performance. Full desktop search may take significant time.");
                 searchRoot = AutomationElement.RootElement;
             }
             

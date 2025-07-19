@@ -74,7 +74,7 @@ namespace UIAutomationMCP.Worker.Helpers
         /// <summary>
         /// Execute a UI Automation operation with timeout protection
         /// </summary>
-        public static async Task<T> ExecuteWithTimeoutAsync<T>(Func<Task<T>> operation, string operationName, int timeoutSeconds = 3)
+        public static async Task<T> ExecuteWithTimeoutAsync<T>(Func<Task<T>> operation, string operationName, int timeoutSeconds = 8)
         {
             if (!IsAvailable)
             {
@@ -126,7 +126,7 @@ namespace UIAutomationMCP.Worker.Helpers
         /// <summary>
         /// Execute a synchronous UI Automation operation with timeout
         /// </summary>
-        public static T ExecuteWithTimeout<T>(Func<T> operation, string operationName, int timeoutSeconds = 3)
+        public static T ExecuteWithTimeout<T>(Func<T> operation, string operationName, int timeoutSeconds = 8)
         {
             return ExecuteWithTimeoutAsync(() => Task.Run(operation), operationName, timeoutSeconds).GetAwaiter().GetResult();
         }

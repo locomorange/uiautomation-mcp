@@ -118,5 +118,93 @@ namespace UIAutomationMCP.Worker.Core
         {
             return ByControlType(ControlType.MenuItem);
         }
+
+        /// <summary>
+        /// 表示状態による条件
+        /// </summary>
+        public static PropertyCondition IsVisible()
+        {
+            return new PropertyCondition(AutomationElement.IsOffscreenProperty, false);
+        }
+
+        /// <summary>
+        /// キーボードフォーカス可能な要素による条件
+        /// </summary>
+        public static PropertyCondition IsKeyboardFocusable()
+        {
+            return new PropertyCondition(AutomationElement.IsKeyboardFocusableProperty, true);
+        }
+
+        /// <summary>
+        /// コントロール要素による条件
+        /// </summary>
+        public static PropertyCondition IsControlElement()
+        {
+            return new PropertyCondition(AutomationElement.IsControlElementProperty, true);
+        }
+
+        /// <summary>
+        /// コンテンツ要素による条件
+        /// </summary>
+        public static PropertyCondition IsContentElement()
+        {
+            return new PropertyCondition(AutomationElement.IsContentElementProperty, true);
+        }
+
+        /// <summary>
+        /// フレームワークIDによる条件
+        /// </summary>
+        public static PropertyCondition ByFrameworkId(string frameworkId)
+        {
+            return new PropertyCondition(AutomationElement.FrameworkIdProperty, frameworkId);
+        }
+
+        /// <summary>
+        /// Win32フレームワークの要素
+        /// </summary>
+        public static OrCondition Win32Elements()
+        {
+            return Or(
+                ByFrameworkId("Win32"),
+                ByFrameworkId("WinForm"),
+                ByFrameworkId("Windows Forms")
+            );
+        }
+
+        /// <summary>
+        /// WPFフレームワークの要素
+        /// </summary>
+        public static OrCondition WpfElements()
+        {
+            return Or(
+                ByFrameworkId("WPF"),
+                ByFrameworkId("WinUI"),
+                ByFrameworkId("UWP")
+            );
+        }
+
+        /// <summary>
+        /// 有効で表示されている要素
+        /// </summary>
+        public static AndCondition EnabledAndVisible()
+        {
+            return And(IsEnabled(), IsVisible());
+        }
+
+        /// <summary>
+        /// フォーカス可能で有効な要素
+        /// </summary>
+        public static AndCondition FocusableAndEnabled()
+        {
+            return And(IsKeyboardFocusable(), IsEnabled());
+        }
+
+        /// <summary>
+        /// インタラクション可能な要素（有効、表示、フォーカス可能）
+        /// </summary>
+        public static AndCondition Interactable()
+        {
+            return And(IsEnabled(), IsVisible(), IsKeyboardFocusable());
+        }
     }
 }

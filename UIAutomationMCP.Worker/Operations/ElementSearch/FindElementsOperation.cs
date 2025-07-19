@@ -87,7 +87,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 return new OperationResult<ElementSearchResult>
                 {
                     Success = false,
-                    Error = "Search scope too broad. Please specify a windowTitle or processId to narrow the search.",
+                    Error = "Search scope too broad. Please specify windowTitle or processId to avoid performance issues. Full desktop search may take significant time and consume substantial system resources.",
                     Data = result
                 };
             }
