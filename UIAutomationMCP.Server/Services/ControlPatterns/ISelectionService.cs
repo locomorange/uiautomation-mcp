@@ -8,12 +8,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         Task<ServerEnhancedResponse<ActionResult>> SelectItemAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30);
         Task<ServerEnhancedResponse<ActionResult>> AddToSelectionAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30);
         Task<ServerEnhancedResponse<ActionResult>> RemoveFromSelectionAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30);
-        Task<ServerEnhancedResponse<SelectionInfoResult>> GetSelectionAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30);
         Task<ServerEnhancedResponse<ActionResult>> ClearSelectionAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30);
         
         
         // SelectionItemPattern properties
         Task<ServerEnhancedResponse<BooleanResult>> IsSelectedAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30);
-        Task<ServerEnhancedResponse<SelectionInfoResult>> GetSelectionContainerAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30);
     }
 }

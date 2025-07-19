@@ -21,7 +21,7 @@ namespace UIAutomationMCP.Shared.Results
         public bool IsKeyboardFocusable { get; set; }
         public bool HasKeyboardFocus { get; set; }
         public bool IsOffscreen { get; set; }
-        public Rectangle BoundingRectangle { get; set; } = new();
+        public BoundingRectangle BoundingRectangle { get; set; } = new();
         public Dictionary<string, object> Properties { get; set; } = new();
         public List<string> SupportedPatterns { get; set; } = new();
         public ElementInfo? Element { get; set; }

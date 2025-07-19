@@ -21,7 +21,7 @@ namespace UIAutomationMCP.Shared.Results
         public IntPtr MainWindowHandle { get; set; }
         public bool IsMainWindowVisible { get; set; }
         public string? MainWindowState { get; set; }
-        public Rectangle MainWindowBounds { get; set; } = new();
+        public BoundingRectangle MainWindowBounds { get; set; } = new();
         public string? LaunchMethod { get; set; }
         public double LaunchTimeMs { get; set; }
         public bool RequiredElevation { get; set; }

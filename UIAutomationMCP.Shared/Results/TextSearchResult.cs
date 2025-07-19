@@ -36,7 +36,7 @@ namespace UIAutomationMCP.Shared.Results
         public int EndIndex { get; set; }
         public int Length { get; set; }
         public string? MatchedText { get; set; }
-        public Rectangle BoundingRectangle { get; set; } = new();
+        public BoundingRectangle BoundingRectangle { get; set; } = new();
         public Dictionary<string, object> Attributes { get; set; } = new();
         public bool IsHighlighted { get; set; }
         public bool IsSelected { get; set; }

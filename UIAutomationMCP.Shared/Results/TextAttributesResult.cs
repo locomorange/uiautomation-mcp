@@ -29,7 +29,7 @@ namespace UIAutomationMCP.Shared.Results
         public int Length { get; set; }
         public string? Text { get; set; }
         public Dictionary<string, object> Attributes { get; set; } = new();
-        public Rectangle BoundingRectangle { get; set; } = new();
+        public BoundingRectangle BoundingRectangle { get; set; } = new();
         public string? FontName { get; set; }
         public double FontSize { get; set; }
         public string? FontWeight { get; set; }

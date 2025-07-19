@@ -118,7 +118,7 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
                 HasKeyboardFocus = element.Current.HasKeyboardFocus,
                 IsPassword = element.Current.IsPassword,
                 IsOffscreen = element.Current.IsOffscreen,
-                BoundingRectangle = new Rectangle
+                BoundingRectangle = new BoundingRectangle
                 {
                     X = (int)element.Current.BoundingRectangle.X,
                     Y = (int)element.Current.BoundingRectangle.Y,

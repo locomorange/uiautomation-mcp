@@ -56,30 +56,31 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
                 return validationResponse;
             }
-
+            
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting GetText for ElementId={elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Getting text from element: {elementId}");
 
                 var parameters = new Dictionary<string, object>
                 {
                     { "elementId", elementId },
                     { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    { "processId", processId ?? 0 },
+                    { "timeoutSeconds", timeoutSeconds }
                 };
 
-                var result = await _executor.ExecuteAsync<TextInfoResult>("GetText", parameters, timeoutSeconds);
+                var response = await _executor.ExecuteAsync<TextInfoResult>("GetText", parameters, timeoutSeconds);
 
                 stopwatch.Stop();
-                
-                var serverResponse = new ServerEnhancedResponse<TextInfoResult>
+                _logger.LogInformationWithOperation(operationId, $"GetText completed in {stopwatch.Elapsed.TotalMilliseconds:F1}ms");
+
+                return new ServerEnhancedResponse<TextInfoResult>
                 {
-                    Success = result.Success,
-                    Data = result,
+                    Success = response.Success,
+                    Data = response,
+                    ErrorMessage = response.ErrorMessage,
                     ExecutionInfo = new ServerExecutionInfo
                     {
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
@@ -87,41 +88,29 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
+                            ["operationType"] = "GetText",
                             ["elementId"] = elementId,
-                            ["textLength"] = result.TextLength,
-                            ["hasText"] = result.HasText,
-                            ["operationType"] = "getText"
+                            ["success"] = response.Success
                         }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "GetText",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
+                        RequestParameters = parameters,
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-
-                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
-                
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
-                
-                return serverResponse;
             }
             catch (Exception ex)
             {
                 stopwatch.Stop();
-                _logger.LogErrorWithOperation(operationId, ex, "Error in GetText operation");
-                
-                var errorResponse = new ServerEnhancedResponse<TextInfoResult>
+                var errorMessage = $"Failed to get text from element: {ex.Message}";
+                _logger.LogErrorWithOperation(operationId, ex, errorMessage);
+
+                return new ServerEnhancedResponse<TextInfoResult>
                 {
                     Success = false,
-                    ErrorMessage = ex.Message,
+                    ErrorMessage = errorMessage,
                     ExecutionInfo = new ServerExecutionInfo
                     {
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
@@ -129,10 +118,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
+                            ["errorCategory"] = "Exception",
                             ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? "",
-                            ["elementId"] = elementId,
-                            ["operationType"] = "getText"
+                            ["elementId"] = elementId
                         }
                     },
                     RequestMetadata = new RequestMetadata
@@ -140,7 +128,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetText",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["elementId"] = elementId ?? "",
                             ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
@@ -148,10 +136,129 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
+            }
+        }
+
+        public async Task<ServerEnhancedResponse<TextInfoResult>> GetSelectedTextAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(elementId))
+            {
+                var validationError = "Element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"GetSelectedText validation failed: {validationError}");
                 
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
-                
-                return errorResponse;
+                var validationResponse = new ServerEnhancedResponse<TextInfoResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetSelectedText",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                return validationResponse;
+            }
+            
+            try
+            {
+                _logger.LogInformationWithOperation(operationId, $"Getting selected text from element: {elementId}");
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "elementId", elementId },
+                    { "windowTitle", windowTitle ?? "" },
+                    { "processId", processId ?? 0 },
+                    { "timeoutSeconds", timeoutSeconds }
+                };
+
+                var response = await _executor.ExecuteAsync<TextInfoResult>("GetSelectedText", parameters, timeoutSeconds);
+
+                stopwatch.Stop();
+                _logger.LogInformationWithOperation(operationId, $"GetSelectedText completed in {stopwatch.Elapsed.TotalMilliseconds:F1}ms");
+
+                return new ServerEnhancedResponse<TextInfoResult>
+                {
+                    Success = response.Success,
+                    Data = response,
+                    ErrorMessage = response.ErrorMessage,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["operationType"] = "GetSelectedText",
+                            ["elementId"] = elementId,
+                            ["success"] = response.Success
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetSelectedText",
+                        RequestParameters = parameters,
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                var errorMessage = $"Failed to get selected text from element: {ex.Message}";
+                _logger.LogErrorWithOperation(operationId, ex, errorMessage);
+
+                return new ServerEnhancedResponse<TextInfoResult>
+                {
+                    Success = false,
+                    ErrorMessage = errorMessage,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Exception",
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["elementId"] = elementId
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetSelectedText",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
             }
         }
 
@@ -1003,7 +1110,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["elementId"] = elementId,
-                            ["attributesCount"] = result.SupportedTextAttributes?.Count ?? 0,
+                            ["attributesCount"] = result.Length,
                             ["operationType"] = "getTextAttributes"
                         }
                     },
@@ -1253,143 +1360,5 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             }
         }
 
-        public async Task<ServerEnhancedResponse<TextInfoResult>> GetSelectedTextAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
-        {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
-            {
-                var validationError = "Element ID is required and cannot be empty";
-                _logger.LogWarningWithOperation(operationId, $"GetSelectedText validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<TextInfoResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
-                            ["validationFailed"] = true
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetSelectedText",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
-                return validationResponse;
-            }
-
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Starting GetSelectedText for ElementId={elementId}");
-
-                var parameters = new Dictionary<string, object>
-                {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
-                };
-
-                var result = await _executor.ExecuteAsync<TextInfoResult>("GetSelectedText", parameters, timeoutSeconds);
-
-                stopwatch.Stop();
-                
-                var serverResponse = new ServerEnhancedResponse<TextInfoResult>
-                {
-                    Success = result.Success,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["elementId"] = elementId,
-                            ["hasSelection"] = result.HasSelection,
-                            ["selectedTextLength"] = result.SelectedText?.Length ?? 0,
-                            ["operationType"] = "getSelectedText"
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetSelectedText",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-
-                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
-                
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
-                
-                return serverResponse;
-            }
-            catch (Exception ex)
-            {
-                stopwatch.Stop();
-                _logger.LogErrorWithOperation(operationId, ex, "Error in GetSelectedText operation");
-                
-                var errorResponse = new ServerEnhancedResponse<TextInfoResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? "",
-                            ["elementId"] = elementId,
-                            ["operationType"] = "getSelectedText"
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetSelectedText",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
-                
-                return errorResponse;
-            }
-        }
     }
 }

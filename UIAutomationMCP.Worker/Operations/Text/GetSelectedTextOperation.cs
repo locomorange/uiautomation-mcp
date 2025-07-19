@@ -9,18 +9,18 @@ using System.Windows.Automation;
 
 namespace UIAutomationMCP.Worker.Operations.Text
 {
-    public class GetTextOperation : IUIAutomationOperation
+    public class GetSelectedTextOperation : IUIAutomationOperation
     {
-        private readonly ILogger<GetTextOperation> _logger;
+        private readonly ILogger<GetSelectedTextOperation> _logger;
         private readonly ElementFinderService _elementFinderService;
 
-        public GetTextOperation(ILogger<GetTextOperation> logger, ElementFinderService elementFinderService)
+        public GetSelectedTextOperation(ILogger<GetSelectedTextOperation> logger, ElementFinderService elementFinderService)
         {
             _logger = logger;
             _elementFinderService = elementFinderService;
         }
 
-        public string Name => "GetText";
+        public string Name => "GetSelectedText";
 
         public async Task<OperationResult<TextInfoResult>> ExecuteAsync(string parametersJson)
         {
@@ -42,7 +42,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
 
         private async Task<OperationResult<TextInfoResult>> ExecuteInternalAsync(string parametersJson)
         {
-            var request = JsonSerializationHelper.Deserialize<GetTextRequest>(parametersJson)!;
+            var request = JsonSerializationHelper.Deserialize<GetSelectedTextRequest>(parametersJson)!;
             
             if (request == null)
             {
@@ -54,11 +54,11 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 };
             }
 
-            var result = await GetTextAsync(request);
+            var result = await GetSelectedTextAsync(request);
             return result;
         }
 
-        private async Task<OperationResult<TextInfoResult>> GetTextAsync(GetTextRequest request)
+        private async Task<OperationResult<TextInfoResult>> GetSelectedTextAsync(GetSelectedTextRequest request)
         {
             try
             {
@@ -85,15 +85,10 @@ namespace UIAutomationMCP.Worker.Operations.Text
                     Pattern = "TextPattern"
                 };
 
-                // Try to get text from TextPattern
+                // Try to get selected text from TextPattern
                 if (element.TryGetCurrentPattern(TextPattern.Pattern, out object textPatternObj) &&
                     textPatternObj is TextPattern textPattern)
                 {
-                    var documentRange = textPattern.DocumentRange;
-                    result.Text = documentRange.GetText(-1);
-                    result.Length = result.Text?.Length ?? 0;
-                    
-                    // Get selection information
                     var selections = textPattern.GetSelection();
                     if (selections.Length > 0)
                     {
@@ -102,6 +97,11 @@ namespace UIAutomationMCP.Worker.Operations.Text
                         result.SelectionStart = 0; // TextPattern doesn't provide exact indices
                         result.SelectionEnd = result.SelectedText?.Length ?? 0;
                         result.SelectionLength = result.SelectedText?.Length ?? 0;
+                        
+                        // Get the full text too
+                        var documentRange = textPattern.DocumentRange;
+                        result.Text = documentRange.GetText(-1);
+                        result.Length = result.Text?.Length ?? 0;
                     }
                     else
                     {
@@ -110,6 +110,11 @@ namespace UIAutomationMCP.Worker.Operations.Text
                         result.SelectionStart = 0;
                         result.SelectionEnd = 0;
                         result.SelectionLength = 0;
+                        
+                        // Still get the full text
+                        var documentRange = textPattern.DocumentRange;
+                        result.Text = documentRange.GetText(-1);
+                        result.Length = result.Text?.Length ?? 0;
                     }
 
                     result.IsReadOnly = !textPattern.SupportedTextSelection.HasFlag(SupportedTextSelection.Single);
@@ -132,7 +137,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 }
                 else
                 {
-                    // Try to get text from Name property as last resort
+                    // No text pattern available
                     result.Text = element.Current.Name;
                     result.Length = result.Text?.Length ?? 0;
                     result.IsReadOnly = true;
@@ -154,7 +159,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting text from element");
+                _logger.LogError(ex, "Error getting selected text from element");
                 return new OperationResult<TextInfoResult>
                 {
                     Success = false,
@@ -165,7 +170,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
         }
     }
 
-    public class GetTextRequest
+    public class GetSelectedTextRequest
     {
         public string ElementId { get; set; } = string.Empty;
         public string? WindowTitle { get; set; }

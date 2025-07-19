@@ -36,7 +36,6 @@ namespace UIAutomationMCP.Server
             builder.Services.AddSingleton<ITextService, TextService>();
             builder.Services.AddSingleton<ILayoutService, LayoutService>();
             builder.Services.AddSingleton<IRangeService, RangeService>();
-            builder.Services.AddSingleton<IElementInspectionService, ElementInspectionService>();
             
             // Register additional subprocess-based UI Automation services
             builder.Services.AddSingleton<IGridService, GridService>();

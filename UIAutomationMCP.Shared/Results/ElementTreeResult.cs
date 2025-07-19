@@ -32,7 +32,7 @@ namespace UIAutomationMCP.Shared.Results
         public bool HasKeyboardFocus { get; set; }
         public bool IsPassword { get; set; }
         public bool IsOffscreen { get; set; }
-        public Rectangle BoundingRectangle { get; set; } = new();
+        public BoundingRectangle BoundingRectangle { get; set; } = new();
         public int ProcessId { get; set; }
         public string? RuntimeId { get; set; }
         public string? FrameworkId { get; set; }

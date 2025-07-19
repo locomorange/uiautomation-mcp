@@ -7,7 +7,7 @@ namespace UIAutomationMCP.Shared.Results
         public string? ElementId { get; set; }
         public Dictionary<string, object> Properties { get; set; } = new();
         public List<string> SupportedPatterns { get; set; } = new();
-        public Rectangle BoundingRectangle { get; set; } = new();
+        public BoundingRectangle BoundingRectangle { get; set; } = new();
         public string? Name { get; set; }
         public string? AutomationId { get; set; }
         public string? ClassName { get; set; }

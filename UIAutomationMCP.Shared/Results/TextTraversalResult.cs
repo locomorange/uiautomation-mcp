@@ -16,7 +16,7 @@ namespace UIAutomationMCP.Shared.Results
         public int TextLength { get; set; }
         public string? TraversalDirection { get; set; }
         public string? TextUnit { get; set; }
-        public List<TextRange> TextRanges { get; set; } = new();
+        public List<TextRangeAttributes> TextRanges { get; set; } = new();
         public string? SelectedText { get; set; }
         public bool HasSelection { get; set; }
         public int SelectionStart { get; set; }

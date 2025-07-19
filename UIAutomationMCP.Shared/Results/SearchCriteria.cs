@@ -25,7 +25,7 @@ namespace UIAutomationMCP.Shared.Results
         public string? LocalizedControlType { get; set; }
         public string? Orientation { get; set; }
         public string? LiveSetting { get; set; }
-        public Rectangle? BoundingRectangle { get; set; }
+        public BoundingRectangle? BoundingRectangle { get; set; }
         public Dictionary<string, object> CustomProperties { get; set; } = new();
         public List<string> SupportedPatterns { get; set; } = new();
         public string? SearchScope { get; set; }
