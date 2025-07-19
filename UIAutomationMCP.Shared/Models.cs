@@ -49,6 +49,7 @@ namespace UIAutomationMCP.Shared
 
     public class ElementInfo
     {
+        // 基本プロパティ
         public string Name { get; set; } = string.Empty;
         public string AutomationId { get; set; } = string.Empty;
         public string ControlType { get; set; } = string.Empty;
@@ -60,6 +61,73 @@ namespace UIAutomationMCP.Shared
         public string HelpText { get; set; } = string.Empty;
         public string? Value { get; set; }
         public List<string> SupportedPatterns { get; set; } = new();
+
+        // 型安全なパターン情報プロパティ
+        [JsonPropertyName("toggle")]
+        public ToggleInfo? Toggle { get; set; }
+        
+        [JsonPropertyName("range")]
+        public RangeInfo? Range { get; set; }
+        
+        [JsonPropertyName("window")]
+        public WindowPatternInfo? Window { get; set; }
+        
+        [JsonPropertyName("selection")]
+        public SelectionInfo? Selection { get; set; }
+        
+        [JsonPropertyName("grid")]
+        public GridInfo? Grid { get; set; }
+        
+        [JsonPropertyName("scroll")]
+        public ScrollInfo? Scroll { get; set; }
+        
+        [JsonPropertyName("text")]
+        public TextInfo? Text { get; set; }
+        
+        [JsonPropertyName("transform")]
+        public TransformInfo? Transform { get; set; }
+        
+        [JsonPropertyName("valueInfo")]
+        public ValueInfo? ValueInfo { get; set; }
+        
+        [JsonPropertyName("expandCollapse")]
+        public ExpandCollapseInfo? ExpandCollapse { get; set; }
+        
+        [JsonPropertyName("dock")]
+        public DockInfo? Dock { get; set; }
+        
+        [JsonPropertyName("multipleView")]
+        public MultipleViewInfo? MultipleView { get; set; }
+        
+        [JsonPropertyName("gridItem")]
+        public GridItemInfo? GridItem { get; set; }
+        
+        [JsonPropertyName("tableItem")]
+        public TableItemInfo? TableItem { get; set; }
+        
+        [JsonPropertyName("table")]
+        public TableInfo? Table { get; set; }
+        
+        [JsonPropertyName("invoke")]
+        public InvokeInfo? Invoke { get; set; }
+        
+        [JsonPropertyName("scrollItem")]
+        public ScrollItemInfo? ScrollItem { get; set; }
+        
+        [JsonPropertyName("virtualizedItem")]
+        public VirtualizedItemInfo? VirtualizedItem { get; set; }
+        
+        [JsonPropertyName("itemContainer")]
+        public ItemContainerInfo? ItemContainer { get; set; }
+        
+        [JsonPropertyName("synchronizedInput")]
+        public SynchronizedInputInfo? SynchronizedInput { get; set; }
+        
+        [JsonPropertyName("accessibility")]
+        public AccessibilityInfo? Accessibility { get; set; }
+
+        // 下位互換用 - 将来的に削除予定
+        [JsonIgnore]
         public Dictionary<string, object> Properties { get; set; } = new();
     }
 

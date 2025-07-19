@@ -214,6 +214,33 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             cacheRequest.Add(AutomationElement.BoundingRectangleProperty);
             cacheRequest.Add(AutomationElement.ClassNameProperty);
             cacheRequest.Add(AutomationElement.HelpTextProperty);
+            cacheRequest.Add(AutomationElement.LabeledByProperty);
+            cacheRequest.Add(AutomationElement.AccessKeyProperty);
+            cacheRequest.Add(AutomationElement.AcceleratorKeyProperty);
+            
+            // Add patterns to cache
+            cacheRequest.Add(ValuePattern.Pattern);
+            cacheRequest.Add(TogglePattern.Pattern);
+            cacheRequest.Add(RangeValuePattern.Pattern);
+            cacheRequest.Add(WindowPattern.Pattern);
+            cacheRequest.Add(SelectionPattern.Pattern);
+            cacheRequest.Add(GridPattern.Pattern);
+            cacheRequest.Add(ScrollPattern.Pattern);
+            cacheRequest.Add(TextPattern.Pattern);
+            cacheRequest.Add(TransformPattern.Pattern);
+            cacheRequest.Add(ExpandCollapsePattern.Pattern);
+            cacheRequest.Add(DockPattern.Pattern);
+            cacheRequest.Add(MultipleViewPattern.Pattern);
+            cacheRequest.Add(GridItemPattern.Pattern);
+            cacheRequest.Add(TableItemPattern.Pattern);
+            cacheRequest.Add(TablePattern.Pattern);
+            cacheRequest.Add(SelectionItemPattern.Pattern);
+            cacheRequest.Add(InvokePattern.Pattern);
+            cacheRequest.Add(ScrollItemPattern.Pattern);
+            cacheRequest.Add(VirtualizedItemPattern.Pattern);
+            cacheRequest.Add(ItemContainerPattern.Pattern);
+            cacheRequest.Add(SynchronizedInputPattern.Pattern);
+            
             cacheRequest.AutomationElementMode = AutomationElementMode.None;
             cacheRequest.TreeFilter = Automation.RawViewCondition;
             
@@ -472,7 +499,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
 
         private ElementInfo CreateElementInfo(AutomationElement element)
         {
-            return new UIAutomationMCP.Shared.ElementInfo
+            var info = new UIAutomationMCP.Shared.ElementInfo
             {
                 AutomationId = element.Cached.AutomationId,
                 Name = element.Cached.Name,
@@ -489,6 +516,472 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     Height = element.Cached.BoundingRectangle.Height
                 }
             };
+
+            // パターン情報を設定 - 安全なパターンのみ使用
+            SetPatternInfoSafe(element, info);
+            
+            return info;
+        }
+
+        private void SetPatternInfoSafe(AutomationElement element, ElementInfo info)
+        {
+            try
+            {
+                // Only use basic, safe patterns that work reliably with caching
+
+                // Value Pattern
+                if (element.TryGetCachedPattern(ValuePattern.Pattern, out var valuePatternObj) && 
+                    valuePatternObj is ValuePattern valuePattern)
+                {
+                    info.ValueInfo = new ValueInfo
+                    {
+                        Value = valuePattern.Cached.Value ?? "",
+                        IsReadOnly = valuePattern.Cached.IsReadOnly
+                    };
+                }
+
+                // Toggle Pattern
+                if (element.TryGetCachedPattern(TogglePattern.Pattern, out var togglePatternObj) && 
+                    togglePatternObj is TogglePattern togglePattern)
+                {
+                    var state = togglePattern.Cached.ToggleState;
+                    info.Toggle = new ToggleInfo
+                    {
+                        State = state.ToString(),
+                        IsToggled = state == ToggleState.On,
+                        CanToggle = true
+                    };
+                }
+
+                // Range Value Pattern
+                if (element.TryGetCachedPattern(RangeValuePattern.Pattern, out var rangePatternObj) && 
+                    rangePatternObj is RangeValuePattern rangePattern)
+                {
+                    info.Range = new RangeInfo
+                    {
+                        Value = rangePattern.Cached.Value,
+                        Minimum = rangePattern.Cached.Minimum,
+                        Maximum = rangePattern.Cached.Maximum,
+                        SmallChange = rangePattern.Cached.SmallChange,
+                        LargeChange = rangePattern.Cached.LargeChange,
+                        IsReadOnly = rangePattern.Cached.IsReadOnly
+                    };
+                }
+
+                // Invoke Pattern (just presence check)
+                if (element.TryGetCachedPattern(InvokePattern.Pattern, out _))
+                {
+                    info.Invoke = new InvokeInfo
+                    {
+                        IsInvokable = true
+                    };
+                }
+
+                // ScrollItem Pattern (just presence check)
+                if (element.TryGetCachedPattern(ScrollItemPattern.Pattern, out _))
+                {
+                    info.ScrollItem = new ScrollItemInfo
+                    {
+                        IsScrollable = true
+                    };
+                }
+            }
+            catch
+            {
+                // Silent fail for pattern info - basic element info is still returned
+                // No logging to avoid interfering with JSON communication
+            }
+        }
+
+        private void SetPatternInfo(AutomationElement element, ElementInfo info)
+        {
+            try
+            {
+                // Value Pattern
+                if (element.TryGetCachedPattern(ValuePattern.Pattern, out var valuePatternObj) && 
+                    valuePatternObj is ValuePattern valuePattern)
+                {
+                    info.ValueInfo = new ValueInfo
+                    {
+                        Value = valuePattern.Cached.Value ?? "",
+                        IsReadOnly = valuePattern.Cached.IsReadOnly
+                    };
+                }
+
+                // Toggle Pattern
+                if (element.TryGetCachedPattern(TogglePattern.Pattern, out var togglePatternObj) && 
+                    togglePatternObj is TogglePattern togglePattern)
+                {
+                    var state = togglePattern.Cached.ToggleState;
+                    info.Toggle = new ToggleInfo
+                    {
+                        State = state.ToString(),
+                        IsToggled = state == ToggleState.On,
+                        CanToggle = true
+                    };
+                }
+
+                // Range Value Pattern
+                if (element.TryGetCachedPattern(RangeValuePattern.Pattern, out var rangePatternObj) && 
+                    rangePatternObj is RangeValuePattern rangePattern)
+                {
+                    info.Range = new RangeInfo
+                    {
+                        Value = rangePattern.Cached.Value,
+                        Minimum = rangePattern.Cached.Minimum,
+                        Maximum = rangePattern.Cached.Maximum,
+                        SmallChange = rangePattern.Cached.SmallChange,
+                        LargeChange = rangePattern.Cached.LargeChange,
+                        IsReadOnly = rangePattern.Cached.IsReadOnly
+                    };
+                }
+
+                // Window Pattern
+                if (element.TryGetCachedPattern(WindowPattern.Pattern, out var windowPatternObj) && 
+                    windowPatternObj is WindowPattern windowPattern)
+                {
+                    info.Window = new WindowPatternInfo
+                    {
+                        CanMaximize = windowPattern.Cached.CanMaximize,
+                        CanMinimize = windowPattern.Cached.CanMinimize,
+                        IsModal = windowPattern.Cached.IsModal,
+                        IsTopmost = windowPattern.Cached.IsTopmost,
+                        InteractionState = windowPattern.Cached.WindowInteractionState.ToString(),
+                        VisualState = windowPattern.Cached.WindowVisualState.ToString()
+                    };
+                }
+
+                // Selection Pattern - Simplified version without GetSelection
+                if (element.TryGetCachedPattern(SelectionPattern.Pattern, out var selectionPatternObj) && 
+                    selectionPatternObj is SelectionPattern selectionPattern)
+                {
+                    try
+                    {
+                        info.Selection = new SelectionInfo
+                        {
+                            CanSelectMultiple = selectionPattern.Cached.CanSelectMultiple,
+                            IsSelectionRequired = selectionPattern.Cached.IsSelectionRequired,
+                            SelectedCount = 0, // Skip complex GetSelection operation for now
+                            SelectedItems = new List<SelectionItemInfo>() // Skip complex operations for now
+                        };
+                    }
+                    catch
+                    {
+                        // If cached access fails, skip pattern info
+                    }
+                }
+
+                // Grid Pattern
+                if (element.TryGetCachedPattern(GridPattern.Pattern, out var gridPatternObj) && 
+                    gridPatternObj is GridPattern gridPattern)
+                {
+                    bool canSelectMultiple = false;
+                    if (element.TryGetCachedPattern(SelectionPattern.Pattern, out var selPatternObj) && 
+                        selPatternObj is SelectionPattern selPattern)
+                    {
+                        canSelectMultiple = selPattern.Cached.CanSelectMultiple;
+                    }
+
+                    info.Grid = new GridInfo
+                    {
+                        RowCount = gridPattern.Cached.RowCount,
+                        ColumnCount = gridPattern.Cached.ColumnCount,
+                        CanSelectMultiple = canSelectMultiple
+                    };
+                }
+
+                // Scroll Pattern
+                if (element.TryGetCachedPattern(ScrollPattern.Pattern, out var scrollPatternObj) && 
+                    scrollPatternObj is ScrollPattern scrollPattern)
+                {
+                    info.Scroll = new ScrollInfo
+                    {
+                        HorizontalPercent = scrollPattern.Cached.HorizontalScrollPercent,
+                        VerticalPercent = scrollPattern.Cached.VerticalScrollPercent,
+                        HorizontalViewSize = scrollPattern.Cached.HorizontalViewSize,
+                        VerticalViewSize = scrollPattern.Cached.VerticalViewSize,
+                        HorizontallyScrollable = scrollPattern.Cached.HorizontallyScrollable,
+                        VerticallyScrollable = scrollPattern.Cached.VerticallyScrollable
+                    };
+                }
+
+                // Text Pattern - Note: TextPattern operations require Current access, so we'll handle this differently
+                if (element.TryGetCachedPattern(TextPattern.Pattern, out _))
+                {
+                    try
+                    {
+                        // Text pattern requires live access for operations
+                        if (element.TryGetCurrentPattern(TextPattern.Pattern, out var textPatternObj) && 
+                            textPatternObj is TextPattern textPattern)
+                        {
+                            var documentRange = textPattern.DocumentRange;
+                            var text = documentRange.GetText(-1);
+                            
+                            var selections = textPattern.GetSelection();
+                            var selectedText = "";
+                            var hasSelection = false;
+                            
+                            if (selections.Length > 0)
+                            {
+                                selectedText = selections[0].GetText(-1) ?? "";
+                                hasSelection = !string.IsNullOrEmpty(selectedText);
+                            }
+
+                            info.Text = new TextInfo
+                            {
+                                Text = text ?? "",
+                                Length = text?.Length ?? 0,
+                                SelectedText = selectedText,
+                                HasSelection = hasSelection
+                            };
+                        }
+                    }
+                    catch
+                    {
+                        // If Current access fails, skip text pattern info
+                    }
+                }
+
+                // Transform Pattern
+                if (element.TryGetCachedPattern(TransformPattern.Pattern, out var transformPatternObj) && 
+                    transformPatternObj is TransformPattern transformPattern)
+                {
+                    var boundingRect = element.Cached.BoundingRectangle;
+                    info.Transform = new TransformInfo
+                    {
+                        CanMove = transformPattern.Cached.CanMove,
+                        CanResize = transformPattern.Cached.CanResize,
+                        CanRotate = transformPattern.Cached.CanRotate,
+                        CurrentX = boundingRect.X,
+                        CurrentY = boundingRect.Y,
+                        CurrentWidth = boundingRect.Width,
+                        CurrentHeight = boundingRect.Height
+                    };
+                }
+
+                // ExpandCollapse Pattern
+                if (element.TryGetCachedPattern(ExpandCollapsePattern.Pattern, out var expandCollapsePatternObj) && 
+                    expandCollapsePatternObj is ExpandCollapsePattern expandCollapsePattern)
+                {
+                    info.ExpandCollapse = new ExpandCollapseInfo
+                    {
+                        State = expandCollapsePattern.Cached.ExpandCollapseState.ToString()
+                    };
+                }
+
+                // Dock Pattern
+                if (element.TryGetCachedPattern(DockPattern.Pattern, out var dockPatternObj) && 
+                    dockPatternObj is DockPattern dockPattern)
+                {
+                    info.Dock = new DockInfo
+                    {
+                        Position = dockPattern.Cached.DockPosition.ToString()
+                    };
+                }
+
+                // MultipleView Pattern - Simplified version without GetViewName
+                if (element.TryGetCachedPattern(MultipleViewPattern.Pattern, out var multipleViewPatternObj) && 
+                    multipleViewPatternObj is MultipleViewPattern multipleViewPattern)
+                {
+                    try
+                    {
+                        info.MultipleView = new MultipleViewInfo
+                        {
+                            CurrentView = multipleViewPattern.Cached.CurrentView,
+                            AvailableViews = new List<PatternViewInfo>() // Skip complex operations for now
+                        };
+                    }
+                    catch
+                    {
+                        // If cached access fails, skip pattern info
+                    }
+                }
+
+                // GridItem Pattern
+                if (element.TryGetCachedPattern(GridItemPattern.Pattern, out var gridItemPatternObj) && 
+                    gridItemPatternObj is GridItemPattern gridItemPattern)
+                {
+                    var containingGrid = gridItemPattern.Cached.ContainingGrid;
+                    info.GridItem = new GridItemInfo
+                    {
+                        Row = gridItemPattern.Cached.Row,
+                        Column = gridItemPattern.Cached.Column,
+                        RowSpan = gridItemPattern.Cached.RowSpan,
+                        ColumnSpan = gridItemPattern.Cached.ColumnSpan,
+                        ContainingGrid = containingGrid?.Cached.AutomationId ?? ""
+                    };
+                }
+
+                // Table Pattern - Simplified version without header operations
+                if (element.TryGetCachedPattern(TablePattern.Pattern, out var tablePatternObj) && 
+                    tablePatternObj is TablePattern tablePattern)
+                {
+                    try
+                    {
+                        info.Table = new TableInfo
+                        {
+                            RowCount = tablePattern.Cached.RowCount,
+                            ColumnCount = tablePattern.Cached.ColumnCount,
+                            RowOrColumnMajor = tablePattern.Cached.RowOrColumnMajor.ToString(),
+                            ColumnHeaders = new List<HeaderInfo>(), // Skip complex operations for now
+                            RowHeaders = new List<HeaderInfo>() // Skip complex operations for now
+                        };
+                    }
+                    catch
+                    {
+                        // If cached access fails, skip pattern info
+                    }
+                }
+
+                // TableItem Pattern - Simplified version without header operations
+                if (element.TryGetCachedPattern(TableItemPattern.Pattern, out var tableItemPatternObj) && 
+                    tableItemPatternObj is TableItemPattern tableItemPattern)
+                {
+                    try
+                    {
+                        info.TableItem = new TableItemInfo
+                        {
+                            ColumnHeaders = new List<HeaderInfo>(), // Skip complex operations for now
+                            RowHeaders = new List<HeaderInfo>() // Skip complex operations for now
+                        };
+                    }
+                    catch
+                    {
+                        // If cached access fails, skip pattern info
+                    }
+                }
+
+                // SelectionItem Pattern
+                if (element.TryGetCachedPattern(SelectionItemPattern.Pattern, out var selectionItemPatternObj) && 
+                    selectionItemPatternObj is SelectionItemPattern selectionItemPattern)
+                {
+                    var selectionContainer = selectionItemPattern.Cached.SelectionContainer;
+                    var selectionItemInfo = new SelectionItemInfo
+                    {
+                        AutomationId = element.Cached.AutomationId ?? "",
+                        Name = element.Cached.Name ?? "",
+                        ControlType = element.Cached.ControlType?.LocalizedControlType ?? "",
+                        IsSelected = selectionItemPattern.Cached.IsSelected
+                    };
+
+                    if (selectionContainer != null)
+                    {
+                        selectionItemInfo.SelectionContainer = selectionContainer.Cached.AutomationId ?? "";
+                    }
+
+                    // SelectionInfo にも含める
+                    if (info.Selection == null)
+                    {
+                        info.Selection = new SelectionInfo
+                        {
+                            SelectedItems = new List<SelectionItemInfo> { selectionItemInfo },
+                            SelectedCount = selectionItemInfo.IsSelected ? 1 : 0
+                        };
+                    }
+                }
+
+                // Invoke Pattern
+                if (element.TryGetCachedPattern(InvokePattern.Pattern, out _))
+                {
+                    info.Invoke = new InvokeInfo
+                    {
+                        IsInvokable = true
+                    };
+                }
+
+                // ScrollItem Pattern
+                if (element.TryGetCachedPattern(ScrollItemPattern.Pattern, out _))
+                {
+                    info.ScrollItem = new ScrollItemInfo
+                    {
+                        IsScrollable = true
+                    };
+                }
+
+                // VirtualizedItem Pattern
+                if (element.TryGetCachedPattern(VirtualizedItemPattern.Pattern, out _))
+                {
+                    info.VirtualizedItem = new VirtualizedItemInfo
+                    {
+                        IsVirtualized = true
+                    };
+                }
+
+                // ItemContainer Pattern
+                if (element.TryGetCachedPattern(ItemContainerPattern.Pattern, out _))
+                {
+                    info.ItemContainer = new ItemContainerInfo
+                    {
+                        IsItemContainer = true
+                    };
+                }
+
+                // SynchronizedInput Pattern
+                if (element.TryGetCachedPattern(SynchronizedInputPattern.Pattern, out _))
+                {
+                    info.SynchronizedInput = new SynchronizedInputInfo
+                    {
+                        SupportsSynchronizedInput = true
+                    };
+                }
+
+                // Accessibility情報
+                var accessibilityInfo = new AccessibilityInfo();
+                bool hasAccessibilityInfo = false;
+
+                // LabeledBy情報
+                try
+                {
+                    var labeledByProperty = element.GetCachedPropertyValue(AutomationElement.LabeledByProperty);
+                    if (labeledByProperty is AutomationElement labeledByElement && labeledByElement != null)
+                    {
+                        accessibilityInfo.LabeledBy = new ElementReference
+                        {
+                            AutomationId = labeledByElement.Cached.AutomationId ?? "",
+                            Name = labeledByElement.Cached.Name ?? "",
+                            ControlType = labeledByElement.Cached.ControlType?.LocalizedControlType ?? ""
+                        };
+                        hasAccessibilityInfo = true;
+                    }
+                }
+                catch { }
+
+                // その他のアクセシビリティ情報
+                try
+                {
+                    var helpText = element.Cached.HelpText;
+                    if (!string.IsNullOrEmpty(helpText))
+                    {
+                        accessibilityInfo.HelpText = helpText;
+                        hasAccessibilityInfo = true;
+                    }
+
+                    var accessKey = element.Cached.AccessKey;
+                    if (!string.IsNullOrEmpty(accessKey))
+                    {
+                        accessibilityInfo.AccessKey = accessKey;
+                        hasAccessibilityInfo = true;
+                    }
+
+                    var acceleratorKey = element.Cached.AcceleratorKey;
+                    if (!string.IsNullOrEmpty(acceleratorKey))
+                    {
+                        accessibilityInfo.AcceleratorKey = acceleratorKey;
+                        hasAccessibilityInfo = true;
+                    }
+                }
+                catch { }
+
+                if (hasAccessibilityInfo)
+                {
+                    info.Accessibility = accessibilityInfo;
+                }
+            }
+            catch (Exception ex)
+            {
+                // パターン情報の取得でエラーが発生しても、基本的な要素情報は返す
+                Console.WriteLine($"Error setting pattern info: {ex.Message}");
+            }
         }
 
         private string CreateSearchCriteriaString(Dictionary<string, object>? parameters)
