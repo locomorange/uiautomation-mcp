@@ -23,7 +23,6 @@ namespace UIAutomationMCP.Tests.UnitTests
         private readonly ITestOutputHelper _output;
         private readonly Mock<ElementFinderService> _mockElementFinder;
         private readonly Mock<IOptions<UIAutomationOptions>> _mockOptions;
-        private readonly ILogger<GetTransformCapabilitiesOperation> _mockGetTransformCapabilitiesLogger;
         private readonly ILogger<RotateElementOperation> _mockRotateElementLogger;
         private readonly ILogger<ResizeElementOperation> _mockResizeElementLogger;
         private readonly ILogger<MoveElementOperation> _mockMoveElementLogger;
@@ -34,7 +33,6 @@ namespace UIAutomationMCP.Tests.UnitTests
             _mockElementFinder = new Mock<ElementFinderService>(Mock.Of<ILogger<ElementFinderService>>());
             _mockOptions = new Mock<IOptions<UIAutomationOptions>>();
             _mockOptions.Setup(x => x.Value).Returns(new UIAutomationOptions());
-            _mockGetTransformCapabilitiesLogger = Mock.Of<ILogger<GetTransformCapabilitiesOperation>>();
             _mockRotateElementLogger = Mock.Of<ILogger<RotateElementOperation>>();
             _mockResizeElementLogger = Mock.Of<ILogger<ResizeElementOperation>>();
             _mockMoveElementLogger = Mock.Of<ILogger<MoveElementOperation>>();
@@ -45,113 +43,6 @@ namespace UIAutomationMCP.Tests.UnitTests
             // モックのクリーンアップは不要
         }
 
-        #region GetTransformCapabilitiesOperation パラメータ検証
-
-        [Theory]
-        [InlineData("")]
-        [InlineData("   ")]
-        [InlineData("\t")]
-        [InlineData("\n")]
-        public async Task GetTransformCapabilitiesOperation_WithInvalidElementId_ShouldReturnError(string invalidElementId)
-        {
-            // Arrange
-            var operation = new GetTransformCapabilitiesOperation(_mockElementFinder.Object, _mockGetTransformCapabilitiesLogger);
-            var request = new WorkerRequest
-            {
-                Parameters = new Dictionary<string, object>
-                {
-                    { "elementId", invalidElementId },
-                    { "windowTitle", "TestWindow" },
-                    { "processId", "0" }
-                }
-            };
-
-            _output.WriteLine($"Testing GetTransformCapabilitiesOperation with invalid elementId: '{invalidElementId}'");
-
-            // Act
-            var typedRequest = new GetTransformCapabilitiesRequest 
-            { 
-                ElementId = (string)request.Parameters!["elementId"], 
-                WindowTitle = (string)request.Parameters["windowTitle"], 
-                ProcessId = int.Parse((string)request.Parameters["processId"]) 
-            };
-            var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.Success);
-            Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
-            
-            _output.WriteLine($"✓ GetTransformCapabilitiesOperation correctly handled invalid elementId");
-            _output.WriteLine($"  Error: {result.Error}");
-        }
-
-        [Fact]
-        public async Task GetTransformCapabilitiesOperation_WithNullParameters_ShouldHandleGracefully()
-        {
-            // Arrange
-            var operation = new GetTransformCapabilitiesOperation(_mockElementFinder.Object, _mockGetTransformCapabilitiesLogger);
-            var request = new WorkerRequest
-            {
-                Parameters = null
-            };
-
-            _output.WriteLine("Testing GetTransformCapabilitiesOperation with null parameters");
-
-            // Act
-            var typedRequest = new GetTransformCapabilitiesRequest 
-            { 
-                ElementId = (string)request.Parameters!["elementId"], 
-                WindowTitle = (string)request.Parameters["windowTitle"], 
-                ProcessId = int.Parse((string)request.Parameters["processId"]) 
-            };
-            var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.Success);
-            Assert.NotNull(result.Error);
-            
-            _output.WriteLine($"✓ GetTransformCapabilitiesOperation handled null parameters gracefully");
-            _output.WriteLine($"  Error: {result.Error}");
-        }
-
-        [Fact]
-        public async Task GetTransformCapabilitiesOperation_WithMissingElementIdParameter_ShouldUseEmptyString()
-        {
-            // Arrange
-            var operation = new GetTransformCapabilitiesOperation(_mockElementFinder.Object, _mockGetTransformCapabilitiesLogger);
-            var request = new WorkerRequest
-            {
-                Parameters = new Dictionary<string, object>
-                {
-                    { "windowTitle", "TestWindow" },
-                    { "processId", "0" }
-                    // elementIdパラメータなし
-                }
-            };
-
-            _output.WriteLine("Testing GetTransformCapabilitiesOperation with missing elementId parameter");
-
-            // Act
-            var typedRequest = new GetTransformCapabilitiesRequest 
-            { 
-                ElementId = (string)request.Parameters!["elementId"], 
-                WindowTitle = (string)request.Parameters["windowTitle"], 
-                ProcessId = int.Parse((string)request.Parameters["processId"]) 
-            };
-            var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.Success);
-            Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
-            
-            _output.WriteLine($"✓ GetTransformCapabilitiesOperation handled missing elementId parameter");
-            _output.WriteLine($"  Error: {result.Error}");
-        }
-
-        #endregion
 
         #region MoveElementOperation パラメータ検証
 
@@ -516,16 +407,6 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Arrange
             var operations = new List<(string Name, Func<Task<OperationResult>> Execute)>
             {
-                ("GetTransformCapabilities", async () => {
-                    var op = new GetTransformCapabilitiesOperation(_mockElementFinder.Object, _mockGetTransformCapabilitiesLogger);
-                    var typedRequest = new GetTransformCapabilitiesRequest 
-                    { 
-                        ElementId = "TestElement", 
-                        WindowTitle = "TestWindow", 
-                        ProcessId = int.Parse(processIdValue)
-                    };
-                    return await op.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
-                }),
                 ("MoveElement", async () => {
                     var op = new MoveElementOperation(_mockElementFinder.Object, _mockMoveElementLogger);
                     var typedRequest = new MoveElementRequest 
@@ -586,7 +467,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task TransformOperations_WithInvalidProcessId_ShouldUseDefaultValue(string invalidProcessIdValue)
         {
             // Arrange
-            var operation = new GetTransformCapabilitiesOperation(_mockElementFinder.Object, _mockGetTransformCapabilitiesLogger);
+            var operation = new MoveElementOperation(_mockElementFinder.Object, _mockMoveElementLogger);
             var request = new WorkerRequest
             {
                 Parameters = new Dictionary<string, object>
@@ -600,11 +481,13 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine($"Testing Transform operation with invalid processId: '{invalidProcessIdValue}'");
 
             // Act
-            var typedRequest = new GetTransformCapabilitiesRequest 
+            var typedRequest = new MoveElementRequest 
             { 
                 ElementId = (string)request.Parameters!["elementId"], 
                 WindowTitle = (string)request.Parameters["windowTitle"], 
-                ProcessId = int.Parse((string)request.Parameters["processId"]) 
+                ProcessId = int.Parse((string)request.Parameters["processId"]),
+                X = 100.0,
+                Y = 200.0
             };
             var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 
@@ -630,7 +513,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task TransformOperations_WithVariousWindowTitles_ShouldHandleCorrectly(string windowTitle)
         {
             // Arrange
-            var operation = new GetTransformCapabilitiesOperation(_mockElementFinder.Object, _mockGetTransformCapabilitiesLogger);
+            var operation = new RotateElementOperation(_mockElementFinder.Object, _mockRotateElementLogger);
             var request = new WorkerRequest
             {
                 Parameters = new Dictionary<string, object>
@@ -644,11 +527,12 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine($"Testing Transform operation with windowTitle: '{windowTitle}'");
 
             // Act
-            var typedRequest = new GetTransformCapabilitiesRequest 
+            var typedRequest = new RotateElementRequest 
             { 
                 ElementId = (string)request.Parameters!["elementId"], 
                 WindowTitle = (string)request.Parameters["windowTitle"], 
-                ProcessId = int.Parse((string)request.Parameters["processId"]) 
+                ProcessId = int.Parse((string)request.Parameters["processId"]),
+                Degrees = 90.0
             };
             var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 

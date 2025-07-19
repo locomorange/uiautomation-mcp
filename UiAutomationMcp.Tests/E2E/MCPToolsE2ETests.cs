@@ -55,7 +55,6 @@ namespace UIAutomationMCP.Tests.E2E
             services.AddSingleton<ITextService, TextService>();
             services.AddSingleton<ILayoutService, LayoutService>();
             services.AddSingleton<IRangeService, RangeService>();
-            services.AddSingleton<IElementInspectionService, ElementInspectionService>();
             
             // Register additional subprocess-based UI Automation services
             services.AddSingleton<IGridService, GridService>();
