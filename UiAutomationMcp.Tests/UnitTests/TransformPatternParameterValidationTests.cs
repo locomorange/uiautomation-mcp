@@ -71,7 +71,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new GetTransformCapabilitiesRequest 
             { 
-                ElementId = (string)request.Parameters["elementId"], 
+                ElementId = (string)request.Parameters!["elementId"], 
                 WindowTitle = (string)request.Parameters["windowTitle"], 
                 ProcessId = int.Parse((string)request.Parameters["processId"]) 
             };
@@ -101,7 +101,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new GetTransformCapabilitiesRequest 
             { 
-                ElementId = (string)request.Parameters["elementId"], 
+                ElementId = (string)request.Parameters!["elementId"], 
                 WindowTitle = (string)request.Parameters["windowTitle"], 
                 ProcessId = int.Parse((string)request.Parameters["processId"]) 
             };
@@ -136,7 +136,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new GetTransformCapabilitiesRequest 
             { 
-                ElementId = (string)request.Parameters["elementId"], 
+                ElementId = (string)request.Parameters!["elementId"], 
                 WindowTitle = (string)request.Parameters["windowTitle"], 
                 ProcessId = int.Parse((string)request.Parameters["processId"]) 
             };
@@ -180,7 +180,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new MoveElementRequest 
             { 
-                ElementId = (string)request.Parameters["elementId"], 
+                ElementId = (string)request.Parameters!["elementId"], 
                 WindowTitle = (string)request.Parameters["windowTitle"], 
                 ProcessId = int.Parse((string)request.Parameters["processId"]),
                 X = double.TryParse((string)request.Parameters["x"], out var x) ? x : 0.0,
@@ -224,7 +224,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new MoveElementRequest 
             { 
-                ElementId = (string)request.Parameters["elementId"], 
+                ElementId = (string)request.Parameters!["elementId"], 
                 WindowTitle = (string)request.Parameters["windowTitle"], 
                 ProcessId = int.Parse((string)request.Parameters["processId"]),
                 X = double.TryParse((string)request.Parameters["x"], out var x) ? x : 0.0,
@@ -261,7 +261,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new MoveElementRequest 
             { 
-                ElementId = (string)request.Parameters["elementId"], 
+                ElementId = (string)request.Parameters!["elementId"], 
                 WindowTitle = (string)request.Parameters["windowTitle"], 
                 ProcessId = int.Parse((string)request.Parameters["processId"]),
                 X = 0.0,  // Default values for missing coordinates
@@ -308,7 +308,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new ResizeElementRequest 
             { 
-                ElementId = (string)request.Parameters["elementId"], 
+                ElementId = (string)request.Parameters!["elementId"], 
                 WindowTitle = (string)request.Parameters["windowTitle"], 
                 ProcessId = int.Parse((string)request.Parameters["processId"]),
                 Width = double.TryParse((string)request.Parameters["width"], out var w) ? w : 0.0,
@@ -352,7 +352,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new ResizeElementRequest 
             { 
-                ElementId = (string)request.Parameters["elementId"], 
+                ElementId = (string)request.Parameters!["elementId"], 
                 WindowTitle = (string)request.Parameters["windowTitle"], 
                 ProcessId = int.Parse((string)request.Parameters["processId"]),
                 Width = double.TryParse((string)request.Parameters["width"], out var w) ? w : 0.0,
@@ -396,7 +396,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new ResizeElementRequest 
             { 
-                ElementId = (string)request.Parameters["elementId"], 
+                ElementId = (string)request.Parameters!["elementId"], 
                 WindowTitle = (string)request.Parameters["windowTitle"], 
                 ProcessId = int.Parse((string)request.Parameters["processId"]),
                 Width = width,
@@ -442,7 +442,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new RotateElementRequest 
             { 
-                ElementId = (string)request.Parameters["elementId"], 
+                ElementId = (string)request.Parameters!["elementId"], 
                 WindowTitle = (string)request.Parameters["windowTitle"], 
                 ProcessId = int.Parse((string)request.Parameters["processId"]),
                 Degrees = double.TryParse((string)request.Parameters["degrees"], out var deg) ? deg : 0.0
@@ -487,7 +487,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new RotateElementRequest 
             { 
-                ElementId = (string)request.Parameters["elementId"], 
+                ElementId = (string)request.Parameters!["elementId"], 
                 WindowTitle = (string)request.Parameters["windowTitle"], 
                 ProcessId = int.Parse((string)request.Parameters["processId"]),
                 Degrees = degrees
@@ -602,7 +602,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new GetTransformCapabilitiesRequest 
             { 
-                ElementId = (string)request.Parameters["elementId"], 
+                ElementId = (string)request.Parameters!["elementId"], 
                 WindowTitle = (string)request.Parameters["windowTitle"], 
                 ProcessId = int.Parse((string)request.Parameters["processId"]) 
             };
@@ -646,7 +646,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new GetTransformCapabilitiesRequest 
             { 
-                ElementId = (string)request.Parameters["elementId"], 
+                ElementId = (string)request.Parameters!["elementId"], 
                 WindowTitle = (string)request.Parameters["windowTitle"], 
                 ProcessId = int.Parse((string)request.Parameters["processId"]) 
             };

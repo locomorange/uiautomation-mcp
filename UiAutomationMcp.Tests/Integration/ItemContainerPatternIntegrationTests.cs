@@ -155,7 +155,7 @@ public class ItemContainerPatternIntegrationTests : IDisposable
                 new UIAutomationMCP.Shared.ElementInfo
                 {
                     AutomationId = "unnamed_node",
-                    Name = (string?)null,
+                    Name = null!,
                     ClassName = "TreeNode",
                     ControlType = "TreeItem"
                 }

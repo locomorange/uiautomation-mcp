@@ -109,7 +109,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
 
             // When & Then
             await Assert.ThrowsAsync<FileNotFoundException>(async () =>
-                await executor.ExecuteAsync<object>("TestOperation", null, 5));
+                await executor.ExecuteAsync<object>("TestOperation", null!, 5));
         }
 
         [Fact]
