@@ -169,13 +169,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _valueService.SetValueAsync(elementId, value, windowTitle, processId, timeoutSeconds));
 
-        [McpServerTool, Description("Get the current value of an element using ValuePattern")]
-        public async Task<object> GetElementValue(
-            [Description("Automation ID or name of the element")] string elementId, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _valueService.GetValueAsync(elementId, windowTitle, processId, timeoutSeconds));
 
         [McpServerTool, Description("Check if an element is read-only using ValuePattern")]
         public async Task<object> IsElementReadOnly(
@@ -217,13 +210,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _selectionService.GetSelectionContainerAsync(elementId, windowTitle, processId, timeoutSeconds));
 
-        [McpServerTool, Description("Get the current selection from a container using SelectionPattern")]
-        public async Task<object> GetSelection(
-            [Description("Automation ID or name of the container element")] string containerElementId, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _selectionService.GetSelectionAsync(containerElementId, windowTitle, processId, timeoutSeconds));
 
         [McpServerTool, Description("Check if container supports multiple selection using SelectionPattern")]
         public async Task<object> CanSelectMultiple(
@@ -293,13 +279,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _layoutService.ScrollElementIntoViewAsync(elementId, windowTitle, processId, timeoutSeconds));
 
-        [McpServerTool, Description("Get scroll information including position and view size using ScrollPattern")]
-        public async Task<object> GetScrollInfo(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _layoutService.GetScrollInfoAsync(elementId, windowTitle, processId, timeoutSeconds));
 
         [McpServerTool, Description("Set scroll position by percentage using ScrollPattern")]
         public async Task<object> SetScrollPercent(
@@ -321,13 +300,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _rangeService.SetRangeValueAsync(elementId, value, windowTitle, processId, timeoutSeconds));
 
-        [McpServerTool, Description("Get the current value and range information from a range element using RangeValuePattern")]
-        public async Task<object> GetRangeValue(
-            [Description("Automation ID or name of the element")] string elementId, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _rangeService.GetRangeValueAsync(elementId, windowTitle, processId, timeoutSeconds));
 
         // Window Management Patterns
         [McpServerTool, Description("Perform window actions (minimize, maximize, close, etc.) using WindowPattern")]
@@ -360,13 +332,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds for operation (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _windowService.WaitForInputIdleAsync(timeoutMilliseconds, windowTitle, processId, timeoutSeconds));
 
-        [McpServerTool, Description("Get transform capabilities (CanMove, CanResize, CanRotate) for an element")]
-        public async Task<object> GetTransformCapabilities(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _transformService.GetTransformCapabilitiesAsync(elementId, windowTitle, processId, timeoutSeconds));
 
         [McpServerTool, Description("Move an element to new coordinates using TransformPattern")]
         public async Task<object> MoveElement(
@@ -407,13 +372,6 @@ namespace UIAutomationMCP.Server.Tools
             => JsonSerializationHelper.Serialize(await _layoutService.DockElementAsync(elementId, dockPosition, windowTitle, processId, timeoutSeconds));
 
         // Text Pattern Operations
-        [McpServerTool, Description("Get text content from an element using TextPattern")]
-        public async Task<object> GetText(
-            [Description("Automation ID or name of the element")] string elementId, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _textService.GetTextAsync(elementId, windowTitle, processId, timeoutSeconds));
 
         [McpServerTool, Description("Select text in an element using TextPattern")]
         public async Task<object> SelectText(
@@ -472,13 +430,6 @@ namespace UIAutomationMCP.Server.Tools
             => JsonSerializationHelper.Serialize(await _textService.GetTextAsync(elementId, windowTitle, processId, timeoutSeconds));
 
         // Grid Pattern Operations
-        [McpServerTool, Description("Get grid information using GridPattern")]
-        public async Task<object> GetGridInfo(
-            [Description("Automation ID or name of the grid element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _gridService.GetGridInfoAsync(elementId, windowTitle, processId, timeoutSeconds));
 
         [McpServerTool, Description("Get grid item at specific row and column")]
         public async Task<object> GetGridItem(

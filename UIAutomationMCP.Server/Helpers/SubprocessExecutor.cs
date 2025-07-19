@@ -247,9 +247,14 @@ namespace UIAutomationMCP.Server.Helpers
                     };
                     requestJson = JsonSerializationHelper.Serialize(request);
                 }
+                else if (parameters is FindElementsRequest findElementsRequest)
+                {
+                    // New path: Direct serialization of FindElementsRequest
+                    requestJson = JsonSerializationHelper.Serialize(findElementsRequest);
+                }
                 else
                 {
-                    // Legacy path: Current behavior
+                    // Legacy path: Convert object to WorkerRequest
                     var request = new WorkerRequest
                     {
                         Operation = operation,

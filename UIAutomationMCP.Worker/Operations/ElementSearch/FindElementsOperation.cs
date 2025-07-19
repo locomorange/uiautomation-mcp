@@ -81,7 +81,8 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             var searchRoot = _elementFinderService.GetSearchRoot(windowTitle, processId);
             
             // Prevent searching from RootElement for performance reasons
-            if (searchRoot == null && string.IsNullOrEmpty(windowTitle) && processId == 0)
+            // Allow search if either windowTitle or processId is provided, even if GetSearchRoot returns null
+            if (string.IsNullOrEmpty(windowTitle) && processId == 0)
             {
                 var result = new ElementSearchResult();
                 return new OperationResult<ElementSearchResult>

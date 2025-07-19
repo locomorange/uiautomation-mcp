@@ -53,17 +53,6 @@ namespace UIAutomationMCP.Shared.Models
         public Dictionary<string, object>? ActionData { get; set; }
     }
 
-    /// <summary>
-    /// Set element value request parameters
-    /// </summary>
-    public class SetElementValueRequest : TypedRequestBase
-    {
-        [JsonPropertyName("elementId")]
-        public string ElementId { get; set; } = "";
-        
-        [JsonPropertyName("value")]
-        public object Value { get; set; } = "";
-    }
 
     /// <summary>
     /// Element inspection request parameters

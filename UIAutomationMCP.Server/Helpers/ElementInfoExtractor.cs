@@ -66,6 +66,9 @@ namespace UIAutomationMCP.Server.Helpers
                 // SupportedPatterns を取得
                 info.SupportedPatterns = GetSupportedPatterns(element);
 
+                // Properties辞書にUI Automation固有プロパティを追加
+                PopulatePropertiesDictionary(element, info);
+
                 return info;
             }
             catch (Exception ex)
@@ -173,6 +176,32 @@ namespace UIAutomationMCP.Server.Helpers
             {
                 _logger.LogWarning(ex, "[ElementInfoExtractor] Failed to get supported patterns");
                 return new List<string>();
+            }
+        }
+
+        /// <summary>
+        /// Properties辞書に追加のUI Automation固有プロパティを設定
+        /// 基本プロパティ（Name, AutomationId等）は既にElementInfoに存在するため含めない
+        /// </summary>
+        private void PopulatePropertiesDictionary(AutomationElement element, ElementInfo info)
+        {
+            try
+            {
+                // ElementPatternExtractorを使用してパターン情報を取得
+                var patternExtractor = new ElementPatternExtractor(_logger);
+                var patternInfo = patternExtractor.ExtractAllPatternInfo(element);
+                
+                // パターン情報をPropertiesに追加
+                foreach (var kvp in patternInfo)
+                {
+                    info.Properties[kvp.Key] = kvp.Value;
+                }
+                
+                _logger.LogDebug($"[ElementInfoExtractor] Added {patternInfo.Count} pattern properties to element {info.AutomationId}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[ElementInfoExtractor] Failed to populate properties dictionary");
             }
         }
     }
