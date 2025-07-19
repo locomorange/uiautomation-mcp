@@ -29,12 +29,12 @@ namespace UIAutomationMCP.Tests.E2E
         }
 
         [Fact]
-        public async Task Test_02_GetElementInfo_ShouldFindUIElements()
+        public async Task Test_02_FindElements_ShouldFindUIElements()
         {
-            Output.WriteLine("=== Testing GetElementInfo ===");
+            Output.WriteLine("=== Testing FindElements ===");
             
-            var elements = await Tools.GetElementInfo(windowTitle: "WinUI 3 Gallery");
-            LogResult("GetElementInfo", elements);
+            var elements = await Tools.FindElements(windowTitle: "WinUI 3 Gallery");
+            LogResult("FindElements", elements);
             
             Assert.NotNull(elements);
         }
@@ -769,7 +769,7 @@ namespace UIAutomationMCP.Tests.E2E
                 LogResult("Found scroll viewers", scrollViewers);
                 
                 // Test GetScrollInfo if available
-                var allElements = await Tools.GetElementInfo(windowTitle: "WinUI 3 Gallery");
+                var allElements = await Tools.FindElements(windowTitle: "WinUI 3 Gallery");
                 LogResult("All elements for scroll testing", allElements);
                 
                 Assert.NotNull(allElements);
@@ -986,7 +986,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find elements and check for custom properties
-                var elements = await Tools.GetElementInfo(windowTitle: "WinUI 3 Gallery", controlType: "Button");
+                var elements = await Tools.FindElements(windowTitle: "WinUI 3 Gallery", controlType: "Button");
                 LogResult("Elements for custom property testing", elements);
                 
                 Assert.NotNull(elements);

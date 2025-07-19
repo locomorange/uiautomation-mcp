@@ -95,15 +95,8 @@ namespace UIAutomationMCP.Server.Tools
             => JsonSerializationHelper.Serialize(await _elementSearchService.GetWindowsAsync(timeoutSeconds));
 
 
-        [McpServerTool, Description("Get information about UI elements in a specific window")]
-        public async Task<object> GetElementInfo(
-            [Description("Title of the window to search in (optional)")] string? windowTitle = null, 
-            [Description("Type of control to filter by (optional)")] string? controlType = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
-            => JsonSerializationHelper.Serialize(await _elementSearchService.FindElementsAsync(windowTitle, null, controlType, processId, timeoutSeconds));
 
-        [McpServerTool, Description("Find UI elements by various criteria")]
+        [McpServerTool, Description("Find UI elements by various criteria (comprehensive element search tool)")]
         public async Task<object> FindElements(
             [Description("Text to search for in element names or automation IDs (optional)")] string? searchText = null, 
             [Description("Type of control to filter by (optional)")] string? controlType = null, 
@@ -644,20 +637,20 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _controlTypeService.GetControlTypeInfoAsync(elementId, validatePatterns, includeDefaultProperties, windowTitle, processId, timeoutSeconds));
 
-        [McpServerTool, Description("Validate if element supports expected patterns for its control type")]
+        [McpServerTool, Description("Validate if element supports expected patterns for its control type (quality assurance and debugging tool)")]
         public async Task<object> ValidateControlTypePatterns(
-            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Automation ID or name of the element to validate")] string elementId,
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _controlTypeService.ValidateControlTypePatternsAsync(elementId, windowTitle, processId, timeoutSeconds));
 
-        [McpServerTool, Description("Find all elements of specific control type with pattern validation")]
+        [McpServerTool, Description("Find elements by control type with optional pattern validation (specialized search with quality assurance)")]
         public async Task<object> FindElementsByControlType(
             [Description("Control type (Button, Edit, List, ComboBox, CheckBox, RadioButton, etc.)")] string controlType,
-            [Description("Validate required patterns (default: true)")] bool validatePatterns = true,
-            [Description("Scope: children, descendants, subtree (default: descendants)")] string scope = "descendants",
-            [Description("Title of the window (optional)")] string? windowTitle = null,
+            [Description("Validate required patterns for quality assurance (default: true)")] bool validatePatterns = true,
+            [Description("Search scope: children, descendants, subtree (default: descendants)")] string scope = "descendants",
+            [Description("Title of the window to search in (optional)")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null,
             [Description("Maximum number of elements to return (default: 100)")] int maxResults = 100,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)

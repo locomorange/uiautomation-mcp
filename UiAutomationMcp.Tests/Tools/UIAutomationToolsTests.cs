@@ -883,38 +883,7 @@ namespace UIAutomationMCP.Tests.Tools
             _output.WriteLine("GetElementTree test passed");
         }
 
-        [Fact]
-        public async Task GetElementInfo_WithControlType_CallsCorrectService()
-        {
-            // Arrange
-            var expectedElements = new List<ElementInfo>
-            {
-                new ElementInfo { AutomationId = "textBox1", Name = "TextBox1", ControlType = "Edit" }
-            };
-            var elementSearchResult = new ElementSearchResult
-            {
-                Success = true,
-                Elements = expectedElements
-            };
-            var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
-            {
-                Success = true,
-                Data = elementSearchResult,
-                ExecutionInfo = new ServerExecutionInfo(),
-                RequestMetadata = new RequestMetadata()
-            };
-            
-            _mockElementSearchService.Setup(s => s.FindElementsAsync("TestWindow", null, "Edit", null, 60))
-                                   .Returns(Task.FromResult(serverResponse));
-
-            // Act
-            var result = await _tools.GetElementInfo("TestWindow", "Edit");
-
-            // Assert
-            Assert.NotNull(result);
-            _mockElementSearchService.Verify(s => s.FindElementsAsync("TestWindow", null, "Edit", null, 60), Times.Once);
-            _output.WriteLine("GetElementInfo with control type test passed");
-        }
+        // GetElementInfo test removed - functionality replaced by FindElements
 
         [Fact]
         public async Task LaunchWin32Application_Success_CallsApplicationLauncher()

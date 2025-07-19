@@ -75,7 +75,7 @@ public class NewPatternsE2ETests : BaseE2ETest
                 timeoutSeconds: 15);
 
             // Verify the item is now accessible
-            var elementInfo = await Tools.GetElementInfo(
+            var elementInfo = await Tools.FindElements(
                 windowTitle: "DataGrid Test App");
 
             Assert.NotNull(elementInfo);
