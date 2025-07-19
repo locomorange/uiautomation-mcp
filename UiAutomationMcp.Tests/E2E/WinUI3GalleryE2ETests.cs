@@ -62,7 +62,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find buttons in WinUI 3 Gallery
-                var buttons = await _tools.FindElementsByControlType("Button", windowTitle: "WinUI 3 Gallery");
+                var buttons = await _tools.FindElements(controlType: "Button", windowTitle: "WinUI 3 Gallery");
                 _output.WriteLine($"Found buttons: {JsonSerializer.Serialize(buttons, new JsonSerializerOptions { WriteIndented = true })}");
 
                 Assert.True(true, "Button finding test executed successfully");
@@ -107,7 +107,7 @@ namespace UIAutomationMCP.Tests.E2E
                 await _tools.TakeScreenshot(windowTitle: "WinUI 3 Gallery", outputPath: "C:\\temp\\gallery_before.png");
 
                 // Find navigation elements (like Navigation View or menu items)
-                var navElements = await _tools.FindElementsByControlType("ListItem", windowTitle: "WinUI 3 Gallery");
+                var navElements = await _tools.FindElements(controlType: "ListItem", windowTitle: "WinUI 3 Gallery");
                 _output.WriteLine($"Navigation elements: {JsonSerializer.Serialize(navElements, new JsonSerializerOptions { WriteIndented = true })}");
 
                 // Look for TextBox-related navigation items

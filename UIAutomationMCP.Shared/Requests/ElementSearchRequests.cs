@@ -48,25 +48,6 @@ namespace UIAutomationMCP.Shared.Requests
         public bool ValidatePatterns { get; set; } = true;
     }
 
-    public class FindElementsByControlTypeRequest : TypedWorkerRequest
-    {
-        public override string Operation => "FindElementsByControlType";
-
-        [JsonPropertyName("controlType")]
-        public string ControlType { get; set; } = "";
-
-        [JsonPropertyName("windowTitle")]
-        public string? WindowTitle { get; set; }
-
-        [JsonPropertyName("processId")]
-        public int? ProcessId { get; set; }
-
-        [JsonPropertyName("scope")]
-        public string Scope { get; set; } = "descendants";
-
-        [JsonPropertyName("timeoutSeconds")]
-        public int TimeoutSeconds { get; set; } = 30;
-    }
 
     public class FindElementsByPatternRequest : TypedWorkerRequest
     {

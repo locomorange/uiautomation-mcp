@@ -66,7 +66,7 @@ namespace UIAutomationMCP.Tests.E2E
         {
             Output.WriteLine("=== Testing FindElementsByControlType for Buttons ===");
             
-            var buttons = await Tools.FindElementsByControlType("Button", windowTitle: "WinUI 3 Gallery");
+            var buttons = await Tools.FindElements(controlType: "Button", windowTitle: "WinUI 3 Gallery");
             LogResult("FindElementsByControlType", buttons);
             
             Assert.NotNull(buttons);
@@ -122,7 +122,7 @@ namespace UIAutomationMCP.Tests.E2E
             {
                 // Step 1: Find available navigation items and log them in detail
                 Output.WriteLine("1. Finding navigation items...");
-                var navItems = await Tools.FindElementsByControlType("ListItem", windowTitle: "WinUI 3 Gallery");
+                var navItems = await Tools.FindElements(controlType: "ListItem", windowTitle: "WinUI 3 Gallery");
                 
                 // Parse and display available navigation items
                 var navItemsJson = JsonSerializer.Serialize(navItems);
@@ -154,7 +154,7 @@ namespace UIAutomationMCP.Tests.E2E
                 
                 // Step 3: Get initial page content to compare later
                 Output.WriteLine("\n3. Getting initial page content...");
-                var initialContent = await Tools.FindElementsByControlType("Text", windowTitle: "WinUI 3 Gallery");
+                var initialContent = await Tools.FindElements(controlType: "Text", windowTitle: "WinUI 3 Gallery");
                 Output.WriteLine($"Initial content elements found: {JsonSerializer.Serialize(initialContent)}");
                 
                 // Step 4: Take screenshot before
@@ -185,7 +185,7 @@ namespace UIAutomationMCP.Tests.E2E
                 
                 // Step 8: Get page content after navigation
                 Output.WriteLine("\n8. Getting page content after navigation...");
-                var afterContent = await Tools.FindElementsByControlType("Text", windowTitle: "WinUI 3 Gallery");
+                var afterContent = await Tools.FindElements(controlType: "Text", windowTitle: "WinUI 3 Gallery");
                 Output.WriteLine($"After content elements found: {JsonSerializer.Serialize(afterContent)}");
                 
                 // Step 9: Take screenshot after
@@ -320,7 +320,7 @@ namespace UIAutomationMCP.Tests.E2E
                 await Tools.TakeScreenshot("WinUI 3 Gallery", @"C:\temp\before_minimize.png");
                 
                 Output.WriteLine("2. Finding and analyzing buttons...");
-                var buttons = await Tools.FindElementsByControlType("Button", windowTitle: "WinUI 3 Gallery");
+                var buttons = await Tools.FindElements(controlType: "Button", windowTitle: "WinUI 3 Gallery");
                 
                 // Parse and find the Minimize button specifically
                 var buttonsData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(buttons));
@@ -431,7 +431,7 @@ namespace UIAutomationMCP.Tests.E2E
             {
                 Output.WriteLine("1. Looking for text input controls with detailed analysis...");
                 
-                var textInputs = await Tools.FindElementsByControlType("Edit", windowTitle: "WinUI 3 Gallery");
+                var textInputs = await Tools.FindElements(controlType: "Edit", windowTitle: "WinUI 3 Gallery");
                 
                 // Parse and analyze each element
                 var inputsData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(textInputs));
@@ -531,7 +531,7 @@ namespace UIAutomationMCP.Tests.E2E
                             await Task.Delay(2000);
                             
                             // Search again after navigation
-                            var newInputs = await Tools.FindElementsByControlType("Edit", windowTitle: "WinUI 3 Gallery");
+                            var newInputs = await Tools.FindElements(controlType: "Edit", windowTitle: "WinUI 3 Gallery");
                             Output.WriteLine($"After navigation, found: {JsonSerializer.Serialize(newInputs)}");
                         }
                         catch (Exception navEx)
@@ -560,7 +560,7 @@ namespace UIAutomationMCP.Tests.E2E
                 // Look for checkboxes
                 Output.WriteLine("1. Looking for checkbox controls...");
                 
-                var checkboxes = await Tools.FindElementsByControlType("CheckBox", windowTitle: "WinUI 3 Gallery");
+                var checkboxes = await Tools.FindElements(controlType: "CheckBox", windowTitle: "WinUI 3 Gallery");
                 Output.WriteLine($"Found checkboxes: {JsonSerializer.Serialize(checkboxes)}");
                 
                 // Parse and test checkbox toggling
@@ -628,11 +628,11 @@ namespace UIAutomationMCP.Tests.E2E
                 Output.WriteLine("1. Looking for scrollable elements...");
                 
                 // Look for scroll viewers or scrollable content
-                var scrollableElements = await Tools.FindElementsByControlType("ScrollViewer", windowTitle: "WinUI 3 Gallery");
+                var scrollableElements = await Tools.FindElements(controlType: "ScrollViewer", windowTitle: "WinUI 3 Gallery");
                 Output.WriteLine($"Found scroll viewers: {JsonSerializer.Serialize(scrollableElements)}");
                 
                 // Also look for lists that might be scrollable
-                var lists = await Tools.FindElementsByControlType("List", windowTitle: "WinUI 3 Gallery");
+                var lists = await Tools.FindElements(controlType: "List", windowTitle: "WinUI 3 Gallery");
                 Output.WriteLine($"Found lists: {JsonSerializer.Serialize(lists)}");
                 
                 // Test scrolling on the navigation pane (it should be scrollable)
@@ -742,7 +742,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find text boxes
-                var textBoxes = await Tools.FindElementsByControlType("Edit", windowTitle: "WinUI 3 Gallery");
+                var textBoxes = await Tools.FindElements(controlType: "Edit", windowTitle: "WinUI 3 Gallery");
                 LogResult("Found text boxes", textBoxes);
                 
                 Assert.NotNull(textBoxes);
@@ -765,7 +765,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find scrollable elements
-                var scrollViewers = await Tools.FindElementsByControlType("ScrollViewer", windowTitle: "WinUI 3 Gallery");
+                var scrollViewers = await Tools.FindElements(controlType: "ScrollViewer", windowTitle: "WinUI 3 Gallery");
                 LogResult("Found scroll viewers", scrollViewers);
                 
                 // Test GetScrollInfo if available
@@ -788,7 +788,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find tree items or expandable elements
-                var treeItems = await Tools.FindElementsByControlType("TreeItem", windowTitle: "WinUI 3 Gallery");
+                var treeItems = await Tools.FindElements(controlType: "TreeItem", windowTitle: "WinUI 3 Gallery");
                 LogResult("Found tree items", treeItems);
                 
                 // Also check for other expandable controls
@@ -811,7 +811,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find elements that might support transform
-                var windows = await Tools.FindElementsByControlType("Window", windowTitle: "WinUI 3 Gallery");
+                var windows = await Tools.FindElements(controlType: "Window", windowTitle: "WinUI 3 Gallery");
                 LogResult("Found windows for transform", windows);
                 
                 Assert.NotNull(windows);
@@ -834,7 +834,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find text elements
-                var textElements = await Tools.FindElementsByControlType("Text", windowTitle: "WinUI 3 Gallery");
+                var textElements = await Tools.FindElements(controlType: "Text", windowTitle: "WinUI 3 Gallery");
                 LogResult("Found text elements", textElements);
                 
                 Assert.NotNull(textElements);
@@ -857,11 +857,11 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find data grid elements
-                var dataGrids = await Tools.FindElementsByControlType("DataGrid", windowTitle: "WinUI 3 Gallery");
+                var dataGrids = await Tools.FindElements(controlType: "DataGrid", windowTitle: "WinUI 3 Gallery");
                 LogResult("Found data grids", dataGrids);
                 
                 // Also check for generic grid patterns
-                var grids = await Tools.FindElementsByControlType("Grid", windowTitle: "WinUI 3 Gallery");
+                var grids = await Tools.FindElements(controlType: "Grid", windowTitle: "WinUI 3 Gallery");
                 LogResult("Found grids", grids);
                 
                 Assert.True(true); // Test completion
@@ -880,7 +880,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find table elements
-                var tables = await Tools.FindElementsByControlType("Table", windowTitle: "WinUI 3 Gallery");
+                var tables = await Tools.FindElements(controlType: "Table", windowTitle: "WinUI 3 Gallery");
                 LogResult("Found tables", tables);
                 
                 Assert.True(true); // Test completion
@@ -921,7 +921,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find a button and validate its control type
-                var buttons = await Tools.FindElementsByControlType("Button", windowTitle: "WinUI 3 Gallery", maxResults: 1);
+                var buttons = await Tools.FindElements(controlType: "Button", windowTitle: "WinUI 3 Gallery", maxResults: 1);
                 LogResult("Found button for control type validation", buttons);
                 
                 Assert.NotNull(buttons);
@@ -963,11 +963,11 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find sliders
-                var sliders = await Tools.FindElementsByControlType("Slider", windowTitle: "WinUI 3 Gallery");
+                var sliders = await Tools.FindElements(controlType: "Slider", windowTitle: "WinUI 3 Gallery");
                 LogResult("Found sliders", sliders);
                 
                 // Also check for progress bars
-                var progressBars = await Tools.FindElementsByControlType("ProgressBar", windowTitle: "WinUI 3 Gallery");
+                var progressBars = await Tools.FindElements(controlType: "ProgressBar", windowTitle: "WinUI 3 Gallery");
                 LogResult("Found progress bars", progressBars);
                 
                 Assert.True(true); // Test completion

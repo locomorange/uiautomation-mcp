@@ -59,7 +59,7 @@ namespace UIAutomationMCP.Tests.E2E
                 }
 
                 // Step 4: Find all buttons on the page
-                var buttons = await _tools.FindElementsByControlType("Button", windowTitle: "WinUI 3 Gallery");
+                var buttons = await _tools.FindElements(controlType: "Button", windowTitle: "WinUI 3 Gallery");
                 LogResult("All buttons on page", buttons);
 
                 // Step 5: Get element tree to understand page structure
@@ -95,7 +95,7 @@ namespace UIAutomationMCP.Tests.E2E
                 }
 
                 // Step 3: Find text boxes on the page
-                var textBoxes = await _tools.FindElementsByControlType("Edit", windowTitle: "WinUI 3 Gallery");
+                var textBoxes = await _tools.FindElements(controlType: "Edit", windowTitle: "WinUI 3 Gallery");
                 LogResult("Text boxes found", textBoxes);
 
                 // Step 4: Try to set text in the first text box
@@ -144,7 +144,7 @@ namespace UIAutomationMCP.Tests.E2E
                 }
 
                 // Step 3: Find checkboxes on the page
-                var checkBoxes = await _tools.FindElementsByControlType("CheckBox", windowTitle: "WinUI 3 Gallery");
+                var checkBoxes = await _tools.FindElements(controlType: "CheckBox", windowTitle: "WinUI 3 Gallery");
                 LogResult("CheckBoxes found", checkBoxes);
 
                 // Step 4: Toggle the first checkbox
@@ -183,7 +183,7 @@ namespace UIAutomationMCP.Tests.E2E
                 }
 
                 // Step 3: Find sliders on the page
-                var sliders = await _tools.FindElementsByControlType("Slider", windowTitle: "WinUI 3 Gallery");
+                var sliders = await _tools.FindElements(controlType: "Slider", windowTitle: "WinUI 3 Gallery");
                 LogResult("Sliders found", sliders);
 
                 // Step 4: Get and set range value
@@ -226,7 +226,7 @@ namespace UIAutomationMCP.Tests.E2E
                 }
 
                 // Step 3: Find scrollable elements
-                var scrollViewers = await _tools.FindElementsByControlType("ScrollViewer", windowTitle: "WinUI 3 Gallery");
+                var scrollViewers = await _tools.FindElements(controlType: "ScrollViewer", windowTitle: "WinUI 3 Gallery");
                 LogResult("ScrollViewers found", scrollViewers);
 
                 // Step 4: Test scroll operations
@@ -266,18 +266,18 @@ namespace UIAutomationMCP.Tests.E2E
                 LogResult("Main window accessibility", mainWindowAccessibility);
 
                 // Step 2: Get control type info for various elements
-                var buttons = await _tools.FindElementsByControlType("Button", windowTitle: "WinUI 3 Gallery", maxResults: 1);
+                var buttons = await _tools.FindElements(controlType: "Button", windowTitle: "WinUI 3 Gallery", maxResults: 1);
                 if (buttons != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(buttons)), out var buttonId))
                 {
-                    var controlTypeInfo = await _tools.GetControlTypeInfo(buttonId!, windowTitle: "WinUI 3 Gallery");
-                    LogResult("Button control type info", controlTypeInfo);
+                    // Control type info is already included in FindElements response
+                    LogResult("Button elements (with control type info)", buttons);
                     
                     var patternValidation = await _tools.ValidateControlTypePatterns(buttonId!, windowTitle: "WinUI 3 Gallery");
                     LogResult("Button pattern validation", patternValidation);
                 }
 
                 // Step 3: Check for labeled elements
-                var textBoxes = await _tools.FindElementsByControlType("Edit", windowTitle: "WinUI 3 Gallery", maxResults: 1);
+                var textBoxes = await _tools.FindElements(controlType: "Edit", windowTitle: "WinUI 3 Gallery", maxResults: 1);
                 if (textBoxes != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(textBoxes)), out var textBoxId))
                 {
                     try
