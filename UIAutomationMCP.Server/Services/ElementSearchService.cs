@@ -103,6 +103,12 @@ namespace UIAutomationMCP.Server.Services
 
         public async Task<ServerEnhancedResponse<ElementSearchResult>> FindElementsAsync(string? windowTitle = null, string? searchText = null, string? controlType = null, int? processId = null, int timeoutSeconds = 60)
         {
+            // Legacy method - delegate to enhanced version with defaults
+            return await FindElementsAsync(windowTitle, searchText, controlType, processId, "descendants", true, 100, true, timeoutSeconds);
+        }
+
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> FindElementsAsync(string? windowTitle = null, string? searchText = null, string? controlType = null, int? processId = null, string scope = "descendants", bool validatePatterns = true, int maxResults = 100, bool useCache = true, int timeoutSeconds = 60)
+        {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
@@ -117,9 +123,10 @@ namespace UIAutomationMCP.Server.Services
                     SearchText = searchText ?? "",
                     ControlType = controlType ?? "",
                     ProcessId = processId ?? 0,
-                    Scope = "descendants",
-                    MaxResults = 100,
-                    UseCache = false,
+                    Scope = scope,
+                    MaxResults = maxResults,
+                    UseCache = useCache,
+                    ValidatePatterns = validatePatterns,
                     UseRegex = false,
                     UseWildcard = false
                 };

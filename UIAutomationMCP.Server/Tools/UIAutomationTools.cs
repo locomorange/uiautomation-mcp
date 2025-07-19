@@ -96,14 +96,18 @@ namespace UIAutomationMCP.Server.Tools
 
 
 
-        [McpServerTool, Description("Find UI elements by various criteria (comprehensive element search tool)")]
+        [McpServerTool, Description("Find UI elements by various criteria with optional pattern validation (comprehensive element search tool)")]
         public async Task<object> FindElements(
             [Description("Text to search for in element names or automation IDs (optional)")] string? searchText = null, 
             [Description("Type of control to filter by (optional)")] string? controlType = null, 
             [Description("Title of the window to search in (optional)")] string? windowTitle = null, 
             [Description("Process ID of the target window (optional)")] int? processId = null, 
+            [Description("Search scope: children, descendants, subtree (default: descendants)")] string scope = "descendants",
+            [Description("Validate control type patterns for quality assurance (default: true)")] bool validatePatterns = true,
+            [Description("Maximum number of elements to return (default: 100)")] int maxResults = 100,
+            [Description("Use caching for performance (default: true)")] bool useCache = true,
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
-            => JsonSerializationHelper.Serialize(await _elementSearchService.FindElementsAsync(windowTitle, searchText, controlType, processId, timeoutSeconds));
+            => JsonSerializationHelper.Serialize(await _elementSearchService.FindElementsAsync(windowTitle, searchText, controlType, processId, scope, validatePatterns, maxResults, useCache, timeoutSeconds));
 
         [McpServerTool, Description("Get the element tree structure for navigation and analysis")]
         public async Task<object> GetElementTree(
@@ -627,15 +631,6 @@ namespace UIAutomationMCP.Server.Tools
             => JsonSerializationHelper.Serialize(await _customPropertyService.GetCustomPropertiesAsync(elementId, propertyIds.Split(','), windowTitle, processId, timeoutSeconds));
 
         // Control Type Operations
-        [McpServerTool, Description("Get control type information and supported patterns")]
-        public async Task<object> GetControlTypeInfo(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Include supported patterns validation (default: true)")] bool validatePatterns = true,
-            [Description("Include default property values (default: true)")] bool includeDefaultProperties = true,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _controlTypeService.GetControlTypeInfoAsync(elementId, validatePatterns, includeDefaultProperties, windowTitle, processId, timeoutSeconds));
 
         [McpServerTool, Description("Validate if element supports expected patterns for its control type (quality assurance and debugging tool)")]
         public async Task<object> ValidateControlTypePatterns(
@@ -645,16 +640,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _controlTypeService.ValidateControlTypePatternsAsync(elementId, windowTitle, processId, timeoutSeconds));
 
-        [McpServerTool, Description("Find elements by control type with optional pattern validation (specialized search with quality assurance)")]
-        public async Task<object> FindElementsByControlType(
-            [Description("Control type (Button, Edit, List, ComboBox, CheckBox, RadioButton, etc.)")] string controlType,
-            [Description("Validate required patterns for quality assurance (default: true)")] bool validatePatterns = true,
-            [Description("Search scope: children, descendants, subtree (default: descendants)")] string scope = "descendants",
-            [Description("Title of the window to search in (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Maximum number of elements to return (default: 100)")] int maxResults = 100,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _controlTypeService.FindElementsByControlTypeAsync(controlType, validatePatterns, scope, windowTitle, processId, maxResults, timeoutSeconds));
+        // FindElementsByControlType functionality merged into FindElements with controlType parameter
 
         // VirtualizedItem Pattern
         [McpServerTool, Description("Realize a virtualized item to make it fully available in the UI Automation tree")]
