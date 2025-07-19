@@ -154,7 +154,6 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(GetElementValueRequest) => (JsonTypeInfo<T>)(object)_context.GetElementValueRequest,
                 Type t when t == typeof(IsReadOnlyRequest) => (JsonTypeInfo<T>)(object)_context.IsReadOnlyRequest,
                 Type t when t == typeof(FindElementsRequest) => (JsonTypeInfo<T>)(object)_context.FindElementsRequest,
-                Type t when t == typeof(FindElementsByPatternRequest) => (JsonTypeInfo<T>)(object)_context.FindElementsByPatternRequest,
                 Type t when t == typeof(GetDesktopWindowsRequest) => (JsonTypeInfo<T>)(object)_context.GetDesktopWindowsRequest,
                 Type t when t == typeof(WindowActionRequest) => (JsonTypeInfo<T>)(object)_context.WindowActionRequest,
                 Type t when t == typeof(GetWindowInfoRequest) => (JsonTypeInfo<T>)(object)_context.GetWindowInfoRequest,
@@ -340,7 +339,6 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(GetElementValueRequest))]
     [JsonSerializable(typeof(IsReadOnlyRequest))]
     [JsonSerializable(typeof(FindElementsRequest))]
-    [JsonSerializable(typeof(FindElementsByPatternRequest))]
     [JsonSerializable(typeof(GetDesktopWindowsRequest))]
     [JsonSerializable(typeof(WindowActionRequest))]
     [JsonSerializable(typeof(GetWindowInfoRequest))]

@@ -34,7 +34,7 @@ public class WinUI3GalleryRealWorldTests : BaseE2ETest
             await Task.Delay(3000);
 
             // Step 2: Get the main window information
-            var windowInfo = await Tools.GetWindowInfo();
+            var windowInfo = await Tools.GetWindows();
             _output.WriteLine($"Main window info: {JsonSerializer.Serialize(windowInfo, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 3: Get the complete element tree with maximum depth
@@ -357,10 +357,10 @@ public class WinUI3GalleryRealWorldTests : BaseE2ETest
 
             // Step 2: Measure time to get window info
             var windowInfoStartTime = DateTime.Now;
-            var windowInfo = await Tools.GetWindowInfo();
+            var windowInfo = await Tools.GetWindows();
             var windowInfoEndTime = DateTime.Now;
             var windowInfoDuration = windowInfoEndTime - windowInfoStartTime;
-            _output.WriteLine($"GetWindowInfo took {windowInfoDuration.TotalMilliseconds}ms");
+            _output.WriteLine($"GetWindows took {windowInfoDuration.TotalMilliseconds}ms");
 
             // Step 3: Measure time to get element tree
             var elementTreeStartTime = DateTime.Now;

@@ -33,7 +33,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Get current windows to find WinUI 3 Gallery
-                var windowInfo = await _tools.GetWindowInfo();
+                var windowInfo = await _tools.GetWindows();
                 _output.WriteLine($"Window info: {JsonSerializer.Serialize(windowInfo, new JsonSerializerOptions { WriteIndented = true })}");
 
                 // Find elements in WinUI 3 Gallery

@@ -113,7 +113,7 @@ namespace UIAutomationMCP.Tests.Tools
         #region Window and Element Discovery Tests
 
         [Fact]
-        public async Task GetWindowInfo_Success_ReturnsWindowList()
+        public async Task GetWindows_Success_ReturnsWindowList()
         {
             // Arrange
             var expectedWindows = new List<UIAutomationMCP.Shared.Results.WindowInfo>
@@ -141,12 +141,12 @@ namespace UIAutomationMCP.Tests.Tools
                             .Returns(Task.FromResult(serverResponse));
 
             // Act
-            var result = await _tools.GetWindowInfo();
+            var result = await _tools.GetWindows();
 
             // Assert
             Assert.NotNull(result);
             _mockElementSearchService.Verify(s => s.GetWindowsAsync(60), Times.Once);
-            _output.WriteLine($"GetWindowInfo test passed: Found {expectedWindows.Count} windows");
+            _output.WriteLine($"GetWindows test passed: Found {expectedWindows.Count} windows");
         }
 
         [Fact]

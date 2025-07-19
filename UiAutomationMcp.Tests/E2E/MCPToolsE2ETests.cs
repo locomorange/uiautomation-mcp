@@ -112,24 +112,24 @@ namespace UIAutomationMCP.Tests.E2E
         }
 
         [Fact]
-        public async Task GetWindowInfo_ShouldReturnOpenWindows()
+        public async Task GetWindows_ShouldReturnOpenWindows()
         {
-            _output.WriteLine("Testing GetWindowInfo tool...");
+            _output.WriteLine("Testing GetWindows tool...");
 
             try
             {
-                var result = await _tools.GetWindowInfo();
+                var result = await _tools.GetWindows();
                 Assert.NotNull(result);
                 
-                _output.WriteLine($"GetWindowInfo result type: {result.GetType().Name}");
-                _output.WriteLine($"GetWindowInfo result: {JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}");
+                _output.WriteLine($"GetWindows result type: {result.GetType().Name}");
+                _output.WriteLine($"GetWindows result: {JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}");
                 
                 // Test passes if no exception is thrown and result is not null
-                Assert.True(true, "GetWindowInfo executed successfully");
+                Assert.True(true, "GetWindows executed successfully");
             }
             catch (Exception ex)
             {
-                _output.WriteLine($"GetWindowInfo failed: {ex.Message}");
+                _output.WriteLine($"GetWindows failed: {ex.Message}");
                 _output.WriteLine($"Stack trace: {ex.StackTrace}");
                 throw;
             }
@@ -159,7 +159,7 @@ namespace UIAutomationMCP.Tests.E2E
                 }
                 
                 // Try to get window info for Notepad
-                var windowInfo = await _tools.GetWindowInfo();
+                var windowInfo = await _tools.GetWindows();
                 _output.WriteLine($"Window info after launch: {JsonSerializer.Serialize(windowInfo, new JsonSerializerOptions { WriteIndented = true })}");
                 
                 Assert.True(true, "LaunchApplicationByName executed successfully");

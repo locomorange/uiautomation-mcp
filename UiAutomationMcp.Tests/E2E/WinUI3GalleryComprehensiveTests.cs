@@ -18,12 +18,12 @@ namespace UIAutomationMCP.Tests.E2E
         #region Window and Element Discovery Tools
 
         [Fact]
-        public async Task Test_01_GetWindowInfo_ShouldFindWinUI3Gallery()
+        public async Task Test_01_GetWindows_ShouldFindWinUI3Gallery()
         {
-            Output.WriteLine("=== Testing GetWindowInfo ===");
+            Output.WriteLine("=== Testing GetWindows ===");
             
-            var windows = await Tools.GetWindowInfo();
-            LogResult("GetWindowInfo", windows);
+            var windows = await Tools.GetWindows();
+            LogResult("GetWindows", windows);
             
             Assert.NotNull(windows);
         }
@@ -363,7 +363,7 @@ namespace UIAutomationMCP.Tests.E2E
                                     
                                     Output.WriteLine("5. Attempting to restore window by clicking on taskbar or searching...");
                                     // Try to find the window again (it might be minimized)
-                                    var windowInfo = await Tools.GetWindowInfo();
+                                    var windowInfo = await Tools.GetWindows();
                                     Output.WriteLine($"Window info after minimize: {JsonSerializer.Serialize(windowInfo)}");
                                     
                                     // Verify the invoke operation succeeded
@@ -687,7 +687,7 @@ namespace UIAutomationMCP.Tests.E2E
                 Output.WriteLine($"Window interaction state: {JsonSerializer.Serialize(interactionState)}");
                 
                 // Test window info
-                var windowInfo = await Tools.GetWindowInfo();
+                var windowInfo = await Tools.GetWindows();
                 Output.WriteLine($"Window info: {JsonSerializer.Serialize(windowInfo)}");
                 
                 // Verify operations succeeded

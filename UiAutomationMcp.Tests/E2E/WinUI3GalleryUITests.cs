@@ -31,7 +31,7 @@ public class WinUI3GalleryUITests : BaseE2ETest
         try
         {
             // Step 1: Get the WinUI 3 Gallery window
-            var windowInfo = await Tools.GetWindowInfo();
+            var windowInfo = await Tools.GetWindows();
             _output.WriteLine($"Window info: {JsonSerializer.Serialize(windowInfo, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 2: Find the navigation view and search for "Button"

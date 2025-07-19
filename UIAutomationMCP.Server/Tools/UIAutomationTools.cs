@@ -91,7 +91,7 @@ namespace UIAutomationMCP.Server.Tools
 
         // Window and Element Discovery
         [McpServerTool, Description("Get information about all open windows")]
-        public async Task<object> GetWindowInfo([Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
+        public async Task<object> GetWindows([Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
             => JsonSerializationHelper.Serialize(await _elementSearchService.GetWindowsAsync(timeoutSeconds));
 
 
@@ -115,8 +115,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Maximum depth to traverse (default: 3)")] int maxDepth = 3, 
             [Description("Process ID of the target window (optional)")] int? processId = null, 
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
-            // FIXED: Added JsonSerializationHelper.Serialize() to handle ServerEnhancedResponse<ElementTreeResult> JSON serialization
-            // This was causing "JsonTypeInfo metadata was not provided" errors at MCP server level
             => JsonSerializationHelper.Serialize(await _treeNavigationService.GetElementTreeAsync(windowTitle, processId, maxDepth, timeoutSeconds));
 
 

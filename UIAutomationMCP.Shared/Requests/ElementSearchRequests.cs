@@ -49,23 +49,4 @@ namespace UIAutomationMCP.Shared.Requests
     }
 
 
-    public class FindElementsByPatternRequest : TypedWorkerRequest
-    {
-        public override string Operation => "FindElementsByPattern";
-
-        [JsonPropertyName("patternName")]
-        public string PatternName { get; set; } = "";
-
-        [JsonPropertyName("windowTitle")]
-        public string? WindowTitle { get; set; }
-
-        [JsonPropertyName("processId")]
-        public int? ProcessId { get; set; }
-
-        [JsonPropertyName("scope")]
-        public string Scope { get; set; } = "descendants";
-
-        [JsonPropertyName("timeoutSeconds")]
-        public int TimeoutSeconds { get; set; } = 30;
-    }
 }
