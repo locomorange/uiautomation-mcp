@@ -18,14 +18,22 @@ namespace UIAutomationMCP.Worker.Helpers
         }
 
         /// <summary>
-        /// 要素IDで要素を検索（AutomationId OR Name の OR条件で検索）
-        /// FindElementsと同じ検索条件を使用してInvokeElementとの一貫性を保つ
+        /// 要素IDで要素を検索（AutomationId優先、Nameをフォールバックとする段階的検索）
+        /// 
+        /// 検索順序:
+        /// 1. AutomationIdプロパティで検索（推奨・安定した識別子）
+        /// 2. 見つからない場合、Nameプロパティで検索（フォールバック）
+        /// 
+        /// MSベストプラクティスに従い、OR条件ではなく段階的検索により
+        /// より確実で予測可能な要素特定を実現
         /// </summary>
-        /// <param name="elementId">要素ID</param>
-        /// <param name="windowTitle">ウィンドウタイトル（省略可）</param>
-        /// <param name="processId">プロセスID（省略可）</param>
+        /// <param name="elementId">検索する要素の識別子（AutomationIdまたはName）</param>
+        /// <param name="windowTitle">検索対象ウィンドウのタイトル（省略可、指定すると検索範囲を限定）</param>
+        /// <param name="processId">検索対象プロセスのID（省略可、指定すると検索範囲を限定）</param>
+        /// <param name="scope">検索範囲（デフォルト: Descendants）</param>
+        /// <param name="cacheRequest">キャッシュリクエスト（パフォーマンス最適化用、省略可）</param>
         /// <param name="timeoutMs">検索タイムアウト（ミリ秒、デフォルト: 1000ms）</param>
-        /// <returns>見つかった要素またはnull</returns>
+        /// <returns>見つかった要素、見つからない場合はnull</returns>
         public AutomationElement? FindElementById(string elementId, string windowTitle = "", int processId = 0, 
             TreeScope scope = TreeScope.Descendants, CacheRequest? cacheRequest = null, int timeoutMs = 1000)
         {
@@ -53,26 +61,64 @@ namespace UIAutomationMCP.Worker.Helpers
             
             searchRoot ??= AutomationElement.RootElement;
             
-            // OR条件で検索：AutomationId OR Name
-            // これによりFindElementsと同じ検索条件を使用し、InvokeElementとの一貫性を保つ
-            var automationIdCondition = new PropertyCondition(AutomationElement.AutomationIdProperty, elementId);
-            var nameCondition = new PropertyCondition(AutomationElement.NameProperty, elementId);
-            var condition = new OrCondition(automationIdCondition, nameCondition);
+            // AutomationId優先の段階的検索：AutomationId → Name（フォールバック）
+            // より確実で予測可能な要素特定を実現
+            PropertyCondition condition;
+            string searchType;
             
-            _logger?.LogDebug("Searching for element with ID: {ElementId} (AutomationId OR Name) in window: {WindowTitle} (PID: {ProcessId}), Scope: {Scope}, Timeout: {TimeoutMs}ms", 
-                elementId, windowTitle, processId, scope, timeoutMs);
+            // 1. AutomationIdで検索（推奨・優先）
+            condition = new PropertyCondition(AutomationElement.AutomationIdProperty, elementId);
+            searchType = "AutomationId";
+            
+            _logger?.LogDebug("Searching for element with ID: {ElementId} using {SearchType} in window: {WindowTitle} (PID: {ProcessId}), Scope: {Scope}, Timeout: {TimeoutMs}ms", 
+                elementId, searchType, windowTitle, processId, scope, timeoutMs);
             
             return UIAutomationMCP.Worker.Helpers.UIAutomationEnvironment.ExecuteWithTimeout(() =>
             {
+                AutomationElement? element = null;
+                
+                // 1. AutomationIdで検索
                 if (cacheRequest != null)
                 {
                     using (cacheRequest.Activate())
                     {
-                        return searchRoot.FindFirst(scope, condition);
+                        element = searchRoot.FindFirst(scope, condition);
                     }
                 }
+                else
+                {
+                    element = searchRoot.FindFirst(scope, condition);
+                }
                 
-                return searchRoot.FindFirst(scope, condition);
+                // 2. AutomationIdで見つからない場合、Nameで検索（フォールバック）
+                if (element == null)
+                {
+                    _logger?.LogDebug("Element not found by AutomationId, trying Name property for: {ElementId}", elementId);
+                    var nameCondition = new PropertyCondition(AutomationElement.NameProperty, elementId);
+                    
+                    if (cacheRequest != null)
+                    {
+                        using (cacheRequest.Activate())
+                        {
+                            element = searchRoot.FindFirst(scope, nameCondition);
+                        }
+                    }
+                    else
+                    {
+                        element = searchRoot.FindFirst(scope, nameCondition);
+                    }
+                    
+                    if (element != null)
+                    {
+                        _logger?.LogDebug("Element found by Name property: {ElementId}", elementId);
+                    }
+                }
+                else
+                {
+                    _logger?.LogDebug("Element found by AutomationId: {ElementId}", elementId);
+                }
+                
+                return element;
             }, $"FindElementById({elementId})", timeoutMs / 1000);
         }
 
