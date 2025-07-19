@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Serialization;
+using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Interfaces;
 using System.Diagnostics;
@@ -344,29 +345,27 @@ namespace UIAutomationMCP.Server.Services
         {
             try
             {
-                var parameters = new Dictionary<string, object>
+                // NOTE: GetWindowInfo operation doesn't exist in Worker yet
+                // This method needs to be implemented or the calls removed
+                _logger.LogWarning("GetWindowInfo operation not implemented - this call will fail");
+                
+                var request = new GetWindowInfoRequest
                 {
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                _logger.LogInformation("Calling Worker GetWindowInfo with parameters: {Parameters}", 
-                    JsonSerializationHelper.Serialize(parameters));
+                _logger.LogInformation("Would call Worker GetWindowInfo with request: {Request}", 
+                    JsonSerializationHelper.Serialize(request));
 
-                var result = await _executor.ExecuteAsync<Dictionary<string, object>>("GetWindowInfo", parameters, 10);
+                // TODO: Create GetWindowInfo operation in Worker, or remove this functionality
+                // For now, returning null to avoid breaking the build
+                _logger.LogWarning("GetWindowInfo operation not available - returning null");
+                return null;
                 
-                _logger.LogInformation("Worker returned result type: {Type}", result?.GetType().Name ?? "null");
-                if (result != null)
-                {
-                    _logger.LogInformation("Worker returned window info keys: {Keys}", string.Join(", ", result.Keys));
-                    _logger.LogInformation("Worker returned window info: {WindowInfo}", JsonSerializationHelper.Serialize(result));
-                }
-                else
-                {
-                    _logger.LogWarning("Worker returned null result");
-                }
-                
-                return result;
+                // Commented out until GetWindowInfo operation is implemented:
+                // var result = await _executor.ExecuteAsync<GetWindowInfoRequest, WindowInfoResult>("GetWindowInfo", request, 10);
+                // return ConvertResultToDictionary(result);
             }
             catch (Exception ex)
             {
@@ -433,15 +432,15 @@ namespace UIAutomationMCP.Server.Services
                 _logger.LogInformation("Attempting to activate window via Worker: {WindowTitle}, ProcessId: {ProcessId}", windowTitle, processId);
 
                 // Use Worker's WindowAction operation to activate window
-                var parameters = new Dictionary<string, object>
+                var request = new WindowActionRequest
                 {
-                    ["action"] = "normal",
-                    ["windowTitle"] = windowTitle ?? "",
-                    ["processId"] = processId ?? 0
+                    Action = "normal",
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<Dictionary<string, object>>("WindowAction", parameters, 5);
-                if (result != null && result.TryGetValue("success", out var successObj) && Convert.ToBoolean(successObj))
+                var result = await _executor.ExecuteAsync<WindowActionRequest, WindowActionResult>("WindowAction", request, 5);
+                if (result != null && result.Success)
                 {
                     _logger.LogInformation("Window activated successfully via Worker: {WindowTitle}", windowTitle);
                 }

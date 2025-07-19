@@ -35,7 +35,8 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformationWithOperation(operationId, "Starting GetWindows operation");
 
-                var result = await _executor.ExecuteAsync<DesktopWindowsResult>("GetDesktopWindows", new Dictionary<string, object>(), timeoutSeconds);
+                var request = new GetDesktopWindowsRequest { IncludeInvisible = false };
+                var result = await _executor.ExecuteAsync<GetDesktopWindowsRequest, DesktopWindowsResult>("GetDesktopWindows", request, timeoutSeconds);
                 
                 stopwatch.Stop();
                 

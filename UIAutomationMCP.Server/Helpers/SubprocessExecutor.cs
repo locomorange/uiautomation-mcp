@@ -2,7 +2,6 @@ using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text.Json;
 using UIAutomationMCP.Shared;
-using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Serialization;
 using UIAutomationMCP.Server.Interfaces;
 
@@ -24,15 +23,17 @@ namespace UIAutomationMCP.Server.Helpers
         }
 
         /// <summary>
-        /// Type-safe overload for TypedWorkerRequest - Tools Level Serialization pattern
-        /// Accepts pre-serialized JSON string to avoid generic type inference issues
+        /// Type-safe unified execute method - eliminates type branching and legacy support
         /// </summary>
+        /// <typeparam name="TRequest">The request type</typeparam>
         /// <typeparam name="TResult">The expected result type</typeparam>
         /// <param name="operation">The operation name</param>
-        /// <param name="requestJson">Pre-serialized JSON string of the request</param>
+        /// <param name="request">The typed request object</param>
         /// <param name="timeoutSeconds">Timeout in seconds</param>
         /// <returns>The operation result</returns>
-        public async Task<TResult> ExecuteAsync<TResult>(string operation, string requestJson, int timeoutSeconds = 60) where TResult : notnull
+        public async Task<TResult> ExecuteAsync<TRequest, TResult>(string operation, TRequest request, int timeoutSeconds = 60) 
+            where TRequest : notnull 
+            where TResult : notnull
         {
             try
             {
@@ -42,9 +43,6 @@ namespace UIAutomationMCP.Server.Helpers
                 if (string.IsNullOrWhiteSpace(operation))
                     throw new ArgumentException("Operation cannot be null or empty", nameof(operation));
                 
-                if (string.IsNullOrWhiteSpace(requestJson))
-                    throw new ArgumentException("Request JSON cannot be null or empty", nameof(requestJson));
-                
                 if (timeoutSeconds <= 0)
                     throw new ArgumentException("Timeout must be greater than zero", nameof(timeoutSeconds));
                 
@@ -53,6 +51,8 @@ namespace UIAutomationMCP.Server.Helpers
                 {
                     await EnsureWorkerProcessAsync();
                 
+                    // Direct type-safe serialization - no branching needed
+                    string requestJson = JsonSerializationHelper.Serialize(request);
                     _logger.LogInformation("Sending request to worker: {Request}", requestJson);
 
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
@@ -203,257 +203,27 @@ namespace UIAutomationMCP.Server.Helpers
             catch (Exception ex) when (!(ex is ArgumentException || ex is ObjectDisposedException))
             {
                 _logger.LogError(ex, "Unexpected error in ExecuteAsync for operation '{Operation}' with JSON: {RequestJson}", 
-                    operation, GetParameterSummary(requestJson));
+                    operation, GetParameterSummary(JsonSerializationHelper.Serialize(request)));
                 throw new InvalidOperationException($"Internal server error occurred while executing operation '{operation}': {ex.Message}", ex);
             }
         }
 
         /// <summary>
-        /// Legacy overload for backward compatibility - handles object parameters
-        /// For new code, prefer the JSON string overload for better type safety
+        /// TEMPORARY: Legacy compatibility method - will be removed after all services are updated
+        /// Creates a temporary WorkerRequest wrapper for legacy parameters
         /// </summary>
-        /// <typeparam name="TResult">The expected result type</typeparam>
-        /// <param name="operation">The operation name</param>
-        /// <param name="parameters">The parameters object (Dictionary or TypedWorkerRequest)</param>
-        /// <param name="timeoutSeconds">Timeout in seconds</param>
-        /// <returns>The operation result</returns>
-        public async Task<TResult> ExecuteAsync<TResult>(string operation, object? parameters = null, int timeoutSeconds = 60) where TResult : notnull
+        [Obsolete("Use ExecuteAsync<TRequest, TResult> with typed request objects")]
+        public async Task<TResult> ExecuteAsync<TResult>(string operation, object? parameters = null, int timeoutSeconds = 60) 
+            where TResult : notnull
         {
-            try
+            // Create a temporary WorkerRequest wrapper for legacy calls
+            var legacyRequest = new WorkerRequest
             {
-                if (_disposed)
-                    throw new ObjectDisposedException(nameof(SubprocessExecutor));
-                
-                if (string.IsNullOrWhiteSpace(operation))
-                    throw new ArgumentException("Operation cannot be null or empty", nameof(operation));
-                
-                if (timeoutSeconds <= 0)
-                    throw new ArgumentException("Timeout must be greater than zero", nameof(timeoutSeconds));
-                
-                await _semaphore.WaitAsync();
-                try
-                {
-                    await EnsureWorkerProcessAsync();
-                
-                string requestJson;
-                
-                if (parameters is Dictionary<string, object> dict)
-                {
-                    // Legacy path: Wrap in WorkerRequest
-                    var request = new WorkerRequest
-                    {
-                        Operation = operation,
-                        Parameters = dict
-                    };
-                    requestJson = JsonSerializationHelper.Serialize(request);
-                }
-                else if (parameters is FindElementsRequest findElementsRequest)
-                {
-                    // New path: Direct serialization of FindElementsRequest
-                    requestJson = JsonSerializationHelper.Serialize(findElementsRequest);
-                }
-                else
-                {
-                    // Legacy path: Convert object to WorkerRequest
-                    var request = new WorkerRequest
-                    {
-                        Operation = operation,
-                        Parameters = parameters as Dictionary<string, object>
-                    };
-                    requestJson = JsonSerializationHelper.Serialize(request);
-                }
-                _logger.LogInformation("Sending request to worker: {Request}", requestJson);
+                Operation = operation,
+                Parameters = (parameters as Dictionary<string, object>) ?? new Dictionary<string, object>()
+            };
 
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
-                
-                await _workerProcess!.StandardInput.WriteLineAsync(requestJson);
-                await _workerProcess.StandardInput.FlushAsync();
-                _logger.LogInformation("Request sent and flushed to worker process");
-
-                var responseTask = _workerProcess.StandardOutput.ReadLineAsync();
-                var timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeoutSeconds), cts.Token);
-                var completedTask = await Task.WhenAny(responseTask, timeoutTask);
-
-                if (completedTask == timeoutTask)
-                {
-                    _logger.LogWarning("Worker operation timed out after {TimeoutSeconds}s: {Operation}", timeoutSeconds, operation);
-                    
-                    cts.Cancel();
-                    
-                    var gracefulShutdownTask = Task.Delay(TimeSpan.FromSeconds(2));
-                    var shutdownCompleted = await Task.WhenAny(responseTask, gracefulShutdownTask);
-                    
-                    if (shutdownCompleted == gracefulShutdownTask)
-                    {
-                        _logger.LogWarning("Worker process did not respond to cancellation, forcing restart");
-                        await RestartWorkerProcessAsync();
-                    }
-                    
-                    throw new TimeoutException($"Worker operation '{operation}' timed out after {timeoutSeconds} seconds");
-                }
-
-                var responseJson = await responseTask;
-                if (string.IsNullOrEmpty(responseJson))
-                {
-                    string errorOutput = "";
-                    try
-                    {
-                        if (_workerProcess?.StandardError != null && _workerProcess.StandardError.Peek() >= 0)
-                        {
-                            errorOutput = await _workerProcess.StandardError.ReadToEndAsync();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Failed to read stderr from worker process");
-                    }
-
-                    var contextMessage = $"Worker process returned empty response for operation '{operation}'";
-                    if (parameters != null)
-                    {
-                        contextMessage += $" with parameters: {GetParameterSummary(parameters)}";
-                    }
-                    if (!string.IsNullOrEmpty(errorOutput))
-                    {
-                        contextMessage += $". Stderr: {errorOutput}";
-                    }
-                    _logger.LogError("Empty response received: {Context}", contextMessage);
-                    throw new InvalidOperationException(contextMessage);
-                }
-
-                _logger.LogInformation("Received response from worker (length: {Length}): {Response}", 
-                    responseJson.Length, 
-                    responseJson.Length > 1000 ? responseJson.Substring(0, 1000) + "..." : responseJson);
-
-                WorkerResponse<object>? response;
-                try
-                {
-                    response = JsonSerializationHelper.Deserialize<WorkerResponse<object>>(responseJson);
-                }
-                catch (JsonException ex)
-                {
-                    var errorMessage = $"Failed to deserialize worker response for operation '{operation}'. Response: {responseJson}";
-                    _logger.LogError(ex, "JSON deserialization failed: {ErrorMessage}", errorMessage);
-                    throw new InvalidOperationException(errorMessage, ex);
-                }
-                
-                if (response == null)
-                {
-                    var errorMessage = $"Deserialized response is null for operation '{operation}'. Raw response: {responseJson}";
-                    _logger.LogError("Null response after deserialization: {ErrorMessage}", errorMessage);
-                    throw new InvalidOperationException(errorMessage);
-                }
-
-                if (!response.Success)
-                {
-                    var errorDetails = new
-                    {
-                        Operation = operation,
-                        Parameters = parameters,
-                        Error = response.Error,
-                        ErrorIsNull = response.Error == null,
-                        ErrorIsEmpty = string.IsNullOrEmpty(response.Error),
-                        Data = response.Data,
-                        Timestamp = DateTime.UtcNow,
-                        WorkerPid = _workerProcess?.Id
-                    };
-                    
-                    var errorMessage = string.IsNullOrEmpty(response.Error) ? 
-                        "Unknown error occurred" : response.Error;
-                    
-                    var contextualErrorMessage = $"Worker operation '{operation}' failed: {errorMessage}";
-                    if (parameters != null)
-                    {
-                        contextualErrorMessage += $" (Parameters: {GetParameterSummary(parameters)})";
-                    }
-                    
-                    _logger.LogError("Worker operation failed with details: {@ErrorDetails}", errorDetails);
-                    
-                    var errorLower = errorMessage.ToLowerInvariant();
-                    
-                    if (errorLower.Contains("not found") || errorLower.Contains("element") && errorLower.Contains("not") ||
-                        errorLower.Contains("invalid") && errorLower.Contains("id"))
-                    {
-                        throw new ArgumentException(contextualErrorMessage);
-                    }
-                    else if (errorLower.Contains("not supported") || errorLower.Contains("pattern") && errorLower.Contains("not") ||
-                             errorLower.Contains("control") && errorLower.Contains("not"))
-                    {
-                        throw new NotSupportedException(contextualErrorMessage);
-                    }
-                    else if (errorLower.Contains("read-only") || errorLower.Contains("access") && errorLower.Contains("denied") ||
-                             errorLower.Contains("permission") || errorLower.Contains("unauthorized"))
-                    {
-                        throw new UnauthorizedAccessException(contextualErrorMessage);
-                    }
-                    else if (errorLower.Contains("timeout") || errorLower.Contains("time") && errorLower.Contains("out"))
-                    {
-                        throw new TimeoutException(contextualErrorMessage);
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException(contextualErrorMessage);
-                    }
-                }
-
-                if (response.Data != null)
-                {
-                    // Handle JsonElement deserialization
-                    if (response.Data is System.Text.Json.JsonElement jsonElement)
-                    {
-                        var result = JsonSerializationHelper.Deserialize<TResult>(jsonElement.GetRawText())!;
-                        _logger.LogInformation("Successfully deserialized JsonElement to type {ResultType}", typeof(TResult).Name);
-                        return result;
-                    }
-                    
-                    // Direct cast if possible
-                    if (response.Data is TResult directResult)
-                    {
-                        _logger.LogInformation("Successfully cast worker response data to type {ResultType}", typeof(TResult).Name);
-                        return directResult;
-                    }
-                    
-                    throw new InvalidOperationException($"Cannot convert worker response data from {response.Data.GetType().Name} to {typeof(TResult).Name}");
-                }
-                
-                throw new InvalidOperationException($"Worker response data is null for type {typeof(TResult).Name}");
-                }
-                finally
-                {
-                    _semaphore.Release();
-                }
-            }
-            catch (Exception ex) when (!(ex is ArgumentException || ex is ObjectDisposedException))
-            {
-                _logger.LogError(ex, "Unexpected error in ExecuteAsync for operation '{Operation}' with parameters: {Parameters}", 
-                    operation, parameters != null ? $"Type: {parameters.GetType().Name}" : "null");
-                throw new InvalidOperationException($"Internal server error occurred while executing operation '{operation}': {ex.Message}", ex);
-            }
-        }
-
-
-        /// <summary>
-        /// Generate a concise summary of parameters for logging purposes
-        /// </summary>
-        /// <param name="parameters">The parameters object to summarize</param>
-        /// <returns>A safe string representation of the parameters</returns>
-        private string GetParameterSummary(object parameters)
-        {
-            try
-            {
-                return parameters switch
-                {
-                    FindElementsRequest findReq => $"FindElementsRequest(SearchText={findReq.SearchText}, WindowTitle={findReq.WindowTitle})",
-                    InvokeElementRequest invokeReq => $"InvokeElementRequest(ElementId={invokeReq.ElementId})",
-                    TypedWorkerRequest typedReq => $"{typedReq.GetType().Name}(Operation={typedReq.Operation})",
-                    string json => GetParameterSummary(json),
-                    _ => parameters.GetType().Name
-                };
-            }
-            catch
-            {
-                return parameters.GetType().Name;
-            }
+            return await ExecuteAsync<WorkerRequest, TResult>(operation, legacyRequest, timeoutSeconds);
         }
 
         /// <summary>
