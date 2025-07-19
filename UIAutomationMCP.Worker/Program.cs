@@ -17,6 +17,7 @@ using UIAutomationMCP.Worker.Operations.Layout;
 using UIAutomationMCP.Worker.Operations.Transform;
 using UIAutomationMCP.Worker.Operations.Window;
 using UIAutomationMCP.Worker.Operations.Range;
+using UIAutomationMCP.Worker.Operations.MultipleView;
 using UIAutomationMCP.Worker.Operations.TreeNavigation;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -153,6 +154,9 @@ namespace UIAutomationMCP.Worker
             builder.Services.AddKeyedTransient<IUIAutomationOperation, WindowActionOperation>("WindowAction");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, WaitForInputIdleOperation>("WaitForInputIdle");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SetRangeValueOperation>("SetRangeValue");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetAvailableViewsOperation>("GetAvailableViews");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetCurrentViewOperation>("GetCurrentView");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetViewNameOperation>("GetViewName");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetElementTreeOperation>("GetElementTree");
             
             // TODO: Phase 6 - Update remaining operations to new interface

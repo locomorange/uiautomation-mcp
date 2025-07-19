@@ -122,6 +122,15 @@ namespace UIAutomationMCP.Shared
         
         [JsonPropertyName("canSelectMultiple")]
         public bool CanSelectMultiple { get; set; }
+        
+        [JsonPropertyName("hasRowHeaders")]
+        public bool HasRowHeaders { get; set; }
+        
+        [JsonPropertyName("hasColumnHeaders")]
+        public bool HasColumnHeaders { get; set; }
+        
+        [JsonPropertyName("selectedItems")]
+        public List<GridCellReference> SelectedItems { get; set; } = new();
     }
 
     /// <summary>
@@ -233,6 +242,12 @@ namespace UIAutomationMCP.Shared
         
         [JsonPropertyName("availableViews")]
         public List<PatternViewInfo> AvailableViews { get; set; } = new();
+        
+        [JsonPropertyName("supportedViewCount")]
+        public int SupportedViewCount { get; set; }
+        
+        [JsonPropertyName("viewChangedEventSupported")]
+        public bool ViewChangedEventSupported { get; set; }
     }
 
     /// <summary>
@@ -314,6 +329,15 @@ namespace UIAutomationMCP.Shared
         
         [JsonPropertyName("rowHeaders")]
         public List<HeaderInfo> RowHeaders { get; set; } = new();
+        
+        [JsonPropertyName("primaryRowHeaderIndex")]
+        public int PrimaryRowHeaderIndex { get; set; } = -1;
+        
+        [JsonPropertyName("primaryColumnHeaderIndex")]
+        public int PrimaryColumnHeaderIndex { get; set; } = -1;
+        
+        [JsonPropertyName("selectedCells")]
+        public List<GridCellReference> SelectedCells { get; set; } = new();
     }
 
     /// <summary>
@@ -392,5 +416,23 @@ namespace UIAutomationMCP.Shared
         
         [JsonPropertyName("controlType")]
         public string ControlType { get; set; } = string.Empty;
+    }
+    
+    /// <summary>
+    /// Grid セル参照情報
+    /// </summary>
+    public class GridCellReference
+    {
+        [JsonPropertyName("row")]
+        public int Row { get; set; }
+        
+        [JsonPropertyName("column")]
+        public int Column { get; set; }
+        
+        [JsonPropertyName("elementId")]
+        public string ElementId { get; set; } = string.Empty;
+        
+        [JsonPropertyName("value")]
+        public string Value { get; set; } = string.Empty;
     }
 }
