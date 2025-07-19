@@ -585,6 +585,132 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                         IsScrollable = true
                     };
                 }
+
+                // Selection Pattern - basic properties only
+                if (element.TryGetCachedPattern(SelectionPattern.Pattern, out var selectionPatternObj) && 
+                    selectionPatternObj is SelectionPattern selectionPattern)
+                {
+                    info.Selection = new SelectionInfo
+                    {
+                        CanSelectMultiple = selectionPattern.Cached.CanSelectMultiple,
+                        IsSelectionRequired = selectionPattern.Cached.IsSelectionRequired,
+                        SelectedCount = 0, // Skip complex GetSelection operation
+                        SelectedItems = new List<SelectionItemInfo>() // Skip complex operations
+                    };
+                }
+
+                // SelectionItem Pattern - basic properties only
+                if (element.TryGetCachedPattern(SelectionItemPattern.Pattern, out var selectionItemPatternObj) && 
+                    selectionItemPatternObj is SelectionItemPattern selectionItemPattern)
+                {
+                    var selectionContainer = selectionItemPattern.Cached.SelectionContainer;
+                    var selectionItemInfo = new SelectionItemInfo
+                    {
+                        AutomationId = element.Cached.AutomationId ?? "",
+                        Name = element.Cached.Name ?? "",
+                        ControlType = element.Cached.ControlType?.LocalizedControlType ?? "",
+                        IsSelected = selectionItemPattern.Cached.IsSelected
+                    };
+
+                    if (selectionContainer != null)
+                    {
+                        selectionItemInfo.SelectionContainer = selectionContainer.Cached.AutomationId ?? "";
+                    }
+
+                    // Add to Selection info if not already present
+                    if (info.Selection == null)
+                    {
+                        info.Selection = new SelectionInfo
+                        {
+                            SelectedItems = new List<SelectionItemInfo> { selectionItemInfo },
+                            SelectedCount = selectionItemInfo.IsSelected ? 1 : 0
+                        };
+                    }
+                }
+
+                // Table Pattern - basic properties only
+                if (element.TryGetCachedPattern(TablePattern.Pattern, out var tablePatternObj) && 
+                    tablePatternObj is TablePattern tablePattern)
+                {
+                    info.Table = new TableInfo
+                    {
+                        RowCount = tablePattern.Cached.RowCount,
+                        ColumnCount = tablePattern.Cached.ColumnCount,
+                        RowOrColumnMajor = tablePattern.Cached.RowOrColumnMajor.ToString(),
+                        ColumnHeaders = new List<HeaderInfo>(), // Skip complex header operations
+                        RowHeaders = new List<HeaderInfo>() // Skip complex header operations
+                    };
+                }
+
+                // Grid Pattern - basic properties only  
+                if (element.TryGetCachedPattern(GridPattern.Pattern, out var gridPatternObj) && 
+                    gridPatternObj is GridPattern gridPattern)
+                {
+                    bool canSelectMultiple = false;
+                    if (element.TryGetCachedPattern(SelectionPattern.Pattern, out var selPatternObj) && 
+                        selPatternObj is SelectionPattern selPattern)
+                    {
+                        canSelectMultiple = selPattern.Cached.CanSelectMultiple;
+                    }
+
+                    info.Grid = new GridInfo
+                    {
+                        RowCount = gridPattern.Cached.RowCount,
+                        ColumnCount = gridPattern.Cached.ColumnCount,
+                        CanSelectMultiple = canSelectMultiple
+                    };
+                }
+
+                // Accessibility Information - basic cached properties only
+                var accessibilityInfo = new AccessibilityInfo();
+                bool hasAccessibilityInfo = false;
+
+                // Basic accessibility properties from cached data
+                var helpText = element.Cached.HelpText;
+                if (!string.IsNullOrEmpty(helpText))
+                {
+                    accessibilityInfo.HelpText = helpText;
+                    hasAccessibilityInfo = true;
+                }
+
+                var accessKey = element.Cached.AccessKey;
+                if (!string.IsNullOrEmpty(accessKey))
+                {
+                    accessibilityInfo.AccessKey = accessKey;
+                    hasAccessibilityInfo = true;
+                }
+
+                var acceleratorKey = element.Cached.AcceleratorKey;
+                if (!string.IsNullOrEmpty(acceleratorKey))
+                {
+                    accessibilityInfo.AcceleratorKey = acceleratorKey;
+                    hasAccessibilityInfo = true;
+                }
+
+                // LabeledBy information - only if cached
+                try
+                {
+                    var labeledByProperty = element.GetCachedPropertyValue(AutomationElement.LabeledByProperty);
+                    if (labeledByProperty is AutomationElement labeledByElement && labeledByElement != null)
+                    {
+                        accessibilityInfo.LabeledBy = new ElementReference
+                        {
+                            AutomationId = labeledByElement.Cached.AutomationId ?? "",
+                            Name = labeledByElement.Cached.Name ?? "",
+                            ControlType = labeledByElement.Cached.ControlType?.LocalizedControlType ?? ""
+                        };
+                        hasAccessibilityInfo = true;
+                    }
+                }
+                catch
+                {
+                    // Skip LabeledBy if not available in cache
+                }
+
+                if (hasAccessibilityInfo)
+                {
+                    info.Accessibility = accessibilityInfo;
+                }
             }
             catch
             {

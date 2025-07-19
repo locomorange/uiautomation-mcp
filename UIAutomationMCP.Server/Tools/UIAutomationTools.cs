@@ -170,13 +170,6 @@ namespace UIAutomationMCP.Server.Tools
             => JsonSerializationHelper.Serialize(await _valueService.SetValueAsync(elementId, value, windowTitle, processId, timeoutSeconds));
 
 
-        [McpServerTool, Description("Check if an element is read-only using ValuePattern")]
-        public async Task<object> IsElementReadOnly(
-            [Description("Automation ID or name of the element")] string elementId, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _valueService.IsReadOnlyAsync(elementId, windowTitle, processId, timeoutSeconds));
 
         [McpServerTool, Description("Toggle a checkbox or toggle element using TogglePattern")]
         public async Task<object> ToggleElement(
@@ -197,21 +190,6 @@ namespace UIAutomationMCP.Server.Tools
         // IsElementSelected and GetSelectionContainer merged into FindElements Properties field
 
 
-        [McpServerTool, Description("Check if container supports multiple selection using SelectionPattern")]
-        public async Task<object> CanSelectMultiple(
-            [Description("Automation ID or name of the container element")] string containerElementId, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _selectionService.CanSelectMultipleAsync(containerElementId, windowTitle, processId, timeoutSeconds));
-
-        [McpServerTool, Description("Check if selection is required for container using SelectionPattern")]
-        public async Task<object> IsSelectionRequired(
-            [Description("Automation ID or name of the container element")] string containerElementId, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _selectionService.IsSelectionRequiredAsync(containerElementId, windowTitle, processId, timeoutSeconds));
 
         [McpServerTool, Description("Add element to selection using SelectionItemPattern")]
         public async Task<object> AddToSelection(
@@ -405,32 +383,11 @@ namespace UIAutomationMCP.Server.Tools
 
         // Grid Pattern Operations
 
-        // Grid item and header tools merged into FindElements Properties field
-        // Use FindElements with GridItem/Grid patterns for position and header information
 
         // Table Pattern Operations
-        [McpServerTool, Description("Get table information including headers")]
-        public async Task<object> GetTableInfo(
-            [Description("Automation ID or name of the table element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _tableService.GetTableInfoAsync(elementId, windowTitle, processId, timeoutSeconds));
 
-        // GetRowHeaders and GetColumnHeaders merged into FindElements Properties field
 
-        [McpServerTool, Description("Get the row or column major property of a table")]
-        public async Task<object> GetRowOrColumnMajor(
-            [Description("Automation ID or name of the table element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _tableService.GetRowOrColumnMajorAsync(elementId, windowTitle, processId, timeoutSeconds));
 
-        // TableItem Pattern Operations merged into FindElements Properties field
-        // GetColumnHeaderItems and GetRowHeaderItems are now available in Properties
-
-        // MultipleView Pattern Operations merged into FindElements Properties field
 
         [McpServerTool, Description("Set the current view of an element")]
         public async Task<object> SetView(
@@ -441,17 +398,8 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _multipleViewService.SetViewAsync(elementId, viewId, windowTitle, processId, timeoutSeconds));
 
-        // GetCurrentView merged into FindElements Properties field
-
 
         // Accessibility Information
-        [McpServerTool, Description("Get comprehensive accessibility information for an element")]
-        public async Task<object> GetAccessibilityInfo(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _accessibilityService.GetAccessibilityInfoAsync(elementId, windowTitle, processId, timeoutSeconds));
 
         [McpServerTool, Description("Verify accessibility compliance for a window or element")]
         public async Task<object> VerifyAccessibility(
@@ -461,7 +409,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
             => JsonSerializationHelper.Serialize(await _accessibilityService.VerifyAccessibilityAsync(elementId, windowTitle, processId, timeoutSeconds));
 
-        // GetLabeledBy and GetDescribedBy merged into FindElements Properties field (Accessibility pattern)
 
         // Custom Properties and Events
         [McpServerTool, Description("Get custom properties from an element")]
@@ -482,8 +429,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Process ID of the target window (optional)")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _controlTypeService.ValidateControlTypePatternsAsync(elementId, windowTitle, processId, timeoutSeconds));
-
-        // FindElementsByControlType functionality merged into FindElements with controlType parameter
 
         // VirtualizedItem Pattern
         [McpServerTool, Description("Realize a virtualized item to make it fully available in the UI Automation tree")]
