@@ -4,10 +4,8 @@ using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Serialization;
-using UIAutomationMCP.Shared.Helpers;
 using UIAutomationMCP.Worker.Contracts;
 using System.Diagnostics;
-using static UIAutomationMCP.Worker.Helpers.UIAutomationPropertyHelper;
 
 namespace UIAutomationMCP.Worker.Operations.ElementSearch
 {
@@ -74,17 +72,16 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                                 if (!includeInvisible && !isVisible)
                                     continue;
                                     
-                                var rect = GetBoundingRectangle(window);
+                                var rect = window.Current.BoundingRectangle;
                                 var windowInfo = new UIAutomationMCP.Shared.Results.WindowInfo
                                 {
-                                    // UI Automationプロパティヘルパーを使用して適切なエンコーディング処理
-                                    Title = GetName(window),
-                                    ClassName = GetClassName(window),
-                                    ProcessId = GetProcessId(window),
+                                    Title = window.Current.Name ?? string.Empty,
+                                    ClassName = window.Current.ClassName ?? string.Empty,
+                                    ProcessId = window.Current.ProcessId,
                                     ProcessName = processName,
-                                    Handle = GetNativeWindowHandle(window),
+                                    Handle = window.Current.NativeWindowHandle,
                                     IsVisible = isVisible,
-                                    IsEnabled = IsEnabled(window),
+                                    IsEnabled = window.Current.IsEnabled,
                                     BoundingRectangle = new BoundingRectangle
                                     {
                                         X = rect.X,

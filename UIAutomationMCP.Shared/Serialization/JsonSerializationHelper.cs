@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
+using System.Text.Encodings.Web;
 using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Results;
 
@@ -16,7 +17,8 @@ namespace UIAutomationMCP.Shared.Serialization
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             WriteIndented = false,
-            NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals
+            NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         });
 
         /// <summary>
@@ -113,6 +115,7 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(WorkerResponse<ScrollInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseScrollInfoResult,
                 Type t when t == typeof(WorkerResponse<TransformCapabilitiesResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTransformCapabilitiesResult,
                 Type t when t == typeof(WorkerResponse<WindowInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseWindowInfoResult,
+                Type t when t == typeof(WorkerResponse<DesktopWindowsResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseDesktopWindowsResult,
                 Type t when t == typeof(WorkerResponse<object>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseObject,
 
                 // Result types (consolidated from GetResultTypeInfo)

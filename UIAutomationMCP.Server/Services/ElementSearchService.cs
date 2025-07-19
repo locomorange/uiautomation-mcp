@@ -444,13 +444,13 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformationWithOperation(operationId, "Starting GetWindows operation");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetDesktopWindowsRequest
                 {
-                    { "operation", "GetDesktopWindows" },
-                    { "includeInvisible", false }
+                    IncludeInvisible = false
                 };
 
-                var result = await _executor.ExecuteAsync<DesktopWindowsResult>("GetDesktopWindows", parameters, timeoutSeconds);
+                var requestJson = JsonSerializationHelper.Serialize(request);
+                var result = await _executor.ExecuteAsync<DesktopWindowsResult>("GetDesktopWindows", requestJson, timeoutSeconds);
 
                 stopwatch.Stop();
                 
