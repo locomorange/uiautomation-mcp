@@ -26,4 +26,12 @@ namespace UIAutomationMCP.Shared.Requests
         [JsonPropertyName("state")]
         public string State { get; set; } = ""; // "on", "off", "indeterminate"
     }
+
+    public class SetValueRequest : ElementTargetRequest
+    {
+        public override string Operation => "SetElementValue";
+
+        [JsonPropertyName("value")]
+        public string Value { get; set; } = "";
+    }
 }

@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
@@ -103,15 +104,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Performing expand/collapse action '{action}' on element: {elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new ExpandCollapseElementRequest
                 {
-                    { "elementId", elementId },
-                    { "action", action },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    Action = action,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("ExpandCollapseElement", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ExpandCollapseElementRequest, ActionResult>("ExpandCollapseElement", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ActionResult>
                 {
@@ -268,16 +269,16 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Scrolling element: {elementId} in direction: {direction} by amount: {amount}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new ScrollElementRequest
                 {
-                    { "elementId", elementId },
-                    { "direction", direction },
-                    { "amount", amount },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    Direction = direction,
+                    Amount = amount,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("ScrollElement", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ScrollElementRequest, ActionResult>("ScrollElement", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ActionResult>
                 {
@@ -394,14 +395,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Scrolling element into view: {elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new ScrollElementIntoViewRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("ScrollElementIntoView", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ScrollElementIntoViewRequest, ActionResult>("ScrollElementIntoView", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ActionResult>
                 {
@@ -558,16 +559,16 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Setting scroll percentage for element: {elementId} to H:{horizontalPercent}%, V:{verticalPercent}%");
 
-                var parameters = new Dictionary<string, object>
+                var request = new SetScrollPercentRequest
                 {
-                    { "elementId", elementId },
-                    { "horizontalPercent", horizontalPercent },
-                    { "verticalPercent", verticalPercent },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    HorizontalPercent = horizontalPercent,
+                    VerticalPercent = verticalPercent,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("SetScrollPercent", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<SetScrollPercentRequest, ActionResult>("SetScrollPercent", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ActionResult>
                 {
@@ -724,15 +725,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Docking element: {elementId} to position: {dockPosition}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new DockElementRequest
                 {
-                    { "elementId", elementId },
-                    { "dockPosition", dockPosition },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    DockPosition = dockPosition,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("DockElement", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<DockElementRequest, ActionResult>("DockElement", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ActionResult>
                 {

@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
@@ -66,16 +67,16 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Moving element: {elementId} to position: ({x}, {y})");
 
-                var parameters = new Dictionary<string, object>
+                var request = new MoveElementRequest
                 {
-                    { "elementId", elementId },
-                    { "x", x },
-                    { "y", y },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    X = x,
+                    Y = y,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("MoveElement", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<MoveElementRequest, ActionResult>("MoveElement", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ActionResult>
                 {
@@ -235,16 +236,16 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Resizing element: {elementId} to size: ({width}, {height})");
 
-                var parameters = new Dictionary<string, object>
+                var request = new ResizeElementRequest
                 {
-                    { "elementId", elementId },
-                    { "width", width },
-                    { "height", height },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    Width = width,
+                    Height = height,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("ResizeElement", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ResizeElementRequest, ActionResult>("ResizeElement", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ActionResult>
                 {
@@ -362,15 +363,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Rotating element: {elementId} by {degrees} degrees");
 
-                var parameters = new Dictionary<string, object>
+                var request = new RotateElementRequest
                 {
-                    { "elementId", elementId },
-                    { "degrees", degrees },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    Degrees = degrees,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("RotateElement", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<RotateElementRequest, ActionResult>("RotateElement", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ActionResult>
                 {

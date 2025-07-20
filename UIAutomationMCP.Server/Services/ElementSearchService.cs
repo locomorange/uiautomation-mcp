@@ -132,7 +132,7 @@ namespace UIAutomationMCP.Server.Services
                     UseWildcard = false
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("FindElements", request, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<FindElementsRequest, ElementSearchResult>("FindElements", request, timeoutSeconds);
                 
                 stopwatch.Stop();
                 

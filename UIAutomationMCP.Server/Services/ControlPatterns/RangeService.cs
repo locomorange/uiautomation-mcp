@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
@@ -66,15 +67,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting SetRangeValue: ElementId={elementId}, Value={value}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new SetRangeValueRequest
                 {
-                    { "elementId", elementId },
-                    { "value", value },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    Value = value,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("SetRangeValue", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<SetRangeValueRequest, ActionResult>("SetRangeValue", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 

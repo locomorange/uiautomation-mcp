@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
@@ -66,14 +67,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting SelectItem: ElementId={elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new SelectItemRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("SelectItem", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<SelectItemRequest, ActionResult>("SelectItem", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 
@@ -204,14 +205,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting AddToSelection: ElementId={elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new AddToSelectionRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("AddToSelection", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<AddToSelectionRequest, ActionResult>("AddToSelection", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 
@@ -348,7 +349,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("RemoveFromSelection", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<RemoveFromSelectionRequest, ActionResult>("RemoveFromSelection", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 
@@ -485,7 +486,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("ClearSelection", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ClearSelectionRequest, ActionResult>("ClearSelection", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 
@@ -624,7 +625,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     { "processId", processId ?? 0 }
                 };
 
-                var result = await _executor.ExecuteAsync<BooleanResult>("IsSelected", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<IsSelectedRequest, BooleanResult>("IsSelected", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 

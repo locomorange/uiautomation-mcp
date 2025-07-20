@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
@@ -25,15 +26,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting SetValue for ElementId={elementId}, Value={value}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new SetValueRequest
                 {
-                    { "elementId", elementId },
-                    { "value", value },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    Value = value,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("SetElementValue", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<SetValueRequest, ActionResult>("SetElementValue", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 

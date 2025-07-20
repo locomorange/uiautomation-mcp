@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
@@ -65,14 +66,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting ToggleElement for ElementId={elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new ToggleElementRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("ToggleElement", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ToggleElementRequest, ActionResult>("ToggleElement", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 
@@ -245,15 +246,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting SetToggleState: ElementId={elementId}, ToggleState={toggleState}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new SetToggleStateRequest
                 {
-                    { "elementId", elementId },
-                    { "toggleState", toggleState },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    State = toggleState,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("SetToggleState", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<SetToggleStateRequest, ActionResult>("SetToggleState", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 
