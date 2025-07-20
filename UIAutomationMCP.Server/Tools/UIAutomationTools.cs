@@ -655,6 +655,14 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _selectionService.CanSelectMultipleAsync(elementId, windowTitle, processId, timeoutSeconds));
 
+        [McpServerTool, Description("Check if selection is required")]
+        public async Task<object> IsSelectionRequired(
+            [Description("Automation ID or name of the selection container element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => JsonSerializationHelper.Serialize(await _selectionService.IsSelectionRequiredAsync(elementId, windowTitle, processId, timeoutSeconds));
+
         // Scroll Information
         [McpServerTool, Description("Get scroll information")]
         public async Task<object> GetScrollInfo(
@@ -672,6 +680,23 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Process ID of the target window (optional)")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _accessibilityService.GetAccessibilityInfoAsync(elementId, windowTitle, processId, timeoutSeconds));
+
+        [McpServerTool, Description("Get labeled by relationship information")]
+        public async Task<object> GetLabeledBy(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => JsonSerializationHelper.Serialize(await _accessibilityService.GetLabeledByAsync(elementId, windowTitle, processId, timeoutSeconds));
+
+        // Range Value Operations
+        [McpServerTool, Description("Get range value information")]
+        public async Task<object> GetRangeValue(
+            [Description("Automation ID or name of the range element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => JsonSerializationHelper.Serialize(await _rangeService.GetRangeValueAsync(elementId, windowTitle, processId, timeoutSeconds));
 
     }
 }

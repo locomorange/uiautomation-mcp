@@ -27,5 +27,14 @@ namespace UIAutomationMCP.Shared.Results
 
         [JsonPropertyName("selectionCount")]
         public int SelectionCount { get; set; }
+
+        [JsonPropertyName("containerElementId")]
+        public string ContainerElementId { get; set; } = "";
+
+        [JsonPropertyName("containerName")]
+        public string ContainerName { get; set; } = "";
+
+        [JsonPropertyName("containerControlType")]
+        public string ContainerControlType { get; set; } = "";
     }
 }

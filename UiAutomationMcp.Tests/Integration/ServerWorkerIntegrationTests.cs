@@ -107,7 +107,7 @@ namespace UiAutomationMcp.Tests.Integration
 
             // When & Then - Use short timeout to verify timeout behavior
             var exception = await Assert.ThrowsAsync<TimeoutException>(async () =>
-                await _subprocessExecutor.ExecuteAsync<InvokeElementRequest, ActionResult>(request, 3));
+                await _subprocessExecutor.ExecuteAsync<InvokeElementRequest, ActionResult>("InvokeElement", request, 3));
 
             Assert.NotNull(exception);
             // Worker searches for non-existent element, causing expected timeout
@@ -205,7 +205,7 @@ namespace UiAutomationMcp.Tests.Integration
 
             // Act & Assert
             var exception = await Assert.ThrowsAsync<TimeoutException>(async () =>
-                await _subprocessExecutor.ExecuteAsync<InvokeElementRequest, ActionResult>(request, 1)); // 1秒タイムアウト
+                await _subprocessExecutor.ExecuteAsync<InvokeElementRequest, ActionResult>("InvokeElement", request, 1)); // 1秒タイムアウト
             
             // Worker searches for element and times out due to missing element
             Assert.Contains("timed out", exception.Message);

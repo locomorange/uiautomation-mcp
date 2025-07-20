@@ -212,7 +212,7 @@ namespace UiAutomationMcp.Tests.Integration
             // Act & Assert - 操作が登録されており、実行可能であることを確認
             var exception = await Record.ExceptionAsync(async () =>
             {
-                await _subprocessExecutor.ExecuteAsync<TypedWorkerRequest, ActionResult>(request, 5);
+                await _subprocessExecutor.ExecuteAsync<TypedWorkerRequest, ActionResult>(operationName, request, 5);
             });
 
             // UIがない場合の例外は期待される（操作自体は正しく登録されている）

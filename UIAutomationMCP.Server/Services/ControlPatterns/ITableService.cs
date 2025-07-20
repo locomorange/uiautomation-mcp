@@ -9,5 +9,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         Task<ServerEnhancedResponse<ElementSearchResult>> GetColumnHeadersAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30);
         Task<ServerEnhancedResponse<ElementSearchResult>> GetColumnHeaderItemsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30);
         Task<ServerEnhancedResponse<ElementSearchResult>> GetRowHeaderItemsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30);
+        Task<ServerEnhancedResponse<ActionResult>> GetRowOrColumnMajorAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30);
+        Task<ServerEnhancedResponse<TableInfoResult>> GetTableInfoAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30);
     }
 }
