@@ -174,9 +174,9 @@ namespace UIAutomationMCP.Tests.Services
             var expectedResult = new SelectionInfoResult
             {
                 Success = true,
-                ContainerElementId = null,
-                ContainerName = null,
-                ContainerControlType = null
+                ContainerElementId = "",
+                ContainerName = "",
+                ContainerControlType = ""
             };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<GetSelectionContainerRequest, SelectionInfoResult>("GetSelectionContainer", It.IsAny<GetSelectionContainerRequest>(), 30))

@@ -29,7 +29,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
             var mockElement = CreateMockElement();
 
             // Act
-            var result = SearchMethodSelector.SelectOptimalMethod(mockElement, null!, TreeScope.Children);
+            var result = SearchMethodSelector.SelectOptimalMethod(mockElement!, null!, TreeScope.Children);
 
             // Assert
             Assert.Equal(SearchMethod.FindAll, result);
@@ -67,7 +67,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
             var condition = ConditionBuilder.ByName("test");
 
             // Act
-            var result = SearchMethodSelector.SelectOptimalMethod(mockElement, condition, scope, 5);
+            var result = SearchMethodSelector.SelectOptimalMethod(mockElement!, condition, scope, 5);
 
             // Assert
             Assert.Equal(expected, result);
@@ -185,7 +185,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
             var condition = ConditionBuilder.ByName("test");
 
             // Act
-            var result = SearchMethodSelector.GetRecommendation(mockElement, condition, TreeScope.Children);
+            var result = SearchMethodSelector.GetRecommendation(mockElement!, condition, TreeScope.Children);
 
             // Assert
             Assert.NotNull(result);
@@ -231,7 +231,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
             );
 
             // Act
-            var result = SearchMethodSelector.GetRecommendation(mockElement, complexCondition, TreeScope.Subtree);
+            var result = SearchMethodSelector.GetRecommendation(mockElement!, complexCondition, TreeScope.Subtree);
 
             // Assert
             Assert.Contains(result.Warnings, w => w.Contains("複雑") || w.Contains("complex") || w.Contains("Subtree"));
@@ -249,7 +249,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
             var condition = CreateConditionForComplexity(complexity);
 
             // Act
-            var result = SearchMethodSelector.GetRecommendation(mockElement, condition, scope);
+            var result = SearchMethodSelector.GetRecommendation(mockElement!, condition, scope);
 
             // Assert
             Assert.True(result.TimeoutSeconds >= expectedMinTimeout - 2); // Allow some flexibility
@@ -267,7 +267,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
             var condition = ConditionBuilder.ByName("test");
 
             // Act
-            var result = SearchMethodSelector.GetRecommendation(mockElement, condition, scope);
+            var result = SearchMethodSelector.GetRecommendation(mockElement!, condition, scope);
 
             // Assert
             Assert.True(result.MaxResults >= expectedMinResults);

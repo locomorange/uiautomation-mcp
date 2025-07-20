@@ -24,7 +24,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
             var mockElement = CreateMockElementWithFramework("WPF");
 
             // Act
-            var result = ListSearchOptimizer.GetOptimalMethod(mockElement);
+            var result = ListSearchOptimizer.GetOptimalMethod(mockElement!);
 
             // Assert
             // The mock element will have actual desktop framework, so we just verify it returns a valid method
@@ -38,8 +38,8 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
             var mockElement = CreateMockElementWithFramework("Test");
 
             // Act
-            var result1 = ListSearchOptimizer.GetOptimalMethod(mockElement);
-            var result2 = ListSearchOptimizer.GetOptimalMethod(mockElement);
+            var result1 = ListSearchOptimizer.GetOptimalMethod(mockElement!);
+            var result2 = ListSearchOptimizer.GetOptimalMethod(mockElement!);
 
             // Assert
             Assert.Equal(result1, result2);
@@ -62,7 +62,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
             var mockElement = CreateMockElementWithFramework("WPF");
 
             // Act
-            var result = ListSearchOptimizer.FindListItemByIndex(mockElement, -1);
+            var result = ListSearchOptimizer.FindListItemByIndex(mockElement!, -1);
 
             // Assert
             Assert.Null(result);
@@ -97,8 +97,8 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
             
             foreach (var framework in frameworks)
             {
-                var mockElement = CreateMockElementWithFramework(framework);
-                var result = ListSearchOptimizer.GetOptimalMethod(mockElement);
+                var mockElement = CreateMockElementWithFramework(framework ?? "");
+                var result = ListSearchOptimizer.GetOptimalMethod(mockElement!);
                 
                 Assert.True(Enum.IsDefined(typeof(ListSearchMethod), result));
             }
@@ -111,7 +111,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
             var mockElement = CreateMockElementThatThrowsException();
 
             // Act
-            var result = ListSearchOptimizer.GetOptimalMethod(mockElement);
+            var result = ListSearchOptimizer.GetOptimalMethod(mockElement!);
 
             // Assert
             Assert.Equal(ListSearchMethod.FindAll, result);
