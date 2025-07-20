@@ -39,5 +39,17 @@ namespace UIAutomationMCP.Shared.Results
 
         [JsonPropertyName("hasKeyboardFocus")]
         public bool HasKeyboardFocus { get; set; }
+
+        [JsonPropertyName("interactionState")]
+        public string InteractionState { get; set; } = "";
+
+        [JsonPropertyName("interactionStateValue")]
+        public string InteractionStateValue { get; set; } = "";
+
+        [JsonPropertyName("description")]
+        public string Description { get; set; } = "";
+
+        [JsonPropertyName("windowVisualState")]
+        public string WindowVisualState { get; set; } = "";
     }
 }

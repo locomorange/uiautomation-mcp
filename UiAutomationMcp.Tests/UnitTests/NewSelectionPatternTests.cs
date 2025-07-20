@@ -99,7 +99,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<GetSelectionContainerRequest, ActionResult>("GetSelectionContainer", It.IsAny<GetSelectionContainerRequest>(), 30))
-                .Returns(Task.FromResult(new BooleanResult { Value = false }));
+                .Returns(Task.FromResult(new ActionResult { Success = true }));
 
             // Act
             var result = await _selectionService.GetSelectionContainerAsync(elementId, null, null, 30);
@@ -107,7 +107,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<GetSelectionContainerRequest, ActionResult>("GetSelectionContainer", 
-                It.Is<IsSelectedRequest>(r => r.ElementId == elementId), 30), Times.Once);
+                It.Is<GetSelectionContainerRequest>(r => r.ElementId == elementId), 30), Times.Once);
 
             _output.WriteLine("GetSelectionContainerAsync test passed - Container information retrieved");
         }
@@ -120,7 +120,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             var expectedResult = new { SelectionContainer = (object?)null };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<GetSelectionContainerRequest, ActionResult>("GetSelectionContainer", It.IsAny<GetSelectionContainerRequest>(), 30))
-                .Returns(Task.FromResult(new BooleanResult { Value = false }));
+                .Returns(Task.FromResult(new ActionResult { Success = true }));
 
             // Act
             var result = await _selectionService.GetSelectionContainerAsync(elementId, null, null, 30);
@@ -128,7 +128,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<GetSelectionContainerRequest, ActionResult>("GetSelectionContainer", 
-                It.Is<IsSelectedRequest>(r => r.ElementId == elementId), 30), Times.Once);
+                It.Is<GetSelectionContainerRequest>(r => r.ElementId == elementId), 30), Times.Once);
 
             _output.WriteLine("GetSelectionContainerAsync test passed - Null container handled correctly");
         }
@@ -224,7 +224,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<IsSelectionRequiredRequest, BooleanResult>("IsSelectionRequired", 
-                It.Is<CanSelectMultipleRequest>(r => r.ElementId == containerId), 30), Times.Once);
+                It.Is<IsSelectionRequiredRequest>(r => r.ElementId == containerId), 30), Times.Once);
 
             _output.WriteLine("IsSelectionRequiredAsync test passed - Optional selection correctly identified");
         }

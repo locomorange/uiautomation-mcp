@@ -5,6 +5,7 @@ using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
 using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared;
 using Xunit.Abstractions;
 
 namespace UIAutomationMCP.Tests.UnitTests

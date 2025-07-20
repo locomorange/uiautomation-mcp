@@ -698,5 +698,41 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _rangeService.GetRangeValueAsync(elementId, windowTitle, processId, timeoutSeconds));
 
+        // Text Operations
+        [McpServerTool, Description("Get text content from an element")]
+        public async Task<object> GetText(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => JsonSerializationHelper.Serialize(await _textService.GetTextAsync(elementId, windowTitle, processId, timeoutSeconds));
+
+        // Table Operations
+        [McpServerTool, Description("Get table information from an element")]
+        public async Task<object> GetTableInfo(
+            [Description("Automation ID or name of the table element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => JsonSerializationHelper.Serialize(await _tableService.GetTableInfoAsync(elementId, windowTitle, processId, timeoutSeconds));
+
+        // Selection Operations
+        [McpServerTool, Description("Get selection container information")]
+        public async Task<object> GetSelectionContainer(
+            [Description("Element ID or container ID")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => JsonSerializationHelper.Serialize(await _selectionService.GetSelectionContainerAsync(elementId, windowTitle, processId, timeoutSeconds));
+
+        // Transform Operations
+        [McpServerTool, Description("Get transform pattern capabilities")]
+        public async Task<object> GetTransformPattern(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => JsonSerializationHelper.Serialize(await _transformService.GetTransformCapabilitiesAsync(elementId, windowTitle, processId, timeoutSeconds));
+
     }
 }

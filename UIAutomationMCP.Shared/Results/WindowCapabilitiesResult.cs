@@ -39,5 +39,23 @@ namespace UIAutomationMCP.Shared.Results
 
         [JsonPropertyName("isResizable")]
         public bool IsResizable { get; set; }
+
+        [JsonPropertyName("windowInteractionState")]
+        public string WindowInteractionState { get; set; } = "";
+
+        [JsonPropertyName("isMovable")]
+        public bool IsMovable { get; set; }
+
+        [JsonPropertyName("hasSystemMenu")]
+        public bool HasSystemMenu { get; set; }
+
+        [JsonPropertyName("isModal")]
+        public bool IsModal { get; set; }
+
+        [JsonPropertyName("isTopmost")]
+        public bool IsTopmost { get; set; }
+
+        [JsonPropertyName("windowVisualState")]
+        public string WindowVisualState { get; set; } = "";
     }
 }

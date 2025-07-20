@@ -387,17 +387,15 @@ namespace UIAutomationMCP.Tests.Tools
         public async Task GetElementValue_Success_GetsValue()
         {
             // Arrange
-            var resultObject = new ElementValueResult
+            var resultObject = new TextInfoResult
             {
                 Success = true,
                 ElementId = "textBox",
-                Value = "Current Value",
-                StringValue = "Current Value",
+                Text = "Current Value",
                 // WindowTitle not available in ElementSearchResult,
-                HasValue = true,
-                IsValid = true
+                HasText = true,
             };
-            var serverResponse = new ServerEnhancedResponse<ElementValueResult>
+            var serverResponse = new ServerEnhancedResponse<TextInfoResult>
             {
                 Success = true,
                 Data = resultObject,

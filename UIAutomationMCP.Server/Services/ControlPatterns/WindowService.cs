@@ -814,5 +814,197 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 return errorResponse;
             }
         }
+
+        public async Task<ServerEnhancedResponse<WindowInteractionStateResult>> GetWindowInteractionStateAsync(string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            try
+            {
+                _logger.LogInformationWithOperation(operationId, $"Starting GetWindowInteractionState for window: {windowTitle ?? "any"} (ProcessId: {processId ?? 0})");
+
+                var request = new GetWindowInfoRequest
+                {
+                    WindowTitle = windowTitle,
+                    ProcessId = processId
+                };
+
+                var result = await _executor.ExecuteAsync<GetWindowInfoRequest, WindowInteractionStateResult>("GetWindowInteractionState", request, timeoutSeconds);
+
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<WindowInteractionStateResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["operationType"] = "getWindowInteractionState"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetWindowInteractionState",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return serverResponse;
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in GetWindowInteractionState operation");
+                
+                var errorResponse = new ServerEnhancedResponse<WindowInteractionStateResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["operationType"] = "getWindowInteractionState"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetWindowInteractionState",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorResponse;
+            }
+        }
+
+        public async Task<ServerEnhancedResponse<WindowCapabilitiesResult>> GetWindowCapabilitiesAsync(string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            try
+            {
+                _logger.LogInformationWithOperation(operationId, $"Starting GetWindowCapabilities for window: {windowTitle ?? "any"} (ProcessId: {processId ?? 0})");
+
+                var request = new GetWindowInfoRequest
+                {
+                    WindowTitle = windowTitle,
+                    ProcessId = processId
+                };
+
+                var result = await _executor.ExecuteAsync<GetWindowInfoRequest, WindowCapabilitiesResult>("GetWindowCapabilities", request, timeoutSeconds);
+
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<WindowCapabilitiesResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["operationType"] = "getWindowCapabilities"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetWindowCapabilities",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return serverResponse;
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in GetWindowCapabilities operation");
+                
+                var errorResponse = new ServerEnhancedResponse<WindowCapabilitiesResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["operationType"] = "getWindowCapabilities"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetWindowCapabilities",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorResponse;
+            }
+        }
     }
 }

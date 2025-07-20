@@ -17,7 +17,7 @@ namespace UIAutomationMCP.Shared.Results
         public bool IsSelectionRequired { get; set; }
 
         [JsonPropertyName("selectedItems")]
-        public string[] SelectedItems { get; set; } = Array.Empty<string>();
+        public List<SelectionItem> SelectedItems { get; set; } = new();
 
         [JsonPropertyName("selectionMode")]
         public string SelectionMode { get; set; } = "";
@@ -36,5 +36,17 @@ namespace UIAutomationMCP.Shared.Results
 
         [JsonPropertyName("containerControlType")]
         public string ContainerControlType { get; set; } = "";
+
+        [JsonPropertyName("processId")]
+        public int ProcessId { get; set; }
+
+        [JsonPropertyName("selectedCount")]
+        public int SelectedCount { get; set; }
+
+        [JsonPropertyName("totalCount")]
+        public int TotalCount { get; set; }
+
+        [JsonPropertyName("windowTitle")]
+        public string WindowTitle { get; set; } = "";
     }
 }

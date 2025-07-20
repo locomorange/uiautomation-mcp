@@ -36,5 +36,26 @@ namespace UIAutomationMCP.Shared.Results
 
         [JsonPropertyName("canSelectMultiple")]
         public bool CanSelectMultiple { get; set; }
+
+        [JsonPropertyName("hasRowHeaders")]
+        public bool HasRowHeaders { get; set; }
+
+        [JsonPropertyName("hasColumnHeaders")]
+        public bool HasColumnHeaders { get; set; }
+
+        [JsonPropertyName("isScrollable")]
+        public bool IsScrollable { get; set; }
+
+        [JsonPropertyName("selectionMode")]
+        public string SelectionMode { get; set; } = "";
+
+        [JsonPropertyName("totalCellCount")]
+        public int TotalCellCount { get; set; }
+
+        [JsonPropertyName("visibleCellCount")]
+        public int VisibleCellCount { get; set; }
+
+        [JsonPropertyName("rowOrColumnMajor")]
+        public string RowOrColumnMajor { get; set; } = "";
     }
 }

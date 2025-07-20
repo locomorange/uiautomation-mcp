@@ -13,11 +13,20 @@ namespace UIAutomationMCP.Shared.Results
         [JsonPropertyName("value")]
         public double Value { get; set; }
 
+        [JsonPropertyName("currentValue")]
+        public double CurrentValue { get; set; }
+
         [JsonPropertyName("minimum")]
         public double Minimum { get; set; }
 
+        [JsonPropertyName("minimumValue")]
+        public double MinimumValue { get; set; }
+
         [JsonPropertyName("maximum")]
         public double Maximum { get; set; }
+
+        [JsonPropertyName("maximumValue")]
+        public double MaximumValue { get; set; }
 
         [JsonPropertyName("smallChange")]
         public double SmallChange { get; set; }
