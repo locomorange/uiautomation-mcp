@@ -192,15 +192,15 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetSelectionContainer_WhenCalled_ShouldReturnContainerInfo()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<SelectionInfoResult>
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
             { 
                 Success = true, 
-                Data = new SelectionInfoResult
+                Data = new ActionResult
                 { 
-                    ContainerElementId = "listBox1",
-                    ContainerName = "Items List",
-                    ContainerControlType = "ControlType.List",
-                    ProcessId = 1234
+                    Action = "GetSelectionContainer",
+                    ActionName = "Container information retrieved",
+                    ElementId = "listItem1",
+                    Completed = true
                 }
             };
             _mockSelectionService.Setup(s => s.GetSelectionContainerAsync("listItem1", null, null, 30))
@@ -219,13 +219,15 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetSelectionContainer_WhenNoContainer_ShouldReturnNull()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<SelectionInfoResult> 
+            var expectedResult = new ServerEnhancedResponse<ActionResult> 
             { 
                 Success = true, 
-                Data = new SelectionInfoResult 
+                Data = new ActionResult 
                 { 
-                    ContainerElementId = null,
-                    ContainerName = null
+                    Action = "GetSelectionContainer",
+                    ActionName = "Container not found",
+                    ElementId = "orphanedItem",
+                    Completed = true
                 }
             };
             _mockSelectionService.Setup(s => s.GetSelectionContainerAsync("orphanedItem", "Test App", 4321, 30))
@@ -424,7 +426,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task SelectionMethods_WhenElementNotFound_ShouldReturnErrorResult()
         {
             // Arrange
-            var errorResult = new ServerEnhancedResponse<SelectionInfoResult> { Success = false, ErrorMessage = "Element not found" };
+            var errorResult = new ServerEnhancedResponse<ActionResult> { Success = false, ErrorMessage = "Element not found" };
             _mockSelectionService.Setup(s => s.GetSelectionContainerAsync("nonExistentElement", null, null, 30))
                 .Returns(Task.FromResult(errorResult));
 

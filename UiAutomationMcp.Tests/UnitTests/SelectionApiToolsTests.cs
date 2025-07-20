@@ -165,16 +165,15 @@ namespace UIAutomationMCP.Tests.UnitTests
             var elementId = "containerTestItem";
             var windowTitle = "Container Window";
             var processId = 5678;
-            var expectedResult = new ServerEnhancedResponse<SelectionInfoResult> 
+            var expectedResult = new ServerEnhancedResponse<ActionResult> 
             { 
                 Success = true, 
-                Data = new SelectionInfoResult 
+                Data = new ActionResult 
                 { 
-                    ContainerElementId = "parentListBox",
-                    ContainerName = "Items Container",
-                    ContainerControlType = "ControlType.List",
-                    ProcessId = 5678,
-                    WindowTitle = windowTitle
+                    Action = "GetSelectionContainer",
+                    ActionName = "Container information retrieved",
+                    ElementId = elementId,
+                    Completed = true
                 }
             };
 
@@ -197,13 +196,15 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var elementId = "orphanedItem";
-            var expectedResult = new ServerEnhancedResponse<SelectionInfoResult> 
+            var expectedResult = new ServerEnhancedResponse<ActionResult> 
             { 
                 Success = true, 
-                Data = new SelectionInfoResult 
+                Data = new ActionResult 
                 { 
-                    ContainerElementId = null,
-                    ContainerName = null
+                    Action = "GetSelectionContainer",
+                    ActionName = "Container not found",
+                    ElementId = elementId,
+                    Completed = true
                 }
             };
 

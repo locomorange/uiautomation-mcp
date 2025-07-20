@@ -18,6 +18,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         // SelectionPattern properties
         Task<ServerEnhancedResponse<BooleanResult>> CanSelectMultipleAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30);
         Task<ServerEnhancedResponse<BooleanResult>> IsSelectionRequiredAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30);
-        Task<ServerEnhancedResponse<ActionResult>> GetSelectionAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30);
+        Task<ServerEnhancedResponse<SelectionInfoResult>> GetSelectionAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30);
     }
 }

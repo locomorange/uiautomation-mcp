@@ -3,6 +3,7 @@ using Moq;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Interfaces;
+using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Models;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
@@ -417,13 +418,13 @@ namespace UIAutomationMCP.Tests.UnitTests
             var expectedRemoveResult = new { Success = true, Message = "Removed from selection" };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<IsSelectedRequest, BooleanResult>("IsSelected", It.IsAny<IsSelectedRequest>(), 30))
-                .Returns(Task.FromResult<object>(expectedIsSelectedResult));
+                .Returns(Task.FromResult(new BooleanResult { Value = true }));
             _mockExecutor.Setup(e => e.ExecuteAsync<GetSelectionContainerRequest, ActionResult>("GetSelectionContainer", It.IsAny<GetSelectionContainerRequest>(), 30))
-                .Returns(Task.FromResult<object>(expectedContainerResult));
+                .Returns(Task.FromResult(new ActionResult { Success = true }));
             _mockExecutor.Setup(e => e.ExecuteAsync<AddToSelectionRequest, ActionResult>("AddToSelection", It.IsAny<AddToSelectionRequest>(), 30))
-                .Returns(Task.FromResult<object>(expectedAddResult));
+                .Returns(Task.FromResult(new ActionResult { Success = true }));
             _mockExecutor.Setup(e => e.ExecuteAsync<RemoveFromSelectionRequest, ActionResult>("RemoveFromSelection", It.IsAny<RemoveFromSelectionRequest>(), 30))
-                .Returns(Task.FromResult<object>(expectedRemoveResult));
+                .Returns(Task.FromResult(new ActionResult { Success = true }));
 
             // Act & Assert - Test all required SelectionItem members
             var isSelectedResult = await _selectionService.IsSelectedAsync(elementId, null, null, 30);
@@ -446,17 +447,17 @@ namespace UIAutomationMCP.Tests.UnitTests
             var containerId = "testContainer";
             var expectedCanSelectResult = new { CanSelectMultiple = true };
             var expectedRequiredResult = new { IsSelectionRequired = false };
-            var expectedSelectionResult = new List<object>();
-            var expectedClearResult = new { Success = true, Message = "Selection cleared" };
+            var expectedSelectionResult = new List<SelectionItem>();
+            var expectedClearResult = new { Success = true, ActionName = "Selection cleared" };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<CanSelectMultipleRequest, BooleanResult>("CanSelectMultiple", It.IsAny<CanSelectMultipleRequest>(), 30))
                 .Returns(Task.FromResult(new BooleanResult { Value = expectedCanSelectResult.CanSelectMultiple }));
             _mockExecutor.Setup(e => e.ExecuteAsync<IsSelectionRequiredRequest, BooleanResult>("IsSelectionRequired", It.IsAny<IsSelectionRequiredRequest>(), 30))
                 .Returns(Task.FromResult(new BooleanResult { Value = expectedRequiredResult.IsSelectionRequired }));
-            _mockExecutor.Setup(e => e.ExecuteAsync<GetSelectionRequest, ActionResult>("GetSelection", It.IsAny<GetSelectionRequest>(), 30))
-                .Returns(Task.FromResult(new ActionResult { Success = expectedSelectionResult.Success, Message = expectedSelectionResult.Message }));
+            _mockExecutor.Setup(e => e.ExecuteAsync<GetSelectionRequest, SelectionInfoResult>("GetSelection", It.IsAny<GetSelectionRequest>(), 30))
+                .Returns(Task.FromResult(new SelectionInfoResult { SelectedItems = expectedSelectionResult, SelectedCount = expectedSelectionResult.Count }));
             _mockExecutor.Setup(e => e.ExecuteAsync<ClearSelectionRequest, ActionResult>("ClearSelection", It.IsAny<ClearSelectionRequest>(), 30))
-                .Returns(Task.FromResult(new ActionResult { Success = expectedClearResult.Success, Message = expectedClearResult.Message }));
+                .Returns(Task.FromResult(new ActionResult { Success = expectedClearResult.Success, ActionName = expectedClearResult.ActionName }));
 
             // Act & Assert - Test all required Selection members
             var canSelectResult = await _selectionService.CanSelectMultipleAsync(containerId, null, null, 30);

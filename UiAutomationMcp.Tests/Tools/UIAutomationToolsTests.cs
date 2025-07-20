@@ -1011,7 +1011,7 @@ namespace UIAutomationMCP.Tests.Tools
                 Success = true,
                 // WindowTitle not available in ElementSearchResult,
                 InteractionState = "Running",
-                InteractionStateValue = 0,
+                InteractionStateValue = "0",
                 Description = "The window is running and responding to user input",
                 CanMinimize = true,
                 CanMaximize = true,

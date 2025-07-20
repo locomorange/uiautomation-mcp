@@ -1117,7 +1117,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             }
         }
 
-        public async Task<ServerEnhancedResponse<ActionResult>> GetSelectionAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<SelectionInfoResult>> GetSelectionAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -1127,7 +1127,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 var validationError = "Container ID is required and cannot be empty";
                 _logger.LogWarningWithOperation(operationId, $"GetSelection validation failed: {validationError}");
                 
-                var validationResponse = new ServerEnhancedResponse<ActionResult>
+                var validationResponse = new ServerEnhancedResponse<SelectionInfoResult>
                 {
                     Success = false,
                     ErrorMessage = validationError,
@@ -1172,11 +1172,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<GetSelectionRequest, ActionResult>("GetSelection", request, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<GetSelectionRequest, SelectionInfoResult>("GetSelection", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 
-                var serverResponse = new ServerEnhancedResponse<ActionResult>
+                var serverResponse = new ServerEnhancedResponse<SelectionInfoResult>
                 {
                     Success = result.Success,
                     Data = result,
@@ -1216,7 +1216,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 stopwatch.Stop();
                 _logger.LogErrorWithOperation(operationId, ex, "Error in GetSelection operation");
                 
-                var errorResponse = new ServerEnhancedResponse<ActionResult>
+                var errorResponse = new ServerEnhancedResponse<SelectionInfoResult>
                 {
                     Success = false,
                     ErrorMessage = ex.Message,
