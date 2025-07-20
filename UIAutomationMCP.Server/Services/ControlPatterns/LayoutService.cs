@@ -851,8 +851,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 var request = new GetScrollInfoRequest
                 {
                     ElementId = elementId,
-                    WindowTitle = windowTitle,
-                    ProcessId = processId
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
                 var result = await _executor.ExecuteAsync<GetScrollInfoRequest, ScrollInfoResult>("GetScrollInfo", request, timeoutSeconds);

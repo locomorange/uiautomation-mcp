@@ -549,8 +549,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 var request = new GetTableInfoRequest
                 {
                     ElementId = elementId,
-                    WindowTitle = windowTitle,
-                    ProcessId = processId
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
                 var result = await _executor.ExecuteAsync<GetTableInfoRequest, ActionResult>("GetRowOrColumnMajor", request, timeoutSeconds);
@@ -677,8 +677,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 var request = new GetTableInfoRequest
                 {
                     ElementId = elementId,
-                    WindowTitle = windowTitle,
-                    ProcessId = processId
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
                 var result = await _executor.ExecuteAsync<GetTableInfoRequest, TableInfoResult>("GetTableInfo", request, timeoutSeconds);

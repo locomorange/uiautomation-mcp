@@ -209,8 +209,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 var request = new GetRangeValueRequest
                 {
                     ElementId = elementId,
-                    WindowTitle = windowTitle,
-                    ProcessId = processId
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
                 var result = await _executor.ExecuteAsync<GetRangeValueRequest, RangeValueResult>("GetRangeValue", request, timeoutSeconds);
