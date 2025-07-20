@@ -59,16 +59,16 @@ namespace UIAutomationMCP.Shared.Requests
         public string Scope { get; set; } = "descendants";
 
         /// <summary>
-        /// 必須のUI Automationパターン（全て満たす必要がある）
+        /// 必須のUI Automationパターン（セミコロン区切りの文字列）
         /// </summary>
         [JsonPropertyName("requiredPatterns")]
-        public string[]? RequiredPatterns { get; set; }
+        public string? RequiredPatterns { get; set; }
 
         /// <summary>
-        /// いずれかのUI Automationパターン（一つでも満たせばOK）
+        /// いずれかのUI Automationパターン（セミコロン区切りの文字列）
         /// </summary>
         [JsonPropertyName("anyOfPatterns")]
-        public string[]? AnyOfPatterns { get; set; }
+        public string? AnyOfPatterns { get; set; }
 
         /// <summary>
         /// 可視要素のみに限定するかどうか
@@ -101,10 +101,10 @@ namespace UIAutomationMCP.Shared.Requests
         public string? SortBy { get; set; }
 
         /// <summary>
-        /// タイムアウト秒数
+        /// Worker内での要素検索タイムアウト秒数（デフォルト: 10秒）
         /// </summary>
         [JsonPropertyName("timeoutSeconds")]
-        public int TimeoutSeconds { get; set; } = 30;
+        public int TimeoutSeconds { get; set; } = 10;
     }
 
     /// <summary>
@@ -152,9 +152,9 @@ namespace UIAutomationMCP.Shared.Requests
         public bool IncludeParent { get; set; } = false;
 
         /// <summary>
-        /// タイムアウト秒数
+        /// Worker内での要素検索タイムアウト秒数（デフォルト: 10秒）
         /// </summary>
         [JsonPropertyName("timeoutSeconds")]
-        public int TimeoutSeconds { get; set; } = 30;
+        public int TimeoutSeconds { get; set; } = 10;
     }
 }

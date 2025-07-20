@@ -25,5 +25,11 @@ namespace UIAutomationMCP.Shared.Requests
 
         [JsonPropertyName("processId")]
         public int? ProcessId { get; set; }
+
+        /// <summary>
+        /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）
+        /// </summary>
+        [JsonPropertyName("timeoutSeconds")]
+        public int TimeoutSeconds { get; set; } = 10;
     }
 }

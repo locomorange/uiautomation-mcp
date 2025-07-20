@@ -158,6 +158,8 @@ namespace UIAutomationMCP.Worker
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetCurrentViewOperation>("GetCurrentView");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetViewNameOperation>("GetViewName");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetElementTreeOperation>("GetElementTree");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, SearchElementsOperation>("SearchElements");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetElementDetailsOperation>("GetElementDetails");
             
             // TODO: Phase 6 - Update remaining operations to new interface
             // The following operations need to be updated to use string parametersJson:

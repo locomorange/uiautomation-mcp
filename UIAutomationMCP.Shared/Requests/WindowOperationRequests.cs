@@ -10,6 +10,12 @@ namespace UIAutomationMCP.Shared.Requests
 
         [JsonPropertyName("includeInvisible")]
         public bool IncludeInvisible { get; set; } = false;
+
+        /// <summary>
+        /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）
+        /// </summary>
+        [JsonPropertyName("timeoutSeconds")]
+        public int TimeoutSeconds { get; set; } = 10;
     }
 
     public class WindowActionRequest : TypedWorkerRequest
@@ -24,6 +30,12 @@ namespace UIAutomationMCP.Shared.Requests
 
         [JsonPropertyName("action")]
         public string Action { get; set; } = ""; // "close", "minimize", "maximize", "restore", "setfocus"
+
+        /// <summary>
+        /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）
+        /// </summary>
+        [JsonPropertyName("timeoutSeconds")]
+        public int TimeoutSeconds { get; set; } = 10;
     }
 
     public class GetWindowInfoRequest : TypedWorkerRequest
@@ -35,6 +47,12 @@ namespace UIAutomationMCP.Shared.Requests
 
         [JsonPropertyName("processId")]
         public int? ProcessId { get; set; }
+
+        /// <summary>
+        /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）
+        /// </summary>
+        [JsonPropertyName("timeoutSeconds")]
+        public int TimeoutSeconds { get; set; } = 10;
     }
 
     public class GetWindowInteractionStateRequest : TypedWorkerRequest
@@ -46,6 +64,12 @@ namespace UIAutomationMCP.Shared.Requests
 
         [JsonPropertyName("processId")]
         public int? ProcessId { get; set; }
+
+        /// <summary>
+        /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）
+        /// </summary>
+        [JsonPropertyName("timeoutSeconds")]
+        public int TimeoutSeconds { get; set; } = 10;
     }
 
     public class GetWindowCapabilitiesRequest : TypedWorkerRequest
@@ -57,6 +81,12 @@ namespace UIAutomationMCP.Shared.Requests
 
         [JsonPropertyName("processId")]
         public int? ProcessId { get; set; }
+
+        /// <summary>
+        /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）
+        /// </summary>
+        [JsonPropertyName("timeoutSeconds")]
+        public int TimeoutSeconds { get; set; } = 10;
     }
 
     public class SetWindowStateRequest : TypedWorkerRequest
@@ -71,6 +101,12 @@ namespace UIAutomationMCP.Shared.Requests
 
         [JsonPropertyName("windowState")]
         public string WindowState { get; set; } = ""; // "normal", "minimized", "maximized"
+
+        /// <summary>
+        /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）
+        /// </summary>
+        [JsonPropertyName("timeoutSeconds")]
+        public int TimeoutSeconds { get; set; } = 10;
     }
 
     public class MoveWindowRequest : TypedWorkerRequest
@@ -88,6 +124,12 @@ namespace UIAutomationMCP.Shared.Requests
 
         [JsonPropertyName("y")]
         public int Y { get; set; }
+
+        /// <summary>
+        /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）
+        /// </summary>
+        [JsonPropertyName("timeoutSeconds")]
+        public int TimeoutSeconds { get; set; } = 10;
     }
 
     public class ResizeWindowRequest : TypedWorkerRequest
@@ -105,5 +147,11 @@ namespace UIAutomationMCP.Shared.Requests
 
         [JsonPropertyName("height")]
         public int Height { get; set; }
+
+        /// <summary>
+        /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）
+        /// </summary>
+        [JsonPropertyName("timeoutSeconds")]
+        public int TimeoutSeconds { get; set; } = 10;
     }
 }

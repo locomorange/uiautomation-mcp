@@ -22,6 +22,12 @@ namespace UIAutomationMCP.Shared.Requests
 
         [JsonPropertyName("processId")]
         public int? ProcessId { get; set; }
+
+        /// <summary>
+        /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）
+        /// </summary>
+        [JsonPropertyName("timeoutSeconds")]
+        public int TimeoutSeconds { get; set; } = 10;
     }
 
     public class StartEventMonitoringRequest : TypedWorkerRequest
@@ -39,6 +45,12 @@ namespace UIAutomationMCP.Shared.Requests
 
         [JsonPropertyName("processId")]
         public int? ProcessId { get; set; }
+
+        /// <summary>
+        /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）
+        /// </summary>
+        [JsonPropertyName("timeoutSeconds")]
+        public int TimeoutSeconds { get; set; } = 10;
     }
 
     public class StopEventMonitoringRequest : TypedWorkerRequest
@@ -47,6 +59,12 @@ namespace UIAutomationMCP.Shared.Requests
 
         [JsonPropertyName("monitorId")]
         public string MonitorId { get; set; } = "";
+
+        /// <summary>
+        /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）
+        /// </summary>
+        [JsonPropertyName("timeoutSeconds")]
+        public int TimeoutSeconds { get; set; } = 10;
     }
 
     public class GetEventLogRequest : TypedWorkerRequest
@@ -58,5 +76,11 @@ namespace UIAutomationMCP.Shared.Requests
 
         [JsonPropertyName("maxCount")]
         public int MaxCount { get; set; } = 100;
+
+        /// <summary>
+        /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）
+        /// </summary>
+        [JsonPropertyName("timeoutSeconds")]
+        public int TimeoutSeconds { get; set; } = 10;
     }
 }

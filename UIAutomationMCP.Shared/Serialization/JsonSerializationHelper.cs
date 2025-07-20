@@ -106,6 +106,9 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(WorkerResponse<DesktopWindowsResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseDesktopWindowsResult,
                 Type t when t == typeof(WorkerResponse<TextInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTextInfoResult,
                 Type t when t == typeof(WorkerResponse<ElementTreeResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseElementTreeResult,
+                Type t when t == typeof(WorkerResponse<SearchElementsResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseSearchElementsResult,
+                Type t when t == typeof(WorkerResponse<ElementDetailResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseElementDetailResult,
+                Type t when t == typeof(WorkerResponse<TableInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTableInfoResult,
                 Type t when t == typeof(WorkerResponse<object>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseObject,
 
                 // Result types (consolidated from GetResultTypeInfo)
@@ -123,6 +126,9 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(BooleanResult) => (JsonTypeInfo<T>)(object)_context.BooleanResult,
                 Type t when t == typeof(ProcessLaunchResponse) => (JsonTypeInfo<T>)(object)_context.ProcessLaunchResponse,
                 Type t when t == typeof(TextInfoResult) => (JsonTypeInfo<T>)(object)_context.TextInfoResult,
+                Type t when t == typeof(SearchElementsResult) => (JsonTypeInfo<T>)(object)_context.SearchElementsResult,
+                Type t when t == typeof(ElementDetailResult) => (JsonTypeInfo<T>)(object)_context.ElementDetailResult,
+                Type t when t == typeof(TableInfoResult) => (JsonTypeInfo<T>)(object)_context.TableInfoResult,
 
                 // Request types (consolidated from GetRequestTypeInfo)
                 Type t when t == typeof(InvokeElementRequest) => (JsonTypeInfo<T>)(object)_context.InvokeElementRequest,
@@ -171,6 +177,8 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(GetColumnHeadersRequest) => (JsonTypeInfo<T>)(object)_context.GetColumnHeadersRequest,
                 Type t when t == typeof(GetRowHeaderItemsRequest) => (JsonTypeInfo<T>)(object)_context.GetRowHeaderItemsRequest,
                 Type t when t == typeof(GetRowHeadersRequest) => (JsonTypeInfo<T>)(object)_context.GetRowHeadersRequest,
+                Type t when t == typeof(GetRowOrColumnMajorRequest) => (JsonTypeInfo<T>)(object)_context.GetRowOrColumnMajorRequest,
+                Type t when t == typeof(GetTableInfoRequest) => (JsonTypeInfo<T>)(object)_context.GetTableInfoRequest,
                 Type t when t == typeof(AddToSelectionRequest) => (JsonTypeInfo<T>)(object)_context.AddToSelectionRequest,
                 Type t when t == typeof(ClearSelectionRequest) => (JsonTypeInfo<T>)(object)_context.ClearSelectionRequest,
                 Type t when t == typeof(GetSelectionContainerRequest) => (JsonTypeInfo<T>)(object)_context.GetSelectionContainerRequest,
@@ -187,6 +195,8 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(GetElementTreeRequest) => (JsonTypeInfo<T>)(object)_context.GetElementTreeRequest,
                 Type t when t == typeof(GetParentRequest) => (JsonTypeInfo<T>)(object)_context.GetParentRequest,
                 Type t when t == typeof(GetSiblingsRequest) => (JsonTypeInfo<T>)(object)_context.GetSiblingsRequest,
+                Type t when t == typeof(SearchElementsRequest) => (JsonTypeInfo<T>)(object)_context.SearchElementsRequest,
+                Type t when t == typeof(GetElementDetailsRequest) => (JsonTypeInfo<T>)(object)_context.GetElementDetailsRequest,
 
                 // ServerEnhancedResponse types
                 Type t when t == typeof(ServerEnhancedResponse<ElementTreeResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseElementTreeResult,
@@ -199,6 +209,9 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(ServerEnhancedResponse<ProcessLaunchResponse>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseProcessLaunchResponse,
                 Type t when t == typeof(ServerEnhancedResponse<BooleanResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseBooleanResult,
                 Type t when t == typeof(ServerEnhancedResponse<DesktopWindowsResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseDesktopWindowsResult,
+                Type t when t == typeof(ServerEnhancedResponse<SearchElementsResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseSearchElementsResult,
+                Type t when t == typeof(ServerEnhancedResponse<ElementDetailResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseElementDetailResult,
+                Type t when t == typeof(ServerEnhancedResponse<TableInfoResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTableInfoResult,
 
                 // Basic types
                 Type t when t == typeof(Dictionary<string, object>) => (JsonTypeInfo<T>)(object)_context.DictionaryStringObject,
@@ -225,6 +238,9 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(WorkerResponse<ProcessResult>))]
     [JsonSerializable(typeof(WorkerResponse<DesktopWindowsResult>))]
     [JsonSerializable(typeof(WorkerResponse<ElementTreeResult>))]
+    [JsonSerializable(typeof(WorkerResponse<SearchElementsResult>))]
+    [JsonSerializable(typeof(WorkerResponse<ElementDetailResult>))]
+    [JsonSerializable(typeof(WorkerResponse<TableInfoResult>))]
     [JsonSerializable(typeof(WorkerResponse<BooleanResult>))]
     [JsonSerializable(typeof(WorkerResponse<ErrorResult>))]
     [JsonSerializable(typeof(WorkerResponse<UniversalResponse>))]
@@ -243,6 +259,7 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(BooleanResult))]
     [JsonSerializable(typeof(FindItemResult))]
     [JsonSerializable(typeof(TextInfoResult))]
+    [JsonSerializable(typeof(TableInfoResult))]
     [JsonSerializable(typeof(WorkerResponse<TextInfoResult>))]
     // Basic types
     [JsonSerializable(typeof(string))]
@@ -308,6 +325,8 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(GetColumnHeadersRequest))]
     [JsonSerializable(typeof(GetRowHeaderItemsRequest))]
     [JsonSerializable(typeof(GetRowHeadersRequest))]
+    [JsonSerializable(typeof(GetRowOrColumnMajorRequest))]
+    [JsonSerializable(typeof(GetTableInfoRequest))]
     [JsonSerializable(typeof(AddToSelectionRequest))]
     [JsonSerializable(typeof(ClearSelectionRequest))]
     [JsonSerializable(typeof(GetSelectionContainerRequest))]
@@ -324,6 +343,17 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(GetElementTreeRequest))]
     [JsonSerializable(typeof(GetParentRequest))]
     [JsonSerializable(typeof(GetSiblingsRequest))]
+    // New MCP tools
+    [JsonSerializable(typeof(SearchElementsRequest))]
+    [JsonSerializable(typeof(GetElementDetailsRequest))]
+    [JsonSerializable(typeof(SearchElementsResult))]
+    [JsonSerializable(typeof(ElementDetailResult))]
+    [JsonSerializable(typeof(BasicElementInfo))]
+    [JsonSerializable(typeof(SearchMetadata))]
+    [JsonSerializable(typeof(DetailMetadata))]
+    [JsonSerializable(typeof(ElementDetail))]
+    [JsonSerializable(typeof(string[]))]
+    [JsonSerializable(typeof(List<string>))]
     // ServerEnhanced types
     [JsonSerializable(typeof(ServerEnhancedResponse<ElementTreeResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<TreeNavigationResult>))]
@@ -335,6 +365,9 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(ServerEnhancedResponse<ProcessLaunchResponse>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<BooleanResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<DesktopWindowsResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<SearchElementsResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<ElementDetailResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<TableInfoResult>))]
     [JsonSerializable(typeof(ProcessLaunchResponse))]
     [JsonSerializable(typeof(ServerExecutionInfo))]
     [JsonSerializable(typeof(RequestMetadata))]

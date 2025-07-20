@@ -218,7 +218,7 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformationWithOperation(operationId, "Starting SearchElements operation");
 
-                var result = await _executor.ExecuteAsync<SearchElementsRequest, SearchElementsResult>("SearchElements", request, request.TimeoutSeconds);
+                var result = await _executor.ExecuteAsync<SearchElementsRequest, SearchElementsResult>("SearchElements", request, request.TimeoutSeconds + 5);
                 
                 stopwatch.Stop();
                 
@@ -307,7 +307,7 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformationWithOperation(operationId, "Starting GetElementDetails operation");
 
-                var result = await _executor.ExecuteAsync<GetElementDetailsRequest, ElementDetailResult>("GetElementDetails", request, request.TimeoutSeconds);
+                var result = await _executor.ExecuteAsync<GetElementDetailsRequest, ElementDetailResult>("GetElementDetails", request, request.TimeoutSeconds + 5);
                 
                 stopwatch.Stop();
                 
