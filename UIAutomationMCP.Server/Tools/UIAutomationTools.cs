@@ -94,7 +94,71 @@ namespace UIAutomationMCP.Server.Tools
         public async Task<object> GetWindows([Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
             => JsonSerializationHelper.Serialize(await _elementSearchService.GetWindowsAsync(timeoutSeconds));
 
+        [McpServerTool, Description("Lightweight search for UI elements with pattern-based filtering and efficient result pagination. Returns basic ElementInfo for quick identification and navigation.")]
+        public async Task<object> SearchElements(
+            [Description("Cross-property search text (searches Name, AutomationId, ClassName)")] string? searchText = null,
+            [Description("Specific AutomationId to search for")] string? automationId = null, 
+            [Description("Specific Name (display name) to search for")] string? name = null,
+            [Description("Control type filter (Button, Slider, TextBox, etc.)")] string? controlType = null,
+            [Description("Class name filter")] string? className = null,
+            [Description("Window title filter")] string? windowTitle = null,
+            [Description("Process ID filter")] int? processId = null,
+            [Description("Search scope: children, descendants, subtree (default: descendants)")] string scope = "descendants",
+            [Description("Required UI Automation patterns (all must be present)")] string[]? requiredPatterns = null,
+            [Description("Any of these UI Automation patterns (at least one must be present)")] string[]? anyOfPatterns = null,
+            [Description("Only return visible elements (default: true)")] bool visibleOnly = true,
+            [Description("Enable fuzzy matching for text searches (default: false)")] bool fuzzyMatch = false,
+            [Description("Only return enabled elements (default: false)")] bool enabledOnly = false,
+            [Description("Maximum number of results to return (default: 50)")] int maxResults = 50,
+            [Description("Sort results by: Name, ControlType, Position (optional)")] string? sortBy = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+        {
+            var request = new UIAutomationMCP.Shared.Requests.SearchElementsRequest
+            {
+                SearchText = searchText,
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                ClassName = className,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                Scope = scope,
+                RequiredPatterns = requiredPatterns,
+                AnyOfPatterns = anyOfPatterns,
+                VisibleOnly = visibleOnly,
+                FuzzyMatch = fuzzyMatch,
+                EnabledOnly = enabledOnly,
+                MaxResults = maxResults,
+                SortBy = sortBy,
+                TimeoutSeconds = timeoutSeconds
+            };
+            
+            return JsonSerializationHelper.Serialize(await _elementSearchService.SearchElementsAsync(request));
+        }
 
+        [McpServerTool, Description("Get comprehensive details for a specific UI element including all pattern information and optional hierarchy. Returns detailed ElementDetail with type-safe pattern data.")]
+        public async Task<object> GetElementDetails(
+            [Description("AutomationId of the target element")] string? automationId = null,
+            [Description("Name (display name) of the target element")] string? name = null,
+            [Description("Process ID to narrow search scope")] int? processId = null,
+            [Description("Window title to narrow search scope")] string? windowTitle = null,
+            [Description("Include direct children basic info (default: false)")] bool includeChildren = false,
+            [Description("Include parent element basic info (default: false)")] bool includeParent = false,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+        {
+            var request = new UIAutomationMCP.Shared.Requests.GetElementDetailsRequest
+            {
+                AutomationId = automationId,
+                Name = name,
+                ProcessId = processId,
+                WindowTitle = windowTitle,
+                IncludeChildren = includeChildren,
+                IncludeParent = includeParent,
+                TimeoutSeconds = timeoutSeconds
+            };
+            
+            return JsonSerializationHelper.Serialize(await _elementSearchService.GetElementDetailsAsync(request));
+        }
 
         [McpServerTool, Description("Get detailed information about UI elements including pattern states (Toggle, Selection, Value), properties, and accessibility info. This is the primary tool for both element discovery and state inspection.")]
         public async Task<object> GetElementInfo(

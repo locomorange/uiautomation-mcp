@@ -208,5 +208,215 @@ namespace UIAutomationMCP.Server.Services
                 return errorResponse;
             }
         }
+
+        public async Task<ServerEnhancedResponse<SearchElementsResult>> SearchElementsAsync(SearchElementsRequest request)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            try
+            {
+                _logger.LogInformationWithOperation(operationId, "Starting SearchElements operation with request: {Request}", request);
+
+                var result = await _executor.ExecuteAsync<SearchElementsRequest, SearchElementsResult>("SearchElements", request, request.TimeoutSeconds);
+                
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<SearchElementsResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["searchCriteria"] = BuildSearchCriteria(request),
+                            ["resultsCount"] = result.Elements?.Length ?? 0,
+                            ["wasTruncated"] = result.Metadata?.WasTruncated ?? false
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "SearchElements",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["searchText"] = request.SearchText ?? "",
+                            ["automationId"] = request.AutomationId ?? "",
+                            ["name"] = request.Name ?? "",
+                            ["controlType"] = request.ControlType ?? "",
+                            ["processId"] = request.ProcessId ?? 0,
+                            ["maxResults"] = request.MaxResults,
+                            ["visibleOnly"] = request.VisibleOnly,
+                            ["timeoutSeconds"] = request.TimeoutSeconds
+                        }
+                    }
+                };
+                
+                _logger.LogInformationWithOperation(operationId, "SearchElements completed successfully with {Count} results", result.Elements?.Length ?? 0);
+                return serverResponse;
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "SearchElements operation failed");
+                
+                var errorResponse = new ServerEnhancedResponse<SearchElementsResult>
+                {
+                    Success = false,
+                    Data = new SearchElementsResult { Elements = [], Metadata = new SearchMetadata { SearchCriteria = BuildSearchCriteria(request) } },
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["error"] = ex.Message,
+                            ["exception"] = ex.GetType().Name,
+                            ["searchCriteria"] = BuildSearchCriteria(request)
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "SearchElements",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["searchText"] = request.SearchText ?? "",
+                            ["automationId"] = request.AutomationId ?? "",
+                            ["name"] = request.Name ?? "",
+                            ["controlType"] = request.ControlType ?? "",
+                            ["processId"] = request.ProcessId ?? 0,
+                            ["timeoutSeconds"] = request.TimeoutSeconds
+                        }
+                    }
+                };
+                
+                return errorResponse;
+            }
+        }
+
+        public async Task<ServerEnhancedResponse<ElementDetailResult>> GetElementDetailsAsync(GetElementDetailsRequest request)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            try
+            {
+                _logger.LogInformationWithOperation(operationId, "Starting GetElementDetails operation with request: {Request}", request);
+
+                var result = await _executor.ExecuteAsync<GetElementDetailsRequest, ElementDetailResult>("GetElementDetails", request, request.TimeoutSeconds);
+                
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<ElementDetailResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["identificationCriteria"] = BuildIdentificationCriteria(request),
+                            ["patternsRetrieved"] = result.Metadata?.PatternsRetrieved ?? 0,
+                            ["includesHierarchy"] = result.Metadata?.IncludesHierarchy ?? false
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetElementDetails",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["automationId"] = request.AutomationId ?? "",
+                            ["name"] = request.Name ?? "",
+                            ["processId"] = request.ProcessId ?? 0,
+                            ["includeChildren"] = request.IncludeChildren,
+                            ["includeParent"] = request.IncludeParent,
+                            ["timeoutSeconds"] = request.TimeoutSeconds
+                        }
+                    }
+                };
+                
+                _logger.LogInformationWithOperation(operationId, "GetElementDetails completed successfully");
+                return serverResponse;
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "GetElementDetails operation failed");
+                
+                var errorResponse = new ServerEnhancedResponse<ElementDetailResult>
+                {
+                    Success = false,
+                    Data = new ElementDetailResult { Element = new ElementDetail(), Metadata = new DetailMetadata { IdentificationCriteria = BuildIdentificationCriteria(request) } },
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["error"] = ex.Message,
+                            ["exception"] = ex.GetType().Name,
+                            ["identificationCriteria"] = BuildIdentificationCriteria(request)
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetElementDetails",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["automationId"] = request.AutomationId ?? "",
+                            ["name"] = request.Name ?? "",
+                            ["processId"] = request.ProcessId ?? 0,
+                            ["timeoutSeconds"] = request.TimeoutSeconds
+                        }
+                    }
+                };
+                
+                return errorResponse;
+            }
+        }
+
+        private static string BuildSearchCriteria(SearchElementsRequest request)
+        {
+            var criteria = new List<string>();
+            
+            if (!string.IsNullOrEmpty(request.SearchText))
+                criteria.Add($"SearchText='{request.SearchText}'");
+            if (!string.IsNullOrEmpty(request.AutomationId))
+                criteria.Add($"AutomationId='{request.AutomationId}'");
+            if (!string.IsNullOrEmpty(request.Name))
+                criteria.Add($"Name='{request.Name}'");
+            if (!string.IsNullOrEmpty(request.ControlType))
+                criteria.Add($"ControlType='{request.ControlType}'");
+            if (request.ProcessId.HasValue)
+                criteria.Add($"ProcessId={request.ProcessId}");
+            if (request.RequiredPatterns?.Length > 0)
+                criteria.Add($"RequiredPatterns=[{string.Join(", ", request.RequiredPatterns)}]");
+            if (request.VisibleOnly)
+                criteria.Add("VisibleOnly=true");
+                
+            return string.Join(", ", criteria);
+        }
+
+        private static string BuildIdentificationCriteria(GetElementDetailsRequest request)
+        {
+            var criteria = new List<string>();
+            
+            if (!string.IsNullOrEmpty(request.AutomationId))
+                criteria.Add($"AutomationId='{request.AutomationId}'");
+            if (!string.IsNullOrEmpty(request.Name))
+                criteria.Add($"Name='{request.Name}'");
+            if (request.ProcessId.HasValue)
+                criteria.Add($"ProcessId={request.ProcessId}");
+                
+            return string.Join(", ", criteria);
+        }
     }
 }
