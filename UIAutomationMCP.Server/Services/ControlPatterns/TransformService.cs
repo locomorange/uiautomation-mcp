@@ -438,5 +438,141 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 return errorResponse;
             }
         }
+
+        public async Task<ServerEnhancedResponse<TransformCapabilitiesResult>> GetTransformCapabilitiesAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            if (string.IsNullOrWhiteSpace(elementId))
+            {
+                var validationError = "Element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"GetTransformCapabilities validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<TransformCapabilitiesResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetTransformCapabilities",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                return validationResponse;
+            }
+
+            try
+            {
+                _logger.LogInformationWithOperation(operationId, $"Starting GetTransformCapabilities for ElementId={elementId}");
+
+                var request = new GetTransformCapabilitiesRequest
+                {
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
+                };
+
+                var result = await _executor.ExecuteAsync<GetTransformCapabilitiesRequest, TransformCapabilitiesResult>("GetTransformCapabilities", request, timeoutSeconds);
+
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<TransformCapabilitiesResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["operationType"] = "getTransformCapabilities"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetTransformCapabilities",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return serverResponse;
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in GetTransformCapabilities operation");
+                
+                var errorResponse = new ServerEnhancedResponse<TransformCapabilitiesResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["elementId"] = elementId,
+                            ["operationType"] = "getTransformCapabilities"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetTransformCapabilities",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorResponse;
+            }
+        }
     }
 }

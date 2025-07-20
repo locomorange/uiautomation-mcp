@@ -579,5 +579,55 @@ namespace UIAutomationMCP.Server.Tools
         public async Task<object> GetEventLog()
             => JsonSerializationHelper.Serialize(await _eventMonitorService.GetEventLogAsync());
 
+        // Window Capabilities and State
+        [McpServerTool, Description("Get window capabilities and properties")]
+        public async Task<object> GetWindowCapabilities(
+            [Description("Title of the window")] string windowTitle,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => JsonSerializationHelper.Serialize(await _elementSearchService.GetWindowsAsync(timeoutSeconds));
+
+        [McpServerTool, Description("Get window interaction state")]
+        public async Task<object> GetWindowInteractionState(
+            [Description("Title of the window")] string windowTitle,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => JsonSerializationHelper.Serialize(await _elementSearchService.GetWindowsAsync(timeoutSeconds));
+
+        // Element Selection State
+        [McpServerTool, Description("Check if an element is selected")]
+        public async Task<object> IsElementSelected(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => JsonSerializationHelper.Serialize(await _selectionService.IsSelectedAsync(elementId, windowTitle, processId, timeoutSeconds));
+
+        // Element Value Operations
+        [McpServerTool, Description("Get the value of an element")]
+        public async Task<object> GetElementValue(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => JsonSerializationHelper.Serialize(await _valueService.GetValueAsync(elementId, windowTitle, processId, timeoutSeconds));
+
+        [McpServerTool, Description("Check if an element is read-only")]
+        public async Task<object> IsElementReadOnly(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => JsonSerializationHelper.Serialize(await _valueService.IsReadOnlyAsync(elementId, windowTitle, processId, timeoutSeconds));
+
+        // Grid Information
+        [McpServerTool, Description("Get grid information (row count, column count, etc.)")]
+        public async Task<object> GetGridInfo(
+            [Description("Automation ID or name of the grid element")] string gridElementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => JsonSerializationHelper.Serialize(await _gridService.GetGridInfoAsync(gridElementId, windowTitle, processId, timeoutSeconds));
+
     }
 }

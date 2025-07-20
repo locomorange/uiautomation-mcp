@@ -512,5 +512,141 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 return errorResponse;
             }
         }
+
+        public async Task<ServerEnhancedResponse<GridInfoResult>> GetGridInfoAsync(string gridElementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            if (string.IsNullOrWhiteSpace(gridElementId))
+            {
+                var validationError = "Grid element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"GetGridInfo validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<GridInfoResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["gridElementId"] = gridElementId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetGridInfo",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["gridElementId"] = gridElementId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                return validationResponse;
+            }
+
+            try
+            {
+                _logger.LogInformationWithOperation(operationId, $"Starting GetGridInfo for ElementId={gridElementId}");
+
+                var request = new GetGridInfoRequest
+                {
+                    ElementId = gridElementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
+                };
+
+                var result = await _executor.ExecuteAsync<GetGridInfoRequest, GridInfoResult>("GetGridInfo", request, timeoutSeconds);
+
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<GridInfoResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["gridElementId"] = gridElementId,
+                            ["operationType"] = "getGridInfo"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetGridInfo",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["gridElementId"] = gridElementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return serverResponse;
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in GetGridInfo operation");
+                
+                var errorResponse = new ServerEnhancedResponse<GridInfoResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["gridElementId"] = gridElementId,
+                            ["operationType"] = "getGridInfo"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetGridInfo",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["gridElementId"] = gridElementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorResponse;
+            }
+        }
     }
 }
