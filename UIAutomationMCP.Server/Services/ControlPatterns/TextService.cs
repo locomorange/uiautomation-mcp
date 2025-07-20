@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
@@ -63,15 +64,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Getting text from element: {elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetTextRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 },
-                    { "timeoutSeconds", timeoutSeconds }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var response = await _executor.ExecuteAsync<TextInfoResult>("GetText", parameters, timeoutSeconds);
+                var response = await _executor.ExecuteAsync<GetTextRequest, TextInfoResult>("GetText", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 _logger.LogInformationWithOperation(operationId, $"GetText completed in {stopwatch.Elapsed.TotalMilliseconds:F1}ms");
@@ -96,7 +96,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "GetText",
-                        RequestParameters = parameters,
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = request.ElementId,
+                            ["windowTitle"] = request.WindowTitle,
+                            ["processId"] = request.ProcessId,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -186,15 +192,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Getting selected text from element: {elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetTextRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 },
-                    { "timeoutSeconds", timeoutSeconds }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var response = await _executor.ExecuteAsync<TextInfoResult>("GetSelectedText", parameters, timeoutSeconds);
+                var response = await _executor.ExecuteAsync<GetTextRequest, TextInfoResult>("GetSelectedText", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 _logger.LogInformationWithOperation(operationId, $"GetSelectedText completed in {stopwatch.Elapsed.TotalMilliseconds:F1}ms");
@@ -219,7 +224,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "GetSelectedText",
-                        RequestParameters = parameters,
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = request.ElementId,
+                            ["windowTitle"] = request.WindowTitle,
+                            ["processId"] = request.ProcessId,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -313,16 +324,16 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting SelectText: ElementId={elementId}, StartIndex={startIndex}, Length={length}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new SelectTextRequest
                 {
-                    { "elementId", elementId },
-                    { "startIndex", startIndex },
-                    { "length", length },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    StartIndex = startIndex,
+                    Length = length,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("SelectText", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<SelectTextRequest, ActionResult>("SelectText", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 
@@ -463,17 +474,17 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting FindText: ElementId={elementId}, SearchText='{searchText}', Backward={backward}, IgnoreCase={ignoreCase}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new FindTextRequest
                 {
-                    { "elementId", elementId },
-                    { "searchText", searchText },
-                    { "backward", backward },
-                    { "ignoreCase", ignoreCase },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    SearchText = searchText,
+                    Backward = backward,
+                    IgnoreCase = ignoreCase,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<TextInfoResult>("FindText", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<FindTextRequest, TextInfoResult>("FindText", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 
@@ -615,14 +626,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting GetTextSelection for ElementId={elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetTextRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<TextInfoResult>("GetTextSelection", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<GetTextRequest, TextInfoResult>("GetTextSelection", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 
@@ -796,15 +807,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting SetText: ElementId={elementId}, TextLength={text.Length}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new SetTextRequest
                 {
-                    { "elementId", elementId },
-                    { "text", text },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    Text = text,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("SetText", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<SetTextRequest, ActionResult>("SetText", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 
@@ -940,16 +951,16 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting TraverseText: ElementId={elementId}, Direction={direction}, Count={count}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new TraverseTextRequest
                 {
-                    { "elementId", elementId },
-                    { "direction", direction },
-                    { "count", count },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    Direction = direction,
+                    Count = count,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<TextInfoResult>("TraverseText", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<TraverseTextRequest, TextInfoResult>("TraverseText", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 
@@ -1087,14 +1098,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting GetTextAttributes for ElementId={elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetTextRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<TextInfoResult>("GetTextAttributes", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<GetTextRequest, TextInfoResult>("GetTextAttributes", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 
@@ -1267,15 +1278,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting AppendText: ElementId={elementId}, TextLength={text.Length}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new SetTextRequest
                 {
-                    { "elementId", elementId },
-                    { "text", text },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    Text = text,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("AppendText", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<SetTextRequest, ActionResult>("AppendText", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 

@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
@@ -107,16 +108,16 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Getting grid item at row {row}, column {column} for element: {gridElementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetGridItemRequest
                 {
-                    { "gridElementId", gridElementId },
-                    { "row", row },
-                    { "column", column },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = gridElementId,
+                    Row = row,
+                    Column = column,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("GetGridItem", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<GetGridItemRequest, ElementSearchResult>("GetGridItem", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ElementSearchResult>
                 {
@@ -273,15 +274,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Getting row header for row {row} in element: {gridElementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetRowHeaderRequest
                 {
-                    { "gridElementId", gridElementId },
-                    { "row", row },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = gridElementId,
+                    Row = row,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("GetRowHeader", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<GetRowHeaderRequest, ElementSearchResult>("GetRowHeader", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ElementSearchResult>
                 {
@@ -436,15 +437,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Getting column header for column {column} in element: {gridElementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetColumnHeaderRequest
                 {
-                    { "gridElementId", gridElementId },
-                    { "column", column },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = gridElementId,
+                    Column = column,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("GetColumnHeader", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<GetColumnHeaderRequest, ElementSearchResult>("GetColumnHeader", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ElementSearchResult>
                 {

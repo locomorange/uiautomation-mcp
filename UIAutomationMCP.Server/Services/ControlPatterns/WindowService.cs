@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
@@ -65,14 +66,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting WindowOperation: {operation} on window: {windowTitle ?? "any"} (ProcessId: {processId ?? 0})");
 
-                var parameters = new Dictionary<string, object>
+                var request = new WindowActionRequest
                 {
-                    { "action", operation },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    Action = operation,
+                    WindowTitle = windowTitle,
+                    ProcessId = processId
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("WindowAction", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<WindowActionRequest, ActionResult>("WindowAction", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 
@@ -253,19 +254,19 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting TransformElement: ElementId={elementId}, Action={action}, Coordinates=({x},{y}), Size=({width},{height})");
 
-                var parameters = new Dictionary<string, object>
+                var request = new TransformElementRequest
                 {
-                    { "elementId", elementId },
-                    { "action", action },
-                    { "x", x ?? 0 },
-                    { "y", y ?? 0 },
-                    { "width", width ?? 0 },
-                    { "height", height ?? 0 },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    Action = action,
+                    X = x ?? 0,
+                    Y = y ?? 0,
+                    Width = width ?? 0,
+                    Height = height ?? 0,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("TransformElement", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<TransformElementRequest, ActionResult>("TransformElement", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 
@@ -410,14 +411,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting SetWindowState: {windowState} for window: {windowTitle ?? "any"} (ProcessId: {processId ?? 0})");
 
-                var parameters = new Dictionary<string, object>
+                var request = new SetWindowStateRequest
                 {
-                    { "windowState", windowState },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    WindowState = windowState,
+                    WindowTitle = windowTitle,
+                    ProcessId = processId
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("SetWindowState", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<SetWindowStateRequest, ActionResult>("SetWindowState", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 
@@ -511,15 +512,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting MoveWindow to position: ({x}, {y}) for window: {windowTitle ?? "any"} (ProcessId: {processId ?? 0})");
 
-                var parameters = new Dictionary<string, object>
+                var request = new MoveWindowRequest
                 {
-                    { "x", x },
-                    { "y", y },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    X = x,
+                    Y = y,
+                    WindowTitle = windowTitle,
+                    ProcessId = processId
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("MoveWindow", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<MoveWindowRequest, ActionResult>("MoveWindow", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 
@@ -615,15 +616,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting ResizeWindow to size: ({width}, {height}) for window: {windowTitle ?? "any"} (ProcessId: {processId ?? 0})");
 
-                var parameters = new Dictionary<string, object>
+                var request = new ResizeWindowRequest
                 {
-                    { "width", width },
-                    { "height", height },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    Width = width,
+                    Height = height,
+                    WindowTitle = windowTitle,
+                    ProcessId = processId
                 };
 
-                var result = await _executor.ExecuteAsync<ActionResult>("ResizeWindow", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<ResizeWindowRequest, ActionResult>("ResizeWindow", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 
@@ -721,14 +722,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting WaitForInputIdle for window: {windowTitle ?? "any"} (ProcessId: {processId ?? 0}, Timeout: {timeoutMilliseconds}ms)");
 
-                var parameters = new Dictionary<string, object>
+                var request = new WaitForInputIdleRequest
                 {
-                    { "timeoutMilliseconds", timeoutMilliseconds },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    TimeoutMilliseconds = timeoutMilliseconds,
+                    WindowTitle = windowTitle,
+                    ProcessId = processId
                 };
 
-                var result = await _executor.ExecuteAsync<BooleanResult>("WaitForInputIdle", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<WaitForInputIdleRequest, BooleanResult>("WaitForInputIdle", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 

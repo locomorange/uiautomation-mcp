@@ -28,4 +28,25 @@ namespace UIAutomationMCP.Shared.Requests
     {
         public override string Operation => "GetDescribedBy";
     }
+
+    public class GetCustomPropertiesRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetCustomProperties";
+    }
+
+    public class SetCustomPropertyRequest : ElementTargetRequest
+    {
+        public override string Operation => "SetCustomProperty";
+
+        [JsonPropertyName("propertyName")]
+        public string PropertyName { get; set; } = "";
+
+        [JsonPropertyName("propertyValue")]
+        public string PropertyValue { get; set; } = "";
+    }
+
+    public class ValidateControlTypePatternsRequest : ElementTargetRequest
+    {
+        public override string Operation => "ValidateControlTypePatterns";
+    }
 }

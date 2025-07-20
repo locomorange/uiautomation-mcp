@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Requests;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services
@@ -66,14 +67,14 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformationWithOperation(operationId, $"Getting children for element: {elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetChildrenRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<TreeNavigationResult>("GetChildren", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<GetChildrenRequest, TreeNavigationResult>("GetChildren", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<TreeNavigationResult>
                 {
@@ -186,14 +187,14 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformationWithOperation(operationId, $"Getting parent for element: {elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetParentRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<TreeNavigationResult>("GetParent", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<GetParentRequest, TreeNavigationResult>("GetParent", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<TreeNavigationResult>
                 {
@@ -306,14 +307,14 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformationWithOperation(operationId, $"Getting siblings for element: {elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetSiblingsRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<TreeNavigationResult>("GetSiblings", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<GetSiblingsRequest, TreeNavigationResult>("GetSiblings", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<TreeNavigationResult>
                 {
@@ -426,14 +427,14 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformationWithOperation(operationId, $"Getting descendants for element: {elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetDescendantsRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<TreeNavigationResult>("GetDescendants", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<GetDescendantsRequest, TreeNavigationResult>("GetDescendants", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<TreeNavigationResult>
                 {
@@ -546,14 +547,14 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformationWithOperation(operationId, $"Getting ancestors for element: {elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetAncestorsRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<TreeNavigationResult>("GetAncestors", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<GetAncestorsRequest, TreeNavigationResult>("GetAncestors", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<TreeNavigationResult>
                 {
@@ -628,15 +629,15 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting GetElementTree operation with WindowTitle={windowTitle}, ProcessId={processId}, MaxDepth={maxDepth}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetElementTreeRequest
                 {
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 },
-                    { "maxDepth", maxDepth }
+                    WindowTitle = windowTitle,
+                    ProcessId = processId,
+                    MaxDepth = maxDepth
                 };
 
                 _logger.LogInformationWithOperation(operationId, "Calling worker process for GetElementTree");
-                var workerResult = await _executor.ExecuteAsync<ElementTreeResult>("GetElementTree", parameters, timeoutSeconds);
+                var workerResult = await _executor.ExecuteAsync<GetElementTreeRequest, ElementTreeResult>("GetElementTree", request, timeoutSeconds);
                 
                 stopwatch.Stop();
                 _logger.LogInformationWithOperation(operationId, $"Worker completed successfully in {stopwatch.Elapsed.TotalMilliseconds:F2}ms");

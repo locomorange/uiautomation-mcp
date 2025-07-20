@@ -58,4 +58,52 @@ namespace UIAutomationMCP.Shared.Requests
         [JsonPropertyName("processId")]
         public int? ProcessId { get; set; }
     }
+
+    public class SetWindowStateRequest : TypedWorkerRequest
+    {
+        public override string Operation => "SetWindowState";
+
+        [JsonPropertyName("windowTitle")]
+        public string? WindowTitle { get; set; }
+
+        [JsonPropertyName("processId")]
+        public int? ProcessId { get; set; }
+
+        [JsonPropertyName("windowState")]
+        public string WindowState { get; set; } = ""; // "normal", "minimized", "maximized"
+    }
+
+    public class MoveWindowRequest : TypedWorkerRequest
+    {
+        public override string Operation => "MoveWindow";
+
+        [JsonPropertyName("windowTitle")]
+        public string? WindowTitle { get; set; }
+
+        [JsonPropertyName("processId")]
+        public int? ProcessId { get; set; }
+
+        [JsonPropertyName("x")]
+        public int X { get; set; }
+
+        [JsonPropertyName("y")]
+        public int Y { get; set; }
+    }
+
+    public class ResizeWindowRequest : TypedWorkerRequest
+    {
+        public override string Operation => "ResizeWindow";
+
+        [JsonPropertyName("windowTitle")]
+        public string? WindowTitle { get; set; }
+
+        [JsonPropertyName("processId")]
+        public int? ProcessId { get; set; }
+
+        [JsonPropertyName("width")]
+        public int Width { get; set; }
+
+        [JsonPropertyName("height")]
+        public int Height { get; set; }
+    }
 }
