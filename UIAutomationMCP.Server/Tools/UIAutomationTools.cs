@@ -629,5 +629,49 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _gridService.GetGridInfoAsync(gridElementId, windowTitle, processId, timeoutSeconds));
 
+        // Transform Capabilities
+        [McpServerTool, Description("Get transform capabilities (can move, resize, rotate)")]
+        public async Task<object> GetTransformCapabilities(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => JsonSerializationHelper.Serialize(await _transformService.GetTransformCapabilitiesAsync(elementId, windowTitle, processId, timeoutSeconds));
+
+        // Selection Operations
+        [McpServerTool, Description("Get selection information")]
+        public async Task<object> GetSelection(
+            [Description("Automation ID or name of the selection container element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => JsonSerializationHelper.Serialize(await _selectionService.GetSelectionAsync(elementId, windowTitle, processId, timeoutSeconds));
+
+        [McpServerTool, Description("Check if element can select multiple items")]
+        public async Task<object> CanSelectMultiple(
+            [Description("Automation ID or name of the selection container element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => JsonSerializationHelper.Serialize(await _selectionService.CanSelectMultipleAsync(elementId, windowTitle, processId, timeoutSeconds));
+
+        // Scroll Information
+        [McpServerTool, Description("Get scroll information")]
+        public async Task<object> GetScrollInfo(
+            [Description("Automation ID or name of the scrollable element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => JsonSerializationHelper.Serialize(await _layoutService.GetScrollInfoAsync(elementId, windowTitle, processId, timeoutSeconds));
+
+        // Accessibility Information
+        [McpServerTool, Description("Get accessibility information")]
+        public async Task<object> GetAccessibilityInfo(
+            [Description("Automation ID or name of the element")] string elementId,
+            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
+            [Description("Process ID of the target window (optional)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => JsonSerializationHelper.Serialize(await _accessibilityService.GetAccessibilityInfoAsync(elementId, windowTitle, processId, timeoutSeconds));
+
     }
 }

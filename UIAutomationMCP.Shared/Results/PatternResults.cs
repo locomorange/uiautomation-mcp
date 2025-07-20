@@ -45,6 +45,16 @@ namespace UIAutomationMCP.Shared.Results
 
         [JsonPropertyName("canSelectMultiple")]
         public bool CanSelectMultiple { get; set; }
+
+        // Additional properties referenced in tests
+        [JsonPropertyName("selectionMode")]
+        public string SelectionMode { get; set; } = "";
+
+        [JsonPropertyName("totalItemCount")]
+        public int TotalItemCount { get; set; }
+
+        [JsonPropertyName("visibleItemCount")]
+        public int VisibleItemCount { get; set; }
     }
 
     /// <summary>

@@ -87,7 +87,7 @@ namespace UiAutomationMcp.Tests.Integration
 
             // When & Then
             var exception = await Assert.ThrowsAsync<ArgumentException>(async () =>
-                await _subprocessExecutor.ExecuteAsync<InvokeElementRequest, ActionResult>(request, 10));
+                await _subprocessExecutor.ExecuteAsync<InvokeElementRequest, ActionResult>("InvokeElement", request, 10));
 
             Assert.NotNull(exception);
             // This should trigger an operation-related error since we're not actually testing for invalid operations anymore

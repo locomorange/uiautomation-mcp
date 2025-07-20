@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Requests;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using Xunit.Abstractions;
@@ -83,7 +84,7 @@ namespace UiAutomationMcp.Tests.Integration
             // Act - サブプロセスでGetScrollInfo操作を実行
             try
             {
-                var result = await _subprocessExecutor.ExecuteAsync<GetScrollInfoRequest, ActionResult>(request, 5);
+                var result = await _subprocessExecutor.ExecuteAsync<GetScrollInfoRequest, ScrollInfoResult>("GetScrollInfo", request, 5);
                 _output.WriteLine($"GetScrollInfo result: {System.Text.Json.JsonSerializer.Serialize(result)}");
 
                 // Assert - 結果が適切な形式であることを確認
@@ -122,7 +123,7 @@ namespace UiAutomationMcp.Tests.Integration
             // Act & Assert
             try
             {
-                var result = await _subprocessExecutor.ExecuteAsync<SetScrollPercentRequest, ActionResult>(request, 5);
+                var result = await _subprocessExecutor.ExecuteAsync<SetScrollPercentRequest, ActionResult>("SetScrollPercent", request, 5);
                 _output.WriteLine($"SetScrollPercent result: {System.Text.Json.JsonSerializer.Serialize(result)}");
                 
                 Assert.NotNull(result);
@@ -156,7 +157,7 @@ namespace UiAutomationMcp.Tests.Integration
             // Act & Assert
             try
             {
-                var result = await _subprocessExecutor.ExecuteAsync<SetScrollPercentRequest, ActionResult>(request, 5);
+                var result = await _subprocessExecutor.ExecuteAsync<SetScrollPercentRequest, ActionResult>("SetScrollPercent", request, 5);
                 _output.WriteLine($"SetScrollPercent NoScroll result: {System.Text.Json.JsonSerializer.Serialize(result)}");
                 
                 Assert.NotNull(result);

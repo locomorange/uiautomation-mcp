@@ -52,4 +52,9 @@ namespace UIAutomationMCP.Shared.Requests
     {
         public override string Operation => "ValidateControlTypePatterns";
     }
+
+    public class GetAccessibilityInfoRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetAccessibilityInfo";
+    }
 }
