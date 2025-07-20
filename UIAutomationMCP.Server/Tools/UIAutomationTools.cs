@@ -96,8 +96,8 @@ namespace UIAutomationMCP.Server.Tools
 
 
 
-        [McpServerTool, Description("Find UI elements by various criteria with optional pattern validation (comprehensive element search tool)")]
-        public async Task<object> FindElements(
+        [McpServerTool, Description("Get detailed information about UI elements including pattern states (Toggle, Selection, Value), properties, and accessibility info. This is the primary tool for both element discovery and state inspection.")]
+        public async Task<object> GetElementInfo(
             [Description("Text to search for in element names or automation IDs (optional)")] string? searchText = null, 
             [Description("Type of control to filter by (optional)")] string? controlType = null, 
             [Description("Title of the window to search in (optional)")] string? windowTitle = null, 
