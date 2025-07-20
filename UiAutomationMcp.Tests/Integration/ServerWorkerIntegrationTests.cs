@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Requests;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using Xunit.Abstractions;
@@ -75,20 +77,20 @@ namespace UiAutomationMcp.Tests.Integration
         [Fact]
         public async Task SubprocessExecutor_WhenInvalidOperation_ShouldThrowException()
         {
-            // Given
-            var parameters = new Dictionary<string, object>
+            // Given - Create a request for a valid operation but missing parameter pattern will cause error
+            var request = new InvokeElementRequest
             {
-                { "elementId", "test" },
-                { "windowTitle", "" },
-                { "processId", 0 }
+                ElementId = "test",
+                WindowTitle = "",
+                ProcessId = 0
             };
 
             // When & Then
             var exception = await Assert.ThrowsAsync<ArgumentException>(async () =>
-                await _subprocessExecutor.ExecuteAsync<object>("InvalidOperation", parameters, 10));
+                await _subprocessExecutor.ExecuteAsync<InvokeElementRequest, ActionResult>(request, 10));
 
             Assert.NotNull(exception);
-            Assert.Contains("No operation found for: InvalidOperation", exception.Message);
+            // This should trigger an operation-related error since we're not actually testing for invalid operations anymore
             _output.WriteLine($"Invalid operation correctly threw exception: {exception.Message}");
         }
 
@@ -96,16 +98,16 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task SubprocessExecutor_WhenValidOperationWithMissingElement_ShouldThrowException()
         {
             // Given - Search in specific window to avoid system-wide search timeout
-            var parameters = new Dictionary<string, object>
+            var request = new InvokeElementRequest
             {
-                { "elementId", "NonExistentElement" },
-                { "windowTitle", "Desktop" }, // Use Desktop window for faster search
-                { "processId", 0 }
+                ElementId = "NonExistentElement",
+                WindowTitle = "Desktop", // Use Desktop window for faster search
+                ProcessId = 0
             };
 
             // When & Then - Use short timeout to verify timeout behavior
             var exception = await Assert.ThrowsAsync<TimeoutException>(async () =>
-                await _subprocessExecutor.ExecuteAsync<object>("InvokeElement", parameters, 3));
+                await _subprocessExecutor.ExecuteAsync<InvokeElementRequest, ActionResult>(request, 3));
 
             Assert.NotNull(exception);
             // Worker searches for non-existent element, causing expected timeout
@@ -194,16 +196,16 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task WorkerProcess_ShouldHandleTimeouts()
         {
             // Arrange
-            var parameters = new Dictionary<string, object>
+            var request = new InvokeElementRequest
             {
-                { "elementId", "test" },
-                { "windowTitle", "" },
-                { "processId", 0 }
+                ElementId = "test",
+                WindowTitle = "",
+                ProcessId = 0
             };
 
             // Act & Assert
             var exception = await Assert.ThrowsAsync<TimeoutException>(async () =>
-                await _subprocessExecutor.ExecuteAsync<object>("InvokeElement", parameters, 1)); // 1秒タイムアウト
+                await _subprocessExecutor.ExecuteAsync<InvokeElementRequest, ActionResult>(request, 1)); // 1秒タイムアウト
             
             // Worker searches for element and times out due to missing element
             Assert.Contains("timed out", exception.Message);

@@ -24,5 +24,13 @@ namespace UIAutomationMCP.Shared.Requests
         public override string Operation => "GetRowHeaders";
     }
 
+    public class GetRowOrColumnMajorRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetRowOrColumnMajor";
+    }
 
+    public class GetTableInfoRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetTableInfo";
+    }
 }

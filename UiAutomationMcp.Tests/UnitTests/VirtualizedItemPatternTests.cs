@@ -3,6 +3,7 @@ using Moq;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -50,7 +51,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 }
             };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("RealizeVirtualizedItem", It.IsAny<Dictionary<string, object>>(), 30))
+            _mockExecutor.Setup(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", It.IsAny<RealizeVirtualizedItemRequest>(), 30))
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -58,11 +59,11 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<ElementSearchResult>("RealizeVirtualizedItem", 
-                It.Is<Dictionary<string, object>>(p => 
-                    p["elementId"].ToString() == elementId &&
-                    p["windowTitle"].ToString() == windowTitle &&
-                    p["processId"].ToString() == processId.ToString()), 30), Times.Once);
+            _mockExecutor.Verify(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", 
+                It.Is<RealizeVirtualizedItemRequest>(r => 
+                    r.ElementId == elementId &&
+                    r.WindowTitle == windowTitle &&
+                    r.ProcessId == processId), 30), Times.Once);
             
             _output.WriteLine("RealizeItemAsync service test passed - Correct subprocess execution verified");
         }
@@ -85,7 +86,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 }
             };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("RealizeVirtualizedItem", It.IsAny<Dictionary<string, object>>(), 30))
+            _mockExecutor.Setup(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", It.IsAny<RealizeVirtualizedItemRequest>(), 30))
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -93,11 +94,11 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<ElementSearchResult>("RealizeVirtualizedItem", 
-                It.Is<Dictionary<string, object>>(p => 
-                    p["elementId"].ToString() == elementId &&
-                    p["windowTitle"].ToString() == "" &&
-                    p["processId"].ToString() == "0"), 30), Times.Once);
+            _mockExecutor.Verify(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", 
+                It.Is<RealizeVirtualizedItemRequest>(r => 
+                    r.ElementId == elementId &&
+                    r.WindowTitle == "" &&
+                    r.ProcessId == 0), 30), Times.Once);
         }
 
         [Fact]
@@ -107,7 +108,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             var elementId = "item1";
             var exceptionMessage = "Failed to realize item";
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<ElementSearchResult>("RealizeVirtualizedItem", It.IsAny<Dictionary<string, object>>(), 30))
+            _mockExecutor.Setup(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", It.IsAny<RealizeVirtualizedItemRequest>(), 30))
                 .ThrowsAsync(new Exception(exceptionMessage));
 
             // Act

@@ -4,6 +4,7 @@ using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
 using Xunit.Abstractions;
 
 namespace UIAutomationMCP.Tests.Services
@@ -41,7 +42,7 @@ namespace UIAutomationMCP.Tests.Services
             var processId = 1234;
             var expectedResult = new BooleanResult { Value = true, Success = true };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<BooleanResult>("CanSelectMultiple", It.IsAny<Dictionary<string, object>>(), 30))
+            _mockExecutor.Setup(e => e.ExecuteAsync<CanSelectMultipleRequest, BooleanResult>("CanSelectMultiple", It.IsAny<CanSelectMultipleRequest>(), 30))
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -49,11 +50,11 @@ namespace UIAutomationMCP.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<BooleanResult>("CanSelectMultiple", 
-                It.Is<Dictionary<string, object>>(p => 
-                    p["containerId"].ToString() == containerId &&
-                    p["windowTitle"].ToString() == windowTitle &&
-                    p["processId"].ToString() == processId.ToString()), 30), Times.Once);
+            _mockExecutor.Verify(e => e.ExecuteAsync<CanSelectMultipleRequest, BooleanResult>("CanSelectMultiple", 
+                It.Is<CanSelectMultipleRequest>(p => 
+                    p.ElementId == containerId &&
+                    p.WindowTitle == windowTitle &&
+                    p.ProcessId == processId), 30), Times.Once);
             
             _output.WriteLine("CanSelectMultipleAsync service test passed - Correct subprocess execution verified");
         }
@@ -65,7 +66,7 @@ namespace UIAutomationMCP.Tests.Services
             var containerId = "container1";
             var expectedResult = new BooleanResult { Value = false, Success = true };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<BooleanResult>("CanSelectMultiple", It.IsAny<Dictionary<string, object>>(), 30))
+            _mockExecutor.Setup(e => e.ExecuteAsync<CanSelectMultipleRequest, BooleanResult>("CanSelectMultiple", It.IsAny<CanSelectMultipleRequest>(), 30))
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -73,11 +74,11 @@ namespace UIAutomationMCP.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<BooleanResult>("CanSelectMultiple", 
-                It.Is<Dictionary<string, object>>(p => 
-                    p["containerId"].ToString() == containerId &&
-                    p["windowTitle"].ToString() == "" &&
-                    p["processId"].ToString() == "0"), 30), Times.Once);
+            _mockExecutor.Verify(e => e.ExecuteAsync<CanSelectMultipleRequest, BooleanResult>("CanSelectMultiple", 
+                It.Is<CanSelectMultipleRequest>(p => 
+                    p.ElementId == containerId &&
+                    p.WindowTitle == "" &&
+                    p.ProcessId == 0), 30), Times.Once);
             
             _output.WriteLine("CanSelectMultipleAsync null parameters test passed");
         }
@@ -90,7 +91,7 @@ namespace UIAutomationMCP.Tests.Services
             var windowTitle = "App Window";
             var expectedResult = new BooleanResult { Value = true, Success = true };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<BooleanResult>("IsSelectionRequired", It.IsAny<Dictionary<string, object>>(), 30))
+            _mockExecutor.Setup(e => e.ExecuteAsync<IsSelectionRequiredRequest, BooleanResult>("IsSelectionRequired", It.IsAny<IsSelectionRequiredRequest>(), 30))
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -98,10 +99,10 @@ namespace UIAutomationMCP.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<BooleanResult>("IsSelectionRequired", 
-                It.Is<Dictionary<string, object>>(p => 
-                    p["containerId"].ToString() == containerId &&
-                    p["windowTitle"].ToString() == windowTitle), 30), Times.Once);
+            _mockExecutor.Verify(e => e.ExecuteAsync<IsSelectionRequiredRequest, BooleanResult>("IsSelectionRequired", 
+                It.Is<IsSelectionRequiredRequest>(p => 
+                    p.ElementId == containerId &&
+                    p.WindowTitle == windowTitle), 30), Times.Once);
             
             _output.WriteLine("IsSelectionRequiredAsync service test passed - Correct subprocess execution verified");
         }
@@ -119,7 +120,7 @@ namespace UIAutomationMCP.Tests.Services
             var processId = 5678;
             var expectedResult = new BooleanResult { Value = true, Success = true };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<BooleanResult>("IsSelected", It.IsAny<Dictionary<string, object>>(), 30))
+            _mockExecutor.Setup(e => e.ExecuteAsync<IsSelectedRequest, BooleanResult>("IsSelected", It.IsAny<IsSelectedRequest>(), 30))
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -127,11 +128,11 @@ namespace UIAutomationMCP.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<BooleanResult>("IsSelected", 
-                It.Is<Dictionary<string, object>>(p => 
-                    p["elementId"].ToString() == elementId &&
-                    p["windowTitle"].ToString() == windowTitle &&
-                    p["processId"].ToString() == processId.ToString()), 30), Times.Once);
+            _mockExecutor.Verify(e => e.ExecuteAsync<IsSelectedRequest, BooleanResult>("IsSelected", 
+                It.Is<IsSelectedRequest>(p => 
+                    p.ElementId == elementId &&
+                    p.WindowTitle == windowTitle &&
+                    p.ProcessId == processId), 30), Times.Once);
             
             _output.WriteLine("IsSelectedAsync service test passed - Correct subprocess execution verified");
         }
@@ -149,7 +150,7 @@ namespace UIAutomationMCP.Tests.Services
                 ContainerControlType = "ControlType.List"
             };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<SelectionInfoResult>("GetSelectionContainer", It.IsAny<Dictionary<string, object>>(), 30))
+            _mockExecutor.Setup(e => e.ExecuteAsync<GetSelectionContainerRequest, SelectionInfoResult>("GetSelectionContainer", It.IsAny<GetSelectionContainerRequest>(), 30))
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -157,9 +158,9 @@ namespace UIAutomationMCP.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<SelectionInfoResult>("GetSelectionContainer", 
-                It.Is<Dictionary<string, object>>(p => 
-                    p["elementId"].ToString() == elementId), 30), Times.Once);
+            _mockExecutor.Verify(e => e.ExecuteAsync<GetSelectionContainerRequest, SelectionInfoResult>("GetSelectionContainer", 
+                It.Is<GetSelectionContainerRequest>(p => 
+                    p.ElementId == elementId), 30), Times.Once);
             
             _output.WriteLine("GetSelectionContainerAsync service test passed - Correct subprocess execution verified");
         }
@@ -177,7 +178,7 @@ namespace UIAutomationMCP.Tests.Services
                 ContainerControlType = null
             };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<SelectionInfoResult>("GetSelectionContainer", It.IsAny<Dictionary<string, object>>(), 30))
+            _mockExecutor.Setup(e => e.ExecuteAsync<GetSelectionContainerRequest, SelectionInfoResult>("GetSelectionContainer", It.IsAny<GetSelectionContainerRequest>(), 30))
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -185,9 +186,9 @@ namespace UIAutomationMCP.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<SelectionInfoResult>("GetSelectionContainer", 
-                It.Is<Dictionary<string, object>>(p => 
-                    p["elementId"].ToString() == elementId), 30), Times.Once);
+            _mockExecutor.Verify(e => e.ExecuteAsync<GetSelectionContainerRequest, SelectionInfoResult>("GetSelectionContainer", 
+                It.Is<GetSelectionContainerRequest>(p => 
+                    p.ElementId == elementId), 30), Times.Once);
             
             _output.WriteLine("GetSelectionContainerAsync null container test passed");
         }
@@ -204,7 +205,7 @@ namespace UIAutomationMCP.Tests.Services
             var windowTitle = "Multi-Select Window";
             var processId = 9876;
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<ActionResult>("AddToSelection", It.IsAny<Dictionary<string, object>>(), 30))
+            _mockExecutor.Setup(e => e.ExecuteAsync<AddToSelectionRequest, ActionResult>("AddToSelection", It.IsAny<AddToSelectionRequest>(), 30))
                 .Returns(Task.FromResult(new ActionResult { Success = true }));
 
             // Act
@@ -212,11 +213,11 @@ namespace UIAutomationMCP.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<ActionResult>("AddToSelection", 
-                It.Is<Dictionary<string, object>>(p => 
-                    p["elementId"].ToString() == elementId &&
-                    p["windowTitle"].ToString() == windowTitle &&
-                    p["processId"].ToString() == processId.ToString()), 30), Times.Once);
+            _mockExecutor.Verify(e => e.ExecuteAsync<AddToSelectionRequest, ActionResult>("AddToSelection", 
+                It.Is<AddToSelectionRequest>(p => 
+                    p.ElementId == elementId &&
+                    p.WindowTitle == windowTitle &&
+                    p.ProcessId == processId), 30), Times.Once);
             
             _output.WriteLine("AddToSelectionAsync service test passed");
         }
@@ -228,7 +229,7 @@ namespace UIAutomationMCP.Tests.Services
             var elementId = "selectedItem";
             var windowTitle = "List Window";
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<ActionResult>("RemoveFromSelection", It.IsAny<Dictionary<string, object>>(), 30))
+            _mockExecutor.Setup(e => e.ExecuteAsync<RemoveFromSelectionRequest, ActionResult>("RemoveFromSelection", It.IsAny<RemoveFromSelectionRequest>(), 30))
                 .Returns(Task.FromResult(new ActionResult { Success = true }));
 
             // Act
@@ -236,10 +237,10 @@ namespace UIAutomationMCP.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<ActionResult>("RemoveFromSelection", 
-                It.Is<Dictionary<string, object>>(p => 
-                    p["elementId"].ToString() == elementId &&
-                    p["windowTitle"].ToString() == windowTitle), 30), Times.Once);
+            _mockExecutor.Verify(e => e.ExecuteAsync<RemoveFromSelectionRequest, ActionResult>("RemoveFromSelection", 
+                It.Is<RemoveFromSelectionRequest>(p => 
+                    p.ElementId == elementId &&
+                    p.WindowTitle == windowTitle), 30), Times.Once);
             
             _output.WriteLine("RemoveFromSelectionAsync service test passed");
         }
@@ -251,7 +252,7 @@ namespace UIAutomationMCP.Tests.Services
             var containerId = "multiSelectList";
             var processId = 4321;
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<ActionResult>("ClearSelection", It.IsAny<Dictionary<string, object>>(), 30))
+            _mockExecutor.Setup(e => e.ExecuteAsync<ClearSelectionRequest, ActionResult>("ClearSelection", It.IsAny<ClearSelectionRequest>(), 30))
                 .Returns(Task.FromResult(new ActionResult { Success = true }));
 
             // Act
@@ -259,10 +260,10 @@ namespace UIAutomationMCP.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<ActionResult>("ClearSelection", 
-                It.Is<Dictionary<string, object>>(p => 
-                    p["containerId"].ToString() == containerId &&
-                    p["processId"].ToString() == processId.ToString()), 30), Times.Once);
+            _mockExecutor.Verify(e => e.ExecuteAsync<ClearSelectionRequest, ActionResult>("ClearSelection", 
+                It.Is<ClearSelectionRequest>(p => 
+                    p.ElementId == containerId &&
+                    p.ProcessId == processId), 30), Times.Once);
             
             _output.WriteLine("ClearSelectionAsync service test passed");
         }
@@ -284,7 +285,7 @@ namespace UIAutomationMCP.Tests.Services
                 }
             };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<SelectionInfoResult>("GetSelection", It.IsAny<Dictionary<string, object>>(), 30))
+            _mockExecutor.Setup(e => e.ExecuteAsync<GetSelectionRequest, SelectionInfoResult>("GetSelection", It.IsAny<GetSelectionRequest>(), 30))
                 .Returns(Task.FromResult(expectedSelection));
 
             // Act
@@ -292,9 +293,9 @@ namespace UIAutomationMCP.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<SelectionInfoResult>("GetSelection", 
-                It.Is<Dictionary<string, object>>(p => 
-                    p["containerId"].ToString() == containerId), 30), Times.Once);
+            _mockExecutor.Verify(e => e.ExecuteAsync<GetSelectionRequest, SelectionInfoResult>("GetSelection", 
+                It.Is<GetSelectionRequest>(p => 
+                    p.ElementId == containerId), 30), Times.Once);
             
             _output.WriteLine("GetSelectionAsync service test passed");
         }
@@ -310,7 +311,7 @@ namespace UIAutomationMCP.Tests.Services
             var elementId = "problematicElement";
             var expectedException = new InvalidOperationException("Element not found");
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<BooleanResult>("IsSelected", It.IsAny<Dictionary<string, object>>(), 30))
+            _mockExecutor.Setup(e => e.ExecuteAsync<IsSelectedRequest, BooleanResult>("IsSelected", It.IsAny<IsSelectedRequest>(), 30))
                 .ThrowsAsync(expectedException);
 
             // Act
@@ -333,7 +334,7 @@ namespace UIAutomationMCP.Tests.Services
         {
             // Arrange
             var containerId = "loggedContainer";
-            _mockExecutor.Setup(e => e.ExecuteAsync<BooleanResult>("CanSelectMultiple", It.IsAny<Dictionary<string, object>>(), 30))
+            _mockExecutor.Setup(e => e.ExecuteAsync<CanSelectMultipleRequest, BooleanResult>("CanSelectMultiple", It.IsAny<CanSelectMultipleRequest>(), 30))
                 .Returns(Task.FromResult(new BooleanResult { Value = true, Success = true }));
 
             // Act
@@ -362,7 +363,7 @@ namespace UIAutomationMCP.Tests.Services
         {
             // Arrange
             var elementId = "timeoutTestElement";
-            _mockExecutor.Setup(e => e.ExecuteAsync<BooleanResult>("IsSelected", It.IsAny<Dictionary<string, object>>(), timeout))
+            _mockExecutor.Setup(e => e.ExecuteAsync<IsSelectedRequest, BooleanResult>("IsSelected", It.IsAny<IsSelectedRequest>(), timeout))
                 .Returns(Task.FromResult(new BooleanResult { Value = false, Success = true }));
 
             // Act
@@ -370,7 +371,7 @@ namespace UIAutomationMCP.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<BooleanResult>("IsSelected", It.IsAny<Dictionary<string, object>>(), timeout), Times.Once);
+            _mockExecutor.Verify(e => e.ExecuteAsync<IsSelectedRequest, BooleanResult>("IsSelected", It.IsAny<IsSelectedRequest>(), timeout), Times.Once);
             
             _output.WriteLine($"Timeout test passed for value: {timeout} seconds");
         }
@@ -385,7 +386,7 @@ namespace UIAutomationMCP.Tests.Services
         public async Task SelectionService_WithEmptyElementId_ShouldStillExecute(string emptyElementId)
         {
             // Arrange
-            _mockExecutor.Setup(e => e.ExecuteAsync<BooleanResult>("IsSelected", It.IsAny<Dictionary<string, object>>(), 30))
+            _mockExecutor.Setup(e => e.ExecuteAsync<IsSelectedRequest, BooleanResult>("IsSelected", It.IsAny<IsSelectedRequest>(), 30))
                 .Returns(Task.FromResult(new BooleanResult { Value = false, Success = true }));
 
             // Act
@@ -393,8 +394,8 @@ namespace UIAutomationMCP.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<BooleanResult>("IsSelected", 
-                It.Is<Dictionary<string, object>>(p => p["elementId"].ToString() == emptyElementId), 30), Times.Once);
+            _mockExecutor.Verify(e => e.ExecuteAsync<IsSelectedRequest, BooleanResult>("IsSelected", 
+                It.Is<IsSelectedRequest>(p => p.ElementId == emptyElementId), 30), Times.Once);
             
             _output.WriteLine($"Empty elementId test passed for value: '{emptyElementId}'");
         }
@@ -404,7 +405,7 @@ namespace UIAutomationMCP.Tests.Services
         {
             // Arrange
             var containerId = "container1";
-            _mockExecutor.Setup(e => e.ExecuteAsync<BooleanResult>("CanSelectMultiple", It.IsAny<Dictionary<string, object>>(), 30))
+            _mockExecutor.Setup(e => e.ExecuteAsync<CanSelectMultipleRequest, BooleanResult>("CanSelectMultiple", It.IsAny<CanSelectMultipleRequest>(), 30))
                 .Returns(Task.FromResult(new BooleanResult { Value = true, Success = true }));
 
             // Act
@@ -412,8 +413,8 @@ namespace UIAutomationMCP.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<BooleanResult>("CanSelectMultiple", 
-                It.Is<Dictionary<string, object>>(p => p["processId"].ToString() == "0"), 30), Times.Once);
+            _mockExecutor.Verify(e => e.ExecuteAsync<CanSelectMultipleRequest, BooleanResult>("CanSelectMultiple", 
+                It.Is<CanSelectMultipleRequest>(p => p.ProcessId == 0), 30), Times.Once);
             
             _output.WriteLine("Zero processId test passed - Correctly converted to string");
         }

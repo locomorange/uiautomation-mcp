@@ -43,9 +43,9 @@ public class ItemContainerPatternIntegrationTests : IDisposable
         };
 
         _mockSubprocessExecutor
-            .Setup(x => x.ExecuteAsync<ElementSearchResult>(
+            .Setup(x => x.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>(
                 It.IsAny<string>(),
-                It.IsAny<object>(),
+                It.IsAny<FindItemByPropertyRequest>(),
                 It.IsAny<int>()))
             .Returns(Task.FromResult(errorResponse));
 
@@ -84,9 +84,9 @@ public class ItemContainerPatternIntegrationTests : IDisposable
         };
 
         _mockSubprocessExecutor
-            .Setup(x => x.ExecuteAsync<ElementSearchResult>(
+            .Setup(x => x.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>(
                 It.IsAny<string>(),
-                It.IsAny<object>(),
+                It.IsAny<FindItemByPropertyRequest>(),
                 It.IsAny<int>()))
             .Returns(Task.FromResult(successResponse));
 
@@ -118,9 +118,9 @@ public class ItemContainerPatternIntegrationTests : IDisposable
         };
 
         _mockSubprocessExecutor
-            .Setup(x => x.ExecuteAsync<ElementSearchResult>(
+            .Setup(x => x.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>(
                 It.IsAny<string>(),
-                It.IsAny<object>(),
+                It.IsAny<FindItemByPropertyRequest>(),
                 It.IsAny<int>()))
             .Returns(Task.FromResult(new ElementSearchResult { Success = true }));
 
@@ -137,9 +137,9 @@ public class ItemContainerPatternIntegrationTests : IDisposable
         }
 
         // Verify the mock was called exactly 3 times (once per property type)
-        _mockSubprocessExecutor.Verify(x => x.ExecuteAsync<ElementSearchResult>(
+        _mockSubprocessExecutor.Verify(x => x.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>(
             "FindItemByProperty",
-            It.IsAny<object>(),
+            It.IsAny<FindItemByPropertyRequest>(),
             10), Times.Exactly(3));
     }
 
@@ -163,9 +163,9 @@ public class ItemContainerPatternIntegrationTests : IDisposable
         };
 
         _mockSubprocessExecutor
-            .Setup(x => x.ExecuteAsync<ElementSearchResult>(
+            .Setup(x => x.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>(
                 It.IsAny<string>(),
-                It.IsAny<object>(),
+                It.IsAny<FindItemByPropertyRequest>(),
                 It.IsAny<int>()))
             .Returns(Task.FromResult(response));
 
@@ -187,9 +187,9 @@ public class ItemContainerPatternIntegrationTests : IDisposable
         // Arrange
         var callCount = 0;
         _mockSubprocessExecutor
-            .Setup(x => x.ExecuteAsync<ElementSearchResult>(
+            .Setup(x => x.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>(
                 It.IsAny<string>(),
-                It.IsAny<object>(),
+                It.IsAny<FindItemByPropertyRequest>(),
                 It.IsAny<int>()))
             .Returns(() => Task.FromResult(new ElementSearchResult
             {
@@ -214,9 +214,9 @@ public class ItemContainerPatternIntegrationTests : IDisposable
 
         // Assert
         Assert.Equal(3, callCount);
-        _mockSubprocessExecutor.Verify(x => x.ExecuteAsync<ElementSearchResult>(
+        _mockSubprocessExecutor.Verify(x => x.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>(
             It.IsAny<string>(),
-            It.IsAny<object>(),
+            It.IsAny<FindItemByPropertyRequest>(),
             It.IsAny<int>()), Times.Exactly(3));
     }
 

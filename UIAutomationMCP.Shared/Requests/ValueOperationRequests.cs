@@ -21,4 +21,20 @@ namespace UIAutomationMCP.Shared.Requests
         public string Value { get; set; } = "";
     }
 
+    /// <summary>
+    /// Get value request parameters
+    /// </summary>
+    public class GetValueRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetElementValue";
+    }
+
+    /// <summary>
+    /// Check if element is read-only request parameters
+    /// </summary>
+    public class IsReadOnlyRequest : ElementTargetRequest
+    {
+        public override string Operation => "IsReadOnly";
+    }
+
 }

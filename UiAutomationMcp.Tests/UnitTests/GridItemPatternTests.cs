@@ -107,13 +107,12 @@ namespace UIAutomationMCP.Tests.UnitTests
                             ControlType = "DataItem",
                             IsEnabled = true,
                             SupportedPatterns = new List<string> { "GridItemPattern" },
-                            Properties = new Dictionary<string, object>
+                            GridItem = new GridItemInfo
                             {
-                                ["Row"] = 0,
-                                ["Column"] = 0,
-                                ["RowSpan"] = 1,
-                                ["ColumnSpan"] = 1,
-                                ["ContainingGrid"] = "defaultGrid"
+                                Row = 0,
+                                Column = 0,
+                                RowSpan = 1,
+                                ColumnSpan = 1
                             }
                         }
                     }
@@ -153,13 +152,12 @@ namespace UIAutomationMCP.Tests.UnitTests
                             ControlType = "DataItem",
                             IsEnabled = true,
                             SupportedPatterns = new List<string> { "GridItemPattern" },
-                            Properties = new Dictionary<string, object>
+                            GridItem = new GridItemInfo
                             {
-                                ["Row"] = 0,
-                                ["Column"] = 0,
-                                ["RowSpan"] = 1,
-                                ["ColumnSpan"] = 1,
-                                ["ContainingGrid"] = "defaultGrid"
+                                Row = 0,
+                                Column = 0,
+                                RowSpan = 1,
+                                ColumnSpan = 1
                             },
                         }
                     }
@@ -196,13 +194,12 @@ namespace UIAutomationMCP.Tests.UnitTests
                             ControlType = "DataItem",
                             IsEnabled = true,
                             SupportedPatterns = new List<string> { "GridItemPattern" },
-                            Properties = new Dictionary<string, object>
+                            GridItem = new GridItemInfo
                             {
-                                ["Row"] = 0,
-                                ["Column"] = 0,
-                                ["RowSpan"] = 1,
-                                ["ColumnSpan"] = 1,
-                                ["ContainingGrid"] = "defaultGrid"
+                                Row = 0,
+                                Column = 0,
+                                RowSpan = 1,
+                                ColumnSpan = 1
                             },
                         }
                     }
@@ -239,13 +236,12 @@ namespace UIAutomationMCP.Tests.UnitTests
                             ControlType = "DataItem",
                             IsEnabled = true,
                             SupportedPatterns = new List<string> { "GridItemPattern" },
-                            Properties = new Dictionary<string, object>
+                            GridItem = new GridItemInfo
                             {
-                                ["Row"] = 0,
-                                ["Column"] = 0,
-                                ["RowSpan"] = 1,
-                                ["ColumnSpan"] = 1,
-                                ["ContainingGrid"] = "defaultGrid"
+                                Row = 0,
+                                Column = 0,
+                                RowSpan = 1,
+                                ColumnSpan = 1
                             },
                         }
                     }
@@ -289,13 +285,12 @@ namespace UIAutomationMCP.Tests.UnitTests
                             ControlType = "DataItem",
                             IsEnabled = true,
                             SupportedPatterns = new List<string> { "GridItemPattern" },
-                            Properties = new Dictionary<string, object>
+                            GridItem = new GridItemInfo
                             {
-                                ["Row"] = 0,
-                                ["Column"] = 0,
-                                ["RowSpan"] = 1,
-                                ["ColumnSpan"] = 1,
-                                ["ContainingGrid"] = "defaultGrid"
+                                Row = 0,
+                                Column = 0,
+                                RowSpan = 1,
+                                ColumnSpan = 1
                             }
                         }
                     }
@@ -335,13 +330,12 @@ namespace UIAutomationMCP.Tests.UnitTests
                             ControlType = "DataItem",
                             IsEnabled = true,
                             SupportedPatterns = new List<string> { "GridItemPattern" },
-                            Properties = new Dictionary<string, object>
+                            GridItem = new GridItemInfo
                             {
-                                ["Row"] = 0,
-                                ["Column"] = 0,
-                                ["RowSpan"] = 1,
-                                ["ColumnSpan"] = 1,
-                                ["ContainingGrid"] = "defaultGrid"
+                                Row = 0,
+                                Column = 0,
+                                RowSpan = 1,
+                                ColumnSpan = 1
                             }
                         }
                     }
@@ -382,13 +376,12 @@ namespace UIAutomationMCP.Tests.UnitTests
                             ControlType = "DataItem",
                             IsEnabled = true,
                             SupportedPatterns = new List<string> { "GridItemPattern" },
-                            Properties = new Dictionary<string, object>
+                            GridItem = new GridItemInfo
                             {
-                                ["Row"] = 0,
-                                ["Column"] = 0,
-                                ["RowSpan"] = 1,
-                                ["ColumnSpan"] = 1,
-                                ["ContainingGrid"] = "defaultGrid"
+                                Row = 0,
+                                Column = 0,
+                                RowSpan = 1,
+                                ColumnSpan = 1
                             }
                         }
                     }
@@ -428,13 +421,12 @@ namespace UIAutomationMCP.Tests.UnitTests
                             ControlType = "DataItem",
                             IsEnabled = true,
                             SupportedPatterns = new List<string> { "GridItemPattern" },
-                            Properties = new Dictionary<string, object>
+                            GridItem = new GridItemInfo
                             {
-                                ["Row"] = 0,
-                                ["Column"] = 0,
-                                ["RowSpan"] = 1,
-                                ["ColumnSpan"] = 1,
-                                ["ContainingGrid"] = "defaultGrid"
+                                Row = 0,
+                                Column = 0,
+                                RowSpan = 1,
+                                ColumnSpan = 1
                             }
                         }
                     }
@@ -520,13 +512,12 @@ namespace UIAutomationMCP.Tests.UnitTests
                             ControlType = "DataItem",
                             IsEnabled = true,
                             SupportedPatterns = new List<string> { "GridItemPattern" },
-                            Properties = new Dictionary<string, object>
+                            GridItem = new GridItemInfo
                             {
-                                ["Row"] = 0,
-                                ["Column"] = 0,
-                                ["RowSpan"] = 1,
-                                ["ColumnSpan"] = 1,
-                                ["ContainingGrid"] = "defaultGrid"
+                                Row = 0,
+                                Column = 0,
+                                RowSpan = 1,
+                                ColumnSpan = 1
                             }
                         }
                     }
@@ -566,13 +557,12 @@ namespace UIAutomationMCP.Tests.UnitTests
                             ControlType = "DataItem",
                             IsEnabled = true,
                             SupportedPatterns = new List<string> { "GridItemPattern" },
-                            Properties = new Dictionary<string, object>
+                            GridItem = new GridItemInfo
                             {
-                                ["Row"] = 0,
-                                ["Column"] = 0,
-                                ["RowSpan"] = 1,
-                                ["ColumnSpan"] = 1,
-                                ["ContainingGrid"] = "defaultGrid"
+                                Row = 0,
+                                Column = 0,
+                                RowSpan = 1,
+                                ColumnSpan = 1
                             }
                         }
                     }
@@ -649,13 +639,12 @@ namespace UIAutomationMCP.Tests.UnitTests
                             ControlType = "DataItem",
                             IsEnabled = true,
                             SupportedPatterns = new List<string> { "GridItemPattern" },
-                            Properties = new Dictionary<string, object>
+                            GridItem = new GridItemInfo
                             {
-                                ["Row"] = 0,
-                                ["Column"] = 0,
-                                ["RowSpan"] = 1,
-                                ["ColumnSpan"] = 1,
-                                ["ContainingGrid"] = "defaultGrid"
+                                Row = 0,
+                                Column = 0,
+                                RowSpan = 1,
+                                ColumnSpan = 1
                             }
                         }
                     }
@@ -698,13 +687,12 @@ namespace UIAutomationMCP.Tests.UnitTests
                             ControlType = "DataItem",
                             IsEnabled = true,
                             SupportedPatterns = new List<string> { "GridItemPattern" },
-                            Properties = new Dictionary<string, object>
+                            GridItem = new GridItemInfo
                             {
-                                ["Row"] = 0,
-                                ["Column"] = 0,
-                                ["RowSpan"] = 1,
-                                ["ColumnSpan"] = 1,
-                                ["ContainingGrid"] = "defaultGrid"
+                                Row = 0,
+                                Column = 0,
+                                RowSpan = 1,
+                                ColumnSpan = 1
                             }
                         }
                     }
@@ -744,13 +732,12 @@ namespace UIAutomationMCP.Tests.UnitTests
                             ControlType = "DataItem",
                             IsEnabled = true,
                             SupportedPatterns = new List<string> { "GridItemPattern" },
-                            Properties = new Dictionary<string, object>
+                            GridItem = new GridItemInfo
                             {
-                                ["Row"] = 0,
-                                ["Column"] = 0,
-                                ["RowSpan"] = 1,
-                                ["ColumnSpan"] = 1,
-                                ["ContainingGrid"] = "defaultGrid"
+                                Row = 0,
+                                Column = 0,
+                                RowSpan = 1,
+                                ColumnSpan = 1
                             }
                         }
                     }

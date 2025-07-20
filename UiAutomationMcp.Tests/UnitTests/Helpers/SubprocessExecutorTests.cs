@@ -1,10 +1,17 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Shared.Requests;
 using Moq;
 using System.IO;
 
 namespace UIAutomationMCP.Tests.UnitTests.Helpers
 {
+    // Test-specific request class
+    public class TestRequest : TypedWorkerRequest
+    {
+        public override string Operation => "TestOperation";
+    }
+
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Unit")]
     public class SubprocessExecutorTests
@@ -53,14 +60,10 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
         {
             // Given
             using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath);
-            var parameters = new Dictionary<string, object>
-            {
-                ["elementId"] = "test"
-            };
 
             // When & Then
             await Assert.ThrowsAsync<FileNotFoundException>(async () =>
-                await executor.ExecuteAsync<object>("TestOperation", parameters, 5));
+                await executor.ExecuteAsync<TestRequest, object>("TestOperation", new TestRequest(), 5));
         }
 
         [Fact]
@@ -68,15 +71,11 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
         {
             // Given
             using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath);
-            var parameters = new Dictionary<string, object>
-            {
-                ["elementId"] = "test"
-            };
 
             // When & Then
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             await Assert.ThrowsAsync<FileNotFoundException>(async () =>
-                await executor.ExecuteAsync<object>("TestOperation", parameters, 1));
+                await executor.ExecuteAsync<TestRequest, object>("TestOperation", new TestRequest(), 1));
             stopwatch.Stop();
 
             // The operation should fail quickly (within 2 seconds) due to process not starting
@@ -91,14 +90,10 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
         {
             // Given
             using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath);
-            var parameters = new Dictionary<string, object>
-            {
-                ["elementId"] = "test"
-            };
 
             // When & Then
             await Assert.ThrowsAsync<ArgumentException>(async () =>
-                await executor.ExecuteAsync<object>(operation!, parameters, 5));
+                await executor.ExecuteAsync<TestRequest, object>(operation!, new TestRequest(), 5));
         }
 
         [Fact]
@@ -109,7 +104,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
 
             // When & Then
             await Assert.ThrowsAsync<FileNotFoundException>(async () =>
-                await executor.ExecuteAsync<object>("TestOperation", null!, 5));
+                await executor.ExecuteAsync<TestRequest, object>("TestOperation", null!, 5));
         }
 
         [Fact]
@@ -117,11 +112,10 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
         {
             // Given
             using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath);
-            var parameters = new Dictionary<string, object>();
 
             // When & Then
             await Assert.ThrowsAsync<FileNotFoundException>(async () =>
-                await executor.ExecuteAsync<object>("TestOperation", parameters, 5));
+                await executor.ExecuteAsync<TestRequest, object>("TestOperation", new TestRequest(), 5));
         }
 
         [Theory]
@@ -132,14 +126,10 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
         {
             // Given
             using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath);
-            var parameters = new Dictionary<string, object>
-            {
-                ["elementId"] = "test"
-            };
 
             // When & Then
             await Assert.ThrowsAsync<FileNotFoundException>(async () =>
-                await executor.ExecuteAsync<object>("TestOperation", parameters, timeout));
+                await executor.ExecuteAsync<TestRequest, object>("TestOperation", new TestRequest(), timeout));
         }
 
         [Fact]
@@ -178,7 +168,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
 
             // When & Then
             await Assert.ThrowsAsync<ObjectDisposedException>(async () =>
-                await executor.ExecuteAsync<object>("TestOperation", new Dictionary<string, object>(), 5));
+                await executor.ExecuteAsync<TestRequest, object>("TestOperation", new TestRequest(), 5));
         }
 
         [Fact]
@@ -186,10 +176,6 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
         {
             // Given
             using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath);
-            var parameters = new Dictionary<string, object>
-            {
-                ["elementId"] = "test"
-            };
 
             // When
             var tasks = new List<Task>();
@@ -198,7 +184,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
                 tasks.Add(Task.Run(async () =>
                 {
                     await Assert.ThrowsAsync<FileNotFoundException>(async () =>
-                        await executor.ExecuteAsync<object>("TestOperation", parameters, 2));
+                        await executor.ExecuteAsync<TestRequest, object>("TestOperation", new TestRequest(), 2));
                 }));
             }
 

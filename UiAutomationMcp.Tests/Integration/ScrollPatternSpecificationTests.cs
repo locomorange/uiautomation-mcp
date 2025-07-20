@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using Xunit.Abstractions;
@@ -72,17 +73,17 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task GetScrollInfo_Should_Return_All_Required_ScrollPattern_Properties()
         {
             // Arrange - サンプルパラメータ（実際のUIがなくてもWorkerの動作をテスト）
-            var parameters = new Dictionary<string, object>
+            var request = new GetScrollInfoRequest
             {
-                { "elementId", "test-scroll-element" },
-                { "windowTitle", "Test Window" },
-                { "processId", 0 }
+                ElementId = "test-scroll-element",
+                WindowTitle = "Test Window",
+                ProcessId = 0
             };
 
             // Act - サブプロセスでGetScrollInfo操作を実行
             try
             {
-                var result = await _subprocessExecutor.ExecuteAsync<object>("GetScrollInfo", parameters, 5);
+                var result = await _subprocessExecutor.ExecuteAsync<GetScrollInfoRequest, ActionResult>(request, 5);
                 _output.WriteLine($"GetScrollInfo result: {System.Text.Json.JsonSerializer.Serialize(result)}");
 
                 // Assert - 結果が適切な形式であることを確認
@@ -109,19 +110,19 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task SetScrollPercent_Should_Accept_Valid_Percentage_Values()
         {
             // Arrange - 有効なパーセンテージ値
-            var parameters = new Dictionary<string, object>
+            var request = new SetScrollPercentRequest
             {
-                { "elementId", "test-scroll-element" },
-                { "horizontalPercent", 50.0 },
-                { "verticalPercent", 75.0 },
-                { "windowTitle", "Test Window" },
-                { "processId", 0 }
+                ElementId = "test-scroll-element",
+                HorizontalPercent = 50.0,
+                VerticalPercent = 75.0,
+                WindowTitle = "Test Window",
+                ProcessId = 0
             };
 
             // Act & Assert
             try
             {
-                var result = await _subprocessExecutor.ExecuteAsync<object>("SetScrollPercent", parameters, 5);
+                var result = await _subprocessExecutor.ExecuteAsync<SetScrollPercentRequest, ActionResult>(request, 5);
                 _output.WriteLine($"SetScrollPercent result: {System.Text.Json.JsonSerializer.Serialize(result)}");
                 
                 Assert.NotNull(result);
@@ -143,19 +144,19 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task SetScrollPercent_Should_Handle_NoScroll_Values()
         {
             // Arrange - NoScroll値(-1)をテスト
-            var parameters = new Dictionary<string, object>
+            var request = new SetScrollPercentRequest
             {
-                { "elementId", "test-scroll-element" },
-                { "horizontalPercent", -1.0 }, // NoScroll
-                { "verticalPercent", 25.0 },
-                { "windowTitle", "Test Window" },
-                { "processId", 0 }
+                ElementId = "test-scroll-element",
+                HorizontalPercent = -1.0, // NoScroll
+                VerticalPercent = 25.0,
+                WindowTitle = "Test Window",
+                ProcessId = 0
             };
 
             // Act & Assert
             try
             {
-                var result = await _subprocessExecutor.ExecuteAsync<object>("SetScrollPercent", parameters, 5);
+                var result = await _subprocessExecutor.ExecuteAsync<SetScrollPercentRequest, ActionResult>(request, 5);
                 _output.WriteLine($"SetScrollPercent NoScroll result: {System.Text.Json.JsonSerializer.Serialize(result)}");
                 
                 Assert.NotNull(result);
@@ -178,28 +179,39 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task ScrollPattern_Operations_Should_Be_Registered_In_Worker(string operationName)
         {
             // Arrange
-            var parameters = new Dictionary<string, object>
+            TypedWorkerRequest request = operationName switch
             {
-                { "elementId", "test-element" },
-                { "windowTitle", "Test Window" }
+                "GetScrollInfo" => new GetScrollInfoRequest
+                {
+                    ElementId = "test-element",
+                    WindowTitle = "Test Window"
+                },
+                "SetScrollPercent" => new SetScrollPercentRequest
+                {
+                    ElementId = "test-element",
+                    WindowTitle = "Test Window",
+                    HorizontalPercent = 0.0,
+                    VerticalPercent = 0.0
+                },
+                "ScrollElement" => new ScrollElementRequest
+                {
+                    ElementId = "test-element",
+                    WindowTitle = "Test Window",
+                    Direction = "up",
+                    Amount = 1.0
+                },
+                "ScrollElementIntoView" => new ScrollElementIntoViewRequest
+                {
+                    ElementId = "test-element",
+                    WindowTitle = "Test Window"
+                },
+                _ => throw new ArgumentException($"Unknown operation: {operationName}")
             };
-
-            // 操作固有のパラメータを追加
-            if (operationName == "SetScrollPercent")
-            {
-                parameters.Add("horizontalPercent", 0.0);
-                parameters.Add("verticalPercent", 0.0);
-            }
-            else if (operationName == "ScrollElement")
-            {
-                parameters.Add("direction", "up");
-                parameters.Add("amount", 1.0);
-            }
 
             // Act & Assert - 操作が登録されており、実行可能であることを確認
             var exception = await Record.ExceptionAsync(async () =>
             {
-                await _subprocessExecutor.ExecuteAsync<object>(operationName, parameters, 5);
+                await _subprocessExecutor.ExecuteAsync<TypedWorkerRequest, ActionResult>(request, 5);
             });
 
             // UIがない場合の例外は期待される（操作自体は正しく登録されている）

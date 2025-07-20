@@ -707,5 +707,551 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             }
         }
 
+        public async Task<ServerEnhancedResponse<ActionResult>> GetSelectionContainerAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            if (string.IsNullOrWhiteSpace(elementId))
+            {
+                var validationError = "Element ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"GetSelectionContainer validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["elementId"] = elementId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetSelectionContainer",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                return validationResponse;
+            }
+
+            try
+            {
+                _logger.LogInformationWithOperation(operationId, $"Starting GetSelectionContainer for ElementId={elementId}");
+
+                var request = new GetSelectionContainerRequest
+                {
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
+                };
+
+                var result = await _executor.ExecuteAsync<GetSelectionContainerRequest, ActionResult>("GetSelectionContainer", request, timeoutSeconds);
+
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["operationType"] = "getSelectionContainer"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetSelectionContainer",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return serverResponse;
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in GetSelectionContainer operation");
+                
+                var errorResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["elementId"] = elementId,
+                            ["operationType"] = "getSelectionContainer"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetSelectionContainer",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["elementId"] = elementId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorResponse;
+            }
+        }
+
+        public async Task<ServerEnhancedResponse<BooleanResult>> CanSelectMultipleAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            if (string.IsNullOrWhiteSpace(containerId))
+            {
+                var validationError = "Container ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"CanSelectMultiple validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<BooleanResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["containerId"] = containerId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "CanSelectMultiple",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                return validationResponse;
+            }
+
+            try
+            {
+                _logger.LogInformationWithOperation(operationId, $"Starting CanSelectMultiple for ContainerId={containerId}");
+
+                var request = new CanSelectMultipleRequest
+                {
+                    ElementId = containerId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
+                };
+
+                var result = await _executor.ExecuteAsync<CanSelectMultipleRequest, BooleanResult>("CanSelectMultiple", request, timeoutSeconds);
+
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<BooleanResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId,
+                            ["canSelectMultiple"] = result.Value,
+                            ["operationType"] = "canSelectMultiple"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "CanSelectMultiple",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return serverResponse;
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in CanSelectMultiple operation");
+                
+                var errorResponse = new ServerEnhancedResponse<BooleanResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["containerId"] = containerId,
+                            ["operationType"] = "canSelectMultiple"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "CanSelectMultiple",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorResponse;
+            }
+        }
+
+        public async Task<ServerEnhancedResponse<BooleanResult>> IsSelectionRequiredAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            if (string.IsNullOrWhiteSpace(containerId))
+            {
+                var validationError = "Container ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"IsSelectionRequired validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<BooleanResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["containerId"] = containerId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "IsSelectionRequired",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                return validationResponse;
+            }
+
+            try
+            {
+                _logger.LogInformationWithOperation(operationId, $"Starting IsSelectionRequired for ContainerId={containerId}");
+
+                var request = new IsSelectionRequiredRequest
+                {
+                    ElementId = containerId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
+                };
+
+                var result = await _executor.ExecuteAsync<IsSelectionRequiredRequest, BooleanResult>("IsSelectionRequired", request, timeoutSeconds);
+
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<BooleanResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId,
+                            ["isSelectionRequired"] = result.Value,
+                            ["operationType"] = "isSelectionRequired"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "IsSelectionRequired",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return serverResponse;
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in IsSelectionRequired operation");
+                
+                var errorResponse = new ServerEnhancedResponse<BooleanResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["containerId"] = containerId,
+                            ["operationType"] = "isSelectionRequired"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "IsSelectionRequired",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorResponse;
+            }
+        }
+
+        public async Task<ServerEnhancedResponse<ActionResult>> GetSelectionAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            if (string.IsNullOrWhiteSpace(containerId))
+            {
+                var validationError = "Container ID is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"GetSelection validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["containerId"] = containerId ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetSelection",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId ?? "",
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                return validationResponse;
+            }
+
+            try
+            {
+                _logger.LogInformationWithOperation(operationId, $"Starting GetSelection for ContainerId={containerId}");
+
+                var request = new GetSelectionRequest
+                {
+                    ElementId = containerId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
+                };
+
+                var result = await _executor.ExecuteAsync<GetSelectionRequest, ActionResult>("GetSelection", request, timeoutSeconds);
+
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId,
+                            ["operationType"] = "getSelection"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetSelection",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return serverResponse;
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in GetSelection operation");
+                
+                var errorResponse = new ServerEnhancedResponse<ActionResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["containerId"] = containerId,
+                            ["operationType"] = "getSelection"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetSelection",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["containerId"] = containerId,
+                            ["windowTitle"] = windowTitle ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorResponse;
+            }
+        }
+
     }
 }

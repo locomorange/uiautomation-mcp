@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using Xunit.Abstractions;
@@ -75,16 +76,16 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task GetWindowInteractionState_Integration_Should_Execute_Successfully()
         {
             // Arrange
-            var parameters = new Dictionary<string, object>
+            var request = new GetWindowInteractionStateRequest
             {
-                { "windowTitle", "Calculator" }, // Calculatorは一般的に利用可能
-                { "processId", 0 }
+                WindowTitle = "Calculator", // Calculatorは一般的に利用可能
+                ProcessId = 0
             };
 
             try
             {
                 // Act
-                var result = await _subprocessExecutor.ExecuteAsync<object>("GetWindowInteractionState", parameters, 30);
+                var result = await _subprocessExecutor.ExecuteAsync<GetWindowInteractionStateRequest, object>("GetWindowInteractionState", request, 30);
 
                 // Assert
                 Assert.NotNull(result);
@@ -109,16 +110,16 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task GetWindowCapabilities_Integration_Should_Execute_Successfully()
         {
             // Arrange
-            var parameters = new Dictionary<string, object>
+            var request = new GetWindowCapabilitiesRequest
             {
-                { "windowTitle", "Calculator" },
-                { "processId", 0 }
+                WindowTitle = "Calculator",
+                ProcessId = 0
             };
 
             try
             {
                 // Act
-                var result = await _subprocessExecutor.ExecuteAsync<object>("GetWindowCapabilities", parameters, 30);
+                var result = await _subprocessExecutor.ExecuteAsync<GetWindowCapabilitiesRequest, object>("GetWindowCapabilities", request, 30);
 
                 // Assert
                 Assert.NotNull(result);
@@ -142,17 +143,17 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task WaitForInputIdle_Integration_Should_Execute_Successfully()
         {
             // Arrange
-            var parameters = new Dictionary<string, object>
+            var request = new WaitForInputIdleRequest
             {
-                { "timeoutMilliseconds", 5000 },
-                { "windowTitle", "Calculator" },
-                { "processId", 0 }
+                TimeoutMilliseconds = 5000,
+                WindowTitle = "Calculator",
+                ProcessId = 0
             };
 
             try
             {
                 // Act
-                var result = await _subprocessExecutor.ExecuteAsync<object>("WaitForInputIdle", parameters, 30);
+                var result = await _subprocessExecutor.ExecuteAsync<WaitForInputIdleRequest, object>("WaitForInputIdle", request, 30);
 
                 // Assert
                 Assert.NotNull(result);
@@ -178,23 +179,25 @@ namespace UiAutomationMcp.Tests.Integration
         [InlineData("WaitForInputIdle")]
         public async Task WindowPattern_Operations_Should_Be_Registered_In_Worker(string operationName)
         {
-            // Arrange
-            var parameters = new Dictionary<string, object>
-            {
-                { "windowTitle", "NonExistentWindow" },
-                { "processId", 99999 }
-            };
-
-            // デフォルトタイムアウト値を設定
-            if (operationName == "WaitForInputIdle")
-            {
-                parameters["timeoutMilliseconds"] = 1000;
-            }
-
             try
             {
                 // Act - 存在しないウィンドウに対して実行
-                var result = await _subprocessExecutor.ExecuteAsync<object>(operationName, parameters, 10);
+                object result = operationName switch
+                {
+                    "GetWindowInteractionState" => await _subprocessExecutor.ExecuteAsync<GetWindowInteractionStateRequest, object>(
+                        operationName, 
+                        new GetWindowInteractionStateRequest { WindowTitle = "NonExistentWindow", ProcessId = 99999 }, 
+                        10),
+                    "GetWindowCapabilities" => await _subprocessExecutor.ExecuteAsync<GetWindowCapabilitiesRequest, object>(
+                        operationName, 
+                        new GetWindowCapabilitiesRequest { WindowTitle = "NonExistentWindow", ProcessId = 99999 }, 
+                        10),
+                    "WaitForInputIdle" => await _subprocessExecutor.ExecuteAsync<WaitForInputIdleRequest, object>(
+                        operationName, 
+                        new WaitForInputIdleRequest { WindowTitle = "NonExistentWindow", ProcessId = 99999, TimeoutMilliseconds = 1000 }, 
+                        10),
+                    _ => throw new ArgumentException($"Unknown operation: {operationName}")
+                };
 
                 // この行に到達すべきではない（例外が発生するはず）
                 Assert.Fail($"Expected exception for operation {operationName}");
@@ -238,23 +241,26 @@ namespace UiAutomationMcp.Tests.Integration
         [InlineData("WaitForInputIdle", 1)]
         public async Task WindowPattern_Operations_Should_Handle_Timeout_Correctly(string operationName, int timeoutSeconds)
         {
-            // Arrange
-            var parameters = new Dictionary<string, object>
-            {
-                { "windowTitle", "NonExistentWindow" },
-                { "processId", 99999 }
-            };
-
-            if (operationName == "WaitForInputIdle")
-            {
-                parameters["timeoutMilliseconds"] = 1000;
-            }
-
             // Act & Assert
             var stopwatch = Stopwatch.StartNew();
             try
             {
-                await _subprocessExecutor.ExecuteAsync<object>(operationName, parameters, timeoutSeconds);
+                await (operationName switch
+                {
+                    "GetWindowInteractionState" => _subprocessExecutor.ExecuteAsync<GetWindowInteractionStateRequest, object>(
+                        operationName, 
+                        new GetWindowInteractionStateRequest { WindowTitle = "NonExistentWindow", ProcessId = 99999 }, 
+                        timeoutSeconds),
+                    "GetWindowCapabilities" => _subprocessExecutor.ExecuteAsync<GetWindowCapabilitiesRequest, object>(
+                        operationName, 
+                        new GetWindowCapabilitiesRequest { WindowTitle = "NonExistentWindow", ProcessId = 99999 }, 
+                        timeoutSeconds),
+                    "WaitForInputIdle" => _subprocessExecutor.ExecuteAsync<WaitForInputIdleRequest, object>(
+                        operationName, 
+                        new WaitForInputIdleRequest { WindowTitle = "NonExistentWindow", ProcessId = 99999, TimeoutMilliseconds = 1000 }, 
+                        timeoutSeconds),
+                    _ => throw new ArgumentException($"Unknown operation: {operationName}")
+                });
             }
             catch (Exception ex)
             {
