@@ -58,19 +58,19 @@ namespace UIAutomationMCP.Worker.Operations.Text
             return result;
         }
 
-        private async Task<OperationResult<TextInfoResult>> GetTextAsync(GetTextRequest request)
+        private Task<OperationResult<TextInfoResult>> GetTextAsync(GetTextRequest request)
         {
             try
             {
-                var element = _elementFinderService.FindElementById(request.ElementId, request.WindowTitle, request.ProcessId ?? 0);
+                var element = _elementFinderService.FindElementById(request.ElementId, request.WindowTitle ?? "", request.ProcessId ?? 0);
                 if (element == null)
                 {
-                    return new OperationResult<TextInfoResult>
+                    return Task.FromResult(new OperationResult<TextInfoResult>
                     {
                         Success = false,
                         Error = "Element not found",
                         ExecutionSeconds = 0
-                    };
+                    });
                 }
 
                 var result = new TextInfoResult
@@ -145,22 +145,22 @@ namespace UIAutomationMCP.Worker.Operations.Text
                     result.Pattern = "Name";
                 }
 
-                return new OperationResult<TextInfoResult>
+                return Task.FromResult(new OperationResult<TextInfoResult>
                 {
                     Success = true,
                     Data = result,
                     ExecutionSeconds = 0.05
-                };
+                });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting text from element");
-                return new OperationResult<TextInfoResult>
+                return Task.FromResult(new OperationResult<TextInfoResult>
                 {
                     Success = false,
                     Error = ex.Message,
                     ExecutionSeconds = 0
-                };
+                });
             }
         }
     }

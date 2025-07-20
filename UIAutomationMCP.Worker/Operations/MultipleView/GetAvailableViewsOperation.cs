@@ -81,7 +81,7 @@ namespace UIAutomationMCP.Worker.Operations.MultipleView
                 var viewNamesDict = new Dictionary<int, string>();
                 foreach (var viewDetail in viewDetails)
                 {
-                    viewNamesDict[viewDetail.ViewId] = viewDetail.ViewName;
+                    viewNamesDict[viewDetail.ViewId] = viewDetail.ViewName ?? "";
                 }
 
                 var result = new MultipleViewResult
