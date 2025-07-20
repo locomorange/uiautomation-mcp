@@ -26,7 +26,7 @@ namespace UIAutomationMCP.Worker.Operations.Value
         {
             try
             {
-                var typedRequest = JsonSerializationHelper.Deserialize<SetElementValueRequest>(parametersJson)!;
+                var typedRequest = JsonSerializationHelper.Deserialize<SetValueRequest>(parametersJson)!;
                 
                 var element = _elementFinderService.FindElementById(
                     typedRequest.ElementId, 

@@ -177,7 +177,7 @@ namespace UIAutomationMCP.Tests.Tools
                                    .Returns(Task.FromResult(serverResponse));
 
             // Act
-            var result = await _tools.FindElements("Button", windowTitle: "TestWindow");
+            var result = await _tools.GetElementInfo("Button", windowTitle: "TestWindow");
 
             // Assert
             Assert.NotNull(result);
