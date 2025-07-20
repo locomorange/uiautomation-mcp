@@ -105,6 +105,7 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(WorkerResponse<BooleanResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseBooleanResult,
                 Type t when t == typeof(WorkerResponse<DesktopWindowsResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseDesktopWindowsResult,
                 Type t when t == typeof(WorkerResponse<TextInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTextInfoResult,
+                Type t when t == typeof(WorkerResponse<ElementTreeResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseElementTreeResult,
                 Type t when t == typeof(WorkerResponse<object>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseObject,
 
                 // Result types (consolidated from GetResultTypeInfo)
