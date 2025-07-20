@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
@@ -64,14 +65,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Realizing virtualized item: {elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new RealizeVirtualizedItemRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("RealizeVirtualizedItem", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ElementSearchResult>
                 {

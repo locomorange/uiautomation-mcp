@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
@@ -63,14 +64,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Getting available views for element: {elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetAvailableViewsRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("GetAvailableViews", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<GetAvailableViewsRequest, ElementSearchResult>("GetAvailableViews", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ElementSearchResult>
                 {
@@ -185,15 +186,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Setting view {viewId} for element: {elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new SetViewRequest
                 {
-                    { "elementId", elementId },
-                    { "viewId", viewId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    ViewId = viewId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("SetView", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<SetViewRequest, ElementSearchResult>("SetView", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ElementSearchResult>
                 {
@@ -308,14 +309,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Getting current view for element: {elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetCurrentViewRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("GetCurrentView", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<GetCurrentViewRequest, ElementSearchResult>("GetCurrentView", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ElementSearchResult>
                 {
@@ -430,15 +431,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Getting view name for view {viewId} in element: {elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetViewNameRequest
                 {
-                    { "elementId", elementId },
-                    { "viewId", viewId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    ViewId = viewId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("GetViewName", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<GetViewNameRequest, ElementSearchResult>("GetViewName", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ElementSearchResult>
                 {

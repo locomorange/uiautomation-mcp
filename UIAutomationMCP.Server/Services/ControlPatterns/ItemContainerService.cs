@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
@@ -67,17 +68,17 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Finding item in container: {containerId} with property: {propertyName}={value}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new FindItemByPropertyRequest
                 {
-                    { "containerId", containerId },
-                    { "propertyName", propertyName ?? "" },
-                    { "value", value ?? "" },
-                    { "startAfterId", startAfterId ?? "" },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ContainerId = containerId,
+                    PropertyName = propertyName ?? "",
+                    Value = value ?? "",
+                    StartAfterId = startAfterId ?? "",
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("FindItemByProperty", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>("FindItemByProperty", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ElementSearchResult>
                 {

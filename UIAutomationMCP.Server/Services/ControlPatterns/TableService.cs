@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
@@ -65,14 +66,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Getting row headers for element: {elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetRowHeadersRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("GetRowHeaders", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ElementSearchResult>
                 {
@@ -185,14 +186,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Getting column headers for element: {elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetColumnHeadersRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("GetColumnHeaders", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<GetColumnHeadersRequest, ElementSearchResult>("GetColumnHeaders", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ElementSearchResult>
                 {
@@ -306,14 +307,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Getting column header items for element: {elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetColumnHeaderItemsRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("GetColumnHeaderItems", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ElementSearchResult>
                 {
@@ -426,14 +427,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Getting row header items for element: {elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetRowHeaderItemsRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("GetRowHeaderItems", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ElementSearchResult>
                 {

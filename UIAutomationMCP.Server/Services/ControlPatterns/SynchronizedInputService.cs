@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
@@ -105,15 +106,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting synchronized input listening for element: {elementId} with input type: {inputType}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new StartSynchronizedInputRequest
                 {
-                    { "elementId", elementId },
-                    { "inputType", inputType },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    InputType = inputType,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("StartSynchronizedInput", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<StartSynchronizedInputRequest, ElementSearchResult>("StartSynchronizedInput", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ElementSearchResult>
                 {
@@ -228,14 +229,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Canceling synchronized input for element: {elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new CancelSynchronizedInputRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("CancelSynchronizedInput", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<CancelSynchronizedInputRequest, ElementSearchResult>("CancelSynchronizedInput", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ElementSearchResult>
                 {

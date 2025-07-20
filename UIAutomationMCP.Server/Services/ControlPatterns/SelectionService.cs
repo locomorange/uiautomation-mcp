@@ -342,11 +342,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting RemoveFromSelection: ElementId={elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new RemoveFromSelectionRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
                 var result = await _executor.ExecuteAsync<RemoveFromSelectionRequest, ActionResult>("RemoveFromSelection", request, timeoutSeconds);
@@ -479,11 +479,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting ClearSelection: ContainerId={containerId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new ClearSelectionRequest
                 {
-                    { "containerId", containerId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = containerId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
                 var result = await _executor.ExecuteAsync<ClearSelectionRequest, ActionResult>("ClearSelection", request, timeoutSeconds);
@@ -618,11 +618,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting IsSelected for ElementId={elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new IsSelectedRequest
                 {
-                    { "elementId", elementId },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
                 var result = await _executor.ExecuteAsync<IsSelectedRequest, BooleanResult>("IsSelected", request, timeoutSeconds);
