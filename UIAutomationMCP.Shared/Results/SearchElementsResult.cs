@@ -19,7 +19,7 @@ namespace UIAutomationMCP.Shared.Results
         /// 検索実行に関するメタデータ
         /// </summary>
         [JsonPropertyName("metadata")]
-        public SearchMetadata Metadata { get; set; } = new();
+        public new SearchMetadata Metadata { get; set; } = new();
     }
 
     /// <summary>
@@ -38,7 +38,7 @@ namespace UIAutomationMCP.Shared.Results
         /// 詳細取得実行に関するメタデータ
         /// </summary>
         [JsonPropertyName("metadata")]
-        public DetailMetadata Metadata { get; set; } = new();
+        public new DetailMetadata Metadata { get; set; } = new();
     }
 
     /// <summary>
