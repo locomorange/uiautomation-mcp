@@ -106,18 +106,13 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
         {
             var node = new TreeNode
             {
-                Element = CreateElementInfo(element),
-                ElementId = element.Current.AutomationId,
-                Name = element.Current.Name,
+                // TreeNode inherits from ElementInfo, so use those properties directly
                 AutomationId = element.Current.AutomationId,
+                Name = element.Current.Name,
                 ClassName = element.Current.ClassName,
                 ControlType = element.Current.ControlType.ProgrammaticName,
-                LocalizedControlType = element.Current.ControlType.LocalizedControlType,
                 IsEnabled = element.Current.IsEnabled,
-                IsKeyboardFocusable = element.Current.IsKeyboardFocusable,
-                HasKeyboardFocus = element.Current.HasKeyboardFocus,
-                IsPassword = element.Current.IsPassword,
-                IsOffscreen = element.Current.IsOffscreen,
+                IsVisible = !element.Current.IsOffscreen,
                 BoundingRectangle = new BoundingRectangle
                 {
                     X = (int)element.Current.BoundingRectangle.X,
@@ -126,7 +121,12 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
                     Height = (int)element.Current.BoundingRectangle.Height
                 },
                 ProcessId = element.Current.ProcessId,
-                FrameworkId = element.Current.FrameworkId,
+                
+                // TreeNode specific properties  
+                RuntimeId = element.GetRuntimeId()?.ToString() ?? "",
+                IsKeyboardFocusable = element.Current.IsKeyboardFocusable,
+                HasKeyboardFocus = element.Current.HasKeyboardFocus,
+                IsPassword = element.Current.IsPassword,
                 Depth = currentDepth,
                 HasChildren = false
             };
@@ -157,7 +157,8 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
                             try
                             {
                                 var childNode = BuildElementTree(child, maxDepth, currentDepth + 1);
-                                childNode.ParentElementId = node.ElementId;
+                                childNode.ParentAutomationId = node.AutomationId;
+                                childNode.ParentName = node.Name;
                                 node.Children.Add(childNode);
                             }
                             catch (ElementNotAvailableException)

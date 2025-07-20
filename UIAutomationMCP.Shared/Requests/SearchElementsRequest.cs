@@ -6,7 +6,7 @@ namespace UIAutomationMCP.Shared.Requests
     /// SearchElementsツールのリクエストパラメータ
     /// UI Automation標準プロパティに基づく軽量検索
     /// </summary>
-    public class SearchElementsRequest : BaseRequest
+    public class SearchElementsRequest : TypedWorkerRequest
     {
         public override string Operation => "SearchElements";
 
@@ -111,7 +111,7 @@ namespace UIAutomationMCP.Shared.Requests
     /// GetElementDetailsツールのリクエストパラメータ
     /// 特定要素の包括的詳細情報取得
     /// </summary>
-    public class GetElementDetailsRequest : BaseRequest
+    public class GetElementDetailsRequest : TypedWorkerRequest
     {
         public override string Operation => "GetElementDetails";
 

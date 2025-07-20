@@ -1,18 +1,19 @@
 using System.Text.Json.Serialization;
+using UIAutomationMCP.Shared;
 
 namespace UIAutomationMCP.Shared.Results
 {
     /// <summary>
     /// SearchElementsツールの戻り値
-    /// 軽量なElementInfo配列と検索メタデータを含む
+    /// 軽量なBasicElementInfo配列と検索メタデータを含む
     /// </summary>
-    public class SearchElementsResult
+    public class SearchElementsResult : BaseOperationResult
     {
         /// <summary>
         /// 検索で見つかった要素の基本情報配列
         /// </summary>
         [JsonPropertyName("elements")]
-        public ElementInfo[] Elements { get; set; } = [];
+        public BasicElementInfo[] Elements { get; set; } = [];
 
         /// <summary>
         /// 検索実行に関するメタデータ
@@ -25,7 +26,7 @@ namespace UIAutomationMCP.Shared.Results
     /// GetElementDetailsツールの戻り値
     /// 詳細なElementDetailと取得メタデータを含む
     /// </summary>
-    public class ElementDetailResult
+    public class ElementDetailResult : BaseOperationResult
     {
         /// <summary>
         /// 取得された要素の詳細情報
@@ -129,4 +130,85 @@ namespace UIAutomationMCP.Shared.Results
         [JsonPropertyName("identificationCriteria")]
         public string IdentificationCriteria { get; set; } = string.Empty;
     }
+
+    /// <summary>
+    /// 軽量なUI要素基本情報クラス
+    /// 検索結果で使用される最低限の識別情報を提供
+    /// パターン詳細は含まず、高速な検索結果表示に特化
+    /// </summary>
+    public class BasicElementInfo
+    {
+        /// <summary>
+        /// UI Automation要素の一意識別子
+        /// </summary>
+        [JsonPropertyName("automationId")]
+        public string? AutomationId { get; set; }
+
+        /// <summary>
+        /// 要素の表示名
+        /// </summary>
+        [JsonPropertyName("name")]
+        public string? Name { get; set; }
+
+        /// <summary>
+        /// コントロールタイプ（英語）
+        /// </summary>
+        [JsonPropertyName("controlType")]
+        public string ControlType { get; set; } = string.Empty;
+
+        /// <summary>
+        /// ローカライズされたコントロールタイプ
+        /// </summary>
+        [JsonPropertyName("localizedControlType")]
+        public string? LocalizedControlType { get; set; }
+
+        /// <summary>
+        /// クラス名
+        /// </summary>
+        [JsonPropertyName("className")]
+        public string? ClassName { get; set; }
+
+        /// <summary>
+        /// 要素が有効かどうか
+        /// </summary>
+        [JsonPropertyName("isEnabled")]
+        public bool IsEnabled { get; set; }
+
+        /// <summary>
+        /// 要素が可視かどうか
+        /// </summary>
+        [JsonPropertyName("isVisible")]
+        public bool IsVisible { get; set; }
+
+        /// <summary>
+        /// 要素が画面外にあるかどうか
+        /// </summary>
+        [JsonPropertyName("isOffscreen")]
+        public bool IsOffscreen { get; set; }
+
+        /// <summary>
+        /// 要素の境界矩形
+        /// </summary>
+        [JsonPropertyName("boundingRectangle")]
+        public BoundingRectangle? BoundingRectangle { get; set; }
+
+        /// <summary>
+        /// サポートされているUI Automationパターンのリスト
+        /// </summary>
+        [JsonPropertyName("supportedPatterns")]
+        public string[] SupportedPatterns { get; set; } = [];
+
+        /// <summary>
+        /// プロセスID
+        /// </summary>
+        [JsonPropertyName("processId")]
+        public int ProcessId { get; set; }
+
+        /// <summary>
+        /// フレームワークID（Win32、XAML等）
+        /// </summary>
+        [JsonPropertyName("frameworkId")]
+        public string? FrameworkId { get; set; }
+    }
+
 }

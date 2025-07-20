@@ -216,7 +216,7 @@ namespace UIAutomationMCP.Server.Services
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, "Starting SearchElements operation with request: {Request}", request);
+                _logger.LogInformationWithOperation(operationId, "Starting SearchElements operation");
 
                 var result = await _executor.ExecuteAsync<SearchElementsRequest, SearchElementsResult>("SearchElements", request, request.TimeoutSeconds);
                 
@@ -255,7 +255,7 @@ namespace UIAutomationMCP.Server.Services
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, "SearchElements completed successfully with {Count} results", result.Elements?.Length ?? 0);
+                _logger.LogInformationWithOperation(operationId, "SearchElements completed successfully");
                 return serverResponse;
             }
             catch (Exception ex)
@@ -305,7 +305,7 @@ namespace UIAutomationMCP.Server.Services
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, "Starting GetElementDetails operation with request: {Request}", request);
+                _logger.LogInformationWithOperation(operationId, "Starting GetElementDetails operation");
 
                 var result = await _executor.ExecuteAsync<GetElementDetailsRequest, ElementDetailResult>("GetElementDetails", request, request.TimeoutSeconds);
                 

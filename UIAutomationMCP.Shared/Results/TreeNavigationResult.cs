@@ -1,152 +1,204 @@
 using System.Text.Json.Serialization;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared;
 
 namespace UIAutomationMCP.Shared.Results
 {
+    /// <summary>
+    /// ツリーナビゲーション結果
+    /// ElementInfoベースのクラスを使用してプロパティ重複を削除
+    /// </summary>
     public class TreeNavigationResult : BaseOperationResult
     {
-        [JsonPropertyName("elementId")]
-        public string? ElementId { get; set; }
+        /// <summary>
+        /// 対象要素のAutomationId
+        /// </summary>
+        [JsonPropertyName("automationId")]
+        public string? AutomationId { get; set; }
         
-        [JsonPropertyName("parentElementId")]
-        public string? ParentElementId { get; set; }
+        /// <summary>
+        /// 対象要素のName
+        /// </summary>
+        [JsonPropertyName("name")]
+        public string? Name { get; set; }
         
+        /// <summary>
+        /// 親要素のAutomationId
+        /// </summary>
+        [JsonPropertyName("parentAutomationId")]
+        public string? ParentAutomationId { get; set; }
+        
+        /// <summary>
+        /// 親要素のName
+        /// </summary>
+        [JsonPropertyName("parentName")]
+        public string? ParentName { get; set; }
+        
+        /// <summary>
+        /// 子要素のリスト
+        /// </summary>
         [JsonPropertyName("children")]
         public List<TreeElement> Children { get; set; } = new();
         
-        [JsonPropertyName("firstChildId")]
-        public string? FirstChildId { get; set; }
+        /// <summary>
+        /// 最初の子要素のAutomationId
+        /// </summary>
+        [JsonPropertyName("firstChildAutomationId")]
+        public string? FirstChildAutomationId { get; set; }
         
-        [JsonPropertyName("lastChildId")]
-        public string? LastChildId { get; set; }
+        /// <summary>
+        /// 最後の子要素のAutomationId
+        /// </summary>
+        [JsonPropertyName("lastChildAutomationId")]
+        public string? LastChildAutomationId { get; set; }
         
-        [JsonPropertyName("nextSiblingId")]
-        public string? NextSiblingId { get; set; }
+        /// <summary>
+        /// 次の兄弟要素のAutomationId
+        /// </summary>
+        [JsonPropertyName("nextSiblingAutomationId")]
+        public string? NextSiblingAutomationId { get; set; }
         
-        [JsonPropertyName("previousSiblingId")]
-        public string? PreviousSiblingId { get; set; }
+        /// <summary>
+        /// 前の兄弟要素のAutomationId
+        /// </summary>
+        [JsonPropertyName("previousSiblingAutomationId")]
+        public string? PreviousSiblingAutomationId { get; set; }
         
+        /// <summary>
+        /// 子要素数
+        /// </summary>
         [JsonPropertyName("childCount")]
         public int ChildCount { get; set; }
         
+        /// <summary>
+        /// ツリー内の階層深度
+        /// </summary>
         [JsonPropertyName("depth")]
         public int Depth { get; set; }
         
+        /// <summary>
+        /// ツリーパス
+        /// </summary>
         [JsonPropertyName("treePath")]
         public string? TreePath { get; set; }
         
-        // 要素の詳細情報（オプション）
+        /// <summary>
+        /// 親要素の基本情報（オプション）
+        /// </summary>
         [JsonPropertyName("parentElement")]
-        public TreeElementInfo? ParentElement { get; set; }
+        public BasicElementInfo? ParentElement { get; set; }
         
+        /// <summary>
+        /// 最初の子要素の基本情報（オプション）
+        /// </summary>
         [JsonPropertyName("firstChildElement")]
-        public TreeElementInfo? FirstChildElement { get; set; }
+        public BasicElementInfo? FirstChildElement { get; set; }
         
+        /// <summary>
+        /// 最後の子要素の基本情報（オプション）
+        /// </summary>
         [JsonPropertyName("lastChildElement")]
-        public TreeElementInfo? LastChildElement { get; set; }
+        public BasicElementInfo? LastChildElement { get; set; }
         
+        /// <summary>
+        /// 次の兄弟要素の基本情報（オプション）
+        /// </summary>
         [JsonPropertyName("nextSiblingElement")]
-        public TreeElementInfo? NextSiblingElement { get; set; }
+        public BasicElementInfo? NextSiblingElement { get; set; }
         
+        /// <summary>
+        /// 前の兄弟要素の基本情報（オプション）
+        /// </summary>
         [JsonPropertyName("previousSiblingElement")]
-        public TreeElementInfo? PreviousSiblingElement { get; set; }
+        public BasicElementInfo? PreviousSiblingElement { get; set; }
         
+        /// <summary>
+        /// ナビゲーション種別
+        /// </summary>
         [JsonPropertyName("navigationType")]
         public string? NavigationType { get; set; }
         
+        /// <summary>
+        /// 要素のリスト
+        /// </summary>
         [JsonPropertyName("elements")]
         public List<TreeElement> Elements { get; set; } = new();
     }
 
-    public class TreeElement
+    /// <summary>
+    /// ツリー要素
+    /// ElementInfoを継承してツリー特有のプロパティを追加
+    /// </summary>
+    public class TreeElement : ElementInfo
     {
-        [JsonPropertyName("elementId")]
-        public string ElementId { get; set; } = "";
+        /// <summary>
+        /// 親要素のAutomationId
+        /// </summary>
+        [JsonPropertyName("parentAutomationId")]
+        public string? ParentAutomationId { get; set; }
         
-        [JsonPropertyName("parentElementId")]
-        public string? ParentElementId { get; set; }
+        /// <summary>
+        /// 親要素のName
+        /// </summary>
+        [JsonPropertyName("parentName")]
+        public string? ParentName { get; set; }
         
-        [JsonPropertyName("name")]
-        public string? Name { get; set; }
-        
-        [JsonPropertyName("automationId")]
-        public string? AutomationId { get; set; }
-        
-        [JsonPropertyName("className")]
-        public string? ClassName { get; set; }
-        
-        [JsonPropertyName("controlType")]
-        public string? ControlType { get; set; }
-        
-        [JsonPropertyName("localizedControlType")]
-        public string? LocalizedControlType { get; set; }
-        
-        [JsonPropertyName("isEnabled")]
-        public bool IsEnabled { get; set; }
-        
-        [JsonPropertyName("isKeyboardFocusable")]
-        public bool IsKeyboardFocusable { get; set; }
-        
-        [JsonPropertyName("hasKeyboardFocus")]
-        public bool HasKeyboardFocus { get; set; }
-        
-        [JsonPropertyName("isPassword")]
-        public bool IsPassword { get; set; }
-        
-        [JsonPropertyName("isOffscreen")]
-        public bool IsOffscreen { get; set; }
-        
-        [JsonPropertyName("boundingRectangle")]
-        public BoundingRectangle BoundingRectangle { get; set; } = new();
-        
-        [JsonPropertyName("supportedPatterns")]
-        public List<string> SupportedPatterns { get; set; } = new();
-        
-        [JsonPropertyName("processId")]
-        public int ProcessId { get; set; }
-        
+        /// <summary>
+        /// RuntimeId（UI Automation内部識別子）
+        /// </summary>
         [JsonPropertyName("runtimeId")]
         public string? RuntimeId { get; set; }
         
-        [JsonPropertyName("frameworkId")]
-        public string? FrameworkId { get; set; }
-        
+        /// <summary>
+        /// ネイティブウィンドウハンドル
+        /// </summary>
         [JsonPropertyName("nativeWindowHandle")]
         public int NativeWindowHandle { get; set; }
         
+        /// <summary>
+        /// コントロール要素かどうか
+        /// </summary>
         [JsonPropertyName("isControlElement")]
         public bool IsControlElement { get; set; }
         
+        /// <summary>
+        /// コンテンツ要素かどうか
+        /// </summary>
         [JsonPropertyName("isContentElement")]
         public bool IsContentElement { get; set; }
         
+        /// <summary>
+        /// 子要素を持っているかどうか
+        /// </summary>
         [JsonPropertyName("hasChildren")]
         public bool HasChildren { get; set; }
         
+        /// <summary>
+        /// 子要素数
+        /// </summary>
         [JsonPropertyName("childCount")]
         public int ChildCount { get; set; }
+        
+        /// <summary>
+        /// キーボードフォーカス可能かどうか
+        /// </summary>
+        [JsonPropertyName("isKeyboardFocusable")]
+        public bool IsKeyboardFocusable { get; set; }
+        
+        /// <summary>
+        /// キーボードフォーカスを持っているかどうか
+        /// </summary>
+        [JsonPropertyName("hasKeyboardFocus")]
+        public bool HasKeyboardFocus { get; set; }
+        
+        /// <summary>
+        /// パスワードフィールドかどうか
+        /// </summary>
+        [JsonPropertyName("isPassword")]
+        public bool IsPassword { get; set; }
         
         // 子要素は再帰的に含めない（循環参照回避）
         [JsonIgnore]
         public List<TreeElement> Children { get; set; } = new();
-    }
-
-    // 基本情報のみを含む軽量版
-    public class TreeElementInfo
-    {
-        [JsonPropertyName("elementId")]
-        public string ElementId { get; set; } = "";
-        
-        [JsonPropertyName("name")]
-        public string? Name { get; set; }
-        
-        [JsonPropertyName("automationId")]
-        public string? AutomationId { get; set; }
-        
-        [JsonPropertyName("controlType")]
-        public string? ControlType { get; set; }
-        
-        [JsonPropertyName("isEnabled")]
-        public bool IsEnabled { get; set; }
     }
 }
