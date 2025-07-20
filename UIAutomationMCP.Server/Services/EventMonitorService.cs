@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Requests;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services
@@ -26,16 +27,16 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting MonitorEvents for EventType={eventType}, Duration={duration}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new MonitorEventsRequest
                 {
-                    { "eventType", eventType },
-                    { "duration", duration },
-                    { "elementId", elementId ?? "" },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    EventTypes = new[] { eventType },
+                    Duration = duration,
+                    ElementId = elementId ?? "",
+                    WindowTitle = windowTitle,
+                    ProcessId = processId
                 };
 
-                var result = await _executor.ExecuteAsync<EventMonitoringResult>("MonitorEvents", parameters, duration + 30); // Add buffer to timeout
+                var result = await _executor.ExecuteAsync<MonitorEventsRequest, EventMonitoringResult>("MonitorEvents", request, duration + 30); // Add buffer to timeout
 
                 stopwatch.Stop();
                 
@@ -60,7 +61,14 @@ namespace UIAutomationMCP.Server.Services
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "MonitorEventsAsync",
-                        RequestParameters = parameters,
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["eventTypes"] = request.EventTypes,
+                            ["duration"] = request.Duration,
+                            ["elementId"] = request.ElementId,
+                            ["windowTitle"] = request.WindowTitle ?? "",
+                            ["processId"] = request.ProcessId ?? 0
+                        },
                         TimeoutSeconds = duration + 30
                     }
                 };
@@ -106,15 +114,15 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting StartEventMonitoring for EventType={eventType}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new StartEventMonitoringRequest
                 {
-                    { "eventType", eventType },
-                    { "elementId", elementId ?? "" },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    EventTypes = new[] { eventType },
+                    ElementId = elementId ?? "",
+                    WindowTitle = windowTitle,
+                    ProcessId = processId
                 };
 
-                var result = await _executor.ExecuteAsync<EventMonitoringStartResult>("StartEventMonitoring", parameters, 30);
+                var result = await _executor.ExecuteAsync<StartEventMonitoringRequest, EventMonitoringStartResult>("StartEventMonitoring", request, 30);
 
                 stopwatch.Stop();
                 
@@ -138,7 +146,13 @@ namespace UIAutomationMCP.Server.Services
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "StartEventMonitoringAsync",
-                        RequestParameters = parameters,
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["eventTypes"] = request.EventTypes,
+                            ["elementId"] = request.ElementId,
+                            ["windowTitle"] = request.WindowTitle ?? "",
+                            ["processId"] = request.ProcessId ?? 0
+                        },
                         TimeoutSeconds = 30
                     }
                 };
@@ -184,9 +198,12 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformationWithOperation(operationId, "Starting StopEventMonitoring");
 
-                var parameters = new Dictionary<string, object>();
+                var request = new StopEventMonitoringRequest
+                {
+                    MonitorId = ""
+                };
 
-                var result = await _executor.ExecuteAsync<EventMonitoringStopResult>("StopEventMonitoring", parameters, 30);
+                var result = await _executor.ExecuteAsync<StopEventMonitoringRequest, EventMonitoringStopResult>("StopEventMonitoring", request, 30);
 
                 stopwatch.Stop();
                 
@@ -203,7 +220,10 @@ namespace UIAutomationMCP.Server.Services
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "StopEventMonitoringAsync",
-                        RequestParameters = parameters,
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["monitorId"] = request.MonitorId
+                        },
                         TimeoutSeconds = 30
                     }
                 };
@@ -249,9 +269,13 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformationWithOperation(operationId, "Starting GetEventLog");
 
-                var parameters = new Dictionary<string, object>();
+                var request = new GetEventLogRequest
+                {
+                    MonitorId = "",
+                    MaxCount = 100
+                };
 
-                var result = await _executor.ExecuteAsync<EventLogResult>("GetEventLog", parameters, 30);
+                var result = await _executor.ExecuteAsync<GetEventLogRequest, EventLogResult>("GetEventLog", request, 30);
 
                 stopwatch.Stop();
                 
@@ -268,7 +292,11 @@ namespace UIAutomationMCP.Server.Services
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "GetEventLogAsync",
-                        RequestParameters = parameters,
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["monitorId"] = request.MonitorId,
+                            ["maxCount"] = request.MaxCount
+                        },
                         TimeoutSeconds = 30
                     }
                 };
