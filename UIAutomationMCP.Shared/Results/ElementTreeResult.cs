@@ -37,7 +37,6 @@ namespace UIAutomationMCP.Shared.Results
         public string? RuntimeId { get; set; }
         public string? FrameworkId { get; set; }
         public List<TreeNode> Children { get; set; } = new();
-        public Dictionary<string, object> Properties { get; set; } = new();
         public List<string> SupportedPatterns { get; set; } = new();
         public int Depth { get; set; }
         public bool IsExpanded { get; set; }

@@ -126,9 +126,6 @@ namespace UIAutomationMCP.Shared
         [JsonPropertyName("accessibility")]
         public AccessibilityInfo? Accessibility { get; set; }
 
-        // 下位互換用 - 将来的に削除予定
-        [JsonIgnore]
-        public Dictionary<string, object> Properties { get; set; } = new();
     }
 
     public class BoundingRectangle
@@ -229,7 +226,6 @@ namespace UIAutomationMCP.Shared
         public bool IsVisible { get; set; }
         public bool HasKeyboardFocus { get; set; }
         public List<ElementTreeNode> Children { get; set; } = new();
-        public Dictionary<string, object> Properties { get; set; } = new();
     }
 
     // Worker communication models
