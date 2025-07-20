@@ -32,17 +32,20 @@ namespace UIAutomationMCP.Shared.Requests
     public class GetCustomPropertiesRequest : ElementTargetRequest
     {
         public override string Operation => "GetCustomProperties";
+
+        [JsonPropertyName("propertyIds")]
+        public string[] PropertyIds { get; set; } = [];
     }
 
     public class SetCustomPropertyRequest : ElementTargetRequest
     {
         public override string Operation => "SetCustomProperty";
 
-        [JsonPropertyName("propertyName")]
-        public string PropertyName { get; set; } = "";
+        [JsonPropertyName("propertyId")]
+        public string PropertyId { get; set; } = "";
 
-        [JsonPropertyName("propertyValue")]
-        public string PropertyValue { get; set; } = "";
+        [JsonPropertyName("value")]
+        public string Value { get; set; } = "";
     }
 
     public class ValidateControlTypePatternsRequest : ElementTargetRequest

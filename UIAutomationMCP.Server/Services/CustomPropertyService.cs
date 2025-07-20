@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.Requests;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services
@@ -64,15 +65,15 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformationWithOperation(operationId, $"Getting custom properties for element: {elementId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new GetCustomPropertiesRequest
                 {
-                    { "elementId", elementId },
-                    { "propertyIds", propertyIds },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    PropertyIds = propertyIds,
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("GetCustomProperties", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<GetCustomPropertiesRequest, ElementSearchResult>("GetCustomProperties", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ElementSearchResult>
                 {
@@ -230,16 +231,16 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformationWithOperation(operationId, $"Setting custom property for element: {elementId}, Property: {propertyId}");
 
-                var parameters = new Dictionary<string, object>
+                var request = new SetCustomPropertyRequest
                 {
-                    { "elementId", elementId },
-                    { "propertyId", propertyId },
-                    { "value", value },
-                    { "windowTitle", windowTitle ?? "" },
-                    { "processId", processId ?? 0 }
+                    ElementId = elementId,
+                    PropertyId = propertyId,
+                    Value = value?.ToString() ?? "",
+                    WindowTitle = windowTitle ?? "",
+                    ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<ElementSearchResult>("SetCustomProperty", parameters, timeoutSeconds);
+                var result = await _executor.ExecuteAsync<SetCustomPropertyRequest, ElementSearchResult>("SetCustomProperty", request, timeoutSeconds);
 
                 var successResponse = new ServerEnhancedResponse<ElementSearchResult>
                 {
