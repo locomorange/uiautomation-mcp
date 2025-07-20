@@ -259,7 +259,7 @@ namespace UIAutomationMCP.Server.Services
                         {
                             ["elementId"] = elementId,
                             ["propertyId"] = propertyId,
-                            ["value"] = value,
+                            ["value"] = value ?? "",
                             ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
@@ -296,7 +296,7 @@ namespace UIAutomationMCP.Server.Services
                         {
                             ["elementId"] = elementId,
                             ["propertyId"] = propertyId,
-                            ["value"] = value,
+                            ["value"] = value ?? "",
                             ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds

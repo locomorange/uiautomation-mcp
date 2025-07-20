@@ -341,7 +341,7 @@ namespace UIAutomationMCP.Server.Services
             });
         }
 
-        private async Task<Dictionary<string, object>?> GetWindowInfoFromWorker(string? windowTitle, int? processId)
+        private Task<Dictionary<string, object>?> GetWindowInfoFromWorker(string? windowTitle, int? processId)
         {
             try
             {
@@ -361,7 +361,7 @@ namespace UIAutomationMCP.Server.Services
                 // TODO: Create GetWindowInfo operation in Worker, or remove this functionality
                 // For now, returning null to avoid breaking the build
                 _logger.LogWarning("GetWindowInfo operation not available - returning null");
-                return null;
+                return Task.FromResult<Dictionary<string, object>?>(null);
                 
                 // Commented out until GetWindowInfo operation is implemented:
                 // var result = await _executor.ExecuteAsync<GetWindowInfoRequest, WindowInfoResult>("GetWindowInfo", request, 10);
@@ -370,7 +370,7 @@ namespace UIAutomationMCP.Server.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to get window info from worker");
-                return null;
+                return Task.FromResult<Dictionary<string, object>?>(null);
             }
         }
 
