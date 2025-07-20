@@ -603,14 +603,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _selectionService.IsSelectedAsync(elementId, windowTitle, processId, timeoutSeconds));
 
-        // Element Value Operations
-        [McpServerTool, Description("Get the value of an element")]
-        public async Task<object> GetElementValue(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _valueService.GetValueAsync(elementId, windowTitle, processId, timeoutSeconds));
 
         [McpServerTool, Description("Check if an element is read-only")]
         public async Task<object> IsElementReadOnly(

@@ -158,7 +158,6 @@ namespace UIAutomationMCP.Server.Helpers
                 "ToggleElement" => "Toggle",
                 "InvokeElement" => "Invoke",
                 "SetElementValue" => "Set Value",
-                "GetElementValue" => "Get Value",
                 "GetText" => "Get Text",
                 "SetText" => "Set Text",
                 "SelectText" => "Select Text",

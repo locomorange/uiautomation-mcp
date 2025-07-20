@@ -25,7 +25,7 @@ namespace UIAutomationMCP.Server.Helpers
 
             try
             {
-                // Value関連情報 (GetElementValue相当)
+                // Value関連情報
                 var valueInfo = GetValueInfo(element);
                 if (valueInfo != null)
                 {
@@ -182,7 +182,7 @@ namespace UIAutomationMCP.Server.Helpers
         }
 
         /// <summary>
-        /// GetElementValue操作相当の詳細な値情報を取得
+        /// 詳細な値情報を取得
         /// </summary>
         public Dictionary<string, object>? GetValueInfo(AutomationElement element)
         {

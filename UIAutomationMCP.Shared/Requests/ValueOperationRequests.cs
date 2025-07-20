@@ -3,14 +3,6 @@ using System.Text.Json.Serialization;
 namespace UIAutomationMCP.Shared.Requests
 {
     /// <summary>
-    /// Get element value request parameters
-    /// </summary>
-    public class GetElementValueRequest : ElementTargetRequest
-    {
-        public override string Operation => "GetElementValue";
-    }
-
-    /// <summary>
     /// Set element value request parameters
     /// </summary>
     public class SetElementValueRequest : ElementTargetRequest
@@ -36,5 +28,4 @@ namespace UIAutomationMCP.Shared.Requests
     {
         public override string Operation => "IsReadOnly";
     }
-
 }

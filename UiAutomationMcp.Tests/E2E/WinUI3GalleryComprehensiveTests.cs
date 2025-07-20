@@ -472,7 +472,7 @@ namespace UIAutomationMCP.Tests.E2E
                                     await Tools.TakeScreenshot("WinUI 3 Gallery", @"C:\temp\before_value_test.png");
                                     
                                     // Get initial value
-                                    var initialValue = await Tools.GetElementValue(automationId, windowTitle: "WinUI 3 Gallery");
+                                    var initialValue = await Tools.GetElementInfo(automationId, windowTitle: "WinUI 3 Gallery");
                                     Output.WriteLine($"Initial value: {JsonSerializer.Serialize(initialValue)}");
                                     
                                     // Set a test value
@@ -488,7 +488,7 @@ namespace UIAutomationMCP.Tests.E2E
                                     await Tools.TakeScreenshot("WinUI 3 Gallery", @"C:\temp\after_value_test.png");
                                     
                                     // Get value after setting
-                                    var afterValue = await Tools.GetElementValue(automationId, windowTitle: "WinUI 3 Gallery");
+                                    var afterValue = await Tools.GetElementInfo(automationId, windowTitle: "WinUI 3 Gallery");
                                     Output.WriteLine($"After value: {JsonSerializer.Serialize(afterValue)}");
                                     
                                     // Verify the operation worked

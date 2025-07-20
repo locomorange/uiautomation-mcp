@@ -383,36 +383,6 @@ namespace UIAutomationMCP.Tests.Tools
             _output.WriteLine("SetElementValue test passed");
         }
 
-        [Fact]
-        public async Task GetElementValue_Success_GetsValue()
-        {
-            // Arrange
-            var resultObject = new TextInfoResult
-            {
-                Success = true,
-                ElementId = "textBox",
-                Text = "Current Value",
-                // WindowTitle not available in ElementSearchResult,
-                HasText = true,
-            };
-            var serverResponse = new ServerEnhancedResponse<TextInfoResult>
-            {
-                Success = true,
-                Data = resultObject,
-                ExecutionInfo = new ServerExecutionInfo(),
-                RequestMetadata = new RequestMetadata()
-            };
-            _mockValueService.Setup(s => s.GetValueAsync("textBox", "TestWindow", null, 30))
-                                 .Returns(Task.FromResult(serverResponse));
-
-            // Act
-            var result = await _tools.GetElementValue("textBox", "TestWindow");
-
-            // Assert
-            Assert.NotNull(result);
-            _mockValueService.Verify(s => s.GetValueAsync("textBox", "TestWindow", null, 30), Times.Once);
-            _output.WriteLine("GetElementValue test passed");
-        }
 
         [Fact]
         public async Task IsElementReadOnly_Success_ReturnsReadOnlyStatus()

@@ -110,9 +110,9 @@ namespace UIAutomationMCP.Tests.E2E
                         var setValue = await _tools.SetElementValue(textBoxId!, "Hello from MCP Test!", windowTitle: "WinUI 3 Gallery");
                         LogResult("SetElementValue result", setValue);
                         
-                        // Get the value back
-                        var getValue = await _tools.GetElementValue(textBoxId!, windowTitle: "WinUI 3 Gallery");
-                        LogResult("GetElementValue result", getValue);
+                        // Get the value back using GetElementInfo
+                        var getValue = await _tools.GetElementInfo(textBoxId!, windowTitle: "WinUI 3 Gallery");
+                        LogResult("GetElementInfo result", getValue);
                     }
                 }
 
