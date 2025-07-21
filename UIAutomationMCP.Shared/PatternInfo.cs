@@ -289,26 +289,12 @@ namespace UIAutomationMCP.Shared
     public class TableItemInfo
     {
         [JsonPropertyName("columnHeaders")]
-        public List<HeaderInfo> ColumnHeaders { get; set; } = new();
+        public List<ElementInfo> ColumnHeaders { get; set; } = new();
         
         [JsonPropertyName("rowHeaders")]
-        public List<HeaderInfo> RowHeaders { get; set; } = new();
+        public List<ElementInfo> RowHeaders { get; set; } = new();
     }
 
-    /// <summary>
-    /// Header情報
-    /// </summary>
-    public class HeaderInfo
-    {
-        [JsonPropertyName("automationId")]
-        public string AutomationId { get; set; } = string.Empty;
-        
-        [JsonPropertyName("name")]
-        public string Name { get; set; } = string.Empty;
-        
-        [JsonPropertyName("controlType")]
-        public string ControlType { get; set; } = string.Empty;
-    }
 
     /// <summary>
     /// Table Pattern情報
@@ -325,10 +311,10 @@ namespace UIAutomationMCP.Shared
         public string RowOrColumnMajor { get; set; } = string.Empty;
         
         [JsonPropertyName("columnHeaders")]
-        public List<HeaderInfo> ColumnHeaders { get; set; } = new();
+        public List<ElementInfo> ColumnHeaders { get; set; } = new();
         
         [JsonPropertyName("rowHeaders")]
-        public List<HeaderInfo> RowHeaders { get; set; } = new();
+        public List<ElementInfo> RowHeaders { get; set; } = new();
         
         [JsonPropertyName("primaryRowHeaderIndex")]
         public int PrimaryRowHeaderIndex { get; set; } = -1;

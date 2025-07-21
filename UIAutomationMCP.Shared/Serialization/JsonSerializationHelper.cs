@@ -391,7 +391,6 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(GridItemInfo))]
     [JsonSerializable(typeof(TableItemInfo))]
     [JsonSerializable(typeof(TableInfo))]
-    [JsonSerializable(typeof(HeaderInfo))]
     [JsonSerializable(typeof(InvokeInfo))]
     [JsonSerializable(typeof(ScrollItemInfo))]
     [JsonSerializable(typeof(VirtualizedItemInfo))]

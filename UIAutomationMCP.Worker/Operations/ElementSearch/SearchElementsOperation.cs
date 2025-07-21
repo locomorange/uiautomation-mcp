@@ -440,15 +440,15 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 if (element.TryGetCachedPattern(TablePattern.Pattern, out var tablePatternObj) && 
                     tablePatternObj is TablePattern tablePattern)
                 {
-                    var rowHeaders = new List<HeaderInfo>();
-                    var columnHeaders = new List<HeaderInfo>();
+                    var rowHeaders = new List<ElementInfo>();
+                    var columnHeaders = new List<ElementInfo>();
                     
                     try
                     {
                         var rowHeaderElements = tablePattern.Cached.GetRowHeaders();
                         foreach (var header in rowHeaderElements)
                         {
-                            rowHeaders.Add(new HeaderInfo
+                            rowHeaders.Add(new ElementInfo
                             {
                                 AutomationId = header.Cached.AutomationId ?? "",
                                 Name = header.Cached.Name ?? "",
@@ -459,7 +459,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                         var columnHeaderElements = tablePattern.Cached.GetColumnHeaders();
                         foreach (var header in columnHeaderElements)
                         {
-                            columnHeaders.Add(new HeaderInfo
+                            columnHeaders.Add(new ElementInfo
                             {
                                 AutomationId = header.Cached.AutomationId ?? "",
                                 Name = header.Cached.Name ?? "",
@@ -618,15 +618,15 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 if (element.TryGetCachedPattern(TableItemPattern.Pattern, out var tableItemPatternObj) && 
                     tableItemPatternObj is TableItemPattern tableItemPattern)
                 {
-                    var rowHeaderItems = new List<HeaderInfo>();
-                    var columnHeaderItems = new List<HeaderInfo>();
+                    var rowHeaderItems = new List<ElementInfo>();
+                    var columnHeaderItems = new List<ElementInfo>();
                     
                     try
                     {
                         var rowHeaders = tableItemPattern.Cached.GetRowHeaderItems();
                         foreach (var header in rowHeaders)
                         {
-                            rowHeaderItems.Add(new HeaderInfo
+                            rowHeaderItems.Add(new ElementInfo
                             {
                                 AutomationId = header.Cached.AutomationId ?? "",
                                 Name = header.Cached.Name ?? "",
@@ -637,7 +637,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                         var columnHeaders = tableItemPattern.Cached.GetColumnHeaderItems();
                         foreach (var header in columnHeaders)
                         {
-                            columnHeaderItems.Add(new HeaderInfo
+                            columnHeaderItems.Add(new ElementInfo
                             {
                                 AutomationId = header.Cached.AutomationId ?? "",
                                 Name = header.Cached.Name ?? "",
