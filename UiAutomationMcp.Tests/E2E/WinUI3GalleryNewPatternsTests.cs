@@ -38,7 +38,6 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
 
             // Step 2: Find ListView or similar virtualized control
             var listViews = await Tools.FindElements(
-                windowTitle: "WinUI 3 Gallery",
                 controlType: "ListView");
             _output.WriteLine($"ListView controls found: {JsonSerializer.Serialize(listViews, new JsonSerializerOptions { WriteIndented = true })}");
 
@@ -48,7 +47,6 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
                 // Try to realize a virtualized item that might not be visible
                 var realizeResult = await Tools.RealizeVirtualizedItem(
                     "Item_50", // Assuming there's an item with this ID
-                    windowTitle: "WinUI 3 Gallery",
                     timeoutSeconds: 10);
 
                 _output.WriteLine($"Realize virtualized item result: {JsonSerializer.Serialize(realizeResult, new JsonSerializerOptions { WriteIndented = true })}");
@@ -56,7 +54,6 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
                 // Alternative: Try with different naming patterns
                 var realizeResult2 = await Tools.RealizeVirtualizedItem(
                     "ListViewItem_50",
-                    windowTitle: "WinUI 3 Gallery",
                     timeoutSeconds: 5);
 
                 _output.WriteLine($"Realize virtualized item result 2: {JsonSerializer.Serialize(realizeResult2, new JsonSerializerOptions { WriteIndented = true })}");
@@ -64,7 +61,6 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
 
             // Step 4: Try with ScrollViewer (which often contains virtualized content)
             var scrollViewers = await Tools.FindElements(
-                windowTitle: "WinUI 3 Gallery",
                 controlType: "ScrollViewer");
             _output.WriteLine($"ScrollViewer controls found: {JsonSerializer.Serialize(scrollViewers, new JsonSerializerOptions { WriteIndented = true })}");
 
@@ -100,7 +96,6 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
                 try
                 {
                     var containers = await Tools.FindElements(
-                        windowTitle: "WinUI 3 Gallery",
                         controlType: controlType);
                     _output.WriteLine($"{controlType} containers found: {JsonSerializer.Serialize(containers, new JsonSerializerOptions { WriteIndented = true })}");
 
@@ -112,7 +107,6 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
                             "MainContainer", // Generic container ID
                             propertyName: "Name",
                             value: "Sample Item",
-                            windowTitle: "WinUI 3 Gallery",
                             timeoutSeconds: 5);
 
                         _output.WriteLine($"Find item by property result for {controlType}: {JsonSerializer.Serialize(findResult, new JsonSerializerOptions { WriteIndented = true })}");
@@ -122,7 +116,6 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
                             "MainContainer",
                             propertyName: "ControlType",
                             value: "ListItem",
-                            windowTitle: "WinUI 3 Gallery",
                             timeoutSeconds: 5);
 
                         _output.WriteLine($"Find item by ControlType result for {controlType}: {JsonSerializer.Serialize(findResult2, new JsonSerializerOptions { WriteIndented = true })}");
@@ -166,7 +159,6 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
                 try
                 {
                     var controls = await Tools.FindElements(
-                        windowTitle: "WinUI 3 Gallery",
                         controlType: controlType);
                     _output.WriteLine($"{controlType} controls found: {JsonSerializer.Serialize(controls, new JsonSerializerOptions { WriteIndented = true })}");
 
@@ -177,7 +169,6 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
                         var startResult = await Tools.StartSynchronizedInput(
                             "MainControl", // Generic control ID
                             inputType: "KeyDown",
-                            windowTitle: "WinUI 3 Gallery",
                             timeoutSeconds: 5);
 
                         _output.WriteLine($"Start synchronized input result for {controlType}: {JsonSerializer.Serialize(startResult, new JsonSerializerOptions { WriteIndented = true })}");
@@ -187,8 +178,7 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
 
                         // Cancel synchronized input
                         var cancelResult = await Tools.CancelSynchronizedInput(
-                            "MainControl",
-                            windowTitle: "WinUI 3 Gallery");
+                            "MainControl");
 
                         _output.WriteLine($"Cancel synchronized input result for {controlType}: {JsonSerializer.Serialize(cancelResult, new JsonSerializerOptions { WriteIndented = true })}");
                     }
@@ -224,7 +214,7 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
             await Task.Delay(2000);
 
             // Step 2: Get comprehensive element tree to understand the structure
-            var elementTree = await Tools.GetElementTree(windowTitle: "WinUI 3 Gallery", maxDepth: 4);
+            var elementTree = await Tools.GetElementTree(maxDepth: 4);
             _output.WriteLine($"Comprehensive element tree: {JsonSerializer.Serialize(elementTree, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 3: Test VirtualizedItemPattern - Try to realize multiple items
@@ -235,7 +225,6 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
                 {
                     var realizeResult = await Tools.RealizeVirtualizedItem(
                         target,
-                        windowTitle: "WinUI 3 Gallery",
                         timeoutSeconds: 3);
                     _output.WriteLine($"Realize {target} result: {JsonSerializer.Serialize(realizeResult, new JsonSerializerOptions { WriteIndented = true })}");
                 }
@@ -263,7 +252,6 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
                         "MainWindow",
                         propertyName: propertyName,
                         value: value,
-                        windowTitle: "WinUI 3 Gallery",
                         timeoutSeconds: 3);
                     _output.WriteLine($"Find by {propertyName}={value} result: {JsonSerializer.Serialize(findResult, new JsonSerializerOptions { WriteIndented = true })}");
                 }
@@ -283,7 +271,6 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
                     var startResult = await Tools.StartSynchronizedInput(
                         target,
                         inputType: "LeftMouseButton",
-                        windowTitle: "WinUI 3 Gallery",
                         timeoutSeconds: 2);
                     _output.WriteLine($"Start sync input for {target}: {JsonSerializer.Serialize(startResult, new JsonSerializerOptions { WriteIndented = true })}");
 
@@ -292,8 +279,7 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
 
                     // Cancel synchronized input
                     var cancelResult = await Tools.CancelSynchronizedInput(
-                        target,
-                        windowTitle: "WinUI 3 Gallery");
+                        target);
                     _output.WriteLine($"Cancel sync input for {target}: {JsonSerializer.Serialize(cancelResult, new JsonSerializerOptions { WriteIndented = true })}");
                 }
                 catch (Exception ex)
@@ -331,7 +317,7 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
             _output.WriteLine($"Initial screenshot captured: {initialScreenshot != null}");
 
             // Step 3: Discover the navigation structure
-            var navigationStructure = await Tools.GetElementTree(windowTitle: "WinUI 3 Gallery", maxDepth: 3);
+            var navigationStructure = await Tools.GetElementTree(maxDepth: 3);
             _output.WriteLine($"Navigation structure: {JsonSerializer.Serialize(navigationStructure, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 4: Find all navigation items using ItemContainerPattern
@@ -339,7 +325,6 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
                 "NavigationView",
                 propertyName: "ControlType",
                 value: "NavigationViewItem",
-                windowTitle: "WinUI 3 Gallery",
                 timeoutSeconds: 10);
             _output.WriteLine($"Navigation items found: {JsonSerializer.Serialize(navFindResult, new JsonSerializerOptions { WriteIndented = true })}");
 
@@ -351,7 +336,6 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
                 {
                     var realizeResult = await Tools.RealizeVirtualizedItem(
                         target,
-                        windowTitle: "WinUI 3 Gallery",
                         timeoutSeconds: 2);
                     _output.WriteLine($"Realize navigation item {target}: {JsonSerializer.Serialize(realizeResult, new JsonSerializerOptions { WriteIndented = true })}");
                 }
@@ -365,7 +349,6 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
             var syncNavResult = await Tools.StartSynchronizedInput(
                 "NavigationView",
                 inputType: "LeftMouseButton",
-                windowTitle: "WinUI 3 Gallery",
                 timeoutSeconds: 5);
             _output.WriteLine($"Synchronized navigation input started: {JsonSerializer.Serialize(syncNavResult, new JsonSerializerOptions { WriteIndented = true })}");
 
@@ -374,8 +357,7 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
 
             // Step 8: Cancel synchronized input
             var cancelNavResult = await Tools.CancelSynchronizedInput(
-                "NavigationView",
-                windowTitle: "WinUI 3 Gallery");
+                "NavigationView");
             _output.WriteLine($"Synchronized navigation input cancelled: {JsonSerializer.Serialize(cancelNavResult, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 9: Final screenshot

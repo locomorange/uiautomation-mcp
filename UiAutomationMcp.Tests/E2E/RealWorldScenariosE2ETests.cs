@@ -38,7 +38,6 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
                 "WorksheetGrid",
                 propertyName: "ControlType",
                 value: "DataGrid",
-                windowTitle: "Microsoft Excel",
                 timeoutSeconds: 10);
 
             var worksheetDict = worksheetResult as Dictionary<string, object>;
@@ -49,7 +48,6 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
             // Step 2: Realize a cell that's far down (likely virtualized)
             var cellResult = await Tools.RealizeVirtualizedItem(
                 "Cell_A1000", // Cell A1000 is likely virtualized
-                windowTitle: "Microsoft Excel",
                 timeoutSeconds: 10);
 
             var cellDict = cellResult as Dictionary<string, object>;
@@ -61,7 +59,6 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
             var syncResult = await Tools.StartSynchronizedInput(
                 "Cell_A1000",
                 inputType: "KeyDown",
-                windowTitle: "Microsoft Excel",
                 timeoutSeconds: 5);
 
             var syncDict = syncResult as Dictionary<string, object>;
@@ -74,8 +71,7 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
 
             // Step 5: Cancel synchronized input
             await Tools.CancelSynchronizedInput(
-                "Cell_A1000",
-                windowTitle: "Microsoft Excel");
+                "Cell_A1000");
             _output.WriteLine("Completed Excel automation scenario");
 
             return excelProcess;
@@ -98,7 +94,6 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
                 "SolutionExplorer",
                 propertyName: "Name",
                 value: "Solution Explorer",
-                windowTitle: "Visual Studio",
                 timeoutSeconds: 15);
 
             var solutionDict = solutionExplorerResult as Dictionary<string, object>;
@@ -113,7 +108,6 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
                 containerId,
                 propertyName: "Name",
                 value: "MyProject.Tests",
-                windowTitle: "Visual Studio",
                 timeoutSeconds: 10);
 
             var projectDict = projectResult as Dictionary<string, object>;
@@ -124,7 +118,6 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
                 
                 var realizeResult = await Tools.RealizeVirtualizedItem(
                     "TestProjects",
-                    windowTitle: "Visual Studio",
                     timeoutSeconds: 10);
 
                 // Retry finding the project
@@ -132,7 +125,6 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
                     containerId,
                     propertyName: "Name",
                     value: "MyProject.Tests",
-                    windowTitle: "Visual Studio",
                     timeoutSeconds: 10);
                 
                 projectDict = projectResult as Dictionary<string, object>;
@@ -162,7 +154,6 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
                 "ItemsView",
                 propertyName: "ClassName",
                 value: "UIItemsView",
-                windowTitle: "System32",
                 timeoutSeconds: 10);
 
             var filesDict = filesListResult as Dictionary<string, object>;
@@ -176,7 +167,6 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
             var syncResult = await Tools.StartSynchronizedInput(
                 filesId,
                 inputType: "KeyDown", // For Ctrl key
-                windowTitle: "System32",
                 timeoutSeconds: 5);
 
             var syncDict = syncResult as Dictionary<string, object>;
@@ -198,7 +188,6 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
                     filesId,
                     propertyName: "Name",
                     value: dllName,
-                    windowTitle: "System32",
                     timeoutSeconds: 5);
 
                 var fileDict = fileResult as Dictionary<string, object>;
@@ -207,15 +196,13 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
                     // Try to realize if virtualized
                     await Tools.RealizeVirtualizedItem(
                         dllName,
-                        windowTitle: "System32",
                         timeoutSeconds: 5);
                 }
             }
 
             // Cancel synchronized input
             await Tools.CancelSynchronizedInput(
-                filesId,
-                windowTitle: "System32");
+                filesId);
             _output.WriteLine("Completed batch file selection scenario");
 
             return explorerProcess;
@@ -238,7 +225,6 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
                 "ContentArea",
                 propertyName: "ClassName",
                 value: "Chrome_RenderWidgetHostHWND",
-                windowTitle: "Example - Microsoft Edge",
                 timeoutSeconds: 10);
 
             var contentDict = contentResult as Dictionary<string, object>;
@@ -253,7 +239,6 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
                 
                 var realizeResult = await Tools.RealizeVirtualizedItem(
                     itemId,
-                    windowTitle: "Example - Microsoft Edge",
                     timeoutSeconds: 5);
 
                 var realizeDict = realizeResult as Dictionary<string, object>;
@@ -288,7 +273,6 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
                 "QueryResults",
                 propertyName: "ControlType",
                 value: "DataGrid",
-                windowTitle: "Database Application",
                 timeoutSeconds: 10);
 
             var gridDict = resultsGridResult as Dictionary<string, object>;
@@ -302,7 +286,6 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
             var syncResult = await Tools.StartSynchronizedInput(
                 gridId,
                 inputType: "KeyDown",
-                windowTitle: "Database Application",
                 timeoutSeconds: 5);
 
             var syncDict = syncResult as Dictionary<string, object>;
@@ -318,7 +301,6 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
                     gridId,
                     propertyName: "Name",
                     value: $"Record {recordId}",
-                    windowTitle: "Database Application",
                     timeoutSeconds: 5);
 
                 var recordDict = recordResult as Dictionary<string, object>;
@@ -329,7 +311,6 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
                     
                     var realizeResult = await Tools.RealizeVirtualizedItem(
                         $"Row_{recordId}",
-                        windowTitle: "Database Application",
                         timeoutSeconds: 10);
 
                     var realizeDict = realizeResult as Dictionary<string, object>;
@@ -342,8 +323,7 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
 
             // Step 4: Cancel synchronized input
             await Tools.CancelSynchronizedInput(
-                gridId,
-                windowTitle: "Database Application");
+                gridId);
             _output.WriteLine("Completed database navigation scenario");
 
             return dbAppProcess;

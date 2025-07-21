@@ -54,7 +54,6 @@ public class ItemContainerPatternIntegrationTests : IDisposable
             "NonExistentContainer",
             "Name",
             "TestItem",
-            windowTitle: "TestWindow",
             processId: 1234,
             timeoutSeconds: 1);
 
@@ -95,7 +94,6 @@ public class ItemContainerPatternIntegrationTests : IDisposable
             "ListContainer",
             "Name",
             "Item1",
-            windowTitle: "MyApp",
             processId: 5678,
             timeoutSeconds: 30);
 

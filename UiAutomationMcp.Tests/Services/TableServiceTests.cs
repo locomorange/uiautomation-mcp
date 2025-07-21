@@ -236,7 +236,7 @@ namespace UIAutomationMCP.Tests.Services
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tableService.GetColumnHeadersAsync(elementId, "Test Window", 1234, 30);
+            var result = await _tableService.GetColumnHeadersAsync(automationId: elementId, processId: 1234, timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
@@ -297,10 +297,10 @@ namespace UIAutomationMCP.Tests.Services
                 .Returns(Task.FromResult(new ElementSearchResult { Success = true }));
 
             // Act & Assert - Test all implemented members
-            var columnHeadersResult = await _tableService.GetColumnHeadersAsync(elementId, windowTitle, processId, 30);
-            var rowHeadersResult = await _tableService.GetRowHeadersAsync(elementId, windowTitle, processId, 30);
-            var columnHeaderItemsResult = await _tableService.GetColumnHeaderItemsAsync(elementId, windowTitle, processId, 30);
-            var rowHeaderItemsResult = await _tableService.GetRowHeaderItemsAsync(elementId, windowTitle, processId, 30);
+            var columnHeadersResult = await _tableService.GetColumnHeadersAsync(automationId: elementId, processId: processId, timeoutSeconds: 30);
+            var rowHeadersResult = await _tableService.GetRowHeadersAsync(automationId: elementId, processId: processId, timeoutSeconds: 30);
+            var columnHeaderItemsResult = await _tableService.GetColumnHeaderItemsAsync(automationId: elementId, processId: processId, timeoutSeconds: 30);
+            var rowHeaderItemsResult = await _tableService.GetRowHeaderItemsAsync(automationId: elementId, processId: processId, timeoutSeconds: 30);
 
             Assert.NotNull(columnHeadersResult);
             Assert.NotNull(rowHeadersResult);
@@ -331,7 +331,7 @@ namespace UIAutomationMCP.Tests.Services
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tableService.GetRowHeadersAsync(elementId, "Test", 1234, timeout);
+            var result = await _tableService.GetRowHeadersAsync(automationId: elementId, processId: 1234, timeoutSeconds: timeout);
 
             // Assert
             Assert.NotNull(result);

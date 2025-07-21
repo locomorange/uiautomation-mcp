@@ -37,11 +37,11 @@ namespace UIAutomationMCP.Tests.E2E
                 _output.WriteLine($"Window info: {JsonSerializer.Serialize(windowInfo, new JsonSerializerOptions { WriteIndented = true })}");
 
                 // Find elements in WinUI 3 Gallery
-                var elements = await _tools.FindElements(windowTitle: "WinUI 3 Gallery");
+                var elements = await _tools.FindElements();
                 _output.WriteLine($"WinUI 3 Gallery elements: {JsonSerializer.Serialize(elements, new JsonSerializerOptions { WriteIndented = true })}");
 
                 // Get element tree for better understanding
-                var tree = await _tools.GetElementTree(windowTitle: "WinUI 3 Gallery", maxDepth: 2);
+                var tree = await _tools.GetElementTree(maxDepth: 2);
                 _output.WriteLine($"WinUI 3 Gallery tree: {JsonSerializer.Serialize(tree, new JsonSerializerOptions { WriteIndented = true })}");
 
                 Assert.True(true, "WinUI 3 Gallery navigation test executed successfully");
@@ -62,7 +62,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find buttons in WinUI 3 Gallery
-                var buttons = await _tools.FindElements(controlType: "Button", windowTitle: "WinUI 3 Gallery");
+                var buttons = await _tools.FindElements(controlType: "Button");
                 _output.WriteLine($"Found buttons: {JsonSerializer.Serialize(buttons, new JsonSerializerOptions { WriteIndented = true })}");
 
                 Assert.True(true, "Button finding test executed successfully");
@@ -83,7 +83,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Take screenshot of WinUI 3 Gallery
-                var screenshot = await _tools.TakeScreenshot(windowTitle: "WinUI 3 Gallery");
+                var screenshot = await _tools.TakeScreenshot("WinUI 3 Gallery");
                 _output.WriteLine($"Screenshot result: {JsonSerializer.Serialize(screenshot, new JsonSerializerOptions { WriteIndented = true })}");
 
                 Assert.True(true, "Screenshot test executed successfully");
@@ -104,14 +104,14 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // First take a screenshot to see the current state
-                await _tools.TakeScreenshot(windowTitle: "WinUI 3 Gallery", outputPath: "C:\\temp\\gallery_before.png");
+                await _tools.TakeScreenshot("WinUI 3 Gallery", "C:\\temp\\gallery_before.png");
 
                 // Find navigation elements (like Navigation View or menu items)
-                var navElements = await _tools.FindElements(controlType: "ListItem", windowTitle: "WinUI 3 Gallery");
+                var navElements = await _tools.FindElements(controlType: "ListItem");
                 _output.WriteLine($"Navigation elements: {JsonSerializer.Serialize(navElements, new JsonSerializerOptions { WriteIndented = true })}");
 
                 // Look for TextBox-related navigation items
-                var textElements = await _tools.FindElements(searchText: "Text", windowTitle: "WinUI 3 Gallery");
+                var textElements = await _tools.FindElements(searchText: "Text");
                 _output.WriteLine($"Text-related elements: {JsonSerializer.Serialize(textElements, new JsonSerializerOptions { WriteIndented = true })}");
 
                 Assert.True(true, "TextBox navigation test executed successfully");
@@ -132,7 +132,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Get accessibility info for the main window
-                var accessibilityInfo = await _tools.VerifyAccessibility(windowTitle: "WinUI 3 Gallery");
+                var accessibilityInfo = await _tools.VerifyAccessibility("WinUI 3 Gallery");
                 _output.WriteLine($"Accessibility info: {JsonSerializer.Serialize(accessibilityInfo, new JsonSerializerOptions { WriteIndented = true })}");
 
                 Assert.True(true, "Accessibility test executed successfully");

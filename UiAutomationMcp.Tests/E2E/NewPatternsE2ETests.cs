@@ -40,7 +40,6 @@ public class NewPatternsE2ETests : BaseE2ETest
             // Act
             var result = await Tools.RealizeVirtualizedItem(
                 "VirtualizedListItem",
-                windowTitle: "File Explorer",
                 processId: explorerProcess.Id,
                 timeoutSeconds: 10);
 
@@ -71,12 +70,10 @@ public class NewPatternsE2ETests : BaseE2ETest
             // Find a virtualized item in the DataGrid
             var result = await Tools.RealizeVirtualizedItem(
                 "DataGridRow_100", // A row that's likely virtualized
-                windowTitle: "DataGrid Test App",
                 timeoutSeconds: 15);
 
             // Verify the item is now accessible
-            var elementInfo = await Tools.FindElements(
-                windowTitle: "DataGrid Test App");
+            var elementInfo = await Tools.FindElements();
 
             Assert.NotNull(elementInfo);
             // In a real scenario, we would verify the specific element is now in the tree
@@ -108,7 +105,6 @@ public class NewPatternsE2ETests : BaseE2ETest
                 "SettingsList",
                 propertyName: "Name",
                 value: "System",
-                windowTitle: "Settings",
                 timeoutSeconds: 10);
 
             var resultDict = result as Dictionary<string, object>;
@@ -137,7 +133,6 @@ public class NewPatternsE2ETests : BaseE2ETest
                 "FilesList",
                 propertyName: "Name",
                 value: null, // Find items with no name
-                windowTitle: "Windows",
                 timeoutSeconds: 10);
 
             _output.WriteLine($"Found item: {System.Text.Json.JsonSerializer.Serialize(result)}");
@@ -170,7 +165,6 @@ public class NewPatternsE2ETests : BaseE2ETest
             var startResult = await Tools.StartSynchronizedInput(
                 "SyncButton",
                 inputType: "LeftMouseDown",
-                windowTitle: "Sync Input Test",
                 timeoutSeconds: 10);
 
             var startDict = startResult as Dictionary<string, object>;
@@ -184,7 +178,6 @@ public class NewPatternsE2ETests : BaseE2ETest
             // Cancel synchronization
             var cancelResult = await Tools.CancelSynchronizedInput(
                 "SyncButton",
-                windowTitle: "Sync Input Test",
                 timeoutSeconds: 5);
             
             var cancelDict = cancelResult as Dictionary<string, object>;
@@ -209,7 +202,6 @@ public class NewPatternsE2ETests : BaseE2ETest
             var result = await Tools.StartSynchronizedInput(
                 "GameCanvas",
                 inputType: "KeyDown",
-                windowTitle: "Test Game",
                 timeoutSeconds: 10);
 
             var resultDict = result as Dictionary<string, object>;
@@ -221,8 +213,7 @@ public class NewPatternsE2ETests : BaseE2ETest
 
             // Cancel when done
             await Tools.CancelSynchronizedInput(
-                "GameCanvas",
-                windowTitle: "Test Game");
+                "GameCanvas");
 
             return gameProcess;
         }, _output, "Test Game", 10000);
@@ -249,8 +240,7 @@ public class NewPatternsE2ETests : BaseE2ETest
             var containerResult = await Tools.FindItemByProperty(
                 "MainList",
                 propertyName: "ControlType",
-                value: "List",
-                windowTitle: "Complex List App");
+                value: "List");
 
             var containerDict = containerResult as Dictionary<string, object>;
             Assert.NotNull(containerDict);
@@ -258,8 +248,7 @@ public class NewPatternsE2ETests : BaseE2ETest
 
             // Realize a virtualized item
             var realizeResult = await Tools.RealizeVirtualizedItem(
-                "ListItem_500",
-                windowTitle: "Complex List App");
+                "ListItem_500");
 
             var realizeDict = realizeResult as Dictionary<string, object>;
             Assert.NotNull(realizeDict);
@@ -268,8 +257,7 @@ public class NewPatternsE2ETests : BaseE2ETest
             // Start synchronized input for selection
             var syncResult = await Tools.StartSynchronizedInput(
                 "ListItem_500",
-                inputType: "LeftMouseDown",
-                windowTitle: "Complex List App");
+                inputType: "LeftMouseDown");
 
             var syncDict = syncResult as Dictionary<string, object>;
             Assert.NotNull(syncDict);
@@ -280,8 +268,7 @@ public class NewPatternsE2ETests : BaseE2ETest
 
             // Cleanup
             await Tools.CancelSynchronizedInput(
-                "ListItem_500",
-                windowTitle: "Complex List App");
+                "ListItem_500");
 
             return testApp;
         }, _output, "Complex List App", 10000);
@@ -307,7 +294,6 @@ public class NewPatternsE2ETests : BaseE2ETest
             {
                 var result = await Tools.RealizeVirtualizedItem(
                     $"Row_{i * 100}",
-                    windowTitle: "Large Dataset App",
                     timeoutSeconds: 5);
 
                 var resultDict = result as Dictionary<string, object>;

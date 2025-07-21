@@ -30,11 +30,11 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Step 1: Take initial screenshot
-                await _tools.TakeScreenshot(windowTitle: "WinUI 3 Gallery", outputPath: "C:\\temp\\gallery_initial.png");
+                await _tools.TakeScreenshot("WinUI 3 Gallery", "C:\\temp\\gallery_initial.png");
                 _output.WriteLine("Initial screenshot taken");
 
                 // Step 2: Find navigation menu items
-                var navItems = await _tools.FindElements(searchText: "Button", controlType: "ListItem", windowTitle: "WinUI 3 Gallery");
+                var navItems = await _tools.FindElements(searchText: "Button", controlType: "ListItem");
                 LogResult("Navigation items with 'Button'", navItems);
 
                 // Step 3: Try to invoke the Button navigation item
@@ -46,24 +46,24 @@ namespace UIAutomationMCP.Tests.E2E
                     if (TryGetFirstElementId(itemsElement, out var buttonNavId))
                     {
                         _output.WriteLine($"Attempting to invoke Button navigation item: {buttonNavId}");
-                        var invokeResult = await _tools.InvokeElement(buttonNavId!, windowTitle: "WinUI 3 Gallery");
+                        var invokeResult = await _tools.InvokeElement(buttonNavId!);
                         LogResult("Invoke result", invokeResult);
                         
                         // Wait for navigation
                         await Task.Delay(1000);
                         
                         // Take screenshot after navigation
-                        await _tools.TakeScreenshot(windowTitle: "WinUI 3 Gallery", outputPath: "C:\\temp\\gallery_button_page.png");
+                        await _tools.TakeScreenshot("WinUI 3 Gallery", "C:\\temp\\gallery_button_page.png");
                         _output.WriteLine("Button page screenshot taken");
                     }
                 }
 
                 // Step 4: Find all buttons on the page
-                var buttons = await _tools.FindElements(controlType: "Button", windowTitle: "WinUI 3 Gallery");
+                var buttons = await _tools.FindElements(controlType: "Button");
                 LogResult("All buttons on page", buttons);
 
                 // Step 5: Get element tree to understand page structure
-                var tree = await _tools.GetElementTree(windowTitle: "WinUI 3 Gallery", maxDepth: 2);
+                var tree = await _tools.GetElementTree(maxDepth: 2);
                 LogResult("Page structure", tree);
 
                 Assert.True(true, "Scenario completed successfully");
@@ -84,18 +84,18 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Step 1: Find TextBox navigation item
-                var navItems = await _tools.FindElements(searchText: "TextBox", controlType: "ListItem", windowTitle: "WinUI 3 Gallery");
+                var navItems = await _tools.FindElements(searchText: "TextBox", controlType: "ListItem");
                 LogResult("TextBox navigation items", navItems);
 
                 // Step 2: Navigate to TextBox page
                 if (navItems != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(navItems)), out var textBoxNavId))
                 {
-                    await _tools.InvokeElement(textBoxNavId!, windowTitle: "WinUI 3 Gallery");
+                    await _tools.InvokeElement(textBoxNavId!);
                     await Task.Delay(1000);
                 }
 
                 // Step 3: Find text boxes on the page
-                var textBoxes = await _tools.FindElements(controlType: "Edit", windowTitle: "WinUI 3 Gallery");
+                var textBoxes = await _tools.FindElements(controlType: "Edit");
                 LogResult("Text boxes found", textBoxes);
 
                 // Step 4: Try to set text in the first text box
@@ -107,11 +107,11 @@ namespace UIAutomationMCP.Tests.E2E
                     if (TryGetFirstElementId(textBoxElement, out var textBoxId))
                     {
                         _output.WriteLine($"Setting text in TextBox: {textBoxId}");
-                        var setValue = await _tools.SetElementValue(textBoxId!, "Hello from MCP Test!", windowTitle: "WinUI 3 Gallery");
+                        var setValue = await _tools.SetElementValue(textBoxId!, "Hello from MCP Test!");
                         LogResult("SetElementValue result", setValue);
                         
                         // Get the value back using GetElementInfo
-                        var getValue = await _tools.GetElementInfo(textBoxId!, windowTitle: "WinUI 3 Gallery");
+                        var getValue = await _tools.GetElementInfo(textBoxId!);
                         LogResult("GetElementInfo result", getValue);
                     }
                 }
@@ -133,25 +133,25 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Step 1: Find CheckBox navigation item
-                var navItems = await _tools.FindElements(searchText: "CheckBox", controlType: "ListItem", windowTitle: "WinUI 3 Gallery");
+                var navItems = await _tools.FindElements(searchText: "CheckBox", controlType: "ListItem");
                 LogResult("CheckBox navigation items", navItems);
 
                 // Step 2: Navigate to CheckBox page
                 if (navItems != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(navItems)), out var checkBoxNavId))
                 {
-                    await _tools.InvokeElement(checkBoxNavId!, windowTitle: "WinUI 3 Gallery");
+                    await _tools.InvokeElement(checkBoxNavId!);
                     await Task.Delay(1000);
                 }
 
                 // Step 3: Find checkboxes on the page
-                var checkBoxes = await _tools.FindElements(controlType: "CheckBox", windowTitle: "WinUI 3 Gallery");
+                var checkBoxes = await _tools.FindElements(controlType: "CheckBox");
                 LogResult("CheckBoxes found", checkBoxes);
 
                 // Step 4: Toggle the first checkbox
                 if (checkBoxes != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(checkBoxes)), out var checkBoxId))
                 {
                     _output.WriteLine($"Toggling CheckBox: {checkBoxId}");
-                    var toggleResult = await _tools.ToggleElement(checkBoxId!, windowTitle: "WinUI 3 Gallery");
+                    var toggleResult = await _tools.ToggleElement(checkBoxId!);
                     LogResult("Toggle result", toggleResult);
                 }
 
@@ -172,29 +172,29 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Step 1: Find Slider navigation item
-                var navItems = await _tools.FindElements(searchText: "Slider", controlType: "ListItem", windowTitle: "WinUI 3 Gallery");
+                var navItems = await _tools.FindElements(searchText: "Slider", controlType: "ListItem");
                 LogResult("Slider navigation items", navItems);
 
                 // Step 2: Navigate to Slider page
                 if (navItems != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(navItems)), out var sliderNavId))
                 {
-                    await _tools.InvokeElement(sliderNavId!, windowTitle: "WinUI 3 Gallery");
+                    await _tools.InvokeElement(sliderNavId!);
                     await Task.Delay(1000);
                 }
 
                 // Step 3: Find sliders on the page
-                var sliders = await _tools.FindElements(controlType: "Slider", windowTitle: "WinUI 3 Gallery");
+                var sliders = await _tools.FindElements(controlType: "Slider");
                 LogResult("Sliders found", sliders);
 
                 // Step 4: Get and set range value
                 if (sliders != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(sliders)), out var sliderId))
                 {
                     // Get current range value
-                    var rangeInfo = await _tools.GetRangeValue(sliderId!, windowTitle: "WinUI 3 Gallery");
+                    var rangeInfo = await _tools.GetRangeValue(sliderId!);
                     LogResult("Current range value", rangeInfo);
                     
                     // Set new value
-                    var setResult = await _tools.SetRangeValue(sliderId!, 50, windowTitle: "WinUI 3 Gallery");
+                    var setResult = await _tools.SetRangeValue(sliderId!, 50);
                     LogResult("SetRangeValue result", setResult);
                 }
 
@@ -215,33 +215,33 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Step 1: Find ScrollViewer navigation item
-                var navItems = await _tools.FindElements(searchText: "ScrollViewer", controlType: "ListItem", windowTitle: "WinUI 3 Gallery");
+                var navItems = await _tools.FindElements(searchText: "ScrollViewer", controlType: "ListItem");
                 LogResult("ScrollViewer navigation items", navItems);
 
                 // Step 2: Navigate to ScrollViewer page
                 if (navItems != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(navItems)), out var scrollViewerNavId))
                 {
-                    await _tools.InvokeElement(scrollViewerNavId!, windowTitle: "WinUI 3 Gallery");
+                    await _tools.InvokeElement(scrollViewerNavId!);
                     await Task.Delay(1000);
                 }
 
                 // Step 3: Find scrollable elements
-                var scrollViewers = await _tools.FindElements(controlType: "ScrollViewer", windowTitle: "WinUI 3 Gallery");
+                var scrollViewers = await _tools.FindElements(controlType: "ScrollViewer");
                 LogResult("ScrollViewers found", scrollViewers);
 
                 // Step 4: Test scroll operations
                 if (scrollViewers != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(scrollViewers)), out var scrollViewerId))
                 {
                     // Get scroll info
-                    var scrollInfo = await _tools.GetScrollInfo(scrollViewerId!, windowTitle: "WinUI 3 Gallery");
+                    var scrollInfo = await _tools.GetScrollInfo(scrollViewerId!);
                     LogResult("Scroll info", scrollInfo);
                     
                     // Scroll down
-                    var scrollResult = await _tools.ScrollElement(scrollViewerId!, "down", 2.0, windowTitle: "WinUI 3 Gallery");
+                    var scrollResult = await _tools.ScrollElement(scrollViewerId!, "down", 2.0);
                     LogResult("Scroll down result", scrollResult);
                     
                     // Set scroll percentage
-                    var setScrollResult = await _tools.SetScrollPercent(scrollViewerId!, -1, 50, windowTitle: "WinUI 3 Gallery");
+                    var setScrollResult = await _tools.SetScrollPercent(scrollViewerId!, -1, 50);
                     LogResult("SetScrollPercent result", setScrollResult);
                 }
 
@@ -262,27 +262,27 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Step 1: Validate main window accessibility
-                var mainWindowAccessibility = await _tools.VerifyAccessibility(windowTitle: "WinUI 3 Gallery");
+                var mainWindowAccessibility = await _tools.VerifyAccessibility("WinUI 3 Gallery");
                 LogResult("Main window accessibility", mainWindowAccessibility);
 
                 // Step 2: Get control type info for various elements
-                var buttons = await _tools.FindElements(controlType: "Button", windowTitle: "WinUI 3 Gallery", maxResults: 1);
+                var buttons = await _tools.FindElements(controlType: "Button", maxResults: 1);
                 if (buttons != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(buttons)), out var buttonId))
                 {
                     // Control type info is already included in FindElements response
                     LogResult("Button elements (with control type info)", buttons);
                     
-                    var patternValidation = await _tools.ValidateControlTypePatterns(buttonId!, windowTitle: "WinUI 3 Gallery");
+                    var patternValidation = await _tools.ValidateControlTypePatterns(buttonId!);
                     LogResult("Button pattern validation", patternValidation);
                 }
 
                 // Step 3: Check for labeled elements
-                var textBoxes = await _tools.FindElements(controlType: "Edit", windowTitle: "WinUI 3 Gallery", maxResults: 1);
+                var textBoxes = await _tools.FindElements(controlType: "Edit", maxResults: 1);
                 if (textBoxes != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(textBoxes)), out var textBoxId))
                 {
                     try
                     {
-                        var labeledBy = await _tools.GetLabeledBy(textBoxId!, windowTitle: "WinUI 3 Gallery");
+                        var labeledBy = await _tools.GetLabeledBy(textBoxId!);
                         LogResult("TextBox labeled by", labeledBy);
                     }
                     catch (Exception ex)

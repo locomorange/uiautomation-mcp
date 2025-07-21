@@ -177,7 +177,7 @@ namespace UIAutomationMCP.Tests.Tools
                                    .Returns(Task.FromResult(serverResponse));
 
             // Act
-            var result = await _tools.GetElementInfo("Button", windowTitle: "TestWindow");
+            var result = await _tools.GetElementInfo("Button");
 
             // Assert
             Assert.NotNull(result);
@@ -619,7 +619,7 @@ namespace UIAutomationMCP.Tests.Tools
                                  .Returns(Task.FromResult(serverResponse));
 
             // Act
-            var result = await _tools.ScrollElement("scrollableList", "down", windowTitle: "TestWindow");
+            var result = await _tools.ScrollElement("scrollableList", "down");
 
             // Assert
             Assert.NotNull(result);
@@ -2257,7 +2257,7 @@ namespace UIAutomationMCP.Tests.Tools
             // Assert
             Assert.NotNull(result);
             _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync(elementId, windowTitle, null, 30), Times.Once);
-            _output.WriteLine($"ScrollElementIntoView empty string parameters test passed for elementId:'{elementId}', windowTitle:'{windowTitle}'");
+            _output.WriteLine($"ScrollElementIntoView empty string parameters test passed for elementId:'{elementId}'");
         }
 
         #endregion
@@ -2699,7 +2699,7 @@ namespace UIAutomationMCP.Tests.Tools
             Assert.NotNull(rowResult);
             _mockTableService.Verify(s => s.GetColumnHeaderItemsAsync(elementId, windowTitle, null, 30), Times.Once);
             _mockTableService.Verify(s => s.GetRowHeaderItemsAsync(elementId, windowTitle, null, 30), Times.Once);
-            _output.WriteLine($"TableItem pattern empty string parameters test passed for elementId:'{elementId}', windowTitle:'{windowTitle}'");
+            _output.WriteLine($"TableItem pattern empty string parameters test passed for elementId:'{elementId}'");
         }
 
         #endregion

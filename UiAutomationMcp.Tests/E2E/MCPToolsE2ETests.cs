@@ -191,7 +191,7 @@ namespace UIAutomationMCP.Tests.E2E
                 }
                 
                 // Find elements in Notepad window
-                var result = await _tools.FindElements(windowTitle: "Notepad");
+                var result = await _tools.FindElements();
                 Assert.NotNull(result);
                 
                 _output.WriteLine($"FindElements result: {JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}");

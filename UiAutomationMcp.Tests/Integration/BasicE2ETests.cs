@@ -74,7 +74,11 @@ namespace UIAutomationMCP.Tests.Integration
 
             // When
             var windowsResult = await _elementSearchService.GetWindowsAsync(timeout);
-            var elementsResult = await _elementSearchService.FindElementsAsync(null, null, "Button", null, timeout);
+            var elementsResult = await _elementSearchService.SearchElementsAsync(new UIAutomationMCP.Shared.Requests.SearchElementsRequest
+            {
+                ControlType = "Button",
+                TimeoutSeconds = timeout
+            });
 
             // Then
             Assert.NotNull(windowsResult);
@@ -91,9 +95,9 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 1;
 
             // When
-            var invokeResult = await _invokeService.InvokeElementAsync(nonExistentElementId, null, null, timeout);
-            var valueResult = await _valueService.GetValueAsync(nonExistentElementId, null, null, timeout);
-            var isReadOnlyResult = await _valueService.IsReadOnlyAsync(nonExistentElementId, null, null, timeout);
+            var invokeResult = await _invokeService.InvokeElementAsync(automationId: nonExistentElementId, processId: null, timeoutSeconds: timeout);
+            var valueResult = await _valueService.GetValueAsync(automationId: nonExistentElementId, processId: null, timeoutSeconds: timeout);
+            var isReadOnlyResult = await _valueService.IsReadOnlyAsync(automationId: nonExistentElementId, processId: null, timeoutSeconds: timeout);
 
             // Then
             Assert.NotNull(invokeResult);
@@ -148,7 +152,7 @@ namespace UIAutomationMCP.Tests.Integration
             // When - Execute concurrent invoke operations
             var startTime = DateTime.UtcNow;
             var tasks = elementIds.Select(id => 
-                _invokeService.InvokeElementAsync(id, null, null, timeout)).ToArray();
+                _invokeService.InvokeElementAsync(automationId: id, processId: null, timeoutSeconds: timeout)).ToArray();
             
             var results = await Task.WhenAll(tasks);
             var endTime = DateTime.UtcNow;
@@ -174,7 +178,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // When
             var startTime = DateTime.UtcNow;
-            var result = await _invokeService.InvokeElementAsync(nonExistentElementId, null, null, shortTimeout);
+            var result = await _invokeService.InvokeElementAsync(automationId: nonExistentElementId, processId: null, timeoutSeconds: shortTimeout);
             var endTime = DateTime.UtcNow;
             var actualTime = (endTime - startTime).TotalSeconds;
 
@@ -243,7 +247,11 @@ namespace UIAutomationMCP.Tests.Integration
                 var timeout = 10;
 
                 // When
-                var elementsResult = await _elementSearchService.FindElementsAsync(null, null, "Button", null, timeout);
+                var elementsResult = await _elementSearchService.SearchElementsAsync(new UIAutomationMCP.Shared.Requests.SearchElementsRequest
+            {
+                ControlType = "Button",
+                TimeoutSeconds = timeout
+            });
                 var windowsResult = await _elementSearchService.GetWindowsAsync(timeout);
 
                 // Then
@@ -270,9 +278,9 @@ namespace UIAutomationMCP.Tests.Integration
             var nonExistentElementId = "NonExistentElement12345";
 
             // When & Then
-            var invokeTask = _invokeService.InvokeElementAsync(nonExistentElementId, null, null, veryShortTimeout);
-            var valueTask = _valueService.GetValueAsync(nonExistentElementId, null, null, veryShortTimeout);
-            var isReadOnlyTask = _valueService.IsReadOnlyAsync(nonExistentElementId, null, null, veryShortTimeout);
+            var invokeTask = _invokeService.InvokeElementAsync(automationId: nonExistentElementId, processId: null, timeoutSeconds: veryShortTimeout);
+            var valueTask = _valueService.GetValueAsync(automationId: nonExistentElementId, processId: null, timeoutSeconds: veryShortTimeout);
+            var isReadOnlyTask = _valueService.IsReadOnlyAsync(automationId: nonExistentElementId, processId: null, timeoutSeconds: veryShortTimeout);
 
             var invokeResult = await invokeTask;
             var valueResult = await valueTask;

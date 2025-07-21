@@ -61,7 +61,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // When
             var startTime = DateTime.UtcNow;
-            var result = await _invokeService.InvokeElementAsync(elementId, null, null, timeout);
+            var result = await _invokeService.InvokeElementAsync(automationId: elementId, processId: null, timeoutSeconds: timeout);
             var endTime = DateTime.UtcNow;
             var responseTime = (endTime - startTime).TotalMilliseconds;
 
@@ -82,7 +82,7 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 5;
 
             // When
-            var result = await _invokeService.InvokeElementAsync(elementId, null, null, timeout);
+            var result = await _invokeService.InvokeElementAsync(automationId: elementId, processId: null, timeoutSeconds: timeout);
 
             // Then
             Assert.NotNull(result);
@@ -99,9 +99,9 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 5;
 
             // When - Invoke same element multiple times
-            var result1 = await _invokeService.InvokeElementAsync(elementId, null, null, timeout);
-            var result2 = await _invokeService.InvokeElementAsync(elementId, null, null, timeout);
-            var result3 = await _invokeService.InvokeElementAsync(elementId, null, null, timeout);
+            var result1 = await _invokeService.InvokeElementAsync(automationId: elementId, processId: null, timeoutSeconds: timeout);
+            var result2 = await _invokeService.InvokeElementAsync(automationId: elementId, processId: null, timeoutSeconds: timeout);
+            var result3 = await _invokeService.InvokeElementAsync(automationId: elementId, processId: null, timeoutSeconds: timeout);
 
             // Then - Each invocation should behave consistently (no state maintained)
             Assert.NotNull(result1);
@@ -121,7 +121,7 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 5;
 
             // When
-            var result = await _invokeService.InvokeElementAsync(disabledElementId, null, null, timeout);
+            var result = await _invokeService.InvokeElementAsync(automationId: disabledElementId, processId: null, timeoutSeconds: timeout);
 
             // Then - Should handle disabled elements gracefully
             Assert.NotNull(result);
@@ -167,10 +167,10 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 2;
 
             // When - Test edge case parameters
-            var resultEmptyId = await _invokeService.InvokeElementAsync("", null, null, timeout);
-            var resultNullWindow = await _invokeService.InvokeElementAsync("test", null, null, timeout);
-            var resultZeroProcess = await _invokeService.InvokeElementAsync("test", null, 0, timeout);
-            var resultNegativeProcess = await _invokeService.InvokeElementAsync("test", null, -1, timeout);
+            var resultEmptyId = await _invokeService.InvokeElementAsync(automationId: "", processId: null, timeoutSeconds: timeout);
+            var resultNullWindow = await _invokeService.InvokeElementAsync(automationId: "test", processId: null, timeoutSeconds: timeout);
+            var resultZeroProcess = await _invokeService.InvokeElementAsync(automationId: "test", processId: 0, timeoutSeconds: timeout);
+            var resultNegativeProcess = await _invokeService.InvokeElementAsync(automationId: "test", processId: -1, timeoutSeconds: timeout);
 
             // Then
             Assert.NotNull(resultEmptyId);
@@ -197,7 +197,7 @@ namespace UIAutomationMCP.Tests.Integration
             // When - Execute multiple invocations rapidly
             var startTime = DateTime.UtcNow;
             var tasks = Enumerable.Range(1, elementCount)
-                .Select(i => _invokeService.InvokeElementAsync($"LoadTestElement{i}", null, null, timeout))
+                .Select(i => _invokeService.InvokeElementAsync(automationId: $"LoadTestElement{i}", processId: null, timeoutSeconds: timeout))
                 .ToArray();
 
             var results = await Task.WhenAll(tasks);

@@ -524,7 +524,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 }
             };
 
-            _output.WriteLine($"Testing Transform operation with windowTitle: '{windowTitle}'");
+            _output.WriteLine($"Testing Transform operation");
 
             // Act
             var typedRequest = new RotateElementRequest 

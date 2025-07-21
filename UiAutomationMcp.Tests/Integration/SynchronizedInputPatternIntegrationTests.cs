@@ -47,7 +47,6 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
         var result = await _service.StartListeningAsync(
             "NonExistentElement",
             "MouseLeftButtonDown",
-            windowTitle: "TestWindow",
             processId: 1234,
             timeoutSeconds: 1);
 
@@ -73,7 +72,6 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
         var result = await _service.StartListeningAsync(
             "button1",
             "MouseLeftButtonDown",
-            windowTitle: "MyApp",
             processId: 5678,
             timeoutSeconds: 30);
 

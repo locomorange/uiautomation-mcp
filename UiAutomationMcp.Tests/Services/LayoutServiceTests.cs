@@ -168,7 +168,7 @@ namespace UiAutomationMcp.Tests.Services
                 Assert.False((bool?)success); // ワーカーが見つからないため失敗するが、パラメータ処理は正常
             }
             
-            _output.WriteLine($"Parameter test completed for elementId:'{elementId}', windowTitle:'{windowTitle}', processId:{processId}");
+            _output.WriteLine($"Parameter test completed for elementId:'{elementId}', processId:{processId}");
         }
 
         #endregion

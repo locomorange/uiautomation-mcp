@@ -35,21 +35,19 @@ public class WinUI3GalleryUITests : BaseE2ETest
             _output.WriteLine($"Window info: {JsonSerializer.Serialize(windowInfo, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 2: Find the navigation view and search for "Button"
-            var navigationResult = await Tools.FindElements(windowTitle: "WinUI 3 Gallery", controlType: "NavigationView");
+            var navigationResult = await Tools.SearchElements(controlType: "NavigationView");
             _output.WriteLine($"Navigation view search result: {JsonSerializer.Serialize(navigationResult, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 3: Find and click the "Basic Input" section
-            var basicInputResult = await Tools.FindElements(
+            var basicInputResult = await Tools.SearchElements(
                 searchText: "Basic Input",
-                controlType: "NavigationViewItem",
-                windowTitle: "WinUI 3 Gallery");
+                controlType: "NavigationViewItem");
             _output.WriteLine($"Basic Input section result: {JsonSerializer.Serialize(basicInputResult, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 4: Find and click the "Button" item
-            var buttonNavResult = await Tools.FindElements(
+            var buttonNavResult = await Tools.SearchElements(
                 searchText: "Button",
-                controlType: "NavigationViewItem",
-                windowTitle: "WinUI 3 Gallery");
+                controlType: "NavigationViewItem");
             _output.WriteLine($"Button navigation item result: {JsonSerializer.Serialize(buttonNavResult, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 5: Take a screenshot of the current state
@@ -57,13 +55,12 @@ public class WinUI3GalleryUITests : BaseE2ETest
             _output.WriteLine($"Screenshot taken: {screenshotResult != null}");
 
             // Step 6: Find actual button controls on the page
-            var buttonElements = await Tools.FindElements(
-                windowTitle: "WinUI 3 Gallery",
+            var buttonElements = await Tools.SearchElements(
                 controlType: "Button");
             _output.WriteLine($"Button elements found: {JsonSerializer.Serialize(buttonElements, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 7: Get the detailed element tree to understand the structure
-            var elementTree = await Tools.GetElementTree(windowTitle: "WinUI 3 Gallery", maxDepth: 3);
+            var elementTree = await Tools.GetElementTree(maxDepth: 3);
             _output.WriteLine($"Element tree: {JsonSerializer.Serialize(elementTree, new JsonSerializerOptions { WriteIndented = true })}");
 
             Assert.True(true, "Button page navigation test completed successfully");
@@ -84,21 +81,18 @@ public class WinUI3GalleryUITests : BaseE2ETest
         try
         {
             // Step 1: Navigate to TextBox page
-            var textBoxNavResult = await Tools.FindElements(
+            var textBoxNavResult = await Tools.SearchElements(
                 searchText: "TextBox",
-                controlType: "NavigationViewItem",
-                windowTitle: "WinUI 3 Gallery");
+                controlType: "NavigationViewItem");
             _output.WriteLine($"TextBox navigation result: {JsonSerializer.Serialize(textBoxNavResult, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 2: Find TextBox controls
-            var textBoxElements = await Tools.FindElements(
-                windowTitle: "WinUI 3 Gallery",
+            var textBoxElements = await Tools.SearchElements(
                 controlType: "TextBox");
             _output.WriteLine($"TextBox elements found: {JsonSerializer.Serialize(textBoxElements, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 3: Find Edit controls (alternative for text input)
-            var editElements = await Tools.FindElements(
-                windowTitle: "WinUI 3 Gallery",
+            var editElements = await Tools.SearchElements(
                 controlType: "Edit");
             _output.WriteLine($"Edit elements found: {JsonSerializer.Serialize(editElements, new JsonSerializerOptions { WriteIndented = true })}");
 
@@ -124,15 +118,13 @@ public class WinUI3GalleryUITests : BaseE2ETest
         try
         {
             // Step 1: Navigate to Slider page
-            var sliderNavResult = await Tools.FindElements(
+            var sliderNavResult = await Tools.SearchElements(
                 searchText: "Slider",
-                controlType: "NavigationViewItem",
-                windowTitle: "WinUI 3 Gallery");
+                controlType: "NavigationViewItem");
             _output.WriteLine($"Slider navigation result: {JsonSerializer.Serialize(sliderNavResult, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 2: Find Slider controls
-            var sliderElements = await Tools.FindElements(
-                windowTitle: "WinUI 3 Gallery",
+            var sliderElements = await Tools.SearchElements(
                 controlType: "Slider");
             _output.WriteLine($"Slider elements found: {JsonSerializer.Serialize(sliderElements, new JsonSerializerOptions { WriteIndented = true })}");
 
@@ -158,15 +150,13 @@ public class WinUI3GalleryUITests : BaseE2ETest
         try
         {
             // Step 1: Navigate to ComboBox page
-            var comboBoxNavResult = await Tools.FindElements(
+            var comboBoxNavResult = await Tools.SearchElements(
                 searchText: "ComboBox",
-                controlType: "NavigationViewItem",
-                windowTitle: "WinUI 3 Gallery");
+                controlType: "NavigationViewItem");
             _output.WriteLine($"ComboBox navigation result: {JsonSerializer.Serialize(comboBoxNavResult, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 2: Find ComboBox controls
-            var comboBoxElements = await Tools.FindElements(
-                windowTitle: "WinUI 3 Gallery",
+            var comboBoxElements = await Tools.SearchElements(
                 controlType: "ComboBox");
             _output.WriteLine($"ComboBox elements found: {JsonSerializer.Serialize(comboBoxElements, new JsonSerializerOptions { WriteIndented = true })}");
 
@@ -192,28 +182,24 @@ public class WinUI3GalleryUITests : BaseE2ETest
         try
         {
             // Step 1: Navigate to Collection section
-            var collectionNavResult = await Tools.FindElements(
+            var collectionNavResult = await Tools.SearchElements(
                 searchText: "Collections",
-                controlType: "NavigationViewItem",
-                windowTitle: "WinUI 3 Gallery");
+                controlType: "NavigationViewItem");
             _output.WriteLine($"Collections navigation result: {JsonSerializer.Serialize(collectionNavResult, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 2: Navigate to ListView page
-            var listViewNavResult = await Tools.FindElements(
+            var listViewNavResult = await Tools.SearchElements(
                 searchText: "ListView",
-                controlType: "NavigationViewItem",
-                windowTitle: "WinUI 3 Gallery");
+                controlType: "NavigationViewItem");
             _output.WriteLine($"ListView navigation result: {JsonSerializer.Serialize(listViewNavResult, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 3: Find ListView controls
-            var listViewElements = await Tools.FindElements(
-                windowTitle: "WinUI 3 Gallery",
+            var listViewElements = await Tools.SearchElements(
                 controlType: "ListView");
             _output.WriteLine($"ListView elements found: {JsonSerializer.Serialize(listViewElements, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 4: Find List controls (alternative)
-            var listElements = await Tools.FindElements(
-                windowTitle: "WinUI 3 Gallery",
+            var listElements = await Tools.SearchElements(
                 controlType: "List");
             _output.WriteLine($"List elements found: {JsonSerializer.Serialize(listElements, new JsonSerializerOptions { WriteIndented = true })}");
 
@@ -239,21 +225,18 @@ public class WinUI3GalleryUITests : BaseE2ETest
         try
         {
             // Step 1: Navigate to TreeView page
-            var treeViewNavResult = await Tools.FindElements(
+            var treeViewNavResult = await Tools.SearchElements(
                 searchText: "TreeView",
-                controlType: "NavigationViewItem",
-                windowTitle: "WinUI 3 Gallery");
+                controlType: "NavigationViewItem");
             _output.WriteLine($"TreeView navigation result: {JsonSerializer.Serialize(treeViewNavResult, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 2: Find TreeView controls
-            var treeViewElements = await Tools.FindElements(
-                windowTitle: "WinUI 3 Gallery",
+            var treeViewElements = await Tools.SearchElements(
                 controlType: "TreeView");
             _output.WriteLine($"TreeView elements found: {JsonSerializer.Serialize(treeViewElements, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 3: Find Tree controls (alternative)
-            var treeElements = await Tools.FindElements(
-                windowTitle: "WinUI 3 Gallery",
+            var treeElements = await Tools.SearchElements(
                 controlType: "Tree");
             _output.WriteLine($"Tree elements found: {JsonSerializer.Serialize(treeElements, new JsonSerializerOptions { WriteIndented = true })}");
 
@@ -279,7 +262,7 @@ public class WinUI3GalleryUITests : BaseE2ETest
         try
         {
             // Step 1: Get the full element tree with deeper depth
-            var fullElementTree = await Tools.GetElementTree(windowTitle: "WinUI 3 Gallery", maxDepth: 5);
+            var fullElementTree = await Tools.GetElementTree(maxDepth: 5);
             _output.WriteLine($"Full element tree (depth 5): {JsonSerializer.Serialize(fullElementTree, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 2: Find all interactable elements by common control types
@@ -289,8 +272,7 @@ public class WinUI3GalleryUITests : BaseE2ETest
             {
                 try
                 {
-                    var elements = await Tools.FindElements(
-                        windowTitle: "WinUI 3 Gallery",
+                    var elements = await Tools.SearchElements(
                         controlType: controlType);
                     _output.WriteLine($"Found {controlType} elements: {JsonSerializer.Serialize(elements, new JsonSerializerOptions { WriteIndented = true })}");
                 }
@@ -322,26 +304,22 @@ public class WinUI3GalleryUITests : BaseE2ETest
         try
         {
             // Step 1: Look for DataGrid controls
-            var dataGridElements = await Tools.FindElements(
-                windowTitle: "WinUI 3 Gallery",
+            var dataGridElements = await Tools.SearchElements(
                 controlType: "DataGrid");
             _output.WriteLine($"DataGrid elements found: {JsonSerializer.Serialize(dataGridElements, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 2: Look for Table controls
-            var tableElements = await Tools.FindElements(
-                windowTitle: "WinUI 3 Gallery",
+            var tableElements = await Tools.SearchElements(
                 controlType: "Table");
             _output.WriteLine($"Table elements found: {JsonSerializer.Serialize(tableElements, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 3: Look for Chart or Canvas controls (for data visualization)
-            var canvasElements = await Tools.FindElements(
-                windowTitle: "WinUI 3 Gallery",
+            var canvasElements = await Tools.SearchElements(
                 controlType: "Canvas");
             _output.WriteLine($"Canvas elements found: {JsonSerializer.Serialize(canvasElements, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 4: Look for ScrollViewer controls
-            var scrollViewerElements = await Tools.FindElements(
-                windowTitle: "WinUI 3 Gallery",
+            var scrollViewerElements = await Tools.SearchElements(
                 controlType: "ScrollViewer");
             _output.WriteLine($"ScrollViewer elements found: {JsonSerializer.Serialize(scrollViewerElements, new JsonSerializerOptions { WriteIndented = true })}");
 
