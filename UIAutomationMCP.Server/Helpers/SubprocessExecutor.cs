@@ -89,14 +89,16 @@ namespace UIAutomationMCP.Server.Helpers
                         string errorOutput = "";
                         try
                         {
-                            if (_workerProcess?.StandardError != null && _workerProcess.StandardError.Peek() >= 0)
+                            // Check if process has exited and get error info if available
+                            if (_workerProcess?.HasExited == true)
                             {
-                                errorOutput = await _workerProcess.StandardError.ReadToEndAsync();
+                                errorOutput = $"Worker process exited with code: {_workerProcess.ExitCode}";
                             }
+                            // Don't try to read stderr synchronously due to async monitoring
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogWarning(ex, "Failed to read stderr from worker process");
+                            _logger.LogDebug(ex, "Failed to check worker process status");
                         }
 
                         var contextMessage = $"Worker process returned empty response for operation '{operation}'";
@@ -262,11 +264,11 @@ namespace UIAutomationMCP.Server.Helpers
                 // Check if it's a project directory (for development)
                 if (Directory.Exists(_workerPath) && File.Exists(Path.Combine(_workerPath, "UIAutomationMCP.Worker.csproj")))
                 {
-                    // Use dotnet run for project directory
+                    // Use dotnet run for project directory with Release configuration
                     startInfo = new ProcessStartInfo
                     {
                         FileName = "dotnet",
-                        Arguments = "run --project .",
+                        Arguments = "run --configuration Release",
                         UseShellExecute = false,
                         RedirectStandardInput = true,
                         RedirectStandardOutput = true,
@@ -342,8 +344,8 @@ namespace UIAutomationMCP.Server.Helpers
                     throw new InvalidOperationException($"Failed to start worker process: {_workerPath}", ex);
                 }
 
-                // Wait a bit for the process to start
-                await Task.Delay(100);
+                // Wait longer for the process to start properly
+                await Task.Delay(500);
 
                 if (_workerProcess.HasExited)
                 {
@@ -454,10 +456,10 @@ namespace UIAutomationMCP.Server.Helpers
                             _logger.LogDebug(ex, "Error closing standard input");
                         }
                         
-                        // Give it a brief moment to exit gracefully
-                        if (!_workerProcess.WaitForExit(1000))
+                        // Give it more time to exit gracefully
+                        if (!_workerProcess.WaitForExit(3000))
                         {
-                            _logger.LogWarning("Worker process did not exit gracefully within 1 second, forcing termination");
+                            _logger.LogWarning("Worker process did not exit gracefully within 3 seconds, forcing termination");
                             
                             try
                             {
