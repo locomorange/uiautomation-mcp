@@ -228,6 +228,60 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             cacheRequest.Add(AutomationElement.HasKeyboardFocusProperty);
             cacheRequest.Add(AutomationElement.IsKeyboardFocusableProperty);
             cacheRequest.Add(AutomationElement.IsPasswordProperty);
+            
+            // Add accessibility properties
+            cacheRequest.Add(AutomationElement.AcceleratorKeyProperty);
+            cacheRequest.Add(AutomationElement.AccessKeyProperty);
+            cacheRequest.Add(AutomationElement.ItemTypeProperty);
+            cacheRequest.Add(AutomationElement.ItemStatusProperty);
+            cacheRequest.Add(AutomationElement.CultureProperty);
+            cacheRequest.Add(AutomationElement.OrientationProperty);
+            
+            // Add pattern properties
+            cacheRequest.Add(ValuePattern.ValueProperty);
+            cacheRequest.Add(ValuePattern.IsReadOnlyProperty);
+            cacheRequest.Add(TogglePattern.ToggleStateProperty);
+            cacheRequest.Add(SelectionPattern.CanSelectMultipleProperty);
+            cacheRequest.Add(SelectionPattern.IsSelectionRequiredProperty);
+            cacheRequest.Add(RangeValuePattern.ValueProperty);
+            cacheRequest.Add(RangeValuePattern.MinimumProperty);
+            cacheRequest.Add(RangeValuePattern.MaximumProperty);
+            cacheRequest.Add(RangeValuePattern.SmallChangeProperty);
+            cacheRequest.Add(RangeValuePattern.LargeChangeProperty);
+            cacheRequest.Add(RangeValuePattern.IsReadOnlyProperty);
+            cacheRequest.Add(GridPattern.RowCountProperty);
+            cacheRequest.Add(GridPattern.ColumnCountProperty);
+            cacheRequest.Add(TablePattern.RowCountProperty);
+            cacheRequest.Add(TablePattern.ColumnCountProperty);
+            cacheRequest.Add(TablePattern.RowOrColumnMajorProperty);
+            cacheRequest.Add(ScrollPattern.HorizontalScrollPercentProperty);
+            cacheRequest.Add(ScrollPattern.VerticalScrollPercentProperty);
+            cacheRequest.Add(ScrollPattern.HorizontalViewSizeProperty);
+            cacheRequest.Add(ScrollPattern.VerticalViewSizeProperty);
+            cacheRequest.Add(ScrollPattern.HorizontallyScrollableProperty);
+            cacheRequest.Add(ScrollPattern.VerticallyScrollableProperty);
+            cacheRequest.Add(TransformPattern.CanMoveProperty);
+            cacheRequest.Add(TransformPattern.CanResizeProperty);
+            cacheRequest.Add(TransformPattern.CanRotateProperty);
+            cacheRequest.Add(WindowPattern.WindowVisualStateProperty);
+            cacheRequest.Add(WindowPattern.WindowInteractionStateProperty);
+            cacheRequest.Add(WindowPattern.IsModalProperty);
+            cacheRequest.Add(WindowPattern.IsTopmostProperty);
+            cacheRequest.Add(WindowPattern.CanMaximizeProperty);
+            cacheRequest.Add(WindowPattern.CanMinimizeProperty);
+            cacheRequest.Add(ExpandCollapsePattern.ExpandCollapseStateProperty);
+            cacheRequest.Add(DockPattern.DockPositionProperty);
+            cacheRequest.Add(MultipleViewPattern.CurrentViewProperty);
+            cacheRequest.Add(GridItemPattern.RowProperty);
+            cacheRequest.Add(GridItemPattern.ColumnProperty);
+            cacheRequest.Add(GridItemPattern.RowSpanProperty);
+            cacheRequest.Add(GridItemPattern.ColumnSpanProperty);
+            cacheRequest.Add(GridItemPattern.ContainingGridProperty);
+            cacheRequest.Add(TableItemPattern.RowProperty);
+            cacheRequest.Add(TableItemPattern.ColumnProperty);
+            cacheRequest.Add(TableItemPattern.RowSpanProperty);
+            cacheRequest.Add(TableItemPattern.ColumnSpanProperty);
+            
             cacheRequest.AutomationElementMode = AutomationElementMode.None;
             cacheRequest.TreeFilter = Automation.RawViewCondition;
             return cacheRequest;
@@ -355,6 +409,304 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                         IsSelectionRequired = selectionPattern.Cached.IsSelectionRequired
                     };
                 }
+
+                // Range Pattern
+                if (element.TryGetCachedPattern(RangeValuePattern.Pattern, out var rangePatternObj) && 
+                    rangePatternObj is RangeValuePattern rangePattern)
+                {
+                    details.Range = new RangeInfo
+                    {
+                        Value = rangePattern.Cached.Value,
+                        Minimum = rangePattern.Cached.Minimum,
+                        Maximum = rangePattern.Cached.Maximum,
+                        SmallChange = rangePattern.Cached.SmallChange,
+                        LargeChange = rangePattern.Cached.LargeChange,
+                        IsReadOnly = rangePattern.Cached.IsReadOnly
+                    };
+                }
+
+                // Grid Pattern
+                if (element.TryGetCachedPattern(GridPattern.Pattern, out var gridPatternObj) && 
+                    gridPatternObj is GridPattern gridPattern)
+                {
+                    details.Grid = new GridInfo
+                    {
+                        RowCount = gridPattern.Cached.RowCount,
+                        ColumnCount = gridPattern.Cached.ColumnCount
+                    };
+                }
+
+                // Table Pattern
+                if (element.TryGetCachedPattern(TablePattern.Pattern, out var tablePatternObj) && 
+                    tablePatternObj is TablePattern tablePattern)
+                {
+                    var rowHeaders = new List<HeaderInfo>();
+                    var columnHeaders = new List<HeaderInfo>();
+                    
+                    try
+                    {
+                        var rowHeaderElements = tablePattern.Cached.GetRowHeaders();
+                        foreach (var header in rowHeaderElements)
+                        {
+                            rowHeaders.Add(new HeaderInfo
+                            {
+                                AutomationId = header.Cached.AutomationId ?? "",
+                                Name = header.Cached.Name ?? "",
+                                ControlType = header.Cached.ControlType.LocalizedControlType ?? ""
+                            });
+                        }
+                        
+                        var columnHeaderElements = tablePattern.Cached.GetColumnHeaders();
+                        foreach (var header in columnHeaderElements)
+                        {
+                            columnHeaders.Add(new HeaderInfo
+                            {
+                                AutomationId = header.Cached.AutomationId ?? "",
+                                Name = header.Cached.Name ?? "",
+                                ControlType = header.Cached.ControlType.LocalizedControlType ?? ""
+                            });
+                        }
+                    }
+                    catch { }
+
+                    details.Table = new TableInfo
+                    {
+                        RowCount = tablePattern.Cached.RowCount,
+                        ColumnCount = tablePattern.Cached.ColumnCount,
+                        RowOrColumnMajor = tablePattern.Cached.RowOrColumnMajor.ToString(),
+                        RowHeaders = rowHeaders,
+                        ColumnHeaders = columnHeaders
+                    };
+                }
+
+                // Scroll Pattern
+                if (element.TryGetCachedPattern(ScrollPattern.Pattern, out var scrollPatternObj) && 
+                    scrollPatternObj is ScrollPattern scrollPattern)
+                {
+                    details.Scroll = new ScrollInfo
+                    {
+                        HorizontalPercent = scrollPattern.Cached.HorizontalScrollPercent,
+                        VerticalPercent = scrollPattern.Cached.VerticalScrollPercent,
+                        HorizontalViewSize = scrollPattern.Cached.HorizontalViewSize,
+                        VerticalViewSize = scrollPattern.Cached.VerticalViewSize,
+                        HorizontallyScrollable = scrollPattern.Cached.HorizontallyScrollable,
+                        VerticallyScrollable = scrollPattern.Cached.VerticallyScrollable
+                    };
+                }
+
+                // Transform Pattern
+                if (element.TryGetCachedPattern(TransformPattern.Pattern, out var transformPatternObj) && 
+                    transformPatternObj is TransformPattern transformPattern)
+                {
+                    details.Transform = new TransformInfo
+                    {
+                        CanMove = transformPattern.Cached.CanMove,
+                        CanResize = transformPattern.Cached.CanResize,
+                        CanRotate = transformPattern.Cached.CanRotate
+                    };
+                }
+
+                // Window Pattern
+                if (element.TryGetCachedPattern(WindowPattern.Pattern, out var windowPatternObj) && 
+                    windowPatternObj is WindowPattern windowPattern)
+                {
+                    details.Window = new WindowPatternInfo
+                    {
+                        VisualState = windowPattern.Cached.WindowVisualState.ToString(),
+                        InteractionState = windowPattern.Cached.WindowInteractionState.ToString(),
+                        IsModal = windowPattern.Cached.IsModal,
+                        IsTopmost = windowPattern.Cached.IsTopmost,
+                        CanMaximize = windowPattern.Cached.CanMaximize,
+                        CanMinimize = windowPattern.Cached.CanMinimize
+                    };
+                }
+
+                // ExpandCollapse Pattern
+                if (element.TryGetCachedPattern(ExpandCollapsePattern.Pattern, out var expandCollapsePatternObj) && 
+                    expandCollapsePatternObj is ExpandCollapsePattern expandCollapsePattern)
+                {
+                    details.ExpandCollapse = new ExpandCollapseInfo
+                    {
+                        State = expandCollapsePattern.Cached.ExpandCollapseState.ToString()
+                    };
+                }
+
+                // Dock Pattern
+                if (element.TryGetCachedPattern(DockPattern.Pattern, out var dockPatternObj) && 
+                    dockPatternObj is DockPattern dockPattern)
+                {
+                    details.Dock = new DockInfo
+                    {
+                        Position = dockPattern.Cached.DockPosition.ToString()
+                    };
+                }
+
+                // MultipleView Pattern
+                if (element.TryGetCachedPattern(MultipleViewPattern.Pattern, out var multipleViewPatternObj) && 
+                    multipleViewPatternObj is MultipleViewPattern multipleViewPattern)
+                {
+                    var availableViews = new List<PatternViewInfo>();
+                    try
+                    {
+                        var viewIds = multipleViewPattern.Cached.GetSupportedViews();
+                        foreach (var viewId in viewIds)
+                        {
+                            string viewName = "";
+                            try
+                            {
+                                viewName = multipleViewPattern.GetViewName(viewId);
+                            }
+                            catch { }
+                            
+                            availableViews.Add(new PatternViewInfo
+                            {
+                                ViewId = viewId,
+                                ViewName = viewName
+                            });
+                        }
+                    }
+                    catch { }
+
+                    details.MultipleView = new MultipleViewInfo
+                    {
+                        CurrentView = multipleViewPattern.Cached.CurrentView,
+                        AvailableViews = availableViews
+                    };
+                }
+
+                // Text Pattern
+                if (element.TryGetCachedPattern(TextPattern.Pattern, out var textPatternObj) && 
+                    textPatternObj is TextPattern textPattern)
+                {
+                    string textValue = "";
+                    string selectedText = "";
+                    try
+                    {
+                        textValue = textPattern.DocumentRange.GetText(-1);
+                        var selections = textPattern.GetSelection();
+                        if (selections.Length > 0)
+                        {
+                            selectedText = selections[0].GetText(-1);
+                        }
+                    }
+                    catch { }
+
+                    details.Text = new TextInfo
+                    {
+                        Text = textValue,
+                        Length = textValue.Length,
+                        SelectedText = selectedText,
+                        HasSelection = !string.IsNullOrEmpty(selectedText)
+                    };
+                }
+
+                // GridItem Pattern
+                if (element.TryGetCachedPattern(GridItemPattern.Pattern, out var gridItemPatternObj) && 
+                    gridItemPatternObj is GridItemPattern gridItemPattern)
+                {
+                    details.GridItem = new GridItemInfo
+                    {
+                        Row = gridItemPattern.Cached.Row,
+                        Column = gridItemPattern.Cached.Column,
+                        RowSpan = gridItemPattern.Cached.RowSpan,
+                        ColumnSpan = gridItemPattern.Cached.ColumnSpan,
+                        ContainingGrid = gridItemPattern.Cached.ContainingGrid?.Cached.Name ?? ""
+                    };
+                }
+
+                // TableItem Pattern
+                if (element.TryGetCachedPattern(TableItemPattern.Pattern, out var tableItemPatternObj) && 
+                    tableItemPatternObj is TableItemPattern tableItemPattern)
+                {
+                    var rowHeaderItems = new List<HeaderInfo>();
+                    var columnHeaderItems = new List<HeaderInfo>();
+                    
+                    try
+                    {
+                        var rowHeaders = tableItemPattern.Cached.GetRowHeaderItems();
+                        foreach (var header in rowHeaders)
+                        {
+                            rowHeaderItems.Add(new HeaderInfo
+                            {
+                                AutomationId = header.Cached.AutomationId ?? "",
+                                Name = header.Cached.Name ?? "",
+                                ControlType = header.Cached.ControlType.LocalizedControlType ?? ""
+                            });
+                        }
+                        
+                        var columnHeaders = tableItemPattern.Cached.GetColumnHeaderItems();
+                        foreach (var header in columnHeaders)
+                        {
+                            columnHeaderItems.Add(new HeaderInfo
+                            {
+                                AutomationId = header.Cached.AutomationId ?? "",
+                                Name = header.Cached.Name ?? "",
+                                ControlType = header.Cached.ControlType.LocalizedControlType ?? ""
+                            });
+                        }
+                    }
+                    catch { }
+
+                    details.TableItem = new TableItemInfo
+                    {
+                        RowHeaders = rowHeaderItems,
+                        ColumnHeaders = columnHeaderItems
+                    };
+                }
+
+                // Invoke Pattern
+                if (element.GetSupportedPatterns().Contains(InvokePattern.Pattern))
+                {
+                    details.Invoke = new InvokeInfo
+                    {
+                        IsInvokable = true
+                    };
+                }
+
+                // ScrollItem Pattern  
+                if (element.GetSupportedPatterns().Contains(ScrollItemPattern.Pattern))
+                {
+                    details.ScrollItem = new ScrollItemInfo
+                    {
+                        IsScrollable = true
+                    };
+                }
+
+                // VirtualizedItem Pattern
+                if (element.GetSupportedPatterns().Contains(VirtualizedItemPattern.Pattern))
+                {
+                    details.VirtualizedItem = new VirtualizedItemInfo
+                    {
+                        IsVirtualized = true
+                    };
+                }
+
+                // ItemContainer Pattern
+                if (element.GetSupportedPatterns().Contains(ItemContainerPattern.Pattern))
+                {
+                    details.ItemContainer = new ItemContainerInfo
+                    {
+                        IsItemContainer = true
+                    };
+                }
+
+                // SynchronizedInput Pattern
+                if (element.GetSupportedPatterns().Contains(SynchronizedInputPattern.Pattern))
+                {
+                    details.SynchronizedInput = new SynchronizedInputInfo
+                    {
+                        SupportsSynchronizedInput = true
+                    };
+                }
+
+                // Accessibility Information
+                details.Accessibility = new AccessibilityInfo
+                {
+                    AcceleratorKey = element.Cached.AcceleratorKey ?? "",
+                    AccessKey = element.Cached.AccessKey ?? "",
+                    HelpText = element.Cached.HelpText ?? ""
+                };
+
             }
             catch (Exception ex)
             {
