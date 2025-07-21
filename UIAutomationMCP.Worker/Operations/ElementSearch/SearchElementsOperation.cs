@@ -81,23 +81,109 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
 
         private async Task<SearchElementsResult> PerformSearchAsync(SearchElementsRequest request)
         {
-            // 現在はモック実装、後で実際のUI Automation検索に置き換え
-            await Task.Delay(100); // 正常系テスト用に100msに戻す
+            // 現在はモック実装、includeDetailsパラメータのテスト対応
+            await Task.Delay(100);
+            
+            // includeDetailsパラメータに応じてElementInfoを構築
+            var elements = CreateMockElements(request);
             
             return new SearchElementsResult
             {
                 Success = true,
                 OperationName = "SearchElements",
-                Elements = new BasicElementInfo[0], // Empty for now
+                Elements = elements,
                 Metadata = new SearchMetadata
                 {
-                    TotalFound = 0,
-                    Returned = 0,
+                    TotalFound = elements.Length,
+                    Returned = elements.Length,
                     SearchDuration = TimeSpan.FromMilliseconds(100),
                     SearchCriteria = BuildSearchCriteria(request),
                     WasTruncated = false,
-                    SuggestedRefinements = new string[] { "Try broader search criteria" },
+                    SuggestedRefinements = request.IncludeDetails 
+                        ? new string[] { "Detailed search completed" }
+                        : new string[] { "Use includeDetails=true for more information" },
                     ExecutedAt = DateTime.UtcNow
+                }
+            };
+        }
+
+        private ElementInfo[] CreateMockElements(SearchElementsRequest request)
+        {
+            // モック要素データ作成
+            var elements = new List<ElementInfo>();
+            
+            // 基本的なモック要素を2つ作成
+            for (int i = 1; i <= 2; i++)
+            {
+                var element = new ElementInfo
+                {
+                    Name = $"TestElement{i}",
+                    AutomationId = $"test-element-{i}",
+                    ControlType = request.ControlType ?? "Button",
+                    LocalizedControlType = "ボタン",
+                    ClassName = "TestClass",
+                    ProcessId = 12345,
+                    BoundingRectangle = new BoundingRectangle
+                    {
+                        X = 100 + (i * 50),
+                        Y = 200 + (i * 30),
+                        Width = 80,
+                        Height = 25
+                    },
+                    IsEnabled = true,
+                    IsVisible = true,
+                    IsOffscreen = false,
+                    FrameworkId = "Win32",
+                    SupportedPatterns = new string[] { "Invoke", "Toggle" }
+                };
+
+                // includeDetails=trueの場合、詳細情報を追加
+                if (request.IncludeDetails)
+                {
+                    element.Details = CreateMockElementDetails(i);
+                }
+
+                elements.Add(element);
+            }
+            
+            return elements.ToArray();
+        }
+
+        private ElementDetails CreateMockElementDetails(int elementIndex)
+        {
+            return new ElementDetails
+            {
+                HelpText = $"This is test element {elementIndex}",
+                Value = $"TestValue{elementIndex}",
+                HasKeyboardFocus = elementIndex == 1,
+                IsKeyboardFocusable = true,
+                IsPassword = false,
+                
+                // モックパターン情報
+                Toggle = new ToggleInfo
+                {
+                    State = elementIndex == 1 ? "On" : "Off",
+                    CanToggle = true
+                },
+                
+                // モック階層情報
+                Parent = new ElementInfo
+                {
+                    Name = "ParentContainer",
+                    AutomationId = "parent-container",
+                    ControlType = "Group",
+                    LocalizedControlType = "グループ"
+                },
+                
+                Children = new ElementInfo[]
+                {
+                    new ElementInfo
+                    {
+                        Name = $"Child{elementIndex}-1",
+                        AutomationId = $"child-{elementIndex}-1",
+                        ControlType = "Text",
+                        LocalizedControlType = "テキスト"
+                    }
                 }
             };
         }
@@ -116,6 +202,8 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 criteria.Add($"ControlType='{request.ControlType}'");
             if (request.VisibleOnly)
                 criteria.Add("VisibleOnly=true");
+            if (request.IncludeDetails)
+                criteria.Add("IncludeDetails=true");
             
             return string.Join(", ", criteria);
         }

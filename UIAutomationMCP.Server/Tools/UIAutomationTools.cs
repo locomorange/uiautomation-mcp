@@ -94,7 +94,7 @@ namespace UIAutomationMCP.Server.Tools
         public async Task<object> GetWindows([Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
             => JsonSerializationHelper.Serialize(await _elementSearchService.GetWindowsAsync(timeoutSeconds));
 
-        [McpServerTool, Description("Lightweight search for UI elements with pattern-based filtering and efficient result pagination. Returns basic ElementInfo for quick identification and navigation.")]
+        [McpServerTool, Description("Search for UI elements with optional detailed information. Returns basic ElementInfo by default, or comprehensive details when includeDetails=true. Replaces the need for separate GetElementDetails calls.")]
         public async Task<object> SearchElements(
             [Description("Cross-property search text (searches Name, AutomationId, ClassName)")] string? searchText = null,
             [Description("Specific AutomationId to search for")] string? automationId = null, 
@@ -110,6 +110,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Only return enabled elements (default: false)")] bool enabledOnly = false,
             [Description("Maximum number of results to return (default: 50)")] int maxResults = 50,
             [Description("Sort results by: Name, ControlType, Position (optional)")] string? sortBy = null,
+            [Description("Include detailed pattern information, accessibility data, and hierarchy (default: false)")] bool includeDetails = false,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
         {
             var request = new UIAutomationMCP.Shared.Requests.SearchElementsRequest
@@ -129,13 +130,15 @@ namespace UIAutomationMCP.Server.Tools
                 EnabledOnly = enabledOnly,
                 MaxResults = maxResults,
                 SortBy = sortBy,
+                IncludeDetails = includeDetails,
                 TimeoutSeconds = timeoutSeconds
             };
             
             return JsonSerializationHelper.Serialize(await _elementSearchService.SearchElementsAsync(request));
         }
 
-        [McpServerTool, Description("Get comprehensive details for a specific UI element including all pattern information and optional hierarchy. Returns detailed ElementDetail with type-safe pattern data.")]
+        [McpServerTool, Description("DEPRECATED: Use SearchElements with includeDetails=true instead. Get comprehensive details for a specific UI element including all pattern information and optional hierarchy.")]
+        [Obsolete("Use SearchElements with includeDetails=true instead")]
         public async Task<object> GetElementDetails(
             [Description("AutomationId of the target element")] string? automationId = null,
             [Description("Name (display name) of the target element")] string? name = null,
