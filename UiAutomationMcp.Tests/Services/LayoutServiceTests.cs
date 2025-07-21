@@ -51,7 +51,7 @@ namespace UiAutomationMcp.Tests.Services
             var timeoutSeconds = 1; // 短いタイムアウトで高速テスト
 
             // Act - 存在しないワーカーパスでの実行
-            var result = await _layoutService.ScrollElementIntoViewAsync(elementId, windowTitle, processId, timeoutSeconds);
+            var result = await _layoutService.ScrollElementIntoViewAsync(automationId: elementId, processId: processId, timeoutSeconds: timeoutSeconds);
 
             // Assert - エラーが適切に処理されることを確認
             Assert.NotNull(result);
@@ -156,7 +156,7 @@ namespace UiAutomationMcp.Tests.Services
         public async Task ScrollElementIntoViewAsync_Should_Handle_Various_Parameters(string elementId, string windowTitle, int processId)
         {
             // Act - 様々なパラメータでの実行
-            var result = await _layoutService.ScrollElementIntoViewAsync(elementId, windowTitle, processId, 1);
+            var result = await _layoutService.ScrollElementIntoViewAsync(automationId: elementId, processId: processId, timeoutSeconds: 1);
 
             // Assert - パラメータが適切に処理されることを確認
             Assert.NotNull(result);

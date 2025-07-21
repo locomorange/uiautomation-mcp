@@ -55,7 +55,7 @@ namespace UIAutomationMCP.Tests.Integration
             var processId = 99999; // Non-existent process ID
 
             // Act
-            var result = await _virtualizedItemService.RealizeItemAsync(elementId, windowTitle, processId, timeoutSeconds: 5);
+            var result = await _virtualizedItemService.RealizeItemAsync(automationId: elementId, processId: processId, timeoutSeconds: 5);
 
             // Assert
             Assert.NotNull(result);
@@ -109,8 +109,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Act
             var result = await _virtualizedItemService.RealizeItemAsync(
-                elementId, 
-                windowTitle: null, 
+                automationId: elementId, 
                 processId: null, 
                 timeoutSeconds: timeoutSeconds);
 
@@ -135,8 +134,7 @@ namespace UIAutomationMCP.Tests.Integration
             for (int i = 0; i < 3; i++)
             {
                 var result = await _virtualizedItemService.RealizeItemAsync(
-                    $"{elementId}_{i}", 
-                    windowTitle: $"Window_{i}", 
+                    automationId: $"{elementId}_{i}", 
                     processId: null, 
                     timeoutSeconds: 5);
 

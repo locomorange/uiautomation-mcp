@@ -140,10 +140,10 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 3;
 
             // When - Test different targeting methods
-            var resultElementOnly = await _invokeService.InvokeElementAsync(elementId, null, null, timeout);
-            var resultWithWindow = await _invokeService.InvokeElementAsync(elementId, windowTitle, null, timeout);
-            var resultWithProcess = await _invokeService.InvokeElementAsync(elementId, null, processId, timeout);
-            var resultAllParams = await _invokeService.InvokeElementAsync(elementId, windowTitle, processId, timeout);
+            var resultElementOnly = await _invokeService.InvokeElementAsync(automationId: elementId, processId: null, timeoutSeconds: timeout);
+            var resultWithWindow = await _invokeService.InvokeElementAsync(automationId: elementId, processId: null, timeoutSeconds: timeout);
+            var resultWithProcess = await _invokeService.InvokeElementAsync(automationId: elementId, processId: processId, timeoutSeconds: timeout);
+            var resultAllParams = await _invokeService.InvokeElementAsync(automationId: elementId, processId: processId, timeoutSeconds: timeout);
 
             // Then
             Assert.NotNull(resultElementOnly);

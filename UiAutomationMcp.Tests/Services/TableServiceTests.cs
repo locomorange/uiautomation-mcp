@@ -201,13 +201,13 @@ namespace UIAutomationMCP.Tests.Services
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tableService.GetRowHeadersAsync(elementId, "Test Window", 1234, 30);
+            var result = await _tableService.GetRowHeadersAsync(automationId: elementId, processId: 1234, timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", 
                 It.Is<GetRowHeadersRequest>(p => 
-                    p.ElementId == elementId), 30), Times.Once);
+                    p.AutomationId == elementId), 30), Times.Once);
             
             _output.WriteLine("GetRowHeadersAsync service test passed");
         }

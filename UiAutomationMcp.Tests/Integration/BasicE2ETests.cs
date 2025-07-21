@@ -124,9 +124,9 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 5;
 
             // When - Test different parameter combinations
-            var resultByElementId = await _invokeService.InvokeElementAsync(nonExistentElementId, null, null, timeout);
-            var resultByWindowTitle = await _invokeService.InvokeElementAsync(nonExistentElementId, "NonExistentWindow", null, timeout);
-            var resultByProcessId = await _invokeService.InvokeElementAsync(nonExistentElementId, null, 99999, timeout);
+            var resultByElementId = await _invokeService.InvokeElementAsync(automationId: nonExistentElementId, processId: null, timeoutSeconds: timeout);
+            var resultByWindowTitle = await _invokeService.InvokeElementAsync(automationId: nonExistentElementId, processId: null, timeoutSeconds: timeout);
+            var resultByProcessId = await _invokeService.InvokeElementAsync(automationId: nonExistentElementId, processId: 99999, timeoutSeconds: timeout);
 
             // Then
             Assert.NotNull(resultByElementId);

@@ -58,7 +58,7 @@ namespace UIAutomationMCP.Tests.Integration
             var processId = 99999; // Non-existent process ID
 
             // Act
-            var result = await _selectionService.IsSelectedAsync(elementId, windowTitle, processId, timeoutSeconds: 5);
+            var result = await _selectionService.IsSelectedAsync(automationId: elementId, processId: processId, timeoutSeconds: 5);
 
             // Assert
             Assert.NotNull(result);
@@ -136,7 +136,7 @@ namespace UIAutomationMCP.Tests.Integration
             var windowTitle = "TestTabWindow";
 
             // Act
-            var result = await _selectionService.IsSelectionRequiredAsync(containerId, windowTitle, null, timeoutSeconds: 5);
+            var result = await _selectionService.IsSelectionRequiredAsync(automationId: containerId, processId: null, timeoutSeconds: 5);
 
             // Assert
             Assert.NotNull(result);
@@ -367,19 +367,19 @@ namespace UIAutomationMCP.Tests.Integration
             // Act & Assert - Test the complete Selection pattern workflow
             
             // 1. Check if multiple selection is supported
-            var multipleSelectionResult = await _selectionService.CanSelectMultipleAsync(containerId, windowTitle, null, 5);
+            var multipleSelectionResult = await _selectionService.CanSelectMultipleAsync(automationId: containerId, processId: null, timeoutSeconds: 5);
             Assert.NotNull(multipleSelectionResult);
             
             // 2. Check if selection is required
-            var selectionRequiredResult = await _selectionService.IsSelectionRequiredAsync(containerId, windowTitle, null, 5);
+            var selectionRequiredResult = await _selectionService.IsSelectionRequiredAsync(automationId: containerId, processId: null, timeoutSeconds: 5);
             Assert.NotNull(selectionRequiredResult);
             
             // 3. Get current selection
-            var currentSelectionResult = await _selectionService.GetSelectionAsync(containerId, windowTitle, null, 5);
+            var currentSelectionResult = await _selectionService.GetSelectionAsync(automationId: containerId, processId: null, timeoutSeconds: 5);
             Assert.NotNull(currentSelectionResult);
             
             // 4. Clear all selections
-            var clearResult = await _selectionService.ClearSelectionAsync(containerId, windowTitle, null, 5);
+            var clearResult = await _selectionService.ClearSelectionAsync(automationId: containerId, processId: null, timeoutSeconds: 5);
             Assert.NotNull(clearResult);
 
             _output.WriteLine("Microsoft Selection pattern specification compliance workflow test completed");
