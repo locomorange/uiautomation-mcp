@@ -24,7 +24,10 @@ namespace UiAutomationMcp.Tests.Models
                 BoundingRectangle = new BoundingRectangle { X = 10, Y = 20, Width = 100, Height = 30 },
                 IsEnabled = true,
                 IsVisible = true,
-                HelpText = "Click to test"
+                Details = new ElementDetails
+                {
+                    HelpText = "Click to test"
+                }
             };
 
             // Act
@@ -40,7 +43,7 @@ namespace UiAutomationMcp.Tests.Models
             Assert.Equal(original.ProcessId, deserialized.ProcessId);
             Assert.Equal(original.IsEnabled, deserialized.IsEnabled);
             Assert.Equal(original.IsVisible, deserialized.IsVisible);
-            Assert.Equal(original.HelpText, deserialized.HelpText);
+            Assert.Equal(original.Details?.HelpText, deserialized.Details?.HelpText);
             
             Assert.Equal(original.BoundingRectangle.X, deserialized.BoundingRectangle.X);
             Assert.Equal(original.BoundingRectangle.Y, deserialized.BoundingRectangle.Y);
@@ -210,7 +213,10 @@ namespace UiAutomationMcp.Tests.Models
                 AutomationId = value ?? string.Empty,
                 ControlType = value ?? "Unknown",
                 ClassName = value ?? string.Empty,
-                HelpText = value ?? string.Empty
+                Details = new ElementDetails
+                {
+                    HelpText = value ?? string.Empty
+                }
             };
 
             // Assert
@@ -218,7 +224,7 @@ namespace UiAutomationMcp.Tests.Models
             {
                 Assert.Equal(value ?? string.Empty, elementInfo.Name);
                 Assert.Equal(value ?? string.Empty, elementInfo.AutomationId);
-                Assert.Equal(value ?? string.Empty, elementInfo.HelpText);
+                Assert.Equal(value ?? string.Empty, elementInfo.Details?.HelpText);
             }
         }
 

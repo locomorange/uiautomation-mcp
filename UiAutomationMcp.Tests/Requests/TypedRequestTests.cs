@@ -16,7 +16,7 @@ namespace UiAutomationMcp.Tests.Requests
             // Arrange
             var typedRequest = new InvokeElementRequest
             {
-                ElementId = "btn_test",
+                AutomationId = "btn_test",
                 WindowTitle = "Test Window",
                 ProcessId = 1234
             };
@@ -27,7 +27,7 @@ namespace UiAutomationMcp.Tests.Requests
 
             // Assert
             Assert.NotNull(deserialized);
-            Assert.Equal("btn_test", deserialized.ElementId);
+            Assert.Equal("btn_test", deserialized.AutomationId);
             Assert.Equal("Test Window", deserialized.WindowTitle);
             Assert.Equal(1234, deserialized.ProcessId);
         }
@@ -100,7 +100,7 @@ namespace UiAutomationMcp.Tests.Requests
             // Arrange
             var request = new SetValueRequest
             {
-                ElementId = "input_field",
+                AutomationId = "input_field",
                 Value = "Test Value",
                 WindowTitle = "Test Application",
                 ProcessId = 5678
@@ -112,7 +112,7 @@ namespace UiAutomationMcp.Tests.Requests
 
             // Assert
             Assert.NotNull(deserialized);
-            Assert.Equal("input_field", deserialized.ElementId);
+            Assert.Equal("input_field", deserialized.AutomationId);
             Assert.Equal("Test Value", deserialized.Value);
             Assert.Equal("Test Application", deserialized.WindowTitle);
             Assert.Equal(5678, deserialized.ProcessId);
@@ -162,7 +162,7 @@ namespace UiAutomationMcp.Tests.Requests
             // Arrange
             var request = new SetRangeValueRequest
             {
-                ElementId = "slider1",
+                AutomationId = "slider1",
                 Value = 50,
                 WindowTitle = "Test Window"
             };
@@ -173,7 +173,7 @@ namespace UiAutomationMcp.Tests.Requests
 
             // Assert
             Assert.NotNull(deserialized);
-            Assert.Equal(request.ElementId, deserialized.ElementId);
+            Assert.Equal(request.AutomationId, deserialized.AutomationId);
             Assert.Equal(request.Value, deserialized.Value);
             Assert.Equal(request.WindowTitle, deserialized.WindowTitle);
         }
@@ -184,7 +184,7 @@ namespace UiAutomationMcp.Tests.Requests
             // Arrange
             var request = new GetTextRequest
             {
-                ElementId = "text1",
+                AutomationId = "text1",
                 WindowTitle = "Test Window"
             };
 
@@ -194,7 +194,7 @@ namespace UiAutomationMcp.Tests.Requests
 
             // Assert
             Assert.NotNull(deserialized);
-            Assert.Equal(request.ElementId, deserialized.ElementId);
+            Assert.Equal(request.AutomationId, deserialized.AutomationId);
             Assert.Equal(request.WindowTitle, deserialized.WindowTitle);
         }
 
@@ -204,7 +204,7 @@ namespace UiAutomationMcp.Tests.Requests
             // Arrange
             var request = new MoveElementRequest
             {
-                ElementId = "element1",
+                AutomationId = "element1",
                 X = 100,
                 Y = 200,
                 WindowTitle = "Test Window"
@@ -216,7 +216,7 @@ namespace UiAutomationMcp.Tests.Requests
 
             // Assert
             Assert.NotNull(deserialized);
-            Assert.Equal(request.ElementId, deserialized.ElementId);
+            Assert.Equal(request.AutomationId, deserialized.AutomationId);
             Assert.Equal(request.X, deserialized.X);
             Assert.Equal(request.Y, deserialized.Y);
             Assert.Equal(request.WindowTitle, deserialized.WindowTitle);
@@ -228,7 +228,7 @@ namespace UiAutomationMcp.Tests.Requests
             // Arrange - Request with empty optional fields
             var request = new SetRangeValueRequest
             {
-                ElementId = "slider1",
+                AutomationId = "slider1",
                 Value = 50,
                 WindowTitle = "", // Empty string instead of null
                 ProcessId = 0
@@ -240,7 +240,7 @@ namespace UiAutomationMcp.Tests.Requests
 
             // Assert
             Assert.NotNull(deserialized);
-            Assert.Equal("slider1", deserialized.ElementId);
+            Assert.Equal("slider1", deserialized.AutomationId);
             Assert.Equal(50, deserialized.Value);
             Assert.Equal("", deserialized.WindowTitle);
             Assert.Equal(0, deserialized.ProcessId);
@@ -252,7 +252,7 @@ namespace UiAutomationMcp.Tests.Requests
             // Arrange
             var request = new SetValueRequest
             {
-                ElementId = "input1",
+                AutomationId = "input1",
                 WindowTitle = "Test Window",
                 ProcessId = 1234,
                 Value = "Test Value"
@@ -265,7 +265,7 @@ namespace UiAutomationMcp.Tests.Requests
             // Assert
             Assert.NotNull(deserialized);
             Assert.IsAssignableFrom<ElementTargetRequest>(deserialized);
-            Assert.Equal("input1", deserialized.ElementId);
+            Assert.Equal("input1", deserialized.AutomationId);
             Assert.Equal("Test Window", deserialized.WindowTitle);
             Assert.Equal(1234, deserialized.ProcessId);
             Assert.Equal("Test Value", deserialized.Value);
