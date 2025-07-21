@@ -175,7 +175,7 @@ namespace UIAutomationMCP.Server.Helpers
                 "DockElement" => "Dock",
                 "SetRangeValue" => "Set Range Value",
                 "GetRangeValue" => "Get Range Value",
-                "FindElements" => "Find Elements",
+                "SearchElements" => "Search Elements",
                 "GetDesktopWindows" => "Get Desktop Windows",
                 _ => operation
             };

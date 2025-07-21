@@ -9,7 +9,6 @@ using UIAutomationMCP.Worker.Operations.Invoke;
 using UIAutomationMCP.Worker.Operations.Toggle;
 using UIAutomationMCP.Worker.Operations.Value;
 using UIAutomationMCP.Worker.Operations.Grid;
-using UIAutomationMCP.Worker.Operations.Table;
 using UIAutomationMCP.Worker.Operations.Selection;
 using UIAutomationMCP.Worker.Operations.ControlTypeInfo;
 using UIAutomationMCP.Worker.Operations.Text;
@@ -17,7 +16,6 @@ using UIAutomationMCP.Worker.Operations.Layout;
 using UIAutomationMCP.Worker.Operations.Transform;
 using UIAutomationMCP.Worker.Operations.Window;
 using UIAutomationMCP.Worker.Operations.Range;
-using UIAutomationMCP.Worker.Operations.MultipleView;
 using UIAutomationMCP.Worker.Operations.TreeNavigation;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -118,7 +116,6 @@ namespace UIAutomationMCP.Worker
 
             // Register operations as keyed services - Tools Level Serialization pattern
             // Only operations updated to use ExecuteAsync(string parametersJson) interface
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, FindElementsOperation>("FindElements");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, InvokeElementOperation>("InvokeElement");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetDesktopWindowsOperation>("GetDesktopWindows");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, ToggleElementOperation>("ToggleElement");
@@ -127,10 +124,6 @@ namespace UIAutomationMCP.Worker
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetGridItemOperation>("GetGridItem");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetRowHeaderOperation>("GetRowHeader");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetColumnHeaderOperation>("GetColumnHeader");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetColumnHeadersOperation>("GetColumnHeaders");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetRowHeadersOperation>("GetRowHeaders");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetColumnHeaderItemsOperation>("GetColumnHeaderItems");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetRowHeaderItemsOperation>("GetRowHeaderItems");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SelectElementOperation>("SelectElement");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, AddToSelectionOperation>("AddToSelection");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, RemoveFromSelectionOperation>("RemoveFromSelection");
@@ -139,8 +132,6 @@ namespace UIAutomationMCP.Worker
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SelectItemOperation>("SelectItem");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, ValidateControlTypePatternsOperation>("ValidateControlTypePatterns");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SelectTextOperation>("SelectText");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetTextOperation>("GetText");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetSelectedTextOperation>("GetSelectedText");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SetTextOperation>("SetText");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, FindTextOperation>("FindText");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, ScrollElementOperation>("ScrollElement");
@@ -154,9 +145,6 @@ namespace UIAutomationMCP.Worker
             builder.Services.AddKeyedTransient<IUIAutomationOperation, WindowActionOperation>("WindowAction");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, WaitForInputIdleOperation>("WaitForInputIdle");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SetRangeValueOperation>("SetRangeValue");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetAvailableViewsOperation>("GetAvailableViews");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetCurrentViewOperation>("GetCurrentView");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetViewNameOperation>("GetViewName");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetElementTreeOperation>("GetElementTree");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SearchElementsOperation>("SearchElements");
             
