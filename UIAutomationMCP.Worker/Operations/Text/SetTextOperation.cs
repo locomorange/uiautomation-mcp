@@ -28,17 +28,17 @@ namespace UIAutomationMCP.Worker.Operations.Text
             {
                 var typedRequest = JsonSerializationHelper.Deserialize<SetTextRequest>(parametersJson)!;
                 
-                var element = _elementFinderService.FindElementById(
-                    typedRequest.ElementId, 
-                    typedRequest.WindowTitle, 
-                    typedRequest.ProcessId ?? 0);
+                var element = _elementFinderService.FindElement(
+                    automationId: typedRequest.AutomationId, 
+                    name: typedRequest.Name,
+                    processId: typedRequest.ProcessId);
                 
                 if (element == null)
                 {
                     return Task.FromResult(new OperationResult 
                     { 
                         Success = false, 
-                        Error = $"Element '{typedRequest.ElementId}' not found",
+                        Error = "Element not found",
                         Data = new SetValueResult { ActionName = "SetText" }
                     });
                 }

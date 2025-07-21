@@ -1,5 +1,6 @@
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared;
+using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Serialization;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
@@ -62,7 +63,10 @@ namespace UIAutomationMCP.Worker.Operations.Text
         {
             try
             {
-                var element = _elementFinderService.FindElementById(request.ElementId, request.WindowTitle ?? "", request.ProcessId ?? 0);
+                var element = _elementFinderService.FindElement(
+                    automationId: request.AutomationId, 
+                    name: request.Name,
+                    processId: request.ProcessId);
                 if (element == null)
                 {
                     return Task.FromResult(new OperationResult<TextInfoResult>
@@ -165,11 +169,4 @@ namespace UIAutomationMCP.Worker.Operations.Text
         }
     }
 
-    public class GetTextRequest
-    {
-        public string ElementId { get; set; } = string.Empty;
-        public string? WindowTitle { get; set; }
-        public int? ProcessId { get; set; }
-        public int TimeoutSeconds { get; set; } = 30;
-    }
 }
