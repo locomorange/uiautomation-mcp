@@ -17,21 +17,23 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             _executor = executor;
         }
 
-        public async Task<ServerEnhancedResponse<ActionResult>> SetValueAsync(string elementId, string value, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> SetValueAsync(string value, string? automationId = null, string? name = null, string? controlType = null, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting SetValue for ElementId={elementId}, Value={value}");
+                _logger.LogInformationWithOperation(operationId, $"Starting SetValue for AutomationId={automationId}, Name={name}, ControlType={controlType}, Value={value}");
 
                 var request = new SetValueRequest
                 {
-                    ElementId = elementId,
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
                     Value = value,
-                    WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    WindowTitle = windowTitle,
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<SetValueRequest, ActionResult>("SetElementValue", request, timeoutSeconds);

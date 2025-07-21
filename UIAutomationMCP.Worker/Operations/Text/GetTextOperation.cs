@@ -66,6 +66,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 var element = _elementFinderService.FindElement(
                     automationId: request.AutomationId, 
                     name: request.Name,
+                    controlType: request.ControlType,
                     processId: request.ProcessId);
                 if (element == null)
                 {

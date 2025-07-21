@@ -31,6 +31,7 @@ namespace UIAutomationMCP.Worker.Operations.Selection
                 var element = _elementFinderService.FindElement(
                     automationId: typedRequest.AutomationId, 
                     name: typedRequest.Name,
+                    controlType: typedRequest.ControlType,
                     windowTitle: typedRequest.WindowTitle, 
                     processId: typedRequest.ProcessId);
                 

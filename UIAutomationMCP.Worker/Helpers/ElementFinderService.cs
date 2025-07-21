@@ -23,6 +23,7 @@ namespace UIAutomationMCP.Worker.Helpers
         /// </summary>
         /// <param name="automationId">UI Automation要素のAutomationIdプロパティ（推奨）</param>
         /// <param name="name">UI Automation要素のNameプロパティ（フォールバック）</param>
+        /// <param name="controlType">UI Automation要素のControlType（パフォーマンス向上）</param>
         /// <param name="windowTitle">検索対象ウィンドウのタイトル（省略可）</param>
         /// <param name="processId">検索対象プロセスのID（省略可）</param>
         /// <param name="scope">検索範囲（デフォルト: Descendants）</param>
@@ -30,8 +31,8 @@ namespace UIAutomationMCP.Worker.Helpers
         /// <param name="timeoutMs">検索タイムアウト（ミリ秒、デフォルト: 1000ms）</param>
         /// <returns>見つかった要素、見つからない場合はnull</returns>
         public AutomationElement? FindElement(string? automationId = null, string? name = null, 
-            string? windowTitle = null, int? processId = null, TreeScope scope = TreeScope.Descendants, 
-            CacheRequest? cacheRequest = null, int timeoutMs = 1000)
+            string? controlType = null, string? windowTitle = null, int? processId = null, 
+            TreeScope scope = TreeScope.Descendants, CacheRequest? cacheRequest = null, int timeoutMs = 1000)
         {
             // 少なくとも一つの識別子が必要
             if (string.IsNullOrEmpty(automationId) && string.IsNullOrEmpty(name))
@@ -58,71 +59,148 @@ namespace UIAutomationMCP.Worker.Helpers
             
             searchRoot ??= AutomationElement.RootElement;
             
-            _logger?.LogDebug("Searching for element with AutomationId: '{AutomationId}', Name: '{Name}' in window: '{WindowTitle}' (PID: {ProcessId}), Scope: {Scope}, Timeout: {TimeoutMs}ms", 
-                automationId, name, windowTitle, processId, scope, timeoutMs);
+            _logger?.LogDebug("Searching for element with AutomationId: '{AutomationId}', Name: '{Name}', ControlType: '{ControlType}' in window: '{WindowTitle}' (PID: {ProcessId}), Scope: {Scope}, Timeout: {TimeoutMs}ms", 
+                automationId, name, controlType, windowTitle, processId, scope, timeoutMs);
             
             return UIAutomationMCP.Worker.Helpers.UIAutomationEnvironment.ExecuteWithTimeout(() =>
             {
                 AutomationElement? element = null;
+                
+                // ControlTypeフィルタ条件を準備
+                Condition? controlTypeCondition = null;
+                if (!string.IsNullOrEmpty(controlType))
+                {
+                    var controlTypeEnum = GetControlTypeFromString(controlType);
+                    if (controlTypeEnum != null)
+                    {
+                        controlTypeCondition = new PropertyCondition(AutomationElement.ControlTypeProperty, controlTypeEnum);
+                    }
+                }
                 
                 // 1. AutomationIdで検索（優先）
                 if (!string.IsNullOrEmpty(automationId))
                 {
                     var automationIdCondition = new PropertyCondition(AutomationElement.AutomationIdProperty, automationId);
                     
+                    // ControlTypeフィルタと組み合わせ
+                    Condition searchCondition = controlTypeCondition != null 
+                        ? new AndCondition(automationIdCondition, controlTypeCondition)
+                        : automationIdCondition;
+                    
                     if (cacheRequest != null)
                     {
                         using (cacheRequest.Activate())
                         {
-                            element = searchRoot.FindFirst(scope, automationIdCondition);
+                            element = searchRoot.FindFirst(scope, searchCondition);
                         }
                     }
                     else
                     {
-                        element = searchRoot.FindFirst(scope, automationIdCondition);
+                        element = searchRoot.FindFirst(scope, searchCondition);
                     }
                     
                     if (element != null)
                     {
-                        _logger?.LogDebug("Element found by AutomationId: '{AutomationId}'", automationId);
+                        _logger?.LogDebug("Element found by AutomationId: '{AutomationId}' with ControlType: '{ControlType}'", automationId, controlType);
                         return element;
                     }
                     else
                     {
-                        _logger?.LogDebug("Element not found by AutomationId: '{AutomationId}'", automationId);
+                        _logger?.LogDebug("Element not found by AutomationId: '{AutomationId}' with ControlType: '{ControlType}'", automationId, controlType);
                     }
                 }
                 
                 // 2. Nameで検索（フォールバック）
                 if (!string.IsNullOrEmpty(name))
                 {
-                    _logger?.LogDebug("Trying to find element by Name: '{Name}'", name);
+                    _logger?.LogDebug("Trying to find element by Name: '{Name}' with ControlType: '{ControlType}'", name, controlType);
                     var nameCondition = new PropertyCondition(AutomationElement.NameProperty, name);
+                    
+                    // ControlTypeフィルタと組み合わせ
+                    Condition searchCondition = controlTypeCondition != null 
+                        ? new AndCondition(nameCondition, controlTypeCondition)
+                        : nameCondition;
                     
                     if (cacheRequest != null)
                     {
                         using (cacheRequest.Activate())
                         {
-                            element = searchRoot.FindFirst(scope, nameCondition);
+                            element = searchRoot.FindFirst(scope, searchCondition);
                         }
                     }
                     else
                     {
-                        element = searchRoot.FindFirst(scope, nameCondition);
+                        element = searchRoot.FindFirst(scope, searchCondition);
                     }
                     
                     if (element != null)
                     {
-                        _logger?.LogDebug("Element found by Name: '{Name}'", name);
+                        _logger?.LogDebug("Element found by Name: '{Name}' with ControlType: '{ControlType}'", name, controlType);
                     }
                     else
                     {
-                        _logger?.LogDebug("Element not found by Name: '{Name}'", name);
+                        _logger?.LogDebug("Element not found by Name: '{Name}' with ControlType: '{ControlType}'", name, controlType);
                     }
                 }
                 
                 return element;
             }, $"FindElement(AutomationId: {automationId}, Name: {name})", timeoutMs / 1000);
+        }
+
+        /// <summary>
+        /// 文字列からControlTypeを取得する
+        /// </summary>
+        /// <param name="controlTypeString">ControlType文字列（例: "Button", "TextBox", "List"）</param>
+        /// <returns>対応するControlType、見つからない場合はnull</returns>
+        private ControlType? GetControlTypeFromString(string controlTypeString)
+        {
+            if (string.IsNullOrEmpty(controlTypeString))
+                return null;
+                
+            // Case-insensitive comparison
+            return controlTypeString.ToLowerInvariant() switch
+            {
+                "button" => ControlType.Button,
+                "calendar" => ControlType.Calendar,
+                "checkbox" => ControlType.CheckBox,
+                "combobox" => ControlType.ComboBox,
+                "edit" => ControlType.Edit,
+                "hyperlink" => ControlType.Hyperlink,
+                "image" => ControlType.Image,
+                "listitem" => ControlType.ListItem,
+                "list" => ControlType.List,
+                "menu" => ControlType.Menu,
+                "menubar" => ControlType.MenuBar,
+                "menuitem" => ControlType.MenuItem,
+                "progressbar" => ControlType.ProgressBar,
+                "radiobutton" => ControlType.RadioButton,
+                "scrollbar" => ControlType.ScrollBar,
+                "slider" => ControlType.Slider,
+                "spinner" => ControlType.Spinner,
+                "statusbar" => ControlType.StatusBar,
+                "tab" => ControlType.Tab,
+                "tabitem" => ControlType.TabItem,
+                "text" => ControlType.Text,
+                "toolbar" => ControlType.ToolBar,
+                "tooltip" => ControlType.ToolTip,
+                "tree" => ControlType.Tree,
+                "treeitem" => ControlType.TreeItem,
+                "custom" => ControlType.Custom,
+                "group" => ControlType.Group,
+                "thumb" => ControlType.Thumb,
+                "datagrid" => ControlType.DataGrid,
+                "dataitem" => ControlType.DataItem,
+                "document" => ControlType.Document,
+                "splitbutton" => ControlType.SplitButton,
+                "window" => ControlType.Window,
+                "pane" => ControlType.Pane,
+                "header" => ControlType.Header,
+                "headeritem" => ControlType.HeaderItem,
+                "table" => ControlType.Table,
+                "titlebar" => ControlType.TitleBar,
+                "separator" => ControlType.Separator,
+                _ => null
+            };
         }
 
         /// <summary>

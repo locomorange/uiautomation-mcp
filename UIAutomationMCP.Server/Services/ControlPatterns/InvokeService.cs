@@ -19,20 +19,22 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             _executor = executor;
         }
 
-        public async Task<ServerEnhancedResponse<ActionResult>> InvokeElementAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> InvokeElementAsync(string? automationId = null, string? name = null, string? controlType = null, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting InvokeElement for ElementId={elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Starting InvokeElement for AutomationId={automationId}, Name={name}, ControlType={controlType}");
 
                 var request = new InvokeElementRequest
                 {
-                    ElementId = elementId,
-                    WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
+                    WindowTitle = windowTitle,
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<InvokeElementRequest, ActionResult>("InvokeElement", request, timeoutSeconds);
@@ -50,7 +52,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["operationType"] = "invoke",
                             ["actionPerformed"] = "elementInvoked"
                         }
@@ -60,7 +64,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "InvokeElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
@@ -93,7 +99,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         {
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["operationType"] = "invoke",
                             ["actionPerformed"] = "elementInvoked"
                         }
@@ -103,7 +111,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "InvokeElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds

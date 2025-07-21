@@ -31,6 +31,7 @@ namespace UIAutomationMCP.Worker.Operations.Value
                 var element = _elementFinderService.FindElement(
                     automationId: typedRequest.AutomationId, 
                     name: typedRequest.Name,
+                    controlType: typedRequest.ControlType,
                     processId: typedRequest.ProcessId);
                 
                 if (element == null)

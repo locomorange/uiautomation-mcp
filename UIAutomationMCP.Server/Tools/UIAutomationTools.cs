@@ -203,10 +203,12 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
             [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
             => JsonSerializationHelper.Serialize(await _invokeService.InvokeElementAsync(
-                elementId ?? automationId ?? name ?? "", 
-                null, // windowTitle removed
-                processId, 
-                timeoutSeconds));
+                automationId: automationId,
+                name: name,
+                controlType: controlType,
+                windowTitle: null, // windowTitle removed
+                processId: processId, 
+                timeoutSeconds: timeoutSeconds));
 
         [McpServerTool, Description("Set the value of an element (text input, etc.) using ValuePattern")]
         public async Task<object> SetElementValue(
@@ -218,11 +220,13 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
             [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
             => JsonSerializationHelper.Serialize(await _valueService.SetValueAsync(
-                elementId ?? automationId ?? name ?? "", 
-                value,
-                null, // windowTitle removed
-                processId, 
-                timeoutSeconds));
+                value: value,
+                automationId: automationId,
+                name: name,
+                controlType: controlType,
+                windowTitle: null, // windowTitle removed
+                processId: processId, 
+                timeoutSeconds: timeoutSeconds));
 
 
 
@@ -235,10 +239,12 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
             [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
             => JsonSerializationHelper.Serialize(await _toggleService.ToggleElementAsync(
-                elementId ?? automationId ?? name ?? "", 
-                null, // windowTitle removed
-                processId, 
-                timeoutSeconds));
+                automationId: automationId,
+                name: name,
+                controlType: controlType,
+                windowTitle: null, // windowTitle removed
+                processId: processId, 
+                timeoutSeconds: timeoutSeconds));
 
         [McpServerTool, Description("Select an element in a list, tab, or tree using SelectionItemPattern")]
         public async Task<object> SelectElement(

@@ -33,6 +33,12 @@ namespace UIAutomationMCP.Shared.Requests
         public string? Name { get; set; }
 
         /// <summary>
+        /// UI Automation要素のControlType（パフォーマンス向上とより確実な特定）
+        /// </summary>
+        [JsonPropertyName("controlType")]
+        public string? ControlType { get; set; }
+
+        /// <summary>
         /// 要素検索のコンテキストとなるウィンドウタイトル
         /// </summary>
         [JsonPropertyName("windowTitle")]
