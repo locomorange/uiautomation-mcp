@@ -66,9 +66,9 @@ namespace UIAutomationMCP.Server.Services
                         {
                             ["eventTypes"] = request.EventTypes,
                             ["duration"] = request.Duration,
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = request.ProcessId ?? 0
                         },
                         TimeoutSeconds = duration + 30
@@ -152,9 +152,9 @@ namespace UIAutomationMCP.Server.Services
                         RequestParameters = new Dictionary<string, object>
                         {
                             ["eventTypes"] = request.EventTypes,
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = request.ProcessId ?? 0
                         },
                         TimeoutSeconds = 30

@@ -92,9 +92,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["operationType"] = "selectItem"
                         }
                     },
@@ -103,9 +103,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "SelectItem",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -137,9 +137,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         {
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["operationType"] = "selectItem"
                         }
                     },
@@ -148,9 +148,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "SelectItem",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -239,9 +239,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["operationType"] = "addToSelection"
                         }
                     },
@@ -250,9 +250,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "AddToSelection",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -284,9 +284,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         {
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["operationType"] = "addToSelection"
                         }
                     },
@@ -295,9 +295,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "AddToSelection",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -385,9 +385,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["operationType"] = "removeFromSelection"
                         }
                     },
@@ -396,9 +396,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "RemoveFromSelection",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -430,9 +430,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         {
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["operationType"] = "removeFromSelection"
                         }
                     },
@@ -441,9 +441,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "RemoveFromSelection",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -480,8 +480,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId,
-                            ["name"] = name,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["controlType"] = controlType ?? "<null>",
                             ["validationFailed"] = true
                         }
@@ -491,8 +491,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "ClearSelection",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
@@ -532,9 +532,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["operationType"] = "clearSelection"
                         }
                     },
@@ -543,9 +543,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "ClearSelection",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -577,9 +577,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         {
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["operationType"] = "clearSelection"
                         }
                     },
@@ -588,9 +588,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "ClearSelection",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -629,8 +629,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId,
-                            ["name"] = name,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["controlType"] = controlType ?? "<null>",
                             ["validationFailed"] = true
                         }
@@ -640,8 +640,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "IsSelected",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
@@ -681,9 +681,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["isSelected"] = result.Value,
                             ["operationType"] = "isSelected"
                         }
@@ -693,9 +693,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "IsSelected",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -727,9 +727,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         {
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["operationType"] = "isSelected"
                         }
                     },
@@ -738,9 +738,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "IsSelected",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -776,8 +776,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId,
-                            ["name"] = name,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["controlType"] = controlType ?? "<null>",
                             ["validationFailed"] = true
                         }
@@ -787,8 +787,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetSelectionContainer",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
@@ -828,9 +828,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["operationType"] = "getSelectionContainer"
                         }
                     },
@@ -839,9 +839,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetSelectionContainer",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -873,9 +873,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         {
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["operationType"] = "getSelectionContainer"
                         }
                     },
@@ -884,9 +884,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetSelectionContainer",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -922,8 +922,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId,
-                            ["name"] = name,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["controlType"] = controlType ?? "<null>",
                             ["validationFailed"] = true
                         }
@@ -933,8 +933,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "CanSelectMultiple",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
@@ -974,9 +974,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["canSelectMultiple"] = result.Value,
                             ["operationType"] = "canSelectMultiple"
                         }
@@ -986,9 +986,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "CanSelectMultiple",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -1020,9 +1020,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         {
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["operationType"] = "canSelectMultiple"
                         }
                     },
@@ -1031,9 +1031,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "CanSelectMultiple",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -1069,8 +1069,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId,
-                            ["name"] = name,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["controlType"] = controlType ?? "<null>",
                             ["validationFailed"] = true
                         }
@@ -1080,8 +1080,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "IsSelectionRequired",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
@@ -1121,9 +1121,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["isSelectionRequired"] = result.Value,
                             ["operationType"] = "isSelectionRequired"
                         }
@@ -1133,9 +1133,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "IsSelectionRequired",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -1167,9 +1167,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         {
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["operationType"] = "isSelectionRequired"
                         }
                     },
@@ -1178,9 +1178,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "IsSelectionRequired",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -1216,8 +1216,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId,
-                            ["name"] = name,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["controlType"] = controlType ?? "<null>",
                             ["validationFailed"] = true
                         }
@@ -1227,8 +1227,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetSelection",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
@@ -1268,9 +1268,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["operationType"] = "getSelection"
                         }
                     },
@@ -1279,9 +1279,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetSelection",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -1313,9 +1313,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         {
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["operationType"] = "getSelection"
                         }
                     },
@@ -1324,9 +1324,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetSelection",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["automationId"] = automationId,
-                            ["name"] = name,
-                            ["controlType"] = controlType,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
