@@ -32,7 +32,8 @@ namespace UIAutomationMCP.Worker.Operations.Grid
                     automationId: typedRequest.AutomationId, 
                     name: typedRequest.Name,
                     controlType: typedRequest.ControlType,
-                    processId: typedRequest.ProcessId);
+                    processId: typedRequest.ProcessId,
+                    requiredPattern: GridPattern.Pattern);
                 
                 if (element == null)
                 {

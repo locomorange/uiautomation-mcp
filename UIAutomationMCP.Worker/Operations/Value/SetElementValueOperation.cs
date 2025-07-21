@@ -32,7 +32,8 @@ namespace UIAutomationMCP.Worker.Operations.Value
                     automationId: typedRequest.AutomationId, 
                     name: typedRequest.Name,
                     controlType: typedRequest.ControlType,
-                    processId: typedRequest.ProcessId);
+                    processId: typedRequest.ProcessId,
+                    requiredPattern: ValuePattern.Pattern);
                 
                 if (element == null)
                 {

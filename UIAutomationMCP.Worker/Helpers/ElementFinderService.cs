@@ -29,10 +29,12 @@ namespace UIAutomationMCP.Worker.Helpers
         /// <param name="scope">検索範囲（デフォルト: Descendants）</param>
         /// <param name="cacheRequest">キャッシュリクエスト（パフォーマンス最適化用、省略可）</param>
         /// <param name="timeoutMs">検索タイムアウト（ミリ秒、デフォルト: 1000ms）</param>
+        /// <param name="requiredPattern">必要なUI Automationパターン（検索効率化用、省略可）</param>
         /// <returns>見つかった要素、見つからない場合はnull</returns>
         public AutomationElement? FindElement(string? automationId = null, string? name = null, 
             string? controlType = null, string? windowTitle = null, int? processId = null, 
-            TreeScope scope = TreeScope.Descendants, CacheRequest? cacheRequest = null, int timeoutMs = 1000)
+            TreeScope scope = TreeScope.Descendants, CacheRequest? cacheRequest = null, int timeoutMs = 1000,
+            AutomationPattern? requiredPattern = null)
         {
             // 少なくとも一つの識別子が必要
             if (string.IsNullOrEmpty(automationId) && string.IsNullOrEmpty(name))
@@ -77,15 +79,32 @@ namespace UIAutomationMCP.Worker.Helpers
                     }
                 }
                 
+                // パターンフィルタ条件を準備
+                Condition? patternCondition = null;
+                if (requiredPattern != null)
+                {
+                    // 各パターンごとにサポート状況プロパティを取得
+                    AutomationProperty? patternProperty = GetPatternAvailabilityProperty(requiredPattern);
+                    if (patternProperty != null)
+                    {
+                        patternCondition = new PropertyCondition(patternProperty, true);
+                        _logger?.LogDebug("Adding pattern filter for: {Pattern}", requiredPattern.ProgrammaticName);
+                    }
+                }
+                
                 // 1. AutomationIdで検索（優先）
                 if (!string.IsNullOrEmpty(automationId))
                 {
                     var automationIdCondition = new PropertyCondition(AutomationElement.AutomationIdProperty, automationId);
                     
-                    // ControlTypeフィルタと組み合わせ
-                    Condition searchCondition = controlTypeCondition != null 
-                        ? new AndCondition(automationIdCondition, controlTypeCondition)
-                        : automationIdCondition;
+                    // ControlTypeフィルタとパターンフィルタを組み合わせ
+                    var conditions = new List<Condition> { automationIdCondition };
+                    if (controlTypeCondition != null) conditions.Add(controlTypeCondition);
+                    if (patternCondition != null) conditions.Add(patternCondition);
+                    
+                    Condition searchCondition = conditions.Count == 1 
+                        ? conditions[0] 
+                        : new AndCondition(conditions.ToArray());
                     
                     if (cacheRequest != null)
                     {
@@ -116,10 +135,14 @@ namespace UIAutomationMCP.Worker.Helpers
                     _logger?.LogDebug("Trying to find element by Name: '{Name}' with ControlType: '{ControlType}'", name, controlType);
                     var nameCondition = new PropertyCondition(AutomationElement.NameProperty, name);
                     
-                    // ControlTypeフィルタと組み合わせ
-                    Condition searchCondition = controlTypeCondition != null 
-                        ? new AndCondition(nameCondition, controlTypeCondition)
-                        : nameCondition;
+                    // ControlTypeフィルタとパターンフィルタを組み合わせ
+                    var conditions = new List<Condition> { nameCondition };
+                    if (controlTypeCondition != null) conditions.Add(controlTypeCondition);
+                    if (patternCondition != null) conditions.Add(patternCondition);
+                    
+                    Condition searchCondition = conditions.Count == 1 
+                        ? conditions[0] 
+                        : new AndCondition(conditions.ToArray());
                     
                     if (cacheRequest != null)
                     {
@@ -877,6 +900,35 @@ namespace UIAutomationMCP.Worker.Helpers
                 BoundingRectangle = element.Current.BoundingRectangle,
                 ProcessId = element.Current.ProcessId
             };
+        }
+
+        /// <summary>
+        /// パターンからそのサポート状況を示すAutomationPropertyを取得
+        /// </summary>
+        private AutomationProperty? GetPatternAvailabilityProperty(AutomationPattern pattern)
+        {
+            // 各パターンのサポート状況を示すプロパティを返す
+            if (pattern == GridPattern.Pattern) return AutomationElement.IsGridPatternAvailableProperty;
+            if (pattern == ValuePattern.Pattern) return AutomationElement.IsValuePatternAvailableProperty;
+            if (pattern == TogglePattern.Pattern) return AutomationElement.IsTogglePatternAvailableProperty;
+            if (pattern == InvokePattern.Pattern) return AutomationElement.IsInvokePatternAvailableProperty;
+            if (pattern == SelectionItemPattern.Pattern) return AutomationElement.IsSelectionItemPatternAvailableProperty;
+            if (pattern == SelectionPattern.Pattern) return AutomationElement.IsSelectionPatternAvailableProperty;
+            if (pattern == RangeValuePattern.Pattern) return AutomationElement.IsRangeValuePatternAvailableProperty;
+            if (pattern == TransformPattern.Pattern) return AutomationElement.IsTransformPatternAvailableProperty;
+            if (pattern == ScrollPattern.Pattern) return AutomationElement.IsScrollPatternAvailableProperty;
+            if (pattern == ScrollItemPattern.Pattern) return AutomationElement.IsScrollItemPatternAvailableProperty;
+            if (pattern == TextPattern.Pattern) return AutomationElement.IsTextPatternAvailableProperty;
+            if (pattern == ExpandCollapsePattern.Pattern) return AutomationElement.IsExpandCollapsePatternAvailableProperty;
+            if (pattern == DockPattern.Pattern) return AutomationElement.IsDockPatternAvailableProperty;
+            if (pattern == WindowPattern.Pattern) return AutomationElement.IsWindowPatternAvailableProperty;
+            if (pattern == TablePattern.Pattern) return AutomationElement.IsTablePatternAvailableProperty;
+            if (pattern == TableItemPattern.Pattern) return AutomationElement.IsTableItemPatternAvailableProperty;
+            if (pattern == GridItemPattern.Pattern) return AutomationElement.IsGridItemPatternAvailableProperty;
+            if (pattern == MultipleViewPattern.Pattern) return AutomationElement.IsMultipleViewPatternAvailableProperty;
+            
+            _logger?.LogWarning("Unknown pattern: {Pattern}", pattern.ProgrammaticName);
+            return null;
         }
     }
 

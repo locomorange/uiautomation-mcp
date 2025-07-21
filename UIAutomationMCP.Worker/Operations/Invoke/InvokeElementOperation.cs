@@ -27,7 +27,8 @@ namespace UIAutomationMCP.Worker.Operations.Invoke
                     automationId: typedRequest.AutomationId, 
                     name: typedRequest.Name,
                     controlType: typedRequest.ControlType,
-                    processId: typedRequest.ProcessId);
+                    processId: typedRequest.ProcessId,
+                    requiredPattern: InvokePattern.Pattern);
                 if (element == null)
                 {
                     return Task.FromResult(new OperationResult

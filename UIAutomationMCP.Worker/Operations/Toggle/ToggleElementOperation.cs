@@ -30,7 +30,8 @@ namespace UIAutomationMCP.Worker.Operations.Toggle
                     automationId: typedRequest.AutomationId, 
                     name: typedRequest.Name,
                     controlType: typedRequest.ControlType,
-                    processId: typedRequest.ProcessId);
+                    processId: typedRequest.ProcessId,
+                    requiredPattern: TogglePattern.Pattern);
                 if (element == null)
                 {
                     return Task.FromResult(new OperationResult 

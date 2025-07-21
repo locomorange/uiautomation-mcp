@@ -33,7 +33,7 @@ namespace UIAutomationMCP.Worker.Helpers
                     Width = element.Current.BoundingRectangle.Width,
                     Height = element.Current.BoundingRectangle.Height
                 },
-                SupportedPatterns = GetSupportedPatternsArray(element)
+                SupportedPatterns = GetSupportedPatternsArray(element, false)
             };
 
             // Include details if requested
@@ -69,7 +69,7 @@ namespace UIAutomationMCP.Worker.Helpers
                     Width = element.Cached.BoundingRectangle.Width,
                     Height = element.Cached.BoundingRectangle.Height
                 },
-                SupportedPatterns = GetSupportedPatternsArray(element)
+                SupportedPatterns = GetSupportedPatternsArray(element, true)
             };
 
             // Include details if requested
@@ -81,10 +81,16 @@ namespace UIAutomationMCP.Worker.Helpers
             return elementInfo;
         }
 
-        private static string[] GetSupportedPatternsArray(AutomationElement element)
+        private static string[] GetSupportedPatternsArray(AutomationElement element, bool useCached = false)
         {
             try
             {
+                // キャッシュ要素の場合、GetSupportedPatternsは使用できないので空配列を返す
+                if (useCached)
+                {
+                    return new string[0];
+                }
+                
                 var supportedPatterns = element.GetSupportedPatterns();
                 return supportedPatterns.Select(p => p.ProgrammaticName).ToArray();
             }
@@ -131,7 +137,7 @@ namespace UIAutomationMCP.Worker.Helpers
             try
             {
                 // Value Pattern
-                if (element.TryGetCurrentPattern(ValuePattern.Pattern, out var valuePatternObj) && 
+                if ((useCached ? element.TryGetCachedPattern(ValuePattern.Pattern, out var valuePatternObj) : element.TryGetCurrentPattern(ValuePattern.Pattern, out valuePatternObj)) && 
                     valuePatternObj is ValuePattern valuePattern)
                 {
                     details.ValueInfo = new ValueInfo
@@ -142,7 +148,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
 
                 // Toggle Pattern
-                if (element.TryGetCurrentPattern(TogglePattern.Pattern, out var togglePatternObj) && 
+                if ((useCached ? element.TryGetCachedPattern(TogglePattern.Pattern, out var togglePatternObj) : element.TryGetCurrentPattern(TogglePattern.Pattern, out togglePatternObj)) && 
                     togglePatternObj is TogglePattern togglePattern)
                 {
                     details.Toggle = new ToggleInfo
@@ -153,7 +159,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
 
                 // Selection Pattern
-                if (element.TryGetCurrentPattern(SelectionPattern.Pattern, out var selectionPatternObj) && 
+                if ((useCached ? element.TryGetCachedPattern(SelectionPattern.Pattern, out var selectionPatternObj) : element.TryGetCurrentPattern(SelectionPattern.Pattern, out selectionPatternObj)) && 
                     selectionPatternObj is SelectionPattern selectionPattern)
                 {
                     details.Selection = new SelectionInfo
@@ -164,7 +170,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
 
                 // Range Pattern
-                if (element.TryGetCurrentPattern(RangeValuePattern.Pattern, out var rangePatternObj) && 
+                if ((useCached ? element.TryGetCachedPattern(RangeValuePattern.Pattern, out var rangePatternObj) : element.TryGetCurrentPattern(RangeValuePattern.Pattern, out rangePatternObj)) && 
                     rangePatternObj is RangeValuePattern rangePattern)
                 {
                     details.Range = new RangeInfo
@@ -179,7 +185,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
 
                 // Grid Pattern
-                if (element.TryGetCurrentPattern(GridPattern.Pattern, out var gridPatternObj) && 
+                if ((useCached ? element.TryGetCachedPattern(GridPattern.Pattern, out var gridPatternObj) : element.TryGetCurrentPattern(GridPattern.Pattern, out gridPatternObj)) && 
                     gridPatternObj is GridPattern gridPattern)
                 {
                     details.Grid = new GridInfo
@@ -190,7 +196,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
 
                 // Table Pattern
-                if (element.TryGetCurrentPattern(TablePattern.Pattern, out var tablePatternObj) && 
+                if ((useCached ? element.TryGetCachedPattern(TablePattern.Pattern, out var tablePatternObj) : element.TryGetCurrentPattern(TablePattern.Pattern, out tablePatternObj)) && 
                     tablePatternObj is TablePattern tablePattern)
                 {
                     var rowHeaders = new List<ElementInfo>();
@@ -233,7 +239,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
 
                 // Scroll Pattern
-                if (element.TryGetCurrentPattern(ScrollPattern.Pattern, out var scrollPatternObj) && 
+                if ((useCached ? element.TryGetCachedPattern(ScrollPattern.Pattern, out var scrollPatternObj) : element.TryGetCurrentPattern(ScrollPattern.Pattern, out scrollPatternObj)) && 
                     scrollPatternObj is ScrollPattern scrollPattern)
                 {
                     details.Scroll = new ScrollInfo
@@ -248,7 +254,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
 
                 // Transform Pattern
-                if (element.TryGetCurrentPattern(TransformPattern.Pattern, out var transformPatternObj) && 
+                if ((useCached ? element.TryGetCachedPattern(TransformPattern.Pattern, out var transformPatternObj) : element.TryGetCurrentPattern(TransformPattern.Pattern, out transformPatternObj)) && 
                     transformPatternObj is TransformPattern transformPattern)
                 {
                     details.Transform = new TransformInfo
@@ -260,7 +266,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
 
                 // Window Pattern
-                if (element.TryGetCurrentPattern(WindowPattern.Pattern, out var windowPatternObj) && 
+                if ((useCached ? element.TryGetCachedPattern(WindowPattern.Pattern, out var windowPatternObj) : element.TryGetCurrentPattern(WindowPattern.Pattern, out windowPatternObj)) && 
                     windowPatternObj is WindowPattern windowPattern)
                 {
                     details.Window = new WindowPatternInfo
@@ -275,7 +281,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
 
                 // ExpandCollapse Pattern
-                if (element.TryGetCurrentPattern(ExpandCollapsePattern.Pattern, out var expandCollapsePatternObj) && 
+                if ((useCached ? element.TryGetCachedPattern(ExpandCollapsePattern.Pattern, out var expandCollapsePatternObj) : element.TryGetCurrentPattern(ExpandCollapsePattern.Pattern, out expandCollapsePatternObj)) && 
                     expandCollapsePatternObj is ExpandCollapsePattern expandCollapsePattern)
                 {
                     details.ExpandCollapse = new ExpandCollapseInfo
@@ -285,7 +291,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
 
                 // Dock Pattern
-                if (element.TryGetCurrentPattern(DockPattern.Pattern, out var dockPatternObj) && 
+                if ((useCached ? element.TryGetCachedPattern(DockPattern.Pattern, out var dockPatternObj) : element.TryGetCurrentPattern(DockPattern.Pattern, out dockPatternObj)) && 
                     dockPatternObj is DockPattern dockPattern)
                 {
                     details.Dock = new DockInfo
@@ -295,7 +301,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
 
                 // MultipleView Pattern
-                if (element.TryGetCurrentPattern(MultipleViewPattern.Pattern, out var multipleViewPatternObj) && 
+                if ((useCached ? element.TryGetCachedPattern(MultipleViewPattern.Pattern, out var multipleViewPatternObj) : element.TryGetCurrentPattern(MultipleViewPattern.Pattern, out multipleViewPatternObj)) && 
                     multipleViewPatternObj is MultipleViewPattern multipleViewPattern)
                 {
                     var availableViews = new List<PatternViewInfo>();
@@ -328,7 +334,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
 
                 // Text Pattern
-                if (element.TryGetCurrentPattern(TextPattern.Pattern, out var textPatternObj) && 
+                if ((useCached ? element.TryGetCachedPattern(TextPattern.Pattern, out var textPatternObj) : element.TryGetCurrentPattern(TextPattern.Pattern, out textPatternObj)) && 
                     textPatternObj is TextPattern textPattern)
                 {
                     string textValue = "";
@@ -354,7 +360,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
 
                 // GridItem Pattern
-                if (element.TryGetCurrentPattern(GridItemPattern.Pattern, out var gridItemPatternObj) && 
+                if ((useCached ? element.TryGetCachedPattern(GridItemPattern.Pattern, out var gridItemPatternObj) : element.TryGetCurrentPattern(GridItemPattern.Pattern, out gridItemPatternObj)) && 
                     gridItemPatternObj is GridItemPattern gridItemPattern)
                 {
                     details.GridItem = new GridItemInfo
@@ -370,7 +376,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
 
                 // TableItem Pattern
-                if (element.TryGetCurrentPattern(TableItemPattern.Pattern, out var tableItemPatternObj) && 
+                if ((useCached ? element.TryGetCachedPattern(TableItemPattern.Pattern, out var tableItemPatternObj) : element.TryGetCurrentPattern(TableItemPattern.Pattern, out tableItemPatternObj)) && 
                     tableItemPatternObj is TableItemPattern tableItemPattern)
                 {
                     var rowHeaderItems = new List<ElementInfo>();
@@ -409,8 +415,27 @@ namespace UIAutomationMCP.Worker.Helpers
                     };
                 }
 
+                // Get supported patterns once (cache-aware)
+                AutomationPattern[] supportedPatterns;
+                try
+                {
+                    if (useCached)
+                    {
+                        // キャッシュ要素の場合、GetSupportedPatternsは使用できない
+                        supportedPatterns = new AutomationPattern[0];
+                    }
+                    else
+                    {
+                        supportedPatterns = element.GetSupportedPatterns();
+                    }
+                }
+                catch
+                {
+                    supportedPatterns = new AutomationPattern[0];
+                }
+
                 // Invoke Pattern
-                if (element.GetSupportedPatterns().Contains(InvokePattern.Pattern))
+                if (supportedPatterns.Contains(InvokePattern.Pattern))
                 {
                     details.Invoke = new InvokeInfo
                     {
@@ -419,7 +444,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
 
                 // ScrollItem Pattern  
-                if (element.GetSupportedPatterns().Contains(ScrollItemPattern.Pattern))
+                if (supportedPatterns.Contains(ScrollItemPattern.Pattern))
                 {
                     details.ScrollItem = new ScrollItemInfo
                     {
@@ -428,7 +453,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
 
                 // VirtualizedItem Pattern
-                if (element.GetSupportedPatterns().Contains(VirtualizedItemPattern.Pattern))
+                if (supportedPatterns.Contains(VirtualizedItemPattern.Pattern))
                 {
                     details.VirtualizedItem = new VirtualizedItemInfo
                     {
@@ -437,7 +462,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
 
                 // ItemContainer Pattern
-                if (element.GetSupportedPatterns().Contains(ItemContainerPattern.Pattern))
+                if (supportedPatterns.Contains(ItemContainerPattern.Pattern))
                 {
                     details.ItemContainer = new ItemContainerInfo
                     {
@@ -446,7 +471,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
 
                 // SynchronizedInput Pattern
-                if (element.GetSupportedPatterns().Contains(SynchronizedInputPattern.Pattern))
+                if (supportedPatterns.Contains(SynchronizedInputPattern.Pattern))
                 {
                     details.SynchronizedInput = new SynchronizedInputInfo
                     {
