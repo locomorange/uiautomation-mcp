@@ -69,9 +69,9 @@ namespace UIAutomationMCP.Server.Services
 
                 var request = new GetChildrenRequest
                 {
-                    ElementId = elementId,
+                    AutomationId = elementId,
                     WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<GetChildrenRequest, TreeNavigationResult>("GetChildren", request, timeoutSeconds);
@@ -189,9 +189,9 @@ namespace UIAutomationMCP.Server.Services
 
                 var request = new GetParentRequest
                 {
-                    ElementId = elementId,
+                    AutomationId = elementId,
                     WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<GetParentRequest, TreeNavigationResult>("GetParent", request, timeoutSeconds);
@@ -309,9 +309,9 @@ namespace UIAutomationMCP.Server.Services
 
                 var request = new GetSiblingsRequest
                 {
-                    ElementId = elementId,
+                    AutomationId = elementId,
                     WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<GetSiblingsRequest, TreeNavigationResult>("GetSiblings", request, timeoutSeconds);
@@ -429,9 +429,9 @@ namespace UIAutomationMCP.Server.Services
 
                 var request = new GetDescendantsRequest
                 {
-                    ElementId = elementId,
+                    AutomationId = elementId,
                     WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<GetDescendantsRequest, TreeNavigationResult>("GetDescendants", request, timeoutSeconds);
@@ -549,9 +549,9 @@ namespace UIAutomationMCP.Server.Services
 
                 var request = new GetAncestorsRequest
                 {
-                    ElementId = elementId,
+                    AutomationId = elementId,
                     WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<GetAncestorsRequest, TreeNavigationResult>("GetAncestors", request, timeoutSeconds);

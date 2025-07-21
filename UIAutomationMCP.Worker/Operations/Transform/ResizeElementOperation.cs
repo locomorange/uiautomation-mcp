@@ -41,17 +41,19 @@ namespace UIAutomationMCP.Worker.Operations.Transform
                     });
                 }
 
-                var element = _elementFinderService.FindElementById(
-                    typedRequest.ElementId, 
-                    typedRequest.WindowTitle, 
-                    typedRequest.ProcessId ?? 0);
+                var element = _elementFinderService.FindElement(
+                    automationId: typedRequest.AutomationId, 
+                    name: typedRequest.Name, 
+                    controlType: typedRequest.ControlType, 
+                    windowTitle: typedRequest.WindowTitle, 
+                    processId: typedRequest.ProcessId ?? 0);
                 
                 if (element == null)
                 {
                     return Task.FromResult(new OperationResult 
                     { 
                         Success = false, 
-                        Error = $"Element '{typedRequest.ElementId}' not found",
+                        Error = $"Element with AutomationId '{typedRequest.AutomationId}' and Name '{typedRequest.Name}' not found",
                         Data = new TransformActionResult { ActionName = "Resize", TransformType = "Resize" }
                     });
                 }

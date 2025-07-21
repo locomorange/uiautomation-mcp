@@ -77,11 +77,10 @@ namespace UIAutomationMCP.Worker.Operations.MultipleView
 
                 var result = new MultipleViewResult
                 {
-                    ElementId = typedRequest.ElementId,
+                    ElementId = typedRequest.AutomationId ?? typedRequest.Name ?? "",
                     CurrentView = typedRequest.ViewId,
                     SupportedViews = new List<int> { typedRequest.ViewId },
                     ViewNames = viewNamesDict,
-                    WindowTitle = typedRequest.WindowTitle,
                     ProcessId = typedRequest.ProcessId ?? 0
                 };
 

@@ -6,7 +6,6 @@ namespace UIAutomationMCP.Shared.Results
     /// 詳細なUI要素情報クラス（廃止予定）
     /// 新しい統合されたElementInfo構造体に置き換えられます
     /// </summary>
-    [Obsolete("Use ElementInfo with Details and Hierarchy properties instead")]
     public class ElementDetail
     {
         /// <summary>

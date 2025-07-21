@@ -18,20 +18,21 @@ namespace UIAutomationMCP.Server.Services
         }
 
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> VerifyAccessibilityAsync(string? elementId = null, string? windowTitle = null, int? processId = null, int timeoutSeconds = 60)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> VerifyAccessibilityAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 60)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Verifying accessibility for element: {elementId ?? "window"}");
+                _logger.LogInformationWithOperation(operationId, $"Verifying accessibility for AutomationId={automationId}, Name={name}, ControlType={controlType}");
 
                 var request = new VerifyAccessibilityRequest
                 {
-                    ElementId = elementId ?? "",
-                    WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<VerifyAccessibilityRequest, ElementSearchResult>("VerifyAccessibility", request, timeoutSeconds);
@@ -51,8 +52,9 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "VerifyAccessibility",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -60,7 +62,7 @@ namespace UIAutomationMCP.Server.Services
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"Accessibility verification completed for element: {elementId ?? "window"}");
+                _logger.LogInformationWithOperation(operationId, $"Accessibility verification completed for AutomationId={automationId}, Name={name}, ControlType={controlType}");
                 return successResponse;
             }
             catch (Exception ex)
@@ -86,8 +88,9 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "VerifyAccessibility",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -95,7 +98,7 @@ namespace UIAutomationMCP.Server.Services
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to verify accessibility for element: {elementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to verify accessibility for AutomationId={automationId}, Name={name}, ControlType={controlType}");
                 return errorResponse;
             }
         }
@@ -248,7 +251,8 @@ namespace UIAutomationMCP.Server.Services
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -257,8 +261,9 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "GetDescribedBy",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -270,13 +275,14 @@ namespace UIAutomationMCP.Server.Services
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Getting described by info for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Getting described by info for AutomationId={automationId}, Name={name}, ControlType={controlType}");
 
                 var request = new GetDescribedByRequest
                 {
-                    ElementId = elementId,
-                    WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<GetDescribedByRequest, ElementSearchResult>("GetDescribedBy", request, timeoutSeconds);
@@ -296,8 +302,9 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "GetDescribedBy",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -305,7 +312,7 @@ namespace UIAutomationMCP.Server.Services
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"Described by info retrieved successfully for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Described by info retrieved successfully for AutomationId={automationId}, Name={name}, ControlType={controlType}");
                 return successResponse;
             }
             catch (Exception ex)
@@ -331,8 +338,9 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "GetDescribedBy",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -340,20 +348,20 @@ namespace UIAutomationMCP.Server.Services
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get described by info for element {elementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get described by info for AutomationId={automationId}, Name={name}, ControlType={controlType}");
                 return errorResponse;
             }
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetAccessibilityInfoAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetAccessibilityInfoAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required";
                 _logger.LogWarningWithOperation(operationId, $"GetAccessibilityInfo validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
@@ -368,7 +376,9 @@ namespace UIAutomationMCP.Server.Services
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
+                            ["controlType"] = controlType ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -377,8 +387,9 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "GetAccessibilityInfo",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -390,12 +401,14 @@ namespace UIAutomationMCP.Server.Services
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Getting accessibility info for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Getting accessibility info for element: AutomationId='{automationId}', Name='{name}', ControlType='{controlType}'");
 
                 var request = new GetAccessibilityInfoRequest
                 {
-                    ElementId = elementId,
-                    WindowTitle = windowTitle ?? "",
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
+                    WindowTitle = "",
                     ProcessId = processId ?? 0
                 };
 
@@ -412,8 +425,9 @@ namespace UIAutomationMCP.Server.Services
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["operationCompleted"] = true
                         }
@@ -423,8 +437,9 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "GetAccessibilityInfo",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -432,7 +447,7 @@ namespace UIAutomationMCP.Server.Services
                     }
                 };
 
-                _logger.LogInformationWithOperation(operationId, $"Successfully retrieved accessibility info for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Successfully retrieved accessibility info for element: AutomationId='{automationId}', Name='{name}', ControlType='{controlType}'");
                 return response;
             }
             catch (Exception ex)
@@ -448,8 +463,9 @@ namespace UIAutomationMCP.Server.Services
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["exceptionType"] = ex.GetType().Name,
                             ["exceptionMessage"] = ex.Message
@@ -460,8 +476,9 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "GetAccessibilityInfo",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -469,7 +486,7 @@ namespace UIAutomationMCP.Server.Services
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get accessibility info for element {elementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get accessibility info for element: AutomationId='{automationId}', Name='{name}', ControlType='{controlType}'");
                 return errorResponse;
             }
         }

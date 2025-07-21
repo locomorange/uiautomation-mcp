@@ -28,10 +28,12 @@ namespace UIAutomationMCP.Worker.Operations.Selection
             {
                 var typedRequest = JsonSerializationHelper.Deserialize<RemoveFromSelectionRequest>(parametersJson)!;
                 
-                var element = _elementFinderService.FindElementById(
-                    typedRequest.ElementId, 
-                    typedRequest.WindowTitle, 
-                    typedRequest.ProcessId ?? 0);
+                var element = _elementFinderService.FindElement(
+                    automationId: typedRequest.AutomationId, 
+                    name: typedRequest.Name, 
+                    controlType: typedRequest.ControlType, 
+                    windowTitle: typedRequest.WindowTitle, 
+                    processId: typedRequest.ProcessId ?? 0);
                 
                 if (element == null)
                 {

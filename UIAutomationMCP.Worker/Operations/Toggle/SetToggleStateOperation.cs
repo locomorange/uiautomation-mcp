@@ -26,12 +26,19 @@ namespace UIAutomationMCP.Worker.Operations.Toggle
             {
                 var typedRequest = JsonSerializationHelper.Deserialize<SetToggleStateRequest>(parametersJson)!;
                 
-                var elementId = typedRequest.ElementId;
+                var automationId = typedRequest.AutomationId;
+                var name = typedRequest.Name;
+                var controlType = typedRequest.ControlType;
                 var windowTitle = typedRequest.WindowTitle;
                 var processId = typedRequest.ProcessId ?? 0;
                 var toggleState = typedRequest.State;
 
-                var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
+                var element = _elementFinderService.FindElement(
+                    automationId: automationId, 
+                    name: name, 
+                    controlType: controlType, 
+                    windowTitle: windowTitle, 
+                    processId: processId);
                 if (element == null)
                 {
                     return Task.FromResult(new OperationResult 
@@ -82,7 +89,7 @@ namespace UIAutomationMCP.Worker.Operations.Toggle
                                 Completed = false,
                                 PreviousState = initialState.ToString(),
                                 CurrentState = currentState.ToString(),
-                                Details = $"Failed to set toggle state to {targetState} for element {elementId}"
+                                Details = $"Failed to set toggle state to {targetState} for element (AutomationId: '{automationId}', Name: '{name}')"
                             }
                         });
                     }
@@ -97,7 +104,7 @@ namespace UIAutomationMCP.Worker.Operations.Toggle
                     ExecutedAt = DateTime.UtcNow,
                     PreviousState = initialState.ToString(),
                     CurrentState = currentState.ToString(),
-                    Details = $"Successfully toggled {elementId} to {targetState} (was {initialState})"
+                    Details = $"Successfully toggled element (AutomationId: '{automationId}', Name: '{name}') to {targetState} (was {initialState})"
                 };
 
                 return Task.FromResult(new OperationResult 

@@ -47,12 +47,14 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
         {
             try
             {
-                var typedRequest = JsonSerializationHelper.Deserialize<GetElementPropertiesRequest>(parametersJson)!;
+                var typedRequest = JsonSerializationHelper.Deserialize<ValidateControlTypePatternsRequest>(parametersJson)!;
                 
-                var element = _elementFinderService.FindElementById(
-                    typedRequest.ElementId, 
-                    typedRequest.WindowTitle, 
-                    typedRequest.ProcessId ?? 0);
+                var element = _elementFinderService.FindElement(
+                    automationId: typedRequest.AutomationId, 
+                    name: typedRequest.Name, 
+                    controlType: typedRequest.ControlType, 
+                    windowTitle: typedRequest.WindowTitle, 
+                    processId: typedRequest.ProcessId ?? 0);
                 
                 if (element == null)
                 {

@@ -298,7 +298,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
             [Description("Process ID of the target window (optional)")] int? processId = null, 
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _selectionService.ClearSelectionAsync(containerElementId, windowTitle, processId, timeoutSeconds));
+            => JsonSerializationHelper.Serialize(await _selectionService.ClearSelectionAsync(automationId: containerElementId, processId: processId, timeoutSeconds: timeoutSeconds));
 
         // Layout and Navigation Patterns
         [McpServerTool, Description("Expand or collapse an element using ExpandCollapsePattern")]
@@ -780,7 +780,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Title of the window to verify")] string? windowTitle = null,
             [Description("Process ID of the target window (optional)")] int? processId = null,
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
-            => JsonSerializationHelper.Serialize(await _accessibilityService.VerifyAccessibilityAsync(elementId, windowTitle, processId, timeoutSeconds));
+            => JsonSerializationHelper.Serialize(await _accessibilityService.VerifyAccessibilityAsync(automationId: elementId, processId: processId, timeoutSeconds: timeoutSeconds));
 
 
         // Custom Properties and Events
@@ -901,7 +901,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Process ID to limit search scope (optional)")] int? processId = null,
             [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
             => JsonSerializationHelper.Serialize(await _eventMonitorService.MonitorEventsAsync(
-                eventType, duration, elementId ?? automationId ?? name, null, processId));
+                eventType, duration, automationId: elementId ?? automationId, name: name, controlType: controlType, processId: processId));
 
         [McpServerTool, Description("Start continuous event monitoring")]
         public async Task<object> StartEventMonitoring(
@@ -912,7 +912,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Process ID to limit search scope (optional)")] int? processId = null,
             [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
             => JsonSerializationHelper.Serialize(await _eventMonitorService.StartEventMonitoringAsync(
-                eventType, elementId ?? automationId ?? name, null, processId));
+                eventType, automationId: elementId ?? automationId, name: name, controlType: controlType, processId: processId));
 
         [McpServerTool, Description("Stop continuous event monitoring")]
         public async Task<object> StopEventMonitoring()

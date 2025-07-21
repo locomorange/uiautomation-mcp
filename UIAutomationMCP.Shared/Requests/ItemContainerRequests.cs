@@ -17,20 +17,5 @@ namespace UIAutomationMCP.Shared.Requests
         [JsonPropertyName("startAfterId")]
         public string StartAfterId { get; set; } = "";
 
-        // Backward compatibility: ContainerId maps to AutomationId/Name for container identification
-        [JsonPropertyName("containerId")]
-        [Obsolete("Use AutomationId or Name to identify the container element")]
-        public string ContainerId 
-        { 
-            get => AutomationId ?? Name ?? "";
-            set 
-            {
-                if (!string.IsNullOrEmpty(value))
-                {
-                    if (string.IsNullOrEmpty(AutomationId))
-                        AutomationId = value;
-                }
-            }
-        }
     }
 }

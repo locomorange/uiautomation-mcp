@@ -81,7 +81,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 var result = new TextInfoResult
                 {
                     Success = true,
-                    ElementId = request.ElementId,
+                    ElementId = request.AutomationId ?? request.Name ?? "",
                     ElementName = element.Current.Name,
                     ElementAutomationId = element.Current.AutomationId,
                     ElementControlType = element.Current.ControlType.LocalizedControlType,

@@ -203,23 +203,6 @@ namespace UIAutomationMCP.Worker.Helpers
             };
         }
 
-        /// <summary>
-        /// 非推奨: FindElementを使用してください
-        /// </summary>
-        [Obsolete("Use FindElement(automationId, name, windowTitle, processId) instead. This method will be removed in future versions.")]
-        public AutomationElement? FindElementById(string elementId, string windowTitle = "", int processId = 0, 
-            TreeScope scope = TreeScope.Descendants, CacheRequest? cacheRequest = null, int timeoutMs = 1000)
-        {
-            if (string.IsNullOrEmpty(elementId))
-            {
-                _logger?.LogWarning("Element ID is null or empty");
-                return null;
-            }
-
-            // 後方互換性のため、elementIdをautomationIdとして扱い、Nameもフォールバックとして使用
-            return FindElement(automationId: elementId, name: elementId, windowTitle: windowTitle, 
-                processId: processId, scope: scope, cacheRequest: cacheRequest, timeoutMs: timeoutMs);
-        }
 
         /// <summary>
         /// AutomationIdで要素を検索（単一プロパティ検索）
@@ -396,27 +379,7 @@ namespace UIAutomationMCP.Worker.Helpers
             }
         }
 
-        /// <summary>
-        /// 非推奨: FindElementAsyncを使用してください
-        /// </summary>
-        [Obsolete("Use FindElementAsync(automationId, name, windowTitle, processId) instead")]
-        public async Task<AutomationElement?> FindElementByIdAsync(string elementId, string windowTitle = "", 
-            int processId = 0, TreeScope scope = TreeScope.Descendants, int timeoutMs = 5000)
-        {
-            return await FindElementAsync(automationId: elementId, name: elementId, windowTitle: windowTitle, 
-                processId: processId, scope: scope, timeoutMs: timeoutMs);
-        }
 
-        /// <summary>
-        /// 非推奨: FindElementAsyncを使用してください
-        /// </summary>
-        [Obsolete("Use FindElementAsync(automationId: null, name: elementName, ...) instead")]
-        public async Task<AutomationElement?> FindElementByNameAsync(string elementName, string windowTitle = "",
-            int processId = 0, TreeScope scope = TreeScope.Descendants, int timeoutMs = 5000)
-        {
-            return await FindElementAsync(automationId: null, name: elementName, windowTitle: windowTitle, 
-                processId: processId, scope: scope, timeoutMs: timeoutMs);
-        }
 
         /// <summary>
         /// 要素が存在するかチェック
@@ -431,14 +394,6 @@ namespace UIAutomationMCP.Worker.Helpers
             return FindElement(automationId, name, controlType: null, windowTitle, processId) != null;
         }
 
-        /// <summary>
-        /// 非推奨: ElementExistsを使用してください
-        /// </summary>
-        [Obsolete("Use ElementExists(automationId, name, windowTitle, processId) instead")]
-        public bool ElementExists(string elementId, string windowTitle = "", int processId = 0)
-        {
-            return ElementExists(automationId: elementId, name: elementId, windowTitle: windowTitle, processId: processId);
-        }
 
         /// <summary>
         /// デフォルトのCacheRequestを作成

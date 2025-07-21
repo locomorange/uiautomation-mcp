@@ -56,44 +56,6 @@ namespace UIAutomationMCP.Shared.Requests
         [JsonPropertyName("timeoutSeconds")]
         public int TimeoutSeconds { get; set; } = 10;
 
-        // === 後方互換性のための非推奨プロパティ ===
-        
-        /// <summary>
-        /// 非推奨: AutomationIdまたはNameを使用してください
-        /// </summary>
-        [JsonPropertyName("elementId")]
-        [Obsolete("Use AutomationId or Name instead. ElementId will be removed in future versions.")]
-        public string ElementId 
-        { 
-            get => AutomationId ?? Name ?? "";
-            set 
-            {
-                if (!string.IsNullOrEmpty(value))
-                {
-                    // 既存のコードとの互換性のため、elementIdが設定されたらAutomationIdとして扱う
-                    if (string.IsNullOrEmpty(AutomationId))
-                        AutomationId = value;
-                }
-            }
-        }
     }
 
-    /// <summary>
-    /// 旧形式のElementTargetRequest（後方互換性維持）
-    /// </summary>
-    [Obsolete("Use the new ElementTargetRequest with AutomationId/Name properties")]
-    public abstract class LegacyElementTargetRequest : TypedWorkerRequest
-    {
-        [JsonPropertyName("elementId")]
-        public string ElementId { get; set; } = "";
-
-        [JsonPropertyName("windowTitle")]
-        public string WindowTitle { get; set; } = "";
-
-        [JsonPropertyName("processId")]
-        public int? ProcessId { get; set; }
-
-        [JsonPropertyName("timeoutSeconds")]
-        public int TimeoutSeconds { get; set; } = 10;
-    }
 }

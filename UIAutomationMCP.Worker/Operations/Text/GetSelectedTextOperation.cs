@@ -62,7 +62,12 @@ namespace UIAutomationMCP.Worker.Operations.Text
         {
             try
             {
-                var element = _elementFinderService.FindElementById(request.ElementId, request.WindowTitle ?? "", request.ProcessId ?? 0);
+                var element = _elementFinderService.FindElement(
+                    automationId: request.AutomationId, 
+                    name: request.Name, 
+                    controlType: request.ControlType, 
+                    windowTitle: request.WindowTitle ?? "", 
+                    processId: request.ProcessId ?? 0);
                 if (element == null)
                 {
                     return Task.FromResult(new OperationResult<TextInfoResult>
@@ -76,7 +81,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 var result = new TextInfoResult
                 {
                     Success = true,
-                    ElementId = request.ElementId,
+                    ElementId = request.AutomationId ?? request.Name ?? "",
                     ElementName = element.Current.Name,
                     ElementAutomationId = element.Current.AutomationId,
                     ElementControlType = element.Current.ControlType.LocalizedControlType,
@@ -172,7 +177,9 @@ namespace UIAutomationMCP.Worker.Operations.Text
 
     public class GetSelectedTextRequest
     {
-        public string ElementId { get; set; } = string.Empty;
+        public string? AutomationId { get; set; }
+        public string? Name { get; set; }
+        public string? ControlType { get; set; }
         public string? WindowTitle { get; set; }
         public int? ProcessId { get; set; }
         public int TimeoutSeconds { get; set; } = 30;

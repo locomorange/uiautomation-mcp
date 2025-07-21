@@ -256,14 +256,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
                 var request = new TransformElementRequest
                 {
-                    ElementId = elementId,
+                    AutomationId = elementId,
                     Action = action,
                     X = x ?? 0,
                     Y = y ?? 0,
                     Width = width ?? 0,
                     Height = height ?? 0,
                     WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<TransformElementRequest, ActionResult>("TransformElement", request, timeoutSeconds);
