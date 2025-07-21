@@ -21,21 +21,4 @@ namespace UIAutomationMCP.Shared.Results
         public TimeSpan SearchDuration { get; set; }
     }
 
-    public class DetailedElementInfo : UIAutomationMCP.Shared.ElementInfo
-    {
-        public string ElementId { get; set; } = "";
-        public string LocalizedControlType { get; set; } = "";
-        public bool IsKeyboardFocusable { get; set; }
-        public bool HasKeyboardFocus { get; set; }
-        public bool IsPassword { get; set; }
-        public bool IsOffscreen { get; set; }
-        public string RuntimeId { get; set; } = "";
-        public string FrameworkId { get; set; } = "";
-        public int NativeWindowHandle { get; set; }
-        public new List<string> SupportedPatterns { get; set; } = new();
-        
-        // 拡張プロパティ（必要に応じて）
-        [JsonExtensionData]
-        public Dictionary<string, JsonElement>? ExtensionData { get; set; }
-    }
 }
