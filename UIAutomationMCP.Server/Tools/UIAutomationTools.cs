@@ -138,18 +138,6 @@ namespace UIAutomationMCP.Server.Tools
         }
 
 
-        [McpServerTool, Description("Get detailed information about UI elements including pattern states (Toggle, Selection, Value), properties, and accessibility info. This is the primary tool for both element discovery and state inspection.")]
-        public async Task<object> GetElementInfo(
-            [Description("Text to search for in element names or automation IDs (optional)")] string? searchText = null, 
-            [Description("Type of control to filter by (optional)")] string? controlType = null, 
-            [Description("Title of the window to search in (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Search scope: children, descendants, subtree (default: descendants)")] string scope = "descendants",
-            [Description("Validate control type patterns for quality assurance (default: true)")] bool validatePatterns = true,
-            [Description("Maximum number of elements to return (default: 100)")] int maxResults = 100,
-            [Description("Use caching for performance (default: true)")] bool useCache = true,
-            [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
-            => JsonSerializationHelper.Serialize(await _elementSearchService.FindElementsAsync(windowTitle, searchText, controlType, processId, scope, validatePatterns, maxResults, useCache, timeoutSeconds));
 
         [McpServerTool, Description("Get the element tree structure for navigation and analysis")]
         public async Task<object> GetElementTree(
@@ -643,116 +631,11 @@ namespace UIAutomationMCP.Server.Tools
                 timeoutSeconds: timeoutSeconds));
 
         // Table Pattern Operations
-        [McpServerTool, Description("Get all row headers for a table")]
-        public async Task<object> GetRowHeaders(
-            [Description("AutomationId of the table element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the table element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (Table, DataGrid, List, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? tableElementId = null)
-            => JsonSerializationHelper.Serialize(await _tableService.GetRowHeadersAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
-
-        [McpServerTool, Description("Get all column headers for a table")]
-        public async Task<object> GetColumnHeaders(
-            [Description("AutomationId of the table element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the table element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (Table, DataGrid, List, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? tableElementId = null)
-            => JsonSerializationHelper.Serialize(await _tableService.GetColumnHeadersAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
-
-        [McpServerTool, Description("Get row header items for a table")]
-        public async Task<object> GetRowHeaderItems(
-            [Description("AutomationId of the table element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the table element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (Table, DataGrid, List, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? tableElementId = null)
-            => JsonSerializationHelper.Serialize(await _tableService.GetRowHeaderItemsAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
-
-        [McpServerTool, Description("Get column header items for a table")]
-        public async Task<object> GetColumnHeaderItems(
-            [Description("AutomationId of the table element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the table element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (Table, DataGrid, List, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? tableElementId = null)
-            => JsonSerializationHelper.Serialize(await _tableService.GetColumnHeaderItemsAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
 
 
 
 
         // MultipleView Pattern Operations
-        [McpServerTool, Description("Get all available views for an element")]
-        public async Task<object> GetAvailableViews(
-            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (Pane, Custom, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _multipleViewService.GetAvailableViewsAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
-
-        [McpServerTool, Description("Get the current view of an element")]
-        public async Task<object> GetCurrentView(
-            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (Pane, Custom, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _multipleViewService.GetCurrentViewAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
-
-        [McpServerTool, Description("Get the name of a specific view by ID")]
-        public async Task<object> GetViewName(
-            [Description("View ID to get name for")] int viewId,
-            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (Pane, Custom, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _multipleViewService.GetViewNameAsync(
-                automationId: automationId,
-                name: name,
-                viewId: viewId,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
 
         [McpServerTool, Description("Set the current view of an element")]
         public async Task<object> SetView(
@@ -784,22 +667,6 @@ namespace UIAutomationMCP.Server.Tools
 
 
         // Custom Properties and Events
-        [McpServerTool, Description("Get custom properties from an element")]
-        public async Task<object> GetCustomProperties(
-            [Description("Comma-separated list of custom property IDs to retrieve")] string propertyIds,
-            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (Any, Custom, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _customPropertyService.GetCustomPropertiesAsync(
-                automationId: automationId,
-                name: name,
-                propertyIds: propertyIds.Split(','),
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
 
         // Control Type Operations
 
@@ -923,19 +790,6 @@ namespace UIAutomationMCP.Server.Tools
             => JsonSerializationHelper.Serialize(await _eventMonitorService.GetEventLogAsync());
 
         // Window Capabilities and State
-        [McpServerTool, Description("Get window capabilities and properties")]
-        public async Task<object> GetWindowCapabilities(
-            [Description("Title of the window")] string windowTitle,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _elementSearchService.GetWindowsAsync(timeoutSeconds));
-
-        [McpServerTool, Description("Get window interaction state")]
-        public async Task<object> GetWindowInteractionState(
-            [Description("Title of the window")] string windowTitle,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _elementSearchService.GetWindowsAsync(timeoutSeconds));
 
         // Element Selection State
         [McpServerTool, Description("Check if an element is selected")]
@@ -970,52 +824,10 @@ namespace UIAutomationMCP.Server.Tools
                 timeoutSeconds: timeoutSeconds));
 
         // Grid Information
-        [McpServerTool, Description("Get grid information (row count, column count, etc.)")]
-        public async Task<object> GetGridInfo(
-            [Description("AutomationId of the grid element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the grid element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (DataGrid, List, Table, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? gridElementId = null)
-            => JsonSerializationHelper.Serialize(await _gridService.GetGridInfoAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
 
         // Transform Capabilities
-        [McpServerTool, Description("Get transform capabilities (can move, resize, rotate)")]
-        public async Task<object> GetTransformCapabilities(
-            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (Window, Pane, Custom, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _transformService.GetTransformCapabilitiesAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
 
         // Selection Operations
-        [McpServerTool, Description("Get selection information")]
-        public async Task<object> GetSelection(
-            [Description("AutomationId of the selection container element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the selection container element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (List, Tree, DataGrid, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _selectionService.GetSelectionAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
 
         [McpServerTool, Description("Check if element can select multiple items")]
         public async Task<object> CanSelectMultiple(
@@ -1048,67 +860,10 @@ namespace UIAutomationMCP.Server.Tools
                 timeoutSeconds: timeoutSeconds));
 
         // Scroll Information
-        [McpServerTool, Description("Get scroll information")]
-        public async Task<object> GetScrollInfo(
-            [Description("AutomationId of the scrollable element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the scrollable element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (ScrollBar, List, DataGrid, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _layoutService.GetScrollInfoAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
 
         // Accessibility Information
-        [McpServerTool, Description("Get accessibility information")]
-        public async Task<object> GetAccessibilityInfo(
-            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (Any, Button, Edit, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _accessibilityService.GetAccessibilityInfoAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
-
-        [McpServerTool, Description("Get labeled by relationship information")]
-        public async Task<object> GetLabeledBy(
-            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (Edit, ComboBox, Button, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _accessibilityService.GetLabeledByAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
 
         // Range Value Operations
-        [McpServerTool, Description("Get range value information")]
-        public async Task<object> GetRangeValue(
-            [Description("AutomationId of the range element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the range element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (Slider, ProgressBar, Spinner, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _rangeService.GetRangeValueAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
 
         // Text Operations
         [McpServerTool, Description("Get text content from an element")]
@@ -1127,52 +882,10 @@ namespace UIAutomationMCP.Server.Tools
                 timeoutSeconds: timeoutSeconds));
 
         // Table Operations
-        [McpServerTool, Description("Get table information from an element")]
-        public async Task<object> GetTableInfo(
-            [Description("AutomationId of the table element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the table element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (Table, DataGrid, List, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _tableService.GetTableInfoAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
 
         // Selection Operations
-        [McpServerTool, Description("Get selection container information")]
-        public async Task<object> GetSelectionContainer(
-            [Description("AutomationId of the element or container (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the element or container (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (List, Tree, DataGrid, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _selectionService.GetSelectionContainerAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
 
         // Transform Operations
-        [McpServerTool, Description("Get transform pattern capabilities")]
-        public async Task<object> GetTransformPattern(
-            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (Window, Pane, Custom, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _transformService.GetTransformCapabilitiesAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
 
     }
 }
