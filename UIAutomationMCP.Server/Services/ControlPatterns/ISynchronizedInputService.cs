@@ -5,7 +5,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
     public interface ISynchronizedInputService
     {
-        Task<ServerEnhancedResponse<ElementSearchResult>> StartListeningAsync(string elementId, string inputType, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30);
-        Task<ServerEnhancedResponse<ElementSearchResult>> CancelAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30);
+        Task<ServerEnhancedResponse<ElementSearchResult>> StartListeningAsync(string? automationId = null, string? name = null, string inputType = "", string? controlType = null, int? processId = null, int timeoutSeconds = 30);
+        Task<ServerEnhancedResponse<ElementSearchResult>> CancelAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30);
     }
 }

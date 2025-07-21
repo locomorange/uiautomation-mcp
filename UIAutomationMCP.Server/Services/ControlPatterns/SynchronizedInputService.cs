@@ -18,15 +18,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             _executor = executor;
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> StartListeningAsync(string elementId, string inputType, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> StartListeningAsync(string? automationId = null, string? name = null, string inputType = "", string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required for element identification";
                 _logger.LogWarningWithOperation(operationId, $"StartListening validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
@@ -41,7 +41,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["inputType"] = inputType ?? "<null>",
                             ["validationFailed"] = true
                         }
@@ -51,9 +52,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "StartListening",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["inputType"] = inputType ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -80,7 +82,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["inputType"] = inputType ?? "<null>",
                             ["validationFailed"] = true
                         }
@@ -90,9 +93,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "StartListening",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["inputType"] = inputType ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -104,13 +108,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting synchronized input listening for element: {elementId} with input type: {inputType}");
+                _logger.LogInformationWithOperation(operationId, $"Starting synchronized input listening for element: AutomationId={automationId}, Name={name}, ControlType={controlType} with input type: {inputType}");
 
                 var request = new StartSynchronizedInputRequest
                 {
-                    ElementId = elementId,
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
                     InputType = inputType,
-                    WindowTitle = windowTitle ?? "",
                     ProcessId = processId ?? 0
                 };
 
@@ -131,9 +136,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "StartListening",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["inputType"] = inputType,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -141,7 +147,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"Synchronized input listening started successfully for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Synchronized input listening started successfully for element: AutomationId={automationId}, Name={name}");
                 return successResponse;
             }
             catch (Exception ex)
@@ -167,9 +173,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "StartListening",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["inputType"] = inputType,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -177,20 +184,20 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to start synchronized input listening for element: {elementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to start synchronized input listening for element: AutomationId={automationId}, Name={name}");
                 return errorResponse;
             }
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> CancelAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> CancelAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required for element identification";
                 _logger.LogWarningWithOperation(operationId, $"Cancel validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
@@ -205,7 +212,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -214,8 +222,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "Cancel",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -227,12 +236,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Canceling synchronized input for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Canceling synchronized input for element: AutomationId={automationId}, Name={name}, ControlType={controlType}");
 
                 var request = new CancelSynchronizedInputRequest
                 {
-                    ElementId = elementId,
-                    WindowTitle = windowTitle ?? "",
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
                     ProcessId = processId ?? 0
                 };
 
@@ -253,8 +263,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "Cancel",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -262,7 +273,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"Synchronized input canceled successfully for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Synchronized input canceled successfully for element: AutomationId={automationId}, Name={name}");
                 return successResponse;
             }
             catch (Exception ex)
@@ -288,8 +299,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "Cancel",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -297,7 +309,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to cancel synchronized input for element: {elementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to cancel synchronized input for element: AutomationId={automationId}, Name={name}");
                 return errorResponse;
             }
         }

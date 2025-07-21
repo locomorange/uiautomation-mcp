@@ -17,16 +17,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             _executor = executor;
         }
 
-
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetGridItemAsync(string gridElementId, int row, int column, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetGridItemAsync(string? automationId = null, string? name = null, int row = 0, int column = 0, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(gridElementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Grid element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required and cannot be empty";
                 _logger.LogWarningWithOperation(operationId, $"GetGridItem validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
@@ -41,7 +40,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["gridElementId"] = gridElementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -50,10 +50,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetGridItem",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["gridElementId"] = gridElementId ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["row"] = row,
                             ["column"] = column,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -91,10 +92,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetGridItem",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["gridElementId"] = gridElementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["row"] = row,
                             ["column"] = column,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -106,14 +108,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Getting grid item at row {row}, column {column} for element: {gridElementId}");
+                _logger.LogInformationWithOperation(operationId, $"Getting grid item at row {row}, column {column} for element with AutomationId: {automationId}, Name: {name}");
 
                 var request = new GetGridItemRequest
                 {
-                    ElementId = gridElementId,
+                    AutomationId = automationId,
+                    Name = name,
                     Row = row,
                     Column = column,
-                    WindowTitle = windowTitle ?? "",
+                    ControlType = controlType,
                     ProcessId = processId ?? 0
                 };
 
@@ -134,10 +137,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetGridItem",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["gridElementId"] = gridElementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["row"] = row,
                             ["column"] = column,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -145,7 +149,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"Grid item retrieved successfully for element: {gridElementId}");
+                _logger.LogInformationWithOperation(operationId, $"Grid item retrieved successfully for element with AutomationId: {automationId}, Name: {name}");
                 return successResponse;
             }
             catch (Exception ex)
@@ -171,10 +175,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetGridItem",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["gridElementId"] = gridElementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["row"] = row,
                             ["column"] = column,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -182,20 +187,20 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get grid item at row {row}, column {column} for element {gridElementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get grid item at row {row}, column {column} for element with AutomationId: {automationId}, Name: {name}");
                 return errorResponse;
             }
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetRowHeaderAsync(string gridElementId, int row, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetRowHeaderAsync(string? automationId = null, string? name = null, int row = 0, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(gridElementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Grid element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required and cannot be empty";
                 _logger.LogWarningWithOperation(operationId, $"GetRowHeader validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
@@ -210,7 +215,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["gridElementId"] = gridElementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -219,9 +225,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetRowHeader",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["gridElementId"] = gridElementId ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["row"] = row,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -258,9 +265,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetRowHeader",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["gridElementId"] = gridElementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["row"] = row,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -272,13 +280,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Getting row header for row {row} in element: {gridElementId}");
+                _logger.LogInformationWithOperation(operationId, $"Getting row header for row {row} in element with AutomationId: {automationId}, Name: {name}");
 
                 var request = new GetRowHeaderRequest
                 {
-                    ElementId = gridElementId,
+                    AutomationId = automationId,
+                    Name = name,
                     Row = row,
-                    WindowTitle = windowTitle ?? "",
+                    ControlType = controlType,
                     ProcessId = processId ?? 0
                 };
 
@@ -299,9 +308,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetRowHeader",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["gridElementId"] = gridElementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["row"] = row,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -309,7 +319,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"Row header retrieved successfully for element: {gridElementId}");
+                _logger.LogInformationWithOperation(operationId, $"Row header retrieved successfully for element with AutomationId: {automationId}, Name: {name}");
                 return successResponse;
             }
             catch (Exception ex)
@@ -335,9 +345,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetRowHeader",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["gridElementId"] = gridElementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["row"] = row,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -345,20 +356,20 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get row header for row {row} in element {gridElementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get row header for row {row} in element with AutomationId: {automationId}, Name: {name}");
                 return errorResponse;
             }
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetColumnHeaderAsync(string gridElementId, int column, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetColumnHeaderAsync(string? automationId = null, string? name = null, int column = 0, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(gridElementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Grid element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required and cannot be empty";
                 _logger.LogWarningWithOperation(operationId, $"GetColumnHeader validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
@@ -373,7 +384,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["gridElementId"] = gridElementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -382,9 +394,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetColumnHeader",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["gridElementId"] = gridElementId ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["column"] = column,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -421,9 +434,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetColumnHeader",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["gridElementId"] = gridElementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["column"] = column,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -435,13 +449,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Getting column header for column {column} in element: {gridElementId}");
+                _logger.LogInformationWithOperation(operationId, $"Getting column header for column {column} in element with AutomationId: {automationId}, Name: {name}");
 
                 var request = new GetColumnHeaderRequest
                 {
-                    ElementId = gridElementId,
+                    AutomationId = automationId,
+                    Name = name,
                     Column = column,
-                    WindowTitle = windowTitle ?? "",
+                    ControlType = controlType,
                     ProcessId = processId ?? 0
                 };
 
@@ -462,9 +477,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetColumnHeader",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["gridElementId"] = gridElementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["column"] = column,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -472,7 +488,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"Column header retrieved successfully for element: {gridElementId}");
+                _logger.LogInformationWithOperation(operationId, $"Column header retrieved successfully for element with AutomationId: {automationId}, Name: {name}");
                 return successResponse;
             }
             catch (Exception ex)
@@ -498,9 +514,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetColumnHeader",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["gridElementId"] = gridElementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["column"] = column,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -508,19 +525,19 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get column header for column {column} in element {gridElementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get column header for column {column} in element with AutomationId: {automationId}, Name: {name}");
                 return errorResponse;
             }
         }
 
-        public async Task<ServerEnhancedResponse<GridInfoResult>> GetGridInfoAsync(string gridElementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<GridInfoResult>> GetGridInfoAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
-            if (string.IsNullOrWhiteSpace(gridElementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Grid element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required and cannot be empty";
                 _logger.LogWarningWithOperation(operationId, $"GetGridInfo validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<GridInfoResult>
@@ -535,7 +552,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["gridElementId"] = gridElementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -544,8 +562,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetGridInfo",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["gridElementId"] = gridElementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -559,12 +578,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting GetGridInfo for ElementId={gridElementId}");
+                _logger.LogInformationWithOperation(operationId, $"Starting GetGridInfo for AutomationId={automationId}, Name={name}");
 
                 var request = new GetGridInfoRequest
                 {
-                    ElementId = gridElementId,
-                    WindowTitle = windowTitle ?? "",
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
                     ProcessId = processId ?? 0
                 };
 
@@ -583,7 +603,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["gridElementId"] = gridElementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["operationType"] = "getGridInfo"
                         }
                     },
@@ -592,8 +613,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetGridInfo",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["gridElementId"] = gridElementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -625,7 +647,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         {
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
-                            ["gridElementId"] = gridElementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["operationType"] = "getGridInfo"
                         }
                     },
@@ -634,8 +657,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetGridInfo",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["gridElementId"] = gridElementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },

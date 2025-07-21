@@ -5,9 +5,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
     public interface IGridService
     {
-        Task<ServerEnhancedResponse<ElementSearchResult>> GetGridItemAsync(string gridElementId, int row, int column, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30);
-        Task<ServerEnhancedResponse<ElementSearchResult>> GetRowHeaderAsync(string gridElementId, int row, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30);
-        Task<ServerEnhancedResponse<ElementSearchResult>> GetColumnHeaderAsync(string gridElementId, int column, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30);
-        Task<ServerEnhancedResponse<GridInfoResult>> GetGridInfoAsync(string gridElementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30);
+        Task<ServerEnhancedResponse<ElementSearchResult>> GetGridItemAsync(string? automationId = null, string? name = null, int row = 0, int column = 0, string? controlType = null, int? processId = null, int timeoutSeconds = 30);
+        Task<ServerEnhancedResponse<ElementSearchResult>> GetRowHeaderAsync(string? automationId = null, string? name = null, int row = 0, string? controlType = null, int? processId = null, int timeoutSeconds = 30);
+        Task<ServerEnhancedResponse<ElementSearchResult>> GetColumnHeaderAsync(string? automationId = null, string? name = null, int column = 0, string? controlType = null, int? processId = null, int timeoutSeconds = 30);
+        Task<ServerEnhancedResponse<GridInfoResult>> GetGridInfoAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30);
     }
 }

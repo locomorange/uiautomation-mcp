@@ -17,15 +17,15 @@ namespace UIAutomationMCP.Server.Services
             _executor = executor;
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetCustomPropertiesAsync(string elementId, string[] propertyIds, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetCustomPropertiesAsync(string? automationId = null, string? name = null, string[]? propertyIds = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required for element identification";
                 _logger.LogWarningWithOperation(operationId, $"GetCustomProperties validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
@@ -40,7 +40,8 @@ namespace UIAutomationMCP.Server.Services
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -49,9 +50,10 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "GetCustomProperties",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["propertyIds"] = propertyIds ?? Array.Empty<string>(),
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -63,14 +65,15 @@ namespace UIAutomationMCP.Server.Services
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Getting custom properties for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Getting custom properties for AutomationId={automationId}, Name={name}, ControlType={controlType}");
 
                 var request = new GetCustomPropertiesRequest
                 {
-                    ElementId = elementId,
-                    PropertyIds = propertyIds,
-                    WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    AutomationId = automationId,
+                    Name = name,
+                    PropertyIds = propertyIds ?? Array.Empty<string>(),
+                    ControlType = controlType,
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<GetCustomPropertiesRequest, ElementSearchResult>("GetCustomProperties", request, timeoutSeconds);
@@ -90,9 +93,10 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "GetCustomProperties",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["propertyIds"] = propertyIds,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["propertyIds"] = propertyIds ?? Array.Empty<string>(),
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -100,7 +104,7 @@ namespace UIAutomationMCP.Server.Services
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"Custom properties retrieved successfully for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Custom properties retrieved successfully for AutomationId={automationId}, Name={name}, ControlType={controlType}");
                 return successResponse;
             }
             catch (Exception ex)
@@ -126,9 +130,10 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "GetCustomProperties",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["propertyIds"] = propertyIds,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["propertyIds"] = propertyIds ?? Array.Empty<string>(),
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -136,20 +141,20 @@ namespace UIAutomationMCP.Server.Services
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get custom properties for element {elementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get custom properties for AutomationId={automationId}, Name={name}, ControlType={controlType}");
                 return errorResponse;
             }
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> SetCustomPropertyAsync(string elementId, string propertyId, object value, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> SetCustomPropertyAsync(string? automationId = null, string? name = null, string propertyId = "", object? value = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required for element identification";
                 _logger.LogWarningWithOperation(operationId, $"SetCustomProperty validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
@@ -164,7 +169,8 @@ namespace UIAutomationMCP.Server.Services
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["propertyId"] = propertyId ?? "<null>",
                             ["validationFailed"] = true
                         }
@@ -174,10 +180,11 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "SetCustomProperty",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["propertyId"] = propertyId ?? "",
                             ["value"] = value ?? "<null>",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -204,7 +211,8 @@ namespace UIAutomationMCP.Server.Services
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["propertyId"] = propertyId ?? "<null>",
                             ["validationFailed"] = true
                         }
@@ -214,10 +222,11 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "SetCustomProperty",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["propertyId"] = propertyId ?? "",
                             ["value"] = value ?? "<null>",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -229,15 +238,16 @@ namespace UIAutomationMCP.Server.Services
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Setting custom property for element: {elementId}, Property: {propertyId}");
+                _logger.LogInformationWithOperation(operationId, $"Setting custom property for AutomationId={automationId}, Name={name}, ControlType={controlType}, Property: {propertyId}");
 
                 var request = new SetCustomPropertyRequest
                 {
-                    ElementId = elementId,
+                    AutomationId = automationId,
+                    Name = name,
                     PropertyId = propertyId,
                     Value = value?.ToString() ?? "",
-                    WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    ControlType = controlType,
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<SetCustomPropertyRequest, ElementSearchResult>("SetCustomProperty", request, timeoutSeconds);
@@ -257,10 +267,11 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "SetCustomProperty",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["propertyId"] = propertyId,
                             ["value"] = value ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -268,7 +279,7 @@ namespace UIAutomationMCP.Server.Services
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"Custom property set successfully for element: {elementId}, Property: {propertyId}");
+                _logger.LogInformationWithOperation(operationId, $"Custom property set successfully for AutomationId={automationId}, Name={name}, ControlType={controlType}, Property: {propertyId}");
                 return successResponse;
             }
             catch (Exception ex)
@@ -294,10 +305,11 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "SetCustomProperty",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["propertyId"] = propertyId,
                             ["value"] = value ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -305,7 +317,7 @@ namespace UIAutomationMCP.Server.Services
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to set custom property {propertyId} for element: {elementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to set custom property {propertyId} for AutomationId={automationId}, Name={name}, ControlType={controlType}");
                 return errorResponse;
             }
         }

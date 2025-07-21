@@ -18,15 +18,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             _executor = executor;
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> FindItemByPropertyAsync(string containerId, string? propertyName = null, string? value = null, string? startAfterId = null, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> FindItemByPropertyAsync(string? automationId = null, string? name = null, string? propertyName = null, string? value = null, string? startAfterId = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(containerId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Container ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required for container identification";
                 _logger.LogWarningWithOperation(operationId, $"FindItemByProperty validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
@@ -41,7 +41,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["containerId"] = containerId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -50,11 +51,12 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "FindItemByProperty",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["containerId"] = containerId ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["propertyName"] = propertyName ?? "",
                             ["value"] = value ?? "",
                             ["startAfterId"] = startAfterId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -66,15 +68,16 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Finding item in container: {containerId} with property: {propertyName}={value}");
+                _logger.LogInformationWithOperation(operationId, $"Finding item in container: AutomationId={automationId}, Name={name}, ControlType={controlType} with property: {propertyName}={value}");
 
                 var request = new FindItemByPropertyRequest
                 {
-                    ContainerId = containerId,
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
                     PropertyName = propertyName ?? "",
                     Value = value ?? "",
                     StartAfterId = startAfterId ?? "",
-                    WindowTitle = windowTitle ?? "",
                     ProcessId = processId ?? 0
                 };
 
@@ -95,11 +98,12 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "FindItemByProperty",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["containerId"] = containerId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["propertyName"] = propertyName ?? "",
                             ["value"] = value ?? "",
                             ["startAfterId"] = startAfterId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -107,7 +111,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"Item search completed in container: {containerId}");
+                _logger.LogInformationWithOperation(operationId, $"Item search completed in container: AutomationId={automationId}, Name={name}");
                 return successResponse;
             }
             catch (Exception ex)
@@ -133,11 +137,12 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "FindItemByProperty",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["containerId"] = containerId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["propertyName"] = propertyName ?? "",
                             ["value"] = value ?? "",
                             ["startAfterId"] = startAfterId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -145,7 +150,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to find item in container: {containerId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to find item in container: AutomationId={automationId}, Name={name}");
                 return errorResponse;
             }
         }

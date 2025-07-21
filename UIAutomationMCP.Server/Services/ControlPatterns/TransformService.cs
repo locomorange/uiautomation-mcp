@@ -17,16 +17,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             _executor = executor;
         }
 
-
-        public async Task<ServerEnhancedResponse<ActionResult>> MoveElementAsync(string elementId, double x, double y, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> MoveElementAsync(string? automationId = null, string? name = null, double x = 0, double y = 0, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required and cannot be empty";
                 _logger.LogWarningWithOperation(operationId, $"MoveElement validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ActionResult>
@@ -41,7 +40,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -50,10 +50,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "MoveElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["x"] = x,
                             ["y"] = y,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -65,14 +66,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Moving element: {elementId} to position: ({x}, {y})");
+                _logger.LogInformationWithOperation(operationId, $"Moving element with AutomationId: {automationId}, Name: {name} to position: ({x}, {y})");
 
                 var request = new MoveElementRequest
                 {
-                    ElementId = elementId,
+                    AutomationId = automationId,
+                    Name = name,
                     X = x,
                     Y = y,
-                    WindowTitle = windowTitle ?? "",
+                    ControlType = controlType,
                     ProcessId = processId ?? 0
                 };
 
@@ -93,10 +95,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "MoveElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["x"] = x,
                             ["y"] = y,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -104,7 +107,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"Element moved successfully: {elementId} to ({x}, {y})");
+                _logger.LogInformationWithOperation(operationId, $"Element moved successfully with AutomationId: {automationId}, Name: {name} to ({x}, {y})");
                 return successResponse;
             }
             catch (Exception ex)
@@ -130,10 +133,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "MoveElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["x"] = x,
                             ["y"] = y,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -141,20 +145,20 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to move element: {elementId} to ({x}, {y})");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to move element with AutomationId: {automationId}, Name: {name} to ({x}, {y})");
                 return errorResponse;
             }
         }
 
-        public async Task<ServerEnhancedResponse<ActionResult>> ResizeElementAsync(string elementId, double width, double height, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> ResizeElementAsync(string? automationId = null, string? name = null, double width = 100, double height = 100, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required and cannot be empty";
                 _logger.LogWarningWithOperation(operationId, $"ResizeElement validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ActionResult>
@@ -169,7 +173,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -178,10 +183,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "ResizeElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["width"] = width,
                             ["height"] = height,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -219,10 +225,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "ResizeElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["width"] = width,
                             ["height"] = height,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -234,14 +241,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Resizing element: {elementId} to size: ({width}, {height})");
+                _logger.LogInformationWithOperation(operationId, $"Resizing element with AutomationId: {automationId}, Name: {name} to size: ({width}, {height})");
 
                 var request = new ResizeElementRequest
                 {
-                    ElementId = elementId,
+                    AutomationId = automationId,
+                    Name = name,
                     Width = width,
                     Height = height,
-                    WindowTitle = windowTitle ?? "",
+                    ControlType = controlType,
                     ProcessId = processId ?? 0
                 };
 
@@ -262,10 +270,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "ResizeElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["width"] = width,
                             ["height"] = height,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -273,7 +282,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"Element resized successfully: {elementId} to ({width}, {height})");
+                _logger.LogInformationWithOperation(operationId, $"Element resized successfully with AutomationId: {automationId}, Name: {name} to ({width}, {height})");
                 return successResponse;
             }
             catch (Exception ex)
@@ -299,10 +308,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "ResizeElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["width"] = width,
                             ["height"] = height,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -310,20 +320,20 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to resize element: {elementId} to ({width}, {height})");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to resize element with AutomationId: {automationId}, Name: {name} to ({width}, {height})");
                 return errorResponse;
             }
         }
 
-        public async Task<ServerEnhancedResponse<ActionResult>> RotateElementAsync(string elementId, double degrees, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> RotateElementAsync(string? automationId = null, string? name = null, double degrees = 0, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required and cannot be empty";
                 _logger.LogWarningWithOperation(operationId, $"RotateElement validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ActionResult>
@@ -338,7 +348,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -347,9 +358,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "RotateElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["degrees"] = degrees,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -361,13 +373,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Rotating element: {elementId} by {degrees} degrees");
+                _logger.LogInformationWithOperation(operationId, $"Rotating element with AutomationId: {automationId}, Name: {name} by {degrees} degrees");
 
                 var request = new RotateElementRequest
                 {
-                    ElementId = elementId,
+                    AutomationId = automationId,
+                    Name = name,
                     Degrees = degrees,
-                    WindowTitle = windowTitle ?? "",
+                    ControlType = controlType,
                     ProcessId = processId ?? 0
                 };
 
@@ -388,9 +401,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "RotateElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["degrees"] = degrees,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -398,7 +412,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"Element rotated successfully: {elementId} by {degrees} degrees");
+                _logger.LogInformationWithOperation(operationId, $"Element rotated successfully with AutomationId: {automationId}, Name: {name} by {degrees} degrees");
                 return successResponse;
             }
             catch (Exception ex)
@@ -424,9 +438,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "RotateElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["degrees"] = degrees,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -434,19 +449,19 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to rotate element: {elementId} by {degrees} degrees");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to rotate element with AutomationId: {automationId}, Name: {name} by {degrees} degrees");
                 return errorResponse;
             }
         }
 
-        public async Task<ServerEnhancedResponse<TransformCapabilitiesResult>> GetTransformCapabilitiesAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<TransformCapabilitiesResult>> GetTransformCapabilitiesAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required and cannot be empty";
                 _logger.LogWarningWithOperation(operationId, $"GetTransformCapabilities validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<TransformCapabilitiesResult>
@@ -461,7 +476,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -470,8 +486,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetTransformCapabilities",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -485,12 +502,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting GetTransformCapabilities for ElementId={elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Starting GetTransformCapabilities for AutomationId={automationId}, Name={name}");
 
                 var request = new GetTransformCapabilitiesRequest
                 {
-                    ElementId = elementId,
-                    WindowTitle = windowTitle ?? "",
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
                     ProcessId = processId ?? 0
                 };
 
@@ -509,7 +527,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["operationType"] = "getTransformCapabilities"
                         }
                     },
@@ -518,8 +537,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetTransformCapabilities",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -551,7 +571,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         {
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["operationType"] = "getTransformCapabilities"
                         }
                     },
@@ -560,8 +581,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetTransformCapabilities",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },

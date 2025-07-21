@@ -100,15 +100,15 @@ namespace UIAutomationMCP.Server.Services
             }
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetLabeledByAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetLabeledByAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required for element identification";
                 _logger.LogWarningWithOperation(operationId, $"GetLabeledBy validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
@@ -123,7 +123,8 @@ namespace UIAutomationMCP.Server.Services
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -132,8 +133,9 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "GetLabeledBy",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -145,13 +147,14 @@ namespace UIAutomationMCP.Server.Services
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Getting labeled by info for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Getting labeled by info for AutomationId={automationId}, Name={name}, ControlType={controlType}");
 
                 var request = new GetLabeledByRequest
                 {
-                    ElementId = elementId,
-                    WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<GetLabeledByRequest, ElementSearchResult>("GetLabeledBy", request, timeoutSeconds);
@@ -171,8 +174,9 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "GetLabeledBy",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -180,7 +184,7 @@ namespace UIAutomationMCP.Server.Services
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"Labeled by info retrieved successfully for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Labeled by info retrieved successfully for AutomationId={automationId}, Name={name}, ControlType={controlType}");
                 return successResponse;
             }
             catch (Exception ex)
@@ -206,8 +210,9 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "GetLabeledBy",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -215,20 +220,20 @@ namespace UIAutomationMCP.Server.Services
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get labeled by info for element {elementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get labeled by info for AutomationId={automationId}, Name={name}, ControlType={controlType}");
                 return errorResponse;
             }
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetDescribedByAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetDescribedByAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required for element identification";
                 _logger.LogWarningWithOperation(operationId, $"GetDescribedBy validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ElementSearchResult>

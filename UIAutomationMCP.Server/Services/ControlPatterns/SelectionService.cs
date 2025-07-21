@@ -18,15 +18,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             _executor = executor;
         }
 
-        public async Task<ServerEnhancedResponse<ActionResult>> SelectItemAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> SelectItemAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required for element identification";
                 _logger.LogWarningWithOperation(operationId, $"SelectItem validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ActionResult>
@@ -41,7 +41,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -50,8 +51,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "SelectItem",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -65,13 +67,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting SelectItem: ElementId={elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Starting SelectItem: AutomationId={automationId}, Name={name}, ControlType={controlType}");
 
                 var request = new SelectItemRequest
                 {
-                    ElementId = elementId,
-                    WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<SelectItemRequest, ActionResult>("SelectItem", request, timeoutSeconds);
@@ -89,7 +92,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["operationType"] = "selectItem"
                         }
                     },
@@ -98,8 +103,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "SelectItem",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -131,7 +137,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         {
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["operationType"] = "selectItem"
                         }
                     },
@@ -140,8 +148,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "SelectItem",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -156,15 +165,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
 
-        public async Task<ServerEnhancedResponse<ActionResult>> AddToSelectionAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> AddToSelectionAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required for element identification";
                 _logger.LogWarningWithOperation(operationId, $"AddToSelection validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ActionResult>
@@ -179,7 +188,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -188,8 +198,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "AddToSelection",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -203,13 +214,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting AddToSelection: ElementId={elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Starting AddToSelection: AutomationId={automationId}, Name={name}, ControlType={controlType}");
 
                 var request = new AddToSelectionRequest
                 {
-                    ElementId = elementId,
-                    WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<AddToSelectionRequest, ActionResult>("AddToSelection", request, timeoutSeconds);
@@ -227,7 +239,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["operationType"] = "addToSelection"
                         }
                     },
@@ -236,8 +250,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "AddToSelection",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -269,7 +284,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         {
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["operationType"] = "addToSelection"
                         }
                     },
@@ -278,8 +295,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "AddToSelection",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -293,15 +311,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             }
         }
 
-        public async Task<ServerEnhancedResponse<ActionResult>> RemoveFromSelectionAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> RemoveFromSelectionAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required for element identification";
                 _logger.LogWarningWithOperation(operationId, $"RemoveFromSelection validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ActionResult>
@@ -316,7 +334,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -325,8 +344,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "RemoveFromSelection",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -340,13 +360,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting RemoveFromSelection: ElementId={elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Starting RemoveFromSelection: AutomationId={automationId}, Name={name}, ControlType={controlType}");
 
                 var request = new RemoveFromSelectionRequest
                 {
-                    ElementId = elementId,
-                    WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<RemoveFromSelectionRequest, ActionResult>("RemoveFromSelection", request, timeoutSeconds);
@@ -364,7 +385,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["operationType"] = "removeFromSelection"
                         }
                     },
@@ -373,8 +396,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "RemoveFromSelection",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -406,7 +430,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         {
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["operationType"] = "removeFromSelection"
                         }
                     },
@@ -415,8 +441,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "RemoveFromSelection",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -436,9 +463,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(containerId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Container ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required for element identification";
                 _logger.LogWarningWithOperation(operationId, $"ClearSelection validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ActionResult>
@@ -453,7 +480,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["containerId"] = containerId ?? "<null>",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -462,8 +491,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "ClearSelection",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["containerId"] = containerId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -477,13 +507,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting ClearSelection: ContainerId={containerId}");
+                _logger.LogInformationWithOperation(operationId, $"Starting ClearSelection: AutomationId={automationId}, Name={name}, ControlType={controlType}");
 
                 var request = new ClearSelectionRequest
                 {
-                    ElementId = containerId,
-                    WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<ClearSelectionRequest, ActionResult>("ClearSelection", request, timeoutSeconds);
@@ -501,7 +532,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["containerId"] = containerId,
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["operationType"] = "clearSelection"
                         }
                     },
@@ -510,8 +543,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "ClearSelection",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["containerId"] = containerId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -543,7 +577,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         {
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
-                            ["containerId"] = containerId,
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["operationType"] = "clearSelection"
                         }
                     },
@@ -552,8 +588,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "ClearSelection",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["containerId"] = containerId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -569,15 +606,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
 
 
-        public async Task<ServerEnhancedResponse<BooleanResult>> IsSelectedAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<BooleanResult>> IsSelectedAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required for element identification";
                 _logger.LogWarningWithOperation(operationId, $"IsSelected validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<BooleanResult>
@@ -592,7 +629,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -601,8 +640,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "IsSelected",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -616,13 +656,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting IsSelected for ElementId={elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Starting IsSelected for AutomationId={automationId}, Name={name}, ControlType={controlType}");
 
                 var request = new IsSelectedRequest
                 {
-                    ElementId = elementId,
-                    WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<IsSelectedRequest, BooleanResult>("IsSelected", request, timeoutSeconds);
@@ -640,7 +681,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["isSelected"] = result.Value,
                             ["operationType"] = "isSelected"
                         }
@@ -650,8 +693,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "IsSelected",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -683,7 +727,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         {
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["operationType"] = "isSelected"
                         }
                     },
@@ -692,8 +738,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "IsSelected",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -707,14 +754,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             }
         }
 
-        public async Task<ServerEnhancedResponse<ActionResult>> GetSelectionContainerAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> GetSelectionContainerAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required for element identification";
                 _logger.LogWarningWithOperation(operationId, $"GetSelectionContainer validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ActionResult>
@@ -729,7 +776,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -738,8 +787,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetSelectionContainer",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -753,13 +803,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting GetSelectionContainer for ElementId={elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Starting GetSelectionContainer for AutomationId={automationId}, Name={name}, ControlType={controlType}");
 
                 var request = new GetSelectionContainerRequest
                 {
-                    ElementId = elementId,
-                    WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<GetSelectionContainerRequest, ActionResult>("GetSelectionContainer", request, timeoutSeconds);
@@ -777,7 +828,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["operationType"] = "getSelectionContainer"
                         }
                     },
@@ -786,8 +839,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetSelectionContainer",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -819,7 +873,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         {
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["operationType"] = "getSelectionContainer"
                         }
                     },
@@ -828,8 +884,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetSelectionContainer",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -843,14 +900,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             }
         }
 
-        public async Task<ServerEnhancedResponse<BooleanResult>> CanSelectMultipleAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<BooleanResult>> CanSelectMultipleAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
-            if (string.IsNullOrWhiteSpace(containerId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Container ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required for element identification";
                 _logger.LogWarningWithOperation(operationId, $"CanSelectMultiple validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<BooleanResult>
@@ -865,7 +922,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["containerId"] = containerId ?? "<null>",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -874,8 +933,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "CanSelectMultiple",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["containerId"] = containerId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -889,13 +949,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting CanSelectMultiple for ContainerId={containerId}");
+                _logger.LogInformationWithOperation(operationId, $"Starting CanSelectMultiple for AutomationId={automationId}, Name={name}, ControlType={controlType}");
 
                 var request = new CanSelectMultipleRequest
                 {
-                    ElementId = containerId,
-                    WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<CanSelectMultipleRequest, BooleanResult>("CanSelectMultiple", request, timeoutSeconds);
@@ -913,7 +974,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["containerId"] = containerId,
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["canSelectMultiple"] = result.Value,
                             ["operationType"] = "canSelectMultiple"
                         }
@@ -923,8 +986,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "CanSelectMultiple",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["containerId"] = containerId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -956,7 +1020,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         {
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
-                            ["containerId"] = containerId,
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["operationType"] = "canSelectMultiple"
                         }
                     },
@@ -965,8 +1031,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "CanSelectMultiple",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["containerId"] = containerId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -980,14 +1047,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             }
         }
 
-        public async Task<ServerEnhancedResponse<BooleanResult>> IsSelectionRequiredAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<BooleanResult>> IsSelectionRequiredAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
-            if (string.IsNullOrWhiteSpace(containerId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Container ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required for element identification";
                 _logger.LogWarningWithOperation(operationId, $"IsSelectionRequired validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<BooleanResult>
@@ -1002,7 +1069,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["containerId"] = containerId ?? "<null>",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -1011,8 +1080,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "IsSelectionRequired",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["containerId"] = containerId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -1026,13 +1096,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting IsSelectionRequired for ContainerId={containerId}");
+                _logger.LogInformationWithOperation(operationId, $"Starting IsSelectionRequired for AutomationId={automationId}, Name={name}, ControlType={controlType}");
 
                 var request = new IsSelectionRequiredRequest
                 {
-                    ElementId = containerId,
-                    WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<IsSelectionRequiredRequest, BooleanResult>("IsSelectionRequired", request, timeoutSeconds);
@@ -1050,7 +1121,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["containerId"] = containerId,
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["isSelectionRequired"] = result.Value,
                             ["operationType"] = "isSelectionRequired"
                         }
@@ -1060,8 +1133,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "IsSelectionRequired",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["containerId"] = containerId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -1093,7 +1167,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         {
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
-                            ["containerId"] = containerId,
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["operationType"] = "isSelectionRequired"
                         }
                     },
@@ -1102,8 +1178,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "IsSelectionRequired",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["containerId"] = containerId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -1117,14 +1194,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             }
         }
 
-        public async Task<ServerEnhancedResponse<SelectionInfoResult>> GetSelectionAsync(string containerId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<SelectionInfoResult>> GetSelectionAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
-            if (string.IsNullOrWhiteSpace(containerId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Container ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required for element identification";
                 _logger.LogWarningWithOperation(operationId, $"GetSelection validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<SelectionInfoResult>
@@ -1139,7 +1216,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["containerId"] = containerId ?? "<null>",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -1148,8 +1227,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetSelection",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["containerId"] = containerId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -1163,13 +1243,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting GetSelection for ContainerId={containerId}");
+                _logger.LogInformationWithOperation(operationId, $"Starting GetSelection for AutomationId={automationId}, Name={name}, ControlType={controlType}");
 
                 var request = new GetSelectionRequest
                 {
-                    ElementId = containerId,
-                    WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<GetSelectionRequest, SelectionInfoResult>("GetSelection", request, timeoutSeconds);
@@ -1187,7 +1268,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["containerId"] = containerId,
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["operationType"] = "getSelection"
                         }
                     },
@@ -1196,8 +1279,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetSelection",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["containerId"] = containerId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -1229,7 +1313,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         {
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
-                            ["containerId"] = containerId,
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["operationType"] = "getSelection"
                         }
                     },
@@ -1238,8 +1324,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetSelection",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["containerId"] = containerId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },

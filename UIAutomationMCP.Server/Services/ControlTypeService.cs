@@ -19,8 +19,9 @@ namespace UIAutomationMCP.Server.Services
 
 
         public async Task<ServerEnhancedResponse<ElementSearchResult>> ValidateControlTypePatternsAsync(
-            string elementId, 
-            string? windowTitle = null, 
+            string? automationId = null, 
+            string? name = null,
+            string? controlType = null,
             int? processId = null, 
             int timeoutSeconds = 30)
         {
@@ -28,9 +29,9 @@ namespace UIAutomationMCP.Server.Services
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required for element identification";
                 _logger.LogWarningWithOperation(operationId, $"ValidateControlTypePatterns validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
@@ -45,7 +46,8 @@ namespace UIAutomationMCP.Server.Services
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -54,8 +56,9 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "ValidateControlTypePatterns",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -67,13 +70,14 @@ namespace UIAutomationMCP.Server.Services
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Validating control type patterns for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Validating control type patterns for AutomationId={automationId}, Name={name}, ControlType={controlType}");
 
                 var request = new ValidateControlTypePatternsRequest
                 {
-                    ElementId = elementId,
-                    WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
+                    ProcessId = processId
                 };
 
                 var result = await _executor.ExecuteAsync<ValidateControlTypePatternsRequest, ElementSearchResult>("ValidateControlTypePatterns", request, timeoutSeconds);
@@ -93,8 +97,9 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "ValidateControlTypePatterns",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -102,7 +107,7 @@ namespace UIAutomationMCP.Server.Services
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"Control type patterns validated successfully for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Control type patterns validated successfully for AutomationId={automationId}, Name={name}, ControlType={controlType}");
                 return successResponse;
             }
             catch (Exception ex)
@@ -128,8 +133,9 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "ValidateControlTypePatterns",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -137,7 +143,7 @@ namespace UIAutomationMCP.Server.Services
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to validate control type patterns for element {elementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to validate control type patterns for AutomationId={automationId}, Name={name}, ControlType={controlType}");
                 return errorResponse;
             }
         }

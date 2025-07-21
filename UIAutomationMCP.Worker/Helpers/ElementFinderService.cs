@@ -386,7 +386,7 @@ namespace UIAutomationMCP.Worker.Helpers
             try
             {
                 return await Task.Run(() => 
-                    FindElement(automationId, name, windowTitle, processId, scope), cts.Token);
+                    FindElement(automationId, name, controlType: null, windowTitle, processId, scope), cts.Token);
             }
             catch (OperationCanceledException)
             {
@@ -428,7 +428,7 @@ namespace UIAutomationMCP.Worker.Helpers
         /// <returns>要素が存在する場合はtrue</returns>
         public bool ElementExists(string? automationId = null, string? name = null, string? windowTitle = null, int? processId = null)
         {
-            return FindElement(automationId, name, windowTitle, processId) != null;
+            return FindElement(automationId, name, controlType: null, windowTitle, processId) != null;
         }
 
         /// <summary>

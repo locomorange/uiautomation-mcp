@@ -17,15 +17,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             _executor = executor;
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetAvailableViewsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetAvailableViewsAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required";
                 _logger.LogWarningWithOperation(operationId, $"GetAvailableViews validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
@@ -40,7 +40,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -49,8 +50,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetAvailableViews",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -62,12 +64,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Getting available views for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Getting available views for element (AutomationId: {automationId}, Name: {name})");
 
                 var request = new GetAvailableViewsRequest
                 {
-                    ElementId = elementId,
-                    WindowTitle = windowTitle ?? "",
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
                     ProcessId = processId ?? 0
                 };
 
@@ -88,8 +91,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetAvailableViews",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -97,7 +101,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"Available views retrieved successfully for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Available views retrieved successfully for element (AutomationId: {automationId}, Name: {name})");
                 return successResponse;
             }
             catch (Exception ex)
@@ -123,8 +127,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetAvailableViews",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -132,20 +137,20 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get available views for element {elementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get available views for element (AutomationId: {automationId}, Name: {name})");
                 return errorResponse;
             }
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> SetViewAsync(string elementId, int viewId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> SetViewAsync(string? automationId = null, string? name = null, int viewId = 0, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required";
                 _logger.LogWarningWithOperation(operationId, $"SetView validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
@@ -160,7 +165,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["viewId"] = viewId,
                             ["validationFailed"] = true
                         }
@@ -170,9 +176,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "SetView",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["viewId"] = viewId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -184,13 +191,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Setting view {viewId} for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Setting view {viewId} for element (AutomationId: {automationId}, Name: {name})");
 
                 var request = new SetViewRequest
                 {
-                    ElementId = elementId,
+                    AutomationId = automationId,
+                    Name = name,
                     ViewId = viewId,
-                    WindowTitle = windowTitle ?? "",
+                    ControlType = controlType,
                     ProcessId = processId ?? 0
                 };
 
@@ -211,9 +219,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "SetView",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["viewId"] = viewId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -221,7 +230,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"View set successfully for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"View set successfully for element (AutomationId: {automationId}, Name: {name})");
                 return successResponse;
             }
             catch (Exception ex)
@@ -247,9 +256,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "SetView",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["viewId"] = viewId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -257,20 +267,20 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to set view {viewId} for element {elementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to set view {viewId} for element (AutomationId: {automationId}, Name: {name})");
                 return errorResponse;
             }
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetCurrentViewAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetCurrentViewAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required";
                 _logger.LogWarningWithOperation(operationId, $"GetCurrentView validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
@@ -285,7 +295,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -294,8 +305,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetCurrentView",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -307,12 +319,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Getting current view for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Getting current view for element (AutomationId: {automationId}, Name: {name})");
 
                 var request = new GetCurrentViewRequest
                 {
-                    ElementId = elementId,
-                    WindowTitle = windowTitle ?? "",
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
                     ProcessId = processId ?? 0
                 };
 
@@ -333,8 +346,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetCurrentView",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -342,7 +356,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"Current view retrieved successfully for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Current view retrieved successfully for element (AutomationId: {automationId}, Name: {name})");
                 return successResponse;
             }
             catch (Exception ex)
@@ -368,8 +382,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetCurrentView",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -377,20 +392,20 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get current view for element {elementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get current view for element (AutomationId: {automationId}, Name: {name})");
                 return errorResponse;
             }
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetViewNameAsync(string elementId, int viewId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetViewNameAsync(string? automationId = null, string? name = null, int viewId = 0, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required";
                 _logger.LogWarningWithOperation(operationId, $"GetViewName validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
@@ -405,7 +420,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["viewId"] = viewId,
                             ["validationFailed"] = true
                         }
@@ -415,9 +431,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetViewName",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["viewId"] = viewId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -429,13 +446,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Getting view name for view {viewId} in element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Getting view name for view {viewId} in element (AutomationId: {automationId}, Name: {name})");
 
                 var request = new GetViewNameRequest
                 {
-                    ElementId = elementId,
+                    AutomationId = automationId,
+                    Name = name,
                     ViewId = viewId,
-                    WindowTitle = windowTitle ?? "",
+                    ControlType = controlType,
                     ProcessId = processId ?? 0
                 };
 
@@ -456,9 +474,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetViewName",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["viewId"] = viewId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -466,7 +485,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"View name retrieved successfully for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"View name retrieved successfully for element (AutomationId: {automationId}, Name: {name})");
                 return successResponse;
             }
             catch (Exception ex)
@@ -492,9 +511,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetViewName",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["viewId"] = viewId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -502,7 +522,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get view name for view {viewId} in element {elementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get view name for view {viewId} in element (AutomationId: {automationId}, Name: {name})");
                 return errorResponse;
             }
         }

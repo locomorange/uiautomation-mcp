@@ -17,15 +17,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             _executor = executor;
         }
 
-        public async Task<ServerEnhancedResponse<ActionResult>> SetRangeValueAsync(string elementId, double value, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> SetRangeValueAsync(string? automationId = null, string? name = null, double value = 0, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required";
                 _logger.LogWarningWithOperation(operationId, $"SetRangeValue validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ActionResult>
@@ -40,7 +40,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -49,9 +50,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "SetRangeValue",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["value"] = value,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -65,13 +67,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting SetRangeValue: ElementId={elementId}, Value={value}");
+                _logger.LogInformationWithOperation(operationId, $"Starting SetRangeValue: AutomationId={automationId}, Name={name}, Value={value}");
 
                 var request = new SetRangeValueRequest
                 {
-                    ElementId = elementId,
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
                     Value = value,
-                    WindowTitle = windowTitle ?? "",
                     ProcessId = processId ?? 0
                 };
 
@@ -90,7 +93,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["value"] = value,
                             ["operationType"] = "setRangeValue"
                         }
@@ -100,9 +104,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "SetRangeValue",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["value"] = value,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -110,7 +115,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
 
-                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
+                _logger.LogInformationWithOperation(operationId, $"Successfully set range value for element (AutomationId: {automationId}, Name: {name})");
                 
                 LogCollectorExtensions.Instance.ClearLogs(operationId);
                 
@@ -134,7 +139,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         {
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["value"] = value,
                             ["operationType"] = "setRangeValue"
                         }
@@ -144,9 +150,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "SetRangeValue",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["value"] = value,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -160,14 +167,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             }
         }
 
-        public async Task<ServerEnhancedResponse<RangeValueResult>> GetRangeValueAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<RangeValueResult>> GetRangeValueAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
-            if (string.IsNullOrWhiteSpace(elementId))
+            // Input validation
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required";
                 _logger.LogWarningWithOperation(operationId, $"GetRangeValue validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<RangeValueResult>
@@ -182,7 +190,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -191,8 +200,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetRangeValue",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -204,12 +214,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Getting range value for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Getting range value for element (AutomationId: {automationId}, Name: {name})");
 
                 var request = new GetRangeValueRequest
                 {
-                    ElementId = elementId,
-                    WindowTitle = windowTitle ?? "",
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
                     ProcessId = processId ?? 0
                 };
 
@@ -226,8 +237,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["operationCompleted"] = true
                         }
@@ -237,8 +249,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetRangeValue",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -246,7 +259,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
 
-                _logger.LogInformationWithOperation(operationId, $"Successfully retrieved range value for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Successfully retrieved range value for element (AutomationId: {automationId}, Name: {name})");
                 return response;
             }
             catch (Exception ex)
@@ -262,11 +275,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
-                            ["processId"] = processId ?? 0,
+                            ["errorCategory"] = "ExecutionError",
                             ["exceptionType"] = ex.GetType().Name,
-                            ["exceptionMessage"] = ex.Message
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? ""
                         }
                     },
                     RequestMetadata = new RequestMetadata
@@ -274,8 +287,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetRangeValue",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -283,7 +297,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get range value for element {elementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get range value for element (AutomationId: {automationId}, Name: {name})");
                 return errorResponse;
             }
         }

@@ -17,15 +17,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             _executor = executor;
         }
 
-        public async Task<ServerEnhancedResponse<ActionResult>> ExpandCollapseElementAsync(string elementId, string action, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> ExpandCollapseElementAsync(string? automationId = null, string? name = null, string action = "toggle", string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required and cannot be empty";
                 _logger.LogWarningWithOperation(operationId, $"ExpandCollapseElement validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ActionResult>
@@ -40,7 +40,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -49,9 +50,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "ExpandCollapseElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["action"] = action ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -88,9 +90,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "ExpandCollapseElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["action"] = action ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -102,13 +105,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Performing expand/collapse action '{action}' on element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Performing expand/collapse action '{action}' on element with AutomationId: {automationId}, Name: {name}");
 
                 var request = new ExpandCollapseElementRequest
                 {
-                    ElementId = elementId,
+                    AutomationId = automationId,
+                    Name = name,
                     Action = action,
-                    WindowTitle = windowTitle ?? "",
+                    ControlType = controlType,
                     ProcessId = processId ?? 0
                 };
 
@@ -129,9 +133,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "ExpandCollapseElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["action"] = action,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -139,7 +144,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"Expand/collapse action performed successfully: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Expand/collapse action performed successfully for AutomationId: {automationId}, Name: {name}");
                 return successResponse;
             }
             catch (Exception ex)
@@ -165,9 +170,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "ExpandCollapseElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["action"] = action,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -175,20 +181,20 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to perform expand/collapse action on element: {elementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to perform expand/collapse action on element with AutomationId: {automationId}, Name: {name}");
                 return errorResponse;
             }
         }
 
-        public async Task<ServerEnhancedResponse<ActionResult>> ScrollElementAsync(string elementId, string direction, double amount = 1.0, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> ScrollElementAsync(string? automationId = null, string? name = null, string direction = "down", double amount = 1.0, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required and cannot be empty";
                 _logger.LogWarningWithOperation(operationId, $"ScrollElement validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ActionResult>
@@ -203,7 +209,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -212,10 +219,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "ScrollElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["direction"] = direction ?? "",
                             ["amount"] = amount,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -252,10 +260,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "ScrollElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["direction"] = direction ?? "",
                             ["amount"] = amount,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -267,14 +276,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Scrolling element: {elementId} in direction: {direction} by amount: {amount}");
+                _logger.LogInformationWithOperation(operationId, $"Scrolling element with AutomationId: {automationId}, Name: {name} in direction: {direction} by amount: {amount}");
 
                 var request = new ScrollElementRequest
                 {
-                    ElementId = elementId,
+                    AutomationId = automationId,
+                    Name = name,
                     Direction = direction,
                     Amount = amount,
-                    WindowTitle = windowTitle ?? "",
+                    ControlType = controlType,
                     ProcessId = processId ?? 0
                 };
 
@@ -295,10 +305,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "ScrollElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["direction"] = direction,
                             ["amount"] = amount,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -306,7 +317,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"Element scrolled successfully: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Element scrolled successfully with AutomationId: {automationId}, Name: {name}");
                 return successResponse;
             }
             catch (Exception ex)
@@ -332,10 +343,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "ScrollElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["direction"] = direction,
                             ["amount"] = amount,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -343,20 +355,20 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to scroll element: {elementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to scroll element with AutomationId: {automationId}, Name: {name}");
                 return errorResponse;
             }
         }
 
-        public async Task<ServerEnhancedResponse<ActionResult>> ScrollElementIntoViewAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> ScrollElementIntoViewAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required and cannot be empty";
                 _logger.LogWarningWithOperation(operationId, $"ScrollElementIntoView validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ActionResult>
@@ -371,7 +383,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -380,8 +393,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "ScrollElementIntoView",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -393,12 +407,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Scrolling element into view: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Scrolling element into view with AutomationId: {automationId}, Name: {name}");
 
                 var request = new ScrollElementIntoViewRequest
                 {
-                    ElementId = elementId,
-                    WindowTitle = windowTitle ?? "",
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
                     ProcessId = processId ?? 0
                 };
 
@@ -419,8 +434,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "ScrollElementIntoView",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -428,7 +444,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"Element scrolled into view successfully: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Element scrolled into view successfully with AutomationId: {automationId}, Name: {name}");
                 return successResponse;
             }
             catch (Exception ex)
@@ -454,8 +470,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "ScrollElementIntoView",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -463,21 +480,20 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to scroll element into view: {elementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to scroll element into view with AutomationId: {automationId}, Name: {name}");
                 return errorResponse;
             }
         }
 
-
-        public async Task<ServerEnhancedResponse<ActionResult>> SetScrollPercentAsync(string elementId, double horizontalPercent, double verticalPercent, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> SetScrollPercentAsync(string? automationId = null, string? name = null, double horizontalPercent = -1, double verticalPercent = -1, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required and cannot be empty";
                 _logger.LogWarningWithOperation(operationId, $"SetScrollPercent validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ActionResult>
@@ -492,7 +508,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -501,10 +518,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "SetScrollPercent",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["horizontalPercent"] = horizontalPercent,
                             ["verticalPercent"] = verticalPercent,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -514,9 +532,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 return validationResponse;
             }
             
-            if (horizontalPercent < 0 || horizontalPercent > 100 || verticalPercent < 0 || verticalPercent > 100)
+            if (horizontalPercent < -1 || horizontalPercent > 100 || verticalPercent < -1 || verticalPercent > 100)
             {
-                var validationError = "Scroll percentages must be between 0 and 100";
+                var validationError = "Scroll percentages must be between -1 and 100 (-1 means no change)";
                 _logger.LogWarningWithOperation(operationId, $"SetScrollPercent validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ActionResult>
@@ -534,7 +552,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                             ["horizontalPercent"] = horizontalPercent,
                             ["verticalPercent"] = verticalPercent,
                             ["validationFailed"] = true,
-                            ["expectedRange"] = "0-100"
+                            ["expectedRange"] = "-1 to 100"
                         }
                     },
                     RequestMetadata = new RequestMetadata
@@ -542,10 +560,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "SetScrollPercent",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["horizontalPercent"] = horizontalPercent,
                             ["verticalPercent"] = verticalPercent,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -557,14 +576,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Setting scroll percentage for element: {elementId} to H:{horizontalPercent}%, V:{verticalPercent}%");
+                _logger.LogInformationWithOperation(operationId, $"Setting scroll percentage for element with AutomationId: {automationId}, Name: {name} to H:{horizontalPercent}%, V:{verticalPercent}%");
 
                 var request = new SetScrollPercentRequest
                 {
-                    ElementId = elementId,
+                    AutomationId = automationId,
+                    Name = name,
                     HorizontalPercent = horizontalPercent,
                     VerticalPercent = verticalPercent,
-                    WindowTitle = windowTitle ?? "",
+                    ControlType = controlType,
                     ProcessId = processId ?? 0
                 };
 
@@ -585,10 +605,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "SetScrollPercent",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["horizontalPercent"] = horizontalPercent,
                             ["verticalPercent"] = verticalPercent,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -596,7 +617,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"Scroll percentage set successfully for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Scroll percentage set successfully for element with AutomationId: {automationId}, Name: {name}");
                 return successResponse;
             }
             catch (Exception ex)
@@ -622,10 +643,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "SetScrollPercent",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["horizontalPercent"] = horizontalPercent,
                             ["verticalPercent"] = verticalPercent,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -633,20 +655,20 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to set scroll percentage for element: {elementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to set scroll percentage for element with AutomationId: {automationId}, Name: {name}");
                 return errorResponse;
             }
         }
 
-        public async Task<ServerEnhancedResponse<ActionResult>> DockElementAsync(string elementId, string dockPosition, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> DockElementAsync(string? automationId = null, string? name = null, string dockPosition = "none", string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required and cannot be empty";
                 _logger.LogWarningWithOperation(operationId, $"DockElement validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ActionResult>
@@ -661,7 +683,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -670,9 +693,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "DockElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["dockPosition"] = dockPosition ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -709,9 +733,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "DockElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["dockPosition"] = dockPosition ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -723,13 +748,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Docking element: {elementId} to position: {dockPosition}");
+                _logger.LogInformationWithOperation(operationId, $"Docking element with AutomationId: {automationId}, Name: {name} to position: {dockPosition}");
 
                 var request = new DockElementRequest
                 {
-                    ElementId = elementId,
+                    AutomationId = automationId,
+                    Name = name,
                     DockPosition = dockPosition,
-                    WindowTitle = windowTitle ?? "",
+                    ControlType = controlType,
                     ProcessId = processId ?? 0
                 };
 
@@ -750,9 +776,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "DockElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["dockPosition"] = dockPosition,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -760,7 +787,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogInformationWithOperation(operationId, $"Element docked successfully: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Element docked successfully with AutomationId: {automationId}, Name: {name}");
                 return successResponse;
             }
             catch (Exception ex)
@@ -786,9 +813,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "DockElement",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
                             ["dockPosition"] = dockPosition,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -796,20 +824,20 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to dock element: {elementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to dock element with AutomationId: {automationId}, Name: {name}");
                 return errorResponse;
             }
         }
 
-        public async Task<ServerEnhancedResponse<ScrollInfoResult>> GetScrollInfoAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ScrollInfoResult>> GetScrollInfoAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Element ID is required and cannot be empty";
+                var validationError = "Either AutomationId or Name is required and cannot be empty";
                 _logger.LogWarningWithOperation(operationId, $"GetScrollInfo validation failed: {validationError}");
                 
                 var validationResponse = new ServerEnhancedResponse<ScrollInfoResult>
@@ -824,7 +852,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
                             ["validationFailed"] = true
                         }
                     },
@@ -833,8 +862,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetScrollInfo",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -846,12 +876,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Getting scroll info for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Getting scroll info for element with AutomationId: {automationId}, Name: {name}");
 
                 var request = new GetScrollInfoRequest
                 {
-                    ElementId = elementId,
-                    WindowTitle = windowTitle ?? "",
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
                     ProcessId = processId ?? 0
                 };
 
@@ -868,8 +899,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["operationCompleted"] = true
                         }
@@ -879,8 +911,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetScrollInfo",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -888,7 +921,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
 
-                _logger.LogInformationWithOperation(operationId, $"Successfully retrieved scroll info for element: {elementId}");
+                _logger.LogInformationWithOperation(operationId, $"Successfully retrieved scroll info for element with AutomationId: {automationId}, Name: {name}");
                 return response;
             }
             catch (Exception ex)
@@ -904,8 +937,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["exceptionType"] = ex.GetType().Name,
                             ["exceptionMessage"] = ex.Message
@@ -916,8 +950,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         RequestedMethod = "GetScrollInfo",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["controlType"] = controlType ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -925,7 +960,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     }
                 };
                 
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get scroll info for element: {elementId}");
+                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get scroll info for element with AutomationId: {automationId}, Name: {name}");
                 return errorResponse;
             }
         }

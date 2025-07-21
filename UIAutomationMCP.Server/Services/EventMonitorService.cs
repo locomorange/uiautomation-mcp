@@ -18,21 +18,21 @@ namespace UIAutomationMCP.Server.Services
             _executor = executor;
         }
 
-        public async Task<ServerEnhancedResponse<EventMonitoringResult>> MonitorEventsAsync(string eventType, int duration, string? elementId = null, string? windowTitle = null, int? processId = null)
+        public async Task<ServerEnhancedResponse<EventMonitoringResult>> MonitorEventsAsync(string eventType, int duration, string? automationId = null, string? name = null, string? controlType = null, int? processId = null)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting MonitorEvents for EventType={eventType}, Duration={duration}");
+                _logger.LogInformationWithOperation(operationId, $"Starting MonitorEvents for EventType={eventType}, Duration={duration}, AutomationId={automationId}, Name={name}, ControlType={controlType}");
 
                 var request = new MonitorEventsRequest
                 {
                     EventTypes = new[] { eventType },
                     Duration = duration,
-                    ElementId = elementId ?? "",
-                    WindowTitle = windowTitle,
+                    ElementId = automationId ?? name ?? "",
+                    WindowTitle = null,
                     ProcessId = processId
                 };
 
@@ -53,8 +53,9 @@ namespace UIAutomationMCP.Server.Services
                         {
                             { "eventType", eventType },
                             { "duration", duration },
-                            { "elementId", elementId ?? "All" },
-                            { "windowTitle", windowTitle ?? "All" },
+                            { "automationId", automationId ?? "All" },
+                            { "name", name ?? "All" },
+                            { "controlType", controlType ?? "All" },
                             { "processId", processId?.ToString() ?? "All" }
                         }
                     },
@@ -65,8 +66,9 @@ namespace UIAutomationMCP.Server.Services
                         {
                             ["eventTypes"] = request.EventTypes,
                             ["duration"] = request.Duration,
-                            ["elementId"] = request.ElementId,
-                            ["windowTitle"] = request.WindowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["processId"] = request.ProcessId ?? 0
                         },
                         TimeoutSeconds = duration + 30
@@ -105,20 +107,20 @@ namespace UIAutomationMCP.Server.Services
             }
         }
 
-        public async Task<ServerEnhancedResponse<EventMonitoringStartResult>> StartEventMonitoringAsync(string eventType, string? elementId = null, string? windowTitle = null, int? processId = null)
+        public async Task<ServerEnhancedResponse<EventMonitoringStartResult>> StartEventMonitoringAsync(string eventType, string? automationId = null, string? name = null, string? controlType = null, int? processId = null)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting StartEventMonitoring for EventType={eventType}");
+                _logger.LogInformationWithOperation(operationId, $"Starting StartEventMonitoring for EventType={eventType}, AutomationId={automationId}, Name={name}, ControlType={controlType}");
 
                 var request = new StartEventMonitoringRequest
                 {
                     EventTypes = new[] { eventType },
-                    ElementId = elementId ?? "",
-                    WindowTitle = windowTitle,
+                    ElementId = automationId ?? name ?? "",
+                    WindowTitle = null,
                     ProcessId = processId
                 };
 
@@ -138,8 +140,9 @@ namespace UIAutomationMCP.Server.Services
                         AdditionalInfo = new Dictionary<string, object>
                         {
                             { "eventType", eventType },
-                            { "elementId", elementId ?? "All" },
-                            { "windowTitle", windowTitle ?? "All" },
+                            { "automationId", automationId ?? "All" },
+                            { "name", name ?? "All" },
+                            { "controlType", controlType ?? "All" },
                             { "processId", processId?.ToString() ?? "All" }
                         }
                     },
@@ -149,8 +152,9 @@ namespace UIAutomationMCP.Server.Services
                         RequestParameters = new Dictionary<string, object>
                         {
                             ["eventTypes"] = request.EventTypes,
-                            ["elementId"] = request.ElementId,
-                            ["windowTitle"] = request.WindowTitle ?? "",
+                            ["automationId"] = automationId,
+                            ["name"] = name,
+                            ["controlType"] = controlType,
                             ["processId"] = request.ProcessId ?? 0
                         },
                         TimeoutSeconds = 30
