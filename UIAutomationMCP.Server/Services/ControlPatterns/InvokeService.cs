@@ -3,6 +3,7 @@ using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Requests;
+using System;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns

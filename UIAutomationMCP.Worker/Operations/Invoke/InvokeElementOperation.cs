@@ -23,11 +23,10 @@ namespace UIAutomationMCP.Worker.Operations.Invoke
             {
                 var typedRequest = JsonSerializationHelper.Deserialize<InvokeElementRequest>(parametersJson)!;
                 
-                var elementId = typedRequest.ElementId;
-                var windowTitle = typedRequest.WindowTitle;
-                var processId = typedRequest.ProcessId ?? 0;
-
-                var element = _elementFinderService.FindElementById(elementId, windowTitle, processId);
+                var element = _elementFinderService.FindElement(
+                    automationId: typedRequest.AutomationId, 
+                    name: typedRequest.Name,
+                    processId: typedRequest.ProcessId);
                 if (element == null)
                 {
                     return Task.FromResult(new OperationResult
