@@ -260,19 +260,31 @@ namespace UIAutomationMCP.Server.Tools
 
         [McpServerTool, Description("Add element to selection using SelectionItemPattern")]
         public async Task<object> AddToSelection(
-            [Description("Automation ID or name of the element")] string elementId, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _selectionService.AddToSelectionAsync(elementId, windowTitle, processId, timeoutSeconds));
+            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
+            [Description("Name of the element (fallback, display name)")] string? name = null,
+            [Description("ControlType to filter by (ListItem, TreeItem, etc.)")] string? controlType = null,
+            [Description("Process ID to limit search scope")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
+            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
+            => JsonSerializationHelper.Serialize(await _selectionService.AddToSelectionAsync(
+                elementId ?? automationId ?? name ?? "", 
+                null, // windowTitle removed
+                processId, 
+                timeoutSeconds));
 
         [McpServerTool, Description("Remove element from selection using SelectionItemPattern")]
         public async Task<object> RemoveFromSelection(
-            [Description("Automation ID or name of the element")] string elementId, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _selectionService.RemoveFromSelectionAsync(elementId, windowTitle, processId, timeoutSeconds));
+            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
+            [Description("Name of the element (fallback, display name)")] string? name = null,
+            [Description("ControlType to filter by (ListItem, TreeItem, etc.)")] string? controlType = null,
+            [Description("Process ID to limit search scope")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
+            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
+            => JsonSerializationHelper.Serialize(await _selectionService.RemoveFromSelectionAsync(
+                elementId ?? automationId ?? name ?? "", 
+                null, // windowTitle removed
+                processId, 
+                timeoutSeconds));
 
         [McpServerTool, Description("Clear all selections in a container")]
         public async Task<object> ClearSelection(
@@ -442,43 +454,70 @@ namespace UIAutomationMCP.Server.Tools
 
         [McpServerTool, Description("Dock an element to a specific position using DockPattern")]
         public async Task<object> DockElement(
-            [Description("Automation ID or name of the element")] string elementId, 
-            [Description("Dock position: top, bottom, left, right, fill, none")] string dockPosition, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _layoutService.DockElementAsync(elementId, dockPosition, windowTitle, processId, timeoutSeconds));
+            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
+            [Description("Name of the element (fallback, display name)")] string? name = null,
+            [Description("Dock position: top, bottom, left, right, fill, none")] string dockPosition = "none",
+            [Description("ControlType to filter by (Pane, ToolBar, etc.)")] string? controlType = null,
+            [Description("Process ID to limit search scope")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
+            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
+            => JsonSerializationHelper.Serialize(await _layoutService.DockElementAsync(
+                elementId ?? automationId ?? name ?? "", 
+                dockPosition, 
+                null, // windowTitle removed
+                processId, 
+                timeoutSeconds));
 
         // Text Pattern Operations
 
         [McpServerTool, Description("Select text in an element using TextPattern")]
         public async Task<object> SelectText(
-            [Description("Automation ID or name of the element")] string elementId, 
-            [Description("Start index of the text to select")] int startIndex, 
-            [Description("Length of text to select")] int length, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _textService.SelectTextAsync(elementId, startIndex, length, windowTitle, processId, timeoutSeconds));
+            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
+            [Description("Name of the element (fallback, display name)")] string? name = null,
+            [Description("Start index of the text to select")] int startIndex = 0,
+            [Description("Length of text to select")] int length = 1,
+            [Description("ControlType to filter by (Edit, Document, etc.)")] string? controlType = null,
+            [Description("Process ID to limit search scope")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
+            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
+            => JsonSerializationHelper.Serialize(await _textService.SelectTextAsync(
+                elementId ?? automationId ?? name ?? "", 
+                startIndex, 
+                length, 
+                null, // windowTitle removed
+                processId, 
+                timeoutSeconds));
 
         [McpServerTool, Description("Find text in an element using TextPattern")]
         public async Task<object> FindText(
-            [Description("Automation ID or name of the element")] string elementId, 
-            [Description("Text to search for")] string searchText, 
-            [Description("Search backward (default: false)")] bool backward = false, 
-            [Description("Ignore case (default: true)")] bool ignoreCase = true, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _textService.GetTextAsync(elementId, windowTitle, processId, timeoutSeconds));
+            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
+            [Description("Name of the element (fallback, display name)")] string? name = null,
+            [Description("Text to search for")] string searchText = "",
+            [Description("Search backward (default: false)")] bool backward = false,
+            [Description("Ignore case (default: true)")] bool ignoreCase = true,
+            [Description("ControlType to filter by (Edit, Document, etc.)")] string? controlType = null,
+            [Description("Process ID to limit search scope")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
+            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
+            => JsonSerializationHelper.Serialize(await _textService.GetTextAsync(
+                elementId ?? automationId ?? name ?? "", 
+                null, // windowTitle removed
+                processId, 
+                timeoutSeconds));
 
         [McpServerTool, Description("Get the current text selection from an element using TextPattern")]
         public async Task<object> GetTextSelection(
-            [Description("Automation ID or name of the element")] string elementId, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _textService.GetSelectedTextAsync(elementId, windowTitle, processId, timeoutSeconds));
+            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
+            [Description("Name of the element (fallback, display name)")] string? name = null,
+            [Description("ControlType to filter by (Edit, Document, etc.)")] string? controlType = null,
+            [Description("Process ID to limit search scope")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
+            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
+            => JsonSerializationHelper.Serialize(await _textService.GetSelectedTextAsync(
+                elementId ?? automationId ?? name ?? "", 
+                null, // windowTitle removed
+                processId, 
+                timeoutSeconds));
 
         [McpServerTool, Description("Set text content in an element using ValuePattern")]
         public async Task<object> SetText(
@@ -498,21 +537,35 @@ namespace UIAutomationMCP.Server.Tools
 
         [McpServerTool, Description("Traverse text using TextPattern with various navigation units")]
         public async Task<object> TraverseText(
-            [Description("Automation ID or name of the element")] string elementId, 
-            [Description("Direction to traverse: character, word, line, paragraph, page, document (add '-back' suffix for backward movement)")] string direction, 
-            [Description("Number of units to move (default: 1)")] int count = 1, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _textService.SelectTextAsync(elementId, 0, count, windowTitle, processId, timeoutSeconds));
+            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
+            [Description("Name of the element (fallback, display name)")] string? name = null,
+            [Description("Direction to traverse: character, word, line, paragraph, page, document (add '-back' suffix for backward movement)")] string direction = "character",
+            [Description("Number of units to move (default: 1)")] int count = 1,
+            [Description("ControlType to filter by (Edit, Document, etc.)")] string? controlType = null,
+            [Description("Process ID to limit search scope")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
+            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
+            => JsonSerializationHelper.Serialize(await _textService.SelectTextAsync(
+                elementId ?? automationId ?? name ?? "", 
+                0, 
+                count, 
+                null, // windowTitle removed
+                processId, 
+                timeoutSeconds));
 
         [McpServerTool, Description("Get text formatting attributes using TextPattern")]
         public async Task<object> GetTextAttributes(
-            [Description("Automation ID or name of the element")] string elementId, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _textService.GetTextAsync(elementId, windowTitle, processId, timeoutSeconds));
+            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
+            [Description("Name of the element (fallback, display name)")] string? name = null,
+            [Description("ControlType to filter by (Edit, Document, etc.)")] string? controlType = null,
+            [Description("Process ID to limit search scope")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
+            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
+            => JsonSerializationHelper.Serialize(await _textService.GetTextAsync(
+                elementId ?? automationId ?? name ?? "", 
+                null, // windowTitle removed
+                processId, 
+                timeoutSeconds));
 
         // Grid Pattern Operations
         [McpServerTool, Description("Get a specific grid item at row and column coordinates")]
