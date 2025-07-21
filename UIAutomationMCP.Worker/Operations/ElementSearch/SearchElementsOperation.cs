@@ -101,31 +101,44 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     throw new InvalidOperationException($"UI Automation is not available: {UIAutomationEnvironment.UnavailabilityReason}");
                 }
 
-                var searchRoot = _elementFinderService.GetSearchRoot(request.WindowTitle ?? "", request.ProcessId ?? 0);
-                searchRoot ??= AutomationElement.RootElement;
+                // Convert request to advanced search parameters
+                var searchParams = ConvertToAdvancedSearchParameters(request);
 
-                // Build search conditions based on request parameters
-                var conditions = BuildSearchConditions(request);
-                var combinedCondition = conditions.Count == 1 ? conditions[0] : new AndCondition(conditions.ToArray());
+                // Perform advanced search using ElementFinderService
+                var foundElementsCollection = _elementFinderService.FindElementsAdvanced(searchParams);
 
-                // Create cache request for better performance
-                var cacheRequest = CreateCacheRequest();
-                
-                // Perform the search
-                AutomationElementCollection foundElements;
-                using (cacheRequest.Activate())
+                // Convert to list for further processing
+                var foundElementsList = new List<AutomationElement>();
+                foreach (AutomationElement element in foundElementsCollection)
                 {
-                    foundElements = _elementFinderService.FindElements(combinedCondition, request.WindowTitle ?? "", request.ProcessId ?? 0);
+                    if (element != null)
+                        foundElementsList.Add(element);
+                }
+
+                // Apply fuzzy matching if needed
+                if (request.FuzzyMatch)
+                {
+                    foundElementsList = _elementFinderService.ApplyFuzzyFilter(foundElementsCollection, searchParams);
+                }
+
+                // Apply pattern filtering
+                foundElementsList = _elementFinderService.ApplyPatternFilter(foundElementsList, searchParams);
+
+                // Apply sorting if requested
+                if (!string.IsNullOrEmpty(request.SortBy))
+                {
+                    foundElementsList = _elementFinderService.SortElements(foundElementsList, request.SortBy);
+                }
+
+                // Apply result limits
+                var totalFound = foundElementsList.Count;
+                if (foundElementsList.Count > request.MaxResults)
+                {
+                    foundElementsList = foundElementsList.Take(request.MaxResults).ToList();
                 }
 
                 // Convert to ElementInfo array with optional details
-                var elements = ConvertToElementInfoArray(foundElements, request);
-
-                // Apply result limits
-                if (elements.Length > request.MaxResults)
-                {
-                    elements = elements.Take(request.MaxResults).ToArray();
-                }
+                var elements = ConvertToElementInfoArray(foundElementsList, request);
 
                 searchStopwatch.Stop();
 
@@ -136,12 +149,12 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     Elements = elements,
                     Metadata = new SearchMetadata
                     {
-                        TotalFound = foundElements.Count,
+                        TotalFound = totalFound,
                         Returned = elements.Length,
                         SearchDuration = searchStopwatch.Elapsed,
                         SearchCriteria = BuildSearchCriteria(request),
-                        WasTruncated = foundElements.Count > request.MaxResults,
-                        SuggestedRefinements = GenerateSuggestedRefinements(request, foundElements.Count),
+                        WasTruncated = totalFound > request.MaxResults,
+                        SuggestedRefinements = GenerateSuggestedRefinements(request, totalFound),
                         ExecutedAt = DateTime.UtcNow
                     }
                 });
@@ -155,77 +168,48 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             }
         }
 
-        private List<Condition> BuildSearchConditions(SearchElementsRequest request)
+        /// <summary>
+        /// SearchElementsRequestをAdvancedSearchParametersに変換
+        /// </summary>
+        private AdvancedSearchParameters ConvertToAdvancedSearchParameters(SearchElementsRequest request)
         {
-            var conditions = new List<Condition>();
-
-            // Add conditions based on search parameters
-            if (!string.IsNullOrEmpty(request.SearchText))
+            var searchParams = new AdvancedSearchParameters
             {
-                // Search in both Name and AutomationId
-                var nameCondition = new PropertyCondition(AutomationElement.NameProperty, request.SearchText);
-                var automationIdCondition = new PropertyCondition(AutomationElement.AutomationIdProperty, request.SearchText);
-                conditions.Add(new OrCondition(nameCondition, automationIdCondition));
-            }
-
-            if (!string.IsNullOrEmpty(request.AutomationId))
-            {
-                conditions.Add(new PropertyCondition(AutomationElement.AutomationIdProperty, request.AutomationId));
-            }
-
-            if (!string.IsNullOrEmpty(request.Name))
-            {
-                conditions.Add(new PropertyCondition(AutomationElement.NameProperty, request.Name));
-            }
-
-            if (!string.IsNullOrEmpty(request.ControlType))
-            {
-                // Try to get ControlType by programmatic name
-                if (TryGetControlTypeByName(request.ControlType, out var controlType))
-                {
-                    conditions.Add(new PropertyCondition(AutomationElement.ControlTypeProperty, controlType));
-                }
-            }
-
-            if (request.VisibleOnly)
-            {
-                conditions.Add(new PropertyCondition(AutomationElement.IsOffscreenProperty, false));
-            }
-
-            // If no specific conditions, use TrueCondition
-            if (conditions.Count == 0)
-            {
-                conditions.Add(Condition.TrueCondition);
-            }
-
-            return conditions;
-        }
-
-        private bool TryGetControlTypeByName(string controlTypeName, out ControlType controlType)
-        {
-            controlType = ControlType.Custom;
-            
-            // Map common control type names
-            return controlTypeName.ToLowerInvariant() switch
-            {
-                "button" => (controlType = ControlType.Button) != null,
-                "text" => (controlType = ControlType.Text) != null,
-                "edit" => (controlType = ControlType.Edit) != null,
-                "combobox" => (controlType = ControlType.ComboBox) != null,
-                "listbox" => (controlType = ControlType.List) != null,
-                "checkbox" => (controlType = ControlType.CheckBox) != null,
-                "radiobutton" => (controlType = ControlType.RadioButton) != null,
-                "group" => (controlType = ControlType.Group) != null,
-                "window" => (controlType = ControlType.Window) != null,
-                "menu" => (controlType = ControlType.Menu) != null,
-                "menuitem" => (controlType = ControlType.MenuItem) != null,
-                "tab" => (controlType = ControlType.Tab) != null,
-                "tabitem" => (controlType = ControlType.TabItem) != null,
-                "tree" => (controlType = ControlType.Tree) != null,
-                "treeitem" => (controlType = ControlType.TreeItem) != null,
-                "table" => (controlType = ControlType.Table) != null,
-                _ => false
+                SearchText = request.SearchText,
+                AutomationId = request.AutomationId,
+                Name = request.Name,
+                ClassName = request.ClassName,
+                ControlType = request.ControlType,
+                WindowTitle = request.WindowTitle,
+                ProcessId = request.ProcessId,
+                Scope = request.Scope,
+                VisibleOnly = request.VisibleOnly,
+                FuzzyMatch = request.FuzzyMatch,
+                EnabledOnly = request.EnabledOnly,
+                SortBy = request.SortBy,
+                TimeoutMs = request.TimeoutSeconds * 1000,
+                CacheRequest = CreateCacheRequest()
             };
+
+            // Parse RequiredPatterns
+            if (!string.IsNullOrEmpty(request.RequiredPatterns))
+            {
+                searchParams.RequiredPatterns = request.RequiredPatterns
+                    .Split(';', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(p => p.Trim())
+                    .ToArray();
+            }
+
+            // Parse AnyOfPatterns
+            if (!string.IsNullOrEmpty(request.AnyOfPatterns))
+            {
+                searchParams.AnyOfPatterns = request.AnyOfPatterns
+                    .Split(';', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(p => p.Trim())
+                    .ToArray();
+            }
+
+            return searchParams;
         }
 
         private CacheRequest CreateCacheRequest()
@@ -249,11 +233,11 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             return cacheRequest;
         }
 
-        private ElementInfo[] ConvertToElementInfoArray(AutomationElementCollection elements, SearchElementsRequest request)
+        private ElementInfo[] ConvertToElementInfoArray(List<AutomationElement> elements, SearchElementsRequest request)
         {
             var result = new List<ElementInfo>();
 
-            foreach (AutomationElement element in elements)
+            foreach (var element in elements)
             {
                 if (element != null)
                 {
@@ -385,23 +369,68 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             if (totalFound == 0)
             {
                 suggestions.Add("Try broadening search criteria");
+                
                 if (!string.IsNullOrEmpty(request.ControlType))
                 {
                     suggestions.Add("Remove ControlType filter");
                 }
+                
                 if (request.VisibleOnly)
                 {
                     suggestions.Add("Include hidden elements (VisibleOnly=false)");
+                }
+                
+                if (request.EnabledOnly)
+                {
+                    suggestions.Add("Include disabled elements (EnabledOnly=false)");
+                }
+                
+                if (!string.IsNullOrEmpty(request.RequiredPatterns))
+                {
+                    suggestions.Add("Remove RequiredPatterns filter");
+                }
+                
+                if (!request.FuzzyMatch && !string.IsNullOrEmpty(request.SearchText))
+                {
+                    suggestions.Add("Try FuzzyMatch=true for partial matching");
+                }
+                
+                if (request.Scope == "children")
+                {
+                    suggestions.Add("Expand scope to 'descendants' or 'subtree'");
                 }
             }
             else if (totalFound > request.MaxResults)
             {
                 suggestions.Add($"Consider increasing MaxResults (current: {request.MaxResults})");
                 suggestions.Add("Add more specific search criteria");
+                
+                if (string.IsNullOrEmpty(request.ControlType))
+                {
+                    suggestions.Add("Add ControlType filter");
+                }
+                
+                if (string.IsNullOrEmpty(request.RequiredPatterns))
+                {
+                    suggestions.Add("Add RequiredPatterns filter");
+                }
+                
+                if (!request.VisibleOnly)
+                {
+                    suggestions.Add("Filter to visible elements only (VisibleOnly=true)");
+                }
             }
-            else if (!request.IncludeDetails)
+            else
             {
-                suggestions.Add("Use IncludeDetails=true for more information");
+                if (!request.IncludeDetails)
+                {
+                    suggestions.Add("Use IncludeDetails=true for more information");
+                }
+                
+                if (string.IsNullOrEmpty(request.SortBy))
+                {
+                    suggestions.Add("Try sorting by 'name', 'controltype', 'position', or 'size'");
+                }
             }
 
             return suggestions.ToArray();
@@ -417,10 +446,24 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 criteria.Add($"AutomationId='{request.AutomationId}'");
             if (!string.IsNullOrEmpty(request.Name))
                 criteria.Add($"Name='{request.Name}'");
+            if (!string.IsNullOrEmpty(request.ClassName))
+                criteria.Add($"ClassName='{request.ClassName}'");
             if (!string.IsNullOrEmpty(request.ControlType))
                 criteria.Add($"ControlType='{request.ControlType}'");
+            if (!string.IsNullOrEmpty(request.Scope))
+                criteria.Add($"Scope='{request.Scope}'");
+            if (!string.IsNullOrEmpty(request.RequiredPatterns))
+                criteria.Add($"RequiredPatterns='{request.RequiredPatterns}'");
+            if (!string.IsNullOrEmpty(request.AnyOfPatterns))
+                criteria.Add($"AnyOfPatterns='{request.AnyOfPatterns}'");
             if (request.VisibleOnly)
                 criteria.Add("VisibleOnly=true");
+            if (request.FuzzyMatch)
+                criteria.Add("FuzzyMatch=true");
+            if (request.EnabledOnly)
+                criteria.Add("EnabledOnly=true");
+            if (!string.IsNullOrEmpty(request.SortBy))
+                criteria.Add($"SortBy='{request.SortBy}'");
             if (request.IncludeDetails)
                 criteria.Add("IncludeDetails=true");
             

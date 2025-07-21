@@ -355,6 +355,447 @@ namespace UIAutomationMCP.Worker.Helpers
         }
 
         /// <summary>
+        /// 高度な検索パラメータを使用して要素を検索
+        /// </summary>
+        /// <param name="searchParams">検索パラメータ</param>
+        /// <returns>見つかった要素のコレクション</returns>
+        public AutomationElementCollection FindElementsAdvanced(AdvancedSearchParameters searchParams)
+        {
+            var searchRoot = GetSearchRoot(searchParams.WindowTitle ?? "", searchParams.ProcessId ?? 0);
+            searchRoot ??= AutomationElement.RootElement;
+
+            // Build complex search conditions
+            var conditions = BuildAdvancedSearchConditions(searchParams);
+            var combinedCondition = conditions.Count == 1 ? conditions[0] : new AndCondition(conditions.ToArray());
+
+            // Determine TreeScope
+            var treeScope = ParseTreeScope(searchParams.Scope);
+
+            _logger?.LogDebug("Advanced search with {ConditionCount} conditions, scope: {Scope}", 
+                conditions.Count, treeScope);
+
+            return UIAutomationMCP.Worker.Helpers.UIAutomationEnvironment.ExecuteWithTimeout(() =>
+            {
+                if (searchParams.CacheRequest != null)
+                {
+                    using (searchParams.CacheRequest.Activate())
+                    {
+                        return searchRoot.FindAll(treeScope, combinedCondition);
+                    }
+                }
+                else
+                {
+                    return searchRoot.FindAll(treeScope, combinedCondition);
+                }
+            }, $"FindElementsAdvanced", searchParams.TimeoutMs / 1000);
+        }
+
+        /// <summary>
+        /// 高度な検索条件を構築
+        /// </summary>
+        private List<Condition> BuildAdvancedSearchConditions(AdvancedSearchParameters searchParams)
+        {
+            var conditions = new List<Condition>();
+
+            // SearchText - Name, AutomationId, ClassName を横断検索
+            if (!string.IsNullOrEmpty(searchParams.SearchText))
+            {
+                var searchConditions = new List<Condition>();
+                
+                if (searchParams.FuzzyMatch)
+                {
+                    // ファジーマッチング: 部分一致
+                    searchConditions.Add(CreateFuzzyCondition(AutomationElement.NameProperty, searchParams.SearchText));
+                    searchConditions.Add(CreateFuzzyCondition(AutomationElement.AutomationIdProperty, searchParams.SearchText));
+                    searchConditions.Add(CreateFuzzyCondition(AutomationElement.ClassNameProperty, searchParams.SearchText));
+                }
+                else
+                {
+                    // 完全一致
+                    searchConditions.Add(new PropertyCondition(AutomationElement.NameProperty, searchParams.SearchText));
+                    searchConditions.Add(new PropertyCondition(AutomationElement.AutomationIdProperty, searchParams.SearchText));
+                    searchConditions.Add(new PropertyCondition(AutomationElement.ClassNameProperty, searchParams.SearchText));
+                }
+                
+                conditions.Add(new OrCondition(searchConditions.ToArray()));
+            }
+
+            // 個別プロパティ検索
+            if (!string.IsNullOrEmpty(searchParams.AutomationId))
+            {
+                conditions.Add(new PropertyCondition(AutomationElement.AutomationIdProperty, searchParams.AutomationId));
+            }
+
+            if (!string.IsNullOrEmpty(searchParams.Name))
+            {
+                conditions.Add(new PropertyCondition(AutomationElement.NameProperty, searchParams.Name));
+            }
+
+            if (!string.IsNullOrEmpty(searchParams.ClassName))
+            {
+                conditions.Add(new PropertyCondition(AutomationElement.ClassNameProperty, searchParams.ClassName));
+            }
+
+            // ControlType条件
+            if (!string.IsNullOrEmpty(searchParams.ControlType))
+            {
+                if (TryGetControlTypeByName(searchParams.ControlType, out var controlType))
+                {
+                    conditions.Add(new PropertyCondition(AutomationElement.ControlTypeProperty, controlType));
+                }
+            }
+
+            // VisibleOnly条件
+            if (searchParams.VisibleOnly)
+            {
+                conditions.Add(new PropertyCondition(AutomationElement.IsOffscreenProperty, false));
+            }
+
+            // EnabledOnly条件
+            if (searchParams.EnabledOnly)
+            {
+                conditions.Add(new PropertyCondition(AutomationElement.IsEnabledProperty, true));
+            }
+
+            // RequiredPatterns条件 - すべてのパターンが必要
+            if (searchParams.RequiredPatterns?.Length > 0)
+            {
+                var patternConditions = searchParams.RequiredPatterns
+                    .Select(CreatePatternCondition)
+                    .Where(c => c != null)
+                    .Cast<Condition>()
+                    .ToList();
+                
+                if (patternConditions.Count > 0)
+                {
+                    conditions.AddRange(patternConditions);
+                }
+            }
+
+            // AnyOfPatterns条件 - いずれかのパターンがあればOK
+            if (searchParams.AnyOfPatterns?.Length > 0)
+            {
+                var patternConditions = searchParams.AnyOfPatterns
+                    .Select(CreatePatternCondition)
+                    .Where(c => c != null)
+                    .Cast<Condition>()
+                    .ToArray();
+                
+                if (patternConditions.Length > 0)
+                {
+                    conditions.Add(new OrCondition(patternConditions));
+                }
+            }
+
+            // デフォルト条件
+            if (conditions.Count == 0)
+            {
+                conditions.Add(Condition.TrueCondition);
+            }
+
+            return conditions;
+        }
+
+        /// <summary>
+        /// ファジーマッチング用の条件を作成（部分一致）
+        /// </summary>
+        private Condition CreateFuzzyCondition(AutomationProperty property, string searchText)
+        {
+            // UI Automationでは完全一致のみサポートされているため、
+            // ファジーマッチングは後処理で実装する必要がある
+            // ここでは一旦 PropertyCondition を返し、後でフィルタリング
+            return new PropertyCondition(property, searchText);
+        }
+
+        /// <summary>
+        /// パターン名からパターン条件を作成
+        /// </summary>
+        private Condition? CreatePatternCondition(string patternName)
+        {
+            var patterns = new Dictionary<string, AutomationPattern>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Invoke"] = InvokePattern.Pattern,
+                ["Value"] = ValuePattern.Pattern,
+                ["Toggle"] = TogglePattern.Pattern,
+                ["Selection"] = SelectionPattern.Pattern,
+                ["SelectionItem"] = SelectionItemPattern.Pattern,
+                ["Text"] = TextPattern.Pattern,
+                ["Range"] = RangeValuePattern.Pattern,
+                ["Scroll"] = ScrollPattern.Pattern,
+                ["Grid"] = GridPattern.Pattern,
+                ["GridItem"] = GridItemPattern.Pattern,
+                ["Table"] = TablePattern.Pattern,
+                ["TableItem"] = TableItemPattern.Pattern,
+                ["Transform"] = TransformPattern.Pattern,
+                ["Window"] = WindowPattern.Pattern,
+                ["Dock"] = DockPattern.Pattern,
+                ["ExpandCollapse"] = ExpandCollapsePattern.Pattern,
+                ["MultipleView"] = MultipleViewPattern.Pattern
+            };
+
+            // UI Automationではパターンフィルタは実行時チェックが必要
+            // 検索後に手動でフィルタする必要がある
+            return patterns.TryGetValue(patternName, out var pattern)
+                ? Condition.TrueCondition // 一旦全て取得し、後でパターンをチェック
+                : null;
+        }
+
+        /// <summary>
+        /// ControlType名からControlTypeオブジェクトを取得
+        /// </summary>
+        private bool TryGetControlTypeByName(string controlTypeName, out ControlType controlType)
+        {
+            controlType = ControlType.Custom;
+            
+            var controlTypes = new Dictionary<string, ControlType>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Button"] = ControlType.Button,
+                ["Text"] = ControlType.Text,
+                ["Edit"] = ControlType.Edit,
+                ["ComboBox"] = ControlType.ComboBox,
+                ["List"] = ControlType.List,
+                ["ListBox"] = ControlType.List,
+                ["CheckBox"] = ControlType.CheckBox,
+                ["RadioButton"] = ControlType.RadioButton,
+                ["Group"] = ControlType.Group,
+                ["Window"] = ControlType.Window,
+                ["Menu"] = ControlType.Menu,
+                ["MenuItem"] = ControlType.MenuItem,
+                ["Tab"] = ControlType.Tab,
+                ["TabItem"] = ControlType.TabItem,
+                ["Tree"] = ControlType.Tree,
+                ["TreeItem"] = ControlType.TreeItem,
+                ["Table"] = ControlType.Table,
+                ["DataGrid"] = ControlType.DataGrid,
+                ["Image"] = ControlType.Image,
+                ["Slider"] = ControlType.Slider,
+                ["ProgressBar"] = ControlType.ProgressBar,
+                ["Hyperlink"] = ControlType.Hyperlink,
+                ["Calendar"] = ControlType.Calendar,
+                ["Document"] = ControlType.Document,
+                ["Pane"] = ControlType.Pane,
+                ["Separator"] = ControlType.Separator,
+                ["StatusBar"] = ControlType.StatusBar,
+                ["ToolBar"] = ControlType.ToolBar,
+                ["ToolTip"] = ControlType.ToolTip,
+                ["TitleBar"] = ControlType.TitleBar,
+                ["ScrollBar"] = ControlType.ScrollBar,
+                ["Spinner"] = ControlType.Spinner,
+                ["SplitButton"] = ControlType.SplitButton,
+                ["Header"] = ControlType.Header,
+                ["HeaderItem"] = ControlType.HeaderItem,
+                ["Thumb"] = ControlType.Thumb
+            };
+
+            if (controlTypes.TryGetValue(controlTypeName, out var foundType))
+            {
+                controlType = foundType;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// TreeScope文字列をTreeScope列挙型に変換
+        /// </summary>
+        private TreeScope ParseTreeScope(string? scope)
+        {
+            return scope?.ToLowerInvariant() switch
+            {
+                "children" => TreeScope.Children,
+                "descendants" => TreeScope.Descendants,
+                "subtree" => TreeScope.Subtree,
+                "element" => TreeScope.Element,
+                _ => TreeScope.Descendants // デフォルト
+            };
+        }
+
+        /// <summary>
+        /// ファジーマッチング後処理フィルタ
+        /// </summary>
+        public List<AutomationElement> ApplyFuzzyFilter(AutomationElementCollection elements, AdvancedSearchParameters searchParams)
+        {
+            var result = new List<AutomationElement>();
+
+            foreach (AutomationElement element in elements)
+            {
+                if (element != null)
+                {
+                    try
+                    {
+                        if (MatchesFuzzySearch(element, searchParams))
+                        {
+                            result.Add(element);
+                        }
+                    }
+                    catch (ElementNotAvailableException)
+                    {
+                        continue;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// パターンフィルタリングを適用
+        /// </summary>
+        public List<AutomationElement> ApplyPatternFilter(List<AutomationElement> elements, AdvancedSearchParameters searchParams)
+        {
+            if ((searchParams.RequiredPatterns?.Length ?? 0) == 0 && (searchParams.AnyOfPatterns?.Length ?? 0) == 0)
+                return elements;
+
+            var result = new List<AutomationElement>();
+
+            foreach (var element in elements)
+            {
+                try
+                {
+                    bool includeElement = true;
+
+                    // RequiredPatterns - すべてのパターンが必要
+                    if (searchParams.RequiredPatterns?.Length > 0)
+                    {
+                        foreach (var patternName in searchParams.RequiredPatterns)
+                        {
+                            if (!ElementSupportsPattern(element, patternName))
+                            {
+                                includeElement = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    // AnyOfPatterns - いずれかのパターンがあればOK
+                    if (includeElement && searchParams.AnyOfPatterns?.Length > 0)
+                    {
+                        bool hasAnyPattern = false;
+                        foreach (var patternName in searchParams.AnyOfPatterns)
+                        {
+                            if (ElementSupportsPattern(element, patternName))
+                            {
+                                hasAnyPattern = true;
+                                break;
+                            }
+                        }
+                        if (!hasAnyPattern)
+                        {
+                            includeElement = false;
+                        }
+                    }
+
+                    if (includeElement)
+                    {
+                        result.Add(element);
+                    }
+                }
+                catch (ElementNotAvailableException)
+                {
+                    continue;
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 要素が指定されたパターンをサポートしているかチェック
+        /// </summary>
+        private bool ElementSupportsPattern(AutomationElement element, string patternName)
+        {
+            var patterns = new Dictionary<string, AutomationPattern>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Invoke"] = InvokePattern.Pattern,
+                ["Value"] = ValuePattern.Pattern,
+                ["Toggle"] = TogglePattern.Pattern,
+                ["Selection"] = SelectionPattern.Pattern,
+                ["SelectionItem"] = SelectionItemPattern.Pattern,
+                ["Text"] = TextPattern.Pattern,
+                ["Range"] = RangeValuePattern.Pattern,
+                ["Scroll"] = ScrollPattern.Pattern,
+                ["Grid"] = GridPattern.Pattern,
+                ["GridItem"] = GridItemPattern.Pattern,
+                ["Table"] = TablePattern.Pattern,
+                ["TableItem"] = TableItemPattern.Pattern,
+                ["Transform"] = TransformPattern.Pattern,
+                ["Window"] = WindowPattern.Pattern,
+                ["Dock"] = DockPattern.Pattern,
+                ["ExpandCollapse"] = ExpandCollapsePattern.Pattern,
+                ["MultipleView"] = MultipleViewPattern.Pattern
+            };
+
+            if (patterns.TryGetValue(patternName, out var pattern))
+            {
+                try
+                {
+                    return element.TryGetCurrentPattern(pattern, out _);
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 要素がファジー検索条件にマッチするかチェック
+        /// </summary>
+        private bool MatchesFuzzySearch(AutomationElement element, AdvancedSearchParameters searchParams)
+        {
+            if (!searchParams.FuzzyMatch || string.IsNullOrEmpty(searchParams.SearchText))
+                return true;
+
+            var searchText = searchParams.SearchText.ToLowerInvariant();
+            
+            // Name, AutomationId, ClassName の部分一致チェック
+            var name = element.Current.Name?.ToLowerInvariant() ?? "";
+            var automationId = element.Current.AutomationId?.ToLowerInvariant() ?? "";
+            var className = element.Current.ClassName?.ToLowerInvariant() ?? "";
+
+            return name.Contains(searchText) || 
+                   automationId.Contains(searchText) || 
+                   className.Contains(searchText);
+        }
+
+        /// <summary>
+        /// 検索結果をソート
+        /// </summary>
+        public List<AutomationElement> SortElements(List<AutomationElement> elements, string? sortBy)
+        {
+            if (string.IsNullOrEmpty(sortBy) || elements.Count <= 1)
+                return elements;
+
+            return sortBy.ToLowerInvariant() switch
+            {
+                "name" => elements.OrderBy(e => GetElementProperty(e, e => e.Current.Name)).ToList(),
+                "controltype" => elements.OrderBy(e => GetElementProperty(e, e => e.Current.ControlType.LocalizedControlType)).ToList(),
+                "position" => elements.OrderBy(e => GetElementProperty(e, e => e.Current.BoundingRectangle.Y))
+                                    .ThenBy(e => GetElementProperty(e, e => e.Current.BoundingRectangle.X)).ToList(),
+                "size" => elements.OrderByDescending(e => GetElementProperty(e, e => e.Current.BoundingRectangle.Width * e.Current.BoundingRectangle.Height)).ToList(),
+                _ => elements
+            };
+        }
+
+        /// <summary>
+        /// 要素プロパティを安全に取得
+        /// </summary>
+        private T GetElementProperty<T>(AutomationElement element, Func<AutomationElement, T> propertySelector)
+        {
+            try
+            {
+                return propertySelector(element);
+            }
+            catch (ElementNotAvailableException)
+            {
+                return default(T)!;
+            }
+        }
+
+        /// <summary>
         /// 要素の基本情報を取得
         /// </summary>
         /// <param name="element">対象要素</param>
@@ -376,6 +817,29 @@ namespace UIAutomationMCP.Worker.Helpers
                 ProcessId = element.Current.ProcessId
             };
         }
+    }
+
+    /// <summary>
+    /// 高度な検索パラメータクラス
+    /// </summary>
+    public class AdvancedSearchParameters
+    {
+        public string? SearchText { get; set; }
+        public string? AutomationId { get; set; }
+        public string? Name { get; set; }
+        public string? ClassName { get; set; }
+        public string? ControlType { get; set; }
+        public string? WindowTitle { get; set; }
+        public int? ProcessId { get; set; }
+        public string? Scope { get; set; } = "descendants";
+        public string[]? RequiredPatterns { get; set; }
+        public string[]? AnyOfPatterns { get; set; }
+        public bool VisibleOnly { get; set; } = true;
+        public bool FuzzyMatch { get; set; } = false;
+        public bool EnabledOnly { get; set; } = false;
+        public string? SortBy { get; set; }
+        public int TimeoutMs { get; set; } = 10000;
+        public CacheRequest? CacheRequest { get; set; }
     }
 
     /// <summary>
