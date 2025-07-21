@@ -353,12 +353,19 @@ namespace UIAutomationMCP.Server.Tools
         // Value and Range Patterns
         [McpServerTool, Description("Set the value of a range element (slider, progress bar) using RangeValuePattern")]
         public async Task<object> SetRangeValue(
-            [Description("Automation ID or name of the element")] string elementId, 
-            [Description("Value to set within the element's range")] double value, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
-            [Description("Process ID of the target window (optional)")] int? processId = null, 
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _rangeService.SetRangeValueAsync(elementId, value, windowTitle, processId, timeoutSeconds));
+            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
+            [Description("Name of the element (fallback, display name)")] string? name = null,
+            [Description("Value to set within the element's range")] double value = 0,
+            [Description("ControlType to filter by (Slider, ProgressBar, etc.)")] string? controlType = null,
+            [Description("Process ID to limit search scope")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
+            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
+            => JsonSerializationHelper.Serialize(await _rangeService.SetRangeValueAsync(
+                elementId ?? automationId ?? name ?? "", 
+                value, 
+                null, // windowTitle removed
+                processId, 
+                timeoutSeconds));
 
 
         // Window Management Patterns
@@ -383,32 +390,55 @@ namespace UIAutomationMCP.Server.Tools
 
         [McpServerTool, Description("Move an element to new coordinates using TransformPattern")]
         public async Task<object> MoveElement(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("X coordinate for move")] double x,
-            [Description("Y coordinate for move")] double y,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _transformService.MoveElementAsync(elementId, x, y, windowTitle, processId, timeoutSeconds));
+            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
+            [Description("Name of the element (fallback, display name)")] string? name = null,
+            [Description("X coordinate for move")] double x = 0,
+            [Description("Y coordinate for move")] double y = 0,
+            [Description("ControlType to filter by (Window, Pane, etc.)")] string? controlType = null,
+            [Description("Process ID to limit search scope")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
+            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
+            => JsonSerializationHelper.Serialize(await _transformService.MoveElementAsync(
+                elementId ?? automationId ?? name ?? "", 
+                x, 
+                y, 
+                null, // windowTitle removed
+                processId, 
+                timeoutSeconds));
 
         [McpServerTool, Description("Resize an element using TransformPattern")]
         public async Task<object> ResizeElement(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("New width")] double width,
-            [Description("New height")] double height,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _transformService.ResizeElementAsync(elementId, width, height, windowTitle, processId, timeoutSeconds));
+            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
+            [Description("Name of the element (fallback, display name)")] string? name = null,
+            [Description("New width")] double width = 100,
+            [Description("New height")] double height = 100,
+            [Description("ControlType to filter by (Window, Pane, etc.)")] string? controlType = null,
+            [Description("Process ID to limit search scope")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
+            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
+            => JsonSerializationHelper.Serialize(await _transformService.ResizeElementAsync(
+                elementId ?? automationId ?? name ?? "", 
+                width, 
+                height, 
+                null, // windowTitle removed
+                processId, 
+                timeoutSeconds));
 
         [McpServerTool, Description("Rotate an element using TransformPattern")]
         public async Task<object> RotateElement(
-            [Description("Automation ID or name of the element")] string elementId,
-            [Description("Rotation degrees")] double degrees,
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null,
-            [Description("Process ID of the target window (optional)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _transformService.RotateElementAsync(elementId, degrees, windowTitle, processId, timeoutSeconds));
+            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
+            [Description("Name of the element (fallback, display name)")] string? name = null,
+            [Description("Rotation degrees")] double degrees = 0,
+            [Description("ControlType to filter by (Window, Pane, etc.)")] string? controlType = null,
+            [Description("Process ID to limit search scope")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
+            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
+            => JsonSerializationHelper.Serialize(await _transformService.RotateElementAsync(
+                elementId ?? automationId ?? name ?? "", 
+                degrees, 
+                null, // windowTitle removed
+                processId, 
+                timeoutSeconds));
 
         [McpServerTool, Description("Dock an element to a specific position using DockPattern")]
         public async Task<object> DockElement(
