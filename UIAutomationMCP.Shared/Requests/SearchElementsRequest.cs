@@ -105,6 +105,12 @@ namespace UIAutomationMCP.Shared.Requests
         /// </summary>
         [JsonPropertyName("timeoutSeconds")]
         public int TimeoutSeconds { get; set; } = 10;
+
+        /// <summary>
+        /// 詳細情報（パターン情報、階層情報、子要素等）を含めるかどうか（デフォルト: false）
+        /// </summary>
+        [JsonPropertyName("includeDetails")]
+        public bool IncludeDetails { get; set; } = false;
     }
 
     /// <summary>

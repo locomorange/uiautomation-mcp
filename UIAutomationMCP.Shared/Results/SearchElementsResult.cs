@@ -5,15 +5,15 @@ namespace UIAutomationMCP.Shared.Results
 {
     /// <summary>
     /// SearchElementsツールの戻り値
-    /// 軽量なBasicElementInfo配列と検索メタデータを含む
+    /// ElementInfo配列（基本情報 + オプショナル詳細情報）と検索メタデータを含む
     /// </summary>
     public class SearchElementsResult : BaseOperationResult
     {
         /// <summary>
-        /// 検索で見つかった要素の基本情報配列
+        /// 検索で見つかった要素の情報配列（includeDetails, includeHierarchyオプションに応じて詳細情報を含む）
         /// </summary>
         [JsonPropertyName("elements")]
-        public BasicElementInfo[] Elements { get; set; } = [];
+        public ElementInfo[] Elements { get; set; } = [];
 
         /// <summary>
         /// 検索実行に関するメタデータ

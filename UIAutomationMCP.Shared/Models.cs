@@ -47,22 +47,136 @@ namespace UIAutomationMCP.Shared
         public bool IsVisible { get; set; }
     }
 
+    /// <summary>
+    /// 軽量なUI要素基本情報クラス
+    /// 検索結果で使用される最低限の識別情報とオプショナルな詳細情報を提供
+    /// </summary>
     public class ElementInfo
     {
-        // 基本プロパティ
+        // === 基本プロパティ ===
+        
+        /// <summary>
+        /// 要素の表示名
+        /// </summary>
+        [JsonPropertyName("name")]
         public string Name { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// UI Automation要素の一意識別子
+        /// </summary>
+        [JsonPropertyName("automationId")]
         public string AutomationId { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// コントロールタイプ（英語）
+        /// </summary>
+        [JsonPropertyName("controlType")]
         public string ControlType { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// ローカライズされたコントロールタイプ
+        /// </summary>
+        [JsonPropertyName("localizedControlType")]
+        public string? LocalizedControlType { get; set; }
+        
+        /// <summary>
+        /// クラス名
+        /// </summary>
+        [JsonPropertyName("className")]
         public string ClassName { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// プロセスID
+        /// </summary>
+        [JsonPropertyName("processId")]
         public int ProcessId { get; set; }
+        
+        /// <summary>
+        /// 要素の境界矩形
+        /// </summary>
+        [JsonPropertyName("boundingRectangle")]
         public BoundingRectangle BoundingRectangle { get; set; } = new();
+        
+        /// <summary>
+        /// 要素が有効かどうか
+        /// </summary>
+        [JsonPropertyName("isEnabled")]
         public bool IsEnabled { get; set; }
+        
+        /// <summary>
+        /// 要素が可視かどうか
+        /// </summary>
+        [JsonPropertyName("isVisible")]
         public bool IsVisible { get; set; }
+        
+        /// <summary>
+        /// 要素が画面外にあるかどうか
+        /// </summary>
+        [JsonPropertyName("isOffscreen")]
+        public bool IsOffscreen { get; set; }
+        
+        /// <summary>
+        /// フレームワークID（Win32、XAML等）
+        /// </summary>
+        [JsonPropertyName("frameworkId")]
+        public string? FrameworkId { get; set; }
+        
+        /// <summary>
+        /// サポートされているUI Automationパターンのリスト
+        /// </summary>
+        [JsonPropertyName("supportedPatterns")]
+        public string[] SupportedPatterns { get; set; } = [];
+        
+        // === オプショナル詳細情報 ===
+        
+        /// <summary>
+        /// 詳細なパターン情報とアクセシビリティ情報（includeDetails=trueの場合のみ）
+        /// </summary>
+        [JsonPropertyName("details")]
+        public ElementDetails? Details { get; set; }
+        
+    }
+    
+    /// <summary>
+    /// UI要素の詳細な情報（パターン、アクセシビリティ、階層情報をすべて含む）
+    /// includeDetails=trueの場合にElementInfo.Detailsに含まれる
+    /// </summary>
+    public class ElementDetails
+    {
+        // === 基本詳細情報 ===
+        
+        /// <summary>
+        /// ヘルプテキスト
+        /// </summary>
+        [JsonPropertyName("helpText")]
         public string HelpText { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// 要素の値
+        /// </summary>
+        [JsonPropertyName("value")]
         public string? Value { get; set; }
-        public List<string> SupportedPatterns { get; set; } = new();
-
-        // 型安全なパターン情報プロパティ
+        
+        /// <summary>
+        /// キーボードフォーカスを持っているかどうか
+        /// </summary>
+        [JsonPropertyName("hasKeyboardFocus")]
+        public bool HasKeyboardFocus { get; set; }
+        
+        /// <summary>
+        /// キーボードフォーカス可能かどうか
+        /// </summary>
+        [JsonPropertyName("isKeyboardFocusable")]
+        public bool IsKeyboardFocusable { get; set; }
+        
+        /// <summary>
+        /// パスワードフィールドかどうか
+        /// </summary>
+        [JsonPropertyName("isPassword")]
+        public bool IsPassword { get; set; }
+        
+        // === 型安全なパターン情報プロパティ ===
+        
         [JsonPropertyName("toggle")]
         public ToggleInfo? Toggle { get; set; }
         
@@ -125,7 +239,20 @@ namespace UIAutomationMCP.Shared
         
         [JsonPropertyName("accessibility")]
         public AccessibilityInfo? Accessibility { get; set; }
-
+        
+        // === 階層情報（includeHierarchy=true時のみ） ===
+        
+        /// <summary>
+        /// 親要素の基本情報
+        /// </summary>
+        [JsonPropertyName("parent")]
+        public ElementInfo? Parent { get; set; }
+        
+        /// <summary>
+        /// 子要素の基本情報配列（includeChildren=trueの場合のみ）
+        /// </summary>
+        [JsonPropertyName("children")]
+        public ElementInfo[]? Children { get; set; }
     }
 
     public class BoundingRectangle

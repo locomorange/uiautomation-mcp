@@ -1,16 +1,32 @@
 using System.Text.Json.Serialization;
-using UIAutomationMCP.Shared;
 
 namespace UIAutomationMCP.Shared.Results
 {
     /// <summary>
-    /// 詳細なUI要素情報クラス
-    /// 既存のElementInfoを継承し、階層情報を追加
-    /// GetElementDetailsツールで使用される包括的な情報を提供
-    /// 既存のElementInfoには既にすべてのパターン詳細が含まれている
+    /// 詳細なUI要素情報クラス（廃止予定）
+    /// 新しい統合されたElementInfo構造体に置き換えられます
     /// </summary>
-    public class ElementDetail : ElementInfo
+    [Obsolete("Use ElementInfo with Details and Hierarchy properties instead")]
+    public class ElementDetail
     {
+        /// <summary>
+        /// 要素の表示名
+        /// </summary>
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// UI Automation要素の一意識別子
+        /// </summary>
+        [JsonPropertyName("automationId")]
+        public string AutomationId { get; set; } = string.Empty;
+
+        /// <summary>
+        /// コントロールタイプ（英語）
+        /// </summary>
+        [JsonPropertyName("controlType")]
+        public string ControlType { get; set; } = string.Empty;
+
         /// <summary>
         /// キーボードフォーカスを持っているかどうか
         /// </summary>

@@ -197,6 +197,7 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(GetSiblingsRequest) => (JsonTypeInfo<T>)(object)_context.GetSiblingsRequest,
                 Type t when t == typeof(SearchElementsRequest) => (JsonTypeInfo<T>)(object)_context.SearchElementsRequest,
                 Type t when t == typeof(GetElementDetailsRequest) => (JsonTypeInfo<T>)(object)_context.GetElementDetailsRequest,
+                Type t when t == typeof(ElementDetails) => (JsonTypeInfo<T>)(object)_context.ElementDetails,
 
                 // ServerEnhancedResponse types
                 Type t when t == typeof(ServerEnhancedResponse<ElementTreeResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseElementTreeResult,
@@ -352,6 +353,7 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(SearchMetadata))]
     [JsonSerializable(typeof(DetailMetadata))]
     [JsonSerializable(typeof(ElementDetail))]
+    [JsonSerializable(typeof(ElementDetails))]
     [JsonSerializable(typeof(string[]))]
     [JsonSerializable(typeof(List<string>))]
     // ServerEnhanced types
