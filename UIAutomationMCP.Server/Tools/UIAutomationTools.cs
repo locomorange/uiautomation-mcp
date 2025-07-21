@@ -137,30 +137,6 @@ namespace UIAutomationMCP.Server.Tools
             return JsonSerializationHelper.Serialize(await _elementSearchService.SearchElementsAsync(request));
         }
 
-        [McpServerTool, Description("DEPRECATED: Use SearchElements with includeDetails=true instead. Get comprehensive details for a specific UI element including all pattern information and optional hierarchy.")]
-        [Obsolete("Use SearchElements with includeDetails=true instead")]
-        public async Task<object> GetElementDetails(
-            [Description("AutomationId of the target element")] string? automationId = null,
-            [Description("Name (display name) of the target element")] string? name = null,
-            [Description("Process ID to narrow search scope")] int? processId = null,
-            [Description("Window title to narrow search scope")] string? windowTitle = null,
-            [Description("Include direct children basic info (default: false)")] bool includeChildren = false,
-            [Description("Include parent element basic info (default: false)")] bool includeParent = false,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-        {
-            var request = new UIAutomationMCP.Shared.Requests.GetElementDetailsRequest
-            {
-                AutomationId = automationId,
-                Name = name,
-                ProcessId = processId,
-                WindowTitle = windowTitle,
-                IncludeChildren = includeChildren,
-                IncludeParent = includeParent,
-                TimeoutSeconds = timeoutSeconds
-            };
-            
-            return JsonSerializationHelper.Serialize(await _elementSearchService.GetElementDetailsAsync(request));
-        }
 
         [McpServerTool, Description("Get detailed information about UI elements including pattern states (Toggle, Selection, Value), properties, and accessibility info. This is the primary tool for both element discovery and state inspection.")]
         public async Task<object> GetElementInfo(

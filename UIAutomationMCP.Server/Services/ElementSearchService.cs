@@ -298,90 +298,6 @@ namespace UIAutomationMCP.Server.Services
             }
         }
 
-        public async Task<ServerEnhancedResponse<ElementDetailResult>> GetElementDetailsAsync(GetElementDetailsRequest request)
-        {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, "Starting GetElementDetails operation");
-
-                var result = await _executor.ExecuteAsync<GetElementDetailsRequest, ElementDetailResult>("GetElementDetails", request, request.TimeoutSeconds + 5);
-                
-                stopwatch.Stop();
-                
-                var serverResponse = new ServerEnhancedResponse<ElementDetailResult>
-                {
-                    Success = result.Success,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["identificationCriteria"] = BuildIdentificationCriteria(request),
-                            ["patternsRetrieved"] = result.Metadata?.PatternsRetrieved ?? 0,
-                            ["includesHierarchy"] = result.Metadata?.IncludesHierarchy ?? false
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetElementDetails",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = request.AutomationId ?? "",
-                            ["name"] = request.Name ?? "",
-                            ["processId"] = request.ProcessId ?? 0,
-                            ["includeChildren"] = request.IncludeChildren,
-                            ["includeParent"] = request.IncludeParent,
-                            ["timeoutSeconds"] = request.TimeoutSeconds
-                        }
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, "GetElementDetails completed successfully");
-                return serverResponse;
-            }
-            catch (Exception ex)
-            {
-                stopwatch.Stop();
-                _logger.LogErrorWithOperation(operationId, ex, "GetElementDetails operation failed");
-                
-                var errorResponse = new ServerEnhancedResponse<ElementDetailResult>
-                {
-                    Success = false,
-                    Data = new ElementDetailResult { Element = new ElementDetail(), Metadata = new DetailMetadata { IdentificationCriteria = BuildIdentificationCriteria(request) } },
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["error"] = ex.Message,
-                            ["exception"] = ex.GetType().Name,
-                            ["identificationCriteria"] = BuildIdentificationCriteria(request)
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetElementDetails",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = request.AutomationId ?? "",
-                            ["name"] = request.Name ?? "",
-                            ["processId"] = request.ProcessId ?? 0,
-                            ["timeoutSeconds"] = request.TimeoutSeconds
-                        }
-                    }
-                };
-                
-                return errorResponse;
-            }
-        }
 
         private static string BuildSearchCriteria(SearchElementsRequest request)
         {
@@ -405,18 +321,5 @@ namespace UIAutomationMCP.Server.Services
             return string.Join(", ", criteria);
         }
 
-        private static string BuildIdentificationCriteria(GetElementDetailsRequest request)
-        {
-            var criteria = new List<string>();
-            
-            if (!string.IsNullOrEmpty(request.AutomationId))
-                criteria.Add($"AutomationId='{request.AutomationId}'");
-            if (!string.IsNullOrEmpty(request.Name))
-                criteria.Add($"Name='{request.Name}'");
-            if (request.ProcessId.HasValue)
-                criteria.Add($"ProcessId={request.ProcessId}");
-                
-            return string.Join(", ", criteria);
-        }
     }
 }
