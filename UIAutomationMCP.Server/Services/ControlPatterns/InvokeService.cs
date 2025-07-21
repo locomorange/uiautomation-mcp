@@ -19,7 +19,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             _executor = executor;
         }
 
-        public async Task<ServerEnhancedResponse<ActionResult>> InvokeElementAsync(string? automationId = null, string? name = null, string? controlType = null, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> InvokeElementAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -33,7 +33,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     AutomationId = automationId,
                     Name = name,
                     ControlType = controlType,
-                    WindowTitle = windowTitle,
                     ProcessId = processId
                 };
 
@@ -67,7 +66,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                             ["automationId"] = automationId ?? "",
                             ["name"] = name ?? "",
                             ["controlType"] = controlType ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -114,7 +112,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                             ["automationId"] = automationId ?? "",
                             ["name"] = name ?? "",
                             ["controlType"] = controlType ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },

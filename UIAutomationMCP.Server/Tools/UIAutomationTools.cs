@@ -206,7 +206,6 @@ namespace UIAutomationMCP.Server.Tools
                 automationId: automationId,
                 name: name,
                 controlType: controlType,
-                windowTitle: null, // windowTitle removed
                 processId: processId, 
                 timeoutSeconds: timeoutSeconds));
 
@@ -224,7 +223,6 @@ namespace UIAutomationMCP.Server.Tools
                 automationId: automationId,
                 name: name,
                 controlType: controlType,
-                windowTitle: null, // windowTitle removed
                 processId: processId, 
                 timeoutSeconds: timeoutSeconds));
 
@@ -242,7 +240,6 @@ namespace UIAutomationMCP.Server.Tools
                 automationId: automationId,
                 name: name,
                 controlType: controlType,
-                windowTitle: null, // windowTitle removed
                 processId: processId, 
                 timeoutSeconds: timeoutSeconds));
 
@@ -865,7 +862,11 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
             [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
             => JsonSerializationHelper.Serialize(await _valueService.IsReadOnlyAsync(
-                elementId ?? automationId ?? name ?? "", null, processId, timeoutSeconds));
+                automationId: automationId,
+                name: name,
+                controlType: controlType,
+                processId: processId, 
+                timeoutSeconds: timeoutSeconds));
 
         // Grid Information
         [McpServerTool, Description("Get grid information (row count, column count, etc.)")]
