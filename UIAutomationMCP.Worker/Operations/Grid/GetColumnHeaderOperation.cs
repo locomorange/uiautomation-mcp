@@ -77,20 +77,7 @@ namespace UIAutomationMCP.Worker.Operations.Grid
                     });
                 }
 
-                var headerInfo = new ElementInfo
-                {
-                    AutomationId = headerElement.Current.AutomationId,
-                    Name = headerElement.Current.Name,
-                    ControlType = headerElement.Current.ControlType.LocalizedControlType,
-                    IsEnabled = headerElement.Current.IsEnabled,
-                    BoundingRectangle = new BoundingRectangle
-                    {
-                        X = headerElement.Current.BoundingRectangle.X,
-                        Y = headerElement.Current.BoundingRectangle.Y,
-                        Width = headerElement.Current.BoundingRectangle.Width,
-                        Height = headerElement.Current.BoundingRectangle.Height
-                    }
-                };
+                var headerInfo = ElementInfoBuilder.CreateElementInfo(headerElement, includeDetails: true, _logger);
 
                 var result = new ElementSearchResult
                 {
@@ -115,5 +102,6 @@ namespace UIAutomationMCP.Worker.Operations.Grid
                 });
             }
         }
+
     }
 }

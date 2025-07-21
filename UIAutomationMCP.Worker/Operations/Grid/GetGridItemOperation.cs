@@ -69,20 +69,7 @@ namespace UIAutomationMCP.Worker.Operations.Grid
                 {
                     Row = typedRequest.Row,
                     Column = typedRequest.Column,
-                    Element = new ElementInfo
-                    {
-                        AutomationId = gridItem.Current.AutomationId,
-                        Name = gridItem.Current.Name,
-                        ControlType = gridItem.Current.ControlType.LocalizedControlType,
-                        IsEnabled = gridItem.Current.IsEnabled,
-                        BoundingRectangle = new BoundingRectangle
-                        {
-                            X = gridItem.Current.BoundingRectangle.X,
-                            Y = gridItem.Current.BoundingRectangle.Y,
-                            Width = gridItem.Current.BoundingRectangle.Width,
-                            Height = gridItem.Current.BoundingRectangle.Height
-                        }
-                    }
+                    Element = ElementInfoBuilder.CreateElementInfo(gridItem, includeDetails: true, _logger)
                 };
 
                 return Task.FromResult(new OperationResult 
@@ -102,5 +89,6 @@ namespace UIAutomationMCP.Worker.Operations.Grid
                 });
             }
         }
+
     }
 }
