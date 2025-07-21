@@ -18,28 +18,25 @@ namespace UIAutomationMCP.Worker.Helpers
         }
 
         /// <summary>
-        /// 要素IDで要素を検索（AutomationId優先、Nameをフォールバックとする段階的検索）
-        /// 
-        /// 検索順序:
-        /// 1. AutomationIdプロパティで検索（推奨・安定した識別子）
-        /// 2. 見つからない場合、Nameプロパティで検索（フォールバック）
-        /// 
-        /// MSベストプラクティスに従い、OR条件ではなく段階的検索により
-        /// より確実で予測可能な要素特定を実現
+        /// AutomationIdまたはNameで要素を検索（推奨メソッド）
+        /// AutomationIdが指定されている場合は優先、Nameも指定されている場合はフォールバック
         /// </summary>
-        /// <param name="elementId">検索する要素の識別子（AutomationIdまたはName）</param>
-        /// <param name="windowTitle">検索対象ウィンドウのタイトル（省略可、指定すると検索範囲を限定）</param>
-        /// <param name="processId">検索対象プロセスのID（省略可、指定すると検索範囲を限定）</param>
+        /// <param name="automationId">UI Automation要素のAutomationIdプロパティ（推奨）</param>
+        /// <param name="name">UI Automation要素のNameプロパティ（フォールバック）</param>
+        /// <param name="windowTitle">検索対象ウィンドウのタイトル（省略可）</param>
+        /// <param name="processId">検索対象プロセスのID（省略可）</param>
         /// <param name="scope">検索範囲（デフォルト: Descendants）</param>
         /// <param name="cacheRequest">キャッシュリクエスト（パフォーマンス最適化用、省略可）</param>
         /// <param name="timeoutMs">検索タイムアウト（ミリ秒、デフォルト: 1000ms）</param>
         /// <returns>見つかった要素、見つからない場合はnull</returns>
-        public AutomationElement? FindElementById(string elementId, string windowTitle = "", int processId = 0, 
-            TreeScope scope = TreeScope.Descendants, CacheRequest? cacheRequest = null, int timeoutMs = 1000)
+        public AutomationElement? FindElement(string? automationId = null, string? name = null, 
+            string? windowTitle = null, int? processId = null, TreeScope scope = TreeScope.Descendants, 
+            CacheRequest? cacheRequest = null, int timeoutMs = 1000)
         {
-            if (string.IsNullOrEmpty(elementId))
+            // 少なくとも一つの識別子が必要
+            if (string.IsNullOrEmpty(automationId) && string.IsNullOrEmpty(name))
             {
-                _logger?.LogWarning("Element ID is null or empty");
+                _logger?.LogWarning("Both AutomationId and Name are null or empty");
                 return null;
             }
 
@@ -50,10 +47,10 @@ namespace UIAutomationMCP.Worker.Helpers
                 return null;
             }
 
-            var searchRoot = GetSearchRoot(windowTitle, processId);
+            var searchRoot = GetSearchRoot(windowTitle ?? "", processId ?? 0);
             
             // Prevent searching from RootElement without scope limitation
-            if (searchRoot == null && string.IsNullOrEmpty(windowTitle) && processId == 0)
+            if (searchRoot == null && string.IsNullOrEmpty(windowTitle) && (processId ?? 0) == 0)
             {
                 _logger?.LogWarning("Search scope too broad. Consider specifying windowTitle or processId for better performance. Full desktop search may take significant time.");
                 searchRoot = AutomationElement.RootElement;
@@ -61,40 +58,46 @@ namespace UIAutomationMCP.Worker.Helpers
             
             searchRoot ??= AutomationElement.RootElement;
             
-            // AutomationId優先の段階的検索：AutomationId → Name（フォールバック）
-            // より確実で予測可能な要素特定を実現
-            PropertyCondition condition;
-            string searchType;
-            
-            // 1. AutomationIdで検索（推奨・優先）
-            condition = new PropertyCondition(AutomationElement.AutomationIdProperty, elementId);
-            searchType = "AutomationId";
-            
-            _logger?.LogDebug("Searching for element with ID: {ElementId} using {SearchType} in window: {WindowTitle} (PID: {ProcessId}), Scope: {Scope}, Timeout: {TimeoutMs}ms", 
-                elementId, searchType, windowTitle, processId, scope, timeoutMs);
+            _logger?.LogDebug("Searching for element with AutomationId: '{AutomationId}', Name: '{Name}' in window: '{WindowTitle}' (PID: {ProcessId}), Scope: {Scope}, Timeout: {TimeoutMs}ms", 
+                automationId, name, windowTitle, processId, scope, timeoutMs);
             
             return UIAutomationMCP.Worker.Helpers.UIAutomationEnvironment.ExecuteWithTimeout(() =>
             {
                 AutomationElement? element = null;
                 
-                // 1. AutomationIdで検索
-                if (cacheRequest != null)
+                // 1. AutomationIdで検索（優先）
+                if (!string.IsNullOrEmpty(automationId))
                 {
-                    using (cacheRequest.Activate())
+                    var automationIdCondition = new PropertyCondition(AutomationElement.AutomationIdProperty, automationId);
+                    
+                    if (cacheRequest != null)
                     {
-                        element = searchRoot.FindFirst(scope, condition);
+                        using (cacheRequest.Activate())
+                        {
+                            element = searchRoot.FindFirst(scope, automationIdCondition);
+                        }
+                    }
+                    else
+                    {
+                        element = searchRoot.FindFirst(scope, automationIdCondition);
+                    }
+                    
+                    if (element != null)
+                    {
+                        _logger?.LogDebug("Element found by AutomationId: '{AutomationId}'", automationId);
+                        return element;
+                    }
+                    else
+                    {
+                        _logger?.LogDebug("Element not found by AutomationId: '{AutomationId}'", automationId);
                     }
                 }
-                else
-                {
-                    element = searchRoot.FindFirst(scope, condition);
-                }
                 
-                // 2. AutomationIdで見つからない場合、Nameで検索（フォールバック）
-                if (element == null)
+                // 2. Nameで検索（フォールバック）
+                if (!string.IsNullOrEmpty(name))
                 {
-                    _logger?.LogDebug("Element not found by AutomationId, trying Name property for: {ElementId}", elementId);
-                    var nameCondition = new PropertyCondition(AutomationElement.NameProperty, elementId);
+                    _logger?.LogDebug("Trying to find element by Name: '{Name}'", name);
+                    var nameCondition = new PropertyCondition(AutomationElement.NameProperty, name);
                     
                     if (cacheRequest != null)
                     {
@@ -110,59 +113,78 @@ namespace UIAutomationMCP.Worker.Helpers
                     
                     if (element != null)
                     {
-                        _logger?.LogDebug("Element found by Name property: {ElementId}", elementId);
+                        _logger?.LogDebug("Element found by Name: '{Name}'", name);
                     }
-                }
-                else
-                {
-                    _logger?.LogDebug("Element found by AutomationId: {ElementId}", elementId);
+                    else
+                    {
+                        _logger?.LogDebug("Element not found by Name: '{Name}'", name);
+                    }
                 }
                 
                 return element;
-            }, $"FindElementById({elementId})", timeoutMs / 1000);
+            }, $"FindElement(AutomationId: {automationId}, Name: {name})", timeoutMs / 1000);
         }
 
         /// <summary>
-        /// 要素名で要素を検索
+        /// 非推奨: FindElementを使用してください
         /// </summary>
-        /// <param name="elementName">要素名</param>
-        /// <param name="windowTitle">ウィンドウタイトル（省略可）</param>
-        /// <param name="processId">プロセスID（省略可）</param>
-        /// <returns>見つかった要素またはnull</returns>
-        public AutomationElement? FindElementByName(string elementName, string windowTitle = "", int processId = 0,
-            TreeScope scope = TreeScope.Descendants, CacheRequest? cacheRequest = null)
+        [Obsolete("Use FindElement(automationId, name, windowTitle, processId) instead. This method will be removed in future versions.")]
+        public AutomationElement? FindElementById(string elementId, string windowTitle = "", int processId = 0, 
+            TreeScope scope = TreeScope.Descendants, CacheRequest? cacheRequest = null, int timeoutMs = 1000)
         {
-            if (string.IsNullOrEmpty(elementName))
+            if (string.IsNullOrEmpty(elementId))
             {
-                _logger?.LogWarning("Element name is null or empty");
+                _logger?.LogWarning("Element ID is null or empty");
                 return null;
             }
 
-            var searchRoot = GetSearchRoot(windowTitle, processId);
-            
-            // Prevent searching from RootElement without scope limitation
-            if (searchRoot == null && string.IsNullOrEmpty(windowTitle) && processId == 0)
+            // 後方互換性のため、elementIdをautomationIdとして扱い、Nameもフォールバックとして使用
+            return FindElement(automationId: elementId, name: elementId, windowTitle: windowTitle, 
+                processId: processId, scope: scope, cacheRequest: cacheRequest, timeoutMs: timeoutMs);
+        }
+
+        /// <summary>
+        /// AutomationIdで要素を検索（単一プロパティ検索）
+        /// </summary>
+        /// <param name="automationId">UI Automation要素のAutomationId</param>
+        /// <param name="windowTitle">ウィンドウタイトル（省略可）</param>
+        /// <param name="processId">プロセスID（省略可）</param>
+        /// <param name="scope">検索範囲</param>
+        /// <param name="cacheRequest">キャッシュリクエスト</param>
+        /// <returns>見つかった要素またはnull</returns>
+        public AutomationElement? FindElementByAutomationId(string automationId, string? windowTitle = null, int? processId = null,
+            TreeScope scope = TreeScope.Descendants, CacheRequest? cacheRequest = null)
+        {
+            if (string.IsNullOrEmpty(automationId))
             {
-                _logger?.LogWarning("Search scope too broad. Consider specifying windowTitle or processId for better performance. Full desktop search may take significant time.");
-                searchRoot = AutomationElement.RootElement;
+                _logger?.LogWarning("AutomationId is null or empty");
+                return null;
             }
-            
-            searchRoot ??= AutomationElement.RootElement;
-            
-            var condition = new PropertyCondition(AutomationElement.NameProperty, elementName);
-            
-            _logger?.LogDebug("Searching for element with name: {ElementName} in window: {WindowTitle} (PID: {ProcessId}), Scope: {Scope}", 
-                elementName, windowTitle, processId, scope);
-            
-            if (cacheRequest != null)
+
+            return FindElement(automationId: automationId, name: null, windowTitle: windowTitle, 
+                processId: processId, scope: scope, cacheRequest: cacheRequest);
+        }
+
+        /// <summary>
+        /// Nameで要素を検索（単一プロパティ検索）
+        /// </summary>
+        /// <param name="name">UI Automation要素のName</param>
+        /// <param name="windowTitle">ウィンドウタイトル（省略可）</param>
+        /// <param name="processId">プロセスID（省略可）</param>
+        /// <param name="scope">検索範囲</param>
+        /// <param name="cacheRequest">キャッシュリクエスト</param>
+        /// <returns>見つかった要素またはnull</returns>
+        public AutomationElement? FindElementByName(string name, string? windowTitle = null, int? processId = null,
+            TreeScope scope = TreeScope.Descendants, CacheRequest? cacheRequest = null)
+        {
+            if (string.IsNullOrEmpty(name))
             {
-                using (cacheRequest.Activate())
-                {
-                    return searchRoot.FindFirst(scope, condition);
-                }
+                _logger?.LogWarning("Name is null or empty");
+                return null;
             }
-            
-            return searchRoot.FindFirst(scope, condition);
+
+            return FindElement(automationId: null, name: name, windowTitle: windowTitle, 
+                processId: processId, scope: scope, cacheRequest: cacheRequest);
         }
 
         /// <summary>
@@ -269,69 +291,75 @@ namespace UIAutomationMCP.Worker.Helpers
         }
 
         /// <summary>
-        /// 要素IDで要素を非同期検索（タイムアウト付き）
+        /// AutomationIdまたはNameで要素を非同期検索（推奨メソッド）
         /// </summary>
-        /// <param name="elementId">要素ID</param>
+        /// <param name="automationId">UI Automation要素のAutomationIdプロパティ（推奨）</param>
+        /// <param name="name">UI Automation要素のNameプロパティ（フォールバック）</param>
         /// <param name="windowTitle">ウィンドウタイトル（省略可）</param>
         /// <param name="processId">プロセスID（省略可）</param>
         /// <param name="scope">検索スコープ</param>
         /// <param name="timeoutMs">タイムアウト（ミリ秒）</param>
         /// <returns>見つかった要素またはnull</returns>
-        public async Task<AutomationElement?> FindElementByIdAsync(string elementId, string windowTitle = "", 
-            int processId = 0, TreeScope scope = TreeScope.Descendants, int timeoutMs = 5000)
+        public async Task<AutomationElement?> FindElementAsync(string? automationId = null, string? name = null, 
+            string? windowTitle = null, int? processId = null, TreeScope scope = TreeScope.Descendants, int timeoutMs = 5000)
         {
             using var cts = new CancellationTokenSource(timeoutMs);
             
             try
             {
                 return await Task.Run(() => 
-                    FindElementById(elementId, windowTitle, processId, scope), cts.Token);
+                    FindElement(automationId, name, windowTitle, processId, scope), cts.Token);
             }
             catch (OperationCanceledException)
             {
-                _logger?.LogWarning("Search for element ID '{ElementId}' timed out after {TimeoutMs}ms", 
-                    elementId, timeoutMs);
+                _logger?.LogWarning("Search for element AutomationId: '{AutomationId}', Name: '{Name}' timed out after {TimeoutMs}ms", 
+                    automationId, name, timeoutMs);
                 return null;
             }
         }
 
         /// <summary>
-        /// 要素名で要素を非同期検索（タイムアウト付き）
+        /// 非推奨: FindElementAsyncを使用してください
         /// </summary>
-        /// <param name="elementName">要素名</param>
-        /// <param name="windowTitle">ウィンドウタイトル（省略可）</param>
-        /// <param name="processId">プロセスID（省略可）</param>
-        /// <param name="scope">検索スコープ</param>
-        /// <param name="timeoutMs">タイムアウト（ミリ秒）</param>
-        /// <returns>見つかった要素またはnull</returns>
+        [Obsolete("Use FindElementAsync(automationId, name, windowTitle, processId) instead")]
+        public async Task<AutomationElement?> FindElementByIdAsync(string elementId, string windowTitle = "", 
+            int processId = 0, TreeScope scope = TreeScope.Descendants, int timeoutMs = 5000)
+        {
+            return await FindElementAsync(automationId: elementId, name: elementId, windowTitle: windowTitle, 
+                processId: processId, scope: scope, timeoutMs: timeoutMs);
+        }
+
+        /// <summary>
+        /// 非推奨: FindElementAsyncを使用してください
+        /// </summary>
+        [Obsolete("Use FindElementAsync(automationId: null, name: elementName, ...) instead")]
         public async Task<AutomationElement?> FindElementByNameAsync(string elementName, string windowTitle = "",
             int processId = 0, TreeScope scope = TreeScope.Descendants, int timeoutMs = 5000)
         {
-            using var cts = new CancellationTokenSource(timeoutMs);
-            
-            try
-            {
-                return await Task.Run(() => 
-                    FindElementByName(elementName, windowTitle, processId, scope), cts.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                _logger?.LogWarning("Search for element name '{ElementName}' timed out after {TimeoutMs}ms", 
-                    elementName, timeoutMs);
-                return null;
-            }
+            return await FindElementAsync(automationId: null, name: elementName, windowTitle: windowTitle, 
+                processId: processId, scope: scope, timeoutMs: timeoutMs);
         }
 
         /// <summary>
         /// 要素が存在するかチェック
         /// </summary>
-        /// <param name="elementId">要素ID</param>
+        /// <param name="automationId">UI Automation要素のAutomationId</param>
+        /// <param name="name">UI Automation要素のName</param>
         /// <param name="windowTitle">ウィンドウタイトル（省略可）</param>
         /// <param name="processId">プロセスID（省略可）</param>
         /// <returns>要素が存在する場合はtrue</returns>
+        public bool ElementExists(string? automationId = null, string? name = null, string? windowTitle = null, int? processId = null)
+        {
+            return FindElement(automationId, name, windowTitle, processId) != null;
+        }
+
+        /// <summary>
+        /// 非推奨: ElementExistsを使用してください
+        /// </summary>
+        [Obsolete("Use ElementExists(automationId, name, windowTitle, processId) instead")]
         public bool ElementExists(string elementId, string windowTitle = "", int processId = 0)
         {
-            return FindElementById(elementId, windowTitle, processId) != null;
+            return ElementExists(automationId: elementId, name: elementId, windowTitle: windowTitle, processId: processId);
         }
 
         /// <summary>
