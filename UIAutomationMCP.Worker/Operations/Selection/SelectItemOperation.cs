@@ -70,10 +70,10 @@ namespace UIAutomationMCP.Worker.Operations.Selection
                     AutomationId = element.Current.AutomationId,
                     Name = element.Current.Name,
                     ControlType = element.Current.ControlType.LocalizedControlType,
+                    LocalizedControlType = element.Current.ControlType.LocalizedControlType,
                     IsEnabled = element.Current.IsEnabled,
                     ProcessId = element.Current.ProcessId,
                     ClassName = element.Current.ClassName,
-                    HelpText = element.Current.HelpText,
                     BoundingRectangle = new BoundingRectangle
                     {
                         X = element.Current.BoundingRectangle.X,
@@ -81,7 +81,17 @@ namespace UIAutomationMCP.Worker.Operations.Selection
                         Width = element.Current.BoundingRectangle.Width,
                         Height = element.Current.BoundingRectangle.Height
                     },
-                    IsVisible = !element.Current.IsOffscreen
+                    IsVisible = !element.Current.IsOffscreen,
+                    IsOffscreen = element.Current.IsOffscreen,
+                    FrameworkId = element.Current.FrameworkId,
+                    SupportedPatterns = new string[0], // Basic info only
+                    Details = new ElementDetails
+                    {
+                        HelpText = element.Current.HelpText ?? "",
+                        HasKeyboardFocus = element.Current.HasKeyboardFocus,
+                        IsKeyboardFocusable = element.Current.IsKeyboardFocusable,
+                        IsPassword = element.Current.IsPassword
+                    }
                 };
                 
                 var result = new SelectionActionResult

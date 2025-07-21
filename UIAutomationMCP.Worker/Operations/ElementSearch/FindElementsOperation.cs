@@ -504,26 +504,59 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 AutomationId = element.Cached.AutomationId,
                 Name = element.Cached.Name,
                 ControlType = element.Cached.ControlType.LocalizedControlType,
+                LocalizedControlType = element.Cached.ControlType.LocalizedControlType,
                 IsEnabled = element.Cached.IsEnabled,
+                IsVisible = !element.Cached.IsOffscreen,
+                IsOffscreen = element.Cached.IsOffscreen,
                 ProcessId = element.Cached.ProcessId,
                 ClassName = element.Cached.ClassName,
-                HelpText = element.Cached.HelpText,
+                FrameworkId = element.Cached.FrameworkId,
                 BoundingRectangle = new BoundingRectangle
                 {
                     X = element.Cached.BoundingRectangle.X,
                     Y = element.Cached.BoundingRectangle.Y,
                     Width = element.Cached.BoundingRectangle.Width,
                     Height = element.Cached.BoundingRectangle.Height
-                }
+                },
+                SupportedPatterns = GetSupportedPatternsArray(element)
             };
 
-            // パターン情報を設定 - 安全なパターンのみ使用
-            SetPatternInfoSafe(element, info);
+            // 詳細情報を設定（既存動作を維持するため常に含める）
+            info.Details = CreateElementDetails(element);
             
             return info;
         }
 
-        private void SetPatternInfoSafe(AutomationElement element, ElementInfo info)
+        private string[] GetSupportedPatternsArray(AutomationElement element)
+        {
+            try
+            {
+                var supportedPatterns = element.GetSupportedPatterns();
+                return supportedPatterns.Select(p => p.ProgrammaticName).ToArray();
+            }
+            catch (Exception)
+            {
+                return new string[0];
+            }
+        }
+
+        private ElementDetails CreateElementDetails(AutomationElement element)
+        {
+            var details = new ElementDetails
+            {
+                HelpText = element.Cached.HelpText ?? "",
+                HasKeyboardFocus = element.Cached.HasKeyboardFocus,
+                IsKeyboardFocusable = element.Cached.IsKeyboardFocusable,
+                IsPassword = element.Cached.IsPassword
+            };
+
+            // パターン情報を設定
+            SetPatternInfoSafe(element, details);
+            
+            return details;
+        }
+
+        private void SetPatternInfoSafe(AutomationElement element, ElementDetails details)
         {
             try
             {
@@ -533,7 +566,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 if (element.TryGetCachedPattern(ValuePattern.Pattern, out var valuePatternObj) && 
                     valuePatternObj is ValuePattern valuePattern)
                 {
-                    info.ValueInfo = new ValueInfo
+                    details.ValueInfo = new ValueInfo
                     {
                         Value = valuePattern.Cached.Value ?? "",
                         IsReadOnly = valuePattern.Cached.IsReadOnly
@@ -545,7 +578,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     togglePatternObj is TogglePattern togglePattern)
                 {
                     var state = togglePattern.Cached.ToggleState;
-                    info.Toggle = new ToggleInfo
+                    details.Toggle = new ToggleInfo
                     {
                         State = state.ToString(),
                         IsToggled = state == ToggleState.On,
@@ -557,7 +590,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 if (element.TryGetCachedPattern(RangeValuePattern.Pattern, out var rangePatternObj) && 
                     rangePatternObj is RangeValuePattern rangePattern)
                 {
-                    info.Range = new RangeInfo
+                    details.Range = new RangeInfo
                     {
                         Value = rangePattern.Cached.Value,
                         Minimum = rangePattern.Cached.Minimum,
@@ -571,7 +604,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 // Invoke Pattern (just presence check)
                 if (element.TryGetCachedPattern(InvokePattern.Pattern, out _))
                 {
-                    info.Invoke = new InvokeInfo
+                    details.Invoke = new InvokeInfo
                     {
                         IsInvokable = true
                     };
@@ -580,7 +613,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 // ScrollItem Pattern (just presence check)
                 if (element.TryGetCachedPattern(ScrollItemPattern.Pattern, out _))
                 {
-                    info.ScrollItem = new ScrollItemInfo
+                    details.ScrollItem = new ScrollItemInfo
                     {
                         IsScrollable = true
                     };
@@ -590,7 +623,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 if (element.TryGetCachedPattern(SelectionPattern.Pattern, out var selectionPatternObj) && 
                     selectionPatternObj is SelectionPattern selectionPattern)
                 {
-                    info.Selection = new SelectionInfo
+                    details.Selection = new SelectionInfo
                     {
                         CanSelectMultiple = selectionPattern.Cached.CanSelectMultiple,
                         IsSelectionRequired = selectionPattern.Cached.IsSelectionRequired,
@@ -618,9 +651,9 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     }
 
                     // Add to Selection info if not already present
-                    if (info.Selection == null)
+                    if (details.Selection == null)
                     {
-                        info.Selection = new SelectionInfo
+                        details.Selection = new SelectionInfo
                         {
                             SelectedItems = new List<SelectionItemInfo> { selectionItemInfo },
                             SelectedCount = selectionItemInfo.IsSelected ? 1 : 0
@@ -632,7 +665,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 if (element.TryGetCachedPattern(TablePattern.Pattern, out var tablePatternObj) && 
                     tablePatternObj is TablePattern tablePattern)
                 {
-                    info.Table = new TableInfo
+                    details.Table = new TableInfo
                     {
                         RowCount = tablePattern.Cached.RowCount,
                         ColumnCount = tablePattern.Cached.ColumnCount,
@@ -653,7 +686,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                         canSelectMultiple = selPattern.Cached.CanSelectMultiple;
                     }
 
-                    info.Grid = new GridInfo
+                    details.Grid = new GridInfo
                     {
                         RowCount = gridPattern.Cached.RowCount,
                         ColumnCount = gridPattern.Cached.ColumnCount,
@@ -709,7 +742,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
 
                 if (hasAccessibilityInfo)
                 {
-                    info.Accessibility = accessibilityInfo;
+                    details.Accessibility = accessibilityInfo;
                 }
             }
             catch
@@ -719,7 +752,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             }
         }
 
-        private void SetPatternInfo(AutomationElement element, ElementInfo info)
+        private void SetPatternInfo(AutomationElement element, ElementDetails details)
         {
             try
             {
@@ -727,7 +760,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 if (element.TryGetCachedPattern(ValuePattern.Pattern, out var valuePatternObj) && 
                     valuePatternObj is ValuePattern valuePattern)
                 {
-                    info.ValueInfo = new ValueInfo
+                    details.ValueInfo = new ValueInfo
                     {
                         Value = valuePattern.Cached.Value ?? "",
                         IsReadOnly = valuePattern.Cached.IsReadOnly
@@ -739,7 +772,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     togglePatternObj is TogglePattern togglePattern)
                 {
                     var state = togglePattern.Cached.ToggleState;
-                    info.Toggle = new ToggleInfo
+                    details.Toggle = new ToggleInfo
                     {
                         State = state.ToString(),
                         IsToggled = state == ToggleState.On,
@@ -751,7 +784,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 if (element.TryGetCachedPattern(RangeValuePattern.Pattern, out var rangePatternObj) && 
                     rangePatternObj is RangeValuePattern rangePattern)
                 {
-                    info.Range = new RangeInfo
+                    details.Range = new RangeInfo
                     {
                         Value = rangePattern.Cached.Value,
                         Minimum = rangePattern.Cached.Minimum,
@@ -766,7 +799,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 if (element.TryGetCachedPattern(WindowPattern.Pattern, out var windowPatternObj) && 
                     windowPatternObj is WindowPattern windowPattern)
                 {
-                    info.Window = new WindowPatternInfo
+                    details.Window = new WindowPatternInfo
                     {
                         CanMaximize = windowPattern.Cached.CanMaximize,
                         CanMinimize = windowPattern.Cached.CanMinimize,
@@ -783,7 +816,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 {
                     try
                     {
-                        info.Selection = new SelectionInfo
+                        details.Selection = new SelectionInfo
                         {
                             CanSelectMultiple = selectionPattern.Cached.CanSelectMultiple,
                             IsSelectionRequired = selectionPattern.Cached.IsSelectionRequired,
@@ -808,7 +841,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                         canSelectMultiple = selPattern.Cached.CanSelectMultiple;
                     }
 
-                    info.Grid = new GridInfo
+                    details.Grid = new GridInfo
                     {
                         RowCount = gridPattern.Cached.RowCount,
                         ColumnCount = gridPattern.Cached.ColumnCount,
@@ -820,7 +853,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 if (element.TryGetCachedPattern(ScrollPattern.Pattern, out var scrollPatternObj) && 
                     scrollPatternObj is ScrollPattern scrollPattern)
                 {
-                    info.Scroll = new ScrollInfo
+                    details.Scroll = new ScrollInfo
                     {
                         HorizontalPercent = scrollPattern.Cached.HorizontalScrollPercent,
                         VerticalPercent = scrollPattern.Cached.VerticalScrollPercent,
@@ -853,7 +886,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                                 hasSelection = !string.IsNullOrEmpty(selectedText);
                             }
 
-                            info.Text = new TextInfo
+                            details.Text = new TextInfo
                             {
                                 Text = text ?? "",
                                 Length = text?.Length ?? 0,
@@ -873,7 +906,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     transformPatternObj is TransformPattern transformPattern)
                 {
                     var boundingRect = element.Cached.BoundingRectangle;
-                    info.Transform = new TransformInfo
+                    details.Transform = new TransformInfo
                     {
                         CanMove = transformPattern.Cached.CanMove,
                         CanResize = transformPattern.Cached.CanResize,
@@ -889,7 +922,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 if (element.TryGetCachedPattern(ExpandCollapsePattern.Pattern, out var expandCollapsePatternObj) && 
                     expandCollapsePatternObj is ExpandCollapsePattern expandCollapsePattern)
                 {
-                    info.ExpandCollapse = new ExpandCollapseInfo
+                    details.ExpandCollapse = new ExpandCollapseInfo
                     {
                         State = expandCollapsePattern.Cached.ExpandCollapseState.ToString()
                     };
@@ -899,7 +932,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 if (element.TryGetCachedPattern(DockPattern.Pattern, out var dockPatternObj) && 
                     dockPatternObj is DockPattern dockPattern)
                 {
-                    info.Dock = new DockInfo
+                    details.Dock = new DockInfo
                     {
                         Position = dockPattern.Cached.DockPosition.ToString()
                     };
@@ -911,7 +944,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 {
                     try
                     {
-                        info.MultipleView = new MultipleViewInfo
+                        details.MultipleView = new MultipleViewInfo
                         {
                             CurrentView = multipleViewPattern.Cached.CurrentView,
                             AvailableViews = new List<PatternViewInfo>() // Skip complex operations for now
@@ -928,7 +961,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     gridItemPatternObj is GridItemPattern gridItemPattern)
                 {
                     var containingGrid = gridItemPattern.Cached.ContainingGrid;
-                    info.GridItem = new GridItemInfo
+                    details.GridItem = new GridItemInfo
                     {
                         Row = gridItemPattern.Cached.Row,
                         Column = gridItemPattern.Cached.Column,
@@ -944,7 +977,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 {
                     try
                     {
-                        info.Table = new TableInfo
+                        details.Table = new TableInfo
                         {
                             RowCount = tablePattern.Cached.RowCount,
                             ColumnCount = tablePattern.Cached.ColumnCount,
@@ -965,7 +998,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 {
                     try
                     {
-                        info.TableItem = new TableItemInfo
+                        details.TableItem = new TableItemInfo
                         {
                             ColumnHeaders = new List<HeaderInfo>(), // Skip complex operations for now
                             RowHeaders = new List<HeaderInfo>() // Skip complex operations for now
@@ -996,9 +1029,9 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     }
 
                     // SelectionInfo にも含める
-                    if (info.Selection == null)
+                    if (details.Selection == null)
                     {
-                        info.Selection = new SelectionInfo
+                        details.Selection = new SelectionInfo
                         {
                             SelectedItems = new List<SelectionItemInfo> { selectionItemInfo },
                             SelectedCount = selectionItemInfo.IsSelected ? 1 : 0
@@ -1009,7 +1042,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 // Invoke Pattern
                 if (element.TryGetCachedPattern(InvokePattern.Pattern, out _))
                 {
-                    info.Invoke = new InvokeInfo
+                    details.Invoke = new InvokeInfo
                     {
                         IsInvokable = true
                     };
@@ -1018,7 +1051,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 // ScrollItem Pattern
                 if (element.TryGetCachedPattern(ScrollItemPattern.Pattern, out _))
                 {
-                    info.ScrollItem = new ScrollItemInfo
+                    details.ScrollItem = new ScrollItemInfo
                     {
                         IsScrollable = true
                     };
@@ -1027,7 +1060,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 // VirtualizedItem Pattern
                 if (element.TryGetCachedPattern(VirtualizedItemPattern.Pattern, out _))
                 {
-                    info.VirtualizedItem = new VirtualizedItemInfo
+                    details.VirtualizedItem = new VirtualizedItemInfo
                     {
                         IsVirtualized = true
                     };
@@ -1036,7 +1069,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 // ItemContainer Pattern
                 if (element.TryGetCachedPattern(ItemContainerPattern.Pattern, out _))
                 {
-                    info.ItemContainer = new ItemContainerInfo
+                    details.ItemContainer = new ItemContainerInfo
                     {
                         IsItemContainer = true
                     };
@@ -1045,7 +1078,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 // SynchronizedInput Pattern
                 if (element.TryGetCachedPattern(SynchronizedInputPattern.Pattern, out _))
                 {
-                    info.SynchronizedInput = new SynchronizedInputInfo
+                    details.SynchronizedInput = new SynchronizedInputInfo
                     {
                         SupportsSynchronizedInput = true
                     };
@@ -1100,7 +1133,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
 
                 if (hasAccessibilityInfo)
                 {
-                    info.Accessibility = accessibilityInfo;
+                    details.Accessibility = accessibilityInfo;
                 }
             }
             catch (Exception ex)

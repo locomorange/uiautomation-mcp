@@ -84,23 +84,45 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             // 現在はモック実装、後で実際のUI Automation要素取得に置き換え
             await Task.Delay(50); // シミュレート取得時間
             
+            // CreateElementInfo with Details for compatibility with new structure
+            var elementInfo = new ElementInfo
+            {
+                AutomationId = request.AutomationId ?? "",
+                Name = request.Name ?? "",
+                ControlType = "Unknown",
+                LocalizedControlType = "Unknown",
+                ClassName = "Unknown",
+                ProcessId = 0,
+                BoundingRectangle = new BoundingRectangle(),
+                IsEnabled = true,
+                IsVisible = true,
+                IsOffscreen = false,
+                FrameworkId = "Unknown",
+                SupportedPatterns = new string[0],
+                Details = new ElementDetails
+                {
+                    HelpText = "",
+                    HasKeyboardFocus = false,
+                    IsKeyboardFocusable = false,
+                    IsPassword = false
+                }
+            };
+
             return new ElementDetailResult
             {
                 Success = true,
                 OperationName = "GetElementDetails",
                 Element = new ElementDetail
                 {
-                    AutomationId = request.AutomationId ?? "",
-                    Name = request.Name ?? "",
-                    ControlType = "Unknown",
-                    IsEnabled = true,
-                    IsVisible = true,
-                    HasKeyboardFocus = false,
-                    IsKeyboardFocusable = false,
-                    IsPassword = false,
-                    IsOffscreen = false,
-                    LocalizedControlType = "Unknown",
-                    FrameworkId = "Unknown"
+                    AutomationId = elementInfo.AutomationId,
+                    Name = elementInfo.Name,
+                    ControlType = elementInfo.ControlType,
+                    LocalizedControlType = elementInfo.LocalizedControlType ?? "",
+                    HasKeyboardFocus = elementInfo.Details?.HasKeyboardFocus ?? false,
+                    IsKeyboardFocusable = elementInfo.Details?.IsKeyboardFocusable ?? false,
+                    IsPassword = elementInfo.Details?.IsPassword ?? false,
+                    IsOffscreen = elementInfo.IsOffscreen,
+                    FrameworkId = elementInfo.FrameworkId ?? ""
                 },
                 Metadata = new DetailMetadata
                 {

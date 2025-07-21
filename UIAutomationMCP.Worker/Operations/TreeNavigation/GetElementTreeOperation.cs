@@ -135,7 +135,7 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
             try
             {
                 var supportedPatterns = element.GetSupportedPatterns();
-                node.SupportedPatterns = supportedPatterns.Select(p => p.ProgrammaticName).ToList();
+                node.SupportedPatterns = supportedPatterns.Select(p => p.ProgrammaticName).ToArray();
             }
             catch (Exception)
             {
@@ -188,8 +188,9 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
                 ClassName = element.Current.ClassName,
                 IsEnabled = element.Current.IsEnabled,
                 IsVisible = !element.Current.IsOffscreen,
+                IsOffscreen = element.Current.IsOffscreen,
                 ProcessId = element.Current.ProcessId,
-                HelpText = element.Current.HelpText,
+                FrameworkId = element.Current.FrameworkId,
                 BoundingRectangle = new BoundingRectangle
                 {
                     X = element.Current.BoundingRectangle.X,
