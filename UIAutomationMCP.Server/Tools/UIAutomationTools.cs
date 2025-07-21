@@ -141,11 +141,10 @@ namespace UIAutomationMCP.Server.Tools
 
         [McpServerTool, Description("Get the element tree structure for navigation and analysis")]
         public async Task<object> GetElementTree(
-            [Description("Title of the window to get tree for (optional, defaults to all windows)")] string? windowTitle = null, 
             [Description("Maximum depth to traverse (default: 3)")] int maxDepth = 3, 
             [Description("Process ID of the target window (optional)")] int? processId = null, 
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
-            => JsonSerializationHelper.Serialize(await _treeNavigationService.GetElementTreeAsync(windowTitle, processId, maxDepth, timeoutSeconds));
+            => JsonSerializationHelper.Serialize(await _treeNavigationService.GetElementTreeAsync(processId, maxDepth, timeoutSeconds));
 
 
         // Application Management

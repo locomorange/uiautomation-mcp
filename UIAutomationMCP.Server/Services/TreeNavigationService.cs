@@ -20,7 +20,7 @@ namespace UIAutomationMCP.Server.Services
             _executor = executor;
         }
 
-        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetChildrenAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetChildrenAsync(string elementId, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -53,7 +53,6 @@ namespace UIAutomationMCP.Server.Services
                         RequestParameters = new Dictionary<string, object>
                         {
                             ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -70,7 +69,6 @@ namespace UIAutomationMCP.Server.Services
                 var request = new GetChildrenRequest
                 {
                     AutomationId = elementId,
-                    WindowTitle = windowTitle ?? "",
                     ProcessId = processId
                 };
 
@@ -92,7 +90,6 @@ namespace UIAutomationMCP.Server.Services
                         RequestParameters = new Dictionary<string, object>
                         {
                             ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -127,7 +124,6 @@ namespace UIAutomationMCP.Server.Services
                         RequestParameters = new Dictionary<string, object>
                         {
                             ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -140,7 +136,7 @@ namespace UIAutomationMCP.Server.Services
             }
         }
 
-        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetParentAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetParentAsync(string elementId, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -173,7 +169,6 @@ namespace UIAutomationMCP.Server.Services
                         RequestParameters = new Dictionary<string, object>
                         {
                             ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -190,7 +185,6 @@ namespace UIAutomationMCP.Server.Services
                 var request = new GetParentRequest
                 {
                     AutomationId = elementId,
-                    WindowTitle = windowTitle ?? "",
                     ProcessId = processId
                 };
 
@@ -212,7 +206,6 @@ namespace UIAutomationMCP.Server.Services
                         RequestParameters = new Dictionary<string, object>
                         {
                             ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -247,7 +240,6 @@ namespace UIAutomationMCP.Server.Services
                         RequestParameters = new Dictionary<string, object>
                         {
                             ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -260,7 +252,7 @@ namespace UIAutomationMCP.Server.Services
             }
         }
 
-        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetSiblingsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetSiblingsAsync(string elementId, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -293,7 +285,6 @@ namespace UIAutomationMCP.Server.Services
                         RequestParameters = new Dictionary<string, object>
                         {
                             ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -310,7 +301,6 @@ namespace UIAutomationMCP.Server.Services
                 var request = new GetSiblingsRequest
                 {
                     AutomationId = elementId,
-                    WindowTitle = windowTitle ?? "",
                     ProcessId = processId
                 };
 
@@ -332,7 +322,6 @@ namespace UIAutomationMCP.Server.Services
                         RequestParameters = new Dictionary<string, object>
                         {
                             ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -367,7 +356,6 @@ namespace UIAutomationMCP.Server.Services
                         RequestParameters = new Dictionary<string, object>
                         {
                             ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -380,7 +368,7 @@ namespace UIAutomationMCP.Server.Services
             }
         }
 
-        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetDescendantsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetDescendantsAsync(string elementId, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -413,7 +401,6 @@ namespace UIAutomationMCP.Server.Services
                         RequestParameters = new Dictionary<string, object>
                         {
                             ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -430,7 +417,6 @@ namespace UIAutomationMCP.Server.Services
                 var request = new GetDescendantsRequest
                 {
                     AutomationId = elementId,
-                    WindowTitle = windowTitle ?? "",
                     ProcessId = processId
                 };
 
@@ -452,7 +438,6 @@ namespace UIAutomationMCP.Server.Services
                         RequestParameters = new Dictionary<string, object>
                         {
                             ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -487,7 +472,6 @@ namespace UIAutomationMCP.Server.Services
                         RequestParameters = new Dictionary<string, object>
                         {
                             ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -500,7 +484,7 @@ namespace UIAutomationMCP.Server.Services
             }
         }
 
-        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetAncestorsAsync(string elementId, string? windowTitle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetAncestorsAsync(string elementId, int? processId = null, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -533,7 +517,6 @@ namespace UIAutomationMCP.Server.Services
                         RequestParameters = new Dictionary<string, object>
                         {
                             ["elementId"] = elementId ?? "",
-                            ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -550,7 +533,6 @@ namespace UIAutomationMCP.Server.Services
                 var request = new GetAncestorsRequest
                 {
                     AutomationId = elementId,
-                    WindowTitle = windowTitle ?? "",
                     ProcessId = processId
                 };
 
@@ -572,7 +554,6 @@ namespace UIAutomationMCP.Server.Services
                         RequestParameters = new Dictionary<string, object>
                         {
                             ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -607,7 +588,6 @@ namespace UIAutomationMCP.Server.Services
                         RequestParameters = new Dictionary<string, object>
                         {
                             ["elementId"] = elementId,
-                            ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["timeoutSeconds"] = timeoutSeconds
                         },
@@ -620,18 +600,17 @@ namespace UIAutomationMCP.Server.Services
             }
         }
 
-        public async Task<ServerEnhancedResponse<ElementTreeResult>> GetElementTreeAsync(string? windowTitle = null, int? processId = null, int maxDepth = 3, int timeoutSeconds = 60)
+        public async Task<ServerEnhancedResponse<ElementTreeResult>> GetElementTreeAsync(int? processId = null, int maxDepth = 3, int timeoutSeconds = 60)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting GetElementTree operation with WindowTitle={windowTitle}, ProcessId={processId}, MaxDepth={maxDepth}");
+                _logger.LogInformationWithOperation(operationId, $"Starting GetElementTree operation with ProcessId={processId}, MaxDepth={maxDepth}");
 
                 var request = new GetElementTreeRequest
                 {
-                    WindowTitle = windowTitle,
                     ProcessId = processId,
                     MaxDepth = maxDepth
                 };
@@ -667,7 +646,6 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "GetElementTree",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["maxDepth"] = maxDepth
                         },
@@ -706,7 +684,6 @@ namespace UIAutomationMCP.Server.Services
                         RequestedMethod = "GetElementTree",
                         RequestParameters = new Dictionary<string, object>
                         {
-                            ["windowTitle"] = windowTitle ?? "",
                             ["processId"] = processId ?? 0,
                             ["maxDepth"] = maxDepth
                         },
