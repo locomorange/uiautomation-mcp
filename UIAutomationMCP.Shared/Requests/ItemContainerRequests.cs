@@ -8,6 +8,9 @@ namespace UIAutomationMCP.Shared.Requests
     {
         public override string Operation => "FindItemByProperty";
 
+        [JsonPropertyName("containerId")]
+        public string ContainerId { get; set; } = "";
+
         [JsonPropertyName("propertyName")]
         public string PropertyName { get; set; } = "";
 
