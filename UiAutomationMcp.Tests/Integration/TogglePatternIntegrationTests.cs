@@ -96,11 +96,11 @@ namespace UIAutomationMCP.Tests.Integration
             var resultByProcessId = await _toggleService.ToggleElementAsync(nonExistentAutomationId, null, null, 99999, timeout);
 
             // Then
-            Assert.NotNull(resultByElementId);
+            Assert.NotNull(resultByAutomationId);
             Assert.NotNull(resultByWindowTitle);
             Assert.NotNull(resultByProcessId);
             
-            _output.WriteLine($"Result by ElementId: {resultByElementId}");
+            _output.WriteLine($"Result by AutomationId: {resultByAutomationId}");
             _output.WriteLine($"Result by WindowTitle: {resultByWindowTitle}");
             _output.WriteLine($"Result by ProcessId: {resultByProcessId}");
         }
@@ -115,7 +115,7 @@ namespace UIAutomationMCP.Tests.Integration
             // When - Execute concurrent toggle operations
             var startTime = DateTime.UtcNow;
             var tasks = elementIds.Select(id => 
-                _toggleService.ToggleElementAsync(id, null, null, timeout)).ToArray();
+                _toggleService.ToggleElementAsync(id, null, null, null, timeout)).ToArray();
             
             var results = await Task.WhenAll(tasks);
             var endTime = DateTime.UtcNow;
@@ -183,9 +183,9 @@ namespace UIAutomationMCP.Tests.Integration
             var testAutomationId = "TimeoutTestElement";
 
             // When
-            var task1 = _toggleService.ToggleElementAsync(testElementId, null, null, shortTimeout);
-            var task2 = _toggleService.ToggleElementAsync(testElementId, null, null, mediumTimeout);
-            var task3 = _toggleService.ToggleElementAsync(testElementId, null, null, longTimeout);
+            var task1 = _toggleService.ToggleElementAsync(testAutomationId, null, null, null, shortTimeout);
+            var task2 = _toggleService.ToggleElementAsync(testAutomationId, null, null, null, mediumTimeout);
+            var task3 = _toggleService.ToggleElementAsync(testAutomationId, null, null, null, longTimeout);
 
             var results = await Task.WhenAll(task1, task2, task3);
 
@@ -269,8 +269,9 @@ namespace UIAutomationMCP.Tests.Integration
             foreach (var testCase in testCases)
             {
                 var result = await _toggleService.ToggleElementAsync(
-                    testCase.ElementId, 
+                    testCase.AutomationId, 
                     testCase.WindowTitle, 
+                    null,
                     testCase.ProcessId, 
                     timeout);
                 results.Add(result);
@@ -301,7 +302,7 @@ namespace UIAutomationMCP.Tests.Integration
             // When & Then
             foreach (var testCase in errorTestCases)
             {
-                var result = await _toggleService.ToggleElementAsync(testCase.ElementId, null, null, timeout);
+                var result = await _toggleService.ToggleElementAsync(testCase.AutomationId, null, null, null, timeout);
                 Assert.NotNull(result);
                 _output.WriteLine($"Error test - {testCase.Description}: {result}");
             }
@@ -322,7 +323,7 @@ namespace UIAutomationMCP.Tests.Integration
             // When
             var startTime = DateTime.UtcNow;
             var tasks = Enumerable.Range(0, requestCount)
-                .Select(i => _toggleService.ToggleElementAsync($"{elementIdPrefix}{i}", null, null, timeout))
+                .Select(i => _toggleService.ToggleElementAsync($"{elementIdPrefix}{i}", null, null, null, timeout))
                 .ToArray();
             
             var results = await Task.WhenAll(tasks);
@@ -352,7 +353,7 @@ namespace UIAutomationMCP.Tests.Integration
             // When - Perform multiple toggle operations to test resource management
             for (int i = 0; i < iterationCount; i++)
             {
-                var result = await _toggleService.ToggleElementAsync($"{elementId}{i}", null, null, timeout);
+                var result = await _toggleService.ToggleElementAsync($"{elementId}{i}", null, null, null, timeout);
                 Assert.NotNull(result);
                 
                 // Small delay to observe resource behavior

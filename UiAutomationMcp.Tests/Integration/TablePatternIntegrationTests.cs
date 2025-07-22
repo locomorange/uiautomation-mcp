@@ -257,7 +257,7 @@ namespace UIAutomationMCP.Tests.Integration
             {
                 // Act
                 var result = await _tableService.GetRowOrColumnMajorAsync(
-                    testCase.ElementId, testCase.WindowTitle, 12345, timeoutSeconds: 3);
+                    testCase.AutomationId, testCase.WindowTitle, 12345, timeoutSeconds: 3);
 
                 // Assert
                 Assert.NotNull(result);
@@ -282,7 +282,7 @@ namespace UIAutomationMCP.Tests.Integration
                     }
                 }
 
-                _output.WriteLine($"Microsoft specification compliance test passed for {testCase.ElementId} (Expected support: {testCase.ExpectedToSupport})");
+                _output.WriteLine($"Microsoft specification compliance test passed for {testCase.AutomationId} (Expected support: {testCase.ExpectedToSupport})");
             }
 
             _output.WriteLine("Microsoft TablePattern specification compliance integration test completed");

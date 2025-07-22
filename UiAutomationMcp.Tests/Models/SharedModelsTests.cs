@@ -127,7 +127,7 @@ namespace UiAutomationMcp.Tests.Models
             var operationParams = new AdvancedOperationParameters
             {
                 Operation = "setvalue",
-                ElementId = "input1",
+                AutomationId = "input1",
                 WindowTitle = "TestWindow",
                 ProcessId = 1234,
                 TimeoutSeconds = 30,
@@ -141,7 +141,7 @@ namespace UiAutomationMcp.Tests.Models
             // Assert
             Assert.NotNull(deserialized);
             Assert.Equal(operationParams.Operation, deserialized.Operation);
-            Assert.Equal(operationParams.ElementId, deserialized.ElementId);
+            Assert.Equal(operationParams.AutomationId, deserialized.AutomationId);
             Assert.Equal(operationParams.WindowTitle, deserialized.WindowTitle);
             Assert.Equal(operationParams.ProcessId, deserialized.ProcessId);
             Assert.Equal(operationParams.TimeoutSeconds, deserialized.TimeoutSeconds);

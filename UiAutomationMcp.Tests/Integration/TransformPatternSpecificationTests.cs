@@ -469,7 +469,7 @@ namespace UIAutomationMCP.Tests.Integration
                     
                     // Test all core operations for each scenario
                     var capabilitiesResult = await _transformService.GetTransformCapabilitiesAsync(
-                        scenario.ElementId, "SpecWindow", timeoutSeconds: 5);
+                        scenario.AutomationId, "SpecWindow", timeoutSeconds: 5);
                     var moveResult = await _transformService.MoveElementAsync(
                         scenario.ElementId, 100.0, 200.0, "SpecWindow", timeoutSeconds: 5);
                     var resizeResult = await _transformService.ResizeElementAsync(
