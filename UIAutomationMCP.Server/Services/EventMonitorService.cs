@@ -31,7 +31,9 @@ namespace UIAutomationMCP.Server.Services
                 {
                     EventTypes = new[] { eventType },
                     Duration = duration,
-                    AutomationId = automationId ?? name ?? "",
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
                     WindowTitle = null,
                     ProcessId = processId
                 };
@@ -119,7 +121,9 @@ namespace UIAutomationMCP.Server.Services
                 var request = new StartEventMonitoringRequest
                 {
                     EventTypes = new[] { eventType },
-                    AutomationId = automationId ?? name ?? "",
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
                     WindowTitle = null,
                     ProcessId = processId
                 };

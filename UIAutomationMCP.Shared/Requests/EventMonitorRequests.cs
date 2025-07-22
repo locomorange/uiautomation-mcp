@@ -15,7 +15,13 @@ namespace UIAutomationMCP.Shared.Requests
         public int Duration { get; set; } = 30;
 
         [JsonPropertyName("automationId")]
-        public string AutomationId { get; set; } = "";
+        public string? AutomationId { get; set; }
+
+        [JsonPropertyName("name")]
+        public string? Name { get; set; }
+
+        [JsonPropertyName("controlType")]
+        public string? ControlType { get; set; }
 
         [JsonPropertyName("windowTitle")]
         public string? WindowTitle { get; set; }
@@ -38,7 +44,13 @@ namespace UIAutomationMCP.Shared.Requests
         public string[] EventTypes { get; set; } = [];
 
         [JsonPropertyName("automationId")]
-        public string AutomationId { get; set; } = "";
+        public string? AutomationId { get; set; }
+
+        [JsonPropertyName("name")]
+        public string? Name { get; set; }
+
+        [JsonPropertyName("controlType")]
+        public string? ControlType { get; set; }
 
         [JsonPropertyName("windowTitle")]
         public string? WindowTitle { get; set; }
