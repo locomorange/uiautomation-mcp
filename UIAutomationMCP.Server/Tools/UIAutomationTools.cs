@@ -790,37 +790,6 @@ namespace UIAutomationMCP.Server.Tools
 
         // Window Capabilities and State
 
-        // Element Selection State
-        [McpServerTool, Description("Check if an element is selected")]
-        public async Task<object> IsElementSelected(
-            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (ListItem, TreeItem, DataItem, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _selectionService.IsSelectedAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
-
-
-        [McpServerTool, Description("Check if an element is read-only")]
-        public async Task<object> IsElementReadOnly(
-            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (Edit, ComboBox, Spinner, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _valueService.IsReadOnlyAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId, 
-                timeoutSeconds: timeoutSeconds));
 
         // Grid Information
 

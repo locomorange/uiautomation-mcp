@@ -128,7 +128,6 @@ namespace UIAutomationMCP.Worker
             builder.Services.AddKeyedTransient<IUIAutomationOperation, AddToSelectionOperation>("AddToSelection");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, RemoveFromSelectionOperation>("RemoveFromSelection");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, ClearSelectionOperation>("ClearSelection");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, IsSelectedOperation>("IsSelected");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SelectItemOperation>("SelectItem");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, ValidateControlTypePatternsOperation>("ValidateControlTypePatterns");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SelectTextOperation>("SelectText");

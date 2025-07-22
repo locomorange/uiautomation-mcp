@@ -12,8 +12,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         Task<ServerEnhancedResponse<ActionResult>> ClearSelectionAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30);
         
         
-        // SelectionItemPattern properties
-        Task<ServerEnhancedResponse<BooleanResult>> IsSelectedAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30);
         Task<ServerEnhancedResponse<ActionResult>> GetSelectionContainerAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30);
         
         // SelectionPattern properties

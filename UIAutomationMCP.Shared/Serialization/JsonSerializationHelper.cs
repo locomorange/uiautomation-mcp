@@ -183,7 +183,6 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(ClearSelectionRequest) => (JsonTypeInfo<T>)(object)_context.ClearSelectionRequest,
                 Type t when t == typeof(GetSelectionContainerRequest) => (JsonTypeInfo<T>)(object)_context.GetSelectionContainerRequest,
                 Type t when t == typeof(GetSelectionRequest) => (JsonTypeInfo<T>)(object)_context.GetSelectionRequest,
-                Type t when t == typeof(IsSelectedRequest) => (JsonTypeInfo<T>)(object)_context.IsSelectedRequest,
                 Type t when t == typeof(RemoveFromSelectionRequest) => (JsonTypeInfo<T>)(object)_context.RemoveFromSelectionRequest,
                 Type t when t == typeof(SelectElementRequest) => (JsonTypeInfo<T>)(object)_context.SelectElementRequest,
                 Type t when t == typeof(SelectItemRequest) => (JsonTypeInfo<T>)(object)_context.SelectItemRequest,
@@ -332,7 +331,6 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(ClearSelectionRequest))]
     [JsonSerializable(typeof(GetSelectionContainerRequest))]
     [JsonSerializable(typeof(GetSelectionRequest))]
-    [JsonSerializable(typeof(IsSelectedRequest))]
     [JsonSerializable(typeof(RemoveFromSelectionRequest))]
     [JsonSerializable(typeof(SelectElementRequest))]
     [JsonSerializable(typeof(SelectItemRequest))]

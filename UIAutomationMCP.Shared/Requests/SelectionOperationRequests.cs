@@ -25,11 +25,6 @@ namespace UIAutomationMCP.Shared.Requests
         public override string Operation => "GetSelection";
     }
 
-    public class IsSelectedRequest : ElementTargetRequest
-    {
-        public override string Operation => "IsSelected";
-    }
-
 
     public class RemoveFromSelectionRequest : ElementTargetRequest
     {

@@ -8,6 +8,5 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
     {
         Task<ServerEnhancedResponse<ActionResult>> SetValueAsync(string value, string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30);
         Task<ServerEnhancedResponse<TextInfoResult>> GetValueAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30);
-        Task<ServerEnhancedResponse<BooleanResult>> IsReadOnlyAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30);
     }
 }
