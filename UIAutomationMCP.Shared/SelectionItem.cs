@@ -7,9 +7,6 @@ namespace UIAutomationMCP.Shared
     /// </summary>
     public class SelectionItem
     {
-        [JsonPropertyName("elementId")]
-        public string ElementId { get; set; } = "";
-
         [JsonPropertyName("automationId")]
         public string AutomationId { get; set; } = "";
 

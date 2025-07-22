@@ -43,8 +43,8 @@ namespace UIAutomationMCP.Shared.Models
     /// </summary>
     public class ElementActionRequest : TypedRequestBase
     {
-        [JsonPropertyName("elementId")]
-        public string ElementId { get; set; } = "";
+        [JsonPropertyName("automationId")]
+        public string AutomationId { get; set; } = "";
         
         [JsonPropertyName("actionType")]
         public string? ActionType { get; set; }
@@ -59,8 +59,8 @@ namespace UIAutomationMCP.Shared.Models
     /// </summary>
     public class ElementInspectionRequest : TypedRequestBase
     {
-        [JsonPropertyName("elementId")]
-        public string ElementId { get; set; } = "";
+        [JsonPropertyName("automationId")]
+        public string AutomationId { get; set; } = "";
         
         [JsonPropertyName("includeProperties")]
         public bool IncludeProperties { get; set; } = true;

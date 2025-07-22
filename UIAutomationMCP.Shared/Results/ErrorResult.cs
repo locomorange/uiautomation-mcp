@@ -13,8 +13,8 @@ namespace UIAutomationMCP.Shared.Results
         [JsonPropertyName("error")]
         public string Error { get; set; } = string.Empty;
 
-        [JsonPropertyName("elementId")]
-        public string? ElementId { get; set; }
+        [JsonPropertyName("automationId")]
+        public string? AutomationId { get; set; }
 
         [JsonPropertyName("operation")]
         public string? Operation { get; set; }
@@ -37,12 +37,12 @@ namespace UIAutomationMCP.Shared.Results
         /// <summary>
         /// Create a timeout error result
         /// </summary>
-        public static ErrorResult CreateTimeoutError(string operation, string elementId, int timeoutSeconds, string? details = null)
+        public static ErrorResult CreateTimeoutError(string operation, string automationId, int timeoutSeconds, string? details = null)
         {
             return new ErrorResult
             {
-                Error = $"{operation} timed out after {timeoutSeconds} seconds. The element '{elementId}' may not be responding or accessible.",
-                ElementId = elementId,
+                Error = $"{operation} timed out after {timeoutSeconds} seconds. The element '{automationId}' may not be responding or accessible.",
+                AutomationId = automationId,
                 Operation = operation,
                 TimeoutSeconds = timeoutSeconds,
                 ErrorCategory = "Timeout",
@@ -60,12 +60,12 @@ namespace UIAutomationMCP.Shared.Results
         /// <summary>
         /// Create an invalid operation error result
         /// </summary>
-        public static ErrorResult CreateInvalidOperationError(string operation, string elementId, string? details = null)
+        public static ErrorResult CreateInvalidOperationError(string operation, string automationId, string? details = null)
         {
             return new ErrorResult
             {
-                Error = $"Cannot perform {operation} on element '{elementId}'. The element may not support this operation or may not be in the correct state.",
-                ElementId = elementId,
+                Error = $"Cannot perform {operation} on element '{automationId}'. The element may not support this operation or may not be in the correct state.",
+                AutomationId = automationId,
                 Operation = operation,
                 ErrorCategory = "InvalidOperation",
                 Details = details,
@@ -82,12 +82,12 @@ namespace UIAutomationMCP.Shared.Results
         /// <summary>
         /// Create an argument error result
         /// </summary>
-        public static ErrorResult CreateArgumentError(string operation, string elementId, string? details = null)
+        public static ErrorResult CreateArgumentError(string operation, string automationId, string? details = null)
         {
             return new ErrorResult
             {
-                Error = $"Invalid element identifier '{elementId}' for {operation}. Please check that the element ID is correct and the target window is accessible.",
-                ElementId = elementId,
+                Error = $"Invalid element identifier '{automationId}' for {operation}. Please check that the automation ID is correct and the target window is accessible.",
+                AutomationId = automationId,
                 Operation = operation,
                 ErrorCategory = "InvalidArgument",
                 Details = details,
@@ -104,12 +104,12 @@ namespace UIAutomationMCP.Shared.Results
         /// <summary>
         /// Create an unauthorized error result
         /// </summary>
-        public static ErrorResult CreateUnauthorizedError(string operation, string elementId, string? details = null)
+        public static ErrorResult CreateUnauthorizedError(string operation, string automationId, string? details = null)
         {
             return new ErrorResult
             {
-                Error = $"Access denied when attempting {operation} on element '{elementId}'. The application may require elevated privileges.",
-                ElementId = elementId,
+                Error = $"Access denied when attempting {operation} on element '{automationId}'. The application may require elevated privileges.",
+                AutomationId = automationId,
                 Operation = operation,
                 ErrorCategory = "Unauthorized",
                 Details = details,
@@ -126,12 +126,12 @@ namespace UIAutomationMCP.Shared.Results
         /// <summary>
         /// Create a generic error result
         /// </summary>
-        public static ErrorResult CreateGenericError(string operation, string elementId, string exceptionType, string? details = null)
+        public static ErrorResult CreateGenericError(string operation, string automationId, string exceptionType, string? details = null)
         {
             return new ErrorResult
             {
-                Error = $"Failed to perform {operation} on element '{elementId}'. This could be due to the element not being found, the application not responding, or system issues.",
-                ElementId = elementId,
+                Error = $"Failed to perform {operation} on element '{automationId}'. This could be due to the element not being found, the application not responding, or system issues.",
+                AutomationId = automationId,
                 Operation = operation,
                 ErrorCategory = "Unexpected",
                 ExceptionType = exceptionType,

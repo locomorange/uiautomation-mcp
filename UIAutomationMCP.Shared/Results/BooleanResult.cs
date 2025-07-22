@@ -6,7 +6,7 @@ namespace UIAutomationMCP.Shared.Results
     {
         public bool Value { get; set; }
         public string? PropertyName { get; set; }
-        public string? ElementId { get; set; }
+        public string? AutomationId { get; set; }
         public string? ElementName { get; set; }
         public string? ElementAutomationId { get; set; }
         public string? ElementControlType { get; set; }

@@ -7,8 +7,8 @@ namespace UIAutomationMCP.Shared.Results
     /// </summary>
     public class SelectionInfoResult : BaseOperationResult
     {
-        [JsonPropertyName("elementId")]
-        public string ElementId { get; set; } = "";
+        [JsonPropertyName("automationId")]
+        public string AutomationId { get; set; } = "";
 
         [JsonPropertyName("canSelectMultiple")]
         public bool CanSelectMultiple { get; set; }
@@ -28,8 +28,8 @@ namespace UIAutomationMCP.Shared.Results
         [JsonPropertyName("selectionCount")]
         public int SelectionCount { get; set; }
 
-        [JsonPropertyName("containerElementId")]
-        public string ContainerElementId { get; set; } = "";
+        [JsonPropertyName("containerAutomationId")]
+        public string ContainerAutomationId { get; set; } = "";
 
         [JsonPropertyName("containerName")]
         public string ContainerName { get; set; } = "";

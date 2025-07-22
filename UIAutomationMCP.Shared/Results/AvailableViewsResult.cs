@@ -4,7 +4,7 @@ namespace UIAutomationMCP.Shared.Results
 {
     public class AvailableViewsResult : BaseOperationResult
     {
-        public string? ElementId { get; set; }
+        public string? AutomationId { get; set; }
         public string? ElementName { get; set; }
         public string? ElementAutomationId { get; set; }
         public string? ElementControlType { get; set; }

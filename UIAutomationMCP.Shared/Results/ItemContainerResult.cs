@@ -4,8 +4,8 @@ namespace UIAutomationMCP.Shared.Results
 {
     public class FindItemResult : BaseOperationResult
     {
-        [JsonPropertyName("foundElementId")]
-        public string FoundElementId { get; set; } = "";
+        [JsonPropertyName("foundAutomationId")]
+        public string FoundAutomationId { get; set; } = "";
 
         [JsonPropertyName("foundElementName")]
         public string FoundElementName { get; set; } = "";

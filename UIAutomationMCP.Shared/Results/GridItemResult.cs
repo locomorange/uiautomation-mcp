@@ -4,7 +4,7 @@ namespace UIAutomationMCP.Shared.Results
 {
     public class GridItemResult : BaseOperationResult
     {
-        public string? ElementId { get; set; }
+        public string? AutomationId { get; set; }
         public string? ElementName { get; set; }
         public string? ElementAutomationId { get; set; }
         public string? ElementControlType { get; set; }
@@ -14,7 +14,7 @@ namespace UIAutomationMCP.Shared.Results
         public int Column { get; set; }
         public int RowSpan { get; set; }
         public int ColumnSpan { get; set; }
-        public string? ContainerElementId { get; set; }
+        public string? ContainerAutomationId { get; set; }
         public string? ContainerName { get; set; }
         public bool IsSelected { get; set; }
         public bool IsEnabled { get; set; }

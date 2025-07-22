@@ -300,7 +300,6 @@ namespace UIAutomationMCP.Shared
     // Element search parameters (removes UIAutomation dependency)
     public class ElementSearchParameters
     {
-        public string? ElementId { get; set; }
         public string? AutomationId { get; set; }
         public string? WindowTitle { get; set; }
         public int? ProcessId { get; set; }
@@ -334,7 +333,7 @@ namespace UIAutomationMCP.Shared
     public class AdvancedOperationParameters
     {
         public string Operation { get; set; } = string.Empty;
-        public string? ElementId { get; set; }
+        public string? AutomationId { get; set; }
         public string? WindowTitle { get; set; }
         public int? ProcessId { get; set; }
         public Dictionary<string, object> Parameters { get; set; } = new();

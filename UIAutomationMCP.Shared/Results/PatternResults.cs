@@ -7,8 +7,8 @@ namespace UIAutomationMCP.Shared.Results
     /// </summary>
     public class TransformCapabilitiesResult : BaseOperationResult
     {
-        [JsonPropertyName("elementId")]
-        public string ElementId { get; set; } = "";
+        [JsonPropertyName("automationId")]
+        public string AutomationId { get; set; } = "";
 
         [JsonPropertyName("canMove")]
         public bool CanMove { get; set; }
@@ -25,8 +25,8 @@ namespace UIAutomationMCP.Shared.Results
     /// </summary>
     public class GridInfoResult : BaseOperationResult
     {
-        [JsonPropertyName("gridElementId")]
-        public string GridElementId { get; set; } = "";
+        [JsonPropertyName("gridAutomationId")]
+        public string GridAutomationId { get; set; } = "";
 
         [JsonPropertyName("rowCount")]
         public int RowCount { get; set; }
@@ -62,8 +62,8 @@ namespace UIAutomationMCP.Shared.Results
     /// </summary>
     public class ElementValueResult : BaseOperationResult
     {
-        [JsonPropertyName("elementId")]
-        public string ElementId { get; set; } = "";
+        [JsonPropertyName("automationId")]
+        public string AutomationId { get; set; } = "";
 
         [JsonPropertyName("value")]
         public string Value { get; set; } = "";

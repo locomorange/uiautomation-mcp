@@ -415,8 +415,8 @@ namespace UIAutomationMCP.Shared
         [JsonPropertyName("column")]
         public int Column { get; set; }
         
-        [JsonPropertyName("elementId")]
-        public string ElementId { get; set; } = string.Empty;
+        [JsonPropertyName("automationId")]
+        public string AutomationId { get; set; } = string.Empty;
         
         [JsonPropertyName("value")]
         public string Value { get; set; } = string.Empty;

@@ -7,8 +7,8 @@ namespace UIAutomationMCP.Shared.Results
     /// </summary>
     public class MultipleViewResult : BaseOperationResult
     {
-        [JsonPropertyName("elementId")]
-        public string ElementId { get; set; } = string.Empty;
+        [JsonPropertyName("automationId")]
+        public string AutomationId { get; set; } = string.Empty;
 
         [JsonPropertyName("currentView")]
         public int CurrentView { get; set; }

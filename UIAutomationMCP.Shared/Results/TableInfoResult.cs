@@ -7,8 +7,8 @@ namespace UIAutomationMCP.Shared.Results
     /// </summary>
     public class TableInfoResult : BaseOperationResult
     {
-        [JsonPropertyName("tableElementId")]
-        public string TableElementId { get; set; } = "";
+        [JsonPropertyName("tableAutomationId")]
+        public string TableAutomationId { get; set; } = "";
 
         [JsonPropertyName("rowCount")]
         public int RowCount { get; set; }

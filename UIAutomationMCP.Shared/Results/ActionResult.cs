@@ -6,7 +6,7 @@ namespace UIAutomationMCP.Shared.Results
     {
         public string? Action { get; set; }
         public string? ActionName { get; set; }
-        public string? ElementId { get; set; }
+        public string? AutomationId { get; set; }
         public string? TargetName { get; set; }
         public string? TargetAutomationId { get; set; }
         public string? TargetControlType { get; set; }
