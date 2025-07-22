@@ -58,135 +58,27 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #region SelectionPattern Properties Tests
 
-        [Fact]
-        public async Task CanSelectMultiple_WhenCalled_ShouldReturnSelectionCapability()
-        {
-            // Arrange
-            var expectedResult = new ServerEnhancedResponse<BooleanResult> 
-            { 
-                Success = true, 
-                Data = new BooleanResult { Value = true, PropertyName = "CanSelectMultiple" } 
-            };
-            _mockSelectionService.Setup(s => s.CanSelectMultipleAsync("list1", null, null, 30))
-                .Returns(Task.FromResult(expectedResult));
+        // CanSelectMultiple method was removed from SelectionService
+        // This test method is no longer applicable
 
-            // Act
-            var result = await _tools.CanSelectMultiple("list1");
+        // CanSelectMultiple method was removed from SelectionService
+        // This test method is no longer applicable
 
-            // Assert
-            Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.CanSelectMultipleAsync("list1", null, null, 30), Times.Once);
-            _output.WriteLine("CanSelectMultiple test passed - Multiple selection capability verified");
-        }
+        // IsSelectionRequired method was removed from SelectionService
+        // This test method is no longer applicable
 
-        [Fact]
-        public async Task CanSelectMultiple_WithSingleSelectionContainer_ShouldReturnFalse()
-        {
-            // Arrange
-            var expectedResult = new ServerEnhancedResponse<BooleanResult> 
-            { 
-                Success = true, 
-                Data = new BooleanResult { Value = false, PropertyName = "CanSelectMultiple" } 
-            };
-            _mockSelectionService.Setup(s => s.CanSelectMultipleAsync("radioGroup1", "Test Window", 1234, 30))
-                .Returns(Task.FromResult(expectedResult));
-
-            // Act
-            var result = await _tools.CanSelectMultiple("radioGroup1", "Test Window", 1234);
-
-            // Assert
-            Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.CanSelectMultipleAsync("radioGroup1", "Test Window", 1234, 30), Times.Once);
-            _output.WriteLine("CanSelectMultiple test passed - Single selection container verified");
-        }
-
-        [Fact]
-        public async Task IsSelectionRequired_WhenCalled_ShouldReturnSelectionRequirement()
-        {
-            // Arrange
-            var expectedResult = new ServerEnhancedResponse<BooleanResult> 
-            { 
-                Success = true, 
-                Data = new BooleanResult { Value = true, PropertyName = "IsSelectionRequired" } 
-            };
-            _mockSelectionService.Setup(s => s.IsSelectionRequiredAsync("tabControl1", null, null, 30))
-                .Returns(Task.FromResult(expectedResult));
-
-            // Act
-            var result = await _tools.IsSelectionRequired("tabControl1");
-
-            // Assert
-            Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.IsSelectionRequiredAsync("tabControl1", null, null, 30), Times.Once);
-            _output.WriteLine("IsSelectionRequired test passed - Selection requirement verified");
-        }
-
-        [Fact]
-        public async Task IsSelectionRequired_WithOptionalSelection_ShouldReturnFalse()
-        {
-            // Arrange
-            var expectedResult = new ServerEnhancedResponse<BooleanResult> 
-            { 
-                Success = true, 
-                Data = new BooleanResult { Value = false, PropertyName = "IsSelectionRequired" } 
-            };
-            _mockSelectionService.Setup(s => s.IsSelectionRequiredAsync("listBox1", "App Window", 5678, 30))
-                .Returns(Task.FromResult(expectedResult));
-
-            // Act
-            var result = await _tools.IsSelectionRequired("listBox1", "App Window", 5678);
-
-            // Assert
-            Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.IsSelectionRequiredAsync("listBox1", "App Window", 5678, 30), Times.Once);
-            _output.WriteLine("IsSelectionRequired test passed - Optional selection verified");
-        }
+        // IsSelectionRequired method was removed from SelectionService
+        // This test method is no longer applicable
 
         #endregion
 
         #region SelectionItemPattern Properties Tests
 
-        [Fact]
-        public async Task IsElementSelected_WhenItemIsSelected_ShouldReturnTrue()
-        {
-            // Arrange
-            var expectedResult = new ServerEnhancedResponse<BooleanResult> 
-            { 
-                Success = true, 
-                Data = new BooleanResult { Value = true, PropertyName = "IsSelected" } 
-            };
-            _mockSelectionService.Setup(s => s.IsSelectedAsync("listItem1", null, null, 30))
-                .Returns(Task.FromResult(expectedResult));
+        // IsSelected method was removed from SelectionService
+        // This test method is no longer applicable
 
-            // Act
-            var result = await _tools.IsElementSelected("listItem1");
-
-            // Assert
-            Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.IsSelectedAsync("listItem1", null, null, 30), Times.Once);
-            _output.WriteLine("IsElementSelected test passed - Selected item verified");
-        }
-
-        [Fact]
-        public async Task IsElementSelected_WhenItemIsNotSelected_ShouldReturnFalse()
-        {
-            // Arrange
-            var expectedResult = new ServerEnhancedResponse<BooleanResult> 
-            { 
-                Success = true, 
-                Data = new BooleanResult { Value = false, PropertyName = "IsSelected" } 
-            };
-            _mockSelectionService.Setup(s => s.IsSelectedAsync("listItem2", "Main Window", 9876, 30))
-                .Returns(Task.FromResult(expectedResult));
-
-            // Act
-            var result = await _tools.IsElementSelected("listItem2", "Main Window", 9876);
-
-            // Assert
-            Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.IsSelectedAsync("listItem2", "Main Window", 9876, 30), Times.Once);
-            _output.WriteLine("IsElementSelected test passed - Unselected item verified");
-        }
+        // IsSelected method was removed from SelectionService
+        // This test method is no longer applicable
 
         [Fact]
         public async Task GetSelectionContainer_WhenCalled_ShouldReturnContainerInfo()
@@ -369,14 +261,9 @@ namespace UIAutomationMCP.Tests.UnitTests
         [InlineData("   ")]
         public async Task SelectionMethods_WithInvalidElementId_ShouldHandleGracefully(string? invalidElementId)
         {
-            // Arrange
-            _mockSelectionService.Setup(s => s.IsSelectedAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<int?>(), It.IsAny<int>()))
-                .Returns(Task.FromResult(new ServerEnhancedResponse<BooleanResult> { Success = false, ErrorMessage = "Element not found" }));
-
-            // Act & Assert - Should not throw exceptions
-            var result = await _tools.IsElementSelected(invalidElementId ?? "");
-            Assert.NotNull(result);
-            _output.WriteLine($"Parameter validation test passed for invalid elementId: '{invalidElementId}'");
+            // IsSelected method was removed from SelectionService
+            // Parameter validation test is no longer applicable
+            _output.WriteLine($"Parameter validation test skipped (method removed) for elementId: '{invalidElementId}'");
         }
 
         [Theory]
@@ -387,21 +274,9 @@ namespace UIAutomationMCP.Tests.UnitTests
         [InlineData(300)]
         public async Task SelectionMethods_WithVariousTimeouts_ShouldUseCorrectTimeout(int timeout)
         {
-            // Arrange
-            _mockSelectionService.Setup(s => s.CanSelectMultipleAsync("list1", null, null, timeout))
-                .Returns(Task.FromResult(new ServerEnhancedResponse<BooleanResult> 
-                { 
-                    Success = true, 
-                    Data = new BooleanResult { Value = true, PropertyName = "CanSelectMultiple" } 
-                }));
-
-            // Act
-            var result = await _tools.CanSelectMultiple("list1", null, null, timeout);
-
-            // Assert
-            Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.CanSelectMultipleAsync("list1", null, null, timeout), Times.Once);
-            _output.WriteLine($"Timeout parameter test passed for value: {timeout}");
+            // CanSelectMultiple method was removed from SelectionService
+            // Timeout parameter test is no longer applicable
+            _output.WriteLine($"Timeout parameter test skipped (method removed) for value: {timeout}");
         }
 
         #endregion
@@ -411,15 +286,9 @@ namespace UIAutomationMCP.Tests.UnitTests
         [Fact]
         public async Task SelectionMethods_WhenServiceThrowsException_ShouldHandleGracefully()
         {
-            // Arrange
-            _mockSelectionService.Setup(s => s.IsSelectionRequiredAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<int?>(), It.IsAny<int>()))
-                .ThrowsAsync(new InvalidOperationException("Element does not support SelectionPattern"));
-
-            // Act & Assert - Should not propagate exception
-            await Assert.ThrowsAsync<InvalidOperationException>(() => 
-                _tools.IsSelectionRequired("unsupportedElement"));
-
-            _output.WriteLine("Error handling test passed - Exception properly handled");
+            // IsSelectionRequired method was removed from SelectionService
+            // Error handling test is no longer applicable
+            _output.WriteLine("Error handling test skipped (method removed) - Exception handling test");
         }
 
         [Fact]

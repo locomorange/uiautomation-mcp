@@ -104,7 +104,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockLayoutService.Verify(s => s.ExpandCollapseElementAsync(elementSelector, "expand", "TestWindow", (int?)null, 30), Times.Once);
+            _mockLayoutService.Verify(s => s.ExpandCollapseElementAsync(elementSelector, "TestWindow", "expand", null, null, 30), Times.Once);
             _output.WriteLine($"ExpandCollapseElement expand test passed for control: {elementSelector}");
         }
 
@@ -120,7 +120,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Collapse", Details = "Collapsed" }
             };
-            _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync(elementSelector, "collapse", "TestWindow", null, 30))
+            _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync(elementSelector, "TestWindow", "collapse", null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -128,7 +128,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockLayoutService.Verify(s => s.ExpandCollapseElementAsync(elementSelector, "collapse", "TestWindow", (int?)null, 30), Times.Once);
+            _mockLayoutService.Verify(s => s.ExpandCollapseElementAsync(elementSelector, "TestWindow", "collapse", null, null, 30), Times.Once);
             _output.WriteLine($"ExpandCollapseElement collapse test passed for control: {elementSelector}");
         }
 
@@ -144,7 +144,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Expand", Details = "Expanded" }
             };
-            _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync(elementSelector, "toggle", "TestWindow", null, 30))
+            _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync(automationId: elementSelector, name: null, action: "toggle", controlType: "TestWindow", processId: null, timeoutSeconds: 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -152,7 +152,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockLayoutService.Verify(s => s.ExpandCollapseElementAsync(elementSelector, "toggle", "TestWindow", (int?)null, 30), Times.Once);
+            _mockLayoutService.Verify(s => s.ExpandCollapseElementAsync(automationId: elementSelector, name: null, action: "toggle", controlType: "TestWindow", processId: null, timeoutSeconds: 30), Times.Once);
             _output.WriteLine($"ExpandCollapseElement toggle test passed for control: {elementSelector}");
         }
 
@@ -168,7 +168,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Expand", Details = "Expanded" }
             };
-            _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync("treeNode1", "expand", "Explorer", null, 30))
+            _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync(automationId: "treeNode1", name: null, action: "expand", controlType: "Explorer", processId: null, timeoutSeconds: 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -176,7 +176,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockLayoutService.Verify(s => s.ExpandCollapseElementAsync("treeNode1", "expand", "Explorer", (int?)null, 30), Times.Once);
+            _mockLayoutService.Verify(s => s.ExpandCollapseElementAsync(automationId: "treeNode1", name: null, action: "expand", controlType: "Explorer", processId: null, timeoutSeconds: 30), Times.Once);
             _output.WriteLine("State change from Collapsed to Expanded test passed");
         }
 
@@ -188,7 +188,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Collapse", Details = "Collapsed" }
             };
-            _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync("menuItem", "collapse", "MainMenu", null, 30))
+            _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync(automationId: "menuItem", name: null, action: "collapse", controlType: "MainMenu", processId: null, timeoutSeconds: 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -196,7 +196,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockLayoutService.Verify(s => s.ExpandCollapseElementAsync("menuItem", "collapse", "MainMenu", (int?)null, 30), Times.Once);
+            _mockLayoutService.Verify(s => s.ExpandCollapseElementAsync(automationId: "menuItem", name: null, action: "collapse", controlType: "MainMenu", processId: null, timeoutSeconds: 30), Times.Once);
             _output.WriteLine("State change from Expanded to Collapsed test passed");
         }
 

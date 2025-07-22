@@ -52,27 +52,8 @@ namespace UIAutomationMCP.Tests.Integration
                 subprocessExecutor);
         }
 
-        /// <summary>
-        /// Tests Microsoft specification requirement: Elements must support IsReadOnly property
-        /// Tests the core required member of Value Pattern implementation
-        /// </summary>
-        [Fact]
-        public async Task IsReadOnly_RequiredMember_ShouldReturnValidResult()
-        {
-            // Arrange
-            var nonExistentAutomationId = "TestElement_ValuePattern_IsReadOnly";
-            var timeout = 5;
-
-            // Act
-            var result = await _valueService.IsReadOnlyAsync(nonExistentAutomationId, null, null, timeout);
-
-            // Assert
-            Assert.NotNull(result);
-            _output.WriteLine($"IsReadOnly result: {result}");
-            
-            // Microsoft spec: Must handle cases where element is not found or doesn't support ValuePattern
-            // The implementation should return proper error information
-        }
+        // IsReadOnly method was removed from ValueService
+        // Microsoft ValuePattern.IsReadOnly Property test is no longer applicable
 
         /// <summary>
         /// Tests Microsoft specification requirement: SetValue method implementation
@@ -120,27 +101,8 @@ namespace UIAutomationMCP.Tests.Integration
             // For elements that don't support ValuePattern, should return appropriate error
         }
 
-        /// <summary>
-        /// Tests Microsoft specification: IsReadOnly property behavior
-        /// According to spec: IsReadOnly must be false to allow value modification
-        /// </summary>
-        [Fact]
-        public async Task IsReadOnly_SpecificationBehavior_ReadOnlyElementsShouldReturnTrue()
-        {
-            // Arrange - Simulate read-only element scenario
-            var readOnlyAutomationId = "ReadOnlyElement_ValuePattern";
-            var timeout = 5;
-
-            // Act
-            var result = await _valueService.IsReadOnlyAsync(readOnlyAutomationId, null, null, null, timeout);
-
-            // Assert
-            Assert.NotNull(result);
-            _output.WriteLine($"IsReadOnly for read-only element: {result}");
-            
-            // Microsoft spec: Read-only elements should return IsReadOnly = true
-            // Editable elements should return IsReadOnly = false
-        }
+        // IsReadOnly method was removed from ValueService
+        // Microsoft ValuePattern.IsReadOnly Property behavior test is no longer applicable
 
         /// <summary>
         /// Tests Microsoft specification: SetValue with read-only element
@@ -175,19 +137,18 @@ namespace UIAutomationMCP.Tests.Integration
             var disabledAutomationId = "DisabledElement_ValuePattern";
             var timeout = 5;
 
-            // Act - Test all required members on potentially disabled element
-            var isReadOnlyResult = await _valueService.IsReadOnlyAsync(disabledElementId, null, null, timeout);
-            var getValueResult = await _valueService.GetValueAsync(disabledElementId, null, null, timeout);
-            var setValueResult = await _valueService.SetValueAsync(disabledElementId, "test", null, null, timeout);
+            // IsReadOnly method was removed from ValueService
+            // Act - Test remaining required members on potentially disabled element
+            var getValueResult = await _valueService.GetValueAsync(disabledAutomationId, null, null, null, timeout);
+            var setValueResult = await _valueService.SetValueAsync("test", disabledAutomationId, null, null, null, timeout);
 
             // Assert
-            Assert.NotNull(isReadOnlyResult);
             Assert.NotNull(getValueResult);
             Assert.NotNull(setValueResult);
             
-            _output.WriteLine($"IsReadOnly on disabled element: {isReadOnlyResult}");
             _output.WriteLine($"GetValue on disabled element: {getValueResult}");
             _output.WriteLine($"SetValue on disabled element: {setValueResult}");
+            _output.WriteLine("IsReadOnly test skipped (method removed)");
             
             // Microsoft spec: Controls must be enabled for Value Pattern to work properly
         }
@@ -205,20 +166,19 @@ namespace UIAutomationMCP.Tests.Integration
             // Arrange
             var timeout = 5;
 
-            // Act & Assert - Test all required members for exception handling
-            var isReadOnlyResult = await _valueService.IsReadOnlyAsync(elementId, null, null, timeout);
-            var getValueResult = await _valueService.GetValueAsync(elementId, null, null, timeout);
-            var setValueResult = await _valueService.SetValueAsync(elementId, "test value", null, null, timeout);
+            // IsReadOnly method was removed from ValueService
+            // Act & Assert - Test remaining required members for exception handling
+            var getValueResult = await _valueService.GetValueAsync(elementId, null, null, null, timeout);
+            var setValueResult = await _valueService.SetValueAsync("test value", elementId, null, null, null, timeout);
 
             // All methods should handle exceptions gracefully and return structured results
-            Assert.NotNull(isReadOnlyResult);
             Assert.NotNull(getValueResult);
             Assert.NotNull(setValueResult);
 
             _output.WriteLine($"Scenario: {scenario}");
-            _output.WriteLine($"IsReadOnly: {isReadOnlyResult}");
             _output.WriteLine($"GetValue: {getValueResult}");
             _output.WriteLine($"SetValue: {setValueResult}");
+            _output.WriteLine("IsReadOnly test skipped (method removed)");
             
             // Microsoft spec exceptions that should be handled:
             // - InvalidOperationException: incorrectly formatted locale-specific information

@@ -109,7 +109,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
                         .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _service.GetColumnHeaderItemsAsync("cell2_3", null, 1234, 60);
+            var result = await _service.GetColumnHeaderItemsAsync("cell2_3", null, null, 1234, 60);
 
             // Assert
             Assert.NotNull(result);

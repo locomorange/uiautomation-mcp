@@ -170,7 +170,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     ActionParameters = new Dictionary<string, object> { { "X", x }, { "Y", y } }
                 }
             };
-            _mockTransformService.Setup(s => s.MoveElementAsync("movableWindow", x, y, "MainApp", null, 30))
+            _mockTransformService.Setup(s => s.MoveElementAsync("movableWindow", null, x, y, "MainApp", null, 30))
                                .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -178,7 +178,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockTransformService.Verify(s => s.MoveElementAsync("movableWindow", x, y, "MainApp", null, 30), Times.Once);
+            _mockTransformService.Verify(s => s.MoveElementAsync("movableWindow", null, x, y, "MainApp", null, 30), Times.Once);
             _output.WriteLine($"Move element test passed for coordinates: ({x}, {y})");
         }
 
@@ -186,7 +186,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task MoveElement_OnNonMovableElement_ShouldThrowInvalidOperationException()
         {
             // Arrange - Microsoft仕様：CanMove=falseの場合にInvalidOperationExceptionをスロー
-            _mockTransformService.Setup(s => s.MoveElementAsync("fixedElement", 100.0, 200.0, "App", null, 30))
+            _mockTransformService.Setup(s => s.MoveElementAsync(automationId: "fixedElement", name: null, x: 100.0, y: 200.0, controlType: "App", processId: null, timeoutSeconds: 30))
                                .Returns(Task.FromResult(new ServerEnhancedResponse<ActionResult>
                                {
                                    Success = false,
@@ -198,7 +198,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockTransformService.Verify(s => s.MoveElementAsync("fixedElement", 100.0, 200.0, "App", null, 30), Times.Once);
+            _mockTransformService.Verify(s => s.MoveElementAsync(automationId: "fixedElement", name: null, x: 100.0, y: 200.0, controlType: "App", processId: null, timeoutSeconds: 30), Times.Once);
             _output.WriteLine("Non-movable element error handling test passed");
         }
 

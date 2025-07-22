@@ -35,7 +35,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             var normalizedAutomationId = elementId ?? "";
 
             // Act & Assert - 空のelementIdは無効として扱われるべき
-            var isValid = !string.IsNullOrWhiteSpace(normalizedElementId);
+            var isValid = !string.IsNullOrWhiteSpace(normalizedAutomationId);
             
             if (string.IsNullOrWhiteSpace(elementId))
             {

@@ -159,29 +159,28 @@ namespace UIAutomationMCP.Tests.Tools
                 new ElementInfo { AutomationId = "btn2", Name = "Button2", ControlType = "Button" }
             };
             
-            var elementSearchResult = new ElementSearchResult
+            var searchElementsResult = new SearchElementsResult
             {
                 Success = true,
-                Elements = expectedElements,
-                // Count is read-only, set via Elements property
+                Elements = expectedElements.ToArray(),
             };
-            var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
+            var serverResponse = new ServerEnhancedResponse<SearchElementsResult>
             {
                 Success = true,
-                Data = elementSearchResult,
+                Data = searchElementsResult,
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
             
-            _mockElementSearchService.Setup(s => s.FindElementsAsync("TestWindow", "Button", null, null, 60))
+            _mockElementSearchService.Setup(s => s.SearchElementsAsync(It.IsAny<UIAutomationMCP.Shared.Requests.SearchElementsRequest>()))
                                    .Returns(Task.FromResult(serverResponse));
 
             // Act
-            var result = await _tools.GetElementInfo("Button");
+            var result = await _tools.SearchElements(controlType: "Button");
 
             // Assert
             Assert.NotNull(result);
-            _mockElementSearchService.Verify(s => s.FindElementsAsync("TestWindow", "Button", null, null, 60), Times.Once);
+            _mockElementSearchService.Verify(s => s.SearchElementsAsync(It.IsAny<UIAutomationMCP.Shared.Requests.SearchElementsRequest>()), Times.Once);
             _output.WriteLine($"SearchElements test passed: Found {expectedElements.Count} elements");
         }
 
@@ -239,7 +238,7 @@ namespace UIAutomationMCP.Tests.Tools
                                  .Returns(Task.FromResult(serverResponse));
 
             // Act
-            var result = await _tools.InvokeElement("testButton", null, 1234);
+            var result = await _tools.InvokeElement("testButton", null, null, 1234);
 
             // Assert
             Assert.NotNull(result);
@@ -482,7 +481,7 @@ namespace UIAutomationMCP.Tests.Tools
                                  .Returns(Task.FromResult(serverResponse));
 
             // Act
-            var result = await _tools.ScrollElement("scrollableList", "down");
+            var result = await _tools.ScrollElement(automationId: "scrollableList", direction: "down");
 
             // Assert
             Assert.NotNull(result);
@@ -518,7 +517,7 @@ namespace UIAutomationMCP.Tests.Tools
                                  .Returns(Task.FromResult(serverResponse));
 
             // Act
-            var result = await _tools.SetRangeValue("slider", 50.0, "TestWindow");
+            var result = await _tools.SetRangeValue(automationId: "slider", value: 50.0);
 
             // Assert
             Assert.NotNull(result);
@@ -1082,7 +1081,7 @@ namespace UIAutomationMCP.Tests.Tools
                            .Returns(Task.FromResult(serverResponse));
 
             // Act
-            var result = await _tools.GetGridItem("grid1", 1, 2, "TestWindow");
+            var result = await _tools.GetGridItem(row: 1, column: 2, automationId: "grid1");
 
             // Assert
             Assert.NotNull(result);
@@ -1630,45 +1629,8 @@ namespace UIAutomationMCP.Tests.Tools
             _output.WriteLine("GetAccessibilityInfo test passed");
         }
 
-        [Fact]
-        public async Task GetCustomProperties_WithValidParameters_CallsCorrectService()
-        {
-            // Arrange
-            var resultObject = new ElementSearchResult
-            {
-                Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
-                {
-                    new UIAutomationMCP.Shared.ElementInfo
-                    {
-                        Name = "Element1",
-                        ControlType = "Custom",
-                        AutomationId = "element1",
-                        IsEnabled = true,
-                        IsVisible = true,
-                        BoundingRectangle = new UIAutomationMCP.Shared.BoundingRectangle { X = 0, Y = 0, Width = 100, Height = 50 }
-                    }
-                },
-                SearchCriteria = "Custom properties for element1"
-            };
-            var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
-            {
-                Success = true,
-                Data = resultObject,
-                ExecutionInfo = new ServerExecutionInfo(),
-                RequestMetadata = new RequestMetadata()
-            };
-            _mockCustomPropertyService.Setup(s => s.GetCustomPropertiesAsync("element1", null, new[] { "CustomProp1", "CustomProp2" }, null, null, 30))
-                                     .Returns(Task.FromResult(serverResponse));
-
-            // Act
-            var result = await _tools.GetCustomProperties("element1", "CustomProp1,CustomProp2", "TestWindow");
-
-            // Assert
-            Assert.NotNull(result);
-            _mockCustomPropertyService.Verify(s => s.GetCustomPropertiesAsync("element1", null, new[] { "CustomProp1", "CustomProp2" }, null, null, 30), Times.Once);
-            _output.WriteLine("GetCustomProperties test passed");
-        }
+        // GetCustomProperties method was removed from CustomPropertyService
+        // This test method is no longer applicable
 
         #endregion
 
@@ -1730,7 +1692,7 @@ namespace UIAutomationMCP.Tests.Tools
                            .Returns(Task.FromResult(serverResponse));
 
             // Act
-            var result = await _tools.SetRangeValue("slider1", 0.0);
+            var result = await _tools.SetRangeValue(automationId: "slider1", value: 0.0);
 
             // Assert
             Assert.NotNull(result);
@@ -1761,7 +1723,7 @@ namespace UIAutomationMCP.Tests.Tools
                              .Returns(Task.FromResult(serverResponse));
 
             // Act
-            var result = await _tools.ScrollElement("scrollable1", "down", 2.5);
+            var result = await _tools.ScrollElement(automationId: "scrollable1", direction: "down", amount: 2.5);
 
             // Assert
             Assert.NotNull(result);
@@ -1830,7 +1792,7 @@ namespace UIAutomationMCP.Tests.Tools
                              .Returns(Task.FromResult(serverResponse));
 
             // Act
-            var result = await _tools.SetScrollPercent("scrollContainer", 75.0, 25.0, "TestWindow", 1234, 30);
+            var result = await _tools.SetScrollPercent(automationId: "scrollContainer", horizontalPercent: 75.0, verticalPercent: 25.0, processId: 1234, timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
@@ -1860,7 +1822,7 @@ namespace UIAutomationMCP.Tests.Tools
                              .Returns(Task.FromResult(serverResponse));
 
             // Act - 水平方向にNoScroll(-1)、垂直方向に50%を指定
-            var result = await _tools.SetScrollPercent("scrollElement", -1.0, 50.0);
+            var result = await _tools.SetScrollPercent(automationId: "scrollElement", horizontalPercent: -1.0, verticalPercent: 50.0);
 
             // Assert
             Assert.NotNull(result);
@@ -1894,7 +1856,7 @@ namespace UIAutomationMCP.Tests.Tools
                              .Returns(Task.FromResult(serverResponse));
 
             // Act
-            var result = await _tools.SetScrollPercent("testElement", horizontal, vertical);
+            var result = await _tools.SetScrollPercent(automationId: "testElement", horizontalPercent: horizontal, verticalPercent: vertical);
 
             // Assert
             Assert.NotNull(result);
@@ -2172,7 +2134,7 @@ namespace UIAutomationMCP.Tests.Tools
                            .Returns(Task.FromResult(serverResponse));
 
             // Act
-            var result = await _tools.GetColumnHeader(0, "tableCell1", "TestWindow");
+            var result = await _tools.GetColumnHeader(column: 0, automationId: "tableCell1", name: "TestWindow");
 
             // Assert
             Assert.NotNull(result);

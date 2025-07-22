@@ -203,15 +203,15 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
                     }
                 }
             };
-            _mockGridService.Setup(s => s.GetGridItemAsync("dataGrid", row, column, "TestWindow", null, 30))
+            _mockGridService.Setup(s => s.GetGridItemAsync("dataGrid", "TestWindow", row, column, null, null, 30))
                            .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.GetGridItem("dataGrid", row, column, "TestWindow");
+            var result = await _tools.GetGridItem(row, column, "dataGrid", "TestWindow");
 
             // Assert
             Assert.NotNull(result);
-            _mockGridService.Verify(s => s.GetGridItemAsync("dataGrid", row, column, "TestWindow", null, 30), Times.Once);
+            _mockGridService.Verify(s => s.GetGridItemAsync("dataGrid", "TestWindow", row, column, null, null, 30), Times.Once);
             _output.WriteLine($"GetGridItem test passed for coordinates ({row},{column})");
         }
 
@@ -236,15 +236,15 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
                     }
                 }
             };
-            _mockGridService.Setup(s => s.GetGridItemAsync("grid", 0, 0, "TestApp", null, 30))
+            _mockGridService.Setup(s => s.GetGridItemAsync("grid", null, 0, 0, null, null, 30))
                            .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.GetGridItem("grid", 0, 0, "TestApp");
+            var result = await _tools.GetGridItem(row: 0, column: 0, automationId: "grid");
 
             // Assert
             Assert.NotNull(result);
-            _mockGridService.Verify(s => s.GetGridItemAsync("grid", 0, 0, "TestApp", null, 30), Times.Once);
+            _mockGridService.Verify(s => s.GetGridItemAsync("grid", null, 0, 0, null, null, 30), Times.Once);
             _output.WriteLine("Zero-based coordinates test passed");
         }
 
@@ -276,15 +276,15 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
                     }
                 }
             };
-            _mockGridService.Setup(s => s.GetGridItemAsync("dataGrid", 1, 2, "TestWindow", null, 30))
+            _mockGridService.Setup(s => s.GetGridItemAsync(automationId: "dataGrid", name: null, row: 1, column: 2, controlType: "TestWindow", processId: null, timeoutSeconds: 30))
                            .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.GetGridItem("dataGrid", 1, 2, "TestWindow");
+            var result = await _tools.GetGridItem(row: 1, column: 2, automationId: "dataGrid", controlType: "TestWindow");
 
             // Assert
             Assert.NotNull(result);
-            _mockGridService.Verify(s => s.GetGridItemAsync("dataGrid", 1, 2, "TestWindow", null, 30), Times.Once);
+            _mockGridService.Verify(s => s.GetGridItemAsync(automationId: "dataGrid", name: null, row: 1, column: 2, controlType: "TestWindow", processId: null, timeoutSeconds: 30), Times.Once);
             _output.WriteLine("Empty cell test passed");
         }
 
@@ -299,16 +299,16 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
         public async Task GetGridItem_WithNegativeCoordinates_ShouldThrowArgumentOutOfRangeException(int row, int column)
         {
             // Arrange - Microsoft仕様: 負の座標でArgumentOutOfRangeExceptionをスロー
-            _mockGridService.Setup(s => s.GetGridItemAsync("grid", row, column, "TestApp", null, 30))
+            _mockGridService.Setup(s => s.GetGridItemAsync(automationId: "grid", name: null, row: row, column: column, controlType: "TestApp", processId: null, timeoutSeconds: 30))
                            .ThrowsAsync(new ArgumentOutOfRangeException(
                                row < 0 ? "row" : "column", 
                                $"Row/column coordinates must be greater than or equal to zero"));
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
-                () => _tools.GetGridItem("grid", row, column, "TestApp"));
+                () => _tools.GetGridItem(row: row, column: column, automationId: "grid", controlType: "TestApp"));
 
-            _mockGridService.Verify(s => s.GetGridItemAsync("grid", row, column, "TestApp", null, 30), Times.Once);
+            _mockGridService.Verify(s => s.GetGridItemAsync(automationId: "grid", name: null, row: row, column: column, controlType: "TestApp", processId: null, timeoutSeconds: 30), Times.Once);
             _output.WriteLine($"Negative coordinates test passed: ({row},{column})");
         }
 
@@ -320,16 +320,16 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
             int row, int column, int maxRow, int maxColumn)
         {
             // Arrange - Microsoft仕様: RowCount/ColumnCountを超える座標でArgumentOutOfRangeExceptionをスロー
-            _mockGridService.Setup(s => s.GetGridItemAsync("grid", row, column, "TestApp", null, 30))
+            _mockGridService.Setup(s => s.GetGridItemAsync(automationId: "grid", name: null, row: row, column: column, controlType: "TestApp", processId: null, timeoutSeconds: 30))
                            .ThrowsAsync(new ArgumentOutOfRangeException(
                                row >= maxRow ? "row" : "column", 
                                $"Row/column coordinates must be less than RowCount/ColumnCount"));
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
-                () => _tools.GetGridItem("grid", row, column, "TestApp"));
+                () => _tools.GetGridItem(row: row, column: column, automationId: "grid", controlType: "TestApp"));
 
-            _mockGridService.Verify(s => s.GetGridItemAsync("grid", row, column, "TestApp", null, 30), Times.Once);
+            _mockGridService.Verify(s => s.GetGridItemAsync(automationId: "grid", name: null, row: row, column: column, controlType: "TestApp", processId: null, timeoutSeconds: 30), Times.Once);
             _output.WriteLine($"Out of bounds test passed: ({row},{column}) exceeds ({maxRow},{maxColumn})");
         }
 

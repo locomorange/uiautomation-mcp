@@ -118,15 +118,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                     }
                 }
             };
-            _mockGridService.Setup(s => s.GetGridItemAsync("dataGrid", expectedRow.ToString(), expectedColumn.ToString(), "TestWindow", null, 30))
+            _mockGridService.Setup(s => s.GetGridItemAsync("dataGrid", "TestWindow", expectedRow, expectedColumn, null, null, 30))
                            .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.GetGridItem("dataGrid", expectedRow.ToString(), expectedColumn.ToString(), "TestWindow");
+            var result = await _tools.GetGridItem(expectedRow, expectedColumn, "dataGrid", "TestWindow");
 
             // Assert
             Assert.NotNull(result);
-            _mockGridService.Verify(s => s.GetGridItemAsync("dataGrid", expectedRow.ToString(), expectedColumn.ToString(), "TestWindow", null, 30), Times.Once);
+            _mockGridService.Verify(s => s.GetGridItemAsync("dataGrid", "TestWindow", expectedRow, expectedColumn, null, null, 30), Times.Once);
             _output.WriteLine($"GridItem Row/Column properties test passed: ({expectedRow},{expectedColumn})");
         }
 
@@ -163,15 +163,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                     }
                 }
             };
-            _mockGridService.Setup(s => s.GetGridItemAsync("spanGrid", 0, 0, "TestWindow", null, 30))
+            _mockGridService.Setup(s => s.GetGridItemAsync("spanGrid", "TestWindow", 0, 0, null, null, 30))
                            .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.GetGridItem("spanGrid", 0, 0, "TestWindow");
+            var result = await _tools.GetGridItem(0, 0, "spanGrid", "TestWindow");
 
             // Assert
             Assert.NotNull(result);
-            _mockGridService.Verify(s => s.GetGridItemAsync("spanGrid", 0, 0, "TestWindow", null, 30), Times.Once);
+            _mockGridService.Verify(s => s.GetGridItemAsync("spanGrid", "TestWindow", 0, 0, null, null, 30), Times.Once);
             _output.WriteLine($"GridItem RowSpan/ColumnSpan properties test passed: span({rowSpan},{columnSpan})");
         }
 
@@ -205,15 +205,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                     }
                 }
             };
-            _mockGridService.Setup(s => s.GetGridItemAsync("normalGrid", 2, 3, "TestWindow", null, 30))
+            _mockGridService.Setup(s => s.GetGridItemAsync(automationId: "normalGrid", name: null, row: 2, column: 3, controlType: "TestWindow", processId: null, timeoutSeconds: 30))
                            .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.GetGridItem("normalGrid", 2, 3, "TestWindow");
+            var result = await _tools.GetGridItem(row: 2, column: 3, automationId: "normalGrid", controlType: "TestWindow");
 
             // Assert
             Assert.NotNull(result);
-            _mockGridService.Verify(s => s.GetGridItemAsync("normalGrid", 2, 3, "TestWindow", null, 30), Times.Once);
+            _mockGridService.Verify(s => s.GetGridItemAsync(automationId: "normalGrid", name: null, row: 2, column: 3, controlType: "TestWindow", processId: null, timeoutSeconds: 30), Times.Once);
             _output.WriteLine("GridItem single cell span test passed");
         }
 
@@ -247,15 +247,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                     }
                 }
             };
-            _mockGridService.Setup(s => s.GetGridItemAsync("mainDataGrid", 1, 1, "TestWindow", null, 30))
+            _mockGridService.Setup(s => s.GetGridItemAsync(automationId: "mainDataGrid", name: null, row: 1, column: 1, controlType: "TestWindow", processId: null, timeoutSeconds: 30))
                            .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.GetGridItem("mainDataGrid", 1, 1, "TestWindow");
+            var result = await _tools.GetGridItem(row: 1, column: 1, automationId: "mainDataGrid", controlType: "TestWindow");
 
             // Assert
             Assert.NotNull(result);
-            _mockGridService.Verify(s => s.GetGridItemAsync("mainDataGrid", 1, 1, "TestWindow", null, 30), Times.Once);
+            _mockGridService.Verify(s => s.GetGridItemAsync(automationId: "mainDataGrid", name: null, row: 1, column: 1, controlType: "TestWindow", processId: null, timeoutSeconds: 30), Times.Once);
             _output.WriteLine("GridItem ContainingGrid reference test passed");
         }
 

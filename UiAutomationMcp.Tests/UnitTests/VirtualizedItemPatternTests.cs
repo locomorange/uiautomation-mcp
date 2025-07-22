@@ -55,7 +55,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _service.RealizeItemAsync(elementId, windowTitle, processId?.ToString(), 30);
+            var result = await _service.RealizeItemAsync(elementId, windowTitle, processId.ToString(), 30);
 
             // Assert
             Assert.NotNull(result);

@@ -150,21 +150,21 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Act & Assert - Move Method
             var moveJsonResult = await _transformService.MoveElementAsync(
-                elementId, 100.0, 200.0, windowTitle, timeoutSeconds: timeout);
+                elementId, windowTitle, 100.0, 200.0, timeoutSeconds: timeout);
             
             Assert.NotNull(moveJsonResult);
             _output.WriteLine("✓ Move method implemented and callable");
 
             // Act & Assert - Resize Method
             var resizeJsonResult = await _transformService.ResizeElementAsync(
-                elementId, 800.0, 600.0, windowTitle, timeoutSeconds: timeout);
+                elementId, windowTitle, 800.0, 600.0, timeoutSeconds: timeout);
             
             Assert.NotNull(resizeJsonResult);
             _output.WriteLine("✓ Resize method implemented and callable");
 
             // Act & Assert - Rotate Method
             var rotateJsonResult = await _transformService.RotateElementAsync(
-                elementId, 90.0, windowTitle, timeoutSeconds: timeout);
+                elementId, windowTitle, 90.0, timeoutSeconds: timeout);
             
             Assert.NotNull(rotateJsonResult);
             _output.WriteLine("✓ Rotate method implemented and callable");
@@ -192,7 +192,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Act & Assert - Move with non-movable element expectation
             var moveJsonResult = await _transformService.MoveElementAsync(
-                elementId, 100.0, 200.0, windowTitle, timeoutSeconds: timeout);
+                elementId, windowTitle, 100.0, 200.0, null, null, timeout);
             
             Assert.NotNull(moveJsonResult);
             var moveResult = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(moveJsonResult);
@@ -201,7 +201,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Act & Assert - Resize with non-resizable element expectation
             var resizeJsonResult = await _transformService.ResizeElementAsync(
-                elementId, 800.0, 600.0, windowTitle, timeoutSeconds: timeout);
+                automationId: elementId, width: 800.0, height: 600.0, timeoutSeconds: timeout);
             
             Assert.NotNull(resizeJsonResult);
             var resizeResult = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(resizeJsonResult);
@@ -210,7 +210,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Act & Assert - Rotate with non-rotatable element expectation
             var rotateJsonResult = await _transformService.RotateElementAsync(
-                elementId, 90.0, windowTitle, timeoutSeconds: timeout);
+                automationId: elementId, degrees: 90.0, timeoutSeconds: timeout);
             
             Assert.NotNull(rotateJsonResult);
             var rotateResult = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(rotateJsonResult);
@@ -280,9 +280,9 @@ namespace UIAutomationMCP.Tests.Integration
             var operations = new (string Name, Func<Task<object>> Operation)[]
             {
                 ("GetCapabilities", async () => await _transformService.GetTransformCapabilitiesAsync(elementId, windowTitle, timeoutSeconds: timeout)),
-                ("Move", async () => await _transformService.MoveElementAsync(elementId, 100.0, 200.0, windowTitle, timeoutSeconds: timeout)),
-                ("Resize", async () => await _transformService.ResizeElementAsync(elementId, 800.0, 600.0, windowTitle, timeoutSeconds: timeout)),
-                ("Rotate", async () => await _transformService.RotateElementAsync(elementId, 90.0, windowTitle, timeoutSeconds: timeout))
+                ("Move", async () => await _transformService.MoveElementAsync(automationId: elementId, x: 100.0, y: 200.0, timeoutSeconds: timeout)),
+                ("Resize", async () => await _transformService.ResizeElementAsync(automationId: elementId, width: 800.0, height: 600.0, timeoutSeconds: timeout)),
+                ("Rotate", async () => await _transformService.RotateElementAsync(automationId: elementId, degrees: 90.0, timeoutSeconds: timeout))
             };
 
             foreach (var (operationName, operation) in operations)
@@ -385,7 +385,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Act
             var jsonResult = await _transformService.MoveElementAsync(
-                elementId, x, y, windowTitle, timeoutSeconds: timeout);
+                automationId: elementId, x: x, y: y, timeoutSeconds: timeout);
 
             // Assert
             Assert.NotNull(jsonResult);
@@ -421,7 +421,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Act
             var jsonResult = await _transformService.RotateElementAsync(
-                elementId, degrees, windowTitle, timeoutSeconds: timeout);
+                automationId: elementId, degrees: degrees, timeoutSeconds: timeout);
 
             // Assert
             Assert.NotNull(jsonResult);
@@ -450,11 +450,11 @@ namespace UIAutomationMCP.Tests.Integration
 
             var testScenarios = new[]
             {
-                new { Name = "Required Properties API", AutomationId = "PropertiesTestElement" },
-                new { Name = "Required Methods API", AutomationId = "MethodsTestElement" },
-                new { Name = "Exception Handling", AutomationId = "ExceptionTestElement" },
-                new { Name = "Parameter Validation", AutomationId = "ValidationTestElement" },
-                new { Name = "Pattern Support Detection", AutomationId = "SupportTestElement" }
+                new { Name = "Required Properties API", AutomationId = "PropertiesTestElement", ElementId = "PropertiesTestElement" },
+                new { Name = "Required Methods API", AutomationId = "MethodsTestElement", ElementId = "MethodsTestElement" },
+                new { Name = "Exception Handling", AutomationId = "ExceptionTestElement", ElementId = "ExceptionTestElement" },
+                new { Name = "Parameter Validation", AutomationId = "ValidationTestElement", ElementId = "ValidationTestElement" },
+                new { Name = "Pattern Support Detection", AutomationId = "SupportTestElement", ElementId = "SupportTestElement" }
             };
 
             var allTestsPassed = true;

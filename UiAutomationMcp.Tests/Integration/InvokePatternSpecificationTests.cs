@@ -121,7 +121,7 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 5;
 
             // When
-            var result = await _invokeService.InvokeElementAsync(automationId: disabledElementId, processId: null, timeoutSeconds: timeout);
+            var result = await _invokeService.InvokeElementAsync(automationId: disabledAutomationId, processId: null, timeoutSeconds: timeout);
 
             // Then - Should handle disabled elements gracefully
             Assert.NotNull(result);

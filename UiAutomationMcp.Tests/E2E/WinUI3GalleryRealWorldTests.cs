@@ -373,7 +373,7 @@ public class WinUI3GalleryRealWorldTests : BaseE2ETest
             _output.WriteLine($"Performance Summary:");
             _output.WriteLine($"  Window Info: {windowInfoDuration.TotalMilliseconds}ms");
             _output.WriteLine($"  Element Tree: {elementTreeDuration.TotalMilliseconds}ms");
-            _output.WriteLine($"  Find Elements: {findElementsDuration.TotalMilliseconds}ms");
+            _output.WriteLine($"  Find Elements: {searchElementsDuration.TotalMilliseconds}ms");
             _output.WriteLine($"  Screenshot: {screenshotDuration.TotalMilliseconds}ms");
 
             Assert.True(true, "Application performance test completed successfully");

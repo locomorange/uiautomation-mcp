@@ -254,7 +254,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Act
             var jsonResult = await _transformService.ResizeElementAsync(
-                elementId, width, height, "TestWindow", timeoutSeconds: timeout);
+                automationId: elementId, width: width, height: height, timeoutSeconds: timeout);
 
             // Assert
             Assert.NotNull(jsonResult);
@@ -480,9 +480,9 @@ namespace UIAutomationMCP.Tests.Integration
             for (int i = 0; i < concurrentOperations; i++)
             {
                 var elementId = $"ConcurrentElement_{i}";
-                var moveTask = _transformService.MoveElementAsync(elementId, i * 100.0, i * 100.0, "TestWindow", timeoutSeconds: 10).ContinueWith(t => t.Result as object);
-                var resizeTask = _transformService.ResizeElementAsync(elementId, 800.0 + i * 100, 600.0 + i * 100, "TestWindow", timeoutSeconds: 10).ContinueWith(t => t.Result as object);
-                var rotateTask = _transformService.RotateElementAsync(elementId, i * 45.0, "TestWindow", timeoutSeconds: 10).ContinueWith(t => t.Result as object);
+                var moveTask = _transformService.MoveElementAsync(automationId: elementId, x: i * 100.0, y: i * 100.0, timeoutSeconds: 10).ContinueWith(t => t.Result as object);
+                var resizeTask = _transformService.ResizeElementAsync(automationId: elementId, width: 800.0 + i * 100, height: 600.0 + i * 100, timeoutSeconds: 10).ContinueWith(t => t.Result as object);
+                var rotateTask = _transformService.RotateElementAsync(automationId: elementId, degrees: i * 45.0, timeoutSeconds: 10).ContinueWith(t => t.Result as object);
                 
                 tasks.Add(moveTask);
                 tasks.Add(resizeTask);

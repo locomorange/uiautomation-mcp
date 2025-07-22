@@ -105,9 +105,9 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
 
             // Find a specific project node (might be virtualized in large solutions)
             var projectResult = await Tools.FindItemByProperty(
-                containerId,
                 propertyName: "Name",
                 value: "MyProject.Tests",
+                automationId: containerId,
                 timeoutSeconds: 10);
 
             var projectDict = projectResult as Dictionary<string, object>;
@@ -122,9 +122,9 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
 
                 // Retry finding the project
                 projectResult = await Tools.FindItemByProperty(
-                    containerId,
                     propertyName: "Name",
                     value: "MyProject.Tests",
+                    automationId: containerId,
                     timeoutSeconds: 10);
                 
                 projectDict = projectResult as Dictionary<string, object>;
@@ -151,9 +151,9 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
 
             // Find the files list container
             var filesListResult = await Tools.FindItemByProperty(
-                "ItemsView",
                 propertyName: "ClassName",
                 value: "UIItemsView",
+                automationId: "ItemsView",
                 timeoutSeconds: 10);
 
             var filesDict = filesListResult as Dictionary<string, object>;
@@ -185,9 +185,9 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
             {
                 // These might be virtualized if the list is scrolled
                 var fileResult = await Tools.FindItemByProperty(
-                    filesId,
                     propertyName: "Name",
                     value: dllName,
+                    automationId: filesId,
                     timeoutSeconds: 5);
 
                 var fileDict = fileResult as Dictionary<string, object>;
@@ -222,9 +222,9 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
 
             // Find the main content area
             var contentResult = await Tools.FindItemByProperty(
-                "ContentArea",
                 propertyName: "ClassName",
                 value: "Chrome_RenderWidgetHostHWND",
+                automationId: "ContentArea",
                 timeoutSeconds: 10);
 
             var contentDict = contentResult as Dictionary<string, object>;
@@ -270,9 +270,9 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
 
             // Step 1: Find the results grid
             var resultsGridResult = await Tools.FindItemByProperty(
-                "QueryResults",
                 propertyName: "ControlType",
                 value: "DataGrid",
+                automationId: "QueryResults",
                 timeoutSeconds: 10);
 
             var gridDict = resultsGridResult as Dictionary<string, object>;
@@ -298,9 +298,9 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
             {
                 // Find record by ID
                 var recordResult = await Tools.FindItemByProperty(
-                    gridId,
                     propertyName: "Name",
                     value: $"Record {recordId}",
+                    automationId: gridId,
                     timeoutSeconds: 5);
 
                 var recordDict = recordResult as Dictionary<string, object>;

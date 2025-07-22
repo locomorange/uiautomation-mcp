@@ -53,75 +53,9 @@ namespace UIAutomationMCP.Tests.Integration
 
         #region Microsoft Selection Pattern Required Members Tests
 
-        /// <summary>
-        /// Tests the CanSelectMultiple property as specified in Microsoft documentation
-        /// Required Member: SelectionPattern.CanSelectMultiple Property
-        /// </summary>
-        [Fact]
-        public async Task CanSelectMultiple_ShouldReturnCorrectSelectionCapability()
-        {
-            // Arrange
-            var containerId = "test-selection-container";
-            var windowTitle = "Test Selection Window";
-            
-            try
-            {
-                // Act
-                var result = await _selectionService.CanSelectMultipleAsync(containerId, windowTitle, null, 30);
+        // Removed: CanSelectMultiple method no longer available in SelectionService
 
-                // Assert
-                Assert.NotNull(result);
-                _output.WriteLine($"CanSelectMultiple result: {result}");
-                
-                // Microsoft spec: Property should return boolean indicating multiple selection support
-                // The result structure should contain the capability information
-                var resultType = result.GetType();
-                Assert.True(resultType.GetProperty("Success") != null, 
-                    "Result should contain Success property");
-                    
-                _output.WriteLine("✓ CanSelectMultiple property test completed - Microsoft specification compliance verified");
-            }
-            catch (Exception ex)
-            {
-                _output.WriteLine($"Expected behavior: CanSelectMultiple test with mock data - {ex.Message}");
-                // In integration tests, this may fail due to missing UI elements, which is expected
-                Assert.True(true, "Test completed - Integration test may require actual UI elements");
-            }
-        }
-
-        /// <summary>
-        /// Tests the IsSelectionRequired property as specified in Microsoft documentation
-        /// Required Member: SelectionPattern.IsSelectionRequired Property
-        /// </summary>
-        [Fact]
-        public async Task IsSelectionRequired_ShouldReturnCorrectSelectionRequirement()
-        {
-            // Arrange
-            var containerId = "test-required-selection-container";
-            var windowTitle = "Test Required Selection Window";
-            
-            try
-            {
-                // Act
-                var result = await _selectionService.IsSelectionRequiredAsync(containerId, windowTitle, null, 30);
-
-                // Assert
-                Assert.NotNull(result);
-                _output.WriteLine($"IsSelectionRequired result: {result}");
-                
-                // Microsoft spec: Property should return boolean indicating if selection is required
-                var resultType = result.GetType();
-                Assert.True(resultType.GetProperty("Success") != null, 
-                    "Result should contain Success property");
-                    
-                _output.WriteLine("✓ IsSelectionRequired property test completed - Microsoft specification compliance verified");
-            }
-            catch (Exception ex)
-            {
-                _output.WriteLine($"Expected behavior: IsSelectionRequired test with mock data - {ex.Message}");
-                Assert.True(true, "Test completed - Integration test may require actual UI elements");
-            }
-        }
+        // Removed: IsSelectionRequired method no longer available in SelectionService
 
         /// <summary>
         /// Tests the GetSelection method as specified in Microsoft documentation
@@ -161,39 +95,8 @@ namespace UIAutomationMCP.Tests.Integration
 
         #region Microsoft SelectionItem Pattern Required Members Tests
 
-        /// <summary>
-        /// Tests the IsSelected property as specified in Microsoft documentation
-        /// Required Member: SelectionItemPattern.IsSelected Property
-        /// </summary>
-        [Fact]
-        public async Task IsSelected_ShouldReturnCorrectSelectionState()
-        {
-            // Arrange
-            var elementId = "test-selection-item";
-            var windowTitle = "Test SelectionItem Window";
-            
-            try
-            {
-                // Act
-                var result = await _selectionService.IsSelectedAsync(elementId, windowTitle, null, 30);
-
-                // Assert
-                Assert.NotNull(result);
-                _output.WriteLine($"IsSelected result: {result}");
-                
-                // Microsoft spec: Property should return boolean indicating if item is selected
-                var resultType = result.GetType();
-                Assert.True(resultType.GetProperty("Success") != null, 
-                    "Result should contain Success property");
-                    
-                _output.WriteLine("✓ IsSelected property test completed - Microsoft specification compliance verified");
-            }
-            catch (Exception ex)
-            {
-                _output.WriteLine($"Expected behavior: IsSelected test with mock data - {ex.Message}");
-                Assert.True(true, "Test completed - Integration test may require actual UI elements");
-            }
-        }
+        // IsSelected method was removed from SelectionService
+        // Microsoft SelectionItemPattern.IsSelected Property test is no longer applicable
 
         /// <summary>
         /// Tests the SelectionContainer property as specified in Microsoft documentation
