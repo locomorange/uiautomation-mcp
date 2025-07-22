@@ -95,29 +95,23 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 1;
 
             // When
-            var invokeResult = await _invokeService.InvokeElementAsync(automationId: nonExistentElementId, processId: null, timeoutSeconds: timeout);
-            var valueResult = await _valueService.GetValueAsync(automationId: nonExistentElementId, processId: null, timeoutSeconds: timeout);
-            var isReadOnlyResult = await _valueService.IsReadOnlyAsync(automationId: nonExistentElementId, processId: null, timeoutSeconds: timeout);
+            var invokeResult = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, processId: null, timeoutSeconds: timeout);
+            var valueResult = await _valueService.GetValueAsync(automationId: nonExistentAutomationId, processId: null, timeoutSeconds: timeout);
 
             // Then
             Assert.NotNull(invokeResult);
             Assert.NotNull(valueResult);
-            Assert.NotNull(isReadOnlyResult);
             
             var invokeJson = System.Text.Json.JsonSerializer.Serialize(invokeResult);
             var valueJson = System.Text.Json.JsonSerializer.Serialize(valueResult);
-            var isReadOnlyJson = System.Text.Json.JsonSerializer.Serialize(isReadOnlyResult);
             
             Assert.Contains("Success", invokeJson);
             Assert.Contains("false", invokeJson);
             Assert.Contains("Success", valueJson);
             Assert.Contains("false", valueJson);
-            Assert.Contains("Success", isReadOnlyJson);
-            Assert.Contains("false", isReadOnlyJson);
             
             _output.WriteLine($"Invoke result: {invokeJson}");
             _output.WriteLine($"Value result: {valueJson}");
-            _output.WriteLine($"IsReadOnly result: {isReadOnlyJson}");
         }
 
         [Fact]
@@ -128,16 +122,16 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 5;
 
             // When - Test different parameter combinations
-            var resultByAutomationId = await _invokeService.InvokeElementAsync(automationId: nonExistentElementId, processId: null, timeoutSeconds: timeout);
-            var resultByWindowTitle = await _invokeService.InvokeElementAsync(automationId: nonExistentElementId, processId: null, timeoutSeconds: timeout);
-            var resultByProcessId = await _invokeService.InvokeElementAsync(automationId: nonExistentElementId, processId: 99999, timeoutSeconds: timeout);
+            var resultByAutomationId = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, processId: null, timeoutSeconds: timeout);
+            var resultByWindowTitle = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, processId: null, timeoutSeconds: timeout);
+            var resultByProcessId = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, processId: 99999, timeoutSeconds: timeout);
 
             // Then
-            Assert.NotNull(resultByElementId);
+            Assert.NotNull(resultByAutomationId);
             Assert.NotNull(resultByWindowTitle);
             Assert.NotNull(resultByProcessId);
             
-            _output.WriteLine($"Result by ElementId: {resultByElementId}");
+            _output.WriteLine($"Result by AutomationId: {resultByAutomationId}");
             _output.WriteLine($"Result by WindowTitle: {resultByWindowTitle}");
             _output.WriteLine($"Result by ProcessId: {resultByProcessId}");
         }
@@ -178,7 +172,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // When
             var startTime = DateTime.UtcNow;
-            var result = await _invokeService.InvokeElementAsync(automationId: nonExistentElementId, processId: null, timeoutSeconds: shortTimeout);
+            var result = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, processId: null, timeoutSeconds: shortTimeout);
             var endTime = DateTime.UtcNow;
             var actualTime = (endTime - startTime).TotalSeconds;
 
@@ -278,20 +272,16 @@ namespace UIAutomationMCP.Tests.Integration
             var nonExistentAutomationId = "NonExistentElement12345";
 
             // When & Then
-            var invokeTask = _invokeService.InvokeElementAsync(automationId: nonExistentElementId, processId: null, timeoutSeconds: veryShortTimeout);
-            var valueTask = _valueService.GetValueAsync(automationId: nonExistentElementId, processId: null, timeoutSeconds: veryShortTimeout);
-            var isReadOnlyTask = _valueService.IsReadOnlyAsync(automationId: nonExistentElementId, processId: null, timeoutSeconds: veryShortTimeout);
+            var invokeTask = _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, processId: null, timeoutSeconds: veryShortTimeout);
+            var valueTask = _valueService.GetValueAsync(automationId: nonExistentAutomationId, processId: null, timeoutSeconds: veryShortTimeout);
 
             var invokeResult = await invokeTask;
             var valueResult = await valueTask;
-            var isReadOnlyResult = await isReadOnlyTask;
 
             Assert.NotNull(invokeResult);
             Assert.NotNull(valueResult);
-            Assert.NotNull(isReadOnlyResult);
             _output.WriteLine($"Timeout test - Invoke: {invokeResult}");
             _output.WriteLine($"Timeout test - Value: {valueResult}");
-            _output.WriteLine($"Timeout test - IsReadOnly: {isReadOnlyResult}");
         }
 
         public void Dispose()

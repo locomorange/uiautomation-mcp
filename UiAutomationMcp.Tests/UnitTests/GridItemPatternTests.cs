@@ -106,27 +106,27 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = $"Cell({expectedRow},{expectedColumn})",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            SupportedPatterns = new List<string> { "GridItemPattern" },
-                            GridItem = new GridItemInfo
+                            SupportedPatterns = new string[] { "GridItemPattern" },
+                            Details = new ElementDetails { GridItem = new GridItemInfo
                             {
                                 Row = 0,
                                 Column = 0,
                                 RowSpan = 1,
                                 ColumnSpan = 1
-                            }
+                            } }
                         }
                     }
                 }
             };
-            _mockGridService.Setup(s => s.GetGridItemAsync("dataGrid", expectedRow, expectedColumn, "TestWindow", null, 30))
+            _mockGridService.Setup(s => s.GetGridItemAsync("dataGrid", expectedRow.ToString(), expectedColumn.ToString(), "TestWindow", null, 30))
                            .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.GetGridItem("dataGrid", expectedRow, expectedColumn, "TestWindow");
+            var result = await _tools.GetGridItem("dataGrid", expectedRow.ToString(), expectedColumn.ToString(), "TestWindow");
 
             // Assert
             Assert.NotNull(result);
-            _mockGridService.Verify(s => s.GetGridItemAsync("dataGrid", expectedRow, expectedColumn, "TestWindow", null, 30), Times.Once);
+            _mockGridService.Verify(s => s.GetGridItemAsync("dataGrid", expectedRow.ToString(), expectedColumn.ToString(), "TestWindow", null, 30), Times.Once);
             _output.WriteLine($"GridItem Row/Column properties test passed: ({expectedRow},{expectedColumn})");
         }
 
@@ -151,14 +151,14 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = "Spanned Cell",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            SupportedPatterns = new List<string> { "GridItemPattern" },
-                            GridItem = new GridItemInfo
+                            SupportedPatterns = new string[] { "GridItemPattern" },
+                            Details = new ElementDetails { GridItem = new GridItemInfo
                             {
                                 Row = 0,
                                 Column = 0,
                                 RowSpan = 1,
                                 ColumnSpan = 1
-                            },
+                            } },
                         }
                     }
                 }
@@ -193,14 +193,14 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = "Single Cell",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            SupportedPatterns = new List<string> { "GridItemPattern" },
-                            GridItem = new GridItemInfo
+                            SupportedPatterns = new string[] { "GridItemPattern" },
+                            Details = new ElementDetails { GridItem = new GridItemInfo
                             {
                                 Row = 0,
                                 Column = 0,
                                 RowSpan = 1,
                                 ColumnSpan = 1
-                            },
+                            } },
                         }
                     }
                 }
@@ -235,14 +235,14 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = "Grid Item 1",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            SupportedPatterns = new List<string> { "GridItemPattern" },
-                            GridItem = new GridItemInfo
+                            SupportedPatterns = new string[] { "GridItemPattern" },
+                            Details = new ElementDetails { GridItem = new GridItemInfo
                             {
                                 Row = 0,
                                 Column = 0,
                                 RowSpan = 1,
                                 ColumnSpan = 1
-                            },
+                            } },
                         }
                     }
                 }
@@ -284,14 +284,14 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = $"Merged Cell Anchor({anchorRow},{anchorColumn})",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            SupportedPatterns = new List<string> { "GridItemPattern" },
-                            GridItem = new GridItemInfo
+                            SupportedPatterns = new string[] { "GridItemPattern" },
+                            Details = new ElementDetails { GridItem = new GridItemInfo
                             {
                                 Row = 0,
                                 Column = 0,
                                 RowSpan = 1,
                                 ColumnSpan = 1
-                            }
+                            } }
                         }
                     }
                 }
@@ -329,14 +329,14 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = $"Merged Anchor Cell({anchorRow},{anchorColumn})",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            SupportedPatterns = new List<string> { "GridItemPattern" },
-                            GridItem = new GridItemInfo
+                            SupportedPatterns = new string[] { "GridItemPattern" },
+                            Details = new ElementDetails { GridItem = new GridItemInfo
                             {
                                 Row = 0,
                                 Column = 0,
                                 RowSpan = 1,
                                 ColumnSpan = 1
-                            }
+                            } }
                         }
                     }
                 }
@@ -375,14 +375,14 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = "Top Left Cell",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            SupportedPatterns = new List<string> { "GridItemPattern" },
-                            GridItem = new GridItemInfo
+                            SupportedPatterns = new string[] { "GridItemPattern" },
+                            Details = new ElementDetails { GridItem = new GridItemInfo
                             {
                                 Row = 0,
                                 Column = 0,
                                 RowSpan = 1,
                                 ColumnSpan = 1
-                            }
+                            } }
                         }
                     }
                 }
@@ -420,14 +420,14 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = $"Consistency Cell({row},{column})",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            SupportedPatterns = new List<string> { "GridItemPattern" },
-                            GridItem = new GridItemInfo
+                            SupportedPatterns = new string[] { "GridItemPattern" },
+                            Details = new ElementDetails { GridItem = new GridItemInfo
                             {
                                 Row = 0,
                                 Column = 0,
                                 RowSpan = 1,
                                 ColumnSpan = 1
-                            }
+                            } }
                         }
                     }
                 }
@@ -511,14 +511,14 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = "Consistent Item",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            SupportedPatterns = new List<string> { "GridItemPattern" },
-                            GridItem = new GridItemInfo
+                            SupportedPatterns = new string[] { "GridItemPattern" },
+                            Details = new ElementDetails { GridItem = new GridItemInfo
                             {
                                 Row = 0,
                                 Column = 0,
                                 RowSpan = 1,
                                 ColumnSpan = 1
-                            }
+                            } }
                         }
                     }
                 }
@@ -556,14 +556,14 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = $"Span Item({row},{column})",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            SupportedPatterns = new List<string> { "GridItemPattern" },
-                            GridItem = new GridItemInfo
+                            SupportedPatterns = new string[] { "GridItemPattern" },
+                            Details = new ElementDetails { GridItem = new GridItemInfo
                             {
                                 Row = 0,
                                 Column = 0,
                                 RowSpan = 1,
                                 ColumnSpan = 1
-                            }
+                            } }
                         }
                     }
                 }
@@ -638,14 +638,14 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = "Empty Param Cell",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            SupportedPatterns = new List<string> { "GridItemPattern" },
-                            GridItem = new GridItemInfo
+                            SupportedPatterns = new string[] { "GridItemPattern" },
+                            Details = new ElementDetails { GridItem = new GridItemInfo
                             {
                                 Row = 0,
                                 Column = 0,
                                 RowSpan = 1,
                                 ColumnSpan = 1
-                            }
+                            } }
                         }
                     }
                 }
@@ -686,14 +686,14 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = "Process Cell",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            SupportedPatterns = new List<string> { "GridItemPattern" },
-                            GridItem = new GridItemInfo
+                            SupportedPatterns = new string[] { "GridItemPattern" },
+                            Details = new ElementDetails { GridItem = new GridItemInfo
                             {
                                 Row = 0,
                                 Column = 0,
                                 RowSpan = 1,
                                 ColumnSpan = 1
-                            }
+                            } }
                         }
                     }
                 }
@@ -731,14 +731,14 @@ namespace UIAutomationMCP.Tests.UnitTests
                             Name = "Timeout Cell",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            SupportedPatterns = new List<string> { "GridItemPattern" },
-                            GridItem = new GridItemInfo
+                            SupportedPatterns = new string[] { "GridItemPattern" },
+                            Details = new ElementDetails { GridItem = new GridItemInfo
                             {
                                 Row = 0,
                                 Column = 0,
                                 RowSpan = 1,
                                 ColumnSpan = 1
-                            }
+                            } }
                         }
                     }
                 }
