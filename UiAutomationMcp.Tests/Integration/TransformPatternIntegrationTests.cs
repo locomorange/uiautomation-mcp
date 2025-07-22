@@ -87,11 +87,11 @@ namespace UIAutomationMCP.Tests.Integration
             const string windowTitle = "NonExistentWindow";
             const int timeout = 5; // 短いタイムアウト
 
-            _output.WriteLine($"Testing GetTransformCapabilities with non-existent element: {nonExistentElementId}");
+            _output.WriteLine($"Testing GetTransformCapabilities with non-existent element: {nonExistentAutomationId}");
 
             // Act
             var jsonResult = await _transformService.GetTransformCapabilitiesAsync(
-                nonExistentElementId, windowTitle, timeoutSeconds: timeout);
+                nonExistentAutomationId, windowTitle, null, null, timeout);
 
             // Assert
             Assert.NotNull(jsonResult);
@@ -138,12 +138,12 @@ namespace UIAutomationMCP.Tests.Integration
             const double y = 200.0;
             const int timeout = 5;
 
-            _output.WriteLine($"Testing MoveElement with non-existent element: {nonExistentElementId}");
+            _output.WriteLine($"Testing MoveElement with non-existent element: {nonExistentAutomationId}");
             _output.WriteLine($"  Target coordinates: ({x}, {y})");
 
             // Act
             var jsonResult = await _transformService.MoveElementAsync(
-                nonExistentElementId, x, y, "TestWindow", timeoutSeconds: timeout);
+                nonExistentAutomationId, "TestWindow", x, y, null, null, timeout);
 
             // Assert
             Assert.NotNull(jsonResult);
@@ -195,12 +195,12 @@ namespace UIAutomationMCP.Tests.Integration
             const double height = 600.0;
             const int timeout = 5;
 
-            _output.WriteLine($"Testing ResizeElement with non-existent element: {nonExistentElementId}");
+            _output.WriteLine($"Testing ResizeElement with non-existent element: {nonExistentAutomationId}");
             _output.WriteLine($"  Target dimensions: {width}x{height}");
 
             // Act
             var jsonResult = await _transformService.ResizeElementAsync(
-                nonExistentElementId, width, height, "TestWindow", timeoutSeconds: timeout);
+                nonExistentAutomationId, "TestWindow", width, height, null, null, timeout);
 
             // Assert
             Assert.NotNull(jsonResult);
@@ -278,12 +278,12 @@ namespace UIAutomationMCP.Tests.Integration
             const double degrees = 90.0;
             const int timeout = 5;
 
-            _output.WriteLine($"Testing RotateElement with non-existent element: {nonExistentElementId}");
+            _output.WriteLine($"Testing RotateElement with non-existent element: {nonExistentAutomationId}");
             _output.WriteLine($"  Target rotation: {degrees} degrees");
 
             // Act
             var jsonResult = await _transformService.RotateElementAsync(
-                nonExistentElementId, degrees, "TestWindow", timeoutSeconds: timeout);
+                nonExistentAutomationId, "TestWindow", degrees, null, null, timeout);
 
             // Assert
             Assert.NotNull(jsonResult);

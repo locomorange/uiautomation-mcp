@@ -155,8 +155,8 @@ namespace UIAutomationMCP.Tests.Tools
             // Arrange
             var expectedElements = new List<ElementInfo>
             {
-                new ElementInfo { TargetAutomationId = "btn1", Name = "Button1", ControlType = "Button" },
-                new ElementInfo { TargetAutomationId = "btn2", Name = "Button2", ControlType = "Button" }
+                new ElementInfo { AutomationId = "btn1", Name = "Button1", ControlType = "Button" },
+                new ElementInfo { AutomationId = "btn2", Name = "Button2", ControlType = "Button" }
             };
             
             var elementSearchResult = new ElementSearchResult
@@ -181,7 +181,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockElementSearchService.Verify(s => s.SearchElementsAsync(windowTitle: "TestWindow", searchText: "Button", controlType: null, processId: null, timeoutSeconds: 60), Times.Once);
+            _mockElementSearchService.Verify(s => s.FindElementsAsync("TestWindow", "Button", null, null, 60), Times.Once);
             _output.WriteLine($"SearchElements test passed: Found {expectedElements.Count} elements");
         }
 
@@ -243,7 +243,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockInvokeService.Verify(s => s.InvokeElementAsync(automationId: "testButton", name: null, controlType: null, processId: 1234, timeoutSeconds: 30), Times.Once);
+            _mockInvokeService.Verify(s => s.InvokeElementAsync("testButton", null, null, 1234, 30), Times.Once);
             _output.WriteLine("InvokeElement with ProcessId test passed");
         }
 
@@ -273,7 +273,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockInvokeService.Verify(s => s.InvokeElementAsync(automationId: "testButton", name: "TestWindow", controlType: null, processId: null, timeoutSeconds: customTimeout), Times.Once);
+            _mockInvokeService.Verify(s => s.InvokeElementAsync("testButton", "TestWindow", null, null, customTimeout), Times.Once);
             _output.WriteLine("InvokeElement with custom timeout test passed");
         }
 
@@ -303,7 +303,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockInvokeService.Verify(s => s.InvokeElementAsync(automationId: "nonExistentButton", name: "TestWindow", controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockInvokeService.Verify(s => s.InvokeElementAsync("nonExistentButton", "TestWindow", null, null, 30), Times.Once);
             _output.WriteLine("InvokeElement element not found test passed");
         }
 
@@ -347,7 +347,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockInvokeService.Verify(s => s.InvokeElementAsync(automationId: "", name: "TestWindow", controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockInvokeService.Verify(s => s.InvokeElementAsync("", "TestWindow", null, null, 30), Times.Once);
             _output.WriteLine("InvokeElement empty element ID test passed");
         }
 
@@ -358,7 +358,7 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ActionResult
             {
                 Success = true,
-                TargetAutomationId = "textBox",
+                AutomationId = "textBox",
                 Action = "SetValue",
                 ActionName = "SetValue",
                 Completed = true,
@@ -379,7 +379,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockValueService.Verify(s => s.SetValueAsync(value: "textBox", automationId: "Test Value", name: "TestWindow", controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockValueService.Verify(s => s.SetValueAsync("textBox", "Test Value", "TestWindow", null, null, 30), Times.Once);
             _output.WriteLine("SetElementValue test passed");
         }
 
@@ -393,7 +393,7 @@ namespace UIAutomationMCP.Tests.Tools
                 Success = true,
                 Value = true,
                 PropertyName = "IsReadOnly",
-                TargetAutomationId = "textBox",
+                AutomationId = "textBox",
                 // WindowTitle not available in ElementSearchResult,
                 Pattern = "ValuePattern",
                 Method = "IsReadOnlyAsync",
@@ -414,7 +414,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockValueService.Verify(s => s.IsReadOnlyAsync(automationId: "textBox", name: "TestWindow", controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockValueService.Verify(s => s.IsReadOnlyAsync("textBox", "TestWindow", null, null, 30), Times.Once);
             _output.WriteLine("IsElementReadOnly test passed");
         }
 
@@ -427,7 +427,7 @@ namespace UIAutomationMCP.Tests.Tools
                 Success = false,
                 Value = false,
                 PropertyName = "IsReadOnly",
-                TargetAutomationId = "nonExistentElement",
+                AutomationId = "nonExistentElement",
                 // WindowTitle not available in ElementSearchResult,
                 Pattern = "ValuePattern",
                 Method = "IsReadOnlyAsync",
@@ -449,7 +449,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockValueService.Verify(s => s.IsReadOnlyAsync(automationId: "nonExistentElement", name: "TestWindow", controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockValueService.Verify(s => s.IsReadOnlyAsync("nonExistentElement", "TestWindow", null, null, 30), Times.Once);
             _output.WriteLine("IsElementReadOnly element not found test passed");
         }
 
@@ -462,7 +462,7 @@ namespace UIAutomationMCP.Tests.Tools
                 Success = false,
                 Value = false,
                 PropertyName = "IsReadOnly",
-                TargetAutomationId = "unsupportedElement",
+                AutomationId = "unsupportedElement",
                 // WindowTitle not available in ElementSearchResult,
                 Pattern = "ValuePattern",
                 Method = "IsReadOnlyAsync",
@@ -484,7 +484,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockValueService.Verify(s => s.IsReadOnlyAsync(automationId: "unsupportedElement", name: "TestWindow", controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockValueService.Verify(s => s.IsReadOnlyAsync("unsupportedElement", "TestWindow", null, null, 30), Times.Once);
             _output.WriteLine("IsElementReadOnly ValuePattern not supported test passed");
         }
 
@@ -497,7 +497,7 @@ namespace UIAutomationMCP.Tests.Tools
                 Success = true,
                 Value = false,
                 PropertyName = "IsReadOnly",
-                TargetAutomationId = "editableTextBox",
+                AutomationId = "editableTextBox",
                 // WindowTitle not available in ElementSearchResult,
                 Pattern = "ValuePattern",
                 Method = "IsReadOnlyAsync",
@@ -518,7 +518,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockValueService.Verify(s => s.IsReadOnlyAsync(automationId: "editableTextBox", name: "TestWindow", controlType: null, processId: null, timeoutSeconds: 60), Times.Once);
+            _mockValueService.Verify(s => s.IsReadOnlyAsync("editableTextBox", "TestWindow", null, null, 60), Times.Once);
             _output.WriteLine("IsElementReadOnly with custom timeout test passed");
         }
 
@@ -529,7 +529,7 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ActionResult
             {
                 Success = true,
-                TargetAutomationId = "checkbox",
+                AutomationId = "checkbox",
                 Action = "Toggle",
                 ActionName = "Toggle",
                 TargetName = "checkbox",
@@ -555,7 +555,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockToggleService.Verify(s => s.ToggleElementAsync(automationId: "checkbox", name: "TestWindow", controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockToggleService.Verify(s => s.ToggleElementAsync("checkbox", "TestWindow", null, null, 30), Times.Once);
             _output.WriteLine("ToggleElement test passed");
         }
 
@@ -567,7 +567,7 @@ namespace UIAutomationMCP.Tests.Tools
             {
                 Success = true,
                 Action = "SelectItem",
-                TargetAutomationId = "listItem",
+                AutomationId = "listItem",
                 // WindowTitle not available in ElementSearchResult,
                 Completed = true,
                 ErrorMessage = null
@@ -587,7 +587,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.SelectItemAsync(automationId: "listItem", name: "TestWindow", controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockSelectionService.Verify(s => s.SelectItemAsync("listItem", "TestWindow", null, null, 30), Times.Once);
             _output.WriteLine("SelectElement test passed");
         }
 
@@ -603,7 +603,7 @@ namespace UIAutomationMCP.Tests.Tools
             {
                 Success = true,
                 Action = "ScrollElement",
-                TargetAutomationId = "scrollableList",
+                AutomationId = "scrollableList",
                 // WindowTitle not available in ElementSearchResult,
                 Completed = true,
                 ErrorMessage = null
@@ -623,7 +623,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockLayoutService.Verify(s => s.ScrollElementAsync(automationId: "scrollableList", name: null, direction: "down", amount: 1.0, controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockLayoutService.Verify(s => s.ScrollElementAsync("scrollableList", null, "down", 1.0, null, null, 30), Times.Once);
             _output.WriteLine("ScrollElement test passed");
         }
 
@@ -638,7 +638,7 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ActionResult
             {
                 Success = true,
-                TargetAutomationId = "slider",
+                AutomationId = "slider",
                 Action = "SetRangeValue",
                 ActionName = "SetRangeValue",
                 Completed = true,
@@ -659,7 +659,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockRangeService.Verify(s => s.SetRangeValueAsync(automationId: "slider", name: null, value: 50.0, controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockRangeService.Verify(s => s.SetRangeValueAsync("slider", null, 50.0, null, null, 30), Times.Once);
             _output.WriteLine("SetRangeValue test passed");
         }
 
@@ -670,7 +670,7 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new RangeValueResult
             {
                 Success = true,
-                TargetAutomationId = "slider",
+                AutomationId = "slider",
                 // WindowTitle not available in ElementSearchResult,
                 CurrentValue = 25.0,
                 Value = 25.0,
@@ -697,7 +697,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockRangeService.Verify(s => s.GetRangeValueAsync(automationId: "slider", name: "TestWindow", controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockRangeService.Verify(s => s.GetRangeValueAsync("slider", "TestWindow", null, null, 30), Times.Once);
             _output.WriteLine("GetRangeValue test passed");
         }
 
@@ -712,7 +712,7 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new TextInfoResult
             {
                 Success = true,
-                TargetAutomationId = "textElement",
+                AutomationId = "textElement",
                 // WindowTitle not available in ElementSearchResult,
                 Text = "Sample text content",
                 TextLength = 19,
@@ -740,7 +740,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockTextService.Verify(s => s.GetTextAsync(automationId: "textElement", name: "TestWindow", controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockTextService.Verify(s => s.GetTextAsync("textElement", "TestWindow", null, null, 30), Times.Once);
             _output.WriteLine("GetText test passed");
         }
 
@@ -751,7 +751,7 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ActionResult
             {
                 Success = true,
-                TargetAutomationId = "textElement",
+                AutomationId = "textElement",
                 Action = "SelectText",
                 ActionName = "SelectText",
                 TargetName = "textElement",
@@ -773,7 +773,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockTextService.Verify(s => s.SelectTextAsync(automationId: "textElement", name: null, startIndex: 5, length: 10, controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockTextService.Verify(s => s.SelectTextAsync("textElement", null, 5, 10, null, null, 30), Times.Once);
             _output.WriteLine("SelectText test passed");
         }
 
@@ -808,7 +808,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockScreenshotService.Verify(s => s.TakeScreenshotAsync(windowTitle: "TestWindow", outputPath: null, maxTokens: 0, processId: null, timeoutSeconds: 60, cancellationToken: It.IsAny<CancellationToken>()), Times.Once);
+            _mockScreenshotService.Verify(s => s.TakeScreenshotAsync("TestWindow", null, 0, null, 60, It.IsAny<CancellationToken>()), Times.Once);
             _output.WriteLine("TakeScreenshot test passed");
         }
 
@@ -828,7 +828,7 @@ namespace UIAutomationMCP.Tests.Tools
             var elementTreeResult = new ElementTreeResult
             {
                 Success = true,
-                RootNode = new TreeNode { Name = "TestWindow", TargetAutomationId = "root1" },
+                RootNode = new TreeNode { Name = "TestWindow", AutomationId = "root1" },
                 TotalElements = 1
             };
             var serverResponse = new ServerEnhancedResponse<ElementTreeResult>
@@ -847,7 +847,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockTreeNavigationService.Verify(s => s.GetElementTreeAsync(processId: null, maxDepth: 3, timeoutSeconds: 60), Times.Once);
+            _mockTreeNavigationService.Verify(s => s.GetElementTreeAsync(null, 3, 60), Times.Once);
             _output.WriteLine("GetElementTree test passed");
         }
 
@@ -876,7 +876,7 @@ namespace UIAutomationMCP.Tests.Tools
             Assert.NotNull(result);
             // The result is now a JSON string, so we just verify it's not null
             // and the service was called correctly
-            _mockApplicationLauncher.Verify(s => s.LaunchWin32ApplicationAsync(applicationPath: "notepad.exe", arguments: It.IsAny<string>(), workingDirectory: It.IsAny<string>(), timeoutSeconds: It.IsAny<int>(), cancellationToken: It.IsAny<CancellationToken>()), Times.Once);
+            _mockApplicationLauncher.Verify(s => s.LaunchWin32ApplicationAsync("notepad.exe", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Once);
             _output.WriteLine("LaunchWin32Application test passed");
         }
 
@@ -903,7 +903,7 @@ namespace UIAutomationMCP.Tests.Tools
             Assert.NotNull(result);
             // The result is now a JSON string, so we just verify it's not null
             // and the service was called correctly
-            _mockApplicationLauncher.Verify(s => s.LaunchApplicationByNameAsync(applicationName: "Calculator", timeoutSeconds: It.IsAny<int>(), cancellationToken: It.IsAny<CancellationToken>()), Times.Once);
+            _mockApplicationLauncher.Verify(s => s.LaunchApplicationByNameAsync("Calculator", It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Once);
             _output.WriteLine("LaunchApplicationByName test passed");
         }
 
@@ -916,8 +916,8 @@ namespace UIAutomationMCP.Tests.Tools
                 Success = true,
                 SelectedItems = new List<SelectionItem>
                 {
-                    new SelectionItem { TargetAutomationId = "item1", Name = "Item 1", IsSelected = true },
-                    new SelectionItem { TargetAutomationId = "item2", Name = "Item 2", IsSelected = true }
+                    new SelectionItem { AutomationId = "item1", Name = "Item 1", IsSelected = true },
+                    new SelectionItem { AutomationId = "item2", Name = "Item 2", IsSelected = true }
                 },
                 SelectedCount = 2
             };
@@ -937,7 +937,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.GetSelectionAsync(automationId: "listContainer", name: "TestWindow", controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockSelectionService.Verify(s => s.GetSelectionAsync("listContainer", "TestWindow", null, null, 30), Times.Once);
             _output.WriteLine("GetSelection test passed");
         }
 
@@ -968,7 +968,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockWindowService.Verify(s => s.WindowOperationAsync(operation: "minimize", windowTitle: "TestWindow", processId: null, timeoutSeconds: 30), Times.Once);
+            _mockWindowService.Verify(s => s.WindowOperationAsync("minimize", "TestWindow", null, 30), Times.Once);
             _output.WriteLine("WindowAction test passed");
         }
 
@@ -1003,7 +1003,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockWindowService.Verify(s => s.GetWindowInteractionStateAsync(windowTitle: "TestWindow", processId: null, timeoutSeconds: 30), Times.Once);
+            _mockWindowService.Verify(s => s.GetWindowInteractionStateAsync("TestWindow", null, 30), Times.Once);
             _output.WriteLine("GetWindowInteractionState test passed");
         }
 
@@ -1043,7 +1043,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockWindowService.Verify(s => s.GetWindowCapabilitiesAsync(windowTitle: "TestWindow", processId: null, timeoutSeconds: 30), Times.Once);
+            _mockWindowService.Verify(s => s.GetWindowCapabilitiesAsync("TestWindow", null, 30), Times.Once);
             _output.WriteLine("GetWindowCapabilities test passed");
         }
 
@@ -1074,7 +1074,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockWindowService.Verify(s => s.WaitForInputIdleAsync(timeoutMilliseconds: 5000, windowTitle: "TestWindow", processId: null, timeoutSeconds: 30), Times.Once);
+            _mockWindowService.Verify(s => s.WaitForInputIdleAsync(5000, "TestWindow", null, 30), Times.Once);
             _output.WriteLine("WaitForWindowInputIdle test passed");
         }
 
@@ -1109,7 +1109,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockWindowService.Verify(s => s.WindowOperationAsync(operation: action, windowTitle: windowTitle, processId: processId, timeoutSeconds: 30), Times.Once);
+            _mockWindowService.Verify(s => s.WindowOperationAsync(action, windowTitle, processId, 30), Times.Once);
             _output.WriteLine($"WindowAction with parameters ({action}, {windowTitle}, {processId}) test passed");
         }
 
@@ -1143,7 +1143,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockWindowService.Verify(s => s.WaitForInputIdleAsync(timeoutMilliseconds: timeoutMs, windowTitle: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockWindowService.Verify(s => s.WaitForInputIdleAsync(timeoutMs, null, null, 30), Times.Once);
             _output.WriteLine($"WaitForWindowInputIdle with timeout {timeoutMs}ms test passed");
         }
 
@@ -1159,7 +1159,7 @@ namespace UIAutomationMCP.Tests.Tools
         //     var resultObject = new GridInfoResult
         //     {
         //         Success = true,
-        //         GridTargetAutomationId = "grid1",
+        //         GridAutomationId = "grid1",
         //         // WindowTitle not available in ElementSearchResult,
         //         RowCount = 10,
         //         ColumnCount = 5,
@@ -1201,7 +1201,7 @@ namespace UIAutomationMCP.Tests.Tools
                 {
                     new UIAutomationMCP.Shared.ElementInfo
                     {
-                        TargetAutomationId = "cell_1_2",
+                        AutomationId = "cell_1_2",
                         Name = "Cell Content",
                         ControlType = "DataItem"
                     }
@@ -1223,7 +1223,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockGridService.Verify(s => s.GetGridItemAsync(automationId: "grid1", name: null, row: 1, column: 2, controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockGridService.Verify(s => s.GetGridItemAsync("grid1", null, 1, 2, null, null, 30), Times.Once);
             _output.WriteLine("GetGridItem test passed");
         }
 
@@ -1234,7 +1234,7 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new TableInfoResult
             {
                 Success = true,
-                TableTargetAutomationId = "table1",
+                TableElementId = "table1",
                 // WindowTitle not available in ElementSearchResult,
                 RowCount = 5,
                 ColumnCount = 3,
@@ -1263,7 +1263,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockTableService.Verify(s => s.GetTableInfoAsync(automationId: "table1", name: "TestWindow", controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockTableService.Verify(s => s.GetTableInfoAsync("table1", "TestWindow", null, null, 30), Times.Once);
             _output.WriteLine("GetTableInfo test passed");
         }
 
@@ -1279,7 +1279,7 @@ namespace UIAutomationMCP.Tests.Tools
                 {
                     new UIAutomationMCP.Shared.ElementInfo
                     {
-                        TargetAutomationId = "viewContainer1",
+                        AutomationId = "viewContainer1",
                         Name = "View Container",
                         ControlType = "List"
                     }
@@ -1317,7 +1317,7 @@ namespace UIAutomationMCP.Tests.Tools
                 {
                     new UIAutomationMCP.Shared.ElementInfo
                     {
-                        TargetAutomationId = "viewContainer1",
+                        AutomationId = "viewContainer1",
                         Name = "View Container",
                         ControlType = "List"
                     }
@@ -1339,7 +1339,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockMultipleViewService.Verify(s => s.GetAvailableViewsAsync(automationId: "viewContainer1", name: null, controlType: null, processId: 1234, timeoutSeconds: 30), Times.Once);
+            _mockMultipleViewService.Verify(s => s.GetAvailableViewsAsync("viewContainer1", null, null, 1234, 30), Times.Once);
             _output.WriteLine("GetAvailableViews with ProcessId test passed");
         }
 
@@ -1355,7 +1355,7 @@ namespace UIAutomationMCP.Tests.Tools
                 {
                     new UIAutomationMCP.Shared.ElementInfo
                     {
-                        TargetAutomationId = "viewContainer1",
+                        AutomationId = "viewContainer1",
                         Name = "View Container",
                         ControlType = "List"
                     }
@@ -1377,7 +1377,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockMultipleViewService.Verify(s => s.GetAvailableViewsAsync(automationId: "viewContainer1", name: "TestWindow", controlType: null, processId: null, timeoutSeconds: 60), Times.Once);
+            _mockMultipleViewService.Verify(s => s.GetAvailableViewsAsync("viewContainer1", "TestWindow", null, null, 60), Times.Once);
             _output.WriteLine("GetAvailableViews with custom timeout test passed");
         }
 
@@ -1407,7 +1407,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockMultipleViewService.Verify(s => s.GetAvailableViewsAsync(automationId: "", name: "TestWindow", controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockMultipleViewService.Verify(s => s.GetAvailableViewsAsync("", "TestWindow", null, null, 30), Times.Once);
             _output.WriteLine("GetAvailableViews with empty elementId test passed");
         }
 
@@ -1439,7 +1439,7 @@ namespace UIAutomationMCP.Tests.Tools
                 {
                     new UIAutomationMCP.Shared.ElementInfo
                     {
-                        TargetAutomationId = "viewContainer1",
+                        AutomationId = "viewContainer1",
                         Name = "View Container",
                         ControlType = "List"
                     }
@@ -1477,7 +1477,7 @@ namespace UIAutomationMCP.Tests.Tools
                 {
                     new UIAutomationMCP.Shared.ElementInfo
                     {
-                        TargetAutomationId = "viewContainer1",
+                        AutomationId = "viewContainer1",
                         Name = "View Container",
                         ControlType = "List"
                     }
@@ -1499,7 +1499,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockMultipleViewService.Verify(s => s.GetCurrentViewAsync(automationId: "viewContainer1", name: null, controlType: null, processId: 1234, timeoutSeconds: 30), Times.Once);
+            _mockMultipleViewService.Verify(s => s.GetCurrentViewAsync("viewContainer1", null, null, 1234, 30), Times.Once);
             _output.WriteLine("GetCurrentView with ProcessId test passed");
         }
 
@@ -1515,7 +1515,7 @@ namespace UIAutomationMCP.Tests.Tools
                 {
                     new UIAutomationMCP.Shared.ElementInfo
                     {
-                        TargetAutomationId = "viewContainer1",
+                        AutomationId = "viewContainer1",
                         Name = "View Container",
                         ControlType = "List"
                     }
@@ -1537,7 +1537,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockMultipleViewService.Verify(s => s.GetCurrentViewAsync(automationId: "viewContainer1", name: "TestWindow", controlType: null, processId: null, timeoutSeconds: 60), Times.Once);
+            _mockMultipleViewService.Verify(s => s.GetCurrentViewAsync("viewContainer1", "TestWindow", null, null, 60), Times.Once);
             _output.WriteLine("GetCurrentView with custom timeout test passed");
         }
 
@@ -1569,7 +1569,7 @@ namespace UIAutomationMCP.Tests.Tools
                 {
                     new UIAutomationMCP.Shared.ElementInfo
                     {
-                        TargetAutomationId = "viewContainer1",
+                        AutomationId = "viewContainer1",
                         Name = "View Container",
                         ControlType = "List"
                     }
@@ -1591,7 +1591,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockMultipleViewService.Verify(s => s.SetViewAsync(automationId: "viewContainer1", name: null, viewId: 2, controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockMultipleViewService.Verify(s => s.SetViewAsync("viewContainer1", null, 2, null, null, 30), Times.Once);
             _output.WriteLine("SetView test passed");
         }
 
@@ -1607,7 +1607,7 @@ namespace UIAutomationMCP.Tests.Tools
                 {
                     new UIAutomationMCP.Shared.ElementInfo
                     {
-                        TargetAutomationId = "viewContainer1",
+                        AutomationId = "viewContainer1",
                         ProcessId = 1234,
                         ControlType = "MultipleView",
                         Name = "List View",
@@ -1633,7 +1633,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockMultipleViewService.Verify(s => s.SetViewAsync(automationId: "viewContainer1", name: null, viewId: 1, controlType: null, processId: 1234, timeoutSeconds: 30), Times.Once);
+            _mockMultipleViewService.Verify(s => s.SetViewAsync("viewContainer1", null, 1, null, 1234, 30), Times.Once);
             _output.WriteLine("SetView with ProcessId test passed");
         }
 
@@ -1662,7 +1662,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockMultipleViewService.Verify(s => s.SetViewAsync(automationId: "viewContainer1", name: null, viewId: 3, controlType: null, processId: null, timeoutSeconds: 60), Times.Once);
+            _mockMultipleViewService.Verify(s => s.SetViewAsync("viewContainer1", null, 3, null, null, 60), Times.Once);
             _output.WriteLine("SetView with custom timeout test passed");
         }
 
@@ -1678,7 +1678,7 @@ namespace UIAutomationMCP.Tests.Tools
             await Assert.ThrowsAsync<ArgumentException>(() => 
                 _tools.SetView("viewContainer1", 999, "TestWindow"));
             
-            _mockMultipleViewService.Verify(s => s.SetViewAsync(automationId: "viewContainer1", name: null, viewId: 999, controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockMultipleViewService.Verify(s => s.SetViewAsync("viewContainer1", null, 999, null, null, 30), Times.Once);
             _output.WriteLine("SetView with invalid viewId test passed");
         }
 
@@ -1707,7 +1707,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockMultipleViewService.Verify(s => s.SetViewAsync(automationId: "viewContainer1", name: null, viewId: 0, controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockMultipleViewService.Verify(s => s.SetViewAsync("viewContainer1", null, 0, null, null, 30), Times.Once);
             _output.WriteLine("SetView with zero viewId test passed");
         }
 
@@ -1723,7 +1723,7 @@ namespace UIAutomationMCP.Tests.Tools
             await Assert.ThrowsAsync<ArgumentException>(() => 
                 _tools.SetView("viewContainer1", -1, "TestWindow"));
             
-            _mockMultipleViewService.Verify(s => s.SetViewAsync(automationId: "viewContainer1", name: null, viewId: -1, controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockMultipleViewService.Verify(s => s.SetViewAsync("viewContainer1", null, -1, null, null, 30), Times.Once);
             _output.WriteLine("SetView with negative viewId test passed");
         }
 
@@ -1739,7 +1739,7 @@ namespace UIAutomationMCP.Tests.Tools
                     new UIAutomationMCP.Shared.ElementInfo
                     {
                         Name = "Submit",
-                        TargetAutomationId = "button1",
+                        AutomationId = "button1",
                         ControlType = "Button",
                         IsEnabled = true,
                         IsVisible = true,
@@ -1780,7 +1780,7 @@ namespace UIAutomationMCP.Tests.Tools
                     {
                         Name = "Element1",
                         ControlType = "Custom",
-                        TargetAutomationId = "element1",
+                        AutomationId = "element1",
                         IsEnabled = true,
                         IsVisible = true,
                         BoundingRectangle = new UIAutomationMCP.Shared.BoundingRectangle { X = 0, Y = 0, Width = 100, Height = 50 }
@@ -1795,7 +1795,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            _mockCustomPropertyService.Setup(s => s.GetCustomPropertiesAsync(automationId: "element1", name: null, propertyIds: new[] { "CustomProp1", "CustomProp2" }, controlType: null, processId: null, timeoutSeconds: 30))
+            _mockCustomPropertyService.Setup(s => s.GetCustomPropertiesAsync("element1", null, new[] { "CustomProp1", "CustomProp2" }, null, null, 30))
                                      .Returns(Task.FromResult(serverResponse));
 
             // Act
@@ -1803,7 +1803,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockCustomPropertyService.Verify(s => s.GetCustomPropertiesAsync(automationId: "element1", name: null, propertyIds: new[] { "CustomProp1", "CustomProp2" }, controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockCustomPropertyService.Verify(s => s.GetCustomPropertiesAsync("element1", null, new[] { "CustomProp1", "CustomProp2" }, null, null, 30), Times.Once);
             _output.WriteLine("GetCustomProperties test passed");
         }
 
@@ -1818,7 +1818,7 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ActionResult
             {
                 Success = true,
-                TargetAutomationId = "",
+                AutomationId = "",
                 Action = "SetValue",
                 ActionName = "SetValue",
                 Completed = true,
@@ -1831,7 +1831,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            _mockValueService.Setup(s => s.SetValueAsync(value: "", automationId: "testValue", name: null, controlType: null, processId: null, timeoutSeconds: 30))
+            _mockValueService.Setup(s => s.SetValueAsync("", "testValue", null, null, null, 30))
                             .Returns(Task.FromResult(serverResponse));
 
             // Act
@@ -1839,7 +1839,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockValueService.Verify(s => s.SetValueAsync(value: "", automationId: "testValue", name: null, controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockValueService.Verify(s => s.SetValueAsync("", "testValue", null, null, null, 30), Times.Once);
             _output.WriteLine("SetElementValue with empty elementId test passed");
         }
 
@@ -1850,7 +1850,7 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ActionResult
             {
                 Success = true,
-                TargetAutomationId = "slider1",
+                AutomationId = "slider1",
                 Action = "SetRangeValue",
                 ActionName = "SetRangeValue",
                 Completed = true,
@@ -1863,7 +1863,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            _mockRangeService.Setup(s => s.SetRangeValueAsync(automationId: "slider1", name: null, value: 0.0, controlType: null, processId: null, timeoutSeconds: 30))
+            _mockRangeService.Setup(s => s.SetRangeValueAsync("slider1", null, 0.0, null, null, 30))
                            .Returns(Task.FromResult(serverResponse));
 
             // Act
@@ -1871,7 +1871,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockRangeService.Verify(s => s.SetRangeValueAsync(automationId: "slider1", name: null, value: 0.0, controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockRangeService.Verify(s => s.SetRangeValueAsync("slider1", null, 0.0, null, null, 30), Times.Once);
             _output.WriteLine("SetRangeValue with boundary values test passed");
         }
 
@@ -1883,7 +1883,7 @@ namespace UIAutomationMCP.Tests.Tools
             {
                 Success = true,
                 Action = "ScrollElement",
-                TargetAutomationId = "scrollable1",
+                AutomationId = "scrollable1",
                 Completed = true,
                 ErrorMessage = null
             };
@@ -1894,7 +1894,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            _mockLayoutService.Setup(s => s.ScrollElementAsync(automationId: "scrollable1", name: null, direction: "down", amount: 2.5, controlType: null, processId: null, timeoutSeconds: 30))
+            _mockLayoutService.Setup(s => s.ScrollElementAsync("scrollable1", null, "down", 2.5, null, null, 30))
                              .Returns(Task.FromResult(serverResponse));
 
             // Act
@@ -1902,7 +1902,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockLayoutService.Verify(s => s.ScrollElementAsync(automationId: "scrollable1", name: null, direction: "down", amount: 2.5, controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockLayoutService.Verify(s => s.ScrollElementAsync("scrollable1", null, "down", 2.5, null, null, 30), Times.Once);
             _output.WriteLine("ScrollElement with custom amount test passed");
         }
 
@@ -1914,7 +1914,7 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ScrollInfoResult
             {
                 Success = true,
-                TargetAutomationId = "scrollableElement",
+                AutomationId = "scrollableElement",
                 // WindowTitle not available in ElementSearchResult,
                 // ProcessId not available in ElementSearchResult,
                 HorizontalScrollPercent = 25.0,
@@ -1933,7 +1933,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            _mockLayoutService.Setup(s => s.GetScrollInfoAsync(automationId: "scrollableElement", name: "TestWindow", controlType: null, processId: 1234, timeoutSeconds: 30))
+            _mockLayoutService.Setup(s => s.GetScrollInfoAsync("scrollableElement", "TestWindow", null, 1234, 30))
                              .Returns(Task.FromResult(serverResponse));
 
             // Act
@@ -1941,7 +1941,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockLayoutService.Verify(s => s.GetScrollInfoAsync(automationId: "scrollableElement", name: "TestWindow", controlType: null, processId: 1234, timeoutSeconds: 30), Times.Once);
+            _mockLayoutService.Verify(s => s.GetScrollInfoAsync("scrollableElement", "TestWindow", null, 1234, 30), Times.Once);
             _output.WriteLine("GetScrollInfo test passed - all ScrollPattern properties verified");
         }
 
@@ -1954,7 +1954,7 @@ namespace UIAutomationMCP.Tests.Tools
             {
                 Success = true,
                 ActionName = "SetScrollPercent",
-                TargetAutomationId = "scrollContainer"
+                AutomationId = "scrollContainer"
             };
             var serverResponse = new ServerEnhancedResponse<ActionResult>
             {
@@ -1963,7 +1963,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            _mockLayoutService.Setup(s => s.SetScrollPercentAsync(automationId: "scrollContainer", name: null, horizontalPercent: 75.0, verticalPercent: 25.0, controlType: null, processId: null, timeoutSeconds: 30))
+            _mockLayoutService.Setup(s => s.SetScrollPercentAsync("scrollContainer", null, 75.0, 25.0, null, null, 30))
                              .Returns(Task.FromResult(serverResponse));
 
             // Act
@@ -1971,7 +1971,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockLayoutService.Verify(s => s.SetScrollPercentAsync(automationId: "scrollContainer", name: null, horizontalPercent: 75.0, verticalPercent: 25.0, controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockLayoutService.Verify(s => s.SetScrollPercentAsync("scrollContainer", null, 75.0, 25.0, null, null, 30), Times.Once);
             _output.WriteLine("SetScrollPercent test passed - percentage-based scrolling verified");
         }
 
@@ -1984,7 +1984,7 @@ namespace UIAutomationMCP.Tests.Tools
             {
                 Success = true,
                 ActionName = "SetScrollPercent",
-                TargetAutomationId = "scrollElement"
+                AutomationId = "scrollElement"
             };
             var serverResponse = new ServerEnhancedResponse<ActionResult>
             {
@@ -1993,7 +1993,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            _mockLayoutService.Setup(s => s.SetScrollPercentAsync(automationId: "scrollElement", name: null, horizontalPercent: -1.0, verticalPercent: 50.0, controlType: null, processId: null, timeoutSeconds: 30))
+            _mockLayoutService.Setup(s => s.SetScrollPercentAsync("scrollElement", null, -1.0, 50.0, null, null, 30))
                              .Returns(Task.FromResult(serverResponse));
 
             // Act - 水平方向にNoScroll(-1)、垂直方向に50%を指定
@@ -2001,7 +2001,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockLayoutService.Verify(s => s.SetScrollPercentAsync(automationId: "scrollElement", name: null, horizontalPercent: -1.0, verticalPercent: 50.0, controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockLayoutService.Verify(s => s.SetScrollPercentAsync("scrollElement", null, -1.0, 50.0, null, null, 30), Times.Once);
             _output.WriteLine("SetScrollPercent with NoScroll values test passed");
         }
 
@@ -2018,7 +2018,7 @@ namespace UIAutomationMCP.Tests.Tools
             {
                 Success = true,
                 ActionName = "SetScrollPercent",
-                TargetAutomationId = "testElement"
+                AutomationId = "testElement"
             };
             var serverResponse = new ServerEnhancedResponse<ActionResult>
             {
@@ -2027,7 +2027,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            _mockLayoutService.Setup(s => s.SetScrollPercentAsync(automationId: "testElement", name: null, horizontalPercent: horizontal, verticalPercent: vertical, controlType: null, processId: null, timeoutSeconds: 30))
+            _mockLayoutService.Setup(s => s.SetScrollPercentAsync("testElement", null, horizontal, vertical, null, null, 30))
                              .Returns(Task.FromResult(serverResponse));
 
             // Act
@@ -2035,7 +2035,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockLayoutService.Verify(s => s.SetScrollPercentAsync(automationId: "testElement", name: null, horizontalPercent: horizontal, verticalPercent: vertical, controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockLayoutService.Verify(s => s.SetScrollPercentAsync("testElement", null, horizontal, vertical, null, null, 30), Times.Once);
             _output.WriteLine($"SetScrollPercent valid range test passed for H:{horizontal}, V:{vertical}");
         }
 
@@ -2063,7 +2063,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             
-            _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync(automationId: "scrollableItem", name: "TestWindow", controlType: null, processId: 1234, timeoutSeconds: 30))
+            _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync("scrollableItem", "TestWindow", null, 1234, 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -2071,7 +2071,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync(automationId: "scrollableItem", name: "TestWindow", controlType: null, processId: 1234, timeoutSeconds: 30), Times.Once);
+            _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync("scrollableItem", "TestWindow", null, 1234, 30), Times.Once);
             _output.WriteLine("ScrollElementIntoView test passed - ScrollItemPattern.ScrollIntoView() verified");
         }
 
@@ -2087,7 +2087,7 @@ namespace UIAutomationMCP.Tests.Tools
             {
                 Success = true,
                 Action = "ScrollElementIntoView",
-                TargetAutomationId = "listItem",
+                AutomationId = "listItem",
                 Completed = true,
                 ErrorMessage = null
             };
@@ -2098,7 +2098,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync(automationId: "listItem", name: null, controlType: null, processId: null, timeoutSeconds: 30))
+            _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync("listItem", null, null, null, 30))
                              .Returns(Task.FromResult(serverResponse));
 
             // Act
@@ -2106,7 +2106,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync(automationId: "listItem", name: null, controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync("listItem", null, null, null, 30), Times.Once);
             _output.WriteLine("ScrollElementIntoView with default parameters test passed");
         }
 
@@ -2121,14 +2121,14 @@ namespace UIAutomationMCP.Tests.Tools
             // Arrange
             var expectedException = new InvalidOperationException("ScrollItemPattern is not supported by this element");
             
-            _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync(automationId: "nonScrollableElement", name: null, controlType: null, processId: null, timeoutSeconds: 30))
+            _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync("nonScrollableElement", null, null, null, 30))
                              .ThrowsAsync(expectedException);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() => 
                 _tools.ScrollElementIntoView("nonScrollableElement"));
             
-            _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync(automationId: "nonScrollableElement", name: null, controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync("nonScrollableElement", null, null, null, 30), Times.Once);
             _output.WriteLine("ScrollElementIntoView pattern not supported exception test passed");
         }
 
@@ -2142,14 +2142,14 @@ namespace UIAutomationMCP.Tests.Tools
             // Arrange
             var expectedException = new ArgumentException("Element not found: nonExistentElement");
             
-            _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync(automationId: "nonExistentElement", name: "TestWindow", controlType: null, processId: null, timeoutSeconds: 30))
+            _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync("nonExistentElement", "TestWindow", null, null, 30))
                              .ThrowsAsync(expectedException);
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() => 
                 _tools.ScrollElementIntoView("nonExistentElement", "TestWindow"));
             
-            _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync(automationId: "nonExistentElement", name: "TestWindow", controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync("nonExistentElement", "TestWindow", null, null, 30), Times.Once);
             _output.WriteLine("ScrollElementIntoView element not found exception test passed");
         }
 
@@ -2165,7 +2165,7 @@ namespace UIAutomationMCP.Tests.Tools
             {
                 Success = true,
                 Action = "ScrollElementIntoView",
-                TargetAutomationId = "slowElement",
+                AutomationId = "slowElement",
                 WindowTitle = "TestWindow",
                 Completed = true,
                 ErrorMessage = null
@@ -2177,7 +2177,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync(automationId: "slowElement", name: "TestWindow", controlType: null, processId: null, timeoutSeconds: 60))
+            _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync("slowElement", "TestWindow", null, null, 60))
                              .Returns(Task.FromResult(serverResponse));
 
             // Act
@@ -2185,7 +2185,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync(automationId: "slowElement", name: "TestWindow", controlType: null, processId: null, timeoutSeconds: 60), Times.Once);
+            _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync("slowElement", "TestWindow", null, null, 60), Times.Once);
             _output.WriteLine("ScrollElementIntoView with custom timeout test passed");
         }
 
@@ -2212,7 +2212,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             
-            _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync(automationId: elementId, name: "TestApplication", controlType: null, processId: null, timeoutSeconds: 30))
+            _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync(elementId, "TestApplication", null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -2220,7 +2220,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync(automationId: elementId, name: "TestApplication", controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync(elementId, "TestApplication", null, null, 30), Times.Once);
             _output.WriteLine($"ScrollElementIntoView worked correctly for control type element: {elementId}");
         }
 
@@ -2241,14 +2241,14 @@ namespace UIAutomationMCP.Tests.Tools
                 Data = new ActionResult
                 {
                     Action = "ScrollElementIntoView",
-                    TargetAutomationId = elementId,
+                    AutomationId = elementId,
                     WindowTitle = windowTitle,
                     Success = false,
                     ErrorMessage = "Invalid parameters"
                 }
             };
             
-            _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync(automationId: elementId, name: windowTitle, controlType: null, processId: null, timeoutSeconds: 30))
+            _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync(elementId, windowTitle, null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -2256,7 +2256,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync(automationId: elementId, name: windowTitle, controlType: null, processId: null, timeoutSeconds: 30), Times.Once);
+            _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync(elementId, windowTitle, null, null, 30), Times.Once);
             _output.WriteLine($"ScrollElementIntoView empty string parameters test passed for elementId:'{elementId}'");
         }
 
@@ -2280,7 +2280,7 @@ namespace UIAutomationMCP.Tests.Tools
                 {
                     new ElementInfo
                     {
-                        TargetAutomationId = "header_col1",
+                        AutomationId = "header_col1",
                         Name = "Name",
                         ControlType = "Header",
                         IsEnabled = true,
@@ -2288,7 +2288,7 @@ namespace UIAutomationMCP.Tests.Tools
                     },
                     new ElementInfo
                     {
-                        TargetAutomationId = "header_col2",
+                        AutomationId = "header_col2",
                         Name = "Age",
                         ControlType = "Header",
                         IsEnabled = true,
@@ -2424,7 +2424,7 @@ namespace UIAutomationMCP.Tests.Tools
                 {
                     new ElementInfo
                     {
-                        TargetAutomationId = "header_row1",
+                        AutomationId = "header_row1",
                         Name = "Person 1",
                         ControlType = "Header",
                         IsEnabled = true,
@@ -2432,7 +2432,7 @@ namespace UIAutomationMCP.Tests.Tools
                     },
                     new ElementInfo
                     {
-                        TargetAutomationId = "header_row2",
+                        AutomationId = "header_row2",
                         Name = "Person 2",
                         ControlType = "Header",
                         IsEnabled = true,
@@ -2568,7 +2568,7 @@ namespace UIAutomationMCP.Tests.Tools
                 {
                     new ElementInfo
                     {
-                        TargetAutomationId = "row_header_special",
+                        AutomationId = "row_header_special",
                         Name = "Special Row Header",
                         ControlType = "Header"
                     }

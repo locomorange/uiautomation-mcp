@@ -72,7 +72,7 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 5;
 
             // When
-            var result = await _toggleService.ToggleElementAsync(nonExistentElementId, null, null, timeout);
+            var result = await _toggleService.ToggleElementAsync(nonExistentAutomationId, null, null, null, timeout);
 
             // Then
             Assert.NotNull(result);
@@ -91,9 +91,9 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 3;
 
             // When - Test different parameter combinations
-            var resultByAutomationId = await _toggleService.ToggleElementAsync(nonExistentElementId, null, null, timeout);
-            var resultByWindowTitle = await _toggleService.ToggleElementAsync(nonExistentElementId, "NonExistentWindow", null, timeout);
-            var resultByProcessId = await _toggleService.ToggleElementAsync(nonExistentElementId, null, 99999, timeout);
+            var resultByAutomationId = await _toggleService.ToggleElementAsync(nonExistentAutomationId, null, null, null, timeout);
+            var resultByWindowTitle = await _toggleService.ToggleElementAsync(nonExistentAutomationId, "NonExistentWindow", null, null, timeout);
+            var resultByProcessId = await _toggleService.ToggleElementAsync(nonExistentAutomationId, null, null, 99999, timeout);
 
             // Then
             Assert.NotNull(resultByElementId);
@@ -141,7 +141,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // When
             var startTime = DateTime.UtcNow;
-            var result = await _toggleService.ToggleElementAsync(nonExistentElementId, null, null, shortTimeout);
+            var result = await _toggleService.ToggleElementAsync(nonExistentAutomationId, null, null, null, shortTimeout);
             var endTime = DateTime.UtcNow;
             var actualTime = (endTime - startTime).TotalSeconds;
 
@@ -164,7 +164,7 @@ namespace UIAutomationMCP.Tests.Integration
             var nonExistentAutomationId = "NonExistentToggleElement12345";
 
             // When
-            var toggleTask = _toggleService.ToggleElementAsync(nonExistentElementId, null, null, veryShortTimeout);
+            var toggleTask = _toggleService.ToggleElementAsync(nonExistentAutomationId, null, null, null, veryShortTimeout);
 
             var result = await toggleTask;
 

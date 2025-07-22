@@ -64,7 +64,7 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 5;
 
             // Act
-            var result = await _valueService.IsReadOnlyAsync(nonExistentElementId, null, null, timeout);
+            var result = await _valueService.IsReadOnlyAsync(nonExistentAutomationId, null, null, timeout);
 
             // Assert
             Assert.NotNull(result);
@@ -87,7 +87,7 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 5;
 
             // Act
-            var result = await _valueService.SetValueAsync(nonExistentElementId, testValue, null, null, timeout);
+            var result = await _valueService.SetValueAsync(testValue, nonExistentAutomationId, null, null, null, timeout);
 
             // Assert
             Assert.NotNull(result);
@@ -110,7 +110,7 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 5;
 
             // Act
-            var result = await _valueService.GetValueAsync(nonExistentElementId, null, null, timeout);
+            var result = await _valueService.GetValueAsync(nonExistentAutomationId, null, null, null, timeout);
 
             // Assert
             Assert.NotNull(result);
@@ -132,7 +132,7 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 5;
 
             // Act
-            var result = await _valueService.IsReadOnlyAsync(readOnlyElementId, null, null, timeout);
+            var result = await _valueService.IsReadOnlyAsync(readOnlyAutomationId, null, null, null, timeout);
 
             // Assert
             Assert.NotNull(result);
@@ -155,7 +155,7 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 5;
 
             // Act
-            var result = await _valueService.SetValueAsync(readOnlyElementId, testValue, null, null, timeout);
+            var result = await _valueService.SetValueAsync(testValue, readOnlyAutomationId, null, null, null, timeout);
 
             // Assert
             Assert.NotNull(result);
