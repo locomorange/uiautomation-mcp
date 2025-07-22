@@ -4,17 +4,17 @@ namespace UIAutomationMCP.Shared.Results
 {
     public class FindItemResult : BaseOperationResult
     {
-        [JsonPropertyName("foundAutomationId")]
-        public string FoundAutomationId { get; set; } = "";
+        [JsonPropertyName("automationId")]
+        public string AutomationId { get; set; } = "";
 
-        [JsonPropertyName("foundElementName")]
-        public string FoundElementName { get; set; } = "";
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = "";
 
-        [JsonPropertyName("foundElementType")]
-        public string FoundElementType { get; set; } = "";
+        [JsonPropertyName("controlType")]
+        public string ControlType { get; set; } = "";
 
-        [JsonPropertyName("foundElementBounds")]
-        public Dictionary<string, double>? FoundElementBounds { get; set; }
+        [JsonPropertyName("boundingRectangle")]
+        public Dictionary<string, double>? BoundingRectangle { get; set; }
 
         [JsonPropertyName("found")]
         public bool Found { get; set; }

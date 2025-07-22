@@ -1,4 +1,4 @@
-using UIAutomationMCP.Shared.Results;
+using System.Text.Json.Serialization;
 
 namespace UIAutomationMCP.Shared.Results
 {
@@ -29,17 +29,40 @@ namespace UIAutomationMCP.Shared.Results
 
     public class TextMoveInfo
     {
+        [JsonPropertyName("direction")]
         public string Direction { get; set; } = string.Empty;
+        
+        [JsonPropertyName("textUnit")]
         public string TextUnit { get; set; } = string.Empty;
+        
+        [JsonPropertyName("moveCount")]
         public int MoveCount { get; set; }
+        
+        [JsonPropertyName("actualMoveCount")]
         public int ActualMoveCount { get; set; }
+        
+        [JsonPropertyName("startPosition")]
         public int StartPosition { get; set; }
+        
+        [JsonPropertyName("endPosition")]
         public int EndPosition { get; set; }
+        
+        [JsonPropertyName("movedText")]
         public string MovedText { get; set; } = string.Empty;
+        
+        [JsonPropertyName("success")]
         public bool Success { get; set; }
+        
+        [JsonPropertyName("errorMessage")]
         public string? ErrorMessage { get; set; }
+        
+        [JsonPropertyName("movedUnits")]
         public int MovedUnits { get; set; }
+        
+        [JsonPropertyName("text")]
         public string Text { get; set; } = string.Empty;
+        
+        [JsonPropertyName("boundingRectangle")]
         public BoundingRectangle BoundingRectangle { get; set; } = new();
     }
 }
