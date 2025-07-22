@@ -37,7 +37,7 @@ namespace UIAutomationMCP.Tests.E2E
                 _output.WriteLine($"Window info: {JsonSerializer.Serialize(windowInfo, new JsonSerializerOptions { WriteIndented = true })}");
 
                 // Find elements in WinUI 3 Gallery
-                var elements = await _tools.FindElements();
+                var elements = await _tools.SearchElements();
                 _output.WriteLine($"WinUI 3 Gallery elements: {JsonSerializer.Serialize(elements, new JsonSerializerOptions { WriteIndented = true })}");
 
                 // Get element tree for better understanding
@@ -62,7 +62,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find buttons in WinUI 3 Gallery
-                var buttons = await _tools.FindElements(controlType: "Button");
+                var buttons = await _tools.SearchElements(controlType: "Button");
                 _output.WriteLine($"Found buttons: {JsonSerializer.Serialize(buttons, new JsonSerializerOptions { WriteIndented = true })}");
 
                 Assert.True(true, "Button finding test executed successfully");
@@ -107,11 +107,11 @@ namespace UIAutomationMCP.Tests.E2E
                 await _tools.TakeScreenshot("WinUI 3 Gallery", "C:\\temp\\gallery_before.png");
 
                 // Find navigation elements (like Navigation View or menu items)
-                var navElements = await _tools.FindElements(controlType: "ListItem");
+                var navElements = await _tools.SearchElements(controlType: "ListItem");
                 _output.WriteLine($"Navigation elements: {JsonSerializer.Serialize(navElements, new JsonSerializerOptions { WriteIndented = true })}");
 
                 // Look for TextBox-related navigation items
-                var textElements = await _tools.FindElements(searchText: "Text");
+                var textElements = await _tools.SearchElements(searchText: "Text");
                 _output.WriteLine($"Text-related elements: {JsonSerializer.Serialize(textElements, new JsonSerializerOptions { WriteIndented = true })}");
 
                 Assert.True(true, "TextBox navigation test executed successfully");

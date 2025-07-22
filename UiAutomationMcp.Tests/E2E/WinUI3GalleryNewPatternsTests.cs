@@ -37,7 +37,7 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
             await Task.Delay(2000); // Wait for app to be ready
 
             // Step 2: Find ListView or similar virtualized control
-            var listViews = await Tools.FindElements(
+            var listViews = await Tools.SearchElements(
                 controlType: "ListView");
             _output.WriteLine($"ListView controls found: {JsonSerializer.Serialize(listViews, new JsonSerializerOptions { WriteIndented = true })}");
 
@@ -60,7 +60,7 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
             }
 
             // Step 4: Try with ScrollViewer (which often contains virtualized content)
-            var scrollViewers = await Tools.FindElements(
+            var scrollViewers = await Tools.SearchElements(
                 controlType: "ScrollViewer");
             _output.WriteLine($"ScrollViewer controls found: {JsonSerializer.Serialize(scrollViewers, new JsonSerializerOptions { WriteIndented = true })}");
 
@@ -95,7 +95,7 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
             {
                 try
                 {
-                    var containers = await Tools.FindElements(
+                    var containers = await Tools.SearchElements(
                         controlType: controlType);
                     _output.WriteLine($"{controlType} containers found: {JsonSerializer.Serialize(containers, new JsonSerializerOptions { WriteIndented = true })}");
 
@@ -158,7 +158,7 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
             {
                 try
                 {
-                    var controls = await Tools.FindElements(
+                    var controls = await Tools.SearchElements(
                         controlType: controlType);
                     _output.WriteLine($"{controlType} controls found: {JsonSerializer.Serialize(controls, new JsonSerializerOptions { WriteIndented = true })}");
 

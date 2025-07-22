@@ -172,9 +172,9 @@ namespace UIAutomationMCP.Tests.E2E
         }
 
         [Fact]
-        public async Task FindElements_ShouldFindElementsInNotepad()
+        public async Task SearchElements_ShouldSearchElementsInNotepad()
         {
-            _output.WriteLine("Testing FindElements in Notepad...");
+            _output.WriteLine("Testing SearchElements in Notepad...");
 
             try
             {
@@ -191,16 +191,16 @@ namespace UIAutomationMCP.Tests.E2E
                 }
                 
                 // Find elements in Notepad window
-                var result = await _tools.FindElements();
+                var result = await _tools.SearchElements();
                 Assert.NotNull(result);
                 
-                _output.WriteLine($"FindElements result: {JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}");
+                _output.WriteLine($"SearchElements result: {JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}");
                 
-                Assert.True(true, "FindElements executed successfully");
+                Assert.True(true, "SearchElements executed successfully");
             }
             catch (Exception ex)
             {
-                _output.WriteLine($"FindElements failed: {ex.Message}");
+                _output.WriteLine($"SearchElements failed: {ex.Message}");
                 _output.WriteLine($"Stack trace: {ex.StackTrace}");
                 throw;
             }

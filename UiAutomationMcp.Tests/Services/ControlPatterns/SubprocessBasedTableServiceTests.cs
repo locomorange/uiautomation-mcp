@@ -83,7 +83,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             // サブプロセス実行の検証
             _mockExecutor.Verify(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", 
                 It.Is<GetColumnHeaderItemsRequest>(r => 
-                    r.ElementId == "tableCell1" &&
+                    r.AutomationId == "tableCell1" &&
                     r.WindowTitle == "TestWindow" &&
                     r.ProcessId == 0), 30), Times.Once);
 
@@ -119,7 +119,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             // パラメータの検証
             _mockExecutor.Verify(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", 
                 It.Is<GetColumnHeaderItemsRequest>(r => 
-                    r.ElementId == "cell2_3" &&
+                    r.AutomationId == "cell2_3" &&
                     r.WindowTitle == "" &&
                     r.ProcessId == 1234), 60), Times.Once);
 
@@ -197,7 +197,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             // サブプロセス実行の検証
             _mockExecutor.Verify(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", 
                 It.Is<GetRowHeaderItemsRequest>(r => 
-                    r.ElementId == "tableCell2" &&
+                    r.AutomationId == "tableCell2" &&
                     r.WindowTitle == "TestWindow" &&
                     r.ProcessId == 0), 30), Times.Once);
 
@@ -233,7 +233,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             // デフォルトパラメータの検証
             _mockExecutor.Verify(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", 
                 It.Is<GetRowHeaderItemsRequest>(r => 
-                    r.ElementId == "defaultCell" &&
+                    r.AutomationId == "defaultCell" &&
                     r.WindowTitle == "" &&
                     r.ProcessId == 0), 30), Times.Once);
 
@@ -311,9 +311,9 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
 
             // 両方のメソッドが正しく実行されたことを検証
             _mockExecutor.Verify(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", 
-                It.Is<GetColumnHeaderItemsRequest>(r => r.ElementId == cellId), 30), Times.Once);
+                It.Is<GetColumnHeaderItemsRequest>(r => r.AutomationId == cellId), 30), Times.Once);
             _mockExecutor.Verify(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", 
-                It.Is<GetRowHeaderItemsRequest>(r => r.ElementId == cellId), 30), Times.Once);
+                It.Is<GetRowHeaderItemsRequest>(r => r.AutomationId == cellId), 30), Times.Once);
 
             _output.WriteLine($"TableItem pattern integration test passed for {description}");
         }

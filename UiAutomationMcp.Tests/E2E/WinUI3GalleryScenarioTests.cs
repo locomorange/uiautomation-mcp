@@ -34,7 +34,7 @@ namespace UIAutomationMCP.Tests.E2E
                 _output.WriteLine("Initial screenshot taken");
 
                 // Step 2: Find navigation menu items
-                var navItems = await _tools.FindElements(searchText: "Button", controlType: "ListItem");
+                var navItems = await _tools.SearchElements(searchText: "Button", controlType: "ListItem");
                 LogResult("Navigation items with 'Button'", navItems);
 
                 // Step 3: Try to invoke the Button navigation item
@@ -59,7 +59,7 @@ namespace UIAutomationMCP.Tests.E2E
                 }
 
                 // Step 4: Find all buttons on the page
-                var buttons = await _tools.FindElements(controlType: "Button");
+                var buttons = await _tools.SearchElements(controlType: "Button");
                 LogResult("All buttons on page", buttons);
 
                 // Step 5: Get element tree to understand page structure
@@ -84,7 +84,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Step 1: Find TextBox navigation item
-                var navItems = await _tools.FindElements(searchText: "TextBox", controlType: "ListItem");
+                var navItems = await _tools.SearchElements(searchText: "TextBox", controlType: "ListItem");
                 LogResult("TextBox navigation items", navItems);
 
                 // Step 2: Navigate to TextBox page
@@ -95,7 +95,7 @@ namespace UIAutomationMCP.Tests.E2E
                 }
 
                 // Step 3: Find text boxes on the page
-                var textBoxes = await _tools.FindElements(controlType: "Edit");
+                var textBoxes = await _tools.SearchElements(controlType: "Edit");
                 LogResult("Text boxes found", textBoxes);
 
                 // Step 4: Try to set text in the first text box
@@ -133,7 +133,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Step 1: Find CheckBox navigation item
-                var navItems = await _tools.FindElements(searchText: "CheckBox", controlType: "ListItem");
+                var navItems = await _tools.SearchElements(searchText: "CheckBox", controlType: "ListItem");
                 LogResult("CheckBox navigation items", navItems);
 
                 // Step 2: Navigate to CheckBox page
@@ -144,7 +144,7 @@ namespace UIAutomationMCP.Tests.E2E
                 }
 
                 // Step 3: Find checkboxes on the page
-                var checkBoxes = await _tools.FindElements(controlType: "CheckBox");
+                var checkBoxes = await _tools.SearchElements(controlType: "CheckBox");
                 LogResult("CheckBoxes found", checkBoxes);
 
                 // Step 4: Toggle the first checkbox
@@ -172,7 +172,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Step 1: Find Slider navigation item
-                var navItems = await _tools.FindElements(searchText: "Slider", controlType: "ListItem");
+                var navItems = await _tools.SearchElements(searchText: "Slider", controlType: "ListItem");
                 LogResult("Slider navigation items", navItems);
 
                 // Step 2: Navigate to Slider page
@@ -183,7 +183,7 @@ namespace UIAutomationMCP.Tests.E2E
                 }
 
                 // Step 3: Find sliders on the page
-                var sliders = await _tools.FindElements(controlType: "Slider");
+                var sliders = await _tools.SearchElements(controlType: "Slider");
                 LogResult("Sliders found", sliders);
 
                 // Step 4: Get and set range value
@@ -215,7 +215,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Step 1: Find ScrollViewer navigation item
-                var navItems = await _tools.FindElements(searchText: "ScrollViewer", controlType: "ListItem");
+                var navItems = await _tools.SearchElements(searchText: "ScrollViewer", controlType: "ListItem");
                 LogResult("ScrollViewer navigation items", navItems);
 
                 // Step 2: Navigate to ScrollViewer page
@@ -226,7 +226,7 @@ namespace UIAutomationMCP.Tests.E2E
                 }
 
                 // Step 3: Find scrollable elements
-                var scrollViewers = await _tools.FindElements(controlType: "ScrollViewer");
+                var scrollViewers = await _tools.SearchElements(controlType: "ScrollViewer");
                 LogResult("ScrollViewers found", scrollViewers);
 
                 // Step 4: Test scroll operations
@@ -266,10 +266,10 @@ namespace UIAutomationMCP.Tests.E2E
                 LogResult("Main window accessibility", mainWindowAccessibility);
 
                 // Step 2: Get control type info for various elements
-                var buttons = await _tools.FindElements(controlType: "Button", maxResults: 1);
+                var buttons = await _tools.SearchElements(controlType: "Button", maxResults: 1);
                 if (buttons != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(buttons)), out var buttonId))
                 {
-                    // Control type info is already included in FindElements response
+                    // Control type info is already included in SearchElements response
                     LogResult("Button elements (with control type info)", buttons);
                     
                     var patternValidation = await _tools.ValidateControlTypePatterns(buttonId!);
@@ -277,7 +277,7 @@ namespace UIAutomationMCP.Tests.E2E
                 }
 
                 // Step 3: Check for labeled elements
-                var textBoxes = await _tools.FindElements(controlType: "Edit", maxResults: 1);
+                var textBoxes = await _tools.SearchElements(controlType: "Edit", maxResults: 1);
                 if (textBoxes != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(textBoxes)), out var textBoxId))
                 {
                     try

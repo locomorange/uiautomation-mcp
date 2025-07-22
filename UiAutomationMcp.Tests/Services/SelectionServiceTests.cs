@@ -53,7 +53,7 @@ namespace UIAutomationMCP.Tests.Services
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<CanSelectMultipleRequest, BooleanResult>("CanSelectMultiple", 
                 It.Is<CanSelectMultipleRequest>(p => 
-                    p.ElementId == containerId &&
+                    p.AutomationId == containerId &&
                     p.WindowTitle == windowTitle &&
                     p.ProcessId == processId), 30), Times.Once);
             
@@ -77,7 +77,7 @@ namespace UIAutomationMCP.Tests.Services
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<CanSelectMultipleRequest, BooleanResult>("CanSelectMultiple", 
                 It.Is<CanSelectMultipleRequest>(p => 
-                    p.ElementId == containerId &&
+                    p.AutomationId == containerId &&
                     p.WindowTitle == "" &&
                     p.ProcessId == 0), 30), Times.Once);
             
@@ -102,7 +102,7 @@ namespace UIAutomationMCP.Tests.Services
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<IsSelectionRequiredRequest, BooleanResult>("IsSelectionRequired", 
                 It.Is<IsSelectionRequiredRequest>(p => 
-                    p.ElementId == containerId &&
+                    p.AutomationId == containerId &&
                     p.WindowTitle == windowTitle), 30), Times.Once);
             
             _output.WriteLine("IsSelectionRequiredAsync service test passed - Correct subprocess execution verified");
@@ -131,7 +131,7 @@ namespace UIAutomationMCP.Tests.Services
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<IsSelectedRequest, BooleanResult>("IsSelected", 
                 It.Is<IsSelectedRequest>(p => 
-                    p.ElementId == elementId &&
+                    p.AutomationId == elementId &&
                     p.WindowTitle == windowTitle &&
                     p.ProcessId == processId), 30), Times.Once);
             
@@ -146,7 +146,7 @@ namespace UIAutomationMCP.Tests.Services
             var expectedResult = new SelectionInfoResult
             {
                 Success = true,
-                ContainerElementId = "parentContainer",
+                ContainerAutomationId = "parentContainer",
                 ContainerName = "Selection Container",
                 ContainerControlType = "ControlType.List"
             };
@@ -161,7 +161,7 @@ namespace UIAutomationMCP.Tests.Services
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<GetSelectionContainerRequest, SelectionInfoResult>("GetSelectionContainer", 
                 It.Is<GetSelectionContainerRequest>(p => 
-                    p.ElementId == elementId), 30), Times.Once);
+                    p.AutomationId == elementId), 30), Times.Once);
             
             _output.WriteLine("GetSelectionContainerAsync service test passed - Correct subprocess execution verified");
         }
@@ -174,7 +174,7 @@ namespace UIAutomationMCP.Tests.Services
             var expectedResult = new SelectionInfoResult
             {
                 Success = true,
-                ContainerElementId = "",
+                ContainerAutomationId = "",
                 ContainerName = "",
                 ContainerControlType = ""
             };
@@ -189,7 +189,7 @@ namespace UIAutomationMCP.Tests.Services
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<GetSelectionContainerRequest, SelectionInfoResult>("GetSelectionContainer", 
                 It.Is<GetSelectionContainerRequest>(p => 
-                    p.ElementId == elementId), 30), Times.Once);
+                    p.AutomationId == elementId), 30), Times.Once);
             
             _output.WriteLine("GetSelectionContainerAsync null container test passed");
         }
@@ -216,7 +216,7 @@ namespace UIAutomationMCP.Tests.Services
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<AddToSelectionRequest, ActionResult>("AddToSelection", 
                 It.Is<AddToSelectionRequest>(p => 
-                    p.ElementId == elementId &&
+                    p.AutomationId == elementId &&
                     p.WindowTitle == windowTitle &&
                     p.ProcessId == processId), 30), Times.Once);
             
@@ -240,7 +240,7 @@ namespace UIAutomationMCP.Tests.Services
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<RemoveFromSelectionRequest, ActionResult>("RemoveFromSelection", 
                 It.Is<RemoveFromSelectionRequest>(p => 
-                    p.ElementId == elementId &&
+                    p.AutomationId == elementId &&
                     p.WindowTitle == windowTitle), 30), Times.Once);
             
             _output.WriteLine("RemoveFromSelectionAsync service test passed");
@@ -263,7 +263,7 @@ namespace UIAutomationMCP.Tests.Services
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<ClearSelectionRequest, ActionResult>("ClearSelection", 
                 It.Is<ClearSelectionRequest>(p => 
-                    p.ElementId == containerId &&
+                    p.AutomationId == containerId &&
                     p.ProcessId == processId), 30), Times.Once);
             
             _output.WriteLine("ClearSelectionAsync service test passed");
@@ -281,8 +281,8 @@ namespace UIAutomationMCP.Tests.Services
                 TotalCount = 5,
                 SelectedItems = new List<SelectionItem>
                 {
-                    new SelectionItem { ElementId = "item1", Name = "First Item" },
-                    new SelectionItem { ElementId = "item3", Name = "Third Item" }
+                    new SelectionItem { AutomationId = "item1", Name = "First Item" },
+                    new SelectionItem { AutomationId = "item3", Name = "Third Item" }
                 }
             };
 
@@ -296,7 +296,7 @@ namespace UIAutomationMCP.Tests.Services
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<GetSelectionRequest, SelectionInfoResult>("GetSelection", 
                 It.Is<GetSelectionRequest>(p => 
-                    p.ElementId == containerId), 30), Times.Once);
+                    p.AutomationId == containerId), 30), Times.Once);
             
             _output.WriteLine("GetSelectionAsync service test passed");
         }
@@ -384,21 +384,21 @@ namespace UIAutomationMCP.Tests.Services
         [Theory]
         [InlineData("")]
         [InlineData("  ")]
-        public async Task SelectionService_WithEmptyElementId_ShouldStillExecute(string emptyElementId)
+        public async Task SelectionService_WithEmptyAutomationId_ShouldStillExecute(string emptyAutomationId)
         {
             // Arrange
             _mockExecutor.Setup(e => e.ExecuteAsync<IsSelectedRequest, BooleanResult>("IsSelected", It.IsAny<IsSelectedRequest>(), 30))
                 .Returns(Task.FromResult(new BooleanResult { Value = false, Success = true }));
 
             // Act
-            var result = await _selectionService.IsSelectedAsync(emptyElementId, null, null, 30);
+            var result = await _selectionService.IsSelectedAsync(emptyAutomationId, null, null, 30);
 
             // Assert
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<IsSelectedRequest, BooleanResult>("IsSelected", 
-                It.Is<IsSelectedRequest>(p => p.ElementId == emptyElementId), 30), Times.Once);
+                It.Is<IsSelectedRequest>(p => p.AutomationId == emptyAutomationId), 30), Times.Once);
             
-            _output.WriteLine($"Empty elementId test passed for value: '{emptyElementId}'");
+            _output.WriteLine($"Empty elementId test passed for value: '{emptyAutomationId}'");
         }
 
         [Fact]

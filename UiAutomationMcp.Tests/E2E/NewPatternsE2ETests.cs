@@ -73,7 +73,7 @@ public class NewPatternsE2ETests : BaseE2ETest
                 timeoutSeconds: 15);
 
             // Verify the item is now accessible
-            var elementInfo = await Tools.FindElements();
+            var elementInfo = await Tools.SearchElements();
 
             Assert.NotNull(elementInfo);
             // In a real scenario, we would verify the specific element is now in the tree

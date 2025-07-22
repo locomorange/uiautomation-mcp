@@ -29,23 +29,23 @@ namespace UIAutomationMCP.Tests.E2E
         }
 
         [Fact]
-        public async Task Test_02_FindElements_ShouldFindUIElements()
+        public async Task Test_02_SearchElements_ShouldFindUIElements()
         {
-            Output.WriteLine("=== Testing FindElements ===");
+            Output.WriteLine("=== Testing SearchElements ===");
             
-            var elements = await Tools.FindElements();
-            LogResult("FindElements", elements);
+            var elements = await Tools.SearchElements();
+            LogResult("SearchElements", elements);
             
             Assert.NotNull(elements);
         }
 
         [Fact]
-        public async Task Test_03_FindElements_WithSearchText()
+        public async Task Test_03_SearchElements_WithSearchText()
         {
-            Output.WriteLine("=== Testing FindElements with search text ===");
+            Output.WriteLine("=== Testing SearchElements with search text ===");
             
-            var elements = await Tools.FindElements(searchText: "Button");
-            LogResult("FindElements", elements);
+            var elements = await Tools.SearchElements(searchText: "Button");
+            LogResult("SearchElements", elements);
             
             Assert.NotNull(elements);
         }
@@ -62,12 +62,12 @@ namespace UIAutomationMCP.Tests.E2E
         }
 
         [Fact]
-        public async Task Test_05_FindElementsByControlType_Buttons()
+        public async Task Test_05_SearchElementsByControlType_Buttons()
         {
-            Output.WriteLine("=== Testing FindElementsByControlType for Buttons ===");
+            Output.WriteLine("=== Testing SearchElementsByControlType for Buttons ===");
             
-            var buttons = await Tools.FindElements(controlType: "Button");
-            LogResult("FindElementsByControlType", buttons);
+            var buttons = await Tools.SearchElements(controlType: "Button");
+            LogResult("SearchElementsByControlType", buttons);
             
             Assert.NotNull(buttons);
         }
@@ -122,7 +122,7 @@ namespace UIAutomationMCP.Tests.E2E
             {
                 // Step 1: Find available navigation items and log them in detail
                 Output.WriteLine("1. Finding navigation items...");
-                var navItems = await Tools.FindElements(controlType: "ListItem");
+                var navItems = await Tools.SearchElements(controlType: "ListItem");
                 
                 // Parse and display available navigation items
                 var navItemsJson = JsonSerializer.Serialize(navItems);
@@ -154,7 +154,7 @@ namespace UIAutomationMCP.Tests.E2E
                 
                 // Step 3: Get initial page content to compare later
                 Output.WriteLine("\n3. Getting initial page content...");
-                var initialContent = await Tools.FindElements(controlType: "Text");
+                var initialContent = await Tools.SearchElements(controlType: "Text");
                 Output.WriteLine($"Initial content elements found: {JsonSerializer.Serialize(initialContent)}");
                 
                 // Step 4: Take screenshot before
@@ -185,7 +185,7 @@ namespace UIAutomationMCP.Tests.E2E
                 
                 // Step 8: Get page content after navigation
                 Output.WriteLine("\n8. Getting page content after navigation...");
-                var afterContent = await Tools.FindElements(controlType: "Text");
+                var afterContent = await Tools.SearchElements(controlType: "Text");
                 Output.WriteLine($"After content elements found: {JsonSerializer.Serialize(afterContent)}");
                 
                 // Step 9: Take screenshot after
@@ -194,7 +194,7 @@ namespace UIAutomationMCP.Tests.E2E
                 
                 // Step 10: Look for specific Fundamentals page content
                 Output.WriteLine("\n10. Looking for Fundamentals page specific content...");
-                var fundamentalsContent = await Tools.FindElements("Button");
+                var fundamentalsContent = await Tools.SearchElements("Button");
                 Output.WriteLine($"Found buttons (should include Fundamentals page buttons): {JsonSerializer.Serialize(fundamentalsContent)}");
                 
                 // Step 11: Verify actual changes occurred
@@ -237,8 +237,8 @@ namespace UIAutomationMCP.Tests.E2E
                 
                 // Look for specific content that proves we're on the Fundamentals page
                 Output.WriteLine("\n12. Looking for Fundamentals-specific content...");
-                var fundamentalsSpecific = await Tools.FindElements("Button");
-                var fundamentalsText = await Tools.FindElements("Iconography");  // Iconography is mentioned in Fundamentals
+                var fundamentalsSpecific = await Tools.SearchElements("Button");
+                var fundamentalsText = await Tools.SearchElements("Iconography");  // Iconography is mentioned in Fundamentals
                 Output.WriteLine($"Found Iconography text: {JsonSerializer.Serialize(fundamentalsText)}");
                 
                 // Count content elements before and after
@@ -270,8 +270,8 @@ namespace UIAutomationMCP.Tests.E2E
                 Output.WriteLine($"Found Iconography elements: {foundIconography}");
                 
                 // ULTIMATE PROOF: Search for specific Fundamentals page content
-                var buttonsPage = await Tools.FindElements("Buttons");
-                var fundamentalsPageElements = await Tools.FindElements("RichEditBox");
+                var buttonsPage = await Tools.SearchElements("Buttons");
+                var fundamentalsPageElements = await Tools.SearchElements("RichEditBox");
                 
                 Output.WriteLine($"Found Buttons page reference: {JsonSerializer.Serialize(buttonsPage)}");
                 Output.WriteLine($"Found RichEditBox reference: {JsonSerializer.Serialize(fundamentalsPageElements)}");
@@ -320,7 +320,7 @@ namespace UIAutomationMCP.Tests.E2E
                 await Tools.TakeScreenshot("WinUI 3 Gallery", @"C:\temp\before_minimize.png");
                 
                 Output.WriteLine("2. Finding and analyzing buttons...");
-                var buttons = await Tools.FindElements(controlType: "Button");
+                var buttons = await Tools.SearchElements(controlType: "Button");
                 
                 // Parse and find the Minimize button specifically
                 var buttonsData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(buttons));
@@ -431,7 +431,7 @@ namespace UIAutomationMCP.Tests.E2E
             {
                 Output.WriteLine("1. Looking for text input controls with detailed analysis...");
                 
-                var textInputs = await Tools.FindElements(controlType: "Edit");
+                var textInputs = await Tools.SearchElements(controlType: "Edit");
                 
                 // Parse and analyze each element
                 var inputsData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(textInputs));
@@ -531,7 +531,7 @@ namespace UIAutomationMCP.Tests.E2E
                             await Task.Delay(2000);
                             
                             // Search again after navigation
-                            var newInputs = await Tools.FindElements(controlType: "Edit");
+                            var newInputs = await Tools.SearchElements(controlType: "Edit");
                             Output.WriteLine($"After navigation, found: {JsonSerializer.Serialize(newInputs)}");
                         }
                         catch (Exception navEx)
@@ -560,7 +560,7 @@ namespace UIAutomationMCP.Tests.E2E
                 // Look for checkboxes
                 Output.WriteLine("1. Looking for checkbox controls...");
                 
-                var checkboxes = await Tools.FindElements(controlType: "CheckBox");
+                var checkboxes = await Tools.SearchElements(controlType: "CheckBox");
                 Output.WriteLine($"Found checkboxes: {JsonSerializer.Serialize(checkboxes)}");
                 
                 // Parse and test checkbox toggling
@@ -628,11 +628,11 @@ namespace UIAutomationMCP.Tests.E2E
                 Output.WriteLine("1. Looking for scrollable elements...");
                 
                 // Look for scroll viewers or scrollable content
-                var scrollableElements = await Tools.FindElements(controlType: "ScrollViewer");
+                var scrollableElements = await Tools.SearchElements(controlType: "ScrollViewer");
                 Output.WriteLine($"Found scroll viewers: {JsonSerializer.Serialize(scrollableElements)}");
                 
                 // Also look for lists that might be scrollable
-                var lists = await Tools.FindElements(controlType: "List");
+                var lists = await Tools.SearchElements(controlType: "List");
                 Output.WriteLine($"Found lists: {JsonSerializer.Serialize(lists)}");
                 
                 // Test scrolling on the navigation pane (it should be scrollable)
@@ -742,7 +742,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find text boxes
-                var textBoxes = await Tools.FindElements(controlType: "Edit");
+                var textBoxes = await Tools.SearchElements(controlType: "Edit");
                 LogResult("Found text boxes", textBoxes);
                 
                 Assert.NotNull(textBoxes);
@@ -765,11 +765,11 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find scrollable elements
-                var scrollViewers = await Tools.FindElements(controlType: "ScrollViewer");
+                var scrollViewers = await Tools.SearchElements(controlType: "ScrollViewer");
                 LogResult("Found scroll viewers", scrollViewers);
                 
                 // Test GetScrollInfo if available
-                var allElements = await Tools.FindElements();
+                var allElements = await Tools.SearchElements();
                 LogResult("All elements for scroll testing", allElements);
                 
                 Assert.NotNull(allElements);
@@ -788,11 +788,11 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find tree items or expandable elements
-                var treeItems = await Tools.FindElements(controlType: "TreeItem");
+                var treeItems = await Tools.SearchElements(controlType: "TreeItem");
                 LogResult("Found tree items", treeItems);
                 
                 // Also check for other expandable controls
-                var expanders = await Tools.FindElements(searchText: "Expander");
+                var expanders = await Tools.SearchElements(searchText: "Expander");
                 LogResult("Found expanders", expanders);
                 
                 Assert.True(true); // Test completion
@@ -811,7 +811,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find elements that might support transform
-                var windows = await Tools.FindElements(controlType: "Window");
+                var windows = await Tools.SearchElements(controlType: "Window");
                 LogResult("Found windows for transform", windows);
                 
                 Assert.NotNull(windows);
@@ -834,7 +834,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find text elements
-                var textElements = await Tools.FindElements(controlType: "Text");
+                var textElements = await Tools.SearchElements(controlType: "Text");
                 LogResult("Found text elements", textElements);
                 
                 Assert.NotNull(textElements);
@@ -857,11 +857,11 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find data grid elements
-                var dataGrids = await Tools.FindElements(controlType: "DataGrid");
+                var dataGrids = await Tools.SearchElements(controlType: "DataGrid");
                 LogResult("Found data grids", dataGrids);
                 
                 // Also check for generic grid patterns
-                var grids = await Tools.FindElements(controlType: "Grid");
+                var grids = await Tools.SearchElements(controlType: "Grid");
                 LogResult("Found grids", grids);
                 
                 Assert.True(true); // Test completion
@@ -880,7 +880,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find table elements
-                var tables = await Tools.FindElements(controlType: "Table");
+                var tables = await Tools.SearchElements(controlType: "Table");
                 LogResult("Found tables", tables);
                 
                 Assert.True(true); // Test completion
@@ -921,7 +921,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find a button and validate its control type
-                var buttons = await Tools.FindElements(controlType: "Button", maxResults: 1);
+                var buttons = await Tools.SearchElements(controlType: "Button", maxResults: 1);
                 LogResult("Found button for control type validation", buttons);
                 
                 Assert.NotNull(buttons);
@@ -944,7 +944,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find elements that might support multiple views
-                var viewElements = await Tools.FindElements(searchText: "View");
+                var viewElements = await Tools.SearchElements(searchText: "View");
                 LogResult("Found view elements", viewElements);
                 
                 Assert.NotNull(viewElements);
@@ -963,11 +963,11 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find sliders
-                var sliders = await Tools.FindElements(controlType: "Slider");
+                var sliders = await Tools.SearchElements(controlType: "Slider");
                 LogResult("Found sliders", sliders);
                 
                 // Also check for progress bars
-                var progressBars = await Tools.FindElements(controlType: "ProgressBar");
+                var progressBars = await Tools.SearchElements(controlType: "ProgressBar");
                 LogResult("Found progress bars", progressBars);
                 
                 Assert.True(true); // Test completion
@@ -986,7 +986,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Find elements and check for custom properties
-                var elements = await Tools.FindElements(controlType: "Button");
+                var elements = await Tools.SearchElements(controlType: "Button");
                 LogResult("Elements for custom property testing", elements);
                 
                 Assert.NotNull(elements);

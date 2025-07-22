@@ -56,7 +56,7 @@ public class WinUI3GalleryRealWorldTests : BaseE2ETest
             {
                 try
                 {
-                    var elements = await Tools.FindElements(
+                    var elements = await Tools.SearchElements(
                         controlType: controlType);
                     if (elements != null)
                     {
@@ -94,12 +94,12 @@ public class WinUI3GalleryRealWorldTests : BaseE2ETest
             await Task.Delay(2000);
 
             // Step 2: Find the NavigationView control
-            var navigationView = await Tools.FindElements(
+            var navigationView = await Tools.SearchElements(
                 controlType: "NavigationView");
             _output.WriteLine($"NavigationView found: {JsonSerializer.Serialize(navigationView, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 3: Find all NavigationViewItem elements
-            var navigationItems = await Tools.FindElements(
+            var navigationItems = await Tools.SearchElements(
                 controlType: "NavigationViewItem");
             _output.WriteLine($"NavigationViewItem elements found: {JsonSerializer.Serialize(navigationItems, new JsonSerializerOptions { WriteIndented = true })}");
 
@@ -113,7 +113,7 @@ public class WinUI3GalleryRealWorldTests : BaseE2ETest
             {
                 try
                 {
-                    var sectionElement = await Tools.FindElements(
+                    var sectionElement = await Tools.SearchElements(
                         searchText: section,
                         controlType: "NavigationViewItem");
                     _output.WriteLine($"Section '{section}' found: {JsonSerializer.Serialize(sectionElement, new JsonSerializerOptions { WriteIndented = true })}");
@@ -155,7 +155,7 @@ public class WinUI3GalleryRealWorldTests : BaseE2ETest
             {
                 try
                 {
-                    var searchElements = await Tools.FindElements(
+                    var searchElements = await Tools.SearchElements(
                         controlType: controlType);
                     _output.WriteLine($"Search control type '{controlType}' found: {JsonSerializer.Serialize(searchElements, new JsonSerializerOptions { WriteIndented = true })}");
                 }
@@ -172,7 +172,7 @@ public class WinUI3GalleryRealWorldTests : BaseE2ETest
             {
                 try
                 {
-                    var searchByName = await Tools.FindElements(
+                    var searchByName = await Tools.SearchElements(
                         searchText: searchName);
                     _output.WriteLine($"Search element by name '{searchName}' found: {JsonSerializer.Serialize(searchByName, new JsonSerializerOptions { WriteIndented = true })}");
                 }
@@ -207,22 +207,22 @@ public class WinUI3GalleryRealWorldTests : BaseE2ETest
             await Task.Delay(2000);
 
             // Step 2: Look for settings-related controls
-            var settingsElements = await Tools.FindElements(
+            var settingsElements = await Tools.SearchElements(
                 searchText: "Settings");
             _output.WriteLine($"Settings elements found: {JsonSerializer.Serialize(settingsElements, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 3: Look for menu or command bar elements
-            var menuElements = await Tools.FindElements(
+            var menuElements = await Tools.SearchElements(
                 controlType: "MenuBar");
             _output.WriteLine($"MenuBar elements found: {JsonSerializer.Serialize(menuElements, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 4: Look for command bar elements
-            var commandBarElements = await Tools.FindElements(
+            var commandBarElements = await Tools.SearchElements(
                 controlType: "CommandBar");
             _output.WriteLine($"CommandBar elements found: {JsonSerializer.Serialize(commandBarElements, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 5: Look for app bar elements
-            var appBarElements = await Tools.FindElements(
+            var appBarElements = await Tools.SearchElements(
                 controlType: "AppBar");
             _output.WriteLine($"AppBar elements found: {JsonSerializer.Serialize(appBarElements, new JsonSerializerOptions { WriteIndented = true })}");
 
@@ -255,17 +255,17 @@ public class WinUI3GalleryRealWorldTests : BaseE2ETest
             _output.WriteLine($"Initial state screenshot captured: {initialScreenshot != null}");
 
             // Step 3: Find the main window and try to get its properties
-            var windowElements = await Tools.FindElements(
+            var windowElements = await Tools.SearchElements(
                 controlType: "Window");
             _output.WriteLine($"Window elements found: {JsonSerializer.Serialize(windowElements, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 4: Look for split view or adaptive layouts
-            var splitViewElements = await Tools.FindElements(
+            var splitViewElements = await Tools.SearchElements(
                 controlType: "SplitView");
             _output.WriteLine($"SplitView elements found: {JsonSerializer.Serialize(splitViewElements, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 5: Look for scroll viewers that might change with view state
-            var scrollViewers = await Tools.FindElements(
+            var scrollViewers = await Tools.SearchElements(
                 controlType: "ScrollViewer");
             _output.WriteLine($"ScrollViewer elements found: {JsonSerializer.Serialize(scrollViewers, new JsonSerializerOptions { WriteIndented = true })}");
 
@@ -304,7 +304,7 @@ public class WinUI3GalleryRealWorldTests : BaseE2ETest
             {
                 try
                 {
-                    var elements = await Tools.FindElements(
+                    var elements = await Tools.SearchElements(
                         controlType: controlType);
                     if (elements != null)
                     {
@@ -356,11 +356,11 @@ public class WinUI3GalleryRealWorldTests : BaseE2ETest
             _output.WriteLine($"GetElementTree took {elementTreeDuration.TotalMilliseconds}ms");
 
             // Step 4: Measure time to find elements
-            var findElementsStartTime = DateTime.Now;
-            var buttons = await Tools.FindElements(controlType: "Button");
-            var findElementsEndTime = DateTime.Now;
-            var findElementsDuration = findElementsEndTime - findElementsStartTime;
-            _output.WriteLine($"FindElements took {findElementsDuration.TotalMilliseconds}ms");
+            var searchElementsStartTime = DateTime.Now;
+            var buttons = await Tools.SearchElements(controlType: "Button");
+            var searchElementsEndTime = DateTime.Now;
+            var searchElementsDuration = searchElementsEndTime - searchElementsStartTime;
+            _output.WriteLine($"SearchElements took {searchElementsDuration.TotalMilliseconds}ms");
 
             // Step 5: Measure time to take screenshot
             var screenshotStartTime = DateTime.Now;

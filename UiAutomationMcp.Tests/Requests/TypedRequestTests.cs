@@ -36,7 +36,7 @@ namespace UiAutomationMcp.Tests.Requests
         public void JsonSerialization_ShouldHandleComplexRequest()
         {
             // Arrange
-            var typedRequest = new FindElementsRequest
+            var typedRequest = new SearchElementsRequest
             {
                 WindowTitle = "Test Window",
                 ProcessId = 1234,
@@ -49,7 +49,7 @@ namespace UiAutomationMcp.Tests.Requests
 
             // Act
             var json = JsonSerializationHelper.Serialize(typedRequest);
-            var deserialized = JsonSerializationHelper.Deserialize<FindElementsRequest>(json);
+            var deserialized = JsonSerializationHelper.Deserialize<SearchElementsRequest>(json);
 
             // Assert
             Assert.NotNull(deserialized);
@@ -65,8 +65,8 @@ namespace UiAutomationMcp.Tests.Requests
         [Fact]
         public void JsonSerialization_ShouldPreserveAllProperties()
         {
-            // Arrange - FindElements request
-            var request = new FindElementsRequest
+            // Arrange - SearchElements request
+            var request = new SearchElementsRequest
             {
                 WindowTitle = "Test Window",
                 SearchText = "Button",
@@ -80,7 +80,7 @@ namespace UiAutomationMcp.Tests.Requests
 
             // Act
             var json = JsonSerializationHelper.Serialize(request);
-            var deserialized = JsonSerializationHelper.Deserialize<FindElementsRequest>(json);
+            var deserialized = JsonSerializationHelper.Deserialize<SearchElementsRequest>(json);
 
             // Assert
             Assert.NotNull(deserialized);
@@ -122,7 +122,7 @@ namespace UiAutomationMcp.Tests.Requests
         public void ComplexRequest_ShouldHandleAllParameters()
         {
             // Arrange
-            var complexRequest = new FindElementsRequest
+            var complexRequest = new SearchElementsRequest
             {
                 WindowTitle = "Complex App",
                 ProcessId = 9999,
@@ -139,7 +139,7 @@ namespace UiAutomationMcp.Tests.Requests
 
             // Act
             var json = JsonSerializationHelper.Serialize(complexRequest);
-            var roundTrip = JsonSerializationHelper.Deserialize<FindElementsRequest>(json);
+            var roundTrip = JsonSerializationHelper.Deserialize<SearchElementsRequest>(json);
 
             // Assert
             Assert.NotNull(roundTrip);

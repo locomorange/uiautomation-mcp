@@ -83,6 +83,7 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
 
         #region Microsoft仕様準拠のGridPattern必須プロパティテスト
 
+        /* DISABLED - GetGridInfo method no longer exists
         [Fact]
         public async Task GetGridInfo_WithValidGrid_ShouldReturnRowAndColumnCount()
         {
@@ -107,7 +108,9 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
             _mockGridService.Verify(s => s.GetGridInfoAsync("dataGrid", "TestWindow", null, 30), Times.Once);
             _output.WriteLine("GetGridInfo test passed");
         }
+        */
 
+        /* DISABLED - GetGridInfo method no longer exists
         [Theory]
         [InlineData(1, 1)]
         [InlineData(10, 5)]
@@ -136,7 +139,9 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
             _mockGridService.Verify(s => s.GetGridInfoAsync("grid", "TestApp", null, 30), Times.Once);
             _output.WriteLine($"Grid size test passed: {rowCount}x{columnCount}");
         }
+        */
 
+        /* DISABLED - GetGridInfo method no longer exists
         [Fact]
         public async Task GetGridInfo_WithSingleItemGrid_ShouldStillBeValidGrid()
         {
@@ -161,6 +166,7 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
             _mockGridService.Verify(s => s.GetGridInfoAsync("singleItemGrid", "TestWindow", null, 30), Times.Once);
             _output.WriteLine("Single item grid test passed");
         }
+        */
 
         #endregion
 
@@ -331,6 +337,7 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
 
         #region エラーハンドリングテスト
 
+        /* DISABLED - GetGridInfo method no longer exists
         [Fact]
         public async Task GetGridInfo_WithNonExistentElement_ShouldHandleError()
         {
@@ -345,7 +352,9 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
             _mockGridService.Verify(s => s.GetGridInfoAsync("nonExistentGrid", "TestWindow", null, 30), Times.Once);
             _output.WriteLine("Non-existent element error handling test passed");
         }
+        */
 
+        /* DISABLED - GetGridInfo method no longer exists
         [Fact]
         public async Task GetGridInfo_WithUnsupportedElement_ShouldHandleError()
         {
@@ -360,6 +369,7 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
             _mockGridService.Verify(s => s.GetGridInfoAsync("textBox", "TestWindow", null, 30), Times.Once);
             _output.WriteLine("Unsupported element error handling test passed");
         }
+        */
 
         [Fact]
         public async Task GetGridItem_WithNonExistentGrid_ShouldHandleError()
@@ -380,6 +390,7 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
 
         #region パラメータ検証テスト
 
+        /* DISABLED - GetGridInfo method no longer exists
         [Theory]
         [InlineData("", "TestWindow")]
         [InlineData("grid1", "")]
@@ -405,7 +416,9 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
                 string.IsNullOrEmpty(windowTitle) ? null : windowTitle, null, 30), Times.Once);
             _output.WriteLine($"Empty parameter test passed: elementId='{elementId}', window='{windowTitle}'");
         }
+        */
 
+        /* DISABLED - GetGridInfo method no longer exists
         [Theory]
         [InlineData(1234)]
         [InlineData(5678)]
@@ -429,7 +442,9 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
             _mockGridService.Verify(s => s.GetGridInfoAsync("grid1", "TestWindow", processId, 30), Times.Once);
             _output.WriteLine($"ProcessId parameter test passed: processId={processId}");
         }
+        */
 
+        /* DISABLED - GetGridInfo method no longer exists
         [Theory]
         [InlineData(10)]
         [InlineData(60)]
@@ -453,6 +468,7 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
             _mockGridService.Verify(s => s.GetGridInfoAsync("grid1", "TestWindow", null, timeoutSeconds), Times.Once);
             _output.WriteLine($"Custom timeout test passed: timeout={timeoutSeconds}s");
         }
+        */
 
         [Theory]
         [InlineData("", 0, 0, "TestWindow")]
@@ -490,6 +506,7 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
 
         #region Grid操作シナリオテスト
 
+        /* DISABLED - GetGridInfo method no longer exists
         [Fact]
         public async Task GridOperations_FullWorkflow_ShouldExecuteCorrectly()
         {
@@ -577,6 +594,7 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
 
             _output.WriteLine("Full grid workflow test passed");
         }
+        */
 
         #endregion
 
