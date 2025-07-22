@@ -35,7 +35,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Dock", Details = $"Docked to {dockPosition}", Metadata = new Dictionary<string, object> { { "PreviousPosition", "None" }, { "NewPosition", dockPosition } } }
             };
-            _mockService.Setup(s => s.DockElementAsync("dockablePane", dockPosition, "TestWindow", null, 30))
+            _mockService.Setup(s => s.DockElementAsync("dockablePane", "TestWindow", dockPosition, null, null, 30))
                        .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -55,7 +55,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task DockElement_WithInvalidDockPositions_ShouldHandleError(string invalidPosition)
         {
             // Arrange
-            _mockService.Setup(s => s.DockElementAsync("dockablePane", invalidPosition, "TestWindow", null, 30))
+            _mockService.Setup(s => s.DockElementAsync("dockablePane", "TestWindow", invalidPosition, null, null, 30))
                        .ThrowsAsync(new ArgumentException($"Unsupported dock position: {invalidPosition}"));
 
             // Act & Assert
@@ -83,7 +83,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Dock", Details = "Docked to Top", Metadata = new Dictionary<string, object> { { "PreviousPosition", "None" }, { "NewPosition", "Top" } } }
             };
-            _mockService.Setup(s => s.DockElementAsync("toolbar", "top", "MainWindow", null, 30))
+            _mockService.Setup(s => s.DockElementAsync("toolbar", "MainWindow", "top", null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -103,7 +103,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Dock", Details = "Docked to Right", Metadata = new Dictionary<string, object> { { "PreviousPosition", "Left" }, { "NewPosition", "Right" } } }
             };
-            _mockService.Setup(s => s.DockElementAsync("sidebar", "right", "IDE", null, 30))
+            _mockService.Setup(s => s.DockElementAsync("sidebar", "IDE", "right", null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -123,7 +123,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Dock", Details = "Docked to Fill", Metadata = new Dictionary<string, object> { { "PreviousPosition", "None" }, { "NewPosition", "Fill" } } }
             };
-            _mockService.Setup(s => s.DockElementAsync("contentArea", "fill", "App", null, 30))
+            _mockService.Setup(s => s.DockElementAsync("contentArea", "App", "fill", null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -143,7 +143,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task DockElement_WithNonExistentElement_ShouldHandleError()
         {
             // Arrange
-            _mockService.Setup(s => s.DockElementAsync("nonExistentElement", "top", "TestWindow", null, 30))
+            _mockService.Setup(s => s.DockElementAsync("nonExistentElement", "TestWindow", "top", null, null, 30))
                        .ThrowsAsync(new InvalidOperationException(CommonTestData.ErrorMessages.ElementNotFound));
 
             // Act & Assert
@@ -158,7 +158,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task DockElement_WithUnsupportedElement_ShouldHandleError()
         {
             // Arrange
-            _mockService.Setup(s => s.DockElementAsync("staticText", "top", "TestWindow", null, 30))
+            _mockService.Setup(s => s.DockElementAsync("staticText", "TestWindow", "top", null, null, 30))
                        .ThrowsAsync(new InvalidOperationException(CommonTestData.ErrorMessages.PatternNotSupported));
 
             // Act & Assert
@@ -209,7 +209,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Dock", Details = "Docked to Top", Metadata = new Dictionary<string, object> { { "PreviousPosition", "None" }, { "NewPosition", "Top" } } }
             };
-            _mockService.Setup(s => s.DockElementAsync("element1", "top", "TestWindow", processId, 30))
+            _mockService.Setup(s => s.DockElementAsync("element1", "TestWindow", "top", null, processId, 30))
                        .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -230,7 +230,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Dock", Details = "Docked to Bottom", Metadata = new Dictionary<string, object> { { "PreviousPosition", "None" }, { "NewPosition", "Bottom" } } }
             };
-            _mockService.Setup(s => s.DockElementAsync("element1", "bottom", "TestWindow", null, timeoutSeconds))
+            _mockService.Setup(s => s.DockElementAsync("element1", "TestWindow", "bottom", null, null, timeoutSeconds))
                        .Returns(Task.FromResult(expectedResult));
 
             // Act

@@ -53,7 +53,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<IsSelectedRequest, BooleanResult>("IsSelected",
                 It.Is<IsSelectedRequest>(r => 
-                    r.ElementId == elementId &&
+                    r.AutomationId == elementId &&
                     r.WindowTitle == windowTitle &&
                     r.ProcessId == processId), 30), Times.Once);
 
@@ -76,7 +76,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<IsSelectedRequest, BooleanResult>("IsSelected", 
-                It.Is<IsSelectedRequest>(r => r.ElementId == elementId), 30), Times.Once);
+                It.Is<IsSelectedRequest>(r => r.AutomationId == elementId), 30), Times.Once);
 
             _output.WriteLine("IsSelectedAsync test passed - Element correctly identified as not selected");
         }
@@ -108,7 +108,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<GetSelectionContainerRequest, ActionResult>("GetSelectionContainer", 
-                It.Is<GetSelectionContainerRequest>(r => r.ElementId == elementId), 30), Times.Once);
+                It.Is<GetSelectionContainerRequest>(r => r.AutomationId == elementId), 30), Times.Once);
 
             _output.WriteLine("GetSelectionContainerAsync test passed - Container information retrieved");
         }
@@ -129,7 +129,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<GetSelectionContainerRequest, ActionResult>("GetSelectionContainer", 
-                It.Is<GetSelectionContainerRequest>(r => r.ElementId == elementId), 30), Times.Once);
+                It.Is<GetSelectionContainerRequest>(r => r.AutomationId == elementId), 30), Times.Once);
 
             _output.WriteLine("GetSelectionContainerAsync test passed - Null container handled correctly");
         }
@@ -157,7 +157,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<CanSelectMultipleRequest, BooleanResult>("CanSelectMultiple",
                 It.Is<CanSelectMultipleRequest>(r => 
-                    r.ElementId == containerId &&
+                    r.AutomationId == containerId &&
                     r.WindowTitle == windowTitle &&
                     r.ProcessId == processId), 30), Times.Once);
 
@@ -180,7 +180,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<CanSelectMultipleRequest, BooleanResult>("CanSelectMultiple", 
-                It.Is<CanSelectMultipleRequest>(r => r.ElementId == containerId), 30), Times.Once);
+                It.Is<CanSelectMultipleRequest>(r => r.AutomationId == containerId), 30), Times.Once);
 
             _output.WriteLine("CanSelectMultipleAsync test passed - Single selection correctly identified");
         }
@@ -203,7 +203,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<IsSelectionRequiredRequest, BooleanResult>("IsSelectionRequired",
                 It.Is<IsSelectionRequiredRequest>(r => 
-                    r.ElementId == containerId &&
+                    r.AutomationId == containerId &&
                     r.WindowTitle == windowTitle), 30), Times.Once);
 
             _output.WriteLine("IsSelectionRequiredAsync test passed - Required selection correctly identified");
@@ -225,7 +225,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<IsSelectionRequiredRequest, BooleanResult>("IsSelectionRequired", 
-                It.Is<IsSelectionRequiredRequest>(r => r.ElementId == containerId), 30), Times.Once);
+                It.Is<IsSelectionRequiredRequest>(r => r.AutomationId == containerId), 30), Times.Once);
 
             _output.WriteLine("IsSelectionRequiredAsync test passed - Optional selection correctly identified");
         }
@@ -256,7 +256,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<IsSelectedRequest, BooleanResult>("IsSelected", 
-                It.Is<IsSelectedRequest>(r => r.ElementId == elementId), 30), Times.Once);
+                It.Is<IsSelectedRequest>(r => r.AutomationId == elementId), 30), Times.Once);
 
             _output.WriteLine($"Microsoft specification test passed for {controlTypeName} (Required: {isRequired})");
         }
@@ -283,7 +283,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<CanSelectMultipleRequest, BooleanResult>("CanSelectMultiple", 
-                It.Is<CanSelectMultipleRequest>(r => r.ElementId == containerId), 30), Times.Once);
+                It.Is<CanSelectMultipleRequest>(r => r.AutomationId == containerId), 30), Times.Once);
 
             _output.WriteLine($"Microsoft specification test passed for {controlTypeName} (Required: {isRequired})");
         }
@@ -312,7 +312,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<IsSelectedRequest, BooleanResult>("IsSelected",
                 It.Is<IsSelectedRequest>(r => 
-                    r.ElementId == elementId &&
+                    r.AutomationId == elementId &&
                     r.WindowTitle == windowTitle &&
                     r.ProcessId == processId), timeoutSeconds), Times.Once);
 
@@ -339,7 +339,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<CanSelectMultipleRequest, BooleanResult>("CanSelectMultiple", 
-                It.Is<CanSelectMultipleRequest>(r => r.ElementId == containerId), timeoutSeconds), Times.Once);
+                It.Is<CanSelectMultipleRequest>(r => r.AutomationId == containerId), timeoutSeconds), Times.Once);
 
             _output.WriteLine($"Timeout test passed for {timeoutSeconds} seconds");
         }
@@ -377,7 +377,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.Equal(expectedException.Message, error);
             
             _mockExecutor.Verify(e => e.ExecuteAsync<IsSelectedRequest, BooleanResult>("IsSelected", 
-                It.Is<IsSelectedRequest>(r => r.ElementId == elementId), 30), Times.Once);
+                It.Is<IsSelectedRequest>(r => r.AutomationId == elementId), 30), Times.Once);
 
             _output.WriteLine("Exception handling test passed - Service properly handles executor exceptions and returns error result");
         }
@@ -386,7 +386,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task SelectionService_WithNullAndEmptyParameters_ShouldHandleGracefully()
         {
             // Arrange
-            var emptyElementId = "";
+            var emptyAutomationId = "";
             var expectedResult = new { IsSelected = false };
 
             _mockExecutor.Setup(e => e.ExecuteAsync<IsSelectedRequest, BooleanResult>("IsSelected", It.IsAny<IsSelectedRequest>(), 30))
@@ -398,7 +398,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<IsSelectedRequest, BooleanResult>("IsSelected", 
-                It.Is<IsSelectedRequest>(r => r.ElementId == emptyElementId), 30), Times.Once);
+                It.Is<IsSelectedRequest>(r => r.AutomationId == emptyElementId), 30), Times.Once);
 
             _output.WriteLine("Empty parameter handling test passed");
         }

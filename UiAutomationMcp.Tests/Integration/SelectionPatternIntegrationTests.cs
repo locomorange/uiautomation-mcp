@@ -54,7 +54,6 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange
             var elementId = "NonExistentSelectionItem";
-            var windowTitle = "NonExistentWindow";
             var processId = 99999; // Non-existent process ID
 
             // Act
@@ -133,7 +132,6 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange
             var containerId = "NonExistentTabControl";
-            var windowTitle = "TestTabWindow";
 
             // Act
             var result = await _selectionService.IsSelectionRequiredAsync(automationId: containerId, processId: null, timeoutSeconds: 5);
@@ -303,7 +301,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task SelectionOperations_WithEmptyParameters_ShouldHandleGracefully()
         {
             // Arrange - Test with empty strings and zero values
-            var emptyElementId = "";
+            var emptyAutomationId = "";
             var emptyWindowTitle = "";
             var zeroProcessId = 0;
 
@@ -362,7 +360,6 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange - Simulate a typical Selection container workflow
             var containerId = "SpecCompliance_Container";
-            var windowTitle = "ContainerSpecificationTestWindow";
 
             // Act & Assert - Test the complete Selection pattern workflow
             

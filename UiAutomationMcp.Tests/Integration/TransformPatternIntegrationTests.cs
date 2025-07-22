@@ -83,7 +83,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task GetTransformCapabilities_WithNonExistentElement_ShouldReturnError()
         {
             // Arrange
-            const string nonExistentElementId = "NonExistentTransformElement_12345";
+            const string nonExistentAutomationId = "NonExistentTransformElement_12345";
             const string windowTitle = "NonExistentWindow";
             const int timeout = 5; // 短いタイムアウト
 
@@ -133,7 +133,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task MoveElement_WithNonExistentElement_ShouldReturnError()
         {
             // Arrange
-            const string nonExistentElementId = "NonExistentMoveableElement_12345";
+            const string nonExistentAutomationId = "NonExistentMoveableElement_12345";
             const double x = 100.0;
             const double y = 200.0;
             const int timeout = 5;
@@ -190,7 +190,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task ResizeElement_WithNonExistentElement_ShouldReturnError()
         {
             // Arrange
-            const string nonExistentElementId = "NonExistentResizableElement_12345";
+            const string nonExistentAutomationId = "NonExistentResizableElement_12345";
             const double width = 800.0;
             const double height = 600.0;
             const int timeout = 5;
@@ -274,7 +274,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task RotateElement_WithNonExistentElement_ShouldReturnError()
         {
             // Arrange
-            const string nonExistentElementId = "NonExistentRotatableElement_12345";
+            const string nonExistentAutomationId = "NonExistentRotatableElement_12345";
             const double degrees = 90.0;
             const int timeout = 5;
 

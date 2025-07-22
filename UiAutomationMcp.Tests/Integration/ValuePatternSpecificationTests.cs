@@ -60,7 +60,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task IsReadOnly_RequiredMember_ShouldReturnValidResult()
         {
             // Arrange
-            var nonExistentElementId = "TestElement_ValuePattern_IsReadOnly";
+            var nonExistentAutomationId = "TestElement_ValuePattern_IsReadOnly";
             var timeout = 5;
 
             // Act
@@ -82,7 +82,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task SetValue_RequiredMember_ShouldHandleDisabledControl()
         {
             // Arrange
-            var nonExistentElementId = "TestElement_ValuePattern_SetValue";
+            var nonExistentAutomationId = "TestElement_ValuePattern_SetValue";
             var testValue = "Test Value";
             var timeout = 5;
 
@@ -106,7 +106,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task GetValue_RequiredMember_ShouldReturnCurrentValue()
         {
             // Arrange
-            var nonExistentElementId = "TestElement_ValuePattern_GetValue";
+            var nonExistentAutomationId = "TestElement_ValuePattern_GetValue";
             var timeout = 5;
 
             // Act
@@ -128,7 +128,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task IsReadOnly_SpecificationBehavior_ReadOnlyElementsShouldReturnTrue()
         {
             // Arrange - Simulate read-only element scenario
-            var readOnlyElementId = "ReadOnlyElement_ValuePattern";
+            var readOnlyAutomationId = "ReadOnlyElement_ValuePattern";
             var timeout = 5;
 
             // Act
@@ -150,7 +150,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task SetValue_SpecificationBehavior_ReadOnlyElementShouldFail()
         {
             // Arrange
-            var readOnlyElementId = "ReadOnlyElement_SetValue_Test";
+            var readOnlyAutomationId = "ReadOnlyElement_SetValue_Test";
             var testValue = "Attempted modification";
             var timeout = 5;
 
@@ -172,7 +172,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task ValuePattern_SpecificationRequirement_EnabledPropertyCheck()
         {
             // Arrange
-            var disabledElementId = "DisabledElement_ValuePattern";
+            var disabledAutomationId = "DisabledElement_ValuePattern";
             var timeout = 5;
 
             // Act - Test all required members on potentially disabled element

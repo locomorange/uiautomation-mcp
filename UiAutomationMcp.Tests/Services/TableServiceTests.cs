@@ -57,7 +57,7 @@ namespace UIAutomationMCP.Tests.Services
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<GetRowOrColumnMajorRequest, PropertyResult>("GetRowOrColumnMajor", 
                 It.Is<GetRowOrColumnMajorRequest>(p => 
-                    p.ElementId == elementId &&
+                    p.AutomationId == elementId &&
                     p.WindowTitle == windowTitle &&
                     p.ProcessId == processId), 30), Times.Once);
             
@@ -81,7 +81,7 @@ namespace UIAutomationMCP.Tests.Services
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<GetRowOrColumnMajorRequest, PropertyResult>("GetRowOrColumnMajor", 
                 It.Is<GetRowOrColumnMajorRequest>(p => 
-                    p.ElementId == elementId &&
+                    p.AutomationId == elementId &&
                     p.WindowTitle == "" &&
                     p.ProcessId == 0), 30), Times.Once);
             
@@ -169,7 +169,7 @@ namespace UIAutomationMCP.Tests.Services
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<GetTableInfoRequest, TableInfoResult>("GetTableInfo", 
                 It.Is<GetTableInfoRequest>(p => 
-                    p.ElementId == elementId &&
+                    p.AutomationId == elementId &&
                     p.WindowTitle == windowTitle &&
                     p.ProcessId == processId), 30), Times.Once);
             
@@ -242,7 +242,7 @@ namespace UIAutomationMCP.Tests.Services
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<GetColumnHeadersRequest, ElementSearchResult>("GetColumnHeaders", 
                 It.Is<GetColumnHeadersRequest>(p => 
-                    p.ElementId == elementId), 30), Times.Once);
+                    p.AutomationId == elementId), 30), Times.Once);
             
             _output.WriteLine("GetColumnHeadersAsync service test passed");
         }

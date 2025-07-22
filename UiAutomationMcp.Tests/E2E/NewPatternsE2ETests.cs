@@ -102,7 +102,7 @@ public class NewPatternsE2ETests : BaseE2ETest
 
             // Find an item by name
             var result = await Tools.FindItemByProperty(
-                "SettingsList",
+                automationId: "SettingsList",
                 propertyName: "Name",
                 value: "System",
                 timeoutSeconds: 10);
@@ -130,7 +130,7 @@ public class NewPatternsE2ETests : BaseE2ETest
 
             // Find all items without a specific property value
             var result = await Tools.FindItemByProperty(
-                "FilesList",
+                automationId: "FilesList",
                 propertyName: "Name",
                 value: null, // Find items with no name
                 timeoutSeconds: 10);
@@ -163,8 +163,8 @@ public class NewPatternsE2ETests : BaseE2ETest
 
             // Start listening for mouse clicks
             var startResult = await Tools.StartSynchronizedInput(
-                "SyncButton",
-                inputType: "LeftMouseDown",
+                "LeftMouseDown",
+                automationId: "SyncButton",
                 timeoutSeconds: 10);
 
             var startDict = startResult as Dictionary<string, object>;
@@ -200,8 +200,8 @@ public class NewPatternsE2ETests : BaseE2ETest
 
             // Synchronize keyboard input
             var result = await Tools.StartSynchronizedInput(
-                "GameCanvas",
-                inputType: "KeyDown",
+                "KeyDown",
+                automationId: "GameCanvas",
                 timeoutSeconds: 10);
 
             var resultDict = result as Dictionary<string, object>;
@@ -238,7 +238,7 @@ public class NewPatternsE2ETests : BaseE2ETest
 
             // Find the list container
             var containerResult = await Tools.FindItemByProperty(
-                "MainList",
+                automationId: "MainList",
                 propertyName: "ControlType",
                 value: "List");
 
@@ -256,8 +256,8 @@ public class NewPatternsE2ETests : BaseE2ETest
 
             // Start synchronized input for selection
             var syncResult = await Tools.StartSynchronizedInput(
-                "ListItem_500",
-                inputType: "LeftMouseDown");
+                "LeftMouseDown",
+                automationId: "ListItem_500");
 
             var syncDict = syncResult as Dictionary<string, object>;
             Assert.NotNull(syncDict);

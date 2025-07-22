@@ -96,7 +96,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Data = new TransformCapabilitiesResult
                 {
                     Success = true,
-                    ElementId = "window1",
+                    AutomationId = "window1",
                     CanMove = true,
                     CanResize = true,
                     CanRotate = false
@@ -129,7 +129,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Data = new TransformCapabilitiesResult
                 {
                     Success = true,
-                    ElementId = "element1",
+                    AutomationId = "element1",
                     CanMove = canMove,
                     CanResize = canResize,
                     CanRotate = canRotate
@@ -165,7 +165,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Data = new ActionResult
                 {
                     Success = true,
-                    ElementId = "movableWindow",
+                    AutomationId = "movableWindow",
                     Action = "Move",
                     ActionParameters = new Dictionary<string, object> { { "X", x }, { "Y", y } }
                 }
@@ -220,7 +220,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Data = new ActionResult
                 {
                     Success = true,
-                    ElementId = "resizableWindow",
+                    AutomationId = "resizableWindow",
                     Action = "Resize",
                     ActionParameters = new Dictionary<string, object> { { "Width", width }, { "Height", height } }
                 }
@@ -301,7 +301,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Data = new ActionResult
                 {
                     Success = true,
-                    ElementId = "rotatableImage",
+                    AutomationId = "rotatableImage",
                     Action = "Rotate",
                     ActionParameters = new Dictionary<string, object> { { "Degrees", degrees } }
                 }
@@ -398,7 +398,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Data = new TransformCapabilitiesResult 
                 { 
                     Success = true, 
-                    ElementId = elementId, 
+                    AutomationId = elementId, 
                     CanMove = true, 
                     CanResize = true, 
                     CanRotate = false 
@@ -432,7 +432,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Data = new ActionResult 
                 { 
                     Success = true, 
-                    ElementId = "window1", 
+                    AutomationId = "window1", 
                     Action = "Move", 
                     ActionParameters = new Dictionary<string, object> { { "X", 100.0 }, { "Y", 200.0 } } 
                 } 
@@ -462,7 +462,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Data = new ActionResult 
                 { 
                     Success = true, 
-                    ElementId = "window1", 
+                    AutomationId = "window1", 
                     Action = "Resize", 
                     ActionParameters = new Dictionary<string, object> { { "Width", 800.0 }, { "Height", 600.0 } } 
                 } 
@@ -493,7 +493,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Data = new ActionResult 
                 { 
                     Success = true, 
-                    ElementId = "transformableWindow", 
+                    AutomationId = "transformableWindow", 
                     Action = "Move", 
                     ActionParameters = new Dictionary<string, object> { { "X", 200.0 }, { "Y", 300.0 } } 
                 } 
@@ -504,7 +504,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Data = new ActionResult 
                 { 
                     Success = true, 
-                    ElementId = "transformableWindow", 
+                    AutomationId = "transformableWindow", 
                     Action = "Resize", 
                     ActionParameters = new Dictionary<string, object> { { "Width", 1024.0 }, { "Height", 768.0 } } 
                 } 
@@ -515,7 +515,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Data = new ActionResult 
                 { 
                     Success = true, 
-                    ElementId = "transformableWindow", 
+                    AutomationId = "transformableWindow", 
                     Action = "Rotate", 
                     ActionParameters = new Dictionary<string, object> { { "Degrees", 45.0 } } 
                 } 
@@ -562,7 +562,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Data = new ActionResult
                 {
                     Success = true,
-                    ElementId = "element1",
+                    AutomationId = "element1",
                     Action = "Move",
                     ActionParameters = new Dictionary<string, object> { { "X", x }, { "Y", y } }
                 }

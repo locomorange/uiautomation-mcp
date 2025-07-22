@@ -450,11 +450,11 @@ namespace UIAutomationMCP.Tests.Integration
 
             var testScenarios = new[]
             {
-                new { Name = "Required Properties API", ElementId = "PropertiesTestElement" },
-                new { Name = "Required Methods API", ElementId = "MethodsTestElement" },
-                new { Name = "Exception Handling", ElementId = "ExceptionTestElement" },
-                new { Name = "Parameter Validation", ElementId = "ValidationTestElement" },
-                new { Name = "Pattern Support Detection", ElementId = "SupportTestElement" }
+                new { Name = "Required Properties API", AutomationId = "PropertiesTestElement" },
+                new { Name = "Required Methods API", AutomationId = "MethodsTestElement" },
+                new { Name = "Exception Handling", AutomationId = "ExceptionTestElement" },
+                new { Name = "Parameter Validation", AutomationId = "ValidationTestElement" },
+                new { Name = "Pattern Support Detection", AutomationId = "SupportTestElement" }
             };
 
             var allTestsPassed = true;

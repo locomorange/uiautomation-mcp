@@ -51,7 +51,6 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange
             var elementId = "NonExistentVirtualizedItem";
-            var windowTitle = "NonExistentWindow";
             var processId = 99999; // Non-existent process ID
 
             // Act

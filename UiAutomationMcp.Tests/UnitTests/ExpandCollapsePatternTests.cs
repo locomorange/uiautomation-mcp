@@ -96,7 +96,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Expand", Details = "Expanded" }
             };
-            _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync(elementSelector, "expand", "TestWindow", null, 30))
+            _mockLayoutService.Setup(s => s.ExpandCollapseElementAsync(elementSelector, "TestWindow", "expand", null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act

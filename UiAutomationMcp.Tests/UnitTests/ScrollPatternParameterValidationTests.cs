@@ -32,7 +32,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public void GetScrollInfo_Should_Validate_ElementId_Parameters(string elementId)
         {
             // Arrange - パラメータ検証のみをテスト（UIAutomation呼び出しなし）
-            var normalizedElementId = elementId ?? "";
+            var normalizedAutomationId = elementId ?? "";
 
             // Act & Assert - 空のelementIdは無効として扱われるべき
             var isValid = !string.IsNullOrWhiteSpace(normalizedElementId);

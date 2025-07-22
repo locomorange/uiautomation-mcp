@@ -117,7 +117,7 @@ namespace UIAutomationMCP.Tests.Integration
             // Microsoft仕様: ElementNotEnabledException for disabled controls
             
             // Given
-            var disabledElementId = "DisabledButton";
+            var disabledAutomationId = "DisabledButton";
             var timeout = 5;
 
             // When
@@ -135,7 +135,6 @@ namespace UIAutomationMCP.Tests.Integration
             
             // Given
             var elementId = "FlexibleButton";
-            var windowTitle = "TestWindow";
             var processId = 1234;
             var timeout = 3;
 

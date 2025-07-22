@@ -35,7 +35,7 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
 
             // Step 1: Find the worksheet container
             var worksheetResult = await Tools.FindItemByProperty(
-                "WorksheetGrid",
+                automationId: "WorksheetGrid",
                 propertyName: "ControlType",
                 value: "DataGrid",
                 timeoutSeconds: 10);
@@ -57,8 +57,8 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
 
             // Step 3: Start synchronized input to ensure proper data entry
             var syncResult = await Tools.StartSynchronizedInput(
-                "Cell_A1000",
-                inputType: "KeyDown",
+                "KeyDown",
+                automationId: "Cell_A1000",
                 timeoutSeconds: 5);
 
             var syncDict = syncResult as Dictionary<string, object>;
@@ -91,7 +91,7 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
 
             // Find Solution Explorer
             var solutionExplorerResult = await Tools.FindItemByProperty(
-                "SolutionExplorer",
+                automationId: "SolutionExplorer",
                 propertyName: "Name",
                 value: "Solution Explorer",
                 timeoutSeconds: 15);
@@ -165,8 +165,8 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
 
             // Start synchronized input for multi-selection with Ctrl held
             var syncResult = await Tools.StartSynchronizedInput(
-                filesId,
-                inputType: "KeyDown", // For Ctrl key
+                "KeyDown", // For Ctrl key
+                automationId: filesId,
                 timeoutSeconds: 5);
 
             var syncDict = syncResult as Dictionary<string, object>;
@@ -284,8 +284,8 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
 
             // Step 2: Start synchronized input for navigation
             var syncResult = await Tools.StartSynchronizedInput(
-                gridId,
-                inputType: "KeyDown",
+                "KeyDown",
+                automationId: gridId,
                 timeoutSeconds: 5);
 
             var syncDict = syncResult as Dictionary<string, object>;

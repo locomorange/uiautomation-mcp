@@ -132,9 +132,9 @@ namespace UiAutomationMcp.Tests.Requests
                 ClassName = "WinFormButton",
                 Scope = "descendants",
                 TimeoutSeconds = 45,
-                UseCache = false,
+                // UseCache property removed from SearchElementsRequest
                 UseRegex = true,
-                UseWildcard = false
+                // UseWildcard property removed from SearchElementsRequest
             };
 
             // Act
@@ -151,9 +151,9 @@ namespace UiAutomationMcp.Tests.Requests
             Assert.Equal(complexRequest.ClassName, roundTrip.ClassName);
             Assert.Equal(complexRequest.Scope, roundTrip.Scope);
             Assert.Equal(complexRequest.TimeoutSeconds, roundTrip.TimeoutSeconds);
-            Assert.Equal(complexRequest.UseCache, roundTrip.UseCache);
+            // Assert.Equal(complexRequest.UseCache, roundTrip.UseCache); // UseCache property removed
             Assert.Equal(complexRequest.UseRegex, roundTrip.UseRegex);
-            Assert.Equal(complexRequest.UseWildcard, roundTrip.UseWildcard);
+            // Assert.Equal(complexRequest.UseWildcard, roundTrip.UseWildcard); // UseWildcard property removed
         }
 
         [Fact]

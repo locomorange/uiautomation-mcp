@@ -172,7 +172,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 { 
                     Action = "GetSelectionContainer",
                     ActionName = "Container information retrieved",
-                    ElementId = elementId,
+                    AutomationId = elementId,
                     Completed = true
                 }
             };
@@ -203,7 +203,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 { 
                     Action = "GetSelectionContainer",
                     ActionName = "Container not found",
-                    ElementId = elementId,
+                    AutomationId = elementId,
                     Completed = true
                 }
             };
@@ -230,7 +230,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task CanSelectMultiple_WhenCalled_ShouldCallSelectionService()
         {
             // Arrange
-            var containerElementId = "multiSelectListBox";
+            var containerAutomationId = "multiSelectListBox";
             var windowTitle = "Multi-Select Window";
             var processId = 9999;
             var timeoutSeconds = 60;
@@ -258,7 +258,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task CanSelectMultiple_WithSingleSelectContainer_ShouldReturnFalse()
         {
             // Arrange
-            var containerElementId = "singleSelectRadioGroup";
+            var containerAutomationId = "singleSelectRadioGroup";
             var expectedResult = new ServerEnhancedResponse<BooleanResult> 
             { 
                 Success = true, 
@@ -283,7 +283,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task IsSelectionRequired_WhenCalled_ShouldCallSelectionService()
         {
             // Arrange
-            var containerElementId = "requiredTabControl";
+            var containerAutomationId = "requiredTabControl";
             var windowTitle = "Tab Control Window";
             var expectedResult = new ServerEnhancedResponse<BooleanResult> 
             { 
@@ -309,7 +309,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task IsSelectionRequired_WithOptionalSelection_ShouldReturnFalse()
         {
             // Arrange
-            var containerElementId = "optionalSelectionList";
+            var containerAutomationId = "optionalSelectionList";
             var expectedResult = new ServerEnhancedResponse<BooleanResult> 
             { 
                 Success = true, 
@@ -348,7 +348,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 { 
                     Action = "AddToSelection",
                     ActionName = "Element added to selection successfully",
-                    ElementId = elementId,
+                    AutomationId = elementId,
                     Completed = true
                 }
             };
@@ -380,7 +380,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 { 
                     Action = "AddToSelection",
                     ActionName = "Element added with custom timeout",
-                    ElementId = elementId,
+                    AutomationId = elementId,
                     Completed = true
                 }
             };
@@ -413,7 +413,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 { 
                     Action = "RemoveFromSelection",
                     ActionName = "Element removed from selection successfully",
-                    ElementId = elementId,
+                    AutomationId = elementId,
                     Completed = true
                 }
             };
@@ -436,7 +436,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ClearSelection_WhenCalled_ShouldCallSelectionService()
         {
             // Arrange
-            var containerElementId = "clearableContainer";
+            var containerAutomationId = "clearableContainer";
             var windowTitle = "Clearable Selection Window";
             var processId = 4444;
             var expectedResult = new ServerEnhancedResponse<ActionResult> 
@@ -446,7 +446,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 { 
                     Action = "ClearSelection",
                     ActionName = "Selection cleared successfully",
-                    ElementId = containerElementId,
+                    AutomationId = containerElementId,
                     Completed = true
                 }
             };
@@ -469,14 +469,14 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetSelection_WhenCalled_ShouldCallSelectionService()
         {
             // Arrange
-            var containerElementId = "selectionContainer";
+            var containerAutomationId = "selectionContainer";
             var windowTitle = "Current Selection Window";
             var expectedResult = new ServerEnhancedResponse<SelectionInfoResult> 
             { 
                 Success = true, 
                 Data = new SelectionInfoResult 
                 { 
-                    ContainerElementId = containerElementId,
+                    ContainerAutomationId = containerElementId,
                     WindowTitle = windowTitle,
                     SelectedItems = new List<SelectionItem>
                     {
@@ -530,7 +530,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task SelectionApis_WithEmptyElementId_ShouldCallServiceCorrectly()
         {
             // Arrange
-            var emptyElementId = "";
+            var emptyAutomationId = "";
             var expectedResult = new ServerEnhancedResponse<BooleanResult> 
             { 
                 Success = true, 
@@ -591,7 +591,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task SelectionApis_WithVariousTimeouts_ShouldUseCorrectTimeout(int timeoutSeconds)
         {
             // Arrange
-            var containerElementId = "timeoutTestContainer";
+            var containerAutomationId = "timeoutTestContainer";
             var expectedResult = new ServerEnhancedResponse<BooleanResult> 
             { 
                 Success = true, 

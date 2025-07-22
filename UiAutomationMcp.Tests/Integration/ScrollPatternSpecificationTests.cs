@@ -76,7 +76,7 @@ namespace UiAutomationMcp.Tests.Integration
             // Arrange - サンプルパラメータ（実際のUIがなくてもWorkerの動作をテスト）
             var request = new GetScrollInfoRequest
             {
-                ElementId = "test-scroll-element",
+                AutomationId = "test-scroll-element",
                 WindowTitle = "Test Window",
                 ProcessId = 0
             };
@@ -113,7 +113,7 @@ namespace UiAutomationMcp.Tests.Integration
             // Arrange - 有効なパーセンテージ値
             var request = new SetScrollPercentRequest
             {
-                ElementId = "test-scroll-element",
+                AutomationId = "test-scroll-element",
                 HorizontalPercent = 50.0,
                 VerticalPercent = 75.0,
                 WindowTitle = "Test Window",
@@ -147,7 +147,7 @@ namespace UiAutomationMcp.Tests.Integration
             // Arrange - NoScroll値(-1)をテスト
             var request = new SetScrollPercentRequest
             {
-                ElementId = "test-scroll-element",
+                AutomationId = "test-scroll-element",
                 HorizontalPercent = -1.0, // NoScroll
                 VerticalPercent = 25.0,
                 WindowTitle = "Test Window",
@@ -184,26 +184,26 @@ namespace UiAutomationMcp.Tests.Integration
             {
                 "GetScrollInfo" => new GetScrollInfoRequest
                 {
-                    ElementId = "test-element",
+                    AutomationId = "test-element",
                     WindowTitle = "Test Window"
                 },
                 "SetScrollPercent" => new SetScrollPercentRequest
                 {
-                    ElementId = "test-element",
+                    AutomationId = "test-element",
                     WindowTitle = "Test Window",
                     HorizontalPercent = 0.0,
                     VerticalPercent = 0.0
                 },
                 "ScrollElement" => new ScrollElementRequest
                 {
-                    ElementId = "test-element",
+                    AutomationId = "test-element",
                     WindowTitle = "Test Window",
                     Direction = "up",
                     Amount = 1.0
                 },
                 "ScrollElementIntoView" => new ScrollElementIntoViewRequest
                 {
-                    ElementId = "test-element",
+                    AutomationId = "test-element",
                     WindowTitle = "Test Window"
                 },
                 _ => throw new ArgumentException($"Unknown operation: {operationName}")

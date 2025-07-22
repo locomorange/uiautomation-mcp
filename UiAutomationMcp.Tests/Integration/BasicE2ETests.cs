@@ -91,7 +91,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task BasicWorkflow_HandleNonExistentElement_ShouldReturnError()
         {
             // Given
-            var nonExistentElementId = "NonExistentElement12345";
+            var nonExistentAutomationId = "NonExistentElement12345";
             var timeout = 1;
 
             // When
@@ -124,11 +124,11 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task InvokeElement_WithDifferentParameters_ShouldHandleGracefully()
         {
             // Given
-            var nonExistentElementId = "TestButton123";
+            var nonExistentAutomationId = "TestButton123";
             var timeout = 5;
 
             // When - Test different parameter combinations
-            var resultByElementId = await _invokeService.InvokeElementAsync(automationId: nonExistentElementId, processId: null, timeoutSeconds: timeout);
+            var resultByAutomationId = await _invokeService.InvokeElementAsync(automationId: nonExistentElementId, processId: null, timeoutSeconds: timeout);
             var resultByWindowTitle = await _invokeService.InvokeElementAsync(automationId: nonExistentElementId, processId: null, timeoutSeconds: timeout);
             var resultByProcessId = await _invokeService.InvokeElementAsync(automationId: nonExistentElementId, processId: 99999, timeoutSeconds: timeout);
 
@@ -173,7 +173,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task InvokeElement_ShortTimeout_ShouldReturnQuickly()
         {
             // Given
-            var nonExistentElementId = "TimeoutTestElement";
+            var nonExistentAutomationId = "TimeoutTestElement";
             var shortTimeout = 1;
 
             // When
@@ -275,7 +275,7 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Given
             var veryShortTimeout = 1;
-            var nonExistentElementId = "NonExistentElement12345";
+            var nonExistentAutomationId = "NonExistentElement12345";
 
             // When & Then
             var invokeTask = _invokeService.InvokeElementAsync(automationId: nonExistentElementId, processId: null, timeoutSeconds: veryShortTimeout);

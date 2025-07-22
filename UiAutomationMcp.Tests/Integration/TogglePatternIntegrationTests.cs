@@ -68,7 +68,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task ToggleElement_WithNonExistentElement_ShouldReturnFailureResult()
         {
             // Given
-            var nonExistentElementId = "NonExistentToggleElement123";
+            var nonExistentAutomationId = "NonExistentToggleElement123";
             var timeout = 5;
 
             // When
@@ -87,11 +87,11 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task ToggleElement_WithDifferentParameters_ShouldHandleGracefully()
         {
             // Given
-            var nonExistentElementId = "TestToggleButton123";
+            var nonExistentAutomationId = "TestToggleButton123";
             var timeout = 3;
 
             // When - Test different parameter combinations
-            var resultByElementId = await _toggleService.ToggleElementAsync(nonExistentElementId, null, null, timeout);
+            var resultByAutomationId = await _toggleService.ToggleElementAsync(nonExistentElementId, null, null, timeout);
             var resultByWindowTitle = await _toggleService.ToggleElementAsync(nonExistentElementId, "NonExistentWindow", null, timeout);
             var resultByProcessId = await _toggleService.ToggleElementAsync(nonExistentElementId, null, 99999, timeout);
 
@@ -136,7 +136,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task ToggleElement_ShortTimeout_ShouldReturnQuickly()
         {
             // Given
-            var nonExistentElementId = "TimeoutTestToggleElement";
+            var nonExistentAutomationId = "TimeoutTestToggleElement";
             var shortTimeout = 1;
 
             // When
@@ -161,7 +161,7 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Given
             var veryShortTimeout = 1;
-            var nonExistentElementId = "NonExistentToggleElement12345";
+            var nonExistentAutomationId = "NonExistentToggleElement12345";
 
             // When
             var toggleTask = _toggleService.ToggleElementAsync(nonExistentElementId, null, null, veryShortTimeout);
@@ -180,7 +180,7 @@ namespace UIAutomationMCP.Tests.Integration
             var shortTimeout = 1;
             var mediumTimeout = 3;
             var longTimeout = 5;
-            var testElementId = "TimeoutTestElement";
+            var testAutomationId = "TimeoutTestElement";
 
             // When
             var task1 = _toggleService.ToggleElementAsync(testElementId, null, null, shortTimeout);
@@ -257,10 +257,10 @@ namespace UIAutomationMCP.Tests.Integration
             // Given - Microsoft仕様に準拠したパラメータでテスト
             var testCases = new[]
             {
-                new { ElementId = "CheckBox1", WindowTitle = "TestForm", ProcessId = (int?)null },
-                new { ElementId = "RadioButton1", WindowTitle = "TestDialog", ProcessId = (int?)null },
-                new { ElementId = "ToggleButton1", WindowTitle = "TestWindow", ProcessId = (int?)1234 },
-                new { ElementId = "MenuItem1", WindowTitle = "", ProcessId = (int?)null }
+                new { AutomationId = "CheckBox1", WindowTitle = "TestForm", ProcessId = (int?)null },
+                new { AutomationId = "RadioButton1", WindowTitle = "TestDialog", ProcessId = (int?)null },
+                new { AutomationId = "ToggleButton1", WindowTitle = "TestWindow", ProcessId = (int?)1234 },
+                new { AutomationId = "MenuItem1", WindowTitle = "", ProcessId = (int?)null }
             };
             var timeout = 5;
 
@@ -291,10 +291,10 @@ namespace UIAutomationMCP.Tests.Integration
             // Given - Test error conditions per Microsoft specification
             var errorTestCases = new[]
             {
-                new { ElementId = "", Description = "Empty element ID" },
-                new { ElementId = "NonToggleElement", Description = "Non-toggle control" },
-                new { ElementId = "StaticText", Description = "Static text element" },
-                new { ElementId = "HyperlinkElement", Description = "Hyperlink element" }
+                new { AutomationId = "", Description = "Empty element ID" },
+                new { AutomationId = "NonToggleElement", Description = "Non-toggle control" },
+                new { AutomationId = "StaticText", Description = "Static text element" },
+                new { AutomationId = "HyperlinkElement", Description = "Hyperlink element" }
             };
             var timeout = 3;
 

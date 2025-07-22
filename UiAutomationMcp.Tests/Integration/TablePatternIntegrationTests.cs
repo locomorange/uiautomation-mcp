@@ -247,10 +247,10 @@ namespace UIAutomationMCP.Tests.Integration
             // Arrange
             var testCases = new[]
             {
-                new { ElementId = "DataGrid_Test", WindowTitle = "DataGrid Window", ExpectedToSupport = true },
-                new { ElementId = "Table_Test", WindowTitle = "Table Window", ExpectedToSupport = true },
-                new { ElementId = "Button_Test", WindowTitle = "Button Window", ExpectedToSupport = false },
-                new { ElementId = "TextBox_Test", WindowTitle = "TextBox Window", ExpectedToSupport = false }
+                new { AutomationId = "DataGrid_Test", WindowTitle = "DataGrid Window", ExpectedToSupport = true },
+                new { AutomationId = "Table_Test", WindowTitle = "Table Window", ExpectedToSupport = true },
+                new { AutomationId = "Button_Test", WindowTitle = "Button Window", ExpectedToSupport = false },
+                new { AutomationId = "TextBox_Test", WindowTitle = "TextBox Window", ExpectedToSupport = false }
             };
 
             foreach (var testCase in testCases)

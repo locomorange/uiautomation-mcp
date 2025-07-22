@@ -61,7 +61,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", 
                 It.Is<RealizeVirtualizedItemRequest>(r => 
-                    r.ElementId == elementId &&
+                    r.AutomationId == elementId &&
                     r.WindowTitle == windowTitle &&
                     r.ProcessId == processId), 30), Times.Once);
             
@@ -96,7 +96,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result);
             _mockExecutor.Verify(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", 
                 It.Is<RealizeVirtualizedItemRequest>(r => 
-                    r.ElementId == elementId &&
+                    r.AutomationId == elementId &&
                     r.WindowTitle == "" &&
                     r.ProcessId == 0), 30), Times.Once);
         }

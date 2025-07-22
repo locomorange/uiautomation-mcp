@@ -111,6 +111,12 @@ namespace UIAutomationMCP.Shared.Requests
         /// </summary>
         [JsonPropertyName("includeDetails")]
         public bool IncludeDetails { get; set; } = false;
+
+        /// <summary>
+        /// 正規表現を使用した検索を行うかどうか（デフォルト: false）
+        /// </summary>
+        [JsonPropertyName("useRegex")]
+        public bool UseRegex { get; set; } = false;
     }
 
     /// <summary>

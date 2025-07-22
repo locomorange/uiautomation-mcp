@@ -199,7 +199,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 { 
                     Action = "GetSelectionContainer",
                     ActionName = "Container information retrieved",
-                    ElementId = "listItem1",
+                    AutomationId = "listItem1",
                     Completed = true
                 }
             };
@@ -226,7 +226,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 { 
                     Action = "GetSelectionContainer",
                     ActionName = "Container not found",
-                    ElementId = "orphanedItem",
+                    AutomationId = "orphanedItem",
                     Completed = true
                 }
             };
@@ -257,7 +257,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 {
                     Action = "AddToSelection",
                     ActionName = "Element added to selection successfully",
-                    ElementId = "item2",
+                    AutomationId = "item2",
                     Completed = true
                 }
             };
@@ -284,7 +284,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 {
                     Action = "RemoveFromSelection",
                     ActionName = "Element removed from selection successfully",
-                    ElementId = "item1",
+                    AutomationId = "item1",
                     Completed = true
                 }
             };
@@ -311,7 +311,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 {
                     Action = "ClearSelection",
                     ActionName = "Selection cleared successfully",
-                    ElementId = "listContainer",
+                    AutomationId = "listContainer",
                     Completed = true
                 }
             };
@@ -336,7 +336,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true, 
                 Data = new SelectionInfoResult
                 {
-                    ContainerElementId = "multiSelectList",
+                    ContainerAutomationId = "multiSelectList",
                     WindowTitle = "Test Window",
                     ProcessId = 1357,
                     SelectedItems = new List<SelectionItem>

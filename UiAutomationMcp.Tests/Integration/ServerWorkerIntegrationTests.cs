@@ -80,7 +80,7 @@ namespace UiAutomationMcp.Tests.Integration
             // Given - Create a request for a valid operation but missing parameter pattern will cause error
             var request = new InvokeElementRequest
             {
-                ElementId = "test",
+                AutomationId = "test",
                 WindowTitle = "",
                 ProcessId = 0
             };
@@ -100,7 +100,7 @@ namespace UiAutomationMcp.Tests.Integration
             // Given - Search in specific window to avoid system-wide search timeout
             var request = new InvokeElementRequest
             {
-                ElementId = "NonExistentElement",
+                AutomationId = "NonExistentElement",
                 WindowTitle = "Desktop", // Use Desktop window for faster search
                 ProcessId = 0
             };
@@ -198,7 +198,7 @@ namespace UiAutomationMcp.Tests.Integration
             // Arrange
             var request = new InvokeElementRequest
             {
-                ElementId = "test",
+                AutomationId = "test",
                 WindowTitle = "",
                 ProcessId = 0
             };
