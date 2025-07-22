@@ -114,51 +114,56 @@ namespace UIAutomationMCP.Worker
             builder.Services.AddSingleton<ElementFinderService>();
             builder.Services.AddSingleton<FindElementsCacheService>();
 
-            // Register operations as keyed services - Tools Level Serialization pattern
-            // Only operations updated to use ExecuteAsync(string parametersJson) interface
+            // Register UI Automation operations
+            // Element operations
             builder.Services.AddKeyedTransient<IUIAutomationOperation, InvokeElementOperation>("InvokeElement");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetDesktopWindowsOperation>("GetDesktopWindows");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, ToggleElementOperation>("ToggleElement");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SetToggleStateOperation>("SetToggleState");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SetElementValueOperation>("SetElementValue");
+            
+            // Search and tree operations
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, SearchElementsOperation>("SearchElements");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetElementTreeOperation>("GetElementTree");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetDesktopWindowsOperation>("GetDesktopWindows");
+            
+            // Grid operations
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetGridItemOperation>("GetGridItem");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetRowHeaderOperation>("GetRowHeader");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, GetColumnHeaderOperation>("GetColumnHeader");
+            
+            // Selection operations
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SelectElementOperation>("SelectElement");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, AddToSelectionOperation>("AddToSelection");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, RemoveFromSelectionOperation>("RemoveFromSelection");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, ClearSelectionOperation>("ClearSelection");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SelectItemOperation>("SelectItem");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, ValidateControlTypePatternsOperation>("ValidateControlTypePatterns");
+            
+            // Text operations
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SelectTextOperation>("SelectText");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SetTextOperation>("SetText");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, FindTextOperation>("FindText");
+            
+            // Layout operations
             builder.Services.AddKeyedTransient<IUIAutomationOperation, ScrollElementOperation>("ScrollElement");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, ExpandCollapseElementOperation>("ExpandCollapseElement");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, DockElementOperation>("DockElement");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SetScrollPercentOperation>("SetScrollPercent");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, ScrollElementIntoViewOperation>("ScrollElementIntoView");
+            
+            // Transform operations
             builder.Services.AddKeyedTransient<IUIAutomationOperation, MoveElementOperation>("MoveElement");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, ResizeElementOperation>("ResizeElement");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, RotateElementOperation>("RotateElement");
+            
+            // Window operations
             builder.Services.AddKeyedTransient<IUIAutomationOperation, WindowActionOperation>("WindowAction");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, WaitForInputIdleOperation>("WaitForInputIdle");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, SetRangeValueOperation>("SetRangeValue");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetElementTreeOperation>("GetElementTree");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, SearchElementsOperation>("SearchElements");
             
-            // TODO: Phase 6 - Update remaining operations to new interface
-            // The following operations need to be updated to use string parametersJson:
-            /*
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, InvokeElementOperation>("InvokeElement");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, ToggleElementOperation>("ToggleElement");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, SetToggleStateOperation>("SetToggleState");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, SetElementValueOperation>("SetElementValue");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetDesktopWindowsOperation>("GetDesktopWindows");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, ValidateControlTypePatternsOperation>("ValidateControlTypePatterns");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetRowHeaderOperation>("GetRowHeader");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetGridItemOperation>("GetGridItem");
-            */ 
+            // Range operations
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, SetRangeValueOperation>("SetRangeValue");
+            
+            // Utility operations
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, ValidateControlTypePatternsOperation>("ValidateControlTypePatterns"); 
 
             // Register Worker service
             builder.Services.AddSingleton<WorkerService>();

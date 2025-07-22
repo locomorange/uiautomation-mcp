@@ -41,13 +41,4 @@ namespace UIAutomationMCP.Shared.Requests
         public override string Operation => "SelectItem";
     }
 
-    public class CanSelectMultipleRequest : ElementTargetRequest
-    {
-        public override string Operation => "CanSelectMultiple";
-    }
-
-    public class IsSelectionRequiredRequest : ElementTargetRequest
-    {
-        public override string Operation => "IsSelectionRequired";
-    }
 }

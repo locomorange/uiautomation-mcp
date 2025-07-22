@@ -797,35 +797,6 @@ namespace UIAutomationMCP.Server.Tools
 
         // Selection Operations
 
-        [McpServerTool, Description("Check if element can select multiple items")]
-        public async Task<object> CanSelectMultiple(
-            [Description("AutomationId of the selection container element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the selection container element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (List, Tree, DataGrid, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _selectionService.CanSelectMultipleAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
-
-        [McpServerTool, Description("Check if selection is required")]
-        public async Task<object> IsSelectionRequired(
-            [Description("AutomationId of the selection container element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the selection container element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (List, Tree, DataGrid, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _selectionService.IsSelectionRequiredAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
 
         // Scroll Information
 
