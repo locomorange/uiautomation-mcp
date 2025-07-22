@@ -242,7 +242,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Act
             var jsonResult = await _transformService.ResizeElementAsync(
-                elementId, width, height, windowTitle, timeoutSeconds: timeout);
+                automationId: elementId, width: width, height: height, name: windowTitle, timeoutSeconds: timeout);
 
             // Assert
             Assert.NotNull(jsonResult);
@@ -471,11 +471,11 @@ namespace UIAutomationMCP.Tests.Integration
                     var capabilitiesResult = await _transformService.GetTransformCapabilitiesAsync(
                         scenario.AutomationId, "SpecWindow", timeoutSeconds: 5);
                     var moveResult = await _transformService.MoveElementAsync(
-                        scenario.ElementId, 100.0, 200.0, "SpecWindow", timeoutSeconds: 5);
+                        automationId: scenario.ElementId, x: 100.0, y: 200.0, name: "SpecWindow", timeoutSeconds: 5);
                     var resizeResult = await _transformService.ResizeElementAsync(
-                        scenario.ElementId, 800.0, 600.0, "SpecWindow", timeoutSeconds: 5);
+                        automationId: scenario.ElementId, width: 800.0, height: 600.0, name: "SpecWindow", timeoutSeconds: 5);
                     var rotateResult = await _transformService.RotateElementAsync(
-                        scenario.ElementId, 90.0, "SpecWindow", timeoutSeconds: 5);
+                        automationId: scenario.ElementId, degrees: 90.0, name: "SpecWindow", timeoutSeconds: 5);
 
                     // Verify all operations return results (success or proper failure)
                     var results = new object[] { capabilitiesResult, moveResult, resizeResult, rotateResult };

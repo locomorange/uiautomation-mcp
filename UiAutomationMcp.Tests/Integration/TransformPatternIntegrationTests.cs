@@ -170,7 +170,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Act
             var jsonResult = await _transformService.MoveElementAsync(
-                elementId, x, y, "TestWindow", timeoutSeconds: timeout);
+                elementId, "TestWindow", x, y, null, null, timeout);
 
             // Assert
             Assert.NotNull(jsonResult);
@@ -228,7 +228,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Act
             var jsonResult = await _transformService.ResizeElementAsync(
-                elementId, width, height, "TestWindow", timeoutSeconds: timeout);
+                elementId, "TestWindow", width, height, null, null, timeout);
 
             // Assert
             Assert.NotNull(jsonResult);
@@ -314,7 +314,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Act
             var jsonResult = await _transformService.RotateElementAsync(
-                elementId, degrees, "TestWindow", timeoutSeconds: timeout);
+                elementId, "TestWindow", degrees, null, null, timeout);
 
             // Assert
             Assert.NotNull(jsonResult);
@@ -360,7 +360,7 @@ namespace UIAutomationMCP.Tests.Integration
             // Act & Assert - MoveElement
             stopwatch.Restart();
             var moveResult = await _transformService.MoveElementAsync(
-                elementId, 100.0, 200.0, "TestWindow", timeoutSeconds: timeoutSeconds);
+                elementId, "TestWindow", 100.0, 200.0, null, null, timeoutSeconds);
             
             stopwatch.Stop();
             elapsed = stopwatch.Elapsed.TotalSeconds;
@@ -376,7 +376,7 @@ namespace UIAutomationMCP.Tests.Integration
             // Act & Assert - ResizeElement
             stopwatch.Restart();
             var resizeResult = await _transformService.ResizeElementAsync(
-                elementId, 800.0, 600.0, "TestWindow", timeoutSeconds: timeoutSeconds);
+                elementId, "TestWindow", 800.0, 600.0, null, null, timeoutSeconds);
             
             stopwatch.Stop();
             elapsed = stopwatch.Elapsed.TotalSeconds;
@@ -392,7 +392,7 @@ namespace UIAutomationMCP.Tests.Integration
             // Act & Assert - RotateElement
             stopwatch.Restart();
             var rotateResult = await _transformService.RotateElementAsync(
-                elementId, 90.0, "TestWindow", timeoutSeconds: timeoutSeconds);
+                elementId, "TestWindow", 90.0, null, null, timeoutSeconds);
             
             stopwatch.Stop();
             elapsed = stopwatch.Elapsed.TotalSeconds;
@@ -424,7 +424,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Act & Assert - GetTransformCapabilities
             var capabilitiesResult = await _transformService.GetTransformCapabilitiesAsync(
-                elementId, "TestWindow", processId, timeout);
+                elementId, "TestWindow", null, processId, timeout);
 
             Assert.NotNull(capabilitiesResult);
             var capabilitiesDeserialized2 = DeserializeResult<ServerEnhancedResponse<TransformCapabilitiesResult>>(capabilitiesResult);
@@ -434,7 +434,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Act & Assert - MoveElement
             var moveResult = await _transformService.MoveElementAsync(
-                elementId, 100.0, 200.0, "TestWindow", processId, timeout);
+                elementId, "TestWindow", 100.0, 200.0, null, processId, timeout);
 
             Assert.NotNull(moveResult);
             var moveDeserialized2 = DeserializeResult<ServerEnhancedResponse<ActionResult>>(moveResult);
@@ -444,7 +444,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Act & Assert - ResizeElement
             var resizeResult = await _transformService.ResizeElementAsync(
-                elementId, 800.0, 600.0, "TestWindow", processId, timeout);
+                elementId, "TestWindow", 800.0, 600.0, null, processId, timeout);
 
             Assert.NotNull(resizeResult);
             var resizeDeserialized2 = DeserializeResult<ServerEnhancedResponse<ActionResult>>(resizeResult);
@@ -454,7 +454,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Act & Assert - RotateElement
             var rotateResult = await _transformService.RotateElementAsync(
-                elementId, 90.0, "TestWindow", processId, timeout);
+                elementId, "TestWindow", 90.0, null, processId, timeout);
 
             Assert.NotNull(rotateResult);
             var rotateDeserialized2 = DeserializeResult<ServerEnhancedResponse<ActionResult>>(rotateResult);
@@ -480,7 +480,7 @@ namespace UIAutomationMCP.Tests.Integration
             for (int i = 0; i < concurrentOperations; i++)
             {
                 var elementId = $"ConcurrentElement_{i}";
-                var moveTask = _transformService.MoveElementAsync(automationId: elementId, x: i * 100.0, y: i * 100.0, timeoutSeconds: 10).ContinueWith(t => t.Result as object);
+                var moveTask = _transformService.MoveElementAsync(elementId, null, i * 100.0, i * 100.0, null, null, 10).ContinueWith(t => t.Result as object);
                 var resizeTask = _transformService.ResizeElementAsync(automationId: elementId, width: 800.0 + i * 100, height: 600.0 + i * 100, timeoutSeconds: 10).ContinueWith(t => t.Result as object);
                 var rotateTask = _transformService.RotateElementAsync(automationId: elementId, degrees: i * 45.0, timeoutSeconds: 10).ContinueWith(t => t.Result as object);
                 
@@ -532,21 +532,21 @@ namespace UIAutomationMCP.Tests.Integration
 
                 // MoveElement
                 var moveResult = await _transformService.MoveElementAsync(
-                    elementId, i * 50.0, i * 50.0, "TestWindow", timeoutSeconds: 5);
+                    elementId, "TestWindow", i * 50.0, i * 50.0, null, null, 5);
                 Assert.NotNull(moveResult);
                 var moveSeq = DeserializeResult<ServerEnhancedResponse<ActionResult>>(moveResult);
                 Assert.False(moveSeq.Success);
 
                 // ResizeElement
                 var resizeResult = await _transformService.ResizeElementAsync(
-                    elementId, 400.0 + i * 50, 300.0 + i * 50, "TestWindow", timeoutSeconds: 5);
+                    elementId, "TestWindow", 400.0 + i * 50, 300.0 + i * 50, null, null, 5);
                 Assert.NotNull(resizeResult);
                 var resizeSeq = DeserializeResult<ServerEnhancedResponse<ActionResult>>(resizeResult);
                 Assert.False(resizeSeq.Success);
 
                 // RotateElement
                 var rotateResult = await _transformService.RotateElementAsync(
-                    elementId, i * 36.0, "TestWindow", timeoutSeconds: 5);
+                    elementId, "TestWindow", i * 36.0, null, null, 5);
                 Assert.NotNull(rotateResult);
                 var rotateSeq = DeserializeResult<ServerEnhancedResponse<ActionResult>>(rotateResult);
                 Assert.False(rotateSeq.Success);

@@ -110,9 +110,10 @@ namespace UIAutomationMCP.Tests.E2E
                         var setValue = await _tools.SetElementValue(textBoxId!, "Hello from MCP Test!");
                         LogResult("SetElementValue result", setValue);
                         
-                        // Get the value back using GetElementInfo
-                        var getValue = await _tools.GetElementInfo(textBoxId!);
-                        LogResult("GetElementInfo result", getValue);
+                        // Get the value back using SearchElements instead of GetElementInfo
+                        var getValueElements = await _tools.SearchElements(automationId: textBoxId!);
+                        LogResult("SearchElements result (replacing GetElementInfo)", getValueElements);
+                        var getValue = getValueElements;
                     }
                 }
 
@@ -189,12 +190,12 @@ namespace UIAutomationMCP.Tests.E2E
                 // Step 4: Get and set range value
                 if (sliders != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(sliders)), out var sliderId))
                 {
-                    // Get current range value
-                    var rangeInfo = await _tools.GetRangeValue(sliderId!);
-                    LogResult("Current range value", rangeInfo);
+                    // GetRangeValue method has been removed - use SearchElements or pattern-specific operations
+                    // For range information, use SetRangeValue directly or other available patterns
+                    _output.WriteLine("GetRangeValue functionality has been removed - using direct operations");
                     
                     // Set new value
-                    var setResult = await _tools.SetRangeValue(sliderId!, 50);
+                    var setResult = await _tools.SetRangeValue(automationId: sliderId!, value: 50);
                     LogResult("SetRangeValue result", setResult);
                 }
 
@@ -232,16 +233,16 @@ namespace UIAutomationMCP.Tests.E2E
                 // Step 4: Test scroll operations
                 if (scrollViewers != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(scrollViewers)), out var scrollViewerId))
                 {
-                    // Get scroll info
-                    var scrollInfo = await _tools.GetScrollInfo(scrollViewerId!);
-                    LogResult("Scroll info", scrollInfo);
+                    // GetScrollInfo method has been removed - use direct scroll operations
+                    // Scroll info is available through the scroll pattern operations themselves
+                    _output.WriteLine("GetScrollInfo functionality has been removed - using direct scroll operations");
                     
                     // Scroll down
-                    var scrollResult = await _tools.ScrollElement(scrollViewerId!, "down", 2.0);
+                    var scrollResult = await _tools.ScrollElement(automationId: scrollViewerId!, direction: "down", amount: 2.0);
                     LogResult("Scroll down result", scrollResult);
                     
                     // Set scroll percentage
-                    var setScrollResult = await _tools.SetScrollPercent(scrollViewerId!, -1, 50);
+                    var setScrollResult = await _tools.SetScrollPercent(automationId: scrollViewerId!, horizontalPercent: -1, verticalPercent: 50);
                     LogResult("SetScrollPercent result", setScrollResult);
                 }
 
@@ -280,14 +281,17 @@ namespace UIAutomationMCP.Tests.E2E
                 var textBoxes = await _tools.SearchElements(controlType: "Edit", maxResults: 1);
                 if (textBoxes != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(textBoxes)), out var textBoxId))
                 {
+                    // GetLabeledBy method has been removed - label relationships can be found through SearchElements
+                    // Look for elements with LabelFor relationships or nearby Text elements
                     try
                     {
-                        var labeledBy = await _tools.GetLabeledBy(textBoxId!);
-                        LogResult("TextBox labeled by", labeledBy);
+                        var nearbyLabels = await _tools.SearchElements(controlType: "Text", maxResults: 5);
+                        LogResult("Nearby labels (replacing GetLabeledBy)", nearbyLabels);
+                        _output.WriteLine("GetLabeledBy functionality replaced with SearchElements for Text controls");
                     }
                     catch (Exception ex)
                     {
-                        _output.WriteLine($"GetLabeledBy not available: {ex.Message}");
+                        _output.WriteLine($"Label search not available: {ex.Message}");
                     }
                 }
 

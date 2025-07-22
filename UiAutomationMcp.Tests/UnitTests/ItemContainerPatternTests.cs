@@ -52,7 +52,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _service.FindItemByPropertyAsync(containerId, propertyName, value, startAfterId, windowTitle, processId, 30);
+            var result = await _service.FindItemByPropertyAsync(automationId: containerId, propertyName: propertyName, value: value, startAfterId: startAfterId, controlType: windowTitle, processId: processId, timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);

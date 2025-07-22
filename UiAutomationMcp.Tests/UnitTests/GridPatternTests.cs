@@ -203,7 +203,7 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
                     }
                 }
             };
-            _mockGridService.Setup(s => s.GetGridItemAsync("dataGrid", "TestWindow", row, column, null, null, 30))
+            _mockGridService.Setup(s => s.GetGridItemAsync("dataGrid", null, row, column, "TestWindow", null, 30))
                            .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -211,7 +211,7 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
 
             // Assert
             Assert.NotNull(result);
-            _mockGridService.Verify(s => s.GetGridItemAsync("dataGrid", "TestWindow", row, column, null, null, 30), Times.Once);
+            _mockGridService.Verify(s => s.GetGridItemAsync("dataGrid", null, row, column, "TestWindow", null, 30), Times.Once);
             _output.WriteLine($"GetGridItem test passed for coordinates ({row},{column})");
         }
 
@@ -276,7 +276,7 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
                     }
                 }
             };
-            _mockGridService.Setup(s => s.GetGridItemAsync(automationId: "dataGrid", name: null, row: 1, column: 2, controlType: "TestWindow", processId: null, timeoutSeconds: 30))
+            _mockGridService.Setup(s => s.GetGridItemAsync("dataGrid", null, 1, 2, "TestWindow", null, 30))
                            .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -284,7 +284,7 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
 
             // Assert
             Assert.NotNull(result);
-            _mockGridService.Verify(s => s.GetGridItemAsync(automationId: "dataGrid", name: null, row: 1, column: 2, controlType: "TestWindow", processId: null, timeoutSeconds: 30), Times.Once);
+            _mockGridService.Verify(s => s.GetGridItemAsync("dataGrid", null, 1, 2, "TestWindow", null, 30), Times.Once);
             _output.WriteLine("Empty cell test passed");
         }
 
@@ -299,7 +299,7 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
         public async Task GetGridItem_WithNegativeCoordinates_ShouldThrowArgumentOutOfRangeException(int row, int column)
         {
             // Arrange - Microsoft仕様: 負の座標でArgumentOutOfRangeExceptionをスロー
-            _mockGridService.Setup(s => s.GetGridItemAsync(automationId: "grid", name: null, row: row, column: column, controlType: "TestApp", processId: null, timeoutSeconds: 30))
+            _mockGridService.Setup(s => s.GetGridItemAsync("grid", null, row, column, "TestApp", null, 30))
                            .ThrowsAsync(new ArgumentOutOfRangeException(
                                row < 0 ? "row" : "column", 
                                $"Row/column coordinates must be greater than or equal to zero"));
@@ -308,7 +308,7 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
             await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
                 () => _tools.GetGridItem(row: row, column: column, automationId: "grid", controlType: "TestApp"));
 
-            _mockGridService.Verify(s => s.GetGridItemAsync(automationId: "grid", name: null, row: row, column: column, controlType: "TestApp", processId: null, timeoutSeconds: 30), Times.Once);
+            _mockGridService.Verify(s => s.GetGridItemAsync("grid", null, row, column, "TestApp", null, 30), Times.Once);
             _output.WriteLine($"Negative coordinates test passed: ({row},{column})");
         }
 
@@ -320,7 +320,7 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
             int row, int column, int maxRow, int maxColumn)
         {
             // Arrange - Microsoft仕様: RowCount/ColumnCountを超える座標でArgumentOutOfRangeExceptionをスロー
-            _mockGridService.Setup(s => s.GetGridItemAsync(automationId: "grid", name: null, row: row, column: column, controlType: "TestApp", processId: null, timeoutSeconds: 30))
+            _mockGridService.Setup(s => s.GetGridItemAsync("grid", null, row, column, "TestApp", null, 30))
                            .ThrowsAsync(new ArgumentOutOfRangeException(
                                row >= maxRow ? "row" : "column", 
                                $"Row/column coordinates must be less than RowCount/ColumnCount"));
@@ -329,7 +329,7 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
             await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
                 () => _tools.GetGridItem(row: row, column: column, automationId: "grid", controlType: "TestApp"));
 
-            _mockGridService.Verify(s => s.GetGridItemAsync(automationId: "grid", name: null, row: row, column: column, controlType: "TestApp", processId: null, timeoutSeconds: 30), Times.Once);
+            _mockGridService.Verify(s => s.GetGridItemAsync("grid", null, row, column, "TestApp", null, 30), Times.Once);
             _output.WriteLine($"Out of bounds test passed: ({row},{column}) exceeds ({maxRow},{maxColumn})");
         }
 
@@ -375,14 +375,14 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
         public async Task GetGridItem_WithNonExistentGrid_ShouldHandleError()
         {
             // Arrange
-            _mockGridService.Setup(s => s.GetGridItemAsync("invalidGrid", 0, 0, "TestWindow", null, 30))
+            _mockGridService.Setup(s => s.GetGridItemAsync("invalidGrid", null, 0, 0, "TestWindow", null, 30))
                            .ThrowsAsync(new InvalidOperationException("Grid element 'invalidGrid' not found"));
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(
-                () => _tools.GetGridItem("invalidGrid", 0, 0, "TestWindow"));
+                () => _tools.GetGridItem(0, 0, automationId: "invalidGrid", controlType: "TestWindow"));
 
-            _mockGridService.Verify(s => s.GetGridItemAsync("invalidGrid", 0, 0, "TestWindow", null, 30), Times.Once);
+            _mockGridService.Verify(s => s.GetGridItemAsync("invalidGrid", null, 0, 0, "TestWindow", null, 30), Times.Once);
             _output.WriteLine("Invalid grid element error handling test passed");
         }
 
@@ -487,18 +487,32 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
                     }
                 }
             };
-            _mockGridService.Setup(s => s.GetGridItemAsync(elementId, row, column, 
-                string.IsNullOrEmpty(windowTitle) ? null : windowTitle, null, 30))
+            _mockGridService.Setup(s => s.GetGridItemAsync(
+                elementId,
+                null,
+                row,
+                column,
+                string.IsNullOrEmpty(windowTitle) ? null : windowTitle,
+                null,
+                30))
                            .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.GetGridItem(elementId, row, column, 
-                string.IsNullOrEmpty(windowTitle) ? null : windowTitle);
+            var result = await _tools.GetGridItem(
+                row, column,
+                automationId: elementId,
+                controlType: string.IsNullOrEmpty(windowTitle) ? null : windowTitle);
 
             // Assert
             Assert.NotNull(result);
-            _mockGridService.Verify(s => s.GetGridItemAsync(elementId, row, column, 
-                string.IsNullOrEmpty(windowTitle) ? null : windowTitle, null, 30), Times.Once);
+            _mockGridService.Verify(s => s.GetGridItemAsync(
+                elementId,
+                null,
+                row,
+                column,
+                string.IsNullOrEmpty(windowTitle) ? null : windowTitle,
+                null,
+                30), Times.Once);
             _output.WriteLine($"Empty parameter test passed: elementId='{elementId}', coordinates=({row},{column}), window='{windowTitle}'");
         }
 
@@ -563,13 +577,13 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
 
             _mockGridService.Setup(s => s.GetGridInfoAsync("dataTable", "TestApp", null, 30))
                            .Returns(Task.FromResult(gridInfoResult));
-            _mockGridService.Setup(s => s.GetGridItemAsync("dataTable", 0, 0, "TestApp", null, 30))
+            _mockGridService.Setup(s => s.GetGridItemAsync("dataTable", null, 0, 0, "TestApp", null, 30))
                            .Returns(Task.FromResult(cell00Result));
-            _mockGridService.Setup(s => s.GetGridItemAsync("dataTable", 0, 1, "TestApp", null, 30))
+            _mockGridService.Setup(s => s.GetGridItemAsync("dataTable", null, 0, 1, "TestApp", null, 30))
                            .Returns(Task.FromResult(cell01Result));
-            _mockGridService.Setup(s => s.GetGridItemAsync("dataTable", 1, 0, "TestApp", null, 30))
+            _mockGridService.Setup(s => s.GetGridItemAsync("dataTable", null, 1, 0, "TestApp", null, 30))
                            .Returns(Task.FromResult(cell10Result));
-            _mockGridService.Setup(s => s.GetGridItemAsync("dataTable", 1, 1, "TestApp", null, 30))
+            _mockGridService.Setup(s => s.GetGridItemAsync("dataTable", null, 1, 1, "TestApp", null, 30))
                            .Returns(Task.FromResult(cell11Result));
 
             // Act
@@ -587,10 +601,10 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
             Assert.NotNull(dataCell2);
 
             _mockGridService.Verify(s => s.GetGridInfoAsync("dataTable", "TestApp", null, 30), Times.Once);
-            _mockGridService.Verify(s => s.GetGridItemAsync("dataTable", 0, 0, "TestApp", null, 30), Times.Once);
-            _mockGridService.Verify(s => s.GetGridItemAsync("dataTable", 0, 1, "TestApp", null, 30), Times.Once);
-            _mockGridService.Verify(s => s.GetGridItemAsync("dataTable", 1, 0, "TestApp", null, 30), Times.Once);
-            _mockGridService.Verify(s => s.GetGridItemAsync("dataTable", 1, 1, "TestApp", null, 30), Times.Once);
+            _mockGridService.Verify(s => s.GetGridItemAsync("dataTable", null, 0, 0, "TestApp", null, 30), Times.Once);
+            _mockGridService.Verify(s => s.GetGridItemAsync("dataTable", null, 0, 1, "TestApp", null, 30), Times.Once);
+            _mockGridService.Verify(s => s.GetGridItemAsync("dataTable", null, 1, 0, "TestApp", null, 30), Times.Once);
+            _mockGridService.Verify(s => s.GetGridItemAsync("dataTable", null, 1, 1, "TestApp", null, 30), Times.Once);
 
             _output.WriteLine("Full grid workflow test passed");
         }
@@ -624,15 +638,15 @@ Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
                     }
                 }
             };
-            _mockGridService.Setup(s => s.GetGridItemAsync("boundaryGrid", row, column, "TestApp", null, 30))
+            _mockGridService.Setup(s => s.GetGridItemAsync("boundaryGrid", null, row, column, "TestApp", null, 30))
                            .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.GetGridItem("boundaryGrid", row, column, "TestApp");
+            var result = await _tools.GetGridItem(row, column, automationId: "boundaryGrid", controlType: "TestApp");
 
             // Assert
             Assert.NotNull(result);
-            _mockGridService.Verify(s => s.GetGridItemAsync("boundaryGrid", row, column, "TestApp", null, 30), Times.Once);
+            _mockGridService.Verify(s => s.GetGridItemAsync("boundaryGrid", null, row, column, "TestApp", null, 30), Times.Once);
             _output.WriteLine($"Boundary coordinates test passed: ({row},{column}) within ({maxRow},{maxColumn})");
         }
 

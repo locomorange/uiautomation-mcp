@@ -226,7 +226,7 @@ namespace UIAutomationMCP.Tests.Integration
                 var timeout = 10;
 
                 // When - Try to find and toggle elements in calculator
-                var elementsResult = await _elementSearchService.SearchElementsAsync(null, null, "Button", null, timeout);
+                var elementsResult = await _elementSearchService.SearchElementsAsync(null, null, "Button", null);
                 _output.WriteLine($"Calculator elements found: {elementsResult}");
 
                 // Try to toggle a non-existent toggle control in calculator
