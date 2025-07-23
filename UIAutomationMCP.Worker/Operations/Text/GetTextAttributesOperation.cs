@@ -49,15 +49,52 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 var result = ExtractTextAttributes(textPattern, request);
                 return Task.FromResult(new OperationResult { Success = true, Data = result });
             }
+            catch (ElementNotAvailableException ex)
+            {
+                // Element no longer exists (e.g., dialog closed, application terminated)
+                _logger.LogWarning(ex, "Element not available during text attributes operation: {AutomationId}", request?.AutomationId);
+                return Task.FromResult(CreateErrorResult(request, "Element is no longer available (may have been closed or destroyed)"));
+            }
+            catch (ElementNotEnabledException ex)
+            {
+                // Element exists but is disabled
+                _logger.LogWarning(ex, "Element not enabled during text attributes operation: {AutomationId}", request?.AutomationId);
+                return Task.FromResult(CreateErrorResult(request, "Element is disabled and cannot be accessed"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Pattern-specific operation failed
+                _logger.LogWarning(ex, "Invalid operation for text attributes: {AutomationId}", request?.AutomationId);
+                return Task.FromResult(CreateErrorResult(request, $"Operation not supported: {ex.Message}"));
+            }
             catch (System.Runtime.InteropServices.COMException ex)
             {
-                _logger.LogError(ex, "COM error during text attributes operation");
-                return Task.FromResult(CreateErrorResult(null, $"UI Automation error: {ex.Message}"));
+                // COM error - common in cross-process UI Automation
+                _logger.LogError(ex, "COM error during text attributes operation (HRESULT: 0x{ErrorCode:X8})", ex.ErrorCode);
+                
+                // Map common COM error codes to user-friendly messages
+                var errorMessage = ex.ErrorCode switch
+                {
+                    unchecked((int)0x80070005) => "Access denied - the target element may be in a different security context",
+                    unchecked((int)0x80040154) => "Class not registered - UI Automation provider not available",
+                    unchecked((int)0x800706BE) => "The remote procedure call failed - target application may have closed",
+                    unchecked((int)0x80004002) => "No such interface supported - the element may not support text operations",
+                    _ => $"UI Automation COM error (0x{ex.ErrorCode:X8}): {ex.Message}"
+                };
+                
+                return Task.FromResult(CreateErrorResult(request, errorMessage));
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                // Range validation errors
+                _logger.LogWarning(ex, "Range validation error for text attributes: {AutomationId}", request?.AutomationId);
+                return Task.FromResult(CreateErrorResult(request, $"Invalid range specified: {ex.ParamName} - {ex.Message}"));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "GetTextAttributes operation failed");
-                return Task.FromResult(CreateErrorResult(null, $"Operation failed: {ex.Message}"));
+                // Unexpected errors
+                _logger.LogError(ex, "Unexpected error during GetTextAttributes operation: {AutomationId}", request?.AutomationId);
+                return Task.FromResult(CreateErrorResult(request, $"Unexpected error: {ex.Message}"));
             }
         }
 

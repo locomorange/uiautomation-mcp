@@ -591,9 +591,23 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 stopwatch.Stop();
                 _logger.LogErrorWithOperation(operationId, ex, "Error in GetTextAttributes operation");
                 
+                var errorResult = new TextAttributesResult
+                {
+                    Success = false,
+                    AutomationId = automationId ?? "",
+                    Name = name ?? "",
+                    ControlType = controlType ?? "",
+                    ProcessId = processId ?? 0,
+                    HasAttributes = false,
+                    ErrorMessage = ex.Message,
+                    ExecutedAt = DateTime.UtcNow,
+                    OperationName = "GetTextAttributes"
+                };
+
                 var errorResponse = new ServerEnhancedResponse<TextAttributesResult>
                 {
                     Success = false,
+                    Data = errorResult,
                     ErrorMessage = ex.Message,
                     ExecutionInfo = new ServerExecutionInfo
                     {
@@ -795,9 +809,22 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 stopwatch.Stop();
                 _logger.LogErrorWithOperation(operationId, ex, "Error in FindText operation");
                 
+                var errorResult = new TextSearchResult
+                {
+                    Success = false,
+                    AutomationId = automationId ?? "",
+                    Name = name ?? "",
+                    ControlType = controlType ?? "",
+                    ProcessId = processId ?? 0,
+                    ErrorMessage = ex.Message,
+                    ExecutedAt = DateTime.UtcNow,
+                    OperationName = "FindText"
+                };
+
                 var errorResponse = new ServerEnhancedResponse<TextSearchResult>
                 {
                     Success = false,
+                    Data = errorResult,
                     ErrorMessage = ex.Message,
                     ExecutionInfo = new ServerExecutionInfo
                     {
