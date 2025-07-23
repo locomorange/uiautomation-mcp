@@ -155,7 +155,7 @@ namespace UIAutomationMCP.Shared
         /// ヘルプテキスト
         /// </summary>
         [JsonPropertyName("helpText")]
-        public string HelpText { get; set; } = string.Empty;
+        public string? HelpText { get; set; }
         
         /// <summary>
         /// 要素の値

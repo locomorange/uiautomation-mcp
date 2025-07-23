@@ -380,13 +380,13 @@ namespace UIAutomationMCP.Shared
         public ElementReference? LabeledBy { get; set; }
         
         [JsonPropertyName("helpText")]
-        public string HelpText { get; set; } = string.Empty;
+        public string? HelpText { get; set; }
         
         [JsonPropertyName("accessKey")]
-        public string AccessKey { get; set; } = string.Empty;
+        public string? AccessKey { get; set; }
         
         [JsonPropertyName("acceleratorKey")]
-        public string AcceleratorKey { get; set; } = string.Empty;
+        public string? AcceleratorKey { get; set; }
     }
 
     /// <summary>

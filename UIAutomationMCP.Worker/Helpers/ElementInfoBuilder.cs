@@ -19,14 +19,14 @@ namespace UIAutomationMCP.Worker.Helpers
                 AutomationId = element.Current.AutomationId ?? "",
                 Name = element.Current.Name ?? "",
                 ControlType = element.Current.ControlType.LocalizedControlType ?? "",
-                LocalizedControlType = element.Current.ControlType.LocalizedControlType ?? "",
+                LocalizedControlType = string.IsNullOrEmpty(element.Current.ControlType.LocalizedControlType) ? null : element.Current.ControlType.LocalizedControlType,
                 IsEnabled = element.Current.IsEnabled,
                 IsVisible = !element.Current.IsOffscreen,
                 IsOffscreen = element.Current.IsOffscreen,
                 ProcessId = element.Current.ProcessId,
                 ParentProcessId = GetParentProcessId(element, false),
                 ClassName = element.Current.ClassName ?? "",
-                FrameworkId = element.Current.FrameworkId ?? "",
+                FrameworkId = string.IsNullOrEmpty(element.Current.FrameworkId) ? null : element.Current.FrameworkId,
                 BoundingRectangle = new BoundingRectangle
                 {
                     X = element.Current.BoundingRectangle.X,
@@ -56,14 +56,14 @@ namespace UIAutomationMCP.Worker.Helpers
                 AutomationId = element.Cached.AutomationId ?? "",
                 Name = element.Cached.Name ?? "",
                 ControlType = element.Cached.ControlType.LocalizedControlType ?? "",
-                LocalizedControlType = element.Cached.ControlType.LocalizedControlType ?? "",
+                LocalizedControlType = string.IsNullOrEmpty(element.Cached.ControlType.LocalizedControlType) ? null : element.Cached.ControlType.LocalizedControlType,
                 IsEnabled = element.Cached.IsEnabled,
                 IsVisible = !element.Cached.IsOffscreen,
                 IsOffscreen = element.Cached.IsOffscreen,
                 ProcessId = element.Cached.ProcessId,
                 ParentProcessId = GetParentProcessId(element, true),
                 ClassName = element.Cached.ClassName ?? "",
-                FrameworkId = element.Cached.FrameworkId ?? "",
+                FrameworkId = string.IsNullOrEmpty(element.Cached.FrameworkId) ? null : element.Cached.FrameworkId,
                 BoundingRectangle = new BoundingRectangle
                 {
                     X = element.Cached.BoundingRectangle.X,
@@ -172,7 +172,7 @@ namespace UIAutomationMCP.Worker.Helpers
         {
             var details = new ElementDetails
             {
-                HelpText = element.Current.HelpText ?? "",
+                HelpText = string.IsNullOrEmpty(element.Current.HelpText) ? null : element.Current.HelpText,
                 HasKeyboardFocus = element.Current.HasKeyboardFocus,
                 IsKeyboardFocusable = element.Current.IsKeyboardFocusable,
                 IsPassword = element.Current.IsPassword
@@ -188,7 +188,7 @@ namespace UIAutomationMCP.Worker.Helpers
         {
             var details = new ElementDetails
             {
-                HelpText = element.Cached.HelpText ?? "",
+                HelpText = string.IsNullOrEmpty(element.Cached.HelpText) ? null : element.Cached.HelpText,
                 HasKeyboardFocus = element.Cached.HasKeyboardFocus,
                 IsKeyboardFocusable = element.Cached.IsKeyboardFocusable,
                 IsPassword = element.Cached.IsPassword
@@ -550,9 +550,15 @@ namespace UIAutomationMCP.Worker.Helpers
                 // Accessibility Information
                 details.Accessibility = new AccessibilityInfo
                 {
-                    AcceleratorKey = useCached ? element.Cached.AcceleratorKey ?? "" : element.Current.AcceleratorKey ?? "",
-                    AccessKey = useCached ? element.Cached.AccessKey ?? "" : element.Current.AccessKey ?? "",
-                    HelpText = useCached ? element.Cached.HelpText ?? "" : element.Current.HelpText ?? ""
+                    AcceleratorKey = useCached 
+                        ? (string.IsNullOrEmpty(element.Cached.AcceleratorKey) ? null : element.Cached.AcceleratorKey)
+                        : (string.IsNullOrEmpty(element.Current.AcceleratorKey) ? null : element.Current.AcceleratorKey),
+                    AccessKey = useCached 
+                        ? (string.IsNullOrEmpty(element.Cached.AccessKey) ? null : element.Cached.AccessKey)
+                        : (string.IsNullOrEmpty(element.Current.AccessKey) ? null : element.Current.AccessKey),
+                    HelpText = useCached 
+                        ? (string.IsNullOrEmpty(element.Cached.HelpText) ? null : element.Cached.HelpText)
+                        : (string.IsNullOrEmpty(element.Current.HelpText) ? null : element.Current.HelpText)
                 };
 
             }
