@@ -53,8 +53,7 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
                     automationId: typedRequest.AutomationId, 
                     name: typedRequest.Name, 
                     controlType: typedRequest.ControlType, 
-                    processId: typedRequest.ProcessId ?? 0,
-                    timeoutMs: typedRequest.TimeoutSeconds * 1000);
+                    processId: typedRequest.ProcessId ?? 0);
                 
                 if (element == null)
                 {

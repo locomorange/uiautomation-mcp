@@ -130,8 +130,7 @@ namespace UIAutomationMCP.Server.Tools
                 EnabledOnly = enabledOnly,
                 MaxResults = maxResults,
                 SortBy = sortBy,
-                IncludeDetails = includeDetails,
-                TimeoutSeconds = timeoutSeconds
+                IncludeDetails = includeDetails
             };
             
             return JsonSerializationHelper.Serialize(await _elementSearchService.SearchElementsAsync(request));
@@ -511,8 +510,7 @@ namespace UIAutomationMCP.Server.Tools
                 ProcessId = processId ?? 0,
                 SearchText = searchText,
                 Backward = backward,
-                IgnoreCase = ignoreCase,
-                TimeoutSeconds = timeoutSeconds
+                IgnoreCase = ignoreCase
             };
             
             return JsonSerializationHelper.Serialize(await _subprocessExecutor.ExecuteAsync<UIAutomationMCP.Shared.Requests.FindTextRequest, UIAutomationMCP.Shared.Results.TextSearchResult>("FindText", request, timeoutSeconds));
@@ -538,8 +536,7 @@ namespace UIAutomationMCP.Server.Tools
                 ProcessId = processId ?? 0,
                 StartIndex = startIndex,
                 Length = length,
-                AttributeName = attributeName,
-                TimeoutSeconds = timeoutSeconds
+                AttributeName = attributeName
             };
             
             return JsonSerializationHelper.Serialize(await _subprocessExecutor.ExecuteAsync<UIAutomationMCP.Shared.Requests.GetTextAttributesRequest, UIAutomationMCP.Shared.Results.TextAttributesResult>("GetTextAttributes", request, timeoutSeconds));

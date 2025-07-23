@@ -31,12 +31,6 @@ namespace UIAutomationMCP.Shared.Requests
 
         [JsonPropertyName("maxDepth")]
         public int MaxDepth { get; set; } = 3;
-
-        /// <summary>
-        /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）
-        /// </summary>
-        [JsonPropertyName("timeoutSeconds")]
-        public int TimeoutSeconds { get; set; } = 10;
     }
 
     public class GetParentRequest : ElementTargetRequest

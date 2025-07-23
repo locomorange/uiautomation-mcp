@@ -28,7 +28,6 @@ namespace UIAutomationMCP.Worker.Operations.Invoke
                     name: typedRequest.Name,
                     controlType: typedRequest.ControlType,
                     processId: typedRequest.ProcessId,
-                    timeoutMs: typedRequest.TimeoutSeconds * 1000,
                     requiredPattern: InvokePattern.Pattern);
                 if (element == null)
                 {

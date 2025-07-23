@@ -101,12 +101,6 @@ namespace UIAutomationMCP.Shared.Requests
         public string? SortBy { get; set; }
 
         /// <summary>
-        /// Worker内での要素検索タイムアウト秒数（デフォルト: 10秒）
-        /// </summary>
-        [JsonPropertyName("timeoutSeconds")]
-        public int TimeoutSeconds { get; set; } = 10;
-
-        /// <summary>
         /// 詳細情報（パターン情報、階層情報、子要素等）を含めるかどうか（デフォルト: false）
         /// </summary>
         [JsonPropertyName("includeDetails")]
@@ -162,11 +156,5 @@ namespace UIAutomationMCP.Shared.Requests
         /// </summary>
         [JsonPropertyName("includeParent")]
         public bool IncludeParent { get; set; } = false;
-
-        /// <summary>
-        /// Worker内での要素検索タイムアウト秒数（デフォルト: 10秒）
-        /// </summary>
-        [JsonPropertyName("timeoutSeconds")]
-        public int TimeoutSeconds { get; set; } = 10;
     }
 }

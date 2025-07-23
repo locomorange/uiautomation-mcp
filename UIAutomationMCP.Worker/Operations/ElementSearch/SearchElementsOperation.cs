@@ -171,7 +171,6 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 FuzzyMatch = request.FuzzyMatch,
                 EnabledOnly = request.EnabledOnly,
                 SortBy = request.SortBy,
-                TimeoutMs = request.TimeoutSeconds * 1000,
                 CacheRequest = CreateCacheRequest()
             };
 

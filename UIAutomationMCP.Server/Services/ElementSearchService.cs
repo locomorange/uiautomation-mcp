@@ -218,7 +218,7 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformationWithOperation(operationId, "Starting SearchElements operation");
 
-                var result = await _executor.ExecuteAsync<SearchElementsRequest, SearchElementsResult>("SearchElements", request, request.TimeoutSeconds + 5);
+                var result = await _executor.ExecuteAsync<SearchElementsRequest, SearchElementsResult>("SearchElements", request, 30);
                 
                 stopwatch.Stop();
                 
@@ -249,8 +249,7 @@ namespace UIAutomationMCP.Server.Services
                             ["controlType"] = request.ControlType ?? "",
                             ["processId"] = request.ProcessId ?? 0,
                             ["maxResults"] = request.MaxResults,
-                            ["visibleOnly"] = request.VisibleOnly,
-                            ["timeoutSeconds"] = request.TimeoutSeconds
+                            ["visibleOnly"] = request.VisibleOnly
                         }
                     }
                 };
@@ -288,8 +287,7 @@ namespace UIAutomationMCP.Server.Services
                             ["automationId"] = request.AutomationId ?? "",
                             ["name"] = request.Name ?? "",
                             ["controlType"] = request.ControlType ?? "",
-                            ["processId"] = request.ProcessId ?? 0,
-                            ["timeoutSeconds"] = request.TimeoutSeconds
+                            ["processId"] = request.ProcessId ?? 0
                         }
                     }
                 };

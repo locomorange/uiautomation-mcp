@@ -28,12 +28,11 @@ namespace UIAutomationMCP.Worker.Helpers
         /// <param name="processId">検索対象プロセスのID（省略可）</param>
         /// <param name="scope">検索範囲（デフォルト: Descendants）</param>
         /// <param name="cacheRequest">キャッシュリクエスト（パフォーマンス最適化用、省略可）</param>
-        /// <param name="timeoutMs">検索タイムアウト（ミリ秒、デフォルト: 1000ms）</param>
         /// <param name="requiredPattern">必要なUI Automationパターン（検索効率化用、省略可）</param>
         /// <returns>見つかった要素、見つからない場合はnull</returns>
         public AutomationElement? FindElement(string? automationId = null, string? name = null, 
             string? controlType = null, string? windowTitle = null, int? processId = null, 
-            TreeScope scope = TreeScope.Descendants, CacheRequest? cacheRequest = null, int timeoutMs = 1000,
+            TreeScope scope = TreeScope.Descendants, CacheRequest? cacheRequest = null,
             AutomationPattern? requiredPattern = null)
         {
             // 少なくとも一つの識別子が必要
@@ -50,7 +49,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 return null;
             }
 
-            var searchRoot = GetSearchRoot(windowTitle ?? "", processId ?? 0, timeoutMs / 1000);
+            var searchRoot = GetSearchRoot(windowTitle ?? "", processId ?? 0);
             
             // Prevent searching from RootElement without scope limitation
             if (searchRoot == null && string.IsNullOrEmpty(windowTitle) && (processId ?? 0) == 0)
@@ -61,15 +60,15 @@ namespace UIAutomationMCP.Worker.Helpers
             
             searchRoot ??= AutomationElement.RootElement;
             
-            _logger?.LogDebug("Searching for element with AutomationId: '{AutomationId}', Name: '{Name}', ControlType: '{ControlType}' in window: '{WindowTitle}' (PID: {ProcessId}), Scope: {Scope}, Timeout: {TimeoutMs}ms", 
-                automationId, name, controlType, windowTitle, processId, scope, timeoutMs);
+            _logger?.LogDebug("Searching for element with AutomationId: '{AutomationId}', Name: '{Name}', ControlType: '{ControlType}' in window: '{WindowTitle}' (PID: {ProcessId}), Scope: {Scope}", 
+                automationId, name, controlType, windowTitle, processId, scope);
             
             try
             {
                 AutomationElement? element = null;
                 
-                _logger?.LogDebug("[FindElement] Starting search - AutomationId: '{AutomationId}', Name: '{Name}', Timeout: {TimeoutSec}s", 
-                    automationId, name, timeoutMs / 1000);
+                _logger?.LogDebug("[FindElement] Starting search - AutomationId: '{AutomationId}', Name: '{Name}'", 
+                    automationId, name);
                 
                 // ControlTypeフィルタ条件を準備
                 Condition? controlTypeCondition = null;
@@ -368,9 +367,8 @@ namespace UIAutomationMCP.Worker.Helpers
         /// </summary>
         /// <param name="windowTitle">ウィンドウタイトル</param>
         /// <param name="processId">プロセスID</param>
-        /// <param name="timeoutSeconds">検索タイムアウト（秒、デフォルト: 5秒）※processId検索は最大5秒、windowTitle検索は最大3秒に制限</param>
         /// <returns>検索ルート要素またはnull</returns>
-        public AutomationElement? GetSearchRoot(string windowTitle, int processId, int timeoutSeconds = 5)
+        public AutomationElement? GetSearchRoot(string windowTitle, int processId)
         {
             if (processId > 0)
             {
@@ -422,26 +420,6 @@ namespace UIAutomationMCP.Worker.Helpers
         /// <param name="name">UI Automation要素のNameプロパティ（フォールバック）</param>
         /// <param name="windowTitle">ウィンドウタイトル（省略可）</param>
         /// <param name="processId">プロセスID（省略可）</param>
-        /// <param name="scope">検索スコープ</param>
-        /// <param name="timeoutMs">タイムアウト（ミリ秒）</param>
-        /// <returns>見つかった要素またはnull</returns>
-        public async Task<AutomationElement?> FindElementAsync(string? automationId = null, string? name = null, 
-            string? windowTitle = null, int? processId = null, TreeScope scope = TreeScope.Descendants, int timeoutMs = 5000)
-        {
-            using var cts = new CancellationTokenSource(timeoutMs);
-            
-            try
-            {
-                return await Task.Run(() => 
-                    FindElement(automationId, name, controlType: null, windowTitle, processId, scope), cts.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                _logger?.LogWarning("Search for element AutomationId: '{AutomationId}', Name: '{Name}' timed out after {TimeoutMs}ms", 
-                    automationId, name, timeoutMs);
-                return null;
-            }
-        }
 
 
 
@@ -486,7 +464,7 @@ namespace UIAutomationMCP.Worker.Helpers
         /// <returns>見つかった要素のコレクション</returns>
         public AutomationElementCollection FindElementsAdvanced(AdvancedSearchParameters searchParams)
         {
-            var searchRoot = GetSearchRoot(searchParams.WindowTitle ?? "", searchParams.ProcessId ?? 0, searchParams.TimeoutMs / 1000);
+            var searchRoot = GetSearchRoot(searchParams.WindowTitle ?? "", searchParams.ProcessId ?? 0);
             
             // If a specific processId was requested but no window was found, return empty collection
             // instead of searching the entire desktop (which is slow and not what the user wants)
@@ -999,7 +977,6 @@ namespace UIAutomationMCP.Worker.Helpers
         public bool FuzzyMatch { get; set; } = false;
         public bool EnabledOnly { get; set; } = false;
         public string? SortBy { get; set; }
-        public int TimeoutMs { get; set; } = 10000;
         public CacheRequest? CacheRequest { get; set; }
     }
 

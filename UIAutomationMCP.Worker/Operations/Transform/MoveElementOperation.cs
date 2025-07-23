@@ -33,8 +33,7 @@ namespace UIAutomationMCP.Worker.Operations.Transform
                     name: typedRequest.Name, 
                     controlType: typedRequest.ControlType, 
                     windowTitle: typedRequest.WindowTitle, 
-                    processId: typedRequest.ProcessId ?? 0,
-                    timeoutMs: typedRequest.TimeoutSeconds * 1000);
+                    processId: typedRequest.ProcessId ?? 0);
                 
                 if (element == null)
                 {

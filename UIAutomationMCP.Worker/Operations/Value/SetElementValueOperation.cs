@@ -33,7 +33,6 @@ namespace UIAutomationMCP.Worker.Operations.Value
                     name: typedRequest.Name,
                     controlType: typedRequest.ControlType,
                     processId: typedRequest.ProcessId,
-                    timeoutMs: typedRequest.TimeoutSeconds * 1000,
                     requiredPattern: ValuePattern.Pattern);
                 
                 if (element == null)
