@@ -10,18 +10,12 @@ using UIAutomationMCP.Worker.Helpers;
 
 namespace UIAutomationMCP.Worker.Operations.Text
 {
-    public class GetTextAttributesOperation : IUIAutomationOperation
+    public class GetTextAttributesOperation(
+        ElementFinderService elementFinderService,
+        ILogger<GetTextAttributesOperation> logger) : IUIAutomationOperation
     {
-        private readonly ElementFinderService _elementFinderService;
-        private readonly ILogger<GetTextAttributesOperation> _logger;
-
-        public GetTextAttributesOperation(
-            ElementFinderService elementFinderService,
-            ILogger<GetTextAttributesOperation> logger)
-        {
-            _elementFinderService = elementFinderService;
-            _logger = logger;
-        }
+        private readonly ElementFinderService _elementFinderService = elementFinderService;
+        private readonly ILogger<GetTextAttributesOperation> _logger = logger;
 
         public Task<OperationResult> ExecuteAsync(string parametersJson)
         {
@@ -144,7 +138,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
             }
         }
 
-        private bool IsTextPatternSupported(AutomationElement element)
+        private static bool IsTextPatternSupported(AutomationElement element)
         {
             try
             {
@@ -156,7 +150,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
             }
         }
 
-        private string GetCOMErrorMessage(System.Runtime.InteropServices.COMException ex)
+        private static string GetCOMErrorMessage(System.Runtime.InteropServices.COMException ex)
         {
             return ex.HResult switch
             {
@@ -171,7 +165,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
             };
         }
 
-        private OperationResult CreateErrorResult(GetTextAttributesRequest? request, string error)
+        private static OperationResult CreateErrorResult(GetTextAttributesRequest? request, string error)
         {
             return new OperationResult
             {
@@ -188,18 +182,14 @@ namespace UIAutomationMCP.Worker.Operations.Text
 
         private TextAttributesResult ExtractTextAttributes(TextPattern textPattern, GetTextAttributesRequest request)
         {
-            var documentRange = textPattern.DocumentRange;
-            if (documentRange == null)
-            {
-                throw new InvalidOperationException("Cannot access text content - element may not contain text");
-            }
+            var documentRange = textPattern.DocumentRange ?? throw new InvalidOperationException("Cannot access text content - element may not contain text");
 
             var fullText = documentRange.GetText(-1);
             var (startIndex, endIndex) = CalculateTextRange(fullText, request.StartIndex, request.Length);
             
             if (startIndex >= fullText.Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(request.StartIndex), "Start index is beyond text length");
+                throw new ArgumentOutOfRangeException(nameof(request), "Start index is beyond text length");
             }
 
             var textRange = CreateTextRange(documentRange, startIndex, endIndex - startIndex);
@@ -216,7 +206,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 ProcessId = request.ProcessId ?? 0,
                 StartPosition = startIndex,
                 EndPosition = endIndex,
-                TextContent = fullText.Substring(startIndex, endIndex - startIndex),
+                TextContent = fullText[startIndex..endIndex],
                 HasAttributes = true,
                 Pattern = "TextPattern",
                 SegmentationMode = shouldSegment,
@@ -239,7 +229,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
             return result;
         }
 
-        private (int startIndex, int endIndex) CalculateTextRange(string fullText, int requestedStart, int requestedLength)
+        private static (int startIndex, int endIndex) CalculateTextRange(string fullText, int requestedStart, int requestedLength)
         {
             var startIndex = Math.Max(0, requestedStart);
             var length = requestedLength == -1 ? fullText.Length - startIndex : requestedLength;
@@ -247,7 +237,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
             return (startIndex, endIndex);
         }
 
-        private TextPatternRange CreateTextRange(TextPatternRange documentRange, int startIndex, int length)
+        private static TextPatternRange CreateTextRange(TextPatternRange documentRange, int startIndex, int length)
         {
             var textRange = documentRange.Clone();
             textRange.Move(TextUnit.Character, startIndex);
@@ -336,14 +326,13 @@ namespace UIAutomationMCP.Worker.Operations.Text
             return isBold;
         }
 
-        private List<string> GetSupportedAttributes()
+        private static List<string> GetSupportedAttributes()
         {
-            return new List<string>
-            {
+            return [
                 "FontName", "FontSize", "FontWeight", "IsItalic", "IsBold",
                 "ForegroundColor", "BackgroundColor", "IsUnderline", "IsStrikethrough", 
                 "HorizontalTextAlignment", "Culture", "IsReadOnly", "IsHidden"
-            };
+            ];
         }
 
         private object? GetRawAttributeValue(TextPatternRange textRange, AutomationTextAttribute attribute)
@@ -384,7 +373,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 if (ReferenceEquals(value, TextPattern.MixedAttributeValue) || 
                     ReferenceEquals(value, AutomationElement.NotSupported))
                 {
-                    return default(T)!;
+                    return default!;
                 }
                 
                 if (value is T typedValue)
@@ -401,12 +390,12 @@ namespace UIAutomationMCP.Worker.Operations.Text
                     }
                 }
                 
-                return default(T)!;
+                return default!;
             }
             catch (Exception ex)
             {
                 _logger.LogDebug(ex, "Failed to get attribute {Attribute}", attribute.ProgrammaticName);
-                return default(T)!;
+                return default!;
             }
         }
 
@@ -581,22 +570,6 @@ namespace UIAutomationMCP.Worker.Operations.Text
             return attributes;
         }
 
-        private bool AreAttributesEqual(SegmentAttributes attr1, SegmentAttributes attr2)
-        {
-            return attr1.FontName == attr2.FontName &&
-                   attr1.FontSize == attr2.FontSize &&
-                   attr1.FontWeight == attr2.FontWeight &&
-                   attr1.IsItalic == attr2.IsItalic &&
-                   attr1.IsBold == attr2.IsBold &&
-                   attr1.ForegroundColor == attr2.ForegroundColor &&
-                   attr1.BackgroundColor == attr2.BackgroundColor &&
-                   attr1.IsUnderline == attr2.IsUnderline &&
-                   attr1.UnderlineStyle == attr2.UnderlineStyle &&
-                   attr1.IsStrikethrough == attr2.IsStrikethrough &&
-                   attr1.StrikethroughStyle == attr2.StrikethroughStyle &&
-                   attr1.HorizontalTextAlignment == attr2.HorizontalTextAlignment &&
-                   attr1.Culture == attr2.Culture;
-        }
 
     }
 }
