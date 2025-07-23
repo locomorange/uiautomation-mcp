@@ -142,6 +142,7 @@ namespace UIAutomationMCP.Worker
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SelectTextOperation>("SelectText");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SetTextOperation>("SetText");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, FindTextOperation>("FindText");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetTextAttributesOperation>("GetTextAttributes");
             
             // Layout operations
             builder.Services.AddKeyedTransient<IUIAutomationOperation, ScrollElementOperation>("ScrollElement");

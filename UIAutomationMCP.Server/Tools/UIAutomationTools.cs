@@ -502,12 +502,48 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Parent process ID to limit search scope (use main application process, not child processes)")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
             [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _textService.GetTextAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
+        {
+            var request = new UIAutomationMCP.Shared.Requests.FindTextRequest
+            {
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                ProcessId = processId ?? 0,
+                SearchText = searchText,
+                Backward = backward,
+                IgnoreCase = ignoreCase,
+                TimeoutSeconds = timeoutSeconds
+            };
+            
+            return JsonSerializationHelper.Serialize(await _subprocessExecutor.ExecuteAsync<UIAutomationMCP.Shared.Requests.FindTextRequest, UIAutomationMCP.Shared.Results.TextSearchResult>("FindText", request, timeoutSeconds));
+        }
+
+        [McpServerTool, Description("Get text formatting attributes (font, color, size, style) from an element using TextPattern")]
+        public async Task<object> GetTextAttributes(
+            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
+            [Description("Name of the element (fallback, display name)")] string? name = null,
+            [Description("Start index for attribute range (default: 0)")] int startIndex = 0,
+            [Description("Length of attribute range (default: entire text)")] int length = -1,
+            [Description("Specific attribute to get (FontName, FontSize, ForegroundColor, etc.)")] string? attributeName = null,
+            [Description("ControlType to filter by (Edit, Document, etc.)")] string? controlType = null,
+            [Description("Parent process ID to limit search scope (use main application process, not child processes)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
+            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
+        {
+            var request = new UIAutomationMCP.Shared.Requests.GetTextAttributesRequest
+            {
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                ProcessId = processId ?? 0,
+                StartIndex = startIndex,
+                Length = length,
+                AttributeName = attributeName,
+                TimeoutSeconds = timeoutSeconds
+            };
+            
+            return JsonSerializationHelper.Serialize(await _subprocessExecutor.ExecuteAsync<UIAutomationMCP.Shared.Requests.GetTextAttributesRequest, UIAutomationMCP.Shared.Results.TextAttributesResult>("GetTextAttributes", request, timeoutSeconds));
+        }
 
         [McpServerTool, Description("Get the current text selection from an element using TextPattern")]
         public async Task<object> GetTextSelection(
@@ -560,20 +596,6 @@ namespace UIAutomationMCP.Server.Tools
                 processId: processId,
                 timeoutSeconds: timeoutSeconds));
 
-        [McpServerTool, Description("Get text formatting attributes using TextPattern")]
-        public async Task<object> GetTextAttributes(
-            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (Edit, Document, etc.)")] string? controlType = null,
-            [Description("Parent process ID to limit search scope (use main application process, not child processes)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _textService.GetTextAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
 
         // Grid Pattern Operations
         [McpServerTool, Description("Get a specific grid item at row and column coordinates")]
@@ -805,20 +827,6 @@ namespace UIAutomationMCP.Server.Tools
         // Range Value Operations
 
         // Text Operations
-        [McpServerTool, Description("Get text content from an element")]
-        public async Task<object> GetText(
-            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (Edit, Document, Text, etc.)")] string? controlType = null,
-            [Description("Parent process ID to limit search scope (use main application process, not child processes)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _textService.GetTextAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
 
         // Table Operations
 

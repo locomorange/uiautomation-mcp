@@ -105,6 +105,7 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(WorkerResponse<BooleanResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseBooleanResult,
                 Type t when t == typeof(WorkerResponse<DesktopWindowsResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseDesktopWindowsResult,
                 Type t when t == typeof(WorkerResponse<TextInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTextInfoResult,
+                Type t when t == typeof(WorkerResponse<TextAttributesResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTextAttributesResult,
                 Type t when t == typeof(WorkerResponse<ElementTreeResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseElementTreeResult,
                 Type t when t == typeof(WorkerResponse<SearchElementsResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseSearchElementsResult,
                 Type t when t == typeof(WorkerResponse<ElementDetailResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseElementDetailResult,
@@ -126,6 +127,9 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(BooleanResult) => (JsonTypeInfo<T>)(object)_context.BooleanResult,
                 Type t when t == typeof(ProcessLaunchResponse) => (JsonTypeInfo<T>)(object)_context.ProcessLaunchResponse,
                 Type t when t == typeof(TextInfoResult) => (JsonTypeInfo<T>)(object)_context.TextInfoResult,
+                Type t when t == typeof(TextAttributesResult) => (JsonTypeInfo<T>)(object)_context.TextAttributesResult,
+                Type t when t == typeof(TextAttributeRange) => (JsonTypeInfo<T>)(object)_context.TextAttributeRange,
+                Type t when t == typeof(TextRangeAttributes) => (JsonTypeInfo<T>)(object)_context.TextRangeAttributes,
                 Type t when t == typeof(SearchElementsResult) => (JsonTypeInfo<T>)(object)_context.SearchElementsResult,
                 Type t when t == typeof(ElementDetailResult) => (JsonTypeInfo<T>)(object)_context.ElementDetailResult,
                 Type t when t == typeof(TableInfoResult) => (JsonTypeInfo<T>)(object)_context.TableInfoResult,
@@ -146,8 +150,8 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(GetRangeValueRequest) => (JsonTypeInfo<T>)(object)_context.GetRangeValueRequest,
                 Type t when t == typeof(GetRangePropertiesRequest) => (JsonTypeInfo<T>)(object)_context.GetRangePropertiesRequest,
                 Type t when t == typeof(SetTextRequest) => (JsonTypeInfo<T>)(object)_context.SetTextRequest,
-                Type t when t == typeof(GetTextRequest) => (JsonTypeInfo<T>)(object)_context.GetTextRequest,
                 Type t when t == typeof(FindTextRequest) => (JsonTypeInfo<T>)(object)_context.FindTextRequest,
+                Type t when t == typeof(GetTextAttributesRequest) => (JsonTypeInfo<T>)(object)_context.GetTextAttributesRequest,
                 Type t when t == typeof(SelectTextRequest) => (JsonTypeInfo<T>)(object)_context.SelectTextRequest,
                 Type t when t == typeof(TraverseTextRequest) => (JsonTypeInfo<T>)(object)_context.TraverseTextRequest,
                 Type t when t == typeof(TransformElementRequest) => (JsonTypeInfo<T>)(object)_context.TransformElementRequest,
@@ -266,8 +270,12 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(BooleanResult))]
     [JsonSerializable(typeof(FindItemResult))]
     [JsonSerializable(typeof(TextInfoResult))]
+    [JsonSerializable(typeof(TextAttributesResult))]
+    [JsonSerializable(typeof(TextAttributeRange))]
+    [JsonSerializable(typeof(TextRangeAttributes))]
     [JsonSerializable(typeof(TableInfoResult))]
     [JsonSerializable(typeof(WorkerResponse<TextInfoResult>))]
+    [JsonSerializable(typeof(WorkerResponse<TextAttributesResult>))]
     // Basic types
     [JsonSerializable(typeof(string))]
     [JsonSerializable(typeof(int))]
@@ -301,8 +309,8 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(GetRangeValueRequest))]
     [JsonSerializable(typeof(GetRangePropertiesRequest))]
     [JsonSerializable(typeof(SetTextRequest))]
-    [JsonSerializable(typeof(GetTextRequest))]
     [JsonSerializable(typeof(FindTextRequest))]
+    [JsonSerializable(typeof(GetTextAttributesRequest))]
     [JsonSerializable(typeof(SelectTextRequest))]
     [JsonSerializable(typeof(TraverseTextRequest))]
     [JsonSerializable(typeof(TransformElementRequest))]

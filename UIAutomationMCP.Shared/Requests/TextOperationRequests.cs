@@ -12,10 +12,6 @@ namespace UIAutomationMCP.Shared.Requests
         public string Text { get; set; } = "";
     }
 
-    public class GetTextRequest : ElementTargetRequest
-    {
-        public override string Operation => "GetText";
-    }
 
     public class FindTextRequest : ElementTargetRequest
     {
@@ -29,6 +25,20 @@ namespace UIAutomationMCP.Shared.Requests
 
         [JsonPropertyName("ignoreCase")]
         public bool IgnoreCase { get; set; } = false;
+    }
+
+    public class GetTextAttributesRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetTextAttributes";
+
+        [JsonPropertyName("startIndex")]
+        public int StartIndex { get; set; } = 0;
+
+        [JsonPropertyName("length")]
+        public int Length { get; set; } = -1;
+
+        [JsonPropertyName("attributeName")]
+        public string? AttributeName { get; set; }
     }
 
     public class SelectTextRequest : ElementTargetRequest
