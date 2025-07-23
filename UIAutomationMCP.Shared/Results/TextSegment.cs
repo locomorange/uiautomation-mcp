@@ -3,9 +3,29 @@ using System.Text.Json.Serialization;
 namespace UIAutomationMCP.Shared.Results
 {
     /// <summary>
-    /// Strongly typed text attributes from UI Automation TextPattern
+    /// Represents a text segment with consistent attributes.
+    /// Each segment represents a portion of text where all attributes are uniform.
     /// </summary>
-    public class TextAttributes
+    public class TextSegment
+    {
+        [JsonPropertyName("startPosition")]
+        public int StartPosition { get; set; }
+
+        [JsonPropertyName("endPosition")]
+        public int EndPosition { get; set; }
+
+        [JsonPropertyName("text")]
+        public string Text { get; set; } = string.Empty;
+
+        [JsonPropertyName("attributes")]
+        public SegmentAttributes Attributes { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Simplified text attributes for segments without mixed state flags.
+    /// Since each segment has consistent attributes, mixed flags are no longer needed.
+    /// </summary>
+    public class SegmentAttributes
     {
         [JsonPropertyName("fontName")]
         public string? FontName { get; set; }
@@ -67,23 +87,14 @@ namespace UIAutomationMCP.Shared.Results
         [JsonPropertyName("capStyle")]
         public string? CapStyle { get; set; }
 
-        [JsonPropertyName("bulletStyle")]
-        public string? BulletStyle { get; set; }
+        [JsonPropertyName("outlineStyle")]
+        public string? OutlineStyle { get; set; }
 
         [JsonPropertyName("animationStyle")]
         public string? AnimationStyle { get; set; }
 
-        [JsonPropertyName("outlineStyles")]
-        public string? OutlineStyles { get; set; }
-
-        [JsonPropertyName("overlineStyle")]
-        public string? OverlineStyle { get; set; }
-
-        [JsonPropertyName("overlineColor")]
-        public string? OverlineColor { get; set; }
-
-        [JsonPropertyName("textFlowDirections")]
-        public string? TextFlowDirections { get; set; }
+        [JsonPropertyName("bulletStyle")]
+        public string? BulletStyle { get; set; }
 
         [JsonPropertyName("indentationFirstLine")]
         public double? IndentationFirstLine { get; set; }
@@ -94,22 +105,19 @@ namespace UIAutomationMCP.Shared.Results
         [JsonPropertyName("indentationTrailing")]
         public double? IndentationTrailing { get; set; }
 
-        [JsonPropertyName("marginTop")]
-        public double? MarginTop { get; set; }
-
         [JsonPropertyName("marginBottom")]
         public double? MarginBottom { get; set; }
 
         [JsonPropertyName("marginLeading")]
         public double? MarginLeading { get; set; }
 
+        [JsonPropertyName("marginTop")]
+        public double? MarginTop { get; set; }
+
         [JsonPropertyName("marginTrailing")]
         public double? MarginTrailing { get; set; }
 
         [JsonPropertyName("tabs")]
-        public List<string>? Tabs { get; set; }
-
-        [JsonPropertyName("link")]
-        public string? Link { get; set; }
+        public string? Tabs { get; set; }
     }
 }

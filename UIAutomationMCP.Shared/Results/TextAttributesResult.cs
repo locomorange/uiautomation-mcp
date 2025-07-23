@@ -21,7 +21,13 @@ namespace UIAutomationMCP.Shared.Results
         public int ProcessId { get; set; }
         
         [JsonPropertyName("textAttributes")]
-        public TextAttributes TextAttributes { get; set; } = new();
+        public TextAttributes? TextAttributes { get; set; }
+        
+        [JsonPropertyName("textSegments")]
+        public List<TextSegment>? TextSegments { get; set; }
+        
+        [JsonPropertyName("segmentationMode")]
+        public bool SegmentationMode { get; set; }
         
         [JsonPropertyName("startPosition")]
         public int StartPosition { get; set; }

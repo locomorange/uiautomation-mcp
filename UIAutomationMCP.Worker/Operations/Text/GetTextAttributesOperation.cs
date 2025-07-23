@@ -172,9 +172,11 @@ namespace UIAutomationMCP.Worker.Operations.Text
             }
 
             var textRange = CreateTextRange(documentRange, startIndex, endIndex - startIndex);
-            var attributes = GetTextAttributes(textRange);
-
-            return new TextAttributesResult
+            
+            // Check if any attributes have mixed values that would benefit from segmentation
+            bool shouldSegment = ShouldUseSegmentation(textRange);
+            
+            var result = new TextAttributesResult
             {
                 Success = true,
                 AutomationId = request.AutomationId ?? "",
@@ -186,9 +188,24 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 TextContent = fullText.Substring(startIndex, endIndex - startIndex),
                 HasAttributes = true,
                 Pattern = "TextPattern",
-                TextAttributes = attributes,
+                SegmentationMode = shouldSegment,
                 SupportedAttributes = GetSupportedAttributes()
             };
+
+            if (shouldSegment)
+            {
+                // Use Microsoft Learn recommended approach: segment by format boundaries
+                result.TextSegments = ExtractTextSegments(textRange, startIndex);
+                _logger.LogInformation("Used segmentation mode due to mixed attributes");
+            }
+            else
+            {
+                // Use traditional approach for uniform attributes
+                result.TextAttributes = GetTextAttributes(textRange);
+                _logger.LogInformation("Used traditional mode for uniform attributes");
+            }
+
+            return result;
         }
 
         private (int startIndex, int endIndex) CalculateTextRange(string fullText, int requestedStart, int requestedLength)
@@ -229,54 +246,17 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 if (backgroundColor != 0)
                     attributes.BackgroundColor = $"#{backgroundColor:X6}";
 
-                // Bold detection using FontWeight - handle MixedAttributeValue as per Microsoft guidance
-                var fontWeightValue = GetRawAttributeValue(textRange, TextPattern.FontWeightAttribute);
-                _logger.LogDebug("FontWeight raw value: {FontWeight} (Type: {Type})", fontWeightValue?.ToString(), fontWeightValue?.GetType().Name);
-                
-                // Handle MixedAttributeValue for FontWeight
-                if (ReferenceEquals(fontWeightValue, TextPattern.MixedAttributeValue))
-                {
-                    _logger.LogDebug("FontWeight is MixedAttributeValue, checking individual characters");
-                    attributes.IsBold = CheckMixedFontWeight(textRange);
-                    attributes.IsBoldMixed = true;
-                    attributes.FontWeightMixed = true;
-                }
-                else
-                {
-                    attributes.IsBold = DetermineBoldFromFontWeight(fontWeightValue);
-                    attributes.IsBoldMixed = false;
-                    attributes.FontWeightMixed = false;
-                }
+                // Bold detection using FontWeight
+                var fontWeight = GetAttributeValue<object>(textRange, TextPattern.FontWeightAttribute);
+                attributes.IsBold = DetermineBoldFromFontWeight(fontWeight);
 
-                // Check for mixed Italic
-                var italicValue = GetRawAttributeValue(textRange, TextPattern.IsItalicAttribute);
-                if (ReferenceEquals(italicValue, TextPattern.MixedAttributeValue))
-                {
-                    _logger.LogDebug("IsItalic is MixedAttributeValue");
-                    attributes.IsItalic = CheckMixedItalic(textRange);
-                    attributes.IsItalicMixed = true;
-                }
-                else
-                {
-                    attributes.IsItalic = GetAttributeValue<bool?>(textRange, TextPattern.IsItalicAttribute);
-                    attributes.IsItalicMixed = false;
-                }
+                // Italic
+                attributes.IsItalic = GetAttributeValue<bool?>(textRange, TextPattern.IsItalicAttribute);
 
-                // Check for mixed underline
-                var underlineValue = GetRawAttributeValue(textRange, TextPattern.UnderlineStyleAttribute);
-                if (ReferenceEquals(underlineValue, TextPattern.MixedAttributeValue))
-                {
-                    _logger.LogDebug("UnderlineStyle is MixedAttributeValue");
-                    attributes.IsUnderline = CheckMixedUnderline(textRange);
-                    attributes.IsUnderlineMixed = true;
-                }
-                else
-                {
-                    var underlineStyleValue = GetAttributeValue<object>(textRange, TextPattern.UnderlineStyleAttribute);
-                    attributes.IsUnderline = underlineStyleValue != null && !string.Equals(underlineStyleValue.ToString(), "None", StringComparison.OrdinalIgnoreCase);
-                    attributes.UnderlineStyle = underlineStyleValue?.ToString();
-                    attributes.IsUnderlineMixed = false;
-                }
+                // Underline
+                var underlineStyleValue = GetAttributeValue<object>(textRange, TextPattern.UnderlineStyleAttribute);
+                attributes.IsUnderline = underlineStyleValue != null && !string.Equals(underlineStyleValue.ToString(), "None", StringComparison.OrdinalIgnoreCase);
+                attributes.UnderlineStyle = underlineStyleValue?.ToString();
 
                 var strikethroughStyle = GetAttributeValue<object>(textRange, TextPattern.StrikethroughStyleAttribute);
                 attributes.IsStrikethrough = strikethroughStyle != null && !string.Equals(strikethroughStyle.ToString(), "None", StringComparison.OrdinalIgnoreCase);
@@ -355,154 +335,6 @@ namespace UIAutomationMCP.Worker.Operations.Text
             }
         }
 
-        private bool CheckMixedFontWeight(TextPatternRange textRange)
-        {
-            try
-            {
-                _logger.LogDebug("Checking mixed font weight in range length: {Length}", textRange.GetText(-1).Length);
-                
-                // Check each character individually for bold
-                var text = textRange.GetText(-1);
-                bool foundBold = false;
-                
-                for (int i = 0; i < Math.Min(text.Length, 20); i++) // Limit to first 20 chars for performance
-                {
-                    try
-                    {
-                        var charRange = textRange.Move(TextUnit.Character, i);
-                        if (charRange != 0) // Successfully moved
-                        {
-                            var charTextRange = textRange.Clone();
-                            charTextRange.Move(TextUnit.Character, i);
-                            charTextRange.MoveEndpointByUnit(TextPatternRangeEndpoint.End, TextUnit.Character, 1);
-                            
-                            var charFontWeight = GetRawAttributeValue(charTextRange, TextPattern.FontWeightAttribute);
-                            if (!ReferenceEquals(charFontWeight, TextPattern.MixedAttributeValue) && 
-                                !ReferenceEquals(charFontWeight, AutomationElement.NotSupported))
-                            {
-                                if (DetermineBoldFromFontWeight(charFontWeight))
-                                {
-                                    _logger.LogDebug("Found bold character at position {Position}", i);
-                                    foundBold = true;
-                                    break; // Found at least one bold character
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogDebug(ex, "Error checking character at position {Position}", i);
-                    }
-                }
-                
-                _logger.LogDebug("Mixed font weight check result: {FoundBold}", foundBold);
-                return foundBold;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogDebug(ex, "Error in CheckMixedFontWeight");
-                return false;
-            }
-        }
-
-        private bool CheckMixedItalic(TextPatternRange textRange)
-        {
-            try
-            {
-                _logger.LogDebug("Checking mixed italic in range length: {Length}", textRange.GetText(-1).Length);
-                
-                var text = textRange.GetText(-1);
-                bool foundItalic = false;
-                
-                for (int i = 0; i < Math.Min(text.Length, 20); i++)
-                {
-                    try
-                    {
-                        var charRange = textRange.Move(TextUnit.Character, i);
-                        if (charRange != 0)
-                        {
-                            var charTextRange = textRange.Clone();
-                            charTextRange.Move(TextUnit.Character, i);
-                            charTextRange.MoveEndpointByUnit(TextPatternRangeEndpoint.End, TextUnit.Character, 1);
-                            
-                            var charIsItalic = GetRawAttributeValue(charTextRange, TextPattern.IsItalicAttribute);
-                            if (!ReferenceEquals(charIsItalic, TextPattern.MixedAttributeValue) && 
-                                !ReferenceEquals(charIsItalic, AutomationElement.NotSupported))
-                            {
-                                if (charIsItalic is bool italic && italic)
-                                {
-                                    _logger.LogDebug("Found italic character at position {Position}", i);
-                                    foundItalic = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogDebug(ex, "Error checking italic at position {Position}", i);
-                    }
-                }
-                
-                _logger.LogDebug("Mixed italic check result: {FoundItalic}", foundItalic);
-                return foundItalic;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogDebug(ex, "Error in CheckMixedItalic");
-                return false;
-            }
-        }
-
-        private bool CheckMixedUnderline(TextPatternRange textRange)
-        {
-            try
-            {
-                _logger.LogDebug("Checking mixed underline in range length: {Length}", textRange.GetText(-1).Length);
-                
-                var text = textRange.GetText(-1);
-                bool foundUnderline = false;
-                
-                for (int i = 0; i < Math.Min(text.Length, 20); i++)
-                {
-                    try
-                    {
-                        var charRange = textRange.Move(TextUnit.Character, i);
-                        if (charRange != 0)
-                        {
-                            var charTextRange = textRange.Clone();
-                            charTextRange.Move(TextUnit.Character, i);
-                            charTextRange.MoveEndpointByUnit(TextPatternRangeEndpoint.End, TextUnit.Character, 1);
-                            
-                            var charUnderline = GetRawAttributeValue(charTextRange, TextPattern.UnderlineStyleAttribute);
-                            if (!ReferenceEquals(charUnderline, TextPattern.MixedAttributeValue) && 
-                                !ReferenceEquals(charUnderline, AutomationElement.NotSupported))
-                            {
-                                if (charUnderline != null && !string.Equals(charUnderline.ToString(), "None", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    _logger.LogDebug("Found underlined character at position {Position}", i);
-                                    foundUnderline = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogDebug(ex, "Error checking underline at position {Position}", i);
-                    }
-                }
-                
-                _logger.LogDebug("Mixed underline check result: {FoundUnderline}", foundUnderline);
-                return foundUnderline;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogDebug(ex, "Error in CheckMixedUnderline");
-                return false;
-            }
-        }
-
         private T GetAttributeValue<T>(TextPatternRange textRange, AutomationTextAttribute attribute)
         {
             try
@@ -545,6 +377,204 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 _logger.LogDebug(ex, "Failed to get attribute {Attribute}", attribute.ProgrammaticName);
                 return default(T)!;
             }
+        }
+
+        private bool ShouldUseSegmentation(TextPatternRange textRange)
+        {
+            try
+            {
+                // Check if any key attributes have mixed values
+                var attributes = new[]
+                {
+                    TextPattern.FontNameAttribute,
+                    TextPattern.FontSizeAttribute,
+                    TextPattern.FontWeightAttribute,
+                    TextPattern.IsItalicAttribute,
+                    TextPattern.ForegroundColorAttribute,
+                    TextPattern.BackgroundColorAttribute,
+                    TextPattern.UnderlineStyleAttribute
+                };
+
+                foreach (var attribute in attributes)
+                {
+                    var value = GetRawAttributeValue(textRange, attribute);
+                    if (ReferenceEquals(value, TextPattern.MixedAttributeValue))
+                    {
+                        _logger.LogDebug("Found mixed attribute: {Attribute}", attribute.ProgrammaticName);
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error checking for mixed attributes, defaulting to segmentation");
+                return true; // Default to segmentation on error
+            }
+        }
+
+        private List<TextSegment> ExtractTextSegments(TextPatternRange textRange, int globalStartIndex)
+        {
+            var segments = new List<TextSegment>();
+            
+            try
+            {
+                var fullText = textRange.GetText(-1);
+                
+                if (string.IsNullOrEmpty(fullText))
+                {
+                    return segments;
+                }
+
+                SegmentAttributes? currentAttributes = null;
+                var segmentStartPos = 0;
+
+                // Check each character to detect attribute changes
+                for (int i = 0; i < fullText.Length; i++)
+                {
+                    // Create a range for the current character
+                    var charRange = textRange.Clone();
+                    charRange.Move(TextUnit.Character, i);
+                    charRange.MoveEndpointByUnit(TextPatternRangeEndpoint.End, TextUnit.Character, 1);
+                    
+                    var charAttributes = GetSegmentAttributes(charRange);
+                    
+                    // If this is the first character or attributes changed, start a new segment
+                    if (currentAttributes == null || !AreAttributesEqual(currentAttributes, charAttributes))
+                    {
+                        // Save previous segment if it exists
+                        if (currentAttributes != null && i > segmentStartPos)
+                        {
+                            var segmentText = fullText.Substring(segmentStartPos, i - segmentStartPos);
+                            var segment = new TextSegment
+                            {
+                                StartPosition = globalStartIndex + segmentStartPos,
+                                EndPosition = globalStartIndex + i,
+                                Text = segmentText,
+                                Attributes = currentAttributes
+                            };
+                            
+                            segments.Add(segment);
+                            _logger.LogDebug("Created segment: [{Start}-{End}] '{Text}' Bold={Bold} Italic={Italic}", 
+                                segment.StartPosition, segment.EndPosition, 
+                                segmentText, 
+                                currentAttributes.IsBold, 
+                                currentAttributes.IsItalic);
+                        }
+                        
+                        // Start new segment
+                        currentAttributes = charAttributes;
+                        segmentStartPos = i;
+                    }
+                }
+
+                // Add the final segment
+                if (currentAttributes != null && segmentStartPos < fullText.Length)
+                {
+                    var segmentText = fullText.Substring(segmentStartPos);
+                    var segment = new TextSegment
+                    {
+                        StartPosition = globalStartIndex + segmentStartPos,
+                        EndPosition = globalStartIndex + fullText.Length,
+                        Text = segmentText,
+                        Attributes = currentAttributes
+                    };
+                    
+                    segments.Add(segment);
+                    _logger.LogDebug("Created final segment: [{Start}-{End}] '{Text}' Bold={Bold} Italic={Italic}", 
+                        segment.StartPosition, segment.EndPosition, 
+                        segmentText, 
+                        currentAttributes.IsBold, 
+                        currentAttributes.IsItalic);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error extracting text segments");
+                // Return a single segment with basic attributes as fallback
+                var fallbackAttributes = new SegmentAttributes();
+                var fallbackText = textRange.GetText(-1);
+                segments.Add(new TextSegment
+                {
+                    StartPosition = globalStartIndex,
+                    EndPosition = globalStartIndex + fallbackText.Length,
+                    Text = fallbackText,
+                    Attributes = fallbackAttributes
+                });
+            }
+
+            return segments;
+        }
+
+        private SegmentAttributes GetSegmentAttributes(TextPatternRange textRange)
+        {
+            var attributes = new SegmentAttributes();
+
+            try
+            {
+                // Font attributes
+                attributes.FontName = GetAttributeValue<string>(textRange, TextPattern.FontNameAttribute);
+                attributes.FontSize = GetAttributeValue<double?>(textRange, TextPattern.FontSizeAttribute);
+                attributes.FontWeight = GetAttributeValue<object>(textRange, TextPattern.FontWeightAttribute)?.ToString();
+                attributes.IsItalic = GetAttributeValue<bool?>(textRange, TextPattern.IsItalicAttribute);
+                
+                // Colors - Microsoft Learn recommends checking for 0 as "not set"
+                var foregroundColor = GetAttributeValue<int>(textRange, TextPattern.ForegroundColorAttribute);
+                if (foregroundColor != 0)
+                    attributes.ForegroundColor = $"#{foregroundColor:X6}";
+                
+                var backgroundColor = GetAttributeValue<int>(textRange, TextPattern.BackgroundColorAttribute);
+                if (backgroundColor != 0)
+                    attributes.BackgroundColor = $"#{backgroundColor:X6}";
+
+                // Bold detection - no mixed values in segments
+                var fontWeight = GetAttributeValue<object>(textRange, TextPattern.FontWeightAttribute);
+                attributes.IsBold = DetermineBoldFromFontWeight(fontWeight);
+
+                // Underline
+                var underlineStyleValue = GetAttributeValue<object>(textRange, TextPattern.UnderlineStyleAttribute);
+                attributes.IsUnderline = underlineStyleValue != null && 
+                    !string.Equals(underlineStyleValue.ToString(), "None", StringComparison.OrdinalIgnoreCase);
+                attributes.UnderlineStyle = underlineStyleValue?.ToString();
+
+                // Strikethrough
+                var strikethroughStyle = GetAttributeValue<object>(textRange, TextPattern.StrikethroughStyleAttribute);
+                attributes.IsStrikethrough = strikethroughStyle != null && 
+                    !string.Equals(strikethroughStyle.ToString(), "None", StringComparison.OrdinalIgnoreCase);
+                attributes.StrikethroughStyle = strikethroughStyle?.ToString();
+
+                // Other attributes
+                attributes.HorizontalTextAlignment = GetAttributeValue<object>(textRange, TextPattern.HorizontalTextAlignmentAttribute)?.ToString();
+                attributes.Culture = GetAttributeValue<System.Globalization.CultureInfo>(textRange, TextPattern.CultureAttribute)?.Name;
+                attributes.IsReadOnly = GetAttributeValue<bool?>(textRange, TextPattern.IsReadOnlyAttribute);
+                attributes.IsHidden = GetAttributeValue<bool?>(textRange, TextPattern.IsHiddenAttribute);
+                attributes.IsSubscript = GetAttributeValue<bool?>(textRange, TextPattern.IsSubscriptAttribute);
+                attributes.IsSuperscript = GetAttributeValue<bool?>(textRange, TextPattern.IsSuperscriptAttribute);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to get some segment attributes");
+            }
+
+            return attributes;
+        }
+
+        private bool AreAttributesEqual(SegmentAttributes attr1, SegmentAttributes attr2)
+        {
+            return attr1.FontName == attr2.FontName &&
+                   attr1.FontSize == attr2.FontSize &&
+                   attr1.FontWeight == attr2.FontWeight &&
+                   attr1.IsItalic == attr2.IsItalic &&
+                   attr1.IsBold == attr2.IsBold &&
+                   attr1.ForegroundColor == attr2.ForegroundColor &&
+                   attr1.BackgroundColor == attr2.BackgroundColor &&
+                   attr1.IsUnderline == attr2.IsUnderline &&
+                   attr1.UnderlineStyle == attr2.UnderlineStyle &&
+                   attr1.IsStrikethrough == attr2.IsStrikethrough &&
+                   attr1.StrikethroughStyle == attr2.StrikethroughStyle &&
+                   attr1.HorizontalTextAlignment == attr2.HorizontalTextAlignment &&
+                   attr1.Culture == attr2.Culture;
         }
 
     }
