@@ -33,6 +33,7 @@ namespace UIAutomationMCP.Worker.Operations.Grid
                     name: typedRequest.Name,
                     controlType: typedRequest.ControlType,
                     processId: typedRequest.ProcessId,
+                    timeoutMs: typedRequest.TimeoutSeconds * 1000,
                     requiredPattern: GridPattern.Pattern);
                 
                 if (element == null)

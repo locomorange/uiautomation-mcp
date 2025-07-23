@@ -188,6 +188,13 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(SelectItemRequest) => (JsonTypeInfo<T>)(object)_context.SelectItemRequest,
                 Type t when t == typeof(GetElementPropertiesRequest) => (JsonTypeInfo<T>)(object)_context.GetElementPropertiesRequest,
                 Type t when t == typeof(GetElementPatternsRequest) => (JsonTypeInfo<T>)(object)_context.GetElementPatternsRequest,
+                Type t when t == typeof(ValidateControlTypePatternsRequest) => (JsonTypeInfo<T>)(object)_context.ValidateControlTypePatternsRequest,
+                Type t when t == typeof(VerifyAccessibilityRequest) => (JsonTypeInfo<T>)(object)_context.VerifyAccessibilityRequest,
+                Type t when t == typeof(GetLabeledByRequest) => (JsonTypeInfo<T>)(object)_context.GetLabeledByRequest,
+                Type t when t == typeof(GetDescribedByRequest) => (JsonTypeInfo<T>)(object)_context.GetDescribedByRequest,
+                Type t when t == typeof(GetCustomPropertiesRequest) => (JsonTypeInfo<T>)(object)_context.GetCustomPropertiesRequest,
+                Type t when t == typeof(SetCustomPropertyRequest) => (JsonTypeInfo<T>)(object)_context.SetCustomPropertyRequest,
+                Type t when t == typeof(GetAccessibilityInfoRequest) => (JsonTypeInfo<T>)(object)_context.GetAccessibilityInfoRequest,
                 Type t when t == typeof(GetAncestorsRequest) => (JsonTypeInfo<T>)(object)_context.GetAncestorsRequest,
                 Type t when t == typeof(GetChildrenRequest) => (JsonTypeInfo<T>)(object)_context.GetChildrenRequest,
                 Type t when t == typeof(GetDescendantsRequest) => (JsonTypeInfo<T>)(object)_context.GetDescendantsRequest,
@@ -336,6 +343,13 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(SelectItemRequest))]
     [JsonSerializable(typeof(GetElementPropertiesRequest))]
     [JsonSerializable(typeof(GetElementPatternsRequest))]
+    [JsonSerializable(typeof(ValidateControlTypePatternsRequest))]
+    [JsonSerializable(typeof(VerifyAccessibilityRequest))]
+    [JsonSerializable(typeof(GetLabeledByRequest))]
+    [JsonSerializable(typeof(GetDescribedByRequest))]
+    [JsonSerializable(typeof(GetCustomPropertiesRequest))]
+    [JsonSerializable(typeof(SetCustomPropertyRequest))]
+    [JsonSerializable(typeof(GetAccessibilityInfoRequest))]
     [JsonSerializable(typeof(GetAncestorsRequest))]
     [JsonSerializable(typeof(GetChildrenRequest))]
     [JsonSerializable(typeof(GetDescendantsRequest))]
