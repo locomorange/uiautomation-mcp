@@ -361,13 +361,67 @@ namespace UIAutomationMCP.Worker.Helpers
             {
                 _logger?.LogDebug("Finding search root by process ID: {ProcessId}", processId);
                 var condition = new PropertyCondition(AutomationElement.ProcessIdProperty, processId);
-                return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
+                
+                // Use timeout for the search to prevent hanging
+                try
+                {
+                    return UIAutomationEnvironment.ExecuteWithTimeout(() =>
+                    {
+                        // First try to find at the top level (most common case - ApplicationFrameWindow)
+                        var topLevelWindow = AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
+                        if (topLevelWindow != null)
+                        {
+                            _logger?.LogDebug("Found top-level window for process ID: {ProcessId}", processId);
+                            return topLevelWindow;
+                        }
+                        
+                        // If not found at top level, search descendants for nested windows
+                        // This handles cases like Windows.UI.Core.CoreWindow nested under ApplicationFrameWindow
+                        _logger?.LogDebug("Searching descendants for process ID: {ProcessId}", processId);
+                        var nestedWindow = AutomationElement.RootElement.FindFirst(TreeScope.Descendants, condition);
+                        if (nestedWindow != null)
+                        {
+                            _logger?.LogDebug("Found nested window for process ID: {ProcessId}", processId);
+                            return nestedWindow;
+                        }
+                        
+                        _logger?.LogDebug("No window found for process ID: {ProcessId}", processId);
+                        return null;
+                    }, $"GetSearchRoot-ProcessId-{processId}", 5); // 5 second timeout for more thorough search
+                }
+                catch (TimeoutException ex)
+                {
+                    _logger?.LogWarning(ex, "Timeout searching for process ID {ProcessId}", processId);
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogWarning(ex, "Error searching for process ID {ProcessId}", processId);
+                    return null;
+                }
             }
             else if (!string.IsNullOrEmpty(windowTitle))
             {
                 _logger?.LogDebug("Finding search root by window title: {WindowTitle}", windowTitle);
                 var condition = new PropertyCondition(AutomationElement.NameProperty, windowTitle);
-                return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
+                
+                try
+                {
+                    return UIAutomationEnvironment.ExecuteWithTimeout(() =>
+                    {
+                        return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
+                    }, $"GetSearchRoot-WindowTitle", 3); // 3 second timeout
+                }
+                catch (TimeoutException ex)
+                {
+                    _logger?.LogWarning(ex, "Timeout searching for window title {WindowTitle}", windowTitle);
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogWarning(ex, "Error searching for window title {WindowTitle}", windowTitle);
+                    return null;
+                }
             }
             
             _logger?.LogDebug("Using root element as search root");
@@ -446,6 +500,16 @@ namespace UIAutomationMCP.Worker.Helpers
         public AutomationElementCollection FindElementsAdvanced(AdvancedSearchParameters searchParams)
         {
             var searchRoot = GetSearchRoot(searchParams.WindowTitle ?? "", searchParams.ProcessId ?? 0);
+            
+            // If a specific processId was requested but no window was found, return empty collection
+            // instead of searching the entire desktop (which is slow and not what the user wants)
+            if (searchParams.ProcessId.HasValue && searchParams.ProcessId > 0 && searchRoot == null)
+            {
+                _logger?.LogWarning("No window found for process ID {ProcessId}, returning empty results", searchParams.ProcessId);
+                // Return empty collection by searching for non-existent process ID
+                return AutomationElement.RootElement.FindAll(TreeScope.Element, new PropertyCondition(AutomationElement.ProcessIdProperty, -1));
+            }
+            
             searchRoot ??= AutomationElement.RootElement;
 
             // Build complex search conditions

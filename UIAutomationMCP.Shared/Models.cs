@@ -92,6 +92,12 @@ namespace UIAutomationMCP.Shared
         public int ProcessId { get; set; }
         
         /// <summary>
+        /// 親要素のプロセスID（存在する場合）
+        /// </summary>
+        [JsonPropertyName("parentProcessId")]
+        public int? ParentProcessId { get; set; }
+        
+        /// <summary>
         /// 要素の境界矩形
         /// </summary>
         [JsonPropertyName("boundingRectangle")]

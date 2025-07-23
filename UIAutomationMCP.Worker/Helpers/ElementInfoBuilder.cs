@@ -24,6 +24,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 IsVisible = !element.Current.IsOffscreen,
                 IsOffscreen = element.Current.IsOffscreen,
                 ProcessId = element.Current.ProcessId,
+                ParentProcessId = GetParentProcessId(element, false),
                 ClassName = element.Current.ClassName ?? "",
                 FrameworkId = element.Current.FrameworkId ?? "",
                 BoundingRectangle = new BoundingRectangle
@@ -60,6 +61,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 IsVisible = !element.Cached.IsOffscreen,
                 IsOffscreen = element.Cached.IsOffscreen,
                 ProcessId = element.Cached.ProcessId,
+                ParentProcessId = GetParentProcessId(element, true),
                 ClassName = element.Cached.ClassName ?? "",
                 FrameworkId = element.Cached.FrameworkId ?? "",
                 BoundingRectangle = new BoundingRectangle
@@ -79,6 +81,44 @@ namespace UIAutomationMCP.Worker.Helpers
             }
 
             return elementInfo;
+        }
+
+        private static int? GetParentProcessId(AutomationElement element, bool useCached = false)
+        {
+            try
+            {
+                // TreeWalkerを使用して親要素を取得
+                var parent = TreeWalker.ControlViewWalker.GetParent(element);
+                
+                if (parent != null)
+                {
+                    // キャッシュ要素の場合でも、親要素のProcessIdは通常Currentからアクセスできる
+                    // これは親要素が別途キャッシュされていない可能性があるため
+                    try
+                    {
+                        return parent.Current.ProcessId;
+                    }
+                    catch
+                    {
+                        // Current情報にアクセスできない場合、キャッシュ情報を試行
+                        try
+                        {
+                            return parent.Cached.ProcessId;
+                        }
+                        catch
+                        {
+                            return null;
+                        }
+                    }
+                }
+                
+                return null;
+            }
+            catch (Exception)
+            {
+                // 親要素の取得に失敗した場合はnullを返す
+                return null;
+            }
         }
 
         private static string[] GetSupportedPatternsArray(AutomationElement element, bool useCached = false)
