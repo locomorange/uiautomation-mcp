@@ -91,13 +91,19 @@ namespace UIAutomationMCP.Worker.Services
         {
             try
             {
-                _logger.LogDebug("Processing operation: {Operation} with JSON parameters", operationName);
+                _logger.LogInformation("[Worker] Starting operation: {Operation}", operationName);
+                _logger.LogDebug("[Worker] Parameters: {Parameters}", parametersJson.Length > 200 ? parametersJson.Substring(0, 200) + "..." : parametersJson);
 
                 // Try to get the operation for this request
                 var operation = _serviceProvider.GetKeyedService<IUIAutomationOperation>(operationName);
                 if (operation != null)
                 {
+                    _logger.LogDebug("[Worker] Operation handler found: {OperationType}", operation.GetType().Name);
                     var operationResult = await operation.ExecuteAsync(parametersJson);
+                    
+                    _logger.LogInformation("[Worker] Operation completed: {Operation}, Success: {Success}, Error: {Error}", 
+                        operationName, operationResult.Success, operationResult.Error ?? "None");
+                    
                     return new WorkerResponse<object> 
                     { 
                         Success = operationResult.Success, 

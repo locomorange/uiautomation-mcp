@@ -36,24 +36,8 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     };
                 }
 
-                // 既存のUIAutomationEnvironment.ExecuteWithTimeoutAsyncを使用（非同期操作用）
-                SearchElementsResult result;
-                try
-                {
-                    result = await UIAutomationEnvironment.ExecuteWithTimeoutAsync(
-                        () => PerformSearchAsync(request), 
-                        "SearchElements", 
-                        request.TimeoutSeconds);
-                }
-                catch (TimeoutException ex)
-                {
-                    return new OperationResult<SearchElementsResult>
-                    {
-                        Success = false,
-                        Error = ex.Message,
-                        ExecutionSeconds = stopwatch.Elapsed.TotalSeconds
-                    };
-                }
+                // タイムアウト処理はSubprocessExecutorで行うため、直接実行
+                SearchElementsResult result = await PerformSearchAsync(request);
 
                 stopwatch.Stop();
                 result.ExecutionTime = stopwatch.Elapsed;

@@ -64,14 +64,18 @@ namespace UIAutomationMCP.Worker.Helpers
             _logger?.LogDebug("Searching for element with AutomationId: '{AutomationId}', Name: '{Name}', ControlType: '{ControlType}' in window: '{WindowTitle}' (PID: {ProcessId}), Scope: {Scope}, Timeout: {TimeoutMs}ms", 
                 automationId, name, controlType, windowTitle, processId, scope, timeoutMs);
             
-            return UIAutomationMCP.Worker.Helpers.UIAutomationEnvironment.ExecuteWithTimeout(() =>
+            try
             {
                 AutomationElement? element = null;
+                
+                _logger?.LogDebug("[FindElement] Starting search - AutomationId: '{AutomationId}', Name: '{Name}', Timeout: {TimeoutSec}s", 
+                    automationId, name, timeoutMs / 1000);
                 
                 // ControlTypeフィルタ条件を準備
                 Condition? controlTypeCondition = null;
                 if (!string.IsNullOrEmpty(controlType))
                 {
+                    _logger?.LogDebug("[FindElement] Preparing ControlType filter: '{ControlType}'", controlType);
                     var controlTypeEnum = GetControlTypeFromString(controlType);
                     if (controlTypeEnum != null)
                     {
@@ -88,7 +92,7 @@ namespace UIAutomationMCP.Worker.Helpers
                     if (patternProperty != null)
                     {
                         patternCondition = new PropertyCondition(patternProperty, true);
-                        _logger?.LogDebug("Adding pattern filter for: {Pattern}", requiredPattern.ProgrammaticName);
+                        _logger?.LogDebug("[FindElement] Adding pattern filter for: {Pattern}", requiredPattern.ProgrammaticName);
                     }
                 }
                 
@@ -106,6 +110,8 @@ namespace UIAutomationMCP.Worker.Helpers
                         ? conditions[0] 
                         : new AndCondition(conditions.ToArray());
                     
+                    _logger?.LogDebug("[FindElement] Executing FindFirst by AutomationId: '{AutomationId}'", automationId);
+                    
                     if (cacheRequest != null)
                     {
                         using (cacheRequest.Activate())
@@ -120,19 +126,19 @@ namespace UIAutomationMCP.Worker.Helpers
                     
                     if (element != null)
                     {
-                        _logger?.LogDebug("Element found by AutomationId: '{AutomationId}' with ControlType: '{ControlType}'", automationId, controlType);
+                        _logger?.LogDebug("[FindElement] SUCCESS - Found by AutomationId: '{AutomationId}'", automationId);
                         return element;
                     }
                     else
                     {
-                        _logger?.LogDebug("Element not found by AutomationId: '{AutomationId}' with ControlType: '{ControlType}'", automationId, controlType);
+                        _logger?.LogDebug("[FindElement] NOT FOUND by AutomationId: '{AutomationId}'", automationId);
                     }
                 }
                 
                 // 2. Nameで検索（フォールバック）
                 if (!string.IsNullOrEmpty(name))
                 {
-                    _logger?.LogDebug("Trying to find element by Name: '{Name}' with ControlType: '{ControlType}'", name, controlType);
+                    _logger?.LogDebug("[FindElement] Trying fallback search by Name: '{Name}'", name);
                     var nameCondition = new PropertyCondition(AutomationElement.NameProperty, name);
                     
                     // ControlTypeフィルタとパターンフィルタを組み合わせ
@@ -144,6 +150,8 @@ namespace UIAutomationMCP.Worker.Helpers
                         ? conditions[0] 
                         : new AndCondition(conditions.ToArray());
                     
+                    _logger?.LogDebug("[FindElement] Executing FindFirst by Name: '{Name}'", name);
+                    
                     if (cacheRequest != null)
                     {
                         using (cacheRequest.Activate())
@@ -158,16 +166,22 @@ namespace UIAutomationMCP.Worker.Helpers
                     
                     if (element != null)
                     {
-                        _logger?.LogDebug("Element found by Name: '{Name}' with ControlType: '{ControlType}'", name, controlType);
+                        _logger?.LogDebug("[FindElement] SUCCESS - Found by Name: '{Name}'", name);
                     }
                     else
                     {
-                        _logger?.LogDebug("Element not found by Name: '{Name}' with ControlType: '{ControlType}'", name, controlType);
+                        _logger?.LogDebug("[FindElement] NOT FOUND by Name: '{Name}'", name);
                     }
                 }
                 
+                _logger?.LogDebug("[FindElement] Search completed. Result: {Result}", element != null ? "Found" : "Not Found");
                 return element;
-            }, $"FindElement(AutomationId: {automationId}, Name: {name})", timeoutMs / 1000);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "[FindElement] Error during search - AutomationId: '{AutomationId}', Name: '{Name}'", automationId, name);
+                throw;
+            }
         }
 
         /// <summary>
@@ -364,65 +378,37 @@ namespace UIAutomationMCP.Worker.Helpers
                 var condition = new PropertyCondition(AutomationElement.ProcessIdProperty, processId);
                 
                 // Use timeout for the search to prevent hanging
-                try
+                // First try to find at the top level (most common case - ApplicationFrameWindow)
+                _logger?.LogDebug("[GetSearchRoot] Searching top-level windows for ProcessId: {ProcessId}", processId);
+                var topLevelWindow = AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
+                if (topLevelWindow != null)
                 {
-                    return UIAutomationEnvironment.ExecuteWithTimeout(() =>
-                    {
-                        // First try to find at the top level (most common case - ApplicationFrameWindow)
-                        var topLevelWindow = AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
-                        if (topLevelWindow != null)
-                        {
-                            _logger?.LogDebug("Found top-level window for process ID: {ProcessId}", processId);
-                            return topLevelWindow;
-                        }
-                        
-                        // If not found at top level, search descendants for nested windows
-                        // This handles cases like Windows.UI.Core.CoreWindow nested under ApplicationFrameWindow
-                        _logger?.LogDebug("Searching descendants for process ID: {ProcessId}", processId);
-                        var nestedWindow = AutomationElement.RootElement.FindFirst(TreeScope.Descendants, condition);
-                        if (nestedWindow != null)
-                        {
-                            _logger?.LogDebug("Found nested window for process ID: {ProcessId}", processId);
-                            return nestedWindow;
-                        }
-                        
-                        _logger?.LogDebug("No window found for process ID: {ProcessId}", processId);
-                        return null;
-                    }, $"GetSearchRoot-ProcessId-{processId}", Math.Min(timeoutSeconds, 10));
+                    _logger?.LogDebug("[GetSearchRoot] SUCCESS - Found top-level window for ProcessId: {ProcessId}", processId);
+                    return topLevelWindow;
                 }
-                catch (TimeoutException ex)
+                
+                // If not found at top level, search descendants for nested windows
+                // This handles cases like Windows.UI.Core.CoreWindow nested under ApplicationFrameWindow
+                _logger?.LogDebug("[GetSearchRoot] Not found at top-level. Searching descendants for ProcessId: {ProcessId}", processId);
+                var nestedWindow = AutomationElement.RootElement.FindFirst(TreeScope.Descendants, condition);
+                if (nestedWindow != null)
                 {
-                    _logger?.LogWarning(ex, "Timeout searching for process ID {ProcessId}", processId);
-                    return null;
+                    _logger?.LogDebug("[GetSearchRoot] SUCCESS - Found nested window for ProcessId: {ProcessId}", processId);
+                    return nestedWindow;
                 }
-                catch (Exception ex)
-                {
-                    _logger?.LogWarning(ex, "Error searching for process ID {ProcessId}", processId);
-                    return null;
-                }
+                
+                _logger?.LogDebug("[GetSearchRoot] NOT FOUND - No window found for ProcessId: {ProcessId}", processId);
+                return null;
             }
             else if (!string.IsNullOrEmpty(windowTitle))
             {
                 _logger?.LogDebug("Finding search root by window title: {WindowTitle}", windowTitle);
                 var condition = new PropertyCondition(AutomationElement.NameProperty, windowTitle);
                 
-                try
-                {
-                    return UIAutomationEnvironment.ExecuteWithTimeout(() =>
-                    {
-                        return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
-                    }, $"GetSearchRoot-WindowTitle", Math.Min(timeoutSeconds, 8));
-                }
-                catch (TimeoutException ex)
-                {
-                    _logger?.LogWarning(ex, "Timeout searching for window title {WindowTitle}", windowTitle);
-                    return null;
-                }
-                catch (Exception ex)
-                {
-                    _logger?.LogWarning(ex, "Error searching for window title {WindowTitle}", windowTitle);
-                    return null;
-                }
+                _logger?.LogDebug("[GetSearchRoot] Searching for WindowTitle: '{WindowTitle}'", windowTitle);
+                var result = AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
+                _logger?.LogDebug("[GetSearchRoot] WindowTitle search result: {Result}", result != null ? "Found" : "Not Found");
+                return result;
             }
             
             _logger?.LogDebug("Using root element as search root");
@@ -523,20 +509,17 @@ namespace UIAutomationMCP.Worker.Helpers
             _logger?.LogDebug("Advanced search with {ConditionCount} conditions, scope: {Scope}", 
                 conditions.Count, treeScope);
 
-            return UIAutomationMCP.Worker.Helpers.UIAutomationEnvironment.ExecuteWithTimeout(() =>
+            if (searchParams.CacheRequest != null)
             {
-                if (searchParams.CacheRequest != null)
-                {
-                    using (searchParams.CacheRequest.Activate())
-                    {
-                        return searchRoot.FindAll(treeScope, combinedCondition);
-                    }
-                }
-                else
+                using (searchParams.CacheRequest.Activate())
                 {
                     return searchRoot.FindAll(treeScope, combinedCondition);
                 }
-            }, $"FindElementsAdvanced", searchParams.TimeoutMs / 1000);
+            }
+            else
+            {
+                return searchRoot.FindAll(treeScope, combinedCondition);
+            }
         }
 
         /// <summary>

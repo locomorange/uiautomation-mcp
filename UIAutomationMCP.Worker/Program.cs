@@ -65,8 +65,8 @@ namespace UIAutomationMCP.Worker
                     }
                 });
 
-                // Wait for maximum 2 seconds for UI Automation check
-                if (task.Wait(2000))
+                // Wait for maximum 5 seconds for UI Automation check
+                if (task.Wait(5000))
                 {
                     var (success, reason) = task.Result;
                     if (!success)
@@ -77,7 +77,7 @@ namespace UIAutomationMCP.Worker
                 }
                 else
                 {
-                    errorReason = "UI Automation initialization timed out after 2 seconds";
+                    errorReason = "UI Automation initialization timed out after 5 seconds";
                     return false;
                 }
             }
