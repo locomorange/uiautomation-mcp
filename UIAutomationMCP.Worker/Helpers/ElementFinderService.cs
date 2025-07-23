@@ -354,7 +354,7 @@ namespace UIAutomationMCP.Worker.Helpers
         /// </summary>
         /// <param name="windowTitle">ウィンドウタイトル</param>
         /// <param name="processId">プロセスID</param>
-        /// <param name="timeoutSeconds">検索タイムアウト（秒、デフォルト: 5秒）</param>
+        /// <param name="timeoutSeconds">検索タイムアウト（秒、デフォルト: 5秒）※processId検索は最大5秒、windowTitle検索は最大3秒に制限</param>
         /// <returns>検索ルート要素またはnull</returns>
         public AutomationElement? GetSearchRoot(string windowTitle, int processId, int timeoutSeconds = 5)
         {
@@ -388,7 +388,7 @@ namespace UIAutomationMCP.Worker.Helpers
                         
                         _logger?.LogDebug("No window found for process ID: {ProcessId}", processId);
                         return null;
-                    }, $"GetSearchRoot-ProcessId-{processId}", timeoutSeconds);
+                    }, $"GetSearchRoot-ProcessId-{processId}", Math.Min(timeoutSeconds, 5));
                 }
                 catch (TimeoutException ex)
                 {
@@ -411,7 +411,7 @@ namespace UIAutomationMCP.Worker.Helpers
                     return UIAutomationEnvironment.ExecuteWithTimeout(() =>
                     {
                         return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
-                    }, $"GetSearchRoot-WindowTitle", timeoutSeconds);
+                    }, $"GetSearchRoot-WindowTitle", Math.Min(timeoutSeconds, 3));
                 }
                 catch (TimeoutException ex)
                 {
