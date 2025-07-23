@@ -102,7 +102,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     CanRotate = false
                 }
             };
-            _mockTransformService.Setup(s => s.GetTransformCapabilitiesAsync("window1", "TestWindow", null, 30))
+            _mockTransformService.Setup(s => s.GetTransformCapabilitiesAsync("window1", null, null, null, 30))
                                .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -112,7 +112,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockTransformService.Verify(s => s.GetTransformCapabilitiesAsync("window1", "TestWindow", null, 30), Times.Once);
+            _mockTransformService.Verify(s => s.GetTransformCapabilitiesAsync("window1", null, null, null, 30), Times.Once);
             _output.WriteLine("All required Transform capabilities test passed");
         }
 
@@ -137,7 +137,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     CanRotate = canRotate
                 }
             };
-            _mockTransformService.Setup(s => s.GetTransformCapabilitiesAsync("element1", "App", null, 30))
+            _mockTransformService.Setup(s => s.GetTransformCapabilitiesAsync("element1", null, null, null, 30))
                                .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -147,7 +147,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockTransformService.Verify(s => s.GetTransformCapabilitiesAsync("element1", "App", null, 30), Times.Once);
+            _mockTransformService.Verify(s => s.GetTransformCapabilitiesAsync("element1", null, null, null, 30), Times.Once);
             _output.WriteLine($"Transform capabilities test passed: Move={canMove}, Resize={canResize}, Rotate={canRotate}");
         }
 
@@ -174,7 +174,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     ActionParameters = new Dictionary<string, object> { { "X", x }, { "Y", y } }
                 }
             };
-            _mockTransformService.Setup(s => s.MoveElementAsync(automationId: "movableWindow", name: null, x: x, y: y, controlType: "MainApp", processId: null, timeoutSeconds: 30))
+            _mockTransformService.Setup(s => s.MoveElementAsync("movableWindow", null, x, y, "MainApp", null, 30))
                                .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -182,7 +182,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockTransformService.Verify(s => s.MoveElementAsync(automationId: "movableWindow", name: null, x: x, y: y, controlType: "MainApp", processId: null, timeoutSeconds: 30), Times.Once);
+            _mockTransformService.Verify(s => s.MoveElementAsync("movableWindow", null, x, y, "MainApp", null, 30), Times.Once);
             _output.WriteLine($"Move element test passed for coordinates: ({x}, {y})");
         }
 
@@ -190,7 +190,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task MoveElement_OnNonMovableElement_ShouldThrowInvalidOperationException()
         {
             // Arrange - Microsoft仕様：CanMove=falseの場合にInvalidOperationExceptionをスロー
-            _mockTransformService.Setup(s => s.MoveElementAsync(automationId: "fixedElement", name: null, x: 100.0, y: 200.0, controlType: "App", processId: null, timeoutSeconds: 30))
+            _mockTransformService.Setup(s => s.MoveElementAsync("fixedElement", null, 100.0, 200.0, "App", null, 30))
                                .Returns(Task.FromResult(new ServerEnhancedResponse<ActionResult>
                                {
                                    Success = false,
@@ -202,7 +202,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockTransformService.Verify(s => s.MoveElementAsync(automationId: "fixedElement", name: null, x: 100.0, y: 200.0, controlType: "App", processId: null, timeoutSeconds: 30), Times.Once);
+            _mockTransformService.Verify(s => s.MoveElementAsync("fixedElement", null, 100.0, 200.0, "App", null, 30), Times.Once);
             _output.WriteLine("Non-movable element error handling test passed");
         }
 
@@ -229,7 +229,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     ActionParameters = new Dictionary<string, object> { { "Width", width }, { "Height", height } }
                 }
             };
-            _mockTransformService.Setup(s => s.ResizeElementAsync(automationId: "resizableWindow", width: width, height: height, controlType: "Designer", processId: null, timeoutSeconds: 30))
+            _mockTransformService.Setup(s => s.ResizeElementAsync("resizableWindow", null, width, height, "Designer", null, 30))
                                .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -237,7 +237,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockTransformService.Verify(s => s.ResizeElementAsync(automationId: "resizableWindow", width: width, height: height, controlType: "Designer", processId: null, timeoutSeconds: 30), Times.Once);
+            _mockTransformService.Verify(s => s.ResizeElementAsync("resizableWindow", null, width, height, "Designer", null, 30), Times.Once);
             _output.WriteLine($"Resize element test passed for dimensions: {width}x{height}");
         }
 
@@ -249,7 +249,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ResizeElement_WithInvalidDimensions_ShouldHandleError(double width, double height)
         {
             // Arrange
-            _mockTransformService.Setup(s => s.ResizeElementAsync("window1", width, height, "App", null, 30))
+            _mockTransformService.Setup(s => s.ResizeElementAsync("window1", null, width, height, "App", null, 30))
                                .Returns(Task.FromResult(new ServerEnhancedResponse<ActionResult>
                                {
                                    Success = false,
@@ -257,11 +257,11 @@ namespace UIAutomationMCP.Tests.UnitTests
                                }));
 
             // Act
-            var result = await _tools.ResizeElement("window1", width, height, "App");
+            var result = await _tools.ResizeElement(automationId: "window1", width: width, height: height, controlType: "App");
 
             // Assert
             Assert.NotNull(result);
-            _mockTransformService.Verify(s => s.ResizeElementAsync("window1", width, height, "App", null, 30), Times.Once);
+            _mockTransformService.Verify(s => s.ResizeElementAsync("window1", null, width, height, "App", null, 30), Times.Once);
             _output.WriteLine($"Invalid dimensions error handling test passed: {width}x{height}");
         }
 
@@ -269,7 +269,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ResizeElement_OnNonResizableElement_ShouldThrowInvalidOperationException()
         {
             // Arrange - Microsoft仕様：CanResize=falseの場合にInvalidOperationExceptionをスロー
-            _mockTransformService.Setup(s => s.ResizeElementAsync("fixedSizeDialog", 800.0, 600.0, "App", null, 30))
+            _mockTransformService.Setup(s => s.ResizeElementAsync("fixedSizeDialog", null, 800.0, 600.0, "App", null, 30))
                                .Returns(Task.FromResult(new ServerEnhancedResponse<ActionResult>
                                {
                                    Success = false,
@@ -277,11 +277,11 @@ namespace UIAutomationMCP.Tests.UnitTests
                                }));
 
             // Act
-            var result = await _tools.ResizeElement("fixedSizeDialog", 800.0, 600.0, "App");
+            var result = await _tools.ResizeElement(automationId: "fixedSizeDialog", width: 800.0, height: 600.0, controlType: "App");
 
             // Assert
             Assert.NotNull(result);
-            _mockTransformService.Verify(s => s.ResizeElementAsync("fixedSizeDialog", 800.0, 600.0, "App", null, 30), Times.Once);
+            _mockTransformService.Verify(s => s.ResizeElementAsync("fixedSizeDialog", null, 800.0, 600.0, "App", null, 30), Times.Once);
             _output.WriteLine("Non-resizable element error handling test passed");
         }
 
@@ -310,15 +310,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                     ActionParameters = new Dictionary<string, object> { { "Degrees", degrees } }
                 }
             };
-            _mockTransformService.Setup(s => s.RotateElementAsync("rotatableImage", degrees, "GraphicsApp", null, 30))
+            _mockTransformService.Setup(s => s.RotateElementAsync("rotatableImage", null, degrees, "GraphicsApp", null, 30))
                                .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.RotateElement("rotatableImage", degrees, "GraphicsApp");
+            var result = await _tools.RotateElement(automationId: "rotatableImage", degrees: degrees, controlType: "GraphicsApp");
 
             // Assert
             Assert.NotNull(result);
-            _mockTransformService.Verify(s => s.RotateElementAsync("rotatableImage", degrees, "GraphicsApp", null, 30), Times.Once);
+            _mockTransformService.Verify(s => s.RotateElementAsync("rotatableImage", null, degrees, "GraphicsApp", null, 30), Times.Once);
             _output.WriteLine($"Rotate element test passed for degrees: {degrees}");
         }
 
@@ -326,7 +326,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task RotateElement_OnNonRotatableElement_ShouldThrowInvalidOperationException()
         {
             // Arrange - Microsoft仕様：CanRotate=falseの場合にInvalidOperationExceptionをスロー
-            _mockTransformService.Setup(s => s.RotateElementAsync("textBox", 45.0, "Editor", null, 30))
+            _mockTransformService.Setup(s => s.RotateElementAsync("textBox", null, 45.0, "Editor", null, 30))
                                .Returns(Task.FromResult(new ServerEnhancedResponse<ActionResult>
                                {
                                    Success = false,
@@ -334,11 +334,11 @@ namespace UIAutomationMCP.Tests.UnitTests
                                }));
 
             // Act
-            var result = await _tools.RotateElement("textBox", 45.0, "Editor");
+            var result = await _tools.RotateElement(automationId: "textBox", degrees: 45.0, controlType: "Editor");
 
             // Assert
             Assert.NotNull(result);
-            _mockTransformService.Verify(s => s.RotateElementAsync("textBox", 45.0, "Editor", null, 30), Times.Once);
+            _mockTransformService.Verify(s => s.RotateElementAsync("textBox", null, 45.0, "Editor", null, 30), Times.Once);
             _output.WriteLine("Non-rotatable element error handling test passed");
         }
 
@@ -350,7 +350,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetTransformCapabilities_WithNonExistentElement_ShouldHandleError()
         {
             // Arrange
-            _mockTransformService.Setup(s => s.GetTransformCapabilitiesAsync("nonExistentElement", "TestWindow", null, 30))
+            _mockTransformService.Setup(s => s.GetTransformCapabilitiesAsync("nonExistentElement", null, null, null, 30))
                                .Returns(Task.FromResult(new ServerEnhancedResponse<TransformCapabilitiesResult>
                                {
                                    Success = false,
@@ -364,7 +364,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockTransformService.Verify(s => s.GetTransformCapabilitiesAsync("nonExistentElement", "TestWindow", null, 30), Times.Once);
+            _mockTransformService.Verify(s => s.GetTransformCapabilitiesAsync("nonExistentElement", null, null, null, 30), Times.Once);
             _output.WriteLine("Non-existent element error handling test passed");
         }
 
@@ -372,7 +372,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task MoveElement_WithUnsupportedElement_ShouldHandleError()
         {
             // Arrange
-            _mockTransformService.Setup(s => s.MoveElementAsync("unsupportedElement", 100.0, 200.0, "App", null, 30))
+            _mockTransformService.Setup(s => s.MoveElementAsync("unsupportedElement", null, 100.0, 200.0, "App", null, 30))
                                .Returns(Task.FromResult(new ServerEnhancedResponse<ActionResult>
                                {
                                    Success = false,
@@ -380,11 +380,11 @@ namespace UIAutomationMCP.Tests.UnitTests
                                }));
 
             // Act
-            var result = await _tools.MoveElement("unsupportedElement", 100.0, 200.0, "App");
+            var result = await _tools.MoveElement(automationId: "unsupportedElement", x: 100.0, y: 200.0, controlType: "App");
 
             // Assert
             Assert.NotNull(result);
-            _mockTransformService.Verify(s => s.MoveElementAsync("unsupportedElement", 100.0, 200.0, "App", null, 30), Times.Once);
+            _mockTransformService.Verify(s => s.MoveElementAsync("unsupportedElement", null, 100.0, 200.0, "App", null, 30), Times.Once);
             _output.WriteLine("Unsupported element error handling test passed");
         }
 
@@ -410,8 +410,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     CanRotate = false 
                 } 
             };
-            _mockTransformService.Setup(s => s.GetTransformCapabilitiesAsync(elementId, 
-                string.IsNullOrEmpty(windowTitle) ? null : windowTitle, null, 30))
+            _mockTransformService.Setup(s => s.GetTransformCapabilitiesAsync(elementId, null, null, null, 30))
                                .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -422,8 +421,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockTransformService.Verify(s => s.GetTransformCapabilitiesAsync(elementId, 
-                string.IsNullOrEmpty(windowTitle) ? null : windowTitle, null, 30), Times.Once);
+            _mockTransformService.Verify(s => s.GetTransformCapabilitiesAsync(elementId, null, null, null, 30), Times.Once);
             _output.WriteLine($"Empty parameter test passed: elementId='{elementId}', window='{windowTitle}'");
         }
 
@@ -445,15 +443,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                     ActionParameters = new Dictionary<string, object> { { "X", 100.0 }, { "Y", 200.0 } } 
                 } 
             };
-            _mockTransformService.Setup(s => s.MoveElementAsync("window1", 100.0, 200.0, "App", processId, 30))
+            _mockTransformService.Setup(s => s.MoveElementAsync("window1", null, 100.0, 200.0, "App", processId, 30))
                                .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.MoveElement("window1", 100.0, 200.0, "App", processId);
+            var result = await _tools.MoveElement(automationId: "window1", x: 100.0, y: 200.0, controlType: "App", processId: processId);
 
             // Assert
             Assert.NotNull(result);
-            _mockTransformService.Verify(s => s.MoveElementAsync("window1", 100.0, 200.0, "App", processId, 30), Times.Once);
+            _mockTransformService.Verify(s => s.MoveElementAsync("window1", null, 100.0, 200.0, "App", processId, 30), Times.Once);
             _output.WriteLine($"ProcessId parameter test passed: processId={processId}");
         }
 
@@ -475,15 +473,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                     ActionParameters = new Dictionary<string, object> { { "Width", 800.0 }, { "Height", 600.0 } } 
                 } 
             };
-            _mockTransformService.Setup(s => s.ResizeElementAsync("window1", 800.0, 600.0, "App", null, timeoutSeconds))
+            _mockTransformService.Setup(s => s.ResizeElementAsync("window1", null, 800.0, 600.0, "App", null, timeoutSeconds))
                                .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.ResizeElement("window1", 800.0, 600.0, "App", timeoutSeconds: timeoutSeconds);
+            var result = await _tools.ResizeElement(automationId: "window1", width: 800.0, height: 600.0, controlType: "App", timeoutSeconds: timeoutSeconds);
 
             // Assert
             Assert.NotNull(result);
-            _mockTransformService.Verify(s => s.ResizeElementAsync("window1", 800.0, 600.0, "App", null, timeoutSeconds), Times.Once);
+            _mockTransformService.Verify(s => s.ResizeElementAsync("window1", null, 800.0, 600.0, "App", null, timeoutSeconds), Times.Once);
             _output.WriteLine($"Custom timeout test passed: timeout={timeoutSeconds}s");
         }
 
@@ -529,26 +527,26 @@ namespace UIAutomationMCP.Tests.UnitTests
                 } 
             };
 
-            _mockTransformService.Setup(s => s.MoveElementAsync("transformableWindow", 200.0, 300.0, "CADApp", null, 30))
+            _mockTransformService.Setup(s => s.MoveElementAsync("transformableWindow", null, 200.0, 300.0, "CADApp", null, 30))
                                .Returns(Task.FromResult(moveResult));
-            _mockTransformService.Setup(s => s.ResizeElementAsync("transformableWindow", 1024.0, 768.0, "CADApp", null, 30))
+            _mockTransformService.Setup(s => s.ResizeElementAsync("transformableWindow", null, 1024.0, 768.0, "CADApp", null, 30))
                                .Returns(Task.FromResult(resizeResult));
-            _mockTransformService.Setup(s => s.RotateElementAsync("transformableWindow", 45.0, "CADApp", null, 30))
+            _mockTransformService.Setup(s => s.RotateElementAsync("transformableWindow", null, 45.0, "CADApp", null, 30))
                                .Returns(Task.FromResult(rotateResult));
 
             // Act
-            var r1 = await _tools.MoveElement("transformableWindow", 200.0, 300.0, "CADApp");
-            var r2 = await _tools.ResizeElement("transformableWindow", 1024.0, 768.0, "CADApp");
-            var r3 = await _tools.RotateElement("transformableWindow", 45.0, "CADApp");
+            var r1 = await _tools.MoveElement(automationId: "transformableWindow", x: 200.0, y: 300.0, controlType: "CADApp");
+            var r2 = await _tools.ResizeElement(automationId: "transformableWindow", width: 1024.0, height: 768.0, controlType: "CADApp");
+            var r3 = await _tools.RotateElement(automationId: "transformableWindow", degrees: 45.0, controlType: "CADApp");
 
             // Assert
             Assert.NotNull(r1);
             Assert.NotNull(r2);
             Assert.NotNull(r3);
 
-            _mockTransformService.Verify(s => s.MoveElementAsync("transformableWindow", 200.0, 300.0, "CADApp", null, 30), Times.Once);
-            _mockTransformService.Verify(s => s.ResizeElementAsync("transformableWindow", 1024.0, 768.0, "CADApp", null, 30), Times.Once);
-            _mockTransformService.Verify(s => s.RotateElementAsync("transformableWindow", 45.0, "CADApp", null, 30), Times.Once);
+            _mockTransformService.Verify(s => s.MoveElementAsync("transformableWindow", null, 200.0, 300.0, "CADApp", null, 30), Times.Once);
+            _mockTransformService.Verify(s => s.ResizeElementAsync("transformableWindow", null, 1024.0, 768.0, "CADApp", null, 30), Times.Once);
+            _mockTransformService.Verify(s => s.RotateElementAsync("transformableWindow", null, 45.0, "CADApp", null, 30), Times.Once);
 
             _output.WriteLine("Multiple transformations sequence test passed");
         }
@@ -575,15 +573,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                     ActionParameters = new Dictionary<string, object> { { "X", x }, { "Y", y } }
                 }
             };
-            _mockTransformService.Setup(s => s.MoveElementAsync("element1", x, y, "TestApp", null, 30))
+            _mockTransformService.Setup(s => s.MoveElementAsync("element1", null, x, y, "TestApp", null, 30))
                                .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.MoveElement("element1", x, y, "TestApp");
+            var result = await _tools.MoveElement(automationId: "element1", x: x, y: y, controlType: "TestApp");
 
             // Assert
             Assert.NotNull(result);
-            _mockTransformService.Verify(s => s.MoveElementAsync("element1", x, y, "TestApp", null, 30), Times.Once);
+            _mockTransformService.Verify(s => s.MoveElementAsync("element1", null, x, y, "TestApp", null, 30), Times.Once);
             _output.WriteLine($"Extreme boundary values test passed: ({x}, {y})");
         }
 

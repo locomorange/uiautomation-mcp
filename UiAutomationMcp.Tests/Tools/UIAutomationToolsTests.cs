@@ -541,7 +541,7 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new TextInfoResult
             {
                 Success = true,
-                ElementAutomationId = "textElement",
+                AutomationId = "textElement",
                 // WindowTitle not available in ElementSearchResult,
                 Text = "Sample text content",
                 TextLength = 19,
@@ -580,7 +580,7 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ActionResult
             {
                 Success = true,
-                ElementAutomationId = "textElement",
+                AutomationId = "textElement",
                 Action = "SelectText",
                 ActionName = "SelectText",
                 TargetName = "textElement",
@@ -594,7 +594,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            _mockTextService.Setup(s => s.SelectTextAsync(automationId: "textElement", startIndex: 5, length: 10, controlType: "TestWindow", processId: null, timeoutSeconds: 30))
+            _mockTextService.Setup(s => s.SelectTextAsync("textElement", null, 5, 10, "TestWindow", null, 30))
                                  .Returns(Task.FromResult(serverResponse));
 
             // Act
@@ -602,7 +602,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockTextService.Verify(s => s.SelectTextAsync(automationId: "textElement", startIndex: 5, length: 10, controlType: "TestWindow", processId: null, timeoutSeconds: 30), Times.Once);
+            _mockTextService.Verify(s => s.SelectTextAsync("textElement", null, 5, 10, "TestWindow", null, 30), Times.Once);
             _output.WriteLine("SelectText test passed");
         }
 
@@ -672,7 +672,7 @@ namespace UIAutomationMCP.Tests.Tools
                                    .Returns(Task.FromResult(serverResponse));
 
             // Act
-            var result = await _tools.GetElementTree("TestWindow");
+            var result = await _tools.GetElementTree();
 
             // Assert
             Assert.NotNull(result);
@@ -969,7 +969,7 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new TableInfoResult
             {
                 Success = true,
-                TableAutomationId = "table1",
+                AutomationId = "table1",
                 // WindowTitle not available in ElementSearchResult,
                 RowCount = 5,
                 ColumnCount = 3,
@@ -1344,7 +1344,7 @@ namespace UIAutomationMCP.Tests.Tools
                                   .Returns(Task.FromResult(serverResponse));
 
             // Act
-            var result = await _tools.SetView("viewContainer1", 2, "TestWindow");
+            var result = await _tools.SetView(viewId: 2, automationId: "viewContainer1", controlType: "TestWindow");
 
             // Assert
             Assert.NotNull(result);
@@ -1386,7 +1386,7 @@ namespace UIAutomationMCP.Tests.Tools
                                   .Returns(Task.FromResult(serverResponse));
 
             // Act
-            var result = await _tools.SetView("viewContainer1", 1, null, 1234);
+            var result = await _tools.SetView(1, "viewContainer1", null, null, 1234);
 
             // Assert
             Assert.NotNull(result);
@@ -1415,7 +1415,7 @@ namespace UIAutomationMCP.Tests.Tools
                                   .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.SetView("viewContainer1", 3, "TestWindow", null, 60);
+            var result = await _tools.SetView(3, "viewContainer1", "TestWindow", null, null, 60);
 
             // Assert
             Assert.NotNull(result);
@@ -1433,7 +1433,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() => 
-                _tools.SetView("viewContainer1", 999, "TestWindow"));
+                _tools.SetView(999, "viewContainer1", "TestWindow"));
             
             _mockMultipleViewService.Verify(s => s.SetViewAsync("viewContainer1", null, 999, null, null, 30), Times.Once);
             _output.WriteLine("SetView with invalid viewId test passed");
@@ -1460,7 +1460,7 @@ namespace UIAutomationMCP.Tests.Tools
                                   .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.SetView("viewContainer1", 0, "TestWindow");
+            var result = await _tools.SetView(0, "viewContainer1", "TestWindow");
 
             // Assert
             Assert.NotNull(result);
@@ -1478,7 +1478,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() => 
-                _tools.SetView("viewContainer1", -1, "TestWindow"));
+                _tools.SetView(-1, "viewContainer1", "TestWindow"));
             
             _mockMultipleViewService.Verify(s => s.SetViewAsync("viewContainer1", null, -1, null, null, 30), Times.Once);
             _output.WriteLine("SetView with negative viewId test passed");
@@ -1788,7 +1788,7 @@ namespace UIAutomationMCP.Tests.Tools
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.ScrollElementIntoView("scrollableItem", "TestWindow", 1234, 30);
+            var result = await _tools.ScrollElementIntoView("scrollableItem", "TestWindow", null, 1234, 30);
 
             // Assert
             Assert.NotNull(result);

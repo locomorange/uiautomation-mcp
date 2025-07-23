@@ -106,7 +106,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     StateChanged = true 
                 }
             };
-            _mockToggleService.Setup(s => s.ToggleElementAsync(elementSelector, "TestWindow", null, 30))
+            _mockToggleService.Setup(s => s.ToggleElementAsync(elementSelector, null, null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -114,7 +114,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockToggleService.Verify(s => s.ToggleElementAsync(elementSelector, "TestWindow", null, 30), Times.Once);
+            _mockToggleService.Verify(s => s.ToggleElementAsync(elementSelector, null, null, null, 30), Times.Once);
             _output.WriteLine($"ToggleElement test passed for control: {elementSelector}");
         }
 
@@ -136,7 +136,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     StateChanged = true 
                 }
             };
-            _mockToggleService.Setup(s => s.ToggleElementAsync("checkBox1", "Form", null, 30))
+            _mockToggleService.Setup(s => s.ToggleElementAsync("checkBox1", null, null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -144,7 +144,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockToggleService.Verify(s => s.ToggleElementAsync("checkBox1", "Form", null, 30), Times.Once);
+            _mockToggleService.Verify(s => s.ToggleElementAsync("checkBox1", null, null, null, 30), Times.Once);
             _output.WriteLine($"State transition from {fromState} to {toState} test passed");
         }
 
@@ -167,7 +167,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Metadata = new Dictionary<string, object> { { "PropertyName", "TogglePattern.ToggleState" } } 
                 }
             };
-            _mockToggleService.Setup(s => s.ToggleElementAsync("checkBox", "Dialog", null, 30))
+            _mockToggleService.Setup(s => s.ToggleElementAsync("checkBox", null, null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -175,7 +175,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockToggleService.Verify(s => s.ToggleElementAsync("checkBox", "Dialog", null, 30), Times.Once);
+            _mockToggleService.Verify(s => s.ToggleElementAsync("checkBox", null, null, null, 30), Times.Once);
             _output.WriteLine("Off to On state change test passed");
         }
 
@@ -194,7 +194,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Metadata = new Dictionary<string, object> { { "PropertyName", "TogglePattern.ToggleState" } } 
                 }
             };
-            _mockToggleService.Setup(s => s.ToggleElementAsync("triStateCheckBox", "Options", null, 30))
+            _mockToggleService.Setup(s => s.ToggleElementAsync("triStateCheckBox", null, null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -202,7 +202,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockToggleService.Verify(s => s.ToggleElementAsync("triStateCheckBox", "Options", null, 30), Times.Once);
+            _mockToggleService.Verify(s => s.ToggleElementAsync("triStateCheckBox", null, null, null, 30), Times.Once);
             _output.WriteLine("On to Indeterminate state change test passed");
         }
 
@@ -221,7 +221,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Metadata = new Dictionary<string, object> { { "PropertyName", "TogglePattern.ToggleState" } } 
                 }
             };
-            _mockToggleService.Setup(s => s.ToggleElementAsync("triStateCheckBox", "Settings", null, 30))
+            _mockToggleService.Setup(s => s.ToggleElementAsync("triStateCheckBox", null, null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -229,7 +229,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockToggleService.Verify(s => s.ToggleElementAsync("triStateCheckBox", "Settings", null, 30), Times.Once);
+            _mockToggleService.Verify(s => s.ToggleElementAsync("triStateCheckBox", null, null, null, 30), Times.Once);
             _output.WriteLine("Indeterminate to Off state change test passed");
         }
 
@@ -254,7 +254,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Data = new ActionResult { Success = true, Action = "Toggle", ReturnValue = "Off", Details = "Toggled - Previous state: Indeterminate" }
             };
 
-            _mockToggleService.SetupSequence(s => s.ToggleElementAsync("triStateControl", "Window", null, 30))
+            _mockToggleService.SetupSequence(s => s.ToggleElementAsync("triStateControl", null, null, null, 30))
                              .Returns(Task.FromResult(firstToggleResult))
                              .Returns(Task.FromResult(secondToggleResult))
                              .Returns(Task.FromResult(thirdToggleResult));
@@ -269,7 +269,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result2);
             Assert.NotNull(result3);
 
-            _mockToggleService.Verify(s => s.ToggleElementAsync("triStateControl", "Window", null, 30), Times.Exactly(3));
+            _mockToggleService.Verify(s => s.ToggleElementAsync("triStateControl", null, null, null, 30), Times.Exactly(3));
             _output.WriteLine("Complete toggle cycle (Off → On → Indeterminate → Off) test passed");
         }
 
@@ -290,7 +290,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Data = new ActionResult { Success = true, OperationName = "Toggle", Action = "Toggle", ReturnValue = "On", Details = "Previous state: Off" }
             };
 
-            _mockToggleService.SetupSequence(s => s.ToggleElementAsync("binaryToggle", "Application", null, 30))
+            _mockToggleService.SetupSequence(s => s.ToggleElementAsync("binaryToggle", null, null, null, 30))
                              .Returns(Task.FromResult(firstToggleResult))
                              .Returns(Task.FromResult(secondToggleResult))
                              .Returns(Task.FromResult(thirdToggleResult));
@@ -305,7 +305,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result2);
             Assert.NotNull(result3);
 
-            _mockToggleService.Verify(s => s.ToggleElementAsync("binaryToggle", "Application", null, 30), Times.Exactly(3));
+            _mockToggleService.Verify(s => s.ToggleElementAsync("binaryToggle", null, null, null, 30), Times.Exactly(3));
             _output.WriteLine("Two-state toggle cycle (Off → On → Off → On) test passed");
         }
 
@@ -317,14 +317,14 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_WithNonExistentElement_ShouldHandleError()
         {
             // Arrange
-            _mockToggleService.Setup(s => s.ToggleElementAsync("nonExistentElement", "TestWindow", null, 30))
+            _mockToggleService.Setup(s => s.ToggleElementAsync("nonExistentElement", null, null, null, 30))
                              .ThrowsAsync(new InvalidOperationException("Element 'nonExistentElement' not found"));
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(
                 () => _tools.ToggleElement("nonExistentElement", "TestWindow"));
 
-            _mockToggleService.Verify(s => s.ToggleElementAsync("nonExistentElement", "TestWindow", null, 30), Times.Once);
+            _mockToggleService.Verify(s => s.ToggleElementAsync("nonExistentElement", null, null, null, 30), Times.Once);
             _output.WriteLine("Non-existent element error handling test passed");
         }
 
@@ -332,14 +332,14 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_WithUnsupportedElement_ShouldHandleError()
         {
             // Arrange
-            _mockToggleService.Setup(s => s.ToggleElementAsync("staticText", "TestWindow", null, 30))
+            _mockToggleService.Setup(s => s.ToggleElementAsync("staticText", null, null, null, 30))
                              .ThrowsAsync(new InvalidOperationException("Element does not support TogglePattern"));
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(
                 () => _tools.ToggleElement("staticText", "TestWindow"));
 
-            _mockToggleService.Verify(s => s.ToggleElementAsync("staticText", "TestWindow", null, 30), Times.Once);
+            _mockToggleService.Verify(s => s.ToggleElementAsync("staticText", null, null, null, 30), Times.Once);
             _output.WriteLine("Unsupported element error handling test passed");
         }
 
@@ -350,14 +350,14 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ToggleElement_WithNonToggleControls_ShouldThrowInvalidOperationException(string controlType)
         {
             // Arrange
-            _mockToggleService.Setup(s => s.ToggleElementAsync(controlType, "TestWindow", null, 30))
+            _mockToggleService.Setup(s => s.ToggleElementAsync(controlType, null, null, null, 30))
                              .ThrowsAsync(new InvalidOperationException($"Control type '{controlType}' does not support TogglePattern. Use InvokePattern instead."));
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(
                 () => _tools.ToggleElement(controlType, "TestWindow"));
 
-            _mockToggleService.Verify(s => s.ToggleElementAsync(controlType, "TestWindow", null, 30), Times.Once);
+            _mockToggleService.Verify(s => s.ToggleElementAsync(controlType, null, null, null, 30), Times.Once);
             _output.WriteLine($"Non-toggle control '{controlType}' error handling test passed");
         }
 
@@ -375,8 +375,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Toggle" }
             };
-            _mockToggleService.Setup(s => s.ToggleElementAsync(elementSelector,
-                string.IsNullOrEmpty(windowTitle) ? null : windowTitle, null, 30))
+            _mockToggleService.Setup(s => s.ToggleElementAsync(elementSelector, null, null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -385,8 +384,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockToggleService.Verify(s => s.ToggleElementAsync(elementSelector,
-                string.IsNullOrEmpty(windowTitle) ? null : windowTitle, null, 30), Times.Once);
+            _mockToggleService.Verify(s => s.ToggleElementAsync(elementSelector, null, null, null, 30), Times.Once);
             _output.WriteLine($"Empty parameter test passed: element='{elementSelector}', window='{windowTitle}'");
         }
 
@@ -401,15 +399,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Toggle", Action = "Toggle", ReturnValue = "On", Details = "Previous state: Off" }
             };
-            _mockToggleService.Setup(s => s.ToggleElementAsync("element1", "TestWindow", processId, 30))
+            _mockToggleService.Setup(s => s.ToggleElementAsync("element1", null, null, processId, 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.ToggleElement("element1", "TestWindow", processId);
+            var result = await _tools.ToggleElement(automationId: "element1", controlType: "TestWindow", processId: processId);
 
             // Assert
             Assert.NotNull(result);
-            _mockToggleService.Verify(s => s.ToggleElementAsync("element1", "TestWindow", processId, 30), Times.Once);
+            _mockToggleService.Verify(s => s.ToggleElementAsync("element1", null, null, processId, 30), Times.Once);
             _output.WriteLine($"ProcessId parameter test passed: processId={processId}");
         }
 
@@ -424,7 +422,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Toggle", Action = "Toggle", ReturnValue = "Off", Details = "Previous state: On" }
             };
-            _mockToggleService.Setup(s => s.ToggleElementAsync("element1", "TestWindow", null, timeoutSeconds))
+            _mockToggleService.Setup(s => s.ToggleElementAsync("element1", null, null, null, timeoutSeconds))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -432,7 +430,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockToggleService.Verify(s => s.ToggleElementAsync("element1", "TestWindow", null, timeoutSeconds), Times.Once);
+            _mockToggleService.Verify(s => s.ToggleElementAsync("element1", null, null, null, timeoutSeconds), Times.Once);
             _output.WriteLine($"Custom timeout test passed: timeout={timeoutSeconds}s");
         }
 
@@ -459,7 +457,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     }
                 }
             };
-            _mockToggleService.Setup(s => s.ToggleElementAsync("checkBox", "Form", null, 30))
+            _mockToggleService.Setup(s => s.ToggleElementAsync("checkBox", null, null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -467,7 +465,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockToggleService.Verify(s => s.ToggleElementAsync("checkBox", "Form", null, 30), Times.Once);
+            _mockToggleService.Verify(s => s.ToggleElementAsync("checkBox", null, null, null, 30), Times.Once);
             _output.WriteLine("ToggleState property change event test passed");
         }
 
@@ -496,13 +494,13 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Data = new ActionResult { Success = true, OperationName = "Toggle", Action = "Toggle", ReturnValue = "On", Details = "Previous state: Off" }
             };
 
-            _mockToggleService.Setup(s => s.ToggleElementAsync("checkBox1", "Form", null, 30))
+            _mockToggleService.Setup(s => s.ToggleElementAsync("checkBox1", null, null, null, 30))
                              .Returns(Task.FromResult(checkbox1Result));
-            _mockToggleService.Setup(s => s.ToggleElementAsync("checkBox2", "Form", null, 30))
+            _mockToggleService.Setup(s => s.ToggleElementAsync("checkBox2", null, null, null, 30))
                              .Returns(Task.FromResult(checkbox2Result));
-            _mockToggleService.Setup(s => s.ToggleElementAsync("radioButton1", "Form", null, 30))
+            _mockToggleService.Setup(s => s.ToggleElementAsync("radioButton1", null, null, null, 30))
                              .Returns(Task.FromResult(radioButton1Result));
-            _mockToggleService.Setup(s => s.ToggleElementAsync("toggleButton1", "Form", null, 30))
+            _mockToggleService.Setup(s => s.ToggleElementAsync("toggleButton1", null, null, null, 30))
                              .Returns(Task.FromResult(toggleButton1Result));
 
             // Act
@@ -517,10 +515,10 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result3);
             Assert.NotNull(result4);
 
-            _mockToggleService.Verify(s => s.ToggleElementAsync("checkBox1", "Form", null, 30), Times.Once);
-            _mockToggleService.Verify(s => s.ToggleElementAsync("checkBox2", "Form", null, 30), Times.Once);
-            _mockToggleService.Verify(s => s.ToggleElementAsync("radioButton1", "Form", null, 30), Times.Once);
-            _mockToggleService.Verify(s => s.ToggleElementAsync("toggleButton1", "Form", null, 30), Times.Once);
+            _mockToggleService.Verify(s => s.ToggleElementAsync("checkBox1", null, null, null, 30), Times.Once);
+            _mockToggleService.Verify(s => s.ToggleElementAsync("checkBox2", null, null, null, 30), Times.Once);
+            _mockToggleService.Verify(s => s.ToggleElementAsync("radioButton1", null, null, null, 30), Times.Once);
+            _mockToggleService.Verify(s => s.ToggleElementAsync("toggleButton1", null, null, null, 30), Times.Once);
 
             _output.WriteLine("Multiple toggle controls independent execution test passed");
         }
@@ -553,9 +551,9 @@ namespace UIAutomationMCP.Tests.UnitTests
                 }
             };
 
-            _mockToggleService.Setup(s => s.ToggleElementAsync("radioButton1", "GroupBox", null, 30))
+            _mockToggleService.Setup(s => s.ToggleElementAsync("radioButton1", null, null, null, 30))
                              .Returns(Task.FromResult(radio1SelectResult));
-            _mockToggleService.Setup(s => s.ToggleElementAsync("radioButton2", "GroupBox", null, 30))
+            _mockToggleService.Setup(s => s.ToggleElementAsync("radioButton2", null, null, null, 30))
                              .Returns(Task.FromResult(radio2SelectResult));
 
             // Act
@@ -566,8 +564,8 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result1);
             Assert.NotNull(result2);
 
-            _mockToggleService.Verify(s => s.ToggleElementAsync("radioButton1", "GroupBox", null, 30), Times.Once);
-            _mockToggleService.Verify(s => s.ToggleElementAsync("radioButton2", "GroupBox", null, 30), Times.Once);
+            _mockToggleService.Verify(s => s.ToggleElementAsync("radioButton1", null, null, null, 30), Times.Once);
+            _mockToggleService.Verify(s => s.ToggleElementAsync("radioButton2", null, null, null, 30), Times.Once);
 
             _output.WriteLine("Radio button group exclusive behavior test passed");
         }
@@ -593,7 +591,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     }
                 }
             };
-            _mockToggleService.Setup(s => s.ToggleElementAsync("checkBox", "Window", null, 30))
+            _mockToggleService.Setup(s => s.ToggleElementAsync("checkBox", null, null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -601,7 +599,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockToggleService.Verify(s => s.ToggleElementAsync("checkBox", "Window", null, 30), Times.Once);
+            _mockToggleService.Verify(s => s.ToggleElementAsync("checkBox", null, null, null, 30), Times.Once);
             _output.WriteLine("Microsoft specification compliance test - no SetState method available");
         }
 
@@ -624,7 +622,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     }
                 }
             };
-            _mockToggleService.Setup(s => s.ToggleElementAsync("simpleCheckBox", "Dialog", null, 30))
+            _mockToggleService.Setup(s => s.ToggleElementAsync("simpleCheckBox", null, null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -632,7 +630,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockToggleService.Verify(s => s.ToggleElementAsync("simpleCheckBox", "Dialog", null, 30), Times.Once);
+            _mockToggleService.Verify(s => s.ToggleElementAsync("simpleCheckBox", null, null, null, 30), Times.Once);
             _output.WriteLine($"Two-state control test passed: {fromState} → {toState}");
         }
 

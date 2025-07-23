@@ -61,7 +61,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _service.StartListeningAsync(elementId, inputType, windowTitle, processId, 30);
+            var result = await _service.StartListeningAsync(automationId: elementId, inputType: inputType, name: windowTitle, processId: processId, timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
@@ -99,7 +99,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _service.CancelAsync(elementId, windowTitle, processId, 30);
+            var result = await _service.CancelAsync(automationId: elementId, name: windowTitle, processId: processId, timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
@@ -123,7 +123,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 .Returns(Task.FromResult(new ElementSearchResult { Success = true }));
 
             // Act
-            var result = await _service.StartListeningAsync(elementId, inputType, null, null, 30);
+            var result = await _service.StartListeningAsync(elementId, null, inputType, null, null, 30);
 
             // Assert
             Assert.NotNull(result);

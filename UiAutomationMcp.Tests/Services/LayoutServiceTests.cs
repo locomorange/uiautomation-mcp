@@ -46,7 +46,6 @@ namespace UiAutomationMcp.Tests.Services
         {
             // Arrange
             var elementId = "test-scroll-element";
-            var windowTitle = "Test Window";
             var processId = 1234;
             var timeoutSeconds = 1; // 短いタイムアウトで高速テスト
 

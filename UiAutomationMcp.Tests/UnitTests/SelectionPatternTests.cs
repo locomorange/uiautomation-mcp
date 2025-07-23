@@ -95,7 +95,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Completed = true
                 }
             };
-            _mockSelectionService.Setup(s => s.GetSelectionContainerAsync("listItem1", null, null, 30))
+            _mockSelectionService.Setup(s => s.GetSelectionContainerAsync("listItem1", null, null, null, 30))
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -105,7 +105,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.GetSelectionContainerAsync("listItem1", null, null, 30), Times.Once);
+            _mockSelectionService.Verify(s => s.GetSelectionContainerAsync("listItem1", null, null, null, 30), Times.Once);
             _output.WriteLine("GetSelectionContainer test passed - Container information retrieved");
         }
 
@@ -124,7 +124,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Completed = true
                 }
             };
-            _mockSelectionService.Setup(s => s.GetSelectionContainerAsync("orphanedItem", "Test App", 4321, 30))
+            _mockSelectionService.Setup(s => s.GetSelectionContainerAsync("orphanedItem", null, null, 4321, 30))
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -134,7 +134,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.GetSelectionContainerAsync("orphanedItem", "Test App", 4321, 30), Times.Once);
+            _mockSelectionService.Verify(s => s.GetSelectionContainerAsync("orphanedItem", null, null, 4321, 30), Times.Once);
             _output.WriteLine("GetSelectionContainer test passed - No container scenario verified");
         }
 
@@ -157,7 +157,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Completed = true
                 }
             };
-            _mockSelectionService.Setup(s => s.AddToSelectionAsync("item2", null, null, 30))
+            _mockSelectionService.Setup(s => s.AddToSelectionAsync("item2", null, null, null, 30))
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -165,7 +165,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.AddToSelectionAsync("item2", null, null, 30), Times.Once);
+            _mockSelectionService.Verify(s => s.AddToSelectionAsync("item2", null, null, null, 30), Times.Once);
             _output.WriteLine("AddToSelection test passed - Item added to multi-selection");
         }
 
@@ -184,15 +184,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Completed = true
                 }
             };
-            _mockSelectionService.Setup(s => s.RemoveFromSelectionAsync("item1", "App Window", 2468, 30))
+            _mockSelectionService.Setup(s => s.RemoveFromSelectionAsync("item1", null, null, 2468, 30))
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.RemoveFromSelection("item1", "App Window", 2468);
+            var result = await _tools.RemoveFromSelection(automationId: "item1", name: "App Window", processId: 2468);
 
             // Assert
             Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.RemoveFromSelectionAsync("item1", "App Window", 2468, 30), Times.Once);
+            _mockSelectionService.Verify(s => s.RemoveFromSelectionAsync("item1", null, null, 2468, 30), Times.Once);
             _output.WriteLine("RemoveFromSelection test passed - Item removed from selection");
         }
 
@@ -211,7 +211,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Completed = true
                 }
             };
-            _mockSelectionService.Setup(s => s.ClearSelectionAsync("listContainer", null, null, 30))
+            _mockSelectionService.Setup(s => s.ClearSelectionAsync("listContainer", null, null, null, 30))
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -219,7 +219,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.ClearSelectionAsync("listContainer", null, null, 30), Times.Once);
+            _mockSelectionService.Verify(s => s.ClearSelectionAsync("listContainer", null, null, null, 30), Times.Once);
             _output.WriteLine("ClearSelection test passed - All selections cleared");
         }
 
@@ -243,7 +243,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     SelectedCount = 2
                 }
             };
-            _mockSelectionService.Setup(s => s.GetSelectionAsync("multiSelectList", "Test Window", 1357, 30))
+            _mockSelectionService.Setup(s => s.GetSelectionAsync("multiSelectList", null, null, 1357, 30))
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -253,7 +253,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.GetSelectionAsync("multiSelectList", "Test Window", 1357, 30), Times.Once);
+            _mockSelectionService.Verify(s => s.GetSelectionAsync("multiSelectList", null, null, 1357, 30), Times.Once);
             _output.WriteLine("GetSelection test passed - Current selection retrieved");
         }
 
@@ -302,7 +302,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var errorResult = new ServerEnhancedResponse<ActionResult> { Success = false, ErrorMessage = "Element not found" };
-            _mockSelectionService.Setup(s => s.GetSelectionContainerAsync("nonExistentElement", null, null, 30))
+            _mockSelectionService.Setup(s => s.GetSelectionContainerAsync("nonExistentElement", null, null, null, 30))
                 .Returns(Task.FromResult(errorResult));
 
             // Act
@@ -312,7 +312,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.GetSelectionContainerAsync("nonExistentElement", null, null, 30), Times.Once);
+            _mockSelectionService.Verify(s => s.GetSelectionContainerAsync("nonExistentElement", null, null, null, 30), Times.Once);
             _output.WriteLine("Element not found test passed - Error result returned");
         }
 

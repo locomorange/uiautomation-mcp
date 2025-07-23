@@ -363,8 +363,8 @@ namespace UIAutomationMCP.Tests.UnitTests
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.ExpandCollapseElement(elementSelector, action,
-                string.IsNullOrEmpty(windowTitle) ? null : windowTitle);
+            var result = await _tools.ExpandCollapseElement(elementSelector, 
+                string.IsNullOrEmpty(windowTitle) ? null : windowTitle, action);
 
             // Assert
             Assert.NotNull(result);
@@ -393,7 +393,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.ExpandCollapseElement("element1", "collapse", "TestWindow", processId);
+            var result = await _tools.ExpandCollapseElement(automationId: "element1", action: "collapse", controlType: "TestWindow", processId: processId);
 
             // Assert
             Assert.NotNull(result);

@@ -376,7 +376,6 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange
             const string elementId = "ExtremeCoordinateTestElement";
-            const string windowTitle = "ExtremeCoordinateTestWindow";
             const int timeout = 5;
 
             _output.WriteLine($"=== Microsoft Specification Test: Extreme Coordinate Handling ===");
@@ -412,7 +411,6 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange
             const string elementId = "VariousAngleTestElement";
-            const string windowTitle = "VariousAngleTestWindow";
             const int timeout = 5;
 
             _output.WriteLine($"=== Microsoft Specification Test: Various Angle Handling ===");

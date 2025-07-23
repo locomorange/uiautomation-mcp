@@ -264,7 +264,6 @@ namespace UIAutomationMCP.Tests.Services
         {
             // Arrange
             var elementId = "compliantTable";
-            var windowTitle = "Test App";
             var processId = 1234;
 
             // Setup mock responses for all available members

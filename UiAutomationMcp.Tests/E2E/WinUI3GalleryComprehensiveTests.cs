@@ -655,13 +655,13 @@ namespace UIAutomationMCP.Tests.E2E
                     Output.WriteLine("GetScrollInfo functionality has been removed - testing direct scroll operations");
                     
                     // Try scrolling down
-                    var scrollDown = await Tools.ScrollElement("NavigationViewContentGrid", "down", 1.0);
+                    var scrollDown = await Tools.ScrollElement(automationId: "NavigationViewContentGrid", direction: "down", amount: 1.0);
                     Output.WriteLine($"Scroll down result: {JsonSerializer.Serialize(scrollDown)}");
                     
                     await Task.Delay(1000);
                     
                     // Try scrolling up
-                    var scrollUp = await Tools.ScrollElement("NavigationViewContentGrid", "up", 1.0);
+                    var scrollUp = await Tools.ScrollElement(automationId: "NavigationViewContentGrid", direction: "up", amount: 1.0);
                     Output.WriteLine($"Scroll up result: {JsonSerializer.Serialize(scrollUp)}");
                     
                     Output.WriteLine("✅ ScrollPattern testing completed");
