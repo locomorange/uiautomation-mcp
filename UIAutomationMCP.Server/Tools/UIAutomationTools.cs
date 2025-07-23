@@ -139,7 +139,7 @@ namespace UIAutomationMCP.Server.Tools
 
 
 
-        [McpServerTool, Description("Get the element tree structure for navigation and analysis")]
+        [McpServerTool, Description("Get the hierarchical element tree structure for navigation and overview. Returns basic ElementInfo without detailed pattern information. For detailed element analysis, use SearchElements with includeDetails=true.")]
         public async Task<object> GetElementTree(
             [Description("Maximum depth to traverse (default: 3)")] int maxDepth = 3, 
             [Description("Parent process ID of the target window (use main application process, not child processes)")] int? processId = null, 
