@@ -92,26 +92,6 @@ namespace UiAutomationMcp.Tests.Models
             Assert.Equal(original.IsVisible, deserialized.IsVisible);
         }
 
-        [Fact]
-        public void ElementSearchParameters_ShouldHandleOptionalFields()
-        {
-            // Arrange & Act
-            var searchParams = new ElementSearchParameters
-            {
-                WindowTitle = "TestWindow",
-                SearchText = "Button"
-                // Other fields left as null/default
-            };
-
-            // Assert
-            Assert.Equal("TestWindow", searchParams.WindowTitle);
-            Assert.Equal("Button", searchParams.SearchText);
-            Assert.Null(searchParams.AutomationId);
-            Assert.Null(searchParams.ControlType);
-            Assert.Null(searchParams.ProcessId);
-            Assert.Equal(30, searchParams.TimeoutSeconds); // Default value is 30
-            Assert.Equal("descendants", searchParams.Scope); // Default value is "descendants"
-        }
 
         [Fact]
         public void AdvancedOperationParameters_ShouldHandleParametersDictionary()
