@@ -579,27 +579,9 @@ namespace UIAutomationMCP.Worker.Helpers
                     };
                 }
 
-                // Get supported patterns once (cache-aware)
-                AutomationPattern[] supportedPatterns;
-                try
-                {
-                    if (useCached)
-                    {
-                        // キャッシュ要素の場合、GetSupportedPatternsは使用できない
-                        supportedPatterns = new AutomationPattern[0];
-                    }
-                    else
-                    {
-                        supportedPatterns = element.GetSupportedPatterns();
-                    }
-                }
-                catch
-                {
-                    supportedPatterns = new AutomationPattern[0];
-                }
-
                 // Invoke Pattern
-                if (supportedPatterns.Contains(InvokePattern.Pattern))
+                if ((useCached ? element.TryGetCachedPattern(InvokePattern.Pattern, out var invokePatternObj) : element.TryGetCurrentPattern(InvokePattern.Pattern, out invokePatternObj)) && 
+                    invokePatternObj is InvokePattern)
                 {
                     details.Invoke = new InvokeInfo
                     {
@@ -608,7 +590,8 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
 
                 // ScrollItem Pattern  
-                if (supportedPatterns.Contains(ScrollItemPattern.Pattern))
+                if ((useCached ? element.TryGetCachedPattern(ScrollItemPattern.Pattern, out var scrollItemPatternObj) : element.TryGetCurrentPattern(ScrollItemPattern.Pattern, out scrollItemPatternObj)) && 
+                    scrollItemPatternObj is ScrollItemPattern)
                 {
                     details.ScrollItem = new ScrollItemInfo
                     {
@@ -617,7 +600,8 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
 
                 // VirtualizedItem Pattern
-                if (supportedPatterns.Contains(VirtualizedItemPattern.Pattern))
+                if ((useCached ? element.TryGetCachedPattern(VirtualizedItemPattern.Pattern, out var virtualizedItemPatternObj) : element.TryGetCurrentPattern(VirtualizedItemPattern.Pattern, out virtualizedItemPatternObj)) && 
+                    virtualizedItemPatternObj is VirtualizedItemPattern)
                 {
                     details.VirtualizedItem = new VirtualizedItemInfo
                     {
@@ -626,7 +610,8 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
 
                 // ItemContainer Pattern
-                if (supportedPatterns.Contains(ItemContainerPattern.Pattern))
+                if ((useCached ? element.TryGetCachedPattern(ItemContainerPattern.Pattern, out var itemContainerPatternObj) : element.TryGetCurrentPattern(ItemContainerPattern.Pattern, out itemContainerPatternObj)) && 
+                    itemContainerPatternObj is ItemContainerPattern)
                 {
                     details.ItemContainer = new ItemContainerInfo
                     {
@@ -635,7 +620,8 @@ namespace UIAutomationMCP.Worker.Helpers
                 }
 
                 // SynchronizedInput Pattern
-                if (supportedPatterns.Contains(SynchronizedInputPattern.Pattern))
+                if ((useCached ? element.TryGetCachedPattern(SynchronizedInputPattern.Pattern, out var synchronizedInputPatternObj) : element.TryGetCurrentPattern(SynchronizedInputPattern.Pattern, out synchronizedInputPatternObj)) && 
+                    synchronizedInputPatternObj is SynchronizedInputPattern)
                 {
                     details.SynchronizedInput = new SynchronizedInputInfo
                     {
