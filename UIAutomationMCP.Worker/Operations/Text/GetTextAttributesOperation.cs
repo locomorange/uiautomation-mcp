@@ -28,7 +28,38 @@ namespace UIAutomationMCP.Worker.Operations.Text
             GetTextAttributesRequest? request = null;
             try
             {
-                request = JsonSerializationHelper.Deserialize<GetTextAttributesRequest>(parametersJson)!;
+                // Extract the actual request parameters from the input JSON
+                string actualParametersJson;
+                try
+                {
+                    var jsonDoc = System.Text.Json.JsonDocument.Parse(parametersJson);
+                    var root = jsonDoc.RootElement;
+                    
+                    if (root.TryGetProperty("request", out var requestElement))
+                    {
+                        // If request is a string, use it directly; if object, serialize it
+                        if (requestElement.ValueKind == System.Text.Json.JsonValueKind.String)
+                        {
+                            actualParametersJson = requestElement.GetString() ?? "{}";
+                        }
+                        else
+                        {
+                            actualParametersJson = requestElement.GetRawText();
+                        }
+                    }
+                    else
+                    {
+                        // If no request property, use the whole input (backward compatibility)
+                        actualParametersJson = parametersJson;
+                    }
+                }
+                catch (System.Text.Json.JsonException)
+                {
+                    // If JSON parsing fails, assume the input is already the request parameters
+                    actualParametersJson = parametersJson;
+                }
+
+                request = JsonSerializationHelper.Deserialize<GetTextAttributesRequest>(actualParametersJson)!;
                 
                 // Validate required parameters early
                 if (string.IsNullOrWhiteSpace(request.AutomationId) && string.IsNullOrWhiteSpace(request.Name))
@@ -427,67 +458,57 @@ namespace UIAutomationMCP.Worker.Operations.Text
                     return segments;
                 }
 
-                SegmentAttributes? currentAttributes = null;
-                var segmentStartPos = 0;
+                // Use Microsoft Learn recommended approach: Format boundary detection
+                var currentRange = textRange.Clone();
+                var totalProcessed = 0;
 
-                // Check each character to detect attribute changes
-                for (int i = 0; i < fullText.Length; i++)
+                while (totalProcessed < fullText.Length)
                 {
-                    // Create a range for the current character
-                    var charRange = textRange.Clone();
-                    charRange.Move(TextUnit.Character, i);
-                    charRange.MoveEndpointByUnit(TextPatternRangeEndpoint.End, TextUnit.Character, 1);
+                    // Get attributes for current position
+                    var segmentAttributes = GetSegmentAttributes(currentRange);
                     
-                    var charAttributes = GetSegmentAttributes(charRange);
+                    // Find the end of current format by expanding until attributes change
+                    var formatRange = currentRange.Clone();
+                    formatRange.ExpandToEnclosingUnit(TextUnit.Format);
                     
-                    // If this is the first character or attributes changed, start a new segment
-                    if (currentAttributes == null || !AreAttributesEqual(currentAttributes, charAttributes))
+                    var formatText = formatRange.GetText(-1);
+                    var segmentLength = Math.Min(formatText.Length, fullText.Length - totalProcessed);
+                    
+                    if (segmentLength <= 0)
                     {
-                        // Save previous segment if it exists
-                        if (currentAttributes != null && i > segmentStartPos)
-                        {
-                            var segmentText = fullText.Substring(segmentStartPos, i - segmentStartPos);
-                            var segment = new TextSegment
-                            {
-                                StartPosition = globalStartIndex + segmentStartPos,
-                                EndPosition = globalStartIndex + i,
-                                Text = segmentText,
-                                Attributes = currentAttributes
-                            };
-                            
-                            segments.Add(segment);
-                            _logger.LogDebug("Created segment: [{Start}-{End}] '{Text}' Bold={Bold} Italic={Italic}", 
-                                segment.StartPosition, segment.EndPosition, 
-                                segmentText, 
-                                currentAttributes.IsBold, 
-                                currentAttributes.IsItalic);
-                        }
-                        
-                        // Start new segment
-                        currentAttributes = charAttributes;
-                        segmentStartPos = i;
+                        _logger.LogWarning("Invalid segment length {Length} at position {Position}", segmentLength, totalProcessed);
+                        break;
                     }
-                }
-
-                // Add the final segment
-                if (currentAttributes != null && segmentStartPos < fullText.Length)
-                {
-                    var segmentText = fullText.Substring(segmentStartPos);
+                    
+                    var segmentText = fullText.Substring(totalProcessed, segmentLength);
+                    
                     var segment = new TextSegment
                     {
-                        StartPosition = globalStartIndex + segmentStartPos,
-                        EndPosition = globalStartIndex + fullText.Length,
+                        StartPosition = globalStartIndex + totalProcessed,
+                        EndPosition = globalStartIndex + totalProcessed + segmentLength,
                         Text = segmentText,
-                        Attributes = currentAttributes
+                        Attributes = segmentAttributes
                     };
                     
                     segments.Add(segment);
-                    _logger.LogDebug("Created final segment: [{Start}-{End}] '{Text}' Bold={Bold} Italic={Italic}", 
+                    _logger.LogDebug("Created format segment: [{Start}-{End}] '{Text}' Bold={Bold} Italic={Italic}", 
                         segment.StartPosition, segment.EndPosition, 
                         segmentText, 
-                        currentAttributes.IsBold, 
-                        currentAttributes.IsItalic);
+                        segmentAttributes.IsBold, 
+                        segmentAttributes.IsItalic);
+                    
+                    // Move to next format boundary
+                    totalProcessed += segmentLength;
+                    
+                    if (totalProcessed < fullText.Length)
+                    {
+                        // Move range to next position
+                        currentRange.Move(TextUnit.Character, segmentLength);
+                        currentRange.MoveEndpointByUnit(TextPatternRangeEndpoint.End, TextUnit.Character, 1);
+                    }
                 }
+                
+                _logger.LogDebug("Extracted {Count} format-based segments from text", segments.Count);
             }
             catch (Exception ex)
             {
@@ -503,7 +524,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
                     Attributes = fallbackAttributes
                 });
             }
-
+            
             return segments;
         }
 
