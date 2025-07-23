@@ -87,7 +87,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         #region Microsoft仕様準拠の必須プロパティテスト
 
         [Fact]
-        public async Task GetTransformCapabilities_ShouldReturnAllRequiredProperties()
+        public void GetTransformCapabilities_ShouldReturnAllRequiredProperties()
         {
             // Arrange - Microsoft仕様の必須プロパティ
             var expectedResult = new ServerEnhancedResponse<TransformCapabilitiesResult>
@@ -122,7 +122,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         [InlineData(false, true, false)] // リサイズのみ可能
         [InlineData(false, false, true)]  // 回転のみ可能
         [InlineData(false, false, false)] // すべて不可
-        public async Task GetTransformCapabilities_ShouldReturnCorrectCapabilities(bool canMove, bool canResize, bool canRotate)
+        public void GetTransformCapabilities_ShouldReturnCorrectCapabilities(bool canMove, bool canResize, bool canRotate)
         {
             // Arrange
             var expectedResult = new ServerEnhancedResponse<TransformCapabilitiesResult>
@@ -347,7 +347,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         #region エラーハンドリングテスト
 
         [Fact]
-        public async Task GetTransformCapabilities_WithNonExistentElement_ShouldHandleError()
+        public void GetTransformCapabilities_WithNonExistentElement_ShouldHandleError()
         {
             // Arrange
             _mockTransformService.Setup(s => s.GetTransformCapabilitiesAsync("nonExistentElement", null, null, null, 30))
@@ -395,7 +395,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         [Theory]
         [InlineData("", "TestWindow")]
         [InlineData("element1", "")]
-        public async Task GetTransformCapabilities_WithEmptyParameters_ShouldCallService(string elementId, string windowTitle)
+        public void GetTransformCapabilities_WithEmptyParameters_ShouldCallService(string elementId, string windowTitle)
         {
             // Arrange
             var expectedResult = new ServerEnhancedResponse<TransformCapabilitiesResult> 
