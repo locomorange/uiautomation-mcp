@@ -104,24 +104,12 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
 
         private TreeNode BuildElementTree(AutomationElement element, int maxDepth, int currentDepth)
         {
-            var node = new TreeNode
+            // Use ElementInfoBuilder to create base ElementInfo with all latest features
+            var elementInfo = ElementInfoBuilder.CreateElementInfo(element, includeDetails: false);
+            
+            // Create TreeNode from ElementInfo using constructor
+            var node = new TreeNode(elementInfo)
             {
-                // TreeNode inherits from ElementInfo, so use those properties directly
-                AutomationId = element.Current.AutomationId,
-                Name = element.Current.Name,
-                ClassName = element.Current.ClassName,
-                ControlType = element.Current.ControlType.ProgrammaticName,
-                IsEnabled = element.Current.IsEnabled,
-                IsVisible = !element.Current.IsOffscreen,
-                BoundingRectangle = new BoundingRectangle
-                {
-                    X = (int)element.Current.BoundingRectangle.X,
-                    Y = (int)element.Current.BoundingRectangle.Y,
-                    Width = (int)element.Current.BoundingRectangle.Width,
-                    Height = (int)element.Current.BoundingRectangle.Height
-                },
-                ProcessId = element.Current.ProcessId,
-                
                 // TreeNode specific properties  
                 RuntimeId = element.GetRuntimeId()?.ToString() ?? "",
                 IsKeyboardFocusable = element.Current.IsKeyboardFocusable,
@@ -130,17 +118,6 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
                 Depth = currentDepth,
                 HasChildren = false
             };
-
-            // Get supported patterns
-            try
-            {
-                var supportedPatterns = element.GetSupportedPatterns();
-                node.SupportedPatterns = supportedPatterns.Select(p => p.ProgrammaticName).ToArray();
-            }
-            catch (Exception)
-            {
-                // Ignore pattern retrieval errors
-            }
 
             // Build children if within depth limit
             if (currentDepth < maxDepth)
@@ -178,28 +155,6 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
             return node;
         }
 
-        private ElementInfo CreateElementInfo(AutomationElement element)
-        {
-            return new ElementInfo
-            {
-                AutomationId = element.Current.AutomationId,
-                Name = element.Current.Name,
-                ControlType = element.Current.ControlType.LocalizedControlType,
-                ClassName = element.Current.ClassName,
-                IsEnabled = element.Current.IsEnabled,
-                IsVisible = !element.Current.IsOffscreen,
-                IsOffscreen = element.Current.IsOffscreen,
-                ProcessId = element.Current.ProcessId,
-                FrameworkId = element.Current.FrameworkId,
-                BoundingRectangle = new BoundingRectangle
-                {
-                    X = element.Current.BoundingRectangle.X,
-                    Y = element.Current.BoundingRectangle.Y,
-                    Width = element.Current.BoundingRectangle.Width,
-                    Height = element.Current.BoundingRectangle.Height
-                }
-            };
-        }
 
         private int CountElements(TreeNode node)
         {

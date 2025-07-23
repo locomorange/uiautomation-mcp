@@ -84,6 +84,32 @@ namespace UIAutomationMCP.Shared.Results
     public class TreeNode : ElementInfo
     {
         /// <summary>
+        /// デフォルトコンストラクタ
+        /// </summary>
+        public TreeNode() { }
+        
+        /// <summary>
+        /// ElementInfoからTreeNodeを作成するコンストラクタ
+        /// </summary>
+        public TreeNode(ElementInfo elementInfo)
+        {
+            // ElementInfoの全プロパティをコピー
+            AutomationId = elementInfo.AutomationId;
+            Name = elementInfo.Name;
+            ControlType = elementInfo.ControlType;
+            LocalizedControlType = elementInfo.LocalizedControlType;
+            ClassName = elementInfo.ClassName;
+            ProcessId = elementInfo.ProcessId;
+            ParentProcessId = elementInfo.ParentProcessId;
+            BoundingRectangle = elementInfo.BoundingRectangle;
+            IsEnabled = elementInfo.IsEnabled;
+            IsVisible = elementInfo.IsVisible;
+            IsOffscreen = elementInfo.IsOffscreen;
+            FrameworkId = elementInfo.FrameworkId;
+            SupportedPatterns = elementInfo.SupportedPatterns;
+            Details = elementInfo.Details;
+        }
+        /// <summary>
         /// 子ノードのリスト
         /// </summary>
         [JsonPropertyName("children")]
