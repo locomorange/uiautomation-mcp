@@ -47,47 +47,83 @@ namespace UIAutomationMCP.Worker.Operations.Text
 
                 if (!element.TryGetCurrentPattern(TextPattern.Pattern, out var pattern) || pattern is not TextPattern textPattern)
                 {
+                    _logger.LogWarning("Element with AutomationId '{AutomationId}' and Name '{Name}' does not support TextPattern", 
+                        typedRequest.AutomationId, typedRequest.Name);
                     return Task.FromResult(new OperationResult 
                     { 
                         Success = false, 
-                        Error = "Element does not support TextPattern",
+                        Error = "Element does not support TextPattern - text search requires a text control (TextBox, RichTextBox, etc.)",
                         Data = new TextSearchResult { Found = false, Text = typedRequest.SearchText }
                     });
                 }
 
-                var documentRange = textPattern.DocumentRange;
-                var foundRange = documentRange.FindText(typedRequest.SearchText, typedRequest.Backward, typedRequest.IgnoreCase);
-                
-                if (foundRange != null)
+                try
                 {
-                    var foundText = foundRange.GetText(-1) ?? "";
-                    var boundingRects = foundRange.GetBoundingRectangles();
-                    var boundingRect = boundingRects?.Length > 0 ? new BoundingRectangle
+                    var documentRange = textPattern.DocumentRange;
+                    if (documentRange == null)
                     {
-                        X = boundingRects[0].X,
-                        Y = boundingRects[0].Y,
-                        Width = boundingRects[0].Width,
-                        Height = boundingRects[0].Height
-                    } : new BoundingRectangle();
+                        _logger.LogWarning("DocumentRange is null for element '{AutomationId}'", typedRequest.AutomationId);
+                        return Task.FromResult(new OperationResult 
+                        { 
+                            Success = false, 
+                            Error = "Cannot access text content - element may not contain text",
+                            Data = new TextSearchResult { Found = false, Text = typedRequest.SearchText }
+                        });
+                    }
 
+                    var foundRange = documentRange.FindText(typedRequest.SearchText, typedRequest.Backward, typedRequest.IgnoreCase);
+                
+                    if (foundRange != null)
+                    {
+                        var foundText = foundRange.GetText(-1) ?? "";
+                        var boundingRects = foundRange.GetBoundingRectangles();
+                        var boundingRect = boundingRects?.Length > 0 ? new BoundingRectangle
+                        {
+                            X = boundingRects[0].X,
+                            Y = boundingRects[0].Y,
+                            Width = boundingRects[0].Width,
+                            Height = boundingRects[0].Height
+                        } : new BoundingRectangle();
+
+                        return Task.FromResult(new OperationResult 
+                        { 
+                            Success = true, 
+                            Data = new TextSearchResult 
+                            { 
+                                Found = true, 
+                                Text = foundText,
+                                BoundingRectangle = boundingRect,
+                                StartIndex = 0, // Note: UI Automation doesn't provide exact index
+                                Length = foundText.Length
+                            }
+                        });
+                    }
+                    else
+                    {
+                        return Task.FromResult(new OperationResult 
+                        { 
+                            Success = true, 
+                            Data = new TextSearchResult { Found = false, Text = typedRequest.SearchText }
+                        });
+                    }
+                }
+                catch (System.Runtime.InteropServices.COMException comEx)
+                {
+                    _logger.LogError(comEx, "COM error during text search operation");
                     return Task.FromResult(new OperationResult 
                     { 
-                        Success = true, 
-                        Data = new TextSearchResult 
-                        { 
-                            Found = true, 
-                            Text = foundText,
-                            BoundingRectangle = boundingRect,
-                            StartIndex = 0, // Note: UI Automation doesn't provide exact index
-                            Length = foundText.Length
-                        }
+                        Success = false, 
+                        Error = $"Text search failed due to UI automation error: {comEx.Message}",
+                        Data = new TextSearchResult { Found = false, Text = typedRequest.SearchText }
                     });
                 }
-                else
+                catch (InvalidOperationException invalidOpEx)
                 {
+                    _logger.LogError(invalidOpEx, "Invalid operation during text search");
                     return Task.FromResult(new OperationResult 
                     { 
-                        Success = true, 
+                        Success = false, 
+                        Error = $"Text search operation is not valid for this element: {invalidOpEx.Message}",
                         Data = new TextSearchResult { Found = false, Text = typedRequest.SearchText }
                     });
                 }

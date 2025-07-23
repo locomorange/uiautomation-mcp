@@ -52,10 +52,12 @@ namespace UIAutomationMCP.Worker.Operations.Text
 
                 if (!element.TryGetCurrentPattern(TextPattern.Pattern, out var pattern) || pattern is not TextPattern textPattern)
                 {
+                    _logger.LogWarning("Element with AutomationId '{AutomationId}' and Name '{Name}' does not support TextPattern", 
+                        typedRequest.AutomationId, typedRequest.Name);
                     return Task.FromResult(new OperationResult 
                     { 
                         Success = false, 
-                        Error = "Element does not support TextPattern",
+                        Error = "Element does not support TextPattern - text attributes can only be retrieved from text controls (TextBox, RichTextBox, etc.)",
                         Data = new TextAttributesResult 
                         { 
                             AutomationId = typedRequest.AutomationId ?? "",
@@ -68,6 +70,22 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 try
                 {
                     var documentRange = textPattern.DocumentRange;
+                    if (documentRange == null)
+                    {
+                        _logger.LogWarning("DocumentRange is null for element '{AutomationId}'", typedRequest.AutomationId);
+                        return Task.FromResult(new OperationResult 
+                        { 
+                            Success = false, 
+                            Error = "Cannot access text content - element may not contain text",
+                            Data = new TextAttributesResult 
+                            { 
+                                AutomationId = typedRequest.AutomationId ?? "",
+                                Name = typedRequest.Name ?? "",
+                                HasAttributes = false
+                            }
+                        });
+                    }
+
                     var fullText = documentRange.GetText(-1);
                     
                     // Determine the range to analyze
@@ -115,29 +133,49 @@ namespace UIAutomationMCP.Worker.Operations.Text
                     var supportedAttributes = GetSupportedAttributes();
                     result.SupportedAttributes = supportedAttributes;
 
-                    // If specific attribute requested, get just that one
-                    if (!string.IsNullOrEmpty(typedRequest.AttributeName))
-                    {
-                        var attributeValue = GetSpecificAttribute(textRange, typedRequest.AttributeName);
-                        if (attributeValue != null)
-                        {
-                            result.TextAttributes[typedRequest.AttributeName] = attributeValue;
-                        }
-                    }
-                    else
-                    {
-                        // Get all attributes for the range
-                        var attributeRange = GetAttributesForRange(textRange, startIndex, endIndex - startIndex);
-                        result.AttributeRanges.Add(attributeRange);
-                        result.TextRanges.Add(ConvertToTextRangeAttributes(attributeRange));
-                    }
+                    // Get all attributes for the range
+                    var attributeRange = GetAttributesForRange(textRange, startIndex, endIndex - startIndex);
+                    result.AttributeRanges.Add(attributeRange);
+                    result.TextRanges.Add(ConvertToTextRangeAttributes(attributeRange));
+                    
+                    // Set the typed attributes
+                    result.TextAttributes = attributeRange.Attributes;
 
-                    result.AttributeCount = result.TextAttributes.Count;
 
                     return Task.FromResult(new OperationResult 
                     { 
                         Success = true, 
                         Data = result
+                    });
+                }
+                catch (System.Runtime.InteropServices.COMException comEx)
+                {
+                    _logger.LogError(comEx, "COM error during text attributes operation");
+                    return Task.FromResult(new OperationResult 
+                    { 
+                        Success = false, 
+                        Error = $"Text attributes operation failed due to UI automation error: {comEx.Message}",
+                        Data = new TextAttributesResult 
+                        { 
+                            AutomationId = typedRequest.AutomationId ?? "",
+                            Name = typedRequest.Name ?? "",
+                            HasAttributes = false
+                        }
+                    });
+                }
+                catch (InvalidOperationException invalidOpEx)
+                {
+                    _logger.LogError(invalidOpEx, "Invalid operation during text attributes retrieval");
+                    return Task.FromResult(new OperationResult 
+                    { 
+                        Success = false, 
+                        Error = $"Text attributes operation is not valid for this element: {invalidOpEx.Message}",
+                        Data = new TextAttributesResult 
+                        { 
+                            AutomationId = typedRequest.AutomationId ?? "",
+                            Name = typedRequest.Name ?? "",
+                            HasAttributes = false
+                        }
                     });
                 }
                 catch (Exception ex)
@@ -268,20 +306,8 @@ namespace UIAutomationMCP.Worker.Operations.Text
                     range.IsBold = weightStr?.Contains("Bold") == true || weightStr?.Contains("Heavy") == true;
                 }
 
-                // Add all attributes to dictionary for comprehensive access
-                foreach (var attr in GetSupportedAttributes())
-                {
-                    var value = GetSpecificAttribute(textRange, attr);
-                    if (value != null)
-                    {
-                        // Convert complex types to strings for JSON serialization
-                        var safeValue = ConvertToJsonSafeValue(value);
-                        if (safeValue != null)
-                        {
-                            range.Attributes[attr] = safeValue;
-                        }
-                    }
-                }
+                // Set typed attributes
+                range.Attributes = CreateTypedAttributes(textRange);
             }
             catch (Exception ex)
             {
@@ -363,9 +389,60 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 IsUnderline = range.IsUnderline,
                 IsStrikethrough = range.IsStrikethrough,
                 Text = range.Text,
-                BoundingRectangle = range.BoundingRectangle,
-                Attributes = range.Attributes
+                BoundingRectangle = range.BoundingRectangle
             };
         }
+
+        private TextAttributes CreateTypedAttributes(TextPatternRange textRange)
+        {
+            var attributes = new TextAttributes();
+
+            try
+            {
+                attributes.FontName = GetAttributeValue<string>(textRange, TextPattern.FontNameAttribute);
+                attributes.FontSize = GetAttributeValue<double?>(textRange, TextPattern.FontSizeAttribute);
+                attributes.FontWeight = GetAttributeValue<object>(textRange, TextPattern.FontWeightAttribute)?.ToString();
+                attributes.IsItalic = GetAttributeValue<bool?>(textRange, TextPattern.IsItalicAttribute);
+                
+                // Colors
+                var foregroundColor = GetAttributeValue<int>(textRange, TextPattern.ForegroundColorAttribute);
+                if (foregroundColor != 0)
+                    attributes.ForegroundColor = $"#{foregroundColor:X6}";
+                
+                var backgroundColor = GetAttributeValue<int>(textRange, TextPattern.BackgroundColorAttribute);
+                if (backgroundColor != 0)
+                    attributes.BackgroundColor = $"#{backgroundColor:X6}";
+
+                // Text decorations
+                var underlineStyle = GetAttributeValue<object>(textRange, TextPattern.UnderlineStyleAttribute);
+                attributes.IsUnderline = underlineStyle != null && !underlineStyle.ToString()!.Equals("None", StringComparison.OrdinalIgnoreCase);
+                attributes.UnderlineStyle = underlineStyle?.ToString();
+
+                var strikethroughStyle = GetAttributeValue<object>(textRange, TextPattern.StrikethroughStyleAttribute);
+                attributes.IsStrikethrough = strikethroughStyle != null && !strikethroughStyle.ToString()!.Equals("None", StringComparison.OrdinalIgnoreCase);
+                attributes.StrikethroughStyle = strikethroughStyle?.ToString();
+
+                // Bold detection
+                var fontWeight = GetAttributeValue<object>(textRange, TextPattern.FontWeightAttribute);
+                if (fontWeight != null)
+                {
+                    var weightStr = fontWeight.ToString();
+                    attributes.IsBold = weightStr?.Contains("Bold") == true || weightStr?.Contains("Heavy") == true;
+                }
+
+                // Other attributes
+                attributes.HorizontalTextAlignment = GetAttributeValue<object>(textRange, TextPattern.HorizontalTextAlignmentAttribute)?.ToString();
+                attributes.Culture = GetAttributeValue<System.Globalization.CultureInfo>(textRange, TextPattern.CultureAttribute)?.Name;
+                attributes.IsReadOnly = GetAttributeValue<bool?>(textRange, TextPattern.IsReadOnlyAttribute);
+                attributes.IsHidden = GetAttributeValue<bool?>(textRange, TextPattern.IsHiddenAttribute);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "Failed to get some typed text attributes");
+            }
+
+            return attributes;
+        }
+
     }
 }

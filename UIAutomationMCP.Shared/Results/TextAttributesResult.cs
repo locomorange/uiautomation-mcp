@@ -20,7 +20,7 @@ namespace UIAutomationMCP.Shared.Results
         [JsonPropertyName("processId")]
         public int ProcessId { get; set; }
         [JsonPropertyName("textAttributes")]
-        public Dictionary<string, object> TextAttributes { get; set; } = new();
+        public TextAttributes TextAttributes { get; set; } = new();
         
         [JsonPropertyName("startPosition")]
         public int StartPosition { get; set; }
@@ -40,8 +40,6 @@ namespace UIAutomationMCP.Shared.Results
         [JsonPropertyName("hasAttributes")]
         public bool HasAttributes { get; set; }
         
-        [JsonPropertyName("attributeCount")]
-        public int AttributeCount { get; set; }
         
         [JsonPropertyName("supportedAttributes")]
         public List<string> SupportedAttributes { get; set; } = new();
@@ -65,7 +63,7 @@ namespace UIAutomationMCP.Shared.Results
         public string? Text { get; set; }
         
         [JsonPropertyName("attributes")]
-        public Dictionary<string, object> Attributes { get; set; } = new();
+        public TextAttributes Attributes { get; set; } = new();
         
         [JsonPropertyName("boundingRectangle")]
         public BoundingRectangle BoundingRectangle { get; set; } = new();

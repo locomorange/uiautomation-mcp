@@ -115,12 +115,9 @@ namespace UIAutomationMCP.Shared.Results
         [JsonPropertyName("underlineStyle")]
         public string? UnderlineStyle { get; set; }
 
-        // Missing properties for GetTextAttributesOperation
+        // Text content for this range
         [JsonPropertyName("text")]
         public string? Text { get; set; }
-
-        [JsonPropertyName("attributes")]
-        public Dictionary<string, object> Attributes { get; set; } = new();
 
         [JsonPropertyName("boundingRectangle")]
         public UIAutomationMCP.Shared.BoundingRectangle BoundingRectangle { get; set; } = new();

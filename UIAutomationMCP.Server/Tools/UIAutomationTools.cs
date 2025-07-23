@@ -542,20 +542,6 @@ namespace UIAutomationMCP.Server.Tools
             return JsonSerializationHelper.Serialize(await _subprocessExecutor.ExecuteAsync<UIAutomationMCP.Shared.Requests.GetTextAttributesRequest, UIAutomationMCP.Shared.Results.TextAttributesResult>("GetTextAttributes", request, timeoutSeconds));
         }
 
-        [McpServerTool, Description("Get the current text selection from an element using TextPattern")]
-        public async Task<object> GetTextSelection(
-            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the element (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (Edit, Document, etc.)")] string? controlType = null,
-            [Description("Parent process ID to limit search scope (use main application process, not child processes)")] int? processId = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _textService.GetSelectedTextAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                processId: processId,
-                timeoutSeconds: timeoutSeconds));
 
         [McpServerTool, Description("Set text content in an element using ValuePattern")]
         public async Task<object> SetText(

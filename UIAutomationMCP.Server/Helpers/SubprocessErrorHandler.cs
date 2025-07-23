@@ -162,7 +162,6 @@ namespace UIAutomationMCP.Server.Helpers
                 "SetText" => "Set Text",
                 "SelectText" => "Select Text",
                 "FindText" => "Find Text",
-                "GetTextSelection" => "Get Text Selection",
                 "TraverseText" => "Traverse Text",
                 "GetTextAttributes" => "Get Text Attributes",
                 "WindowAction" => "Window Action",
