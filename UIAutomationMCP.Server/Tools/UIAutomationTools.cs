@@ -502,18 +502,8 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
             [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
         {
-            var request = new UIAutomationMCP.Shared.Requests.FindTextRequest
-            {
-                AutomationId = automationId,
-                Name = name,
-                ControlType = controlType,
-                ProcessId = processId,
-                SearchText = searchText,
-                Backward = backward,
-                IgnoreCase = ignoreCase
-            };
-            
-            return JsonSerializationHelper.Serialize(await _subprocessExecutor.ExecuteAsync<UIAutomationMCP.Shared.Requests.FindTextRequest, UIAutomationMCP.Shared.Results.TextSearchResult>("FindText", request, timeoutSeconds));
+            var response = await _textService.FindTextAsync(automationId, name, searchText, backward, ignoreCase, controlType, processId, timeoutSeconds);
+            return JsonSerializationHelper.Serialize(response);
         }
 
         [McpServerTool, Description("Get text formatting attributes (font, color, size, style) from an element using TextPattern")]
@@ -528,18 +518,8 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
             [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
         {
-            var request = new UIAutomationMCP.Shared.Requests.GetTextAttributesRequest
-            {
-                AutomationId = automationId,
-                Name = name,
-                ControlType = controlType,
-                ProcessId = processId,
-                StartIndex = startIndex,
-                Length = length,
-                AttributeName = attributeName
-            };
-            
-            return JsonSerializationHelper.Serialize(await _subprocessExecutor.ExecuteAsync<UIAutomationMCP.Shared.Requests.GetTextAttributesRequest, UIAutomationMCP.Shared.Results.TextAttributesResult>("GetTextAttributes", request, timeoutSeconds));
+            var response = await _textService.GetTextAttributesAsync(automationId, name, startIndex, length, attributeName, controlType, processId, timeoutSeconds);
+            return JsonSerializationHelper.Serialize(response);
         }
 
 

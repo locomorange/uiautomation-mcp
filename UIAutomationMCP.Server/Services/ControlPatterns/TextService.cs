@@ -474,5 +474,370 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 return errorResponse;
             }
         }
+
+        public async Task<ServerEnhancedResponse<TextAttributesResult>> GetTextAttributesAsync(string? automationId = null, string? name = null, int startIndex = 0, int length = -1, string? attributeName = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
+            {
+                var validationError = "Either AutomationId or Name is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"GetTextAttributes validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<TextAttributesResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetTextAttributes",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["startIndex"] = startIndex,
+                            ["length"] = length,
+                            ["attributeName"] = attributeName ?? "",
+                            ["controlType"] = controlType ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                return validationResponse;
+            }
+
+            try
+            {
+                _logger.LogInformationWithOperation(operationId, $"Starting GetTextAttributes: AutomationId={automationId}, Name={name}, StartIndex={startIndex}, Length={length}");
+
+                var request = new UIAutomationMCP.Shared.Requests.GetTextAttributesRequest
+                {
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
+                    ProcessId = processId,
+                    StartIndex = startIndex,
+                    Length = length,
+                    AttributeName = attributeName
+                };
+
+                var result = await _executor.ExecuteAsync<UIAutomationMCP.Shared.Requests.GetTextAttributesRequest, TextAttributesResult>("GetTextAttributes", request, timeoutSeconds);
+
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<TextAttributesResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["startIndex"] = startIndex,
+                            ["length"] = length,
+                            ["operationType"] = "getTextAttributes"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetTextAttributes",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["startIndex"] = startIndex,
+                            ["length"] = length,
+                            ["attributeName"] = attributeName ?? "",
+                            ["controlType"] = controlType ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return serverResponse;
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in GetTextAttributes operation");
+                
+                var errorResponse = new ServerEnhancedResponse<TextAttributesResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["startIndex"] = startIndex,
+                            ["length"] = length,
+                            ["operationType"] = "getTextAttributes"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "GetTextAttributes",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["startIndex"] = startIndex,
+                            ["length"] = length,
+                            ["attributeName"] = attributeName ?? "",
+                            ["controlType"] = controlType ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorResponse;
+            }
+        }
+
+        public async Task<ServerEnhancedResponse<TextSearchResult>> FindTextAsync(string? automationId = null, string? name = null, string searchText = "", bool backward = false, bool ignoreCase = true, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            
+            // Input validation
+            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
+            {
+                var validationError = "Either AutomationId or Name is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"FindText validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<TextSearchResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["automationId"] = automationId ?? "<null>",
+                            ["name"] = name ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "FindText",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["searchText"] = searchText ?? "",
+                            ["backward"] = backward,
+                            ["ignoreCase"] = ignoreCase,
+                            ["controlType"] = controlType ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                return validationResponse;
+            }
+
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                var validationError = "SearchText is required and cannot be empty";
+                _logger.LogWarningWithOperation(operationId, $"FindText validation failed: {validationError}");
+                
+                var validationResponse = new ServerEnhancedResponse<TextSearchResult>
+                {
+                    Success = false,
+                    ErrorMessage = validationError,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["errorCategory"] = "Validation",
+                            ["searchText"] = searchText ?? "<null>",
+                            ["validationFailed"] = true
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "FindText",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["searchText"] = searchText ?? "",
+                            ["backward"] = backward,
+                            ["ignoreCase"] = ignoreCase,
+                            ["controlType"] = controlType ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                return validationResponse;
+            }
+
+            try
+            {
+                _logger.LogInformationWithOperation(operationId, $"Starting FindText: AutomationId={automationId}, Name={name}, SearchText={searchText}");
+
+                var request = new UIAutomationMCP.Shared.Requests.FindTextRequest
+                {
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
+                    ProcessId = processId,
+                    SearchText = searchText,
+                    Backward = backward,
+                    IgnoreCase = ignoreCase
+                };
+
+                var result = await _executor.ExecuteAsync<UIAutomationMCP.Shared.Requests.FindTextRequest, TextSearchResult>("FindText", request, timeoutSeconds);
+
+                stopwatch.Stop();
+                
+                var serverResponse = new ServerEnhancedResponse<TextSearchResult>
+                {
+                    Success = result.Success,
+                    Data = result,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["searchText"] = searchText ?? "",
+                            ["backward"] = backward,
+                            ["ignoreCase"] = ignoreCase,
+                            ["operationType"] = "findText"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "FindText",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["searchText"] = searchText ?? "",
+                            ["backward"] = backward,
+                            ["ignoreCase"] = ignoreCase,
+                            ["controlType"] = controlType ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+
+                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return serverResponse;
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                _logger.LogErrorWithOperation(operationId, ex, "Error in FindText operation");
+                
+                var errorResponse = new ServerEnhancedResponse<TextSearchResult>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionInfo = new ServerExecutionInfo
+                    {
+                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        OperationId = operationId,
+                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        AdditionalInfo = new Dictionary<string, object>
+                        {
+                            ["exceptionType"] = ex.GetType().Name,
+                            ["stackTrace"] = ex.StackTrace ?? "",
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["searchText"] = searchText ?? "",
+                            ["backward"] = backward,
+                            ["ignoreCase"] = ignoreCase,
+                            ["operationType"] = "findText"
+                        }
+                    },
+                    RequestMetadata = new RequestMetadata
+                    {
+                        RequestedMethod = "FindText",
+                        RequestParameters = new Dictionary<string, object>
+                        {
+                            ["automationId"] = automationId ?? "",
+                            ["name"] = name ?? "",
+                            ["searchText"] = searchText ?? "",
+                            ["backward"] = backward,
+                            ["ignoreCase"] = ignoreCase,
+                            ["controlType"] = controlType ?? "",
+                            ["processId"] = processId ?? 0,
+                            ["timeoutSeconds"] = timeoutSeconds
+                        },
+                        TimeoutSeconds = timeoutSeconds
+                    }
+                };
+                
+                LogCollectorExtensions.Instance.ClearLogs(operationId);
+                
+                return errorResponse;
+            }
+        }
     }
 }
