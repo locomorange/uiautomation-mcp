@@ -275,7 +275,11 @@ namespace UIAutomationMCP.Worker.Operations.Text
                     if (value != null)
                     {
                         // Convert complex types to strings for JSON serialization
-                        range.Attributes[attr] = ConvertToJsonSafeValue(value);
+                        var safeValue = ConvertToJsonSafeValue(value);
+                        if (safeValue != null)
+                        {
+                            range.Attributes[attr] = safeValue;
+                        }
                     }
                 }
             }
@@ -315,7 +319,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
             }
         }
 
-        private object ConvertToJsonSafeValue(object value)
+        private object? ConvertToJsonSafeValue(object? value)
         {
             if (value == null) return null;
             
