@@ -67,20 +67,34 @@ namespace UIAutomationMCP.Server.Helpers
 
                     if (completedTask == timeoutTask)
                     {
-                        _logger.LogWarning("Worker operation timed out after {TimeoutSeconds}s: {Operation}", timeoutSeconds, operation);
+                        _logger.LogWarning("Worker operation timed out after {TimeoutSeconds}s: {Operation}. Allowing additional grace time...", timeoutSeconds, operation);
                         
-                        cts.Cancel();
+                        // Give additional grace time for slow operations
+                        var gracePeriod = Math.Min(timeoutSeconds / 2, 10); // Up to 10 seconds additional
+                        var extendedTimeoutTask = Task.Delay(TimeSpan.FromSeconds(gracePeriod));
+                        var extendedCompletedTask = await Task.WhenAny(responseTask, extendedTimeoutTask);
                         
-                        var gracefulShutdownTask = Task.Delay(TimeSpan.FromSeconds(2));
-                        var shutdownCompleted = await Task.WhenAny(responseTask, gracefulShutdownTask);
-                        
-                        if (shutdownCompleted == gracefulShutdownTask)
+                        if (extendedCompletedTask == extendedTimeoutTask)
                         {
-                            _logger.LogWarning("Worker process did not respond to cancellation, forcing restart");
-                            await RestartWorkerProcessAsync();
+                            _logger.LogWarning("Worker operation still timed out after grace period of {GracePeriod}s: {Operation}", gracePeriod, operation);
+                            
+                            cts.Cancel();
+                            
+                            var gracefulShutdownTask = Task.Delay(TimeSpan.FromSeconds(2));
+                            var shutdownCompleted = await Task.WhenAny(responseTask, gracefulShutdownTask);
+                            
+                            if (shutdownCompleted == gracefulShutdownTask)
+                            {
+                                _logger.LogWarning("Worker process did not respond to cancellation, forcing restart");
+                                await RestartWorkerProcessAsync();
+                            }
+                            
+                            throw new TimeoutException($"Worker operation '{operation}' timed out after {timeoutSeconds + gracePeriod} seconds");
                         }
-                        
-                        throw new TimeoutException($"Worker operation '{operation}' timed out after {timeoutSeconds} seconds");
+                        else
+                        {
+                            _logger.LogInformation("Worker operation completed within grace period after initial timeout");
+                        }
                     }
 
                     var responseJson = await responseTask;

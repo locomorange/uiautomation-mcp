@@ -159,16 +159,24 @@ namespace UIAutomationMCP.Worker.Helpers
                         }
                         
                         // 親プロセスが存在し、同じプロセス名の場合は親に移動
-                        var parentProcess = Process.GetProcessById(parentId.Value);
-                        if (parentProcess.ProcessName.Equals(current.ProcessName, StringComparison.OrdinalIgnoreCase))
+                        try
                         {
-                            if (current != process) current.Dispose();
-                            current = parentProcess;
+                            var parentProcess = Process.GetProcessById(parentId.Value);
+                            if (parentProcess.ProcessName.Equals(current.ProcessName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                if (current != process) current.Dispose();
+                                current = parentProcess;
+                            }
+                            else
+                            {
+                                // 異なるプロセス名の場合、現在のプロセスがメインプロセス
+                                parentProcess.Dispose();
+                                return current.Id;
+                            }
                         }
-                        else
+                        catch (ArgumentException)
                         {
-                            // 異なるプロセス名の場合、現在のプロセスがメインプロセス
-                            parentProcess.Dispose();
+                            // 親プロセスが既に終了している場合、現在のプロセスがメインプロセス
                             return current.Id;
                         }
                     }

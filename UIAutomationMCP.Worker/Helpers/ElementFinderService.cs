@@ -388,7 +388,7 @@ namespace UIAutomationMCP.Worker.Helpers
                         
                         _logger?.LogDebug("No window found for process ID: {ProcessId}", processId);
                         return null;
-                    }, $"GetSearchRoot-ProcessId-{processId}", Math.Min(timeoutSeconds, 5));
+                    }, $"GetSearchRoot-ProcessId-{processId}", Math.Min(timeoutSeconds, 10));
                 }
                 catch (TimeoutException ex)
                 {
@@ -411,7 +411,7 @@ namespace UIAutomationMCP.Worker.Helpers
                     return UIAutomationEnvironment.ExecuteWithTimeout(() =>
                     {
                         return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
-                    }, $"GetSearchRoot-WindowTitle", Math.Min(timeoutSeconds, 3));
+                    }, $"GetSearchRoot-WindowTitle", Math.Min(timeoutSeconds, 8));
                 }
                 catch (TimeoutException ex)
                 {
