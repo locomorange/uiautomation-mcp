@@ -507,7 +507,7 @@ namespace UIAutomationMCP.Server.Tools
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                ProcessId = processId ?? 0,
+                ProcessId = processId,
                 SearchText = searchText,
                 Backward = backward,
                 IgnoreCase = ignoreCase
@@ -533,7 +533,7 @@ namespace UIAutomationMCP.Server.Tools
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                ProcessId = processId ?? 0,
+                ProcessId = processId,
                 StartIndex = startIndex,
                 Length = length,
                 AttributeName = attributeName

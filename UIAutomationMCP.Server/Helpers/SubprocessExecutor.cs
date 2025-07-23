@@ -94,7 +94,7 @@ namespace UIAutomationMCP.Server.Helpers
                                 bool processResponding = true;
                                 try
                                 {
-                                    processResponding = _workerProcess.Responding;
+                                    processResponding = _workerProcess!.Responding;
                                 }
                                 catch
                                 {

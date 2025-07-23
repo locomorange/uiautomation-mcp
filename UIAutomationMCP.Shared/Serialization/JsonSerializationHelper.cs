@@ -106,6 +106,7 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(WorkerResponse<DesktopWindowsResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseDesktopWindowsResult,
                 Type t when t == typeof(WorkerResponse<TextInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTextInfoResult,
                 Type t when t == typeof(WorkerResponse<TextAttributesResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTextAttributesResult,
+                Type t when t == typeof(WorkerResponse<TextSearchResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTextSearchResult,
                 Type t when t == typeof(WorkerResponse<ElementTreeResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseElementTreeResult,
                 Type t when t == typeof(WorkerResponse<SearchElementsResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseSearchElementsResult,
                 Type t when t == typeof(WorkerResponse<ElementDetailResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseElementDetailResult,
@@ -128,6 +129,7 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(ProcessLaunchResponse) => (JsonTypeInfo<T>)(object)_context.ProcessLaunchResponse,
                 Type t when t == typeof(TextInfoResult) => (JsonTypeInfo<T>)(object)_context.TextInfoResult,
                 Type t when t == typeof(TextAttributesResult) => (JsonTypeInfo<T>)(object)_context.TextAttributesResult,
+                Type t when t == typeof(TextSearchResult) => (JsonTypeInfo<T>)(object)_context.TextSearchResult,
                 Type t when t == typeof(TextAttributeRange) => (JsonTypeInfo<T>)(object)_context.TextAttributeRange,
                 Type t when t == typeof(TextRangeAttributes) => (JsonTypeInfo<T>)(object)_context.TextRangeAttributes,
                 Type t when t == typeof(SearchElementsResult) => (JsonTypeInfo<T>)(object)_context.SearchElementsResult,
@@ -271,11 +273,13 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(FindItemResult))]
     [JsonSerializable(typeof(TextInfoResult))]
     [JsonSerializable(typeof(TextAttributesResult))]
+    [JsonSerializable(typeof(TextSearchResult))]
     [JsonSerializable(typeof(TextAttributeRange))]
     [JsonSerializable(typeof(TextRangeAttributes))]
     [JsonSerializable(typeof(TableInfoResult))]
     [JsonSerializable(typeof(WorkerResponse<TextInfoResult>))]
     [JsonSerializable(typeof(WorkerResponse<TextAttributesResult>))]
+    [JsonSerializable(typeof(WorkerResponse<TextSearchResult>))]
     // Basic types
     [JsonSerializable(typeof(string))]
     [JsonSerializable(typeof(int))]
