@@ -133,7 +133,7 @@ namespace UIAutomationMCP.Server.Tools
                 IncludeDetails = includeDetails
             };
             
-            return JsonSerializationHelper.Serialize(await _elementSearchService.SearchElementsAsync(request));
+            return JsonSerializationHelper.Serialize(await _elementSearchService.SearchElementsAsync(request, timeoutSeconds));
         }
 
 

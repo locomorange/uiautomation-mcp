@@ -51,9 +51,10 @@ namespace UIAutomationMCP.Server.Helpers
                 {
                     await EnsureWorkerProcessAsync();
                 
+                    var operationStartTime = DateTime.UtcNow;
                     // Direct type-safe serialization - no branching needed
                     string requestJson = JsonSerializationHelper.Serialize(request);
-                    _logger.LogInformation("Sending request to worker: {Request}", requestJson);
+                    _logger.LogInformation("Sending request to worker at {StartTime}: {Request}", operationStartTime, requestJson);
 
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
                     
@@ -77,6 +78,19 @@ namespace UIAutomationMCP.Server.Helpers
                         if (extendedCompletedTask == extendedTimeoutTask)
                         {
                             _logger.LogWarning("Worker operation still timed out after grace period of {GracePeriod}s: {Operation}", gracePeriod, operation);
+                            
+                            // Simple hang vs short timeout diagnosis based on process status
+                            var actualElapsed = (DateTime.UtcNow - operationStartTime).TotalSeconds;
+                            bool processAlive = _workerProcess?.HasExited == false;
+                            
+                            if (processAlive)
+                            {
+                                _logger.LogWarning("DIAGNOSIS: Likely SHORT TIMEOUT - Process responsive but time insufficient. Elapsed: {Elapsed:F1}s, Consider increasing timeout", actualElapsed);
+                            }
+                            else
+                            {
+                                _logger.LogWarning("DIAGNOSIS: Likely HANG - Worker process crashed or became unresponsive after {Elapsed:F1}s", actualElapsed);
+                            }
                             
                             cts.Cancel();
                             

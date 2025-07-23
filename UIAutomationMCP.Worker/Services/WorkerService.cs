@@ -91,7 +91,7 @@ namespace UIAutomationMCP.Worker.Services
         {
             try
             {
-                _logger.LogInformation("[Worker] Starting operation: {Operation}", operationName);
+                _logger.LogInformation("[Worker] Starting operation: {Operation} at {Time}", operationName, DateTime.UtcNow);
                 _logger.LogDebug("[Worker] Parameters: {Parameters}", parametersJson.Length > 200 ? parametersJson.Substring(0, 200) + "..." : parametersJson);
 
                 // Try to get the operation for this request
@@ -101,8 +101,8 @@ namespace UIAutomationMCP.Worker.Services
                     _logger.LogDebug("[Worker] Operation handler found: {OperationType}", operation.GetType().Name);
                     var operationResult = await operation.ExecuteAsync(parametersJson);
                     
-                    _logger.LogInformation("[Worker] Operation completed: {Operation}, Success: {Success}, Error: {Error}", 
-                        operationName, operationResult.Success, operationResult.Error ?? "None");
+                    _logger.LogInformation("[Worker] Operation completed: {Operation} at {Time}, Success: {Success}, Error: {Error}", 
+                        operationName, DateTime.UtcNow, operationResult.Success, operationResult.Error ?? "None");
                     
                     return new WorkerResponse<object> 
                     { 

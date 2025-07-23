@@ -209,7 +209,7 @@ namespace UIAutomationMCP.Server.Services
             }
         }
 
-        public async Task<ServerEnhancedResponse<SearchElementsResult>> SearchElementsAsync(SearchElementsRequest request)
+        public async Task<ServerEnhancedResponse<SearchElementsResult>> SearchElementsAsync(SearchElementsRequest request, int timeoutSeconds = 30)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
@@ -218,7 +218,7 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformationWithOperation(operationId, "Starting SearchElements operation");
 
-                var result = await _executor.ExecuteAsync<SearchElementsRequest, SearchElementsResult>("SearchElements", request, 30);
+                var result = await _executor.ExecuteAsync<SearchElementsRequest, SearchElementsResult>("SearchElements", request, timeoutSeconds);
                 
                 stopwatch.Stop();
                 
