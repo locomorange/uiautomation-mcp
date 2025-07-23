@@ -85,14 +85,42 @@ namespace UIAutomationMCP.Worker.Helpers
         {
             try
             {
-                // キャッシュ要素の場合、GetSupportedPatternsは使用できないので空配列を返す
                 if (useCached)
                 {
-                    return new string[0];
+                    // キャッシュ要素の場合、GetSupportedPatternsは使用できない
+                    // キャッシュされたパターンプロパティから推測する
+                    var patterns = new List<string>();
+                    
+                    // パターンプロパティの存在をチェックして推測
+                    try { if (element.GetCachedPattern(ValuePattern.Pattern) != null) patterns.Add("ValuePatternIdentifiers.Pattern"); } catch { }
+                    try { if (element.GetCachedPattern(TogglePattern.Pattern) != null) patterns.Add("TogglePatternIdentifiers.Pattern"); } catch { }
+                    try { if (element.GetCachedPattern(SelectionPattern.Pattern) != null) patterns.Add("SelectionPatternIdentifiers.Pattern"); } catch { }
+                    try { if (element.GetCachedPattern(RangeValuePattern.Pattern) != null) patterns.Add("RangeValuePatternIdentifiers.Pattern"); } catch { }
+                    try { if (element.GetCachedPattern(GridPattern.Pattern) != null) patterns.Add("GridPatternIdentifiers.Pattern"); } catch { }
+                    try { if (element.GetCachedPattern(TablePattern.Pattern) != null) patterns.Add("TablePatternIdentifiers.Pattern"); } catch { }
+                    try { if (element.GetCachedPattern(ScrollPattern.Pattern) != null) patterns.Add("ScrollPatternIdentifiers.Pattern"); } catch { }
+                    try { if (element.GetCachedPattern(TransformPattern.Pattern) != null) patterns.Add("TransformPatternIdentifiers.Pattern"); } catch { }
+                    try { if (element.GetCachedPattern(WindowPattern.Pattern) != null) patterns.Add("WindowPatternIdentifiers.Pattern"); } catch { }
+                    try { if (element.GetCachedPattern(ExpandCollapsePattern.Pattern) != null) patterns.Add("ExpandCollapsePatternIdentifiers.Pattern"); } catch { }
+                    try { if (element.GetCachedPattern(DockPattern.Pattern) != null) patterns.Add("DockPatternIdentifiers.Pattern"); } catch { }
+                    try { if (element.GetCachedPattern(MultipleViewPattern.Pattern) != null) patterns.Add("MultipleViewPatternIdentifiers.Pattern"); } catch { }
+                    try { if (element.GetCachedPattern(TextPattern.Pattern) != null) patterns.Add("TextPatternIdentifiers.Pattern"); } catch { }
+                    try { if (element.GetCachedPattern(GridItemPattern.Pattern) != null) patterns.Add("GridItemPatternIdentifiers.Pattern"); } catch { }
+                    try { if (element.GetCachedPattern(TableItemPattern.Pattern) != null) patterns.Add("TableItemPatternIdentifiers.Pattern"); } catch { }
+                    try { if (element.GetCachedPattern(InvokePattern.Pattern) != null) patterns.Add("InvokePatternIdentifiers.Pattern"); } catch { }
+                    try { if (element.GetCachedPattern(ScrollItemPattern.Pattern) != null) patterns.Add("ScrollItemPatternIdentifiers.Pattern"); } catch { }
+                    try { if (element.GetCachedPattern(VirtualizedItemPattern.Pattern) != null) patterns.Add("VirtualizedItemPatternIdentifiers.Pattern"); } catch { }
+                    try { if (element.GetCachedPattern(ItemContainerPattern.Pattern) != null) patterns.Add("ItemContainerPatternIdentifiers.Pattern"); } catch { }
+                    try { if (element.GetCachedPattern(SynchronizedInputPattern.Pattern) != null) patterns.Add("SynchronizedInputPatternIdentifiers.Pattern"); } catch { }
+                    
+                    return patterns.ToArray();
                 }
-                
-                var supportedPatterns = element.GetSupportedPatterns();
-                return supportedPatterns.Select(p => p.ProgrammaticName).ToArray();
+                else
+                {
+                    // 非キャッシュ要素の場合、GetSupportedPatternsを使用
+                    var supportedPatterns = element.GetSupportedPatterns();
+                    return supportedPatterns.Select(p => p.ProgrammaticName).ToArray();
+                }
             }
             catch (Exception)
             {

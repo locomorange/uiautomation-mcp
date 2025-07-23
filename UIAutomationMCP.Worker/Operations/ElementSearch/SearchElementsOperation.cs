@@ -237,6 +237,28 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             cacheRequest.Add(AutomationElement.CultureProperty);
             cacheRequest.Add(AutomationElement.OrientationProperty);
             
+            // Add patterns themselves for supportedPatterns detection
+            cacheRequest.Add(ValuePattern.Pattern);
+            cacheRequest.Add(TogglePattern.Pattern);
+            cacheRequest.Add(SelectionPattern.Pattern);
+            cacheRequest.Add(RangeValuePattern.Pattern);
+            cacheRequest.Add(GridPattern.Pattern);
+            cacheRequest.Add(TablePattern.Pattern);
+            cacheRequest.Add(ScrollPattern.Pattern);
+            cacheRequest.Add(TransformPattern.Pattern);
+            cacheRequest.Add(WindowPattern.Pattern);
+            cacheRequest.Add(ExpandCollapsePattern.Pattern);
+            cacheRequest.Add(DockPattern.Pattern);
+            cacheRequest.Add(MultipleViewPattern.Pattern);
+            cacheRequest.Add(TextPattern.Pattern);
+            cacheRequest.Add(GridItemPattern.Pattern);
+            cacheRequest.Add(TableItemPattern.Pattern);
+            cacheRequest.Add(InvokePattern.Pattern);
+            cacheRequest.Add(ScrollItemPattern.Pattern);
+            cacheRequest.Add(VirtualizedItemPattern.Pattern);
+            cacheRequest.Add(ItemContainerPattern.Pattern);
+            cacheRequest.Add(SynchronizedInputPattern.Pattern);
+            
             // Add pattern properties
             cacheRequest.Add(ValuePattern.ValueProperty);
             cacheRequest.Add(ValuePattern.IsReadOnlyProperty);
