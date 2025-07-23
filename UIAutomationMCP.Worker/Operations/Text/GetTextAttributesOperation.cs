@@ -25,9 +25,16 @@ namespace UIAutomationMCP.Worker.Operations.Text
 
         public Task<OperationResult> ExecuteAsync(string parametersJson)
         {
+            GetTextAttributesRequest? request = null;
             try
             {
-                var request = JsonSerializationHelper.Deserialize<GetTextAttributesRequest>(parametersJson)!;
+                request = JsonSerializationHelper.Deserialize<GetTextAttributesRequest>(parametersJson)!;
+                
+                // Validate required parameters early
+                if (string.IsNullOrWhiteSpace(request.AutomationId) && string.IsNullOrWhiteSpace(request.Name))
+                {
+                    return Task.FromResult(CreateErrorResult(request, "Either AutomationId or Name is required"));
+                }
                 
                 var element = _elementFinderService.FindElement(
                     automationId: request.AutomationId, 
@@ -40,10 +47,17 @@ namespace UIAutomationMCP.Worker.Operations.Text
                     return Task.FromResult(CreateErrorResult(request, "Element not found"));
                 }
 
-                if (!element.TryGetCurrentPattern(TextPattern.Pattern, out var pattern) || pattern is not TextPattern textPattern)
+                // Check if element supports TextPattern before proceeding
+                if (!IsTextPatternSupported(element))
                 {
                     _logger.LogWarning("Element does not support TextPattern: {AutomationId}", request.AutomationId);
-                    return Task.FromResult(CreateErrorResult(request, "Element does not support TextPattern"));
+                    return Task.FromResult(CreateErrorResult(request, 
+                        "Element does not support TextPattern - text attributes can only be retrieved from text controls (TextBox, RichTextBox, Document, etc.)"));
+                }
+
+                if (!element.TryGetCurrentPattern(TextPattern.Pattern, out var pattern) || pattern is not TextPattern textPattern)
+                {
+                    return Task.FromResult(CreateErrorResult(request, "Failed to obtain TextPattern from element"));
                 }
 
                 var result = ExtractTextAttributes(textPattern, request);
@@ -63,39 +77,67 @@ namespace UIAutomationMCP.Worker.Operations.Text
             }
             catch (InvalidOperationException ex)
             {
-                // Pattern-specific operation failed
-                _logger.LogWarning(ex, "Invalid operation for text attributes: {AutomationId}", request?.AutomationId);
-                return Task.FromResult(CreateErrorResult(request, $"Operation not supported: {ex.Message}"));
+                // TextPattern operations may not be valid for current element state
+                _logger.LogError(ex, "Invalid operation during text attributes retrieval: {AutomationId}", request?.AutomationId);
+                return Task.FromResult(CreateErrorResult(request, $"Text attributes operation is not valid for this element: {ex.Message}"));
+            }
+            catch (ArgumentException ex)
+            {
+                // Invalid parameters (e.g., range out of bounds)
+                _logger.LogError(ex, "Invalid argument in text attributes operation: {AutomationId}", request?.AutomationId);
+                return Task.FromResult(CreateErrorResult(request, $"Invalid parameter: {ex.Message}"));
             }
             catch (System.Runtime.InteropServices.COMException ex)
             {
-                // COM error - common in cross-process UI Automation
-                _logger.LogError(ex, "COM error during text attributes operation (HRESULT: 0x{ErrorCode:X8})", ex.ErrorCode);
-                
-                // Map common COM error codes to user-friendly messages
-                var errorMessage = ex.ErrorCode switch
-                {
-                    unchecked((int)0x80070005) => "Access denied - the target element may be in a different security context",
-                    unchecked((int)0x80040154) => "Class not registered - UI Automation provider not available",
-                    unchecked((int)0x800706BE) => "The remote procedure call failed - target application may have closed",
-                    unchecked((int)0x80004002) => "No such interface supported - the element may not support text operations",
-                    _ => $"UI Automation COM error (0x{ex.ErrorCode:X8}): {ex.Message}"
-                };
-                
+                // COM interop errors - common in UI Automation when accessing system-level elements
+                _logger.LogError(ex, "COM error during text attributes operation: HRESULT=0x{HResult:X8}", ex.HResult);
+                var errorMessage = GetCOMErrorMessage(ex);
                 return Task.FromResult(CreateErrorResult(request, errorMessage));
             }
-            catch (ArgumentOutOfRangeException ex)
+            catch (TimeoutException ex)
             {
-                // Range validation errors
-                _logger.LogWarning(ex, "Range validation error for text attributes: {AutomationId}", request?.AutomationId);
-                return Task.FromResult(CreateErrorResult(request, $"Invalid range specified: {ex.ParamName} - {ex.Message}"));
+                // Operation timed out
+                _logger.LogError(ex, "Timeout during text attributes operation: {AutomationId}", request?.AutomationId);
+                return Task.FromResult(CreateErrorResult(request, "Operation timed out - target application may be unresponsive"));
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                // Security/permission issues
+                _logger.LogError(ex, "Access denied during text attributes operation: {AutomationId}", request?.AutomationId);
+                return Task.FromResult(CreateErrorResult(request, "Access denied - insufficient permissions to access the element"));
             }
             catch (Exception ex)
             {
-                // Unexpected errors
-                _logger.LogError(ex, "Unexpected error during GetTextAttributes operation: {AutomationId}", request?.AutomationId);
+                _logger.LogError(ex, "Unexpected error in GetTextAttributes operation: {AutomationId}", request?.AutomationId);
                 return Task.FromResult(CreateErrorResult(request, $"Unexpected error: {ex.Message}"));
             }
+        }
+
+        private bool IsTextPatternSupported(AutomationElement element)
+        {
+            try
+            {
+                return (bool)element.GetCurrentPropertyValue(AutomationElement.IsTextPatternAvailableProperty, false);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private string GetCOMErrorMessage(System.Runtime.InteropServices.COMException ex)
+        {
+            return ex.HResult switch
+            {
+                unchecked((int)0x80070005) => "Access denied - the target element may be in a different security context or require elevated privileges",
+                unchecked((int)0x80040154) => "UI Automation service not available - component may not be registered",
+                unchecked((int)0x800706BE) => "Remote procedure call failed - target application may have closed or become unresponsive",
+                unchecked((int)0x80004002) => "Interface not supported - the element may not support text operations",
+                unchecked((int)0x8000FFFF) => "Unexpected system error - target application may be in an unstable state",
+                unchecked((int)0x80070057) => "Invalid parameter passed to UI Automation",
+                unchecked((int)0x8007000E) => "Out of memory - system resources may be low",
+                _ => $"UI Automation COM error (HRESULT: 0x{ex.HResult:X8}): {ex.Message}"
+            };
         }
 
         private OperationResult CreateErrorResult(GetTextAttributesRequest? request, string error)
@@ -187,17 +229,58 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 if (backgroundColor != 0)
                     attributes.BackgroundColor = $"#{backgroundColor:X6}";
 
-                // Text decorations - check for "None" as per Microsoft guidance
-                var underlineStyle = GetAttributeValue<object>(textRange, TextPattern.UnderlineStyleAttribute);
-                attributes.IsUnderline = underlineStyle != null && !string.Equals(underlineStyle.ToString(), "None", StringComparison.OrdinalIgnoreCase);
-                attributes.UnderlineStyle = underlineStyle?.ToString();
+                // Bold detection using FontWeight - handle MixedAttributeValue as per Microsoft guidance
+                var fontWeightValue = GetRawAttributeValue(textRange, TextPattern.FontWeightAttribute);
+                _logger.LogDebug("FontWeight raw value: {FontWeight} (Type: {Type})", fontWeightValue?.ToString(), fontWeightValue?.GetType().Name);
+                
+                // Handle MixedAttributeValue for FontWeight
+                if (ReferenceEquals(fontWeightValue, TextPattern.MixedAttributeValue))
+                {
+                    _logger.LogDebug("FontWeight is MixedAttributeValue, checking individual characters");
+                    attributes.IsBold = CheckMixedFontWeight(textRange);
+                    attributes.IsBoldMixed = true;
+                    attributes.FontWeightMixed = true;
+                }
+                else
+                {
+                    attributes.IsBold = DetermineBoldFromFontWeight(fontWeightValue);
+                    attributes.IsBoldMixed = false;
+                    attributes.FontWeightMixed = false;
+                }
+
+                // Check for mixed Italic
+                var italicValue = GetRawAttributeValue(textRange, TextPattern.IsItalicAttribute);
+                if (ReferenceEquals(italicValue, TextPattern.MixedAttributeValue))
+                {
+                    _logger.LogDebug("IsItalic is MixedAttributeValue");
+                    attributes.IsItalic = CheckMixedItalic(textRange);
+                    attributes.IsItalicMixed = true;
+                }
+                else
+                {
+                    attributes.IsItalic = GetAttributeValue<bool?>(textRange, TextPattern.IsItalicAttribute);
+                    attributes.IsItalicMixed = false;
+                }
+
+                // Check for mixed underline
+                var underlineValue = GetRawAttributeValue(textRange, TextPattern.UnderlineStyleAttribute);
+                if (ReferenceEquals(underlineValue, TextPattern.MixedAttributeValue))
+                {
+                    _logger.LogDebug("UnderlineStyle is MixedAttributeValue");
+                    attributes.IsUnderline = CheckMixedUnderline(textRange);
+                    attributes.IsUnderlineMixed = true;
+                }
+                else
+                {
+                    var underlineStyleValue = GetAttributeValue<object>(textRange, TextPattern.UnderlineStyleAttribute);
+                    attributes.IsUnderline = underlineStyleValue != null && !string.Equals(underlineStyleValue.ToString(), "None", StringComparison.OrdinalIgnoreCase);
+                    attributes.UnderlineStyle = underlineStyleValue?.ToString();
+                    attributes.IsUnderlineMixed = false;
+                }
 
                 var strikethroughStyle = GetAttributeValue<object>(textRange, TextPattern.StrikethroughStyleAttribute);
                 attributes.IsStrikethrough = strikethroughStyle != null && !string.Equals(strikethroughStyle.ToString(), "None", StringComparison.OrdinalIgnoreCase);
                 attributes.StrikethroughStyle = strikethroughStyle?.ToString();
-
-                // Bold detection using FontWeight - simplified as per Microsoft guidance
-                attributes.IsBold = DetermineBoldFromFontWeight(GetAttributeValue<object>(textRange, TextPattern.FontWeightAttribute));
 
                 // Other attributes
                 attributes.HorizontalTextAlignment = GetAttributeValue<object>(textRange, TextPattern.HorizontalTextAlignmentAttribute)?.ToString();
@@ -215,20 +298,31 @@ namespace UIAutomationMCP.Worker.Operations.Text
 
         private bool DetermineBoldFromFontWeight(object? fontWeight)
         {
-            if (fontWeight == null) return false;
+            _logger.LogDebug("DetermineBoldFromFontWeight called with: {FontWeight} (Type: {Type})", fontWeight?.ToString(), fontWeight?.GetType().Name);
+            
+            if (fontWeight == null) 
+            {
+                _logger.LogDebug("FontWeight is null, returning false");
+                return false;
+            }
 
             var weightStr = fontWeight.ToString() ?? "";
+            _logger.LogDebug("FontWeight string: '{WeightStr}'", weightStr);
             
             // Check for numeric values (700+ is bold as per Microsoft standards)
             if (int.TryParse(weightStr, out var numericWeight))
             {
+                _logger.LogDebug("Parsed numeric weight: {NumericWeight}, isBold: {IsBold}", numericWeight, numericWeight >= 700);
                 return numericWeight >= 700;
             }
             
             // Check for string patterns
-            return weightStr.Contains("Bold", StringComparison.OrdinalIgnoreCase) || 
+            var isBold = weightStr.Contains("Bold", StringComparison.OrdinalIgnoreCase) || 
                    weightStr.Contains("Heavy", StringComparison.OrdinalIgnoreCase) ||
                    weightStr.Contains("700") || weightStr.Contains("800") || weightStr.Contains("900");
+            
+            _logger.LogDebug("String pattern check result: {IsBold}", isBold);
+            return isBold;
         }
 
         private List<string> GetSupportedAttributes()
@@ -241,11 +335,187 @@ namespace UIAutomationMCP.Worker.Operations.Text
             };
         }
 
+        private object? GetRawAttributeValue(TextPatternRange textRange, AutomationTextAttribute attribute)
+        {
+            try
+            {
+                var value = textRange.GetAttributeValue(attribute);
+                _logger.LogDebug("Raw Attribute {Attribute}: Value={Value}, Type={Type}, IsMixed={IsMixed}, IsNotSupported={IsNotSupported}", 
+                    attribute.ProgrammaticName, 
+                    value?.ToString(), 
+                    value?.GetType().Name,
+                    ReferenceEquals(value, TextPattern.MixedAttributeValue),
+                    ReferenceEquals(value, AutomationElement.NotSupported));
+                return value;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Failed to get raw attribute {Attribute}", attribute.ProgrammaticName);
+                return null;
+            }
+        }
+
+        private bool CheckMixedFontWeight(TextPatternRange textRange)
+        {
+            try
+            {
+                _logger.LogDebug("Checking mixed font weight in range length: {Length}", textRange.GetText(-1).Length);
+                
+                // Check each character individually for bold
+                var text = textRange.GetText(-1);
+                bool foundBold = false;
+                
+                for (int i = 0; i < Math.Min(text.Length, 20); i++) // Limit to first 20 chars for performance
+                {
+                    try
+                    {
+                        var charRange = textRange.Move(TextUnit.Character, i);
+                        if (charRange != 0) // Successfully moved
+                        {
+                            var charTextRange = textRange.Clone();
+                            charTextRange.Move(TextUnit.Character, i);
+                            charTextRange.MoveEndpointByUnit(TextPatternRangeEndpoint.End, TextUnit.Character, 1);
+                            
+                            var charFontWeight = GetRawAttributeValue(charTextRange, TextPattern.FontWeightAttribute);
+                            if (!ReferenceEquals(charFontWeight, TextPattern.MixedAttributeValue) && 
+                                !ReferenceEquals(charFontWeight, AutomationElement.NotSupported))
+                            {
+                                if (DetermineBoldFromFontWeight(charFontWeight))
+                                {
+                                    _logger.LogDebug("Found bold character at position {Position}", i);
+                                    foundBold = true;
+                                    break; // Found at least one bold character
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug(ex, "Error checking character at position {Position}", i);
+                    }
+                }
+                
+                _logger.LogDebug("Mixed font weight check result: {FoundBold}", foundBold);
+                return foundBold;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Error in CheckMixedFontWeight");
+                return false;
+            }
+        }
+
+        private bool CheckMixedItalic(TextPatternRange textRange)
+        {
+            try
+            {
+                _logger.LogDebug("Checking mixed italic in range length: {Length}", textRange.GetText(-1).Length);
+                
+                var text = textRange.GetText(-1);
+                bool foundItalic = false;
+                
+                for (int i = 0; i < Math.Min(text.Length, 20); i++)
+                {
+                    try
+                    {
+                        var charRange = textRange.Move(TextUnit.Character, i);
+                        if (charRange != 0)
+                        {
+                            var charTextRange = textRange.Clone();
+                            charTextRange.Move(TextUnit.Character, i);
+                            charTextRange.MoveEndpointByUnit(TextPatternRangeEndpoint.End, TextUnit.Character, 1);
+                            
+                            var charIsItalic = GetRawAttributeValue(charTextRange, TextPattern.IsItalicAttribute);
+                            if (!ReferenceEquals(charIsItalic, TextPattern.MixedAttributeValue) && 
+                                !ReferenceEquals(charIsItalic, AutomationElement.NotSupported))
+                            {
+                                if (charIsItalic is bool italic && italic)
+                                {
+                                    _logger.LogDebug("Found italic character at position {Position}", i);
+                                    foundItalic = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug(ex, "Error checking italic at position {Position}", i);
+                    }
+                }
+                
+                _logger.LogDebug("Mixed italic check result: {FoundItalic}", foundItalic);
+                return foundItalic;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Error in CheckMixedItalic");
+                return false;
+            }
+        }
+
+        private bool CheckMixedUnderline(TextPatternRange textRange)
+        {
+            try
+            {
+                _logger.LogDebug("Checking mixed underline in range length: {Length}", textRange.GetText(-1).Length);
+                
+                var text = textRange.GetText(-1);
+                bool foundUnderline = false;
+                
+                for (int i = 0; i < Math.Min(text.Length, 20); i++)
+                {
+                    try
+                    {
+                        var charRange = textRange.Move(TextUnit.Character, i);
+                        if (charRange != 0)
+                        {
+                            var charTextRange = textRange.Clone();
+                            charTextRange.Move(TextUnit.Character, i);
+                            charTextRange.MoveEndpointByUnit(TextPatternRangeEndpoint.End, TextUnit.Character, 1);
+                            
+                            var charUnderline = GetRawAttributeValue(charTextRange, TextPattern.UnderlineStyleAttribute);
+                            if (!ReferenceEquals(charUnderline, TextPattern.MixedAttributeValue) && 
+                                !ReferenceEquals(charUnderline, AutomationElement.NotSupported))
+                            {
+                                if (charUnderline != null && !string.Equals(charUnderline.ToString(), "None", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    _logger.LogDebug("Found underlined character at position {Position}", i);
+                                    foundUnderline = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug(ex, "Error checking underline at position {Position}", i);
+                    }
+                }
+                
+                _logger.LogDebug("Mixed underline check result: {FoundUnderline}", foundUnderline);
+                return foundUnderline;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Error in CheckMixedUnderline");
+                return false;
+            }
+        }
+
         private T GetAttributeValue<T>(TextPatternRange textRange, AutomationTextAttribute attribute)
         {
             try
             {
                 var value = textRange.GetAttributeValue(attribute);
+                
+                // Log for debugging
+                _logger.LogDebug("Attribute {Attribute}: Value={Value}, Type={Type}, IsMixed={IsMixed}, IsNotSupported={IsNotSupported}", 
+                    attribute.ProgrammaticName, 
+                    value?.ToString(), 
+                    value?.GetType().Name,
+                    ReferenceEquals(value, TextPattern.MixedAttributeValue),
+                    ReferenceEquals(value, AutomationElement.NotSupported));
                 
                 // Handle special cases like MixedAttributeValue and NotSupported
                 if (ReferenceEquals(value, TextPattern.MixedAttributeValue) || 

@@ -16,11 +16,20 @@ namespace UIAutomationMCP.Shared.Results
         [JsonPropertyName("fontWeight")]
         public string? FontWeight { get; set; }
 
+        [JsonPropertyName("fontWeightMixed")]
+        public bool? FontWeightMixed { get; set; }
+
         [JsonPropertyName("isItalic")]
         public bool? IsItalic { get; set; }
 
+        [JsonPropertyName("isItalicMixed")]
+        public bool? IsItalicMixed { get; set; }
+
         [JsonPropertyName("isBold")]
         public bool? IsBold { get; set; }
+
+        [JsonPropertyName("isBoldMixed")]
+        public bool? IsBoldMixed { get; set; }
 
         [JsonPropertyName("foregroundColor")]
         public string? ForegroundColor { get; set; }
@@ -30,6 +39,9 @@ namespace UIAutomationMCP.Shared.Results
 
         [JsonPropertyName("isUnderline")]
         public bool? IsUnderline { get; set; }
+
+        [JsonPropertyName("isUnderlineMixed")]
+        public bool? IsUnderlineMixed { get; set; }
 
         [JsonPropertyName("underlineStyle")]
         public string? UnderlineStyle { get; set; }
