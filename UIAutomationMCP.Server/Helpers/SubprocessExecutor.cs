@@ -79,17 +79,36 @@ namespace UIAutomationMCP.Server.Helpers
                         {
                             _logger.LogWarning("Worker operation still timed out after grace period of {GracePeriod}s: {Operation}", gracePeriod, operation);
                             
-                            // Simple hang vs short timeout diagnosis based on process status
+                            // Advanced hang vs short timeout diagnosis
                             var actualElapsed = (DateTime.UtcNow - operationStartTime).TotalSeconds;
+                            var totalTime = timeoutSeconds + gracePeriod;
                             bool processAlive = _workerProcess?.HasExited == false;
                             
-                            if (processAlive)
+                            if (!processAlive)
                             {
-                                _logger.LogWarning("DIAGNOSIS: Likely SHORT TIMEOUT - Process responsive but time insufficient. Elapsed: {Elapsed:F1}s, Consider increasing timeout", actualElapsed);
+                                _logger.LogWarning("DIAGNOSIS: HANG - Worker process crashed or terminated after {Elapsed:F1}s", actualElapsed);
                             }
                             else
                             {
-                                _logger.LogWarning("DIAGNOSIS: Likely HANG - Worker process crashed or became unresponsive after {Elapsed:F1}s", actualElapsed);
+                                // Simple diagnosis based purely on process responsiveness
+                                bool processResponding = true;
+                                try
+                                {
+                                    processResponding = _workerProcess.Responding;
+                                }
+                                catch
+                                {
+                                    processResponding = false;
+                                }
+
+                                if (processResponding)
+                                {
+                                    _logger.LogWarning("DIAGNOSIS: SHORT TIMEOUT - Process is responsive, just need more time. Elapsed: {Elapsed:F1}s, Consider increasing timeout", actualElapsed);
+                                }
+                                else
+                                {
+                                    _logger.LogWarning("DIAGNOSIS: HANG - Process alive but not responding after {Elapsed:F1}s. Likely deadlock or infinite loop", actualElapsed);
+                                }
                             }
                             
                             cts.Cancel();
@@ -452,6 +471,7 @@ namespace UIAutomationMCP.Server.Helpers
             
             await StartWorkerProcessAsync();
         }
+
 
         public void Dispose()
         {
