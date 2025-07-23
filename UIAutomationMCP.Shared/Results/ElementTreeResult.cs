@@ -100,7 +100,7 @@ namespace UIAutomationMCP.Shared.Results
             LocalizedControlType = elementInfo.LocalizedControlType;
             ClassName = elementInfo.ClassName;
             ProcessId = elementInfo.ProcessId;
-            ParentProcessId = elementInfo.ParentProcessId;
+            MainProcessId = elementInfo.MainProcessId;
             BoundingRectangle = elementInfo.BoundingRectangle;
             IsEnabled = elementInfo.IsEnabled;
             IsVisible = elementInfo.IsVisible;
