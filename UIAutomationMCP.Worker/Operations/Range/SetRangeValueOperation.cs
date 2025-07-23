@@ -33,7 +33,8 @@ namespace UIAutomationMCP.Worker.Operations.Range
                     name: typedRequest.Name, 
                     controlType: typedRequest.ControlType, 
                     windowTitle: typedRequest.WindowTitle, 
-                    processId: typedRequest.ProcessId ?? 0);
+                    processId: typedRequest.ProcessId ?? 0,
+                    timeoutMs: typedRequest.TimeoutSeconds * 1000);
                 
                 if (element == null)
                 {

@@ -31,6 +31,7 @@ namespace UIAutomationMCP.Worker.Operations.Toggle
                     name: typedRequest.Name,
                     controlType: typedRequest.ControlType,
                     processId: typedRequest.ProcessId,
+                    timeoutMs: typedRequest.TimeoutSeconds * 1000,
                     requiredPattern: TogglePattern.Pattern);
                 if (element == null)
                 {

@@ -50,7 +50,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 return null;
             }
 
-            var searchRoot = GetSearchRoot(windowTitle ?? "", processId ?? 0);
+            var searchRoot = GetSearchRoot(windowTitle ?? "", processId ?? 0, timeoutMs / 1000);
             
             // Prevent searching from RootElement without scope limitation
             if (searchRoot == null && string.IsNullOrEmpty(windowTitle) && (processId ?? 0) == 0)
@@ -354,8 +354,9 @@ namespace UIAutomationMCP.Worker.Helpers
         /// </summary>
         /// <param name="windowTitle">ウィンドウタイトル</param>
         /// <param name="processId">プロセスID</param>
+        /// <param name="timeoutSeconds">検索タイムアウト（秒、デフォルト: 5秒）</param>
         /// <returns>検索ルート要素またはnull</returns>
-        public AutomationElement? GetSearchRoot(string windowTitle, int processId)
+        public AutomationElement? GetSearchRoot(string windowTitle, int processId, int timeoutSeconds = 5)
         {
             if (processId > 0)
             {
@@ -387,7 +388,7 @@ namespace UIAutomationMCP.Worker.Helpers
                         
                         _logger?.LogDebug("No window found for process ID: {ProcessId}", processId);
                         return null;
-                    }, $"GetSearchRoot-ProcessId-{processId}", 5); // 5 second timeout for more thorough search
+                    }, $"GetSearchRoot-ProcessId-{processId}", timeoutSeconds);
                 }
                 catch (TimeoutException ex)
                 {
@@ -410,7 +411,7 @@ namespace UIAutomationMCP.Worker.Helpers
                     return UIAutomationEnvironment.ExecuteWithTimeout(() =>
                     {
                         return AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
-                    }, $"GetSearchRoot-WindowTitle", 3); // 3 second timeout
+                    }, $"GetSearchRoot-WindowTitle", timeoutSeconds);
                 }
                 catch (TimeoutException ex)
                 {
@@ -499,7 +500,7 @@ namespace UIAutomationMCP.Worker.Helpers
         /// <returns>見つかった要素のコレクション</returns>
         public AutomationElementCollection FindElementsAdvanced(AdvancedSearchParameters searchParams)
         {
-            var searchRoot = GetSearchRoot(searchParams.WindowTitle ?? "", searchParams.ProcessId ?? 0);
+            var searchRoot = GetSearchRoot(searchParams.WindowTitle ?? "", searchParams.ProcessId ?? 0, searchParams.TimeoutMs / 1000);
             
             // If a specific processId was requested but no window was found, return empty collection
             // instead of searching the entire desktop (which is slow and not what the user wants)

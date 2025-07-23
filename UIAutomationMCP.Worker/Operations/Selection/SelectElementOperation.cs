@@ -32,7 +32,8 @@ namespace UIAutomationMCP.Worker.Operations.Selection
                     automationId: typedRequest.AutomationId, 
                     name: typedRequest.Name,
                     controlType: typedRequest.ControlType,
-                    processId: typedRequest.ProcessId);
+                    processId: typedRequest.ProcessId,
+                    timeoutMs: typedRequest.TimeoutSeconds * 1000);
                 
                 if (element == null)
                 {
