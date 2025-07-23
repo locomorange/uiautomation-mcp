@@ -19,6 +19,7 @@ namespace UIAutomationMCP.Shared.Results
         
         [JsonPropertyName("processId")]
         public int ProcessId { get; set; }
+        
         [JsonPropertyName("textAttributes")]
         public TextAttributes TextAttributes { get; set; } = new();
         
@@ -34,20 +35,16 @@ namespace UIAutomationMCP.Shared.Results
         [JsonPropertyName("pattern")]
         public string? Pattern { get; set; }
         
-        [JsonPropertyName("attributeRanges")]
-        public List<TextAttributeRange> AttributeRanges { get; set; } = new();
-        
         [JsonPropertyName("hasAttributes")]
         public bool HasAttributes { get; set; }
         
-        
         [JsonPropertyName("supportedAttributes")]
         public List<string> SupportedAttributes { get; set; } = new();
-        
-        [JsonPropertyName("textRanges")]
-        public List<TextRangeAttributes> TextRanges { get; set; } = new();
     }
 
+    /// <summary>
+    /// Simplified text range with minimal redundancy - contains only positional and textual information
+    /// </summary>
     public class TextAttributeRange
     {
         [JsonPropertyName("startIndex")]
@@ -67,35 +64,5 @@ namespace UIAutomationMCP.Shared.Results
         
         [JsonPropertyName("boundingRectangle")]
         public BoundingRectangle BoundingRectangle { get; set; } = new();
-        
-        [JsonPropertyName("fontName")]
-        public string? FontName { get; set; }
-        
-        [JsonPropertyName("fontSize")]
-        public double FontSize { get; set; }
-        
-        [JsonPropertyName("fontWeight")]
-        public string? FontWeight { get; set; }
-        
-        [JsonPropertyName("fontStyle")]
-        public string? FontStyle { get; set; }
-        
-        [JsonPropertyName("foregroundColor")]
-        public string? ForegroundColor { get; set; }
-        
-        [JsonPropertyName("backgroundColor")]
-        public string? BackgroundColor { get; set; }
-        
-        [JsonPropertyName("isUnderline")]
-        public bool IsUnderline { get; set; }
-        
-        [JsonPropertyName("isStrikethrough")]
-        public bool IsStrikethrough { get; set; }
-        
-        [JsonPropertyName("isItalic")]
-        public bool IsItalic { get; set; }
-        
-        [JsonPropertyName("isBold")]
-        public bool IsBold { get; set; }
     }
 }
