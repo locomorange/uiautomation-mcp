@@ -121,23 +121,20 @@ namespace UIAutomationMCP.Shared.Results
     /// </summary>
     public class EventLogResult : BaseOperationResult
     {
-        /// <summary>
-        /// Events in the log
-        /// </summary>
+        [JsonPropertyName("monitorId")]
+        public string MonitorId { get; set; } = "";
+
         [JsonPropertyName("events")]
         public List<EventData> Events { get; set; } = new();
 
-        /// <summary>
-        /// Total number of events in log
-        /// </summary>
-        [JsonPropertyName("totalEvents")]
-        public int TotalEvents => Events.Count;
+        [JsonPropertyName("totalEventCount")]
+        public int TotalEventCount { get; set; }
 
-        /// <summary>
-        /// Time range of events
-        /// </summary>
-        [JsonPropertyName("timeRange")]
-        public EventTimeRange TimeRange { get; set; } = new();
+        [JsonPropertyName("sessionActive")]
+        public bool SessionActive { get; set; }
+
+        [JsonPropertyName("startTime")]
+        public DateTime StartTime { get; set; }
     }
 
     /// <summary>

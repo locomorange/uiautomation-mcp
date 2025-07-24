@@ -112,6 +112,10 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(WorkerResponse<ElementDetailResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseElementDetailResult,
                 Type t when t == typeof(WorkerResponse<TableInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTableInfoResult,
                 Type t when t == typeof(WorkerResponse<object>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseObject,
+                Type t when t == typeof(WorkerResponse<EventMonitoringResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseEventMonitoringResult,
+                Type t when t == typeof(WorkerResponse<EventMonitoringStartResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseEventMonitoringStartResult,
+                Type t when t == typeof(WorkerResponse<EventMonitoringStopResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseEventMonitoringStopResult,
+                Type t when t == typeof(WorkerResponse<EventLogResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseEventLogResult,
 
                 // Result types (consolidated from GetResultTypeInfo)
                 Type t when t == typeof(ScreenshotResult) => (JsonTypeInfo<T>)(object)_context.ScreenshotResult,
@@ -136,6 +140,14 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(SearchElementsResult) => (JsonTypeInfo<T>)(object)_context.SearchElementsResult,
                 Type t when t == typeof(ElementDetailResult) => (JsonTypeInfo<T>)(object)_context.ElementDetailResult,
                 Type t when t == typeof(TableInfoResult) => (JsonTypeInfo<T>)(object)_context.TableInfoResult,
+                
+                // EventMonitor Result types
+                Type t when t == typeof(EventMonitoringResult) => (JsonTypeInfo<T>)(object)_context.EventMonitoringResult,
+                Type t when t == typeof(EventMonitoringStartResult) => (JsonTypeInfo<T>)(object)_context.EventMonitoringStartResult,
+                Type t when t == typeof(EventMonitoringStopResult) => (JsonTypeInfo<T>)(object)_context.EventMonitoringStopResult,
+                Type t when t == typeof(EventLogResult) => (JsonTypeInfo<T>)(object)_context.EventLogResult,
+                Type t when t == typeof(EventData) => (JsonTypeInfo<T>)(object)_context.EventData,
+                Type t when t == typeof(EventTimeRange) => (JsonTypeInfo<T>)(object)_context.EventTimeRange,
 
                 // Request types (consolidated from GetRequestTypeInfo)
                 Type t when t == typeof(InvokeElementRequest) => (JsonTypeInfo<T>)(object)_context.InvokeElementRequest,
@@ -211,6 +223,12 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(SearchElementsRequest) => (JsonTypeInfo<T>)(object)_context.SearchElementsRequest,
                 Type t when t == typeof(GetElementDetailsRequest) => (JsonTypeInfo<T>)(object)_context.GetElementDetailsRequest,
                 Type t when t == typeof(ElementDetails) => (JsonTypeInfo<T>)(object)_context.ElementDetails,
+                
+                // EventMonitor Request types
+                Type t when t == typeof(MonitorEventsRequest) => (JsonTypeInfo<T>)(object)_context.MonitorEventsRequest,
+                Type t when t == typeof(StartEventMonitoringRequest) => (JsonTypeInfo<T>)(object)_context.StartEventMonitoringRequest,
+                Type t when t == typeof(StopEventMonitoringRequest) => (JsonTypeInfo<T>)(object)_context.StopEventMonitoringRequest,
+                Type t when t == typeof(GetEventLogRequest) => (JsonTypeInfo<T>)(object)_context.GetEventLogRequest,
 
                 // ServerEnhancedResponse types
                 Type t when t == typeof(ServerEnhancedResponse<ElementTreeResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseElementTreeResult,
@@ -227,6 +245,10 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(ServerEnhancedResponse<TableInfoResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTableInfoResult,
                 Type t when t == typeof(ServerEnhancedResponse<TextSearchResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTextSearchResult,
                 Type t when t == typeof(ServerEnhancedResponse<TextAttributesResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTextAttributesResult,
+                Type t when t == typeof(ServerEnhancedResponse<EventMonitoringResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseEventMonitoringResult,
+                Type t when t == typeof(ServerEnhancedResponse<EventMonitoringStartResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseEventMonitoringStartResult,
+                Type t when t == typeof(ServerEnhancedResponse<EventMonitoringStopResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseEventMonitoringStopResult,
+                Type t when t == typeof(ServerEnhancedResponse<EventLogResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseEventLogResult,
 
                 // Basic types
                 Type t when t == typeof(Dictionary<string, object>) => (JsonTypeInfo<T>)(object)_context.DictionaryStringObject,
@@ -284,6 +306,10 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(WorkerResponse<TextInfoResult>))]
     [JsonSerializable(typeof(WorkerResponse<TextAttributesResult>))]
     [JsonSerializable(typeof(WorkerResponse<TextSearchResult>))]
+    [JsonSerializable(typeof(WorkerResponse<EventMonitoringResult>))]
+    [JsonSerializable(typeof(WorkerResponse<EventMonitoringStartResult>))]
+    [JsonSerializable(typeof(WorkerResponse<EventMonitoringStopResult>))]
+    [JsonSerializable(typeof(WorkerResponse<EventLogResult>))]
     // Basic types
     [JsonSerializable(typeof(string))]
     [JsonSerializable(typeof(int))]
@@ -357,6 +383,11 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(SelectElementRequest))]
     [JsonSerializable(typeof(SelectItemRequest))]
     [JsonSerializable(typeof(SetFocusRequest))]
+    // EventMonitor Request types
+    [JsonSerializable(typeof(MonitorEventsRequest))]
+    [JsonSerializable(typeof(StartEventMonitoringRequest))]
+    [JsonSerializable(typeof(StopEventMonitoringRequest))]
+    [JsonSerializable(typeof(GetEventLogRequest))]
     [JsonSerializable(typeof(GetElementPropertiesRequest))]
     [JsonSerializable(typeof(GetElementPatternsRequest))]
     [JsonSerializable(typeof(ValidateControlTypePatternsRequest))]
@@ -399,6 +430,18 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(ServerEnhancedResponse<TableInfoResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<TextSearchResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<TextAttributesResult>))]
+    // EventMonitor Result types
+    [JsonSerializable(typeof(EventMonitoringResult))]
+    [JsonSerializable(typeof(EventMonitoringStartResult))]
+    [JsonSerializable(typeof(EventMonitoringStopResult))]
+    [JsonSerializable(typeof(EventLogResult))]
+    [JsonSerializable(typeof(EventData))]
+    [JsonSerializable(typeof(EventTimeRange))]
+    // EventMonitor ServerEnhanced types
+    [JsonSerializable(typeof(ServerEnhancedResponse<EventMonitoringResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<EventMonitoringStartResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<EventMonitoringStopResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<EventLogResult>))]
     [JsonSerializable(typeof(ProcessLaunchResponse))]
     [JsonSerializable(typeof(ServerExecutionInfo))]
     [JsonSerializable(typeof(RequestMetadata))]
