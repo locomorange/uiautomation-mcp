@@ -777,20 +777,23 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Name of the element to monitor (optional, fallback identifier)")] string? name = null,
             [Description("ControlType to filter by (optional, Any, Button, Edit, etc.)")] string? controlType = null,
             [Description("Process ID to limit search scope (optional)")] int? processId = null,
+            [Description("Timeout in seconds")] int timeoutSeconds = 60,
             [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
             => JsonSerializationHelper.Serialize(await _eventMonitorService.StartEventMonitoringAsync(
-                eventType, automationId: elementId ?? automationId, name: name, controlType: controlType, processId: processId));
+                eventType, automationId: elementId ?? automationId, name: name, controlType: controlType, processId: processId, timeoutSeconds: timeoutSeconds));
 
         [McpServerTool, Description("Stop continuous event monitoring")]
         public async Task<object> StopEventMonitoring(
-            [Description("Session ID returned from StartEventMonitoring")] string? sessionId = null)
-            => JsonSerializationHelper.Serialize(await _eventMonitorService.StopEventMonitoringAsync(sessionId));
+            [Description("Session ID returned from StartEventMonitoring")] string? sessionId = null,
+            [Description("Timeout in seconds")] int timeoutSeconds = 60)
+            => JsonSerializationHelper.Serialize(await _eventMonitorService.StopEventMonitoringAsync(sessionId, timeoutSeconds));
 
         [McpServerTool, Description("Get the current event log")]
         public async Task<object> GetEventLog(
             [Description("Session ID returned from StartEventMonitoring")] string? sessionId = null,
-            [Description("Maximum number of events to retrieve")] int maxCount = 100)
-            => JsonSerializationHelper.Serialize(await _eventMonitorService.GetEventLogAsync(sessionId, maxCount));
+            [Description("Maximum number of events to retrieve")] int maxCount = 100,
+            [Description("Timeout in seconds")] int timeoutSeconds = 60)
+            => JsonSerializationHelper.Serialize(await _eventMonitorService.GetEventLogAsync(sessionId, maxCount, timeoutSeconds));
 
         // Window Capabilities and State
 

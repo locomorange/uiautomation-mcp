@@ -23,6 +23,9 @@ namespace UIAutomationMCP.Server.Services
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
+            // Ensure sufficient timeout for event monitoring operations
+            var timeoutSeconds = Math.Max(duration + 60, 90); // Minimum 90 seconds or duration + 60
+            
             try
             {
                 _logger.LogInformationWithOperation(operationId, $"Starting MonitorEvents for EventType={eventType}, Duration={duration}, AutomationId={automationId}, Name={name}, ControlType={controlType}");
@@ -38,7 +41,7 @@ namespace UIAutomationMCP.Server.Services
                     ProcessId = processId
                 };
 
-                var result = await _executor.ExecuteAsync<MonitorEventsRequest, EventMonitoringResult>("MonitorEvents", request, duration + 30); // Add buffer to timeout
+                var result = await _executor.ExecuteAsync<MonitorEventsRequest, EventMonitoringResult>("MonitorEvents", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 
@@ -73,7 +76,7 @@ namespace UIAutomationMCP.Server.Services
                             ["controlType"] = controlType ?? "",
                             ["processId"] = request.ProcessId ?? 0
                         },
-                        TimeoutSeconds = duration + 30
+                        TimeoutSeconds = timeoutSeconds
                     }
                 };
 
@@ -103,20 +106,20 @@ namespace UIAutomationMCP.Server.Services
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "MonitorEventsAsync",
-                        TimeoutSeconds = duration + 30
+                        TimeoutSeconds = timeoutSeconds
                     }
                 };
             }
         }
 
-        public async Task<ServerEnhancedResponse<EventMonitoringStartResult>> StartEventMonitoringAsync(string eventType, string? automationId = null, string? name = null, string? controlType = null, int? processId = null)
+        public async Task<ServerEnhancedResponse<EventMonitoringStartResult>> StartEventMonitoringAsync(string eventType, string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 60)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting StartEventMonitoring for EventType={eventType}, AutomationId={automationId}, Name={name}, ControlType={controlType}");
+                _logger.LogInformationWithOperation(operationId, $"[EventMonitor] Starting StartEventMonitoring - EventType={eventType}, AutomationId={automationId ?? "null"}, Name={name ?? "null"}, ControlType={controlType ?? "null"}, ProcessId={processId?.ToString() ?? "null"}, TimeoutSeconds={timeoutSeconds}");
 
                 var request = new StartEventMonitoringRequest
                 {
@@ -128,13 +131,18 @@ namespace UIAutomationMCP.Server.Services
                     ProcessId = processId
                 };
 
-                var result = await _executor.ExecuteAsync<StartEventMonitoringRequest, EventMonitoringStartResult>("StartEventMonitoring", request, 30);
+                _logger.LogInformationWithOperation(operationId, $"[EventMonitor] Serialized request: EventTypes=[{string.Join(", ", request.EventTypes)}], AutomationId={request.AutomationId ?? "null"}, Name={request.Name ?? "null"}, ControlType={request.ControlType ?? "null"}, ProcessId={request.ProcessId?.ToString() ?? "null"}");
+                _logger.LogInformationWithOperation(operationId, $"[EventMonitor] Calling _executor.ExecuteAsync with operation='StartEventMonitoring', timeoutSeconds={timeoutSeconds}");
+
+                var result = await _executor.ExecuteAsync<StartEventMonitoringRequest, EventMonitoringStartResult>("StartEventMonitoring", request, timeoutSeconds);
+
+                _logger.LogInformationWithOperation(operationId, $"[EventMonitor] _executor.ExecuteAsync completed - Success={result?.Success}, SessionId={result?.SessionId ?? "null"}, ErrorMessage={result?.ErrorMessage ?? "null"}");
 
                 stopwatch.Stop();
                 
                 var serverResponse = new ServerEnhancedResponse<EventMonitoringStartResult>
                 {
-                    Success = result.Success,
+                    Success = result?.Success ?? false,
                     Data = result,
                     ExecutionInfo = new ServerExecutionInfo
                     {
@@ -161,11 +169,11 @@ namespace UIAutomationMCP.Server.Services
                             ["controlType"] = controlType ?? "",
                             ["processId"] = request.ProcessId ?? 0
                         },
-                        TimeoutSeconds = 30
+                        TimeoutSeconds = timeoutSeconds
                     }
                 };
 
-                if (!result.Success)
+                if (result != null && !result.Success)
                 {
                     serverResponse.ErrorMessage = result.ErrorMessage;
                     _logger.LogWarningWithOperation(operationId, $"StartEventMonitoring failed: {result.ErrorMessage}");
@@ -191,27 +199,27 @@ namespace UIAutomationMCP.Server.Services
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "StartEventMonitoringAsync",
-                        TimeoutSeconds = 30
+                        TimeoutSeconds = timeoutSeconds
                     }
                 };
             }
         }
 
-        public async Task<ServerEnhancedResponse<EventMonitoringStopResult>> StopEventMonitoringAsync()
+        public async Task<ServerEnhancedResponse<EventMonitoringStopResult>> StopEventMonitoringAsync(string? sessionId = null, int timeoutSeconds = 60)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, "Starting StopEventMonitoring");
+                _logger.LogInformationWithOperation(operationId, $"Starting StopEventMonitoring for session: {sessionId ?? "null"}");
 
                 var request = new StopEventMonitoringRequest
                 {
-                    MonitorId = ""
+                    MonitorId = sessionId ?? ""
                 };
 
-                var result = await _executor.ExecuteAsync<StopEventMonitoringRequest, EventMonitoringStopResult>("StopEventMonitoring", request, 30);
+                var result = await _executor.ExecuteAsync<StopEventMonitoringRequest, EventMonitoringStopResult>("StopEventMonitoring", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 
@@ -232,7 +240,7 @@ namespace UIAutomationMCP.Server.Services
                         {
                             ["monitorId"] = request.MonitorId
                         },
-                        TimeoutSeconds = 30
+                        TimeoutSeconds = timeoutSeconds
                     }
                 };
 
@@ -262,28 +270,28 @@ namespace UIAutomationMCP.Server.Services
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "StopEventMonitoringAsync",
-                        TimeoutSeconds = 30
+                        TimeoutSeconds = timeoutSeconds
                     }
                 };
             }
         }
 
-        public async Task<ServerEnhancedResponse<EventLogResult>> GetEventLogAsync()
+        public async Task<ServerEnhancedResponse<EventLogResult>> GetEventLogAsync(string? sessionId = null, int maxCount = 100, int timeoutSeconds = 60)
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
             
             try
             {
-                _logger.LogInformationWithOperation(operationId, "Starting GetEventLog");
+                _logger.LogInformationWithOperation(operationId, $"Starting GetEventLog for session: {sessionId ?? "null"}");
 
                 var request = new GetEventLogRequest
                 {
-                    MonitorId = "",
-                    MaxCount = 100
+                    MonitorId = sessionId ?? "",
+                    MaxCount = maxCount
                 };
 
-                var result = await _executor.ExecuteAsync<GetEventLogRequest, EventLogResult>("GetEventLog", request, 30);
+                var result = await _executor.ExecuteAsync<GetEventLogRequest, EventLogResult>("GetEventLog", request, timeoutSeconds);
 
                 stopwatch.Stop();
                 
@@ -305,7 +313,7 @@ namespace UIAutomationMCP.Server.Services
                             ["monitorId"] = request.MonitorId,
                             ["maxCount"] = request.MaxCount
                         },
-                        TimeoutSeconds = 30
+                        TimeoutSeconds = timeoutSeconds
                     }
                 };
 
@@ -335,7 +343,7 @@ namespace UIAutomationMCP.Server.Services
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "GetEventLogAsync",
-                        TimeoutSeconds = 30
+                        TimeoutSeconds = timeoutSeconds
                     }
                 };
             }

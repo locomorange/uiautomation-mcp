@@ -20,19 +20,19 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
             _logger = logger;
         }
 
-        public async Task<OperationResult> ExecuteAsync(string parametersJson)
+        public Task<OperationResult> ExecuteAsync(string parametersJson)
         {
             try
             {
                 var request = JsonSerializationHelper.Deserialize<GetEventLogRequest>(parametersJson);
                 if (request == null)
                 {
-                    return new OperationResult 
+                    return Task.FromResult(new OperationResult 
                     { 
                         Success = false, 
                         Error = "Failed to deserialize GetEventLogRequest",
                         Data = new EventLogResult()
-                    };
+                    });
                 }
 
                 _logger.LogInformation($"Getting event log for session: {request.MonitorId}. Available sessions: {string.Join(", ", StartEventMonitoringOperation.GetActiveSessions().Select(s => s.SessionId))}");
@@ -48,12 +48,12 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
                         Events = new List<EventData>()
                     };
 
-                    return new OperationResult 
+                    return Task.FromResult(new OperationResult 
                     { 
                         Success = false, 
                         Error = $"Session not found: {request.MonitorId}",
                         Data = errorResult
-                    };
+                    });
                 }
 
                 // MS Learn推奨: スレッドセーフなデータ取得
@@ -71,21 +71,21 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
 
                 _logger.LogInformation($"Retrieved {events.Count} events from session {request.MonitorId}");
 
-                return new OperationResult 
+                return Task.FromResult(new OperationResult 
                 { 
                     Success = true, 
                     Data = result
-                };
+                });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "GetEventLog operation failed");
-                return new OperationResult 
+                return Task.FromResult(new OperationResult 
                 { 
                     Success = false, 
                     Error = $"GetEventLog failed: {ex.Message}",
                     Data = new EventLogResult()
-                };
+                });
             }
         }
     }

@@ -20,19 +20,19 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
             _logger = logger;
         }
 
-        public async Task<OperationResult> ExecuteAsync(string parametersJson)
+        public Task<OperationResult> ExecuteAsync(string parametersJson)
         {
             try
             {
                 var request = JsonSerializationHelper.Deserialize<StopEventMonitoringRequest>(parametersJson);
                 if (request == null)
                 {
-                    return new OperationResult 
+                    return Task.FromResult(new OperationResult 
                     { 
                         Success = false, 
                         Error = "Failed to deserialize StopEventMonitoringRequest",
                         Data = new EventMonitoringResult()
-                    };
+                    });
                 }
 
                 _logger.LogInformation($"Stopping event monitoring session: {request.MonitorId}");
@@ -48,12 +48,12 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
                         MonitoringStatus = $"Event monitoring session not found: {request.MonitorId}"
                     };
 
-                    return new OperationResult 
+                    return Task.FromResult(new OperationResult 
                     { 
                         Success = false, 
                         Error = $"Session not found: {request.MonitorId}",
                         Data = errorResult
-                    };
+                    });
                 }
 
                 // MS Learn推奨: 適切なリソース解放
@@ -72,21 +72,21 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
 
                 _logger.LogInformation($"Successfully stopped event monitoring session {request.MonitorId} with {eventCount} events");
 
-                return new OperationResult 
+                return Task.FromResult(new OperationResult 
                 { 
                     Success = true, 
                     Data = result
-                };
+                });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "StopEventMonitoring operation failed");
-                return new OperationResult 
+                return Task.FromResult(new OperationResult 
                 { 
                     Success = false, 
                     Error = $"StopEventMonitoring failed: {ex.Message}",
                     Data = new EventMonitoringResult()
-                };
+                });
             }
         }
     }
