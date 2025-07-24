@@ -1,23 +1,21 @@
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Shared.Abstractions;
 using UIAutomationMCP.Shared.Results;
-using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Requests;
-using System;
-using System.Diagnostics;
+using UIAutomationMCP.Shared.Validation;
+using UIAutomationMCP.Shared.Metadata;
 
 namespace UIAutomationMCP.Server.Services
 {
-    public class FocusService : IFocusService
+    public class FocusService : BaseUIAutomationService<FocusServiceMetadata>, IFocusService
     {
-        private readonly ILogger<FocusService> _logger;
-        private readonly SubprocessExecutor _executor;
-
-        public FocusService(ILogger<FocusService> logger, SubprocessExecutor executor)
+        public FocusService(IOperationExecutor executor, ILogger<FocusService> logger)
+            : base(executor, logger)
         {
-            _logger = logger;
-            _executor = executor;
         }
+
+        protected override string GetOperationType() => "focus";
 
         public async Task<ServerEnhancedResponse<ActionResult>> SetFocusAsync(
             string? automationId = null, 
@@ -27,76 +25,37 @@ namespace UIAutomationMCP.Server.Services
             int? processId = null, 
             int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            try
+            var request = new SetFocusRequest
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting SetFocus for AutomationId={automationId}, Name={name}, ControlType={controlType}, RequiredPattern={requiredPattern}");
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                ProcessId = processId,
+                RequiredPattern = requiredPattern
+            };
 
-                var request = new SetFocusRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    ControlType = controlType,
-                    ProcessId = processId,
-                    RequiredPattern = requiredPattern
-                };
+            return await ExecuteServiceOperationAsync<SetFocusRequest, ActionResult>(
+                "SetFocus",
+                request,
+                nameof(SetFocusAsync),
+                timeoutSeconds
+            );
+        }
 
-                var result = await _executor.ExecuteAsync<SetFocusRequest, ActionResult>("SetFocus", request, timeoutSeconds);
+        protected override FocusServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
+        {
+            var metadata = base.CreateSuccessMetadata(data, context);
 
-                stopwatch.Stop();
-                
-                var serverResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = result.Success,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerExecutedAt = DateTime.UtcNow,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "SetFocus",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-
-                _logger.LogInformationWithOperation(operationId, "Successfully created enhanced response");
-                
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
-                
-                return serverResponse;
-            }
-            catch (Exception ex)
+            if (data is ActionResult actionResult)
             {
-                stopwatch.Stop();
-                _logger.LogErrorWithOperation(operationId, ex, "Error executing SetFocus operation");
+                metadata.FocusSuccessful = actionResult.Success;
                 
-                var errorResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "SetFocus",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
-                
-                return errorResponse;
+                // Extract focus target information from request context if available
+                // Note: In a more advanced implementation, we could access the original request
+                // through the context to populate target element information
             }
+
+            return metadata;
         }
     }
 }

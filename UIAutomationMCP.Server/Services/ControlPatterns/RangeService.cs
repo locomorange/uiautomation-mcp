@@ -1,209 +1,112 @@
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Shared.Abstractions;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
-using System.Diagnostics;
+using UIAutomationMCP.Shared.Validation;
+using UIAutomationMCP.Shared.Metadata;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
-    public class RangeService : IRangeService
+    public class RangeService : BaseUIAutomationService<RangeServiceMetadata>, IRangeService
     {
-        private readonly ILogger<RangeService> _logger;
-        private readonly SubprocessExecutor _executor;
-
-        public RangeService(ILogger<RangeService> logger, SubprocessExecutor executor)
+        public RangeService(IOperationExecutor executor, ILogger<RangeService> logger)
+            : base(executor, logger)
         {
-            _logger = logger;
-            _executor = executor;
         }
 
-        public async Task<ServerEnhancedResponse<ActionResult>> SetRangeValueAsync(string? automationId = null, string? name = null, double value = 0, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
+        protected override string GetOperationType() => "range";
+
+        public async Task<ServerEnhancedResponse<ActionResult>> SetRangeValueAsync(
+            string? automationId = null, 
+            string? name = null, 
+            double value = 0, 
+            string? controlType = null, 
+            int? processId = null, 
+            int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
+            var request = new SetRangeValueRequest
+            {
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                Value = value,
+                ProcessId = processId ?? 0
+            };
+
+            return await ExecuteServiceOperationAsync<SetRangeValueRequest, ActionResult>(
+                "SetRangeValue",
+                request,
+                nameof(SetRangeValueAsync),
+                timeoutSeconds,
+                ValidateElementIdentificationRequest
+            );
+        }
+
+        public async Task<ServerEnhancedResponse<RangeValueResult>> GetRangeValueAsync(
+            string? automationId = null, 
+            string? name = null, 
+            string? controlType = null, 
+            int? processId = null, 
+            int timeoutSeconds = 30)
+        {
+            var request = new GetRangeValueRequest
+            {
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                ProcessId = processId ?? 0
+            };
+
+            return await ExecuteServiceOperationAsync<GetRangeValueRequest, RangeValueResult>(
+                "GetRangeValue",
+                request,
+                nameof(GetRangeValueAsync),
+                timeoutSeconds,
+                ValidateElementIdentificationRequest
+            );
+        }
+
+        private static ValidationResult ValidateElementIdentificationRequest<T>(T request) where T : class
+        {
+            // Use reflection to check common properties for element identification
+            var automationIdProp = typeof(T).GetProperty("AutomationId");
+            var nameProp = typeof(T).GetProperty("Name");
+
+            var automationId = automationIdProp?.GetValue(request) as string;
+            var name = nameProp?.GetValue(request) as string;
+
             if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Either AutomationId or Name is required";
-                _logger.LogWarningWithOperation(operationId, $"SetRangeValue validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "SetRangeValue",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
-                return validationResponse;
+                return ValidationResult.Failure("Either AutomationId or Name is required for element identification");
             }
 
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Starting SetRangeValue: AutomationId={automationId}, Name={name}, Value={value}");
-
-                var request = new SetRangeValueRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    ControlType = controlType,
-                    Value = value,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<SetRangeValueRequest, ActionResult>("SetRangeValue", request, timeoutSeconds);
-
-                stopwatch.Stop();
-                
-                var serverResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = result.Success,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "SetRangeValue",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-
-                _logger.LogInformationWithOperation(operationId, $"Successfully set range value for element (AutomationId: {automationId}, Name: {name})");
-                
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
-                
-                return serverResponse;
-            }
-            catch (Exception ex)
-            {
-                stopwatch.Stop();
-                _logger.LogErrorWithOperation(operationId, ex, "Error in SetRangeValue operation");
-                
-                var errorResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "SetRangeValue",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
-                
-                return errorResponse;
-            }
+            return ValidationResult.Success;
         }
 
-        public async Task<ServerEnhancedResponse<RangeValueResult>> GetRangeValueAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
+        protected override RangeServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
+            var metadata = base.CreateSuccessMetadata(data, context);
+
+            if (data is ActionResult actionResult)
             {
-                var validationError = "Either AutomationId or Name is required";
-                _logger.LogWarningWithOperation(operationId, $"GetRangeValue validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<RangeValueResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetRangeValue",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
+                metadata.ActionPerformed = "rangeValueSet";
+                metadata.OperationSuccessful = actionResult.Success;
+                // Range value would need to be extracted from request context if needed
             }
-            
-            try
+            else if (data is RangeValueResult rangeResult)
             {
-                _logger.LogInformationWithOperation(operationId, $"Getting range value for element (AutomationId: {automationId}, Name: {name})");
-
-                var request = new GetRangeValueRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    ControlType = controlType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<GetRangeValueRequest, RangeValueResult>("GetRangeValue", request, timeoutSeconds);
-
-                var response = new ServerEnhancedResponse<RangeValueResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetRangeValue",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-
-                _logger.LogInformationWithOperation(operationId, $"Successfully retrieved range value for element (AutomationId: {automationId}, Name: {name})");
-                return response;
+                metadata.ActionPerformed = "rangeValueRetrieved";
+                metadata.RangeValue = rangeResult.Value;
+                metadata.MinimumValue = rangeResult.Minimum;
+                metadata.MaximumValue = rangeResult.Maximum;
+                metadata.SmallChange = rangeResult.SmallChange;
+                metadata.LargeChange = rangeResult.LargeChange;
+                metadata.IsReadOnly = rangeResult.IsReadOnly;
+                metadata.OperationSuccessful = true;
             }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<RangeValueResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetRangeValue",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get range value for element (AutomationId: {automationId}, Name: {name})");
-                return errorResponse;
-            }
+
+            return metadata;
         }
-
     }
 }

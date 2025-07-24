@@ -289,4 +289,178 @@ namespace UIAutomationMCP.Shared.Metadata
         [JsonPropertyName("commandLineArguments")]
         public string? CommandLineArguments { get; set; }
     }
+
+    /// <summary>
+    /// Metadata for control type validation operations
+    /// </summary>
+    public class ControlTypeServiceMetadata : ServiceMetadata
+    {
+        /// <summary>
+        /// The specific action performed (e.g., "controlTypePatternsValidated")
+        /// </summary>
+        [JsonPropertyName("actionPerformed")]
+        public string ActionPerformed { get; set; } = "controlTypePatternsValidated";
+
+        /// <summary>
+        /// Number of elements found during validation
+        /// </summary>
+        [JsonPropertyName("elementsFound")]
+        public int? ElementsFound { get; set; }
+
+        /// <summary>
+        /// The control type that was validated
+        /// </summary>
+        [JsonPropertyName("controlType")]
+        public string? ControlType { get; set; }
+
+        /// <summary>
+        /// Whether validation was successful
+        /// </summary>
+        [JsonPropertyName("validationSuccessful")]
+        public bool ValidationSuccessful { get; set; } = true;
+
+        /// <summary>
+        /// Number of supported patterns found
+        /// </summary>
+        [JsonPropertyName("supportedPatternsCount")]
+        public int? SupportedPatternsCount { get; set; }
+    }
+
+    /// <summary>
+    /// Metadata for focus management operations
+    /// </summary>
+    public class FocusServiceMetadata : ServiceMetadata
+    {
+        /// <summary>
+        /// The specific action performed (always "focusSet" for focus operations)
+        /// </summary>
+        [JsonPropertyName("actionPerformed")]
+        public string ActionPerformed { get; set; } = "focusSet";
+
+        /// <summary>
+        /// The automation ID of the element that received focus
+        /// </summary>
+        [JsonPropertyName("targetAutomationId")]
+        public string? TargetAutomationId { get; set; }
+
+        /// <summary>
+        /// The name of the element that received focus
+        /// </summary>
+        [JsonPropertyName("targetElementName")]
+        public string? TargetElementName { get; set; }
+
+        /// <summary>
+        /// The control type of the focused element
+        /// </summary>
+        [JsonPropertyName("targetControlType")]
+        public string? TargetControlType { get; set; }
+
+        /// <summary>
+        /// The required pattern that was validated
+        /// </summary>
+        [JsonPropertyName("requiredPattern")]
+        public string? RequiredPattern { get; set; }
+
+        /// <summary>
+        /// Whether focus was successfully set
+        /// </summary>
+        [JsonPropertyName("focusSuccessful")]
+        public bool FocusSuccessful { get; set; } = true;
+    }
+
+    /// <summary>
+    /// Metadata for custom property operations
+    /// </summary>
+    public class CustomPropertyServiceMetadata : ServiceMetadata
+    {
+        /// <summary>
+        /// The specific action performed (e.g., "customPropertiesRetrieved", "customPropertySet")
+        /// </summary>
+        [JsonPropertyName("actionPerformed")]
+        public string ActionPerformed { get; set; } = "";
+
+        /// <summary>
+        /// Number of elements found
+        /// </summary>
+        [JsonPropertyName("elementsFound")]
+        public int? ElementsFound { get; set; }
+
+        /// <summary>
+        /// Number of custom properties retrieved or set
+        /// </summary>
+        [JsonPropertyName("propertiesCount")]
+        public int? PropertiesCount { get; set; }
+
+        /// <summary>
+        /// The property ID that was accessed (for set operations)
+        /// </summary>
+        [JsonPropertyName("propertyId")]
+        public string? PropertyId { get; set; }
+
+        /// <summary>
+        /// The value that was set (for set operations)
+        /// </summary>
+        [JsonPropertyName("propertyValue")]
+        public string? PropertyValue { get; set; }
+
+        /// <summary>
+        /// Whether the operation was successful
+        /// </summary>
+        [JsonPropertyName("operationSuccessful")]
+        public bool OperationSuccessful { get; set; } = true;
+    }
+
+    /// <summary>
+    /// Metadata for range value operations
+    /// </summary>
+    public class RangeServiceMetadata : ServiceMetadata
+    {
+        /// <summary>
+        /// The specific action performed (e.g., "rangeValueSet", "rangeValueRetrieved")
+        /// </summary>
+        [JsonPropertyName("actionPerformed")]
+        public string ActionPerformed { get; set; } = "";
+
+        /// <summary>
+        /// The value that was set or retrieved
+        /// </summary>
+        [JsonPropertyName("rangeValue")]
+        public double? RangeValue { get; set; }
+
+        /// <summary>
+        /// The minimum value of the range
+        /// </summary>
+        [JsonPropertyName("minimumValue")]
+        public double? MinimumValue { get; set; }
+
+        /// <summary>
+        /// The maximum value of the range
+        /// </summary>
+        [JsonPropertyName("maximumValue")]
+        public double? MaximumValue { get; set; }
+
+        /// <summary>
+        /// The small change value for the range
+        /// </summary>
+        [JsonPropertyName("smallChange")]
+        public double? SmallChange { get; set; }
+
+        /// <summary>
+        /// The large change value for the range
+        /// </summary>
+        [JsonPropertyName("largeChange")]
+        public double? LargeChange { get; set; }
+
+        /// <summary>
+        /// Whether the range is read-only
+        /// </summary>
+        [JsonPropertyName("isReadOnly")]
+        public bool? IsReadOnly { get; set; }
+
+        /// <summary>
+        /// Whether the operation was successful
+        /// </summary>
+        [JsonPropertyName("operationSuccessful")]
+        public bool OperationSuccessful { get; set; } = true;
+    }
 }

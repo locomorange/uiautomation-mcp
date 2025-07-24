@@ -1,22 +1,21 @@
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Shared.Abstractions;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
-using System.Diagnostics;
+using UIAutomationMCP.Shared.Validation;
+using UIAutomationMCP.Shared.Metadata;
 
 namespace UIAutomationMCP.Server.Services
 {
-    public class ControlTypeService : IControlTypeService
+    public class ControlTypeService : BaseUIAutomationService<ControlTypeServiceMetadata>, IControlTypeService
     {
-        private readonly ILogger<ControlTypeService> _logger;
-        private readonly SubprocessExecutor _executor;
-
-        public ControlTypeService(ILogger<ControlTypeService> logger, SubprocessExecutor executor)
+        public ControlTypeService(IOperationExecutor executor, ILogger<ControlTypeService> logger)
+            : base(executor, logger)
         {
-            _logger = logger;
-            _executor = executor;
         }
 
+        protected override string GetOperationType() => "controlType";
 
         public async Task<ServerEnhancedResponse<ElementSearchResult>> ValidateControlTypePatternsAsync(
             string? automationId = null, 
@@ -25,91 +24,52 @@ namespace UIAutomationMCP.Server.Services
             int? processId = null, 
             int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
+            var request = new ValidateControlTypePatternsRequest
             {
-                var validationError = "Either AutomationId or Name is required for element identification";
-                _logger.LogWarningWithOperation(operationId, $"ValidateControlTypePatterns validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "ValidateControlTypePatterns",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Validating control type patterns for AutomationId={automationId}, Name={name}, ControlType={controlType}");
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                ProcessId = processId
+            };
 
-                var request = new ValidateControlTypePatternsRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    ControlType = controlType,
-                    ProcessId = processId
-                };
-
-                var result = await _executor.ExecuteAsync<ValidateControlTypePatternsRequest, ElementSearchResult>("ValidateControlTypePatterns", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "ValidateControlTypePatterns",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Control type patterns validated successfully for AutomationId={automationId}, Name={name}, ControlType={controlType}");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "ValidateControlTypePatterns",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to validate control type patterns for AutomationId={automationId}, Name={name}, ControlType={controlType}");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<ValidateControlTypePatternsRequest, ElementSearchResult>(
+                "ValidateControlTypePatterns",
+                request,
+                nameof(ValidateControlTypePatternsAsync),
+                timeoutSeconds,
+                ValidateControlTypePatternsRequest
+            );
         }
 
+        private static ValidationResult ValidateControlTypePatternsRequest(ValidateControlTypePatternsRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.AutomationId) && string.IsNullOrWhiteSpace(request.Name))
+            {
+                return ValidationResult.Failure("Either AutomationId or Name is required for element identification");
+            }
+
+            return ValidationResult.Success;
+        }
+
+        protected override ControlTypeServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
+        {
+            var metadata = base.CreateSuccessMetadata(data, context);
+
+            if (data is ElementSearchResult searchResult)
+            {
+                metadata.ElementsFound = searchResult.Count;
+                metadata.ValidationSuccessful = searchResult.Count > 0;
+                
+                // Extract control type from the first result if available
+                if (searchResult.Items?.Count > 0)
+                {
+                    var firstItem = searchResult.Items[0];
+                    metadata.ControlType = firstItem.ControlType;
+                    metadata.SupportedPatternsCount = firstItem.SupportedPatterns?.Length ?? 0;
+                }
+            }
+
+            return metadata;
+        }
     }
 }
