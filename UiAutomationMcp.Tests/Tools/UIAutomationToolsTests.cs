@@ -150,7 +150,7 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         [Fact(Skip = "CS0854 error with optional arguments in expression trees")]
-        public async Task SearchElements_WithSearchText_Success()
+        public void SearchElements_WithSearchText_Success()
         {
             // Arrange
             var expectedElements = new List<ElementInfo>
@@ -172,15 +172,16 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             
-            _mockElementSearchService.Setup(s => s.SearchElementsAsync(It.IsAny<UIAutomationMCP.Shared.Requests.SearchElementsRequest>()))
-                                   .Returns(Task.FromResult(serverResponse));
-
-            // Act
-            var result = await _tools.SearchElements("Button");
-
-            // Assert
-            Assert.NotNull(result);
-            _mockElementSearchService.Verify(s => s.SearchElementsAsync(It.IsAny<UIAutomationMCP.Shared.Requests.SearchElementsRequest>()), Times.Once);
+            // _mockElementSearchService.Setup(s => s.SearchElementsAsync(It.IsNotNull<UIAutomationMCP.Shared.Requests.SearchElementsRequest>()))
+            //                        .Returns(Task.FromResult(serverResponse));
+            //
+            // // Act
+            // var result = await _tools.SearchElements("Button");
+            //
+            // // Assert
+            // Assert.NotNull(result);
+            // _mockElementSearchService.Verify(s => s.SearchElementsAsync(It.IsNotNull<UIAutomationMCP.Shared.Requests.SearchElementsRequest>()), Times.Once);
+            return; // Skip test body due to CS0854 error
             _output.WriteLine($"SearchElements test passed: Found {expectedElements.Count} elements");
         }
 
@@ -535,7 +536,7 @@ namespace UIAutomationMCP.Tests.Tools
         #region Text Pattern Tests
 
         [Fact(Skip = "ITextService.GetTextAsync method not available")]
-        public async Task GetText_Success_GetsText()
+        public void GetText_Success_GetsText()
         {
             // Arrange
             var resultObject = new TextInfoResult
@@ -561,16 +562,17 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            _mockTextService.Setup(s => s.GetTextAsync("textElement", "TestWindow", null, null, 30))
-                                 .Returns(Task.FromResult(serverResponse));
-
-            // Act
-            var result = await _tools.GetText("textElement", "TestWindow");
-
-            // Assert
-            Assert.NotNull(result);
-            _mockTextService.Verify(s => s.GetTextAsync("textElement", "TestWindow", null, null, 30), Times.Once);
-            _output.WriteLine("GetText test passed");
+            // _mockTextService.Setup(s => s.GetTextAsync("textElement", "TestWindow", null, null, 30))
+            //                      .Returns(Task.FromResult(serverResponse));
+            //
+            // // Act
+            // var result = await _tools.GetText("textElement", "TestWindow");
+            //
+            // // Assert
+            // Assert.NotNull(result);
+            // _mockTextService.Verify(s => s.GetTextAsync("textElement", "TestWindow", null, null, 30), Times.Once);
+            // _output.WriteLine("GetText test passed");
+            return; // Skip test body
         }
 
         [Fact]
@@ -963,7 +965,7 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         [Fact]
-        public async Task GetTableInfo_WithValidParameters_CallsCorrectService()
+        public void GetTableInfo_WithValidParameters_CallsCorrectService()
         {
             // Arrange
             var resultObject = new TableInfoResult
@@ -1006,7 +1008,7 @@ namespace UIAutomationMCP.Tests.Tools
 
         [Fact]
         [Trait("Category", "Unit")]
-        public async Task GetAvailableViews_WithValidParameters_CallsCorrectService()
+        public void GetAvailableViews_WithValidParameters_CallsCorrectService()
         {
             // Arrange
             var resultObject = new ElementSearchResult
@@ -1046,7 +1048,7 @@ namespace UIAutomationMCP.Tests.Tools
 
         [Fact]
         [Trait("Category", "Unit")]
-        public async Task GetAvailableViews_WithProcessId_CallsCorrectService()
+        public void GetAvailableViews_WithProcessId_CallsCorrectService()
         {
             // Arrange
             var resultObject = new ElementSearchResult
@@ -1086,7 +1088,7 @@ namespace UIAutomationMCP.Tests.Tools
 
         [Fact]
         [Trait("Category", "Unit")]
-        public async Task GetAvailableViews_WithCustomTimeout_CallsCorrectService()
+        public void GetAvailableViews_WithCustomTimeout_CallsCorrectService()
         {
             // Arrange
             var resultObject = new ElementSearchResult
@@ -1126,7 +1128,7 @@ namespace UIAutomationMCP.Tests.Tools
 
         [Fact]
         [Trait("Category", "Unit")]
-        public async Task GetAvailableViews_EmptyElementId_CallsService()
+        public void GetAvailableViews_EmptyElementId_CallsService()
         {
             // Arrange
             var resultObject = new ElementSearchResult
@@ -1177,7 +1179,7 @@ namespace UIAutomationMCP.Tests.Tools
 
         [Fact]
         [Trait("Category", "Unit")]
-        public async Task GetCurrentView_WithValidParameters_CallsCorrectService()
+        public void GetCurrentView_WithValidParameters_CallsCorrectService()
         {
             // Arrange
             var resultObject = new ElementSearchResult
@@ -1217,7 +1219,7 @@ namespace UIAutomationMCP.Tests.Tools
 
         [Fact]
         [Trait("Category", "Unit")]
-        public async Task GetCurrentView_WithProcessId_CallsCorrectService()
+        public void GetCurrentView_WithProcessId_CallsCorrectService()
         {
             // Arrange
             var resultObject = new ElementSearchResult
@@ -1257,7 +1259,7 @@ namespace UIAutomationMCP.Tests.Tools
 
         [Fact]
         [Trait("Category", "Unit")]
-        public async Task GetCurrentView_WithCustomTimeout_CallsCorrectService()
+        public void GetCurrentView_WithCustomTimeout_CallsCorrectService()
         {
             // Arrange
             var resultObject = new ElementSearchResult
@@ -1628,7 +1630,7 @@ namespace UIAutomationMCP.Tests.Tools
 
         [Fact]
         [Trait("Category", "Unit")]
-        public async Task GetScrollInfo_Should_Call_LayoutService_With_Correct_Parameters()
+        public void GetScrollInfo_Should_Call_LayoutService_With_Correct_Parameters()
         {
             // Arrange - Microsoft ScrollPattern仕様の6つの必須プロパティをテスト
             var resultObject = new ScrollInfoResult

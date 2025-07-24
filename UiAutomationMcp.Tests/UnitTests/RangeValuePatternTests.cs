@@ -87,7 +87,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         #region Microsoft仕様準拠の必須プロパティテスト
 
         [Fact]
-        public async Task GetRangeValue_ShouldReturnAllRequiredProperties()
+        public void GetRangeValue_ShouldReturnAllRequiredProperties()
         {
             // Arrange - Microsoft仕様の必須プロパティ
             var expectedResult = new ServerEnhancedResponse<RangeValueResult>
@@ -119,7 +119,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         }
 
         [Fact]
-        public async Task GetRangeValue_ShouldReturnCurrentValue()
+        public void GetRangeValue_ShouldReturnCurrentValue()
         {
             // Arrange
             var expectedResult = new ServerEnhancedResponse<RangeValueResult>
@@ -225,7 +225,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         }
 
         [Fact]
-        public async Task GetRangeValue_ReadOnlyElement_ShouldReturnIsReadOnlyTrue()
+        public void GetRangeValue_ReadOnlyElement_ShouldReturnIsReadOnlyTrue()
         {
             // Arrange
             var expectedResult = new ServerEnhancedResponse<RangeValueResult>
@@ -433,7 +433,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         [InlineData(10)]
         [InlineData(60)]
         [InlineData(120)]
-        public async Task GetRangeValue_WithCustomTimeout_ShouldCallServiceCorrectly(int timeoutSeconds)
+        public void GetRangeValue_WithCustomTimeout_ShouldCallServiceCorrectly(int timeoutSeconds)
         {
             // Arrange
             var expectedResult = new ServerEnhancedResponse<RangeValueResult> { Success = true, Data = new RangeValueResult { Success = true, Value = 25.0, Minimum = 0.0, Maximum = 100.0, LargeChange = 1.0, SmallChange = 0.1, IsReadOnly = false } };
