@@ -4,6 +4,7 @@ using System.Text.Json;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Serialization;
 using UIAutomationMCP.Shared.ErrorHandling;
+using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Worker.Contracts;
 
 namespace UIAutomationMCP.Worker.Services
@@ -105,12 +106,27 @@ namespace UIAutomationMCP.Worker.Services
                     _logger.LogInformation("[Worker] Operation completed: {Operation} at {Time}, Success: {Success}, Error: {Error}", 
                         operationName, DateTime.UtcNow, operationResult.Success, operationResult.Error ?? "None");
                     
-                    return new WorkerResponse<object> 
-                    { 
-                        Success = operationResult.Success, 
-                        Data = operationResult.Data, 
-                        Error = operationResult.Error 
-                    };
+                    if (operationResult.Success)
+                    {
+                        return WorkerResponse<object>.CreateSuccess(operationResult.Data!);
+                    }
+                    else
+                    {
+                        // If the operation result data is ErrorResult, use it; otherwise create a generic error
+                        if (operationResult.Data is ErrorResult errorResult)
+                        {
+                            return WorkerResponse<object>.CreateError(errorResult);
+                        }
+                        else
+                        {
+                            var genericError = ErrorResult.CreateGenericError(
+                                operationName, 
+                                "", 
+                                "OperationFailure", 
+                                operationResult.Error);
+                            return WorkerResponse<object>.CreateError(genericError);
+                        }
+                    }
                 }
 
                 // All operations are now handled by operation classes
@@ -123,12 +139,7 @@ namespace UIAutomationMCP.Worker.Services
                 var errorResult = ErrorHandlerRegistry.HandleException(ex, operationName, 
                     logAction: (exc, op, elemId, excType) => _logger.LogError(exc, "{Operation} operation failed for element: {ElementId}. Exception: {ExceptionType}", op, elemId, excType));
                 
-                return new WorkerResponse<object> 
-                { 
-                    Success = false, 
-                    Error = errorResult.Error,
-                    Data = errorResult
-                };
+                return WorkerResponse<object>.CreateError(errorResult);
             }
         }
 

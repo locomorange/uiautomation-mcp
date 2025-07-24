@@ -324,6 +324,9 @@ namespace UIAutomationMCP.Shared
         
         [JsonPropertyName("error")]
         public string? Error { get; set; }
+        
+        [JsonPropertyName("errorDetails")]
+        public Results.ErrorResult? ErrorDetails { get; set; }
 
         /// <summary>
         /// Create success response
@@ -347,7 +350,22 @@ namespace UIAutomationMCP.Shared
             {
                 Success = false,
                 Data = default,
-                Error = error
+                Error = error,
+                ErrorDetails = null
+            };
+        }
+        
+        /// <summary>
+        /// Create error response with structured error details
+        /// </summary>
+        public static WorkerResponse<T> CreateError(Results.ErrorResult errorDetails)
+        {
+            return new WorkerResponse<T>
+            {
+                Success = false,
+                Data = default,
+                Error = errorDetails.Error,
+                ErrorDetails = errorDetails
             };
         }
     }
@@ -366,5 +384,10 @@ namespace UIAutomationMCP.Shared
         /// Alias for object type WorkerResponse
         /// </summary>
         public static WorkerResponse<object> CreateError(string error) => WorkerResponse<object>.CreateError(error);
+        
+        /// <summary>
+        /// Alias for object type WorkerResponse with structured error details
+        /// </summary>
+        public static WorkerResponse<object> CreateError(Results.ErrorResult errorDetails) => WorkerResponse<object>.CreateError(errorDetails);
     }
 }

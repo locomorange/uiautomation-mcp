@@ -39,11 +39,12 @@ namespace UIAutomationMCP.Server.Helpers
         {
             try
             {
-                _logger.LogInformation($"[SubprocessExecutor] ExecuteAsync started - Operation: {operation}, RequestType: {typeof(TRequest).Name}, ResultType: {typeof(TResult).Name}, TimeoutSeconds: {timeoutSeconds}");
+                _logger.LogInformation("[SubprocessExecutor] Operation started: {Operation} with RequestType: {RequestType}, ResultType: {ResultType}, Timeout: {TimeoutSeconds}s", 
+                    operation, typeof(TRequest).Name, typeof(TResult).Name, timeoutSeconds);
                 
                 if (_disposed)
                 {
-                    _logger.LogError($"[SubprocessExecutor] SubprocessExecutor is disposed");
+                    _logger.LogError("[SubprocessExecutor] SubprocessExecutor is disposed for operation: {Operation}", operation);
                     throw new ObjectDisposedException(nameof(SubprocessExecutor));
                 }
                 
@@ -237,9 +238,7 @@ namespace UIAutomationMCP.Server.Helpers
                             Operation = operation,
                             RequestJson = requestJson,
                             Error = response.Error,
-                            ErrorIsNull = response.Error == null,
-                            ErrorIsEmpty = string.IsNullOrEmpty(response.Error),
-                            Data = response.Data,
+                            ErrorDetails = response.ErrorDetails,
                             Timestamp = DateTime.UtcNow,
                             WorkerPid = _workerProcess?.Id
                         };
@@ -250,32 +249,68 @@ namespace UIAutomationMCP.Server.Helpers
                         var contextualErrorMessage = $"Worker operation '{operation}' failed: {errorMessage}";
                         contextualErrorMessage += $" (JSON: {GetParameterSummary(requestJson)})";
                         
-                        _logger.LogError("Worker operation failed with details: {@ErrorDetails}", errorDetails);
+                        _logger.LogError("Worker operation failed: {Operation} for element: {ElementId} with category: {ErrorCategory}. Full details: {@ErrorDetails}", 
+                            operation, 
+                            response.ErrorDetails?.AutomationId ?? "unknown", 
+                            response.ErrorDetails?.ErrorCategory ?? "unknown", 
+                            errorDetails);
                         
-                        var errorLower = errorMessage.ToLowerInvariant();
-                        
-                        if (errorLower.Contains("not found") || errorLower.Contains("element") && errorLower.Contains("not") ||
-                            errorLower.Contains("invalid") && errorLower.Contains("id"))
+                        // Use structured error information if available
+                        if (response.ErrorDetails != null)
                         {
-                            throw new ArgumentException(contextualErrorMessage);
-                        }
-                        else if (errorLower.Contains("not supported") || errorLower.Contains("pattern") && errorLower.Contains("not") ||
-                                 errorLower.Contains("control") && errorLower.Contains("not"))
-                        {
-                            throw new NotSupportedException(contextualErrorMessage);
-                        }
-                        else if (errorLower.Contains("read-only") || errorLower.Contains("access") && errorLower.Contains("denied") ||
-                                 errorLower.Contains("permission") || errorLower.Contains("unauthorized"))
-                        {
-                            throw new UnauthorizedAccessException(contextualErrorMessage);
-                        }
-                        else if (errorLower.Contains("timeout") || errorLower.Contains("time") && errorLower.Contains("out"))
-                        {
-                            throw new TimeoutException(contextualErrorMessage);
+                            var errorCategory = response.ErrorDetails.ErrorCategory?.ToLowerInvariant();
+                            
+                            switch (errorCategory)
+                            {
+                                case "invalidargument":
+                                case "validation":
+                                    throw new ArgumentException(contextualErrorMessage);
+                                    
+                                case "notsupported":
+                                case "invalidoperation":
+                                    if (errorMessage.ToLowerInvariant().Contains("not supported"))
+                                        throw new NotSupportedException(contextualErrorMessage);
+                                    else
+                                        throw new InvalidOperationException(contextualErrorMessage);
+                                        
+                                case "unauthorized":
+                                    throw new UnauthorizedAccessException(contextualErrorMessage);
+                                    
+                                case "timeout":
+                                    throw new TimeoutException(contextualErrorMessage);
+                                    
+                                default:
+                                    throw new InvalidOperationException(contextualErrorMessage);
+                            }
                         }
                         else
                         {
-                            throw new InvalidOperationException(contextualErrorMessage);
+                            // Fallback to legacy string-based classification for backward compatibility
+                            var errorLower = errorMessage.ToLowerInvariant();
+                            
+                            if (errorLower.Contains("not found") || errorLower.Contains("element") && errorLower.Contains("not") ||
+                                errorLower.Contains("invalid") && errorLower.Contains("id"))
+                            {
+                                throw new ArgumentException(contextualErrorMessage);
+                            }
+                            else if (errorLower.Contains("not supported") || errorLower.Contains("pattern") && errorLower.Contains("not") ||
+                                     errorLower.Contains("control") && errorLower.Contains("not"))
+                            {
+                                throw new NotSupportedException(contextualErrorMessage);
+                            }
+                            else if (errorLower.Contains("read-only") || errorLower.Contains("access") && errorLower.Contains("denied") ||
+                                     errorLower.Contains("permission") || errorLower.Contains("unauthorized"))
+                            {
+                                throw new UnauthorizedAccessException(contextualErrorMessage);
+                            }
+                            else if (errorLower.Contains("timeout") || errorLower.Contains("time") && errorLower.Contains("out"))
+                            {
+                                throw new TimeoutException(contextualErrorMessage);
+                            }
+                            else
+                            {
+                                throw new InvalidOperationException(contextualErrorMessage);
+                            }
                         }
                     }
 
@@ -283,7 +318,7 @@ namespace UIAutomationMCP.Server.Helpers
                     {
                         var dataJson = JsonSerializationHelper.Serialize(response.Data!);
                         var result = JsonSerializationHelper.Deserialize<TResult>(dataJson)!;
-                        _logger.LogInformation("Successfully deserialized worker response data to type {ResultType}", typeof(TResult).Name);
+                        _logger.LogInformation("[SubprocessExecutor] Operation completed successfully: {Operation} -> {ResultType}", operation, typeof(TResult).Name);
                         return result;
                     }
                     catch (JsonException ex)
