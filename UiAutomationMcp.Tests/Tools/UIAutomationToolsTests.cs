@@ -182,7 +182,6 @@ namespace UIAutomationMCP.Tests.Tools
             // Assert.NotNull(result);
             // _mockElementSearchService.Verify(s => s.SearchElementsAsync(It.IsNotNull<UIAutomationMCP.Shared.Requests.SearchElementsRequest>()), Times.Once);
             return; // Skip test body due to CS0854 error
-            _output.WriteLine($"SearchElements test passed: Found {expectedElements.Count} elements");
         }
 
         #endregion

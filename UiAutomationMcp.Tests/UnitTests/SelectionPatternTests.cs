@@ -81,7 +81,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         // This test method is no longer applicable
 
         [Fact]
-        public async Task GetSelectionContainer_WhenCalled_ShouldReturnContainerInfo()
+        public void GetSelectionContainer_WhenCalled_ShouldReturnContainerInfo()
         {
             // Arrange
             var expectedResult = new ServerEnhancedResponse<ActionResult>
@@ -110,7 +110,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         }
 
         [Fact]
-        public async Task GetSelectionContainer_WhenNoContainer_ShouldReturnNull()
+        public void GetSelectionContainer_WhenNoContainer_ShouldReturnNull()
         {
             // Arrange
             var expectedResult = new ServerEnhancedResponse<ActionResult> 
@@ -224,7 +224,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         }
 
         [Fact]
-        public async Task GetSelection_WhenCalled_ShouldReturnCurrentSelection()
+        public void GetSelection_WhenCalled_ShouldReturnCurrentSelection()
         {
             // Arrange
             var expectedResult = new ServerEnhancedResponse<SelectionInfoResult>
@@ -265,7 +265,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         [InlineData("")]
         [InlineData(null)]
         [InlineData("   ")]
-        public async Task SelectionMethods_WithInvalidElementId_ShouldHandleGracefully(string? invalidElementId)
+        public void SelectionMethods_WithInvalidElementId_ShouldHandleGracefully(string? invalidElementId)
         {
             // IsSelected method was removed from SelectionService
             // Parameter validation test is no longer applicable
@@ -278,7 +278,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         [InlineData(1)]
         [InlineData(30)]
         [InlineData(300)]
-        public async Task SelectionMethods_WithVariousTimeouts_ShouldUseCorrectTimeout(int timeout)
+        public void SelectionMethods_WithVariousTimeouts_ShouldUseCorrectTimeout(int timeout)
         {
             // CanSelectMultiple method was removed from SelectionService
             // Timeout parameter test is no longer applicable
@@ -290,7 +290,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         #region Error Handling Tests
 
         [Fact]
-        public async Task SelectionMethods_WhenServiceThrowsException_ShouldHandleGracefully()
+        public void SelectionMethods_WhenServiceThrowsException_ShouldHandleGracefully()
         {
             // IsSelectionRequired method was removed from SelectionService
             // Error handling test is no longer applicable
@@ -298,7 +298,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         }
 
         [Fact]
-        public async Task SelectionMethods_WhenElementNotFound_ShouldReturnErrorResult()
+        public void SelectionMethods_WhenElementNotFound_ShouldReturnErrorResult()
         {
             // Arrange
             var errorResult = new ServerEnhancedResponse<ActionResult> { Success = false, ErrorMessage = "Element not found" };
