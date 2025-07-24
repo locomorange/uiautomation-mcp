@@ -16,6 +16,7 @@ namespace UIAutomationMCP.Server.Services
     {
         private readonly ILogger<ScreenshotService> _logger;
         private readonly ISubprocessExecutor _executor;
+        private readonly IElementSearchService _elementSearchService;
 
         // Win32 API declarations for screen dimensions
         [DllImport("user32.dll")]
@@ -24,10 +25,11 @@ namespace UIAutomationMCP.Server.Services
         private const int SM_CXSCREEN = 0;  // Primary screen width
         private const int SM_CYSCREEN = 1;  // Primary screen height
 
-        public ScreenshotService(ILogger<ScreenshotService> logger, ISubprocessExecutor executor)
+        public ScreenshotService(ILogger<ScreenshotService> logger, ISubprocessExecutor executor, IElementSearchService elementSearchService)
         {
             _logger = logger;
             _executor = executor;
+            _elementSearchService = elementSearchService;
         }
 
         public async Task<ServerEnhancedResponse<ScreenshotResult>> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int? processId = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
@@ -62,9 +64,8 @@ namespace UIAutomationMCP.Server.Services
                         // Extract bounding rectangle from window info
                         if (windowInfo.TryGetValue("BoundingRectangle", out var boundingRectObj))
                         {
-                            _logger.LogInformation("BoundingRectangle found, type: {Type}, value: {Value}", 
-                                boundingRectObj?.GetType().Name ?? "null", 
-                                boundingRectObj != null ? JsonSerializationHelper.Serialize(boundingRectObj) : "null");
+                            _logger.LogInformation("BoundingRectangle found, type: {Type}", 
+                                boundingRectObj?.GetType().Name ?? "null");
                             
                             if (boundingRectObj is Dictionary<string, object> boundingRect)
                             {
@@ -341,36 +342,49 @@ namespace UIAutomationMCP.Server.Services
             });
         }
 
-        private Task<Dictionary<string, object>?> GetWindowInfoFromWorker(string? windowTitle, int? processId)
+        private async Task<Dictionary<string, object>?> GetWindowInfoFromWorker(string? windowTitle, int? processId)
         {
             try
             {
-                // NOTE: GetWindowInfo operation doesn't exist in Worker yet
-                // This method needs to be implemented or the calls removed
-                _logger.LogWarning("GetWindowInfo operation not implemented - this call will fail");
+                _logger.LogInformation("Searching for window using SearchElements: WindowTitle={WindowTitle}, ProcessId={ProcessId}", windowTitle, processId);
                 
-                var request = new GetWindowInfoRequest
+                var searchRequest = new SearchElementsRequest
                 {
-                    WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    ControlType = "Window",
+                    Scope = "children",
+                    WindowTitle = windowTitle,
+                    ProcessId = processId,
+                    MaxResults = 1,
+                    VisibleOnly = true
                 };
 
-                _logger.LogInformation("Would call Worker GetWindowInfo with request: {Request}", 
-                    JsonSerializationHelper.Serialize(request));
-
-                // TODO: Create GetWindowInfo operation in Worker, or remove this functionality
-                // For now, returning null to avoid breaking the build
-                _logger.LogWarning("GetWindowInfo operation not available - returning null");
-                return Task.FromResult<Dictionary<string, object>?>(null);
+                var searchResult = await _elementSearchService.SearchElementsAsync(searchRequest, 10);
                 
-                // Commented out until GetWindowInfo operation is implemented:
-                // var result = await _executor.ExecuteAsync<GetWindowInfoRequest, WindowInfoResult>("GetWindowInfo", request, 10);
-                // return ConvertResultToDictionary(result);
+                if (searchResult.Success && searchResult.Data?.Elements != null && searchResult.Data.Elements.Length > 0)
+                {
+                    var windowElement = searchResult.Data.Elements[0];
+                    _logger.LogInformation("Found window element: Name={Name}, AutomationId={AutomationId}", 
+                        windowElement.Name, windowElement.AutomationId);
+                    
+                    return new Dictionary<string, object>
+                    {
+                        ["BoundingRectangle"] = new Dictionary<string, object>
+                        {
+                            ["X"] = windowElement.BoundingRectangle?.X ?? 0,
+                            ["Y"] = windowElement.BoundingRectangle?.Y ?? 0,
+                            ["Width"] = windowElement.BoundingRectangle?.Width ?? 0,
+                            ["Height"] = windowElement.BoundingRectangle?.Height ?? 0
+                        }
+                    };
+                }
+                
+                _logger.LogWarning("No window found matching the criteria");
+                return null;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get window info from worker");
-                return Task.FromResult<Dictionary<string, object>?>(null);
+                _logger.LogError(ex, "Failed to search for window using SearchElements");
+                return null;
             }
         }
 
