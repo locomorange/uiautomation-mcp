@@ -1,128 +1,66 @@
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Shared.Abstractions;
 using UIAutomationMCP.Shared.Results;
-using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Requests;
-using System;
-using System.Diagnostics;
+using UIAutomationMCP.Shared.Validation;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
-    public class InvokeService : IInvokeService
+    public class InvokeService : BaseUIAutomationService, IInvokeService
     {
-        private readonly ILogger<InvokeService> _logger;
-        private readonly SubprocessExecutor _executor;
-
-        public InvokeService(ILogger<InvokeService> logger, SubprocessExecutor executor)
+        public InvokeService(IOperationExecutor executor, ILogger<InvokeService> logger)
+            : base(executor, logger)
         {
-            _logger = logger;
-            _executor = executor;
         }
 
-        public async Task<ServerEnhancedResponse<ActionResult>> InvokeElementAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> InvokeElementAsync(
+            string? automationId = null, 
+            string? name = null, 
+            string? controlType = null, 
+            int? processId = null, 
+            int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            try
+            var request = new InvokeElementRequest
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting InvokeElement for AutomationId={automationId}, Name={name}, ControlType={controlType}");
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                ProcessId = processId
+            };
 
-                var request = new InvokeElementRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    ControlType = controlType,
-                    ProcessId = processId
-                };
+            return await ExecuteServiceOperationAsync<InvokeElementRequest, ActionResult>(
+                "InvokeElement",
+                request,
+                nameof(InvokeElementAsync),
+                timeoutSeconds,
+                ValidateInvokeRequest
+            );
+        }
 
-                var result = await _executor.ExecuteAsync<InvokeElementRequest, ActionResult>("InvokeElement", request, timeoutSeconds);
-
-                stopwatch.Stop();
-                
-                var serverResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = result.Success,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["operationType"] = "invoke",
-                            ["actionPerformed"] = "elementInvoked"
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "InvokeElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-
-                _logger.LogInformationWithOperation(operationId, "Successfully created enhanced response");
-                
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
-                
-                return serverResponse;
-            }
-            catch (Exception ex)
+        private static ValidationResult ValidateInvokeRequest(InvokeElementRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.AutomationId) && string.IsNullOrWhiteSpace(request.Name))
             {
-                stopwatch.Stop();
-                _logger.LogErrorWithOperation(operationId, ex, "Error in InvokeElement operation");
-                
-                var errorResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? "",
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["operationType"] = "invoke",
-                            ["actionPerformed"] = "elementInvoked"
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "InvokeElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
-                
-                return errorResponse;
+                return ValidationResult.Failure("Either AutomationId or Name is required for invoke operation");
             }
+
+            return ValidationResult.Success;
+        }
+
+        protected override Dictionary<string, object> CreateSuccessAdditionalInfo<TResult>(TResult data, IServiceContext context)
+        {
+            var baseInfo = base.CreateSuccessAdditionalInfo(data, context);
+            baseInfo["operationType"] = "invoke";
+            baseInfo["actionPerformed"] = "elementInvoked";
+            return baseInfo;
+        }
+
+        protected override Dictionary<string, object> CreateRequestParameters(IServiceContext context)
+        {
+            var baseParams = base.CreateRequestParameters(context);
+            baseParams["operation"] = "InvokeElement";
+            return baseParams;
         }
     }
 }

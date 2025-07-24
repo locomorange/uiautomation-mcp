@@ -3,11 +3,12 @@ using System.Diagnostics;
 using System.Text.Json;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Serialization;
+using UIAutomationMCP.Shared.Abstractions;
 using UIAutomationMCP.Server.Interfaces;
 
 namespace UIAutomationMCP.Server.Helpers
 {
-    public class SubprocessExecutor : ISubprocessExecutor, IDisposable
+    public class SubprocessExecutor : ISubprocessExecutor, IOperationExecutor, IDisposable
     {
         private readonly ILogger<SubprocessExecutor> _logger;
         private readonly string _workerPath;
@@ -635,6 +636,45 @@ namespace UIAutomationMCP.Server.Helpers
             }
 
             _logger.LogInformation("SubprocessExecutor disposal completed");
+        }
+
+        /// <summary>
+        /// IOperationExecutor implementation - provides type-safe operation execution with ServiceOperationResult wrapper
+        /// </summary>
+        async Task<ServiceOperationResult<TResult>> IOperationExecutor.ExecuteAsync<TRequest, TResult>(
+            string operationName, 
+            TRequest request, 
+            int timeoutSeconds)
+        {
+            try
+            {
+                var result = await ExecuteAsync<TRequest, TResult>(operationName, request, timeoutSeconds);
+                return ServiceOperationResult<TResult>.FromSuccess(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return ServiceOperationResult<TResult>.FromException(ex, "InvalidArgument");
+            }
+            catch (NotSupportedException ex)
+            {
+                return ServiceOperationResult<TResult>.FromException(ex, "NotSupported");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return ServiceOperationResult<TResult>.FromException(ex, "Unauthorized");
+            }
+            catch (TimeoutException ex)
+            {
+                return ServiceOperationResult<TResult>.FromException(ex, "Timeout");
+            }
+            catch (InvalidOperationException ex)
+            {
+                return ServiceOperationResult<TResult>.FromException(ex, "InvalidOperation");
+            }
+            catch (Exception ex)
+            {
+                return ServiceOperationResult<TResult>.FromException(ex, "UnhandledException");
+            }
         }
 
     }

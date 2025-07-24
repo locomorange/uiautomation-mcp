@@ -6,6 +6,7 @@ using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Server.Tools;
+using UIAutomationMCP.Shared.Abstractions;
 
 namespace UIAutomationMCP.Server
 {
@@ -117,6 +118,9 @@ namespace UIAutomationMCP.Server
             
             // Register as interface for services that expect ISubprocessExecutor
             builder.Services.AddSingleton<ISubprocessExecutor>(provider => provider.GetRequiredService<SubprocessExecutor>());
+            
+            // Register as IOperationExecutor for new BaseUIAutomationService architecture
+            builder.Services.AddSingleton<IOperationExecutor>(provider => provider.GetRequiredService<SubprocessExecutor>());
             
             // All UI Automation services are now handled through subprocess executor
 
