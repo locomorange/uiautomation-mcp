@@ -1,549 +1,194 @@
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Server.Helpers;
-using UIAutomationMCP.Server.Interfaces;
+using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Shared.Abstractions;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
+using UIAutomationMCP.Shared.Validation;
+using UIAutomationMCP.Shared.Metadata;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
-    public class TableService : ITableService
+    public class TableService : BaseUIAutomationService<TableServiceMetadata>, ITableService
     {
-        private readonly ILogger<TableService> _logger;
-        private readonly ISubprocessExecutor _executor;
-
-        public TableService(ILogger<TableService> logger, ISubprocessExecutor executor)
+        public TableService(IOperationExecutor executor, ILogger<TableService> logger)
+            : base(executor, logger)
         {
-            _logger = logger;
-            _executor = executor;
         }
+
+        protected override string GetOperationType() => "table";
 
 
         public async Task<ServerEnhancedResponse<ElementSearchResult>> GetRowHeadersAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
+            var request = new GetRowHeadersRequest
             {
-                var validationError = "Either AutomationId or Name is required";
-                _logger.LogWarningWithOperation(operationId, $"GetRowHeaders validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetRowHeaders",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Getting row headers for element (AutomationId: {automationId}, Name: {name})");
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                ProcessId = processId ?? 0
+            };
 
-                var request = new GetRowHeadersRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    ControlType = controlType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetRowHeaders",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Row headers retrieved successfully for element (AutomationId: {automationId}, Name: {name})");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetRowHeaders",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get row headers for element (AutomationId: {automationId}, Name: {name})");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<GetRowHeadersRequest, ElementSearchResult>(
+                "GetRowHeaders",
+                request,
+                nameof(GetRowHeadersAsync),
+                timeoutSeconds,
+                ValidateElementIdentificationRequest
+            );
         }
 
         public async Task<ServerEnhancedResponse<ElementSearchResult>> GetColumnHeadersAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
+            var request = new GetColumnHeadersRequest
             {
-                var validationError = "Either AutomationId or Name is required";
-                _logger.LogWarningWithOperation(operationId, $"GetColumnHeaders validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetColumnHeaders",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Getting column headers for element (AutomationId: {automationId}, Name: {name})");
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                ProcessId = processId ?? 0
+            };
 
-                var request = new GetColumnHeadersRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    ControlType = controlType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<GetColumnHeadersRequest, ElementSearchResult>("GetColumnHeaders", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetColumnHeaders",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Column headers retrieved successfully for element (AutomationId: {automationId}, Name: {name})");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetColumnHeaders",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get column headers for element (AutomationId: {automationId}, Name: {name})");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<GetColumnHeadersRequest, ElementSearchResult>(
+                "GetColumnHeaders",
+                request,
+                nameof(GetColumnHeadersAsync),
+                timeoutSeconds,
+                ValidateElementIdentificationRequest
+            );
         }
 
 
         public async Task<ServerEnhancedResponse<ElementSearchResult>> GetColumnHeaderItemsAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
+            var request = new GetColumnHeaderItemsRequest
             {
-                var validationError = "Either AutomationId or Name is required";
-                _logger.LogWarningWithOperation(operationId, $"GetColumnHeaderItems validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetColumnHeaderItems",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Getting column header items for element (AutomationId: {automationId}, Name: {name})");
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                ProcessId = processId ?? 0
+            };
 
-                var request = new GetColumnHeaderItemsRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    ControlType = controlType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetColumnHeaderItems",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Column header items retrieved successfully for element (AutomationId: {automationId}, Name: {name})");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetColumnHeaderItems",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get column header items for element (AutomationId: {automationId}, Name: {name})");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<GetColumnHeaderItemsRequest, ElementSearchResult>(
+                "GetColumnHeaderItems",
+                request,
+                nameof(GetColumnHeaderItemsAsync),
+                timeoutSeconds,
+                ValidateElementIdentificationRequest
+            );
         }
 
         public async Task<ServerEnhancedResponse<ElementSearchResult>> GetRowHeaderItemsAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
+            var request = new GetRowHeaderItemsRequest
             {
-                var validationError = "Either AutomationId or Name is required";
-                _logger.LogWarningWithOperation(operationId, $"GetRowHeaderItems validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetRowHeaderItems",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Getting row header items for element (AutomationId: {automationId}, Name: {name})");
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                ProcessId = processId ?? 0
+            };
 
-                var request = new GetRowHeaderItemsRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    ControlType = controlType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetRowHeaderItems",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Row header items retrieved successfully for element (AutomationId: {automationId}, Name: {name})");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetRowHeaderItems",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get row header items for element (AutomationId: {automationId}, Name: {name})");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<GetRowHeaderItemsRequest, ElementSearchResult>(
+                "GetRowHeaderItems",
+                request,
+                nameof(GetRowHeaderItemsAsync),
+                timeoutSeconds,
+                ValidateElementIdentificationRequest
+            );
         }
 
         public async Task<ServerEnhancedResponse<ActionResult>> GetRowOrColumnMajorAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
+            var request = new GetTableInfoRequest
             {
-                var validationError = "Either AutomationId or Name is required";
-                _logger.LogWarningWithOperation(operationId, $"GetRowOrColumnMajor validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetRowOrColumnMajor",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Getting row or column major for element (AutomationId: {automationId}, Name: {name})");
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                ProcessId = processId ?? 0
+            };
 
-                var request = new GetTableInfoRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    ControlType = controlType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<GetTableInfoRequest, ActionResult>("GetRowOrColumnMajor", request, timeoutSeconds);
-
-                var response = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetRowOrColumnMajor",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-
-                _logger.LogInformationWithOperation(operationId, $"Successfully retrieved row or column major for element (AutomationId: {automationId}, Name: {name})");
-                return response;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetRowOrColumnMajor",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get row or column major for element (AutomationId: {automationId}, Name: {name})");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<GetTableInfoRequest, ActionResult>(
+                "GetRowOrColumnMajor",
+                request,
+                nameof(GetRowOrColumnMajorAsync),
+                timeoutSeconds,
+                ValidateElementIdentificationRequest
+            );
         }
 
         public async Task<ServerEnhancedResponse<TableInfoResult>> GetTableInfoAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
+            var request = new GetTableInfoRequest
+            {
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                ProcessId = processId ?? 0
+            };
+
+            return await ExecuteServiceOperationAsync<GetTableInfoRequest, TableInfoResult>(
+                "GetTableInfo",
+                request,
+                nameof(GetTableInfoAsync),
+                timeoutSeconds,
+                ValidateElementIdentificationRequest
+            );
+        }
+
+        private static ValidationResult ValidateElementIdentificationRequest<T>(T request) where T : class
+        {
+            // Use reflection to check common properties for element identification
+            var automationIdProp = typeof(T).GetProperty("AutomationId");
+            var nameProp = typeof(T).GetProperty("Name");
+
+            var automationId = automationIdProp?.GetValue(request) as string;
+            var name = nameProp?.GetValue(request) as string;
+
             if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Either AutomationId or Name is required";
-                _logger.LogWarningWithOperation(operationId, $"GetTableInfo validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<TableInfoResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetTableInfo",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
+                return ValidationResult.Failure("Either AutomationId or Name is required for element identification");
             }
-            
-            try
+
+            return ValidationResult.Success;
+        }
+
+        protected override TableServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
+        {
+            var metadata = base.CreateSuccessMetadata(data, context);
+
+            if (data is ElementSearchResult searchResult)
             {
-                _logger.LogInformationWithOperation(operationId, $"Getting table info for element (AutomationId: {automationId}, Name: {name})");
+                metadata.OperationSuccessful = searchResult.Success;
+                metadata.ElementsFound = searchResult.Elements?.Count ?? 0;
 
-                var request = new GetTableInfoRequest
+                if (context.MethodName.Contains("RowHeaders"))
                 {
-                    AutomationId = automationId,
-                    Name = name,
-                    ControlType = controlType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<GetTableInfoRequest, TableInfoResult>("GetTableInfo", request, timeoutSeconds);
-
-                var response = new ServerEnhancedResponse<TableInfoResult>
+                    metadata.ActionPerformed = "rowHeadersRetrieved";
+                }
+                else if (context.MethodName.Contains("ColumnHeaders"))
                 {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetTableInfo",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-
-                _logger.LogInformationWithOperation(operationId, $"Successfully retrieved table info for element (AutomationId: {automationId}, Name: {name})");
-                return response;
+                    metadata.ActionPerformed = "columnHeadersRetrieved";
+                }
+                else if (context.MethodName.Contains("RowHeaderItems"))
+                {
+                    metadata.ActionPerformed = "rowHeaderItemsRetrieved";
+                }
+                else if (context.MethodName.Contains("ColumnHeaderItems"))
+                {
+                    metadata.ActionPerformed = "columnHeaderItemsRetrieved";
+                }
             }
-            catch (Exception ex)
+            else if (data is ActionResult actionResult)
             {
-                var errorResponse = new ServerEnhancedResponse<TableInfoResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetTableInfo",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get table info for element (AutomationId: {automationId}, Name: {name})");
-                return errorResponse;
+                metadata.OperationSuccessful = actionResult.Success;
+                metadata.ActionPerformed = "tablePropertyRetrieved";
             }
+            else if (data is TableInfoResult tableResult)
+            {
+                metadata.OperationSuccessful = tableResult.Success;
+                metadata.ActionPerformed = "tableInfoRetrieved";
+            }
+
+            return metadata;
         }
     }
 }

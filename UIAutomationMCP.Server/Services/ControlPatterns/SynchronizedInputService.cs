@@ -1,222 +1,114 @@
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Server.Interfaces;
-using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Shared.Abstractions;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
-using System.Diagnostics;
+using UIAutomationMCP.Shared.Validation;
+using UIAutomationMCP.Shared.Metadata;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
-    public class SynchronizedInputService : ISynchronizedInputService
+    public class SynchronizedInputService : BaseUIAutomationService<SynchronizedInputServiceMetadata>, ISynchronizedInputService
     {
-        private readonly ILogger<SynchronizedInputService> _logger;
-        private readonly ISubprocessExecutor _executor;
-
-        public SynchronizedInputService(ILogger<SynchronizedInputService> logger, ISubprocessExecutor executor)
+        public SynchronizedInputService(IOperationExecutor executor, ILogger<SynchronizedInputService> logger)
+            : base(executor, logger)
         {
-            _logger = logger;
-            _executor = executor;
         }
+
+        protected override string GetOperationType() => "synchronizedInput";
 
         public async Task<ServerEnhancedResponse<ElementSearchResult>> StartListeningAsync(string? automationId = null, string? name = null, string inputType = "", string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
+            var request = new StartSynchronizedInputRequest
             {
-                var validationError = "Either AutomationId or Name is required for element identification";
-                _logger.LogWarningWithOperation(operationId, $"StartListening validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = _executor is SubprocessExecutor executor ? LogCollectorExtensions.Instance.GetLogs(operationId) : new List<string>(),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "StartListening",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            if (string.IsNullOrWhiteSpace(inputType))
-            {
-                var validationError = "Input type is required and cannot be empty";
-                _logger.LogWarningWithOperation(operationId, $"StartListening validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = _executor is SubprocessExecutor executor ? LogCollectorExtensions.Instance.GetLogs(operationId) : new List<string>(),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "StartListening",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Starting synchronized input listening for element: AutomationId={automationId}, Name={name}, ControlType={controlType} with input type: {inputType}");
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                InputType = inputType,
+                ProcessId = processId ?? 0
+            };
 
-                var request = new StartSynchronizedInputRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    ControlType = controlType,
-                    InputType = inputType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<StartSynchronizedInputRequest, ElementSearchResult>("StartSynchronizedInput", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = _executor is SubprocessExecutor executor ? LogCollectorExtensions.Instance.GetLogs(operationId) : new List<string>()
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "StartListening",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Synchronized input listening started successfully for element: AutomationId={automationId}, Name={name}");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = _executor is SubprocessExecutor executor ? LogCollectorExtensions.Instance.GetLogs(operationId) : new List<string>(),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "StartListening",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to start synchronized input listening for element: AutomationId={automationId}, Name={name}");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<StartSynchronizedInputRequest, ElementSearchResult>(
+                "StartSynchronizedInput",
+                request,
+                nameof(StartListeningAsync),
+                timeoutSeconds,
+                ValidateStartListeningRequest
+            );
         }
 
         public async Task<ServerEnhancedResponse<ElementSearchResult>> CancelAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
+            var request = new CancelSynchronizedInputRequest
+            {
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                ProcessId = processId ?? 0
+            };
+
+            return await ExecuteServiceOperationAsync<CancelSynchronizedInputRequest, ElementSearchResult>(
+                "CancelSynchronizedInput",
+                request,
+                nameof(CancelAsync),
+                timeoutSeconds,
+                ValidateElementIdentificationRequest
+            );
+        }
+
+        private static ValidationResult ValidateStartListeningRequest(StartSynchronizedInputRequest request)
+        {
+            var errors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(request.AutomationId) && string.IsNullOrWhiteSpace(request.Name))
+            {
+                errors.Add("Either AutomationId or Name is required for element identification");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.InputType))
+            {
+                errors.Add("Input type is required and cannot be empty");
+            }
+
+            return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;
+        }
+
+        private static ValidationResult ValidateElementIdentificationRequest<T>(T request) where T : class
+        {
+            // Use reflection to check common properties for element identification
+            var automationIdProp = typeof(T).GetProperty("AutomationId");
+            var nameProp = typeof(T).GetProperty("Name");
+
+            var automationId = automationIdProp?.GetValue(request) as string;
+            var name = nameProp?.GetValue(request) as string;
+
             if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Either AutomationId or Name is required for element identification";
-                _logger.LogWarningWithOperation(operationId, $"Cancel validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = _executor is SubprocessExecutor executor ? LogCollectorExtensions.Instance.GetLogs(operationId) : new List<string>(),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "Cancel",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
+                return ValidationResult.Failure("Either AutomationId or Name is required for element identification");
             }
-            
-            try
+
+            return ValidationResult.Success;
+        }
+
+        protected override SynchronizedInputServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
+        {
+            var metadata = base.CreateSuccessMetadata(data, context);
+
+            if (data is ElementSearchResult searchResult)
             {
-                _logger.LogInformationWithOperation(operationId, $"Canceling synchronized input for element: AutomationId={automationId}, Name={name}, ControlType={controlType}");
+                metadata.OperationSuccessful = searchResult.Success;
 
-                var request = new CancelSynchronizedInputRequest
+                if (context.MethodName.Contains("StartListening"))
                 {
-                    AutomationId = automationId,
-                    Name = name,
-                    ControlType = controlType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<CancelSynchronizedInputRequest, ElementSearchResult>("CancelSynchronizedInput", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<ElementSearchResult>
+                    metadata.ActionPerformed = "inputSynchronized";
+                }
+                else if (context.MethodName.Contains("Cancel"))
                 {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = _executor is SubprocessExecutor executor ? LogCollectorExtensions.Instance.GetLogs(operationId) : new List<string>()
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "Cancel",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Synchronized input canceled successfully for element: AutomationId={automationId}, Name={name}");
-                return successResponse;
+                    metadata.ActionPerformed = "inputCanceled";
+                }
             }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = _executor is SubprocessExecutor executor ? LogCollectorExtensions.Instance.GetLogs(operationId) : new List<string>(),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "Cancel",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to cancel synchronized input for element: AutomationId={automationId}, Name={name}");
-                return errorResponse;
-            }
+
+            return metadata;
         }
     }
 }

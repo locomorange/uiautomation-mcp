@@ -1,650 +1,264 @@
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Shared.Abstractions;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
+using UIAutomationMCP.Shared.Validation;
+using UIAutomationMCP.Shared.Metadata;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
-    public class LayoutService : ILayoutService
+    public class LayoutService : BaseUIAutomationService<LayoutServiceMetadata>, ILayoutService
     {
-        private readonly ILogger<LayoutService> _logger;
-        private readonly SubprocessExecutor _executor;
-
-        public LayoutService(ILogger<LayoutService> logger, SubprocessExecutor executor)
+        public LayoutService(IOperationExecutor executor, ILogger<LayoutService> logger)
+            : base(executor, logger)
         {
-            _logger = logger;
-            _executor = executor;
         }
+
+        protected override string GetOperationType() => "layout";
 
         public async Task<ServerEnhancedResponse<ActionResult>> ExpandCollapseElementAsync(string? automationId = null, string? name = null, string action = "toggle", string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
+            var request = new ExpandCollapseElementRequest
             {
-                var validationError = "Either AutomationId or Name is required and cannot be empty";
-                _logger.LogWarningWithOperation(operationId, $"ExpandCollapseElement validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "ExpandCollapseElement",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            if (string.IsNullOrWhiteSpace(action) || !new[] { "expand", "collapse" }.Contains(action.ToLowerInvariant()))
-            {
-                var validationError = "Action must be either 'expand' or 'collapse'";
-                _logger.LogWarningWithOperation(operationId, $"ExpandCollapseElement validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "ExpandCollapseElement",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Performing expand/collapse action '{action}' on element with AutomationId: {automationId}, Name: {name}");
+                AutomationId = automationId,
+                Name = name,
+                Action = action,
+                ControlType = controlType,
+                ProcessId = processId ?? 0
+            };
 
-                var request = new ExpandCollapseElementRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    Action = action,
-                    ControlType = controlType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<ExpandCollapseElementRequest, ActionResult>("ExpandCollapseElement", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "ExpandCollapseElement",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Expand/collapse action performed successfully for AutomationId: {automationId}, Name: {name}");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "ExpandCollapseElement",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to perform expand/collapse action on element with AutomationId: {automationId}, Name: {name}");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<ExpandCollapseElementRequest, ActionResult>(
+                "ExpandCollapseElement",
+                request,
+                nameof(ExpandCollapseElementAsync),
+                timeoutSeconds,
+                ValidateExpandCollapseRequest
+            );
         }
 
         public async Task<ServerEnhancedResponse<ActionResult>> ScrollElementAsync(string? automationId = null, string? name = null, string direction = "down", double amount = 1.0, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
+            var request = new ScrollElementRequest
             {
-                var validationError = "Either AutomationId or Name is required and cannot be empty";
-                _logger.LogWarningWithOperation(operationId, $"ScrollElement validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "ScrollElement",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            if (string.IsNullOrWhiteSpace(direction) || !new[] { "up", "down", "left", "right" }.Contains(direction.ToLowerInvariant()))
-            {
-                var validationError = "Direction must be one of: up, down, left, right";
-                _logger.LogWarningWithOperation(operationId, $"ScrollElement validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "ScrollElement",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Scrolling element with AutomationId: {automationId}, Name: {name} in direction: {direction} by amount: {amount}");
+                AutomationId = automationId,
+                Name = name,
+                Direction = direction,
+                Amount = amount,
+                ControlType = controlType,
+                ProcessId = processId ?? 0
+            };
 
-                var request = new ScrollElementRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    Direction = direction,
-                    Amount = amount,
-                    ControlType = controlType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<ScrollElementRequest, ActionResult>("ScrollElement", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "ScrollElement",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Element scrolled successfully with AutomationId: {automationId}, Name: {name}");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "ScrollElement",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to scroll element with AutomationId: {automationId}, Name: {name}");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<ScrollElementRequest, ActionResult>(
+                "ScrollElement",
+                request,
+                nameof(ScrollElementAsync),
+                timeoutSeconds,
+                ValidateScrollRequest
+            );
         }
 
         public async Task<ServerEnhancedResponse<ActionResult>> ScrollElementIntoViewAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
+            var request = new ScrollElementIntoViewRequest
             {
-                var validationError = "Either AutomationId or Name is required and cannot be empty";
-                _logger.LogWarningWithOperation(operationId, $"ScrollElementIntoView validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "ScrollElementIntoView",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Scrolling element into view with AutomationId: {automationId}, Name: {name}");
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                ProcessId = processId ?? 0
+            };
 
-                var request = new ScrollElementIntoViewRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    ControlType = controlType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<ScrollElementIntoViewRequest, ActionResult>("ScrollElementIntoView", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "ScrollElementIntoView",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Element scrolled into view successfully with AutomationId: {automationId}, Name: {name}");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "ScrollElementIntoView",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to scroll element into view with AutomationId: {automationId}, Name: {name}");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<ScrollElementIntoViewRequest, ActionResult>(
+                "ScrollElementIntoView",
+                request,
+                nameof(ScrollElementIntoViewAsync),
+                timeoutSeconds,
+                ValidateElementIdentificationRequest
+            );
         }
 
         public async Task<ServerEnhancedResponse<ActionResult>> SetScrollPercentAsync(string? automationId = null, string? name = null, double horizontalPercent = -1, double verticalPercent = -1, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
+            var request = new SetScrollPercentRequest
             {
-                var validationError = "Either AutomationId or Name is required and cannot be empty";
-                _logger.LogWarningWithOperation(operationId, $"SetScrollPercent validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "SetScrollPercent",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            if (horizontalPercent < -1 || horizontalPercent > 100 || verticalPercent < -1 || verticalPercent > 100)
-            {
-                var validationError = "Scroll percentages must be between -1 and 100 (-1 means no change)";
-                _logger.LogWarningWithOperation(operationId, $"SetScrollPercent validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "SetScrollPercent",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Setting scroll percentage for element with AutomationId: {automationId}, Name: {name} to H:{horizontalPercent}%, V:{verticalPercent}%");
+                AutomationId = automationId,
+                Name = name,
+                HorizontalPercent = horizontalPercent,
+                VerticalPercent = verticalPercent,
+                ControlType = controlType,
+                ProcessId = processId ?? 0
+            };
 
-                var request = new SetScrollPercentRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    HorizontalPercent = horizontalPercent,
-                    VerticalPercent = verticalPercent,
-                    ControlType = controlType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<SetScrollPercentRequest, ActionResult>("SetScrollPercent", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "SetScrollPercent",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Scroll percentage set successfully for element with AutomationId: {automationId}, Name: {name}");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "SetScrollPercent",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to set scroll percentage for element with AutomationId: {automationId}, Name: {name}");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<SetScrollPercentRequest, ActionResult>(
+                "SetScrollPercent",
+                request,
+                nameof(SetScrollPercentAsync),
+                timeoutSeconds,
+                ValidateSetScrollPercentRequest
+            );
         }
 
         public async Task<ServerEnhancedResponse<ActionResult>> DockElementAsync(string? automationId = null, string? name = null, string dockPosition = "none", string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
+            var request = new DockElementRequest
             {
-                var validationError = "Either AutomationId or Name is required and cannot be empty";
-                _logger.LogWarningWithOperation(operationId, $"DockElement validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "DockElement",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            if (string.IsNullOrWhiteSpace(dockPosition) || !new[] { "top", "bottom", "left", "right", "fill", "none" }.Contains(dockPosition.ToLowerInvariant()))
-            {
-                var validationError = "Dock position must be one of: top, bottom, left, right, fill, none";
-                _logger.LogWarningWithOperation(operationId, $"DockElement validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "DockElement",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Docking element with AutomationId: {automationId}, Name: {name} to position: {dockPosition}");
+                AutomationId = automationId,
+                Name = name,
+                DockPosition = dockPosition,
+                ControlType = controlType,
+                ProcessId = processId ?? 0
+            };
 
-                var request = new DockElementRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    DockPosition = dockPosition,
-                    ControlType = controlType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<DockElementRequest, ActionResult>("DockElement", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "DockElement",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Element docked successfully with AutomationId: {automationId}, Name: {name}");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "DockElement",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to dock element with AutomationId: {automationId}, Name: {name}");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<DockElementRequest, ActionResult>(
+                "DockElement",
+                request,
+                nameof(DockElementAsync),
+                timeoutSeconds,
+                ValidateDockRequest
+            );
         }
 
         public async Task<ServerEnhancedResponse<ScrollInfoResult>> GetScrollInfoAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
+            var request = new GetScrollInfoRequest
+            {
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                ProcessId = processId ?? 0
+            };
+
+            return await ExecuteServiceOperationAsync<GetScrollInfoRequest, ScrollInfoResult>(
+                "GetScrollInfo",
+                request,
+                nameof(GetScrollInfoAsync),
+                timeoutSeconds,
+                ValidateElementIdentificationRequest
+            );
+        }
+
+        private static ValidationResult ValidateElementIdentificationRequest<T>(T request) where T : class
+        {
+            // Use reflection to check common properties for element identification
+            var automationIdProp = typeof(T).GetProperty("AutomationId");
+            var nameProp = typeof(T).GetProperty("Name");
+
+            var automationId = automationIdProp?.GetValue(request) as string;
+            var name = nameProp?.GetValue(request) as string;
+
             if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Either AutomationId or Name is required and cannot be empty";
-                _logger.LogWarningWithOperation(operationId, $"GetScrollInfo validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ScrollInfoResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetScrollInfo",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
+                return ValidationResult.Failure("Either AutomationId or Name is required for element identification");
             }
-            
-            try
+
+            return ValidationResult.Success;
+        }
+
+        private static ValidationResult ValidateExpandCollapseRequest(ExpandCollapseElementRequest request)
+        {
+            var errors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(request.AutomationId) && string.IsNullOrWhiteSpace(request.Name))
             {
-                _logger.LogInformationWithOperation(operationId, $"Getting scroll info for element with AutomationId: {automationId}, Name: {name}");
-
-                var request = new GetScrollInfoRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    ControlType = controlType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<GetScrollInfoRequest, ScrollInfoResult>("GetScrollInfo", request, timeoutSeconds);
-
-                var response = new ServerEnhancedResponse<ScrollInfoResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetScrollInfo",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-
-                _logger.LogInformationWithOperation(operationId, $"Successfully retrieved scroll info for element with AutomationId: {automationId}, Name: {name}");
-                return response;
+                errors.Add("Either AutomationId or Name is required for element identification");
             }
-            catch (Exception ex)
+
+            if (string.IsNullOrWhiteSpace(request.Action) || !new[] { "expand", "collapse" }.Contains(request.Action.ToLowerInvariant()))
             {
-                var errorResponse = new ServerEnhancedResponse<ScrollInfoResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetScrollInfo",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get scroll info for element with AutomationId: {automationId}, Name: {name}");
-                return errorResponse;
+                errors.Add("Action must be either 'expand' or 'collapse'");
             }
+
+            return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;
+        }
+
+        private static ValidationResult ValidateScrollRequest(ScrollElementRequest request)
+        {
+            var errors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(request.AutomationId) && string.IsNullOrWhiteSpace(request.Name))
+            {
+                errors.Add("Either AutomationId or Name is required for element identification");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Direction) || !new[] { "up", "down", "left", "right" }.Contains(request.Direction.ToLowerInvariant()))
+            {
+                errors.Add("Direction must be one of: up, down, left, right");
+            }
+
+            return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;
+        }
+
+        private static ValidationResult ValidateSetScrollPercentRequest(SetScrollPercentRequest request)
+        {
+            var errors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(request.AutomationId) && string.IsNullOrWhiteSpace(request.Name))
+            {
+                errors.Add("Either AutomationId or Name is required for element identification");
+            }
+
+            if (request.HorizontalPercent < -1 || request.HorizontalPercent > 100 || request.VerticalPercent < -1 || request.VerticalPercent > 100)
+            {
+                errors.Add("Scroll percentages must be between -1 and 100 (-1 means no change)");
+            }
+
+            return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;
+        }
+
+        private static ValidationResult ValidateDockRequest(DockElementRequest request)
+        {
+            var errors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(request.AutomationId) && string.IsNullOrWhiteSpace(request.Name))
+            {
+                errors.Add("Either AutomationId or Name is required for element identification");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.DockPosition) || !new[] { "top", "bottom", "left", "right", "fill", "none" }.Contains(request.DockPosition.ToLowerInvariant()))
+            {
+                errors.Add("Dock position must be one of: top, bottom, left, right, fill, none");
+            }
+
+            return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;
+        }
+
+        protected override LayoutServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
+        {
+            var metadata = base.CreateSuccessMetadata(data, context);
+
+            if (data is ActionResult actionResult)
+            {
+                metadata.OperationSuccessful = actionResult.Success;
+
+                if (context.MethodName.Contains("ExpandCollapse"))
+                {
+                    metadata.ActionPerformed = "expandCollapsePerformed";
+                }
+                else if (context.MethodName.Contains("ScrollElement") && !context.MethodName.Contains("IntoView"))
+                {
+                    metadata.ActionPerformed = "elementScrolled";
+                }
+                else if (context.MethodName.Contains("ScrollElementIntoView"))
+                {
+                    metadata.ActionPerformed = "elementScrolledIntoView";
+                }
+                else if (context.MethodName.Contains("SetScrollPercent"))
+                {
+                    metadata.ActionPerformed = "scrollPercentSet";
+                }
+                else if (context.MethodName.Contains("Dock"))
+                {
+                    metadata.ActionPerformed = "elementDocked";
+                }
+            }
+            else if (data is ScrollInfoResult scrollResult)
+            {
+                metadata.OperationSuccessful = scrollResult.Success;
+                metadata.ActionPerformed = "scrollInfoRetrieved";
+            }
+
+            return metadata;
         }
     }
 }

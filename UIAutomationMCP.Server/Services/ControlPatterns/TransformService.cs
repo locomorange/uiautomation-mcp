@@ -1,411 +1,166 @@
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Shared.Abstractions;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
+using UIAutomationMCP.Shared.Validation;
+using UIAutomationMCP.Shared.Metadata;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
-    public class TransformService : ITransformService
+    public class TransformService : BaseUIAutomationService<TransformServiceMetadata>, ITransformService
     {
-        private readonly ILogger<TransformService> _logger;
-        private readonly SubprocessExecutor _executor;
-
-        public TransformService(ILogger<TransformService> logger, SubprocessExecutor executor)
+        public TransformService(IOperationExecutor executor, ILogger<TransformService> logger)
+            : base(executor, logger)
         {
-            _logger = logger;
-            _executor = executor;
         }
+
+        protected override string GetOperationType() => "transform";
 
         public async Task<ServerEnhancedResponse<ActionResult>> MoveElementAsync(string? automationId = null, string? name = null, double x = 0, double y = 0, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
+            var request = new MoveElementRequest
             {
-                var validationError = "Either AutomationId or Name is required and cannot be empty";
-                _logger.LogWarningWithOperation(operationId, $"MoveElement validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "MoveElement",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Moving element with AutomationId: {automationId}, Name: {name} to position: ({x}, {y})");
+                AutomationId = automationId,
+                Name = name,
+                X = x,
+                Y = y,
+                ControlType = controlType,
+                ProcessId = processId ?? 0
+            };
 
-                var request = new MoveElementRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    X = x,
-                    Y = y,
-                    ControlType = controlType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<MoveElementRequest, ActionResult>("MoveElement", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "MoveElement",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Element moved successfully with AutomationId: {automationId}, Name: {name} to ({x}, {y})");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "MoveElement",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to move element with AutomationId: {automationId}, Name: {name} to ({x}, {y})");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<MoveElementRequest, ActionResult>(
+                "MoveElement",
+                request,
+                nameof(MoveElementAsync),
+                timeoutSeconds,
+                ValidateElementIdentificationRequest
+            );
         }
 
         public async Task<ServerEnhancedResponse<ActionResult>> ResizeElementAsync(string? automationId = null, string? name = null, double width = 100, double height = 100, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
+            var request = new ResizeElementRequest
             {
-                var validationError = "Either AutomationId or Name is required and cannot be empty";
-                _logger.LogWarningWithOperation(operationId, $"ResizeElement validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "ResizeElement",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            if (width <= 0 || height <= 0)
-            {
-                var validationError = "Width and height must be positive values";
-                _logger.LogWarningWithOperation(operationId, $"ResizeElement validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "ResizeElement",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Resizing element with AutomationId: {automationId}, Name: {name} to size: ({width}, {height})");
+                AutomationId = automationId,
+                Name = name,
+                Width = width,
+                Height = height,
+                ControlType = controlType,
+                ProcessId = processId ?? 0
+            };
 
-                var request = new ResizeElementRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    Width = width,
-                    Height = height,
-                    ControlType = controlType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<ResizeElementRequest, ActionResult>("ResizeElement", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "ResizeElement",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Element resized successfully with AutomationId: {automationId}, Name: {name} to ({width}, {height})");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "ResizeElement",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to resize element with AutomationId: {automationId}, Name: {name} to ({width}, {height})");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<ResizeElementRequest, ActionResult>(
+                "ResizeElement",
+                request,
+                nameof(ResizeElementAsync),
+                timeoutSeconds,
+                ValidateResizeElementRequest
+            );
         }
 
         public async Task<ServerEnhancedResponse<ActionResult>> RotateElementAsync(string? automationId = null, string? name = null, double degrees = 0, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
+            var request = new RotateElementRequest
             {
-                var validationError = "Either AutomationId or Name is required and cannot be empty";
-                _logger.LogWarningWithOperation(operationId, $"RotateElement validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "RotateElement",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Rotating element with AutomationId: {automationId}, Name: {name} by {degrees} degrees");
+                AutomationId = automationId,
+                Name = name,
+                Degrees = degrees,
+                ControlType = controlType,
+                ProcessId = processId ?? 0
+            };
 
-                var request = new RotateElementRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    Degrees = degrees,
-                    ControlType = controlType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<RotateElementRequest, ActionResult>("RotateElement", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "RotateElement",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Element rotated successfully with AutomationId: {automationId}, Name: {name} by {degrees} degrees");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<ActionResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "RotateElement",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to rotate element with AutomationId: {automationId}, Name: {name} by {degrees} degrees");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<RotateElementRequest, ActionResult>(
+                "RotateElement",
+                request,
+                nameof(RotateElementAsync),
+                timeoutSeconds,
+                ValidateElementIdentificationRequest
+            );
         }
 
         public async Task<ServerEnhancedResponse<TransformCapabilitiesResult>> GetTransformCapabilitiesAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
+            var request = new GetTransformCapabilitiesRequest
+            {
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                ProcessId = processId ?? 0
+            };
+
+            return await ExecuteServiceOperationAsync<GetTransformCapabilitiesRequest, TransformCapabilitiesResult>(
+                "GetTransformCapabilities",
+                request,
+                nameof(GetTransformCapabilitiesAsync),
+                timeoutSeconds,
+                ValidateElementIdentificationRequest
+            );
+        }
+
+        private static ValidationResult ValidateElementIdentificationRequest<T>(T request) where T : class
+        {
+            // Use reflection to check common properties for element identification
+            var automationIdProp = typeof(T).GetProperty("AutomationId");
+            var nameProp = typeof(T).GetProperty("Name");
+
+            var automationId = automationIdProp?.GetValue(request) as string;
+            var name = nameProp?.GetValue(request) as string;
+
             if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Either AutomationId or Name is required and cannot be empty";
-                _logger.LogWarningWithOperation(operationId, $"GetTransformCapabilities validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<TransformCapabilitiesResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetTransformCapabilities",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
-                return validationResponse;
+                return ValidationResult.Failure("Either AutomationId or Name is required for element identification");
             }
 
-            try
+            return ValidationResult.Success;
+        }
+
+        private static ValidationResult ValidateResizeElementRequest(ResizeElementRequest request)
+        {
+            var errors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(request.AutomationId) && string.IsNullOrWhiteSpace(request.Name))
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting GetTransformCapabilities for AutomationId={automationId}, Name={name}");
-
-                var request = new GetTransformCapabilitiesRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    ControlType = controlType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<GetTransformCapabilitiesRequest, TransformCapabilitiesResult>("GetTransformCapabilities", request, timeoutSeconds);
-
-                stopwatch.Stop();
-                
-                var serverResponse = new ServerEnhancedResponse<TransformCapabilitiesResult>
-                {
-                    Success = result.Success,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetTransformCapabilities",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-
-                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
-                
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
-                
-                return serverResponse;
+                errors.Add("Either AutomationId or Name is required for element identification");
             }
-            catch (Exception ex)
+
+            if (request.Width <= 0 || request.Height <= 0)
             {
-                stopwatch.Stop();
-                _logger.LogErrorWithOperation(operationId, ex, "Error in GetTransformCapabilities operation");
-                
-                var errorResponse = new ServerEnhancedResponse<TransformCapabilitiesResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetTransformCapabilities",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
-                
-                return errorResponse;
+                errors.Add("Width and height must be positive values");
             }
+
+            return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;
+        }
+
+        protected override TransformServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
+        {
+            var metadata = base.CreateSuccessMetadata(data, context);
+
+            if (data is ActionResult actionResult)
+            {
+                metadata.OperationSuccessful = actionResult.Success;
+
+                if (context.MethodName.Contains("Move"))
+                {
+                    metadata.ActionPerformed = "elementMoved";
+                }
+                else if (context.MethodName.Contains("Resize"))
+                {
+                    metadata.ActionPerformed = "elementResized";
+                }
+                else if (context.MethodName.Contains("Rotate"))
+                {
+                    metadata.ActionPerformed = "elementRotated";
+                }
+            }
+            else if (data is TransformCapabilitiesResult capabilitiesResult)
+            {
+                metadata.OperationSuccessful = capabilitiesResult.Success;
+                metadata.ActionPerformed = "capabilitiesRetrieved";
+            }
+
+            return metadata;
         }
     }
 }
