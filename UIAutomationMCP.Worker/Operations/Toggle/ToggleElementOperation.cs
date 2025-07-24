@@ -4,6 +4,8 @@ using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Serialization;
+using UIAutomationMCP.Shared.Exceptions;
+using UIAutomationMCP.Shared.ErrorHandling;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -22,9 +24,16 @@ namespace UIAutomationMCP.Worker.Operations.Toggle
 
         public Task<OperationResult> ExecuteAsync(string parametersJson)
         {
-            try
+            var typedRequest = JsonSerializationHelper.Deserialize<ToggleElementRequest>(parametersJson)!;
+            
+            return Task.FromResult(ErrorHandlerRegistry.Handle(() =>
             {
-                var typedRequest = JsonSerializationHelper.Deserialize<ToggleElementRequest>(parametersJson)!;
+                // Validate element ID
+                var validationError = ErrorHandlerRegistry.ValidateElementId(typedRequest.AutomationId, "ToggleElement");
+                if (validationError != null)
+                {
+                    throw new UIAutomationValidationException("ToggleElement", "Element ID is required");
+                }
                 
                 // パターン変換（リクエストから取得、デフォルトはTogglePattern）
                 var requiredPattern = AutomationPatternHelper.GetAutomationPattern(typedRequest.RequiredPattern) ?? TogglePattern.Pattern;
@@ -35,24 +44,15 @@ namespace UIAutomationMCP.Worker.Operations.Toggle
                     controlType: typedRequest.ControlType,
                     processId: typedRequest.ProcessId,
                     requiredPattern: requiredPattern);
+                
                 if (element == null)
                 {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Element not found",
-                        Data = new ToggleActionResult { ActionName = "Toggle" }
-                    });
+                    throw new UIAutomationElementNotFoundException("ToggleElement", typedRequest.AutomationId);
                 }
 
                 if (!element.TryGetCurrentPattern(TogglePattern.Pattern, out var pattern) || pattern is not TogglePattern togglePattern)
                 {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "TogglePattern not supported",
-                        Data = new ToggleActionResult { ActionName = "Toggle" }
-                    });
+                    throw new UIAutomationInvalidOperationException("ToggleElement", typedRequest.AutomationId, "TogglePattern not supported");
                 }
 
                 var previousState = togglePattern.Current.ToggleState.ToString();
@@ -72,26 +72,13 @@ namespace UIAutomationMCP.Worker.Operations.Toggle
                     ExecutedAt = DateTime.UtcNow
                 };
                 
-                return Task.FromResult(new OperationResult 
+                return new OperationResult 
                 { 
                     Success = true, 
                     Data = result
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "ToggleElement operation failed");
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = false, 
-                    Error = $"Failed to toggle element: {ex.Message}",
-                    Data = new ToggleActionResult 
-                    { 
-                        ActionName = "Toggle",
-                        Completed = false
-                    }
-                });
-            }
+                };
+            }, "ToggleElement", typedRequest.AutomationId, 
+                logAction: (exc, op, elemId, excType) => _logger.LogError(exc, "{Operation} operation failed for element: {ElementId}. Exception: {ExceptionType}", op, elemId, excType)));
         }
     }
 }

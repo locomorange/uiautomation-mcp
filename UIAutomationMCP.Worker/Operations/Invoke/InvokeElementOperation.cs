@@ -3,6 +3,8 @@ using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Serialization;
+using UIAutomationMCP.Shared.Exceptions;
+using UIAutomationMCP.Shared.ErrorHandling;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;
 
@@ -19,9 +21,16 @@ namespace UIAutomationMCP.Worker.Operations.Invoke
 
         public Task<OperationResult> ExecuteAsync(string parametersJson)
         {
-            try
+            var typedRequest = JsonSerializationHelper.Deserialize<InvokeElementRequest>(parametersJson)!;
+            
+            return Task.FromResult(ErrorHandlerRegistry.Handle(() =>
             {
-                var typedRequest = JsonSerializationHelper.Deserialize<InvokeElementRequest>(parametersJson)!;
+                // Validate element ID
+                var validationError = ErrorHandlerRegistry.ValidateElementId(typedRequest.AutomationId, "InvokeElement");
+                if (validationError != null)
+                {
+                    throw new UIAutomationValidationException("InvokeElement", "Element ID is required");
+                }
                 
                 // パターン変換（リクエストから取得、デフォルトはInvokePattern）
                 var requiredPattern = AutomationPatternHelper.GetAutomationPattern(typedRequest.RequiredPattern) ?? InvokePattern.Pattern;
@@ -32,24 +41,15 @@ namespace UIAutomationMCP.Worker.Operations.Invoke
                     controlType: typedRequest.ControlType,
                     processId: typedRequest.ProcessId,
                     requiredPattern: requiredPattern);
+                
                 if (element == null)
                 {
-                    return Task.FromResult(new OperationResult
-                    {
-                        Success = false,
-                        Error = "Element not found",
-                        Data = new ActionResult { ActionName = "Invoke" }
-                    });
+                    throw new UIAutomationElementNotFoundException("InvokeElement", typedRequest.AutomationId);
                 }
 
                 if (!element.TryGetCurrentPattern(InvokePattern.Pattern, out var pattern) || pattern is not InvokePattern invokePattern)
                 {
-                    return Task.FromResult(new OperationResult
-                    {
-                        Success = false,
-                        Error = "InvokePattern not supported",
-                        Data = new ActionResult { ActionName = "Invoke" }
-                    });
+                    throw new UIAutomationInvalidOperationException("InvokeElement", typedRequest.AutomationId, "InvokePattern not supported");
                 }
 
                 var elementInfo = _elementFinderService.GetElementBasicInfo(element);
@@ -64,25 +64,12 @@ namespace UIAutomationMCP.Worker.Operations.Invoke
                     Details = $"Invoked element: {elementInfo.Name} (Type: {elementInfo.ControlType}, ID: {elementInfo.AutomationId})"
                 };
                 
-                return Task.FromResult(new OperationResult
+                return new OperationResult
                 {
                     Success = true,
                     Data = result
-                });
-            }
-            catch (Exception ex)
-            {
-                return Task.FromResult(new OperationResult
-                {
-                    Success = false,
-                    Error = $"Failed to invoke element: {ex.Message}",
-                    Data = new ActionResult 
-                    { 
-                        ActionName = "Invoke",
-                        Completed = false
-                    }
-                });
-            }
+                };
+            }, "InvokeElement", typedRequest.AutomationId));
         }
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Serialization;
+using UIAutomationMCP.Shared.ErrorHandling;
 using UIAutomationMCP.Worker.Contracts;
 
 namespace UIAutomationMCP.Worker.Services
@@ -118,22 +119,15 @@ namespace UIAutomationMCP.Worker.Services
             }
             catch (Exception ex)
             {
-                // Enhanced error logging with operation context
-                _logger.LogError(ex, "Error executing operation: {Operation}. Exception type: {ExceptionType}", 
-                    operationName, ex.GetType().Name);
-
-                // Provide detailed error information for better debugging
-                var detailedError = $"Operation '{operationName}' failed: {ex.Message}";
-                if (ex.InnerException != null)
-                {
-                    detailedError += $" Inner exception: {ex.InnerException.Message}";
-                }
-
+                // Use unified error handling
+                var errorResult = ErrorHandlerRegistry.HandleException(ex, operationName, 
+                    logAction: (exc, op, elemId, excType) => _logger.LogError(exc, "{Operation} operation failed for element: {ElementId}. Exception: {ExceptionType}", op, elemId, excType));
+                
                 return new WorkerResponse<object> 
                 { 
                     Success = false, 
-                    Error = detailedError,
-                    Data = null // Avoid complex anonymous types that cause serialization issues
+                    Error = errorResult.Error,
+                    Data = errorResult
                 };
             }
         }

@@ -10,6 +10,7 @@ using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Options;
 using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Shared.ErrorHandling;
 
 namespace UIAutomationMCP.Server.Services
 {
@@ -26,10 +27,8 @@ namespace UIAutomationMCP.Server.Services
             _options = options;
         }
 
-
         public async Task<ServerEnhancedResponse<ElementSearchResult>> FindElementsAsync(string? windowTitle = null, string? searchText = null, string? controlType = null, int? processId = null, int timeoutSeconds = 60)
         {
-            // Legacy method - delegate to enhanced version with defaults
             return await FindElementsAsync(windowTitle, searchText, controlType, processId, "descendants", true, 100, true, timeoutSeconds);
         }
 
@@ -37,6 +36,14 @@ namespace UIAutomationMCP.Server.Services
         {
             var stopwatch = Stopwatch.StartNew();
             var operationId = Guid.NewGuid().ToString("N")[..8];
+            var requestParameters = new Dictionary<string, object>
+            {
+                ["windowTitle"] = windowTitle ?? "",
+                ["searchText"] = searchText ?? "",
+                ["controlType"] = controlType ?? "",
+                ["processId"] = processId ?? 0,
+                ["timeoutSeconds"] = timeoutSeconds
+            };
             
             try
             {
@@ -61,35 +68,18 @@ namespace UIAutomationMCP.Server.Services
                 
                 stopwatch.Stop();
                 
-                var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = result.Success,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
+                var serverResponse = CreateSuccessResponse<ElementSearchResult>(
+                    result, 
+                    operationId, 
+                    stopwatch.Elapsed, 
+                    "FindElements", 
+                    requestParameters,
+                    new Dictionary<string, object>
                     {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["elementsFound"] = result.Count,
-                            ["totalResults"] = result.Items?.Count ?? 0,
-                            ["searchCriteria"] = $"WindowTitle={windowTitle}, SearchText={searchText}, ControlType={controlType}, ProcessId={processId}"
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "FindElements",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["windowTitle"] = windowTitle ?? "",
-                            ["searchText"] = searchText ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        }
-                    }
-                };
+                        ["elementsFound"] = result.Count,
+                        ["totalResults"] = result.Items?.Count ?? 0,
+                        ["searchCriteria"] = $"WindowTitle={windowTitle}, SearchText={searchText}, ControlType={controlType}, ProcessId={processId}"
+                    });
 
                 _logger.LogInformationWithOperation(operationId, $"Completed FindElements operation. Success={result.Success}, ElementsFound={result.Count}");
                 return serverResponse;
@@ -98,39 +88,16 @@ namespace UIAutomationMCP.Server.Services
             catch (Exception ex)
             {
                 stopwatch.Stop();
-                _logger.LogErrorWithOperation(operationId, ex, "Error in FindElements operation");
+                var errorResult = ErrorHandlerRegistry.HandleException(ex, "FindElements", 
+                    logAction: (exc, op, elemId, excType) => _logger.LogError(exc, "{Operation} operation failed for element: {ElementId}. Exception: {ExceptionType}", op, elemId, excType));
                 
-                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    Data = new ElementSearchResult { Success = false, ErrorMessage = ex.Message },
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["error"] = ex.Message,
-                            ["exception"] = ex.GetType().Name,
-                            ["searchCriteria"] = $"WindowTitle={windowTitle}, SearchText={searchText}, ControlType={controlType}, ProcessId={processId}"
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "FindElements",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["windowTitle"] = windowTitle ?? "",
-                            ["searchText"] = searchText ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        }
-                    }
-                };
-                
-                return errorResponse;
+                return CreateErrorResponse<ElementSearchResult>(
+                    errorResult,
+                    operationId,
+                    stopwatch.Elapsed,
+                    "FindElements",
+                    requestParameters,
+                    new ElementSearchResult { Success = false, ErrorMessage = errorResult.Error });
             }
         }
 
@@ -242,6 +209,55 @@ namespace UIAutomationMCP.Server.Services
                 criteria.Add("VisibleOnly=true");
                 
             return string.Join(", ", criteria);
+        }
+
+        private ServerEnhancedResponse<T> CreateSuccessResponse<T>(T data, string operationId, TimeSpan elapsed, string methodName, Dictionary<string, object> requestParameters, Dictionary<string, object>? additionalInfo = null)
+        {
+            return new ServerEnhancedResponse<T>
+            {
+                Success = true,
+                Data = data,
+                ExecutionInfo = new ServerExecutionInfo
+                {
+                    ServerProcessingTime = elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                    OperationId = operationId,
+                    ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                    AdditionalInfo = additionalInfo ?? new Dictionary<string, object>()
+                },
+                RequestMetadata = new RequestMetadata
+                {
+                    RequestedMethod = methodName,
+                    RequestParameters = requestParameters
+                }
+            };
+        }
+
+        private ServerEnhancedResponse<T> CreateErrorResponse<T>(ErrorResult errorResult, string operationId, TimeSpan elapsed, string methodName, Dictionary<string, object> requestParameters, T? fallbackData = default)
+        {
+            return new ServerEnhancedResponse<T>
+            {
+                Success = false,
+                Data = fallbackData,
+                ErrorMessage = errorResult.Error,
+                ExecutionInfo = new ServerExecutionInfo
+                {
+                    ServerProcessingTime = elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                    OperationId = operationId,
+                    ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                    AdditionalInfo = new Dictionary<string, object>
+                    {
+                        ["error"] = errorResult.Error,
+                        ["errorCategory"] = errorResult.ErrorCategory ?? "",
+                        ["exception"] = errorResult.ExceptionType ?? "",
+                        ["details"] = errorResult.Details ?? ""
+                    }
+                },
+                RequestMetadata = new RequestMetadata
+                {
+                    RequestedMethod = methodName,
+                    RequestParameters = requestParameters
+                }
+            };
         }
 
     }
