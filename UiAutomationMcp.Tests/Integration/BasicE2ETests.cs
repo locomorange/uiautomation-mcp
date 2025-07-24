@@ -77,7 +77,6 @@ namespace UIAutomationMCP.Tests.Integration
             var elementsResult = await _elementSearchService.SearchElementsAsync(new UIAutomationMCP.Shared.Requests.SearchElementsRequest
             {
                 ControlType = "Button",
-                TimeoutSeconds = timeout
             });
 
             // Then
@@ -244,7 +243,6 @@ namespace UIAutomationMCP.Tests.Integration
                 var elementsResult = await _elementSearchService.SearchElementsAsync(new UIAutomationMCP.Shared.Requests.SearchElementsRequest
             {
                 ControlType = "Button",
-                TimeoutSeconds = timeout
             });
                 var windowsResult = await _elementSearchService.GetWindowsAsync(timeout);
 
