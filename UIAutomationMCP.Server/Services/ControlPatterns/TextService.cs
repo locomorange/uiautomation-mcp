@@ -809,6 +809,18 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 stopwatch.Stop();
                 _logger.LogErrorWithOperation(operationId, ex, "Error in FindText operation");
                 
+                // Classify error for better diagnostics
+                string errorCategory = ex switch
+                {
+                    ArgumentException => "Validation",
+                    InvalidOperationException when ex.Message.Contains("Worker process") => "WorkerProcess",
+                    InvalidOperationException when ex.Message.Contains("UI Automation") => "UIAutomation",
+                    TimeoutException => "Timeout",
+                    System.ComponentModel.Win32Exception => "Win32",
+                    UnauthorizedAccessException => "Permission",
+                    _ => "Unknown"
+                };
+                
                 var errorResult = new TextSearchResult
                 {
                     Success = false,
@@ -833,6 +845,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
                         AdditionalInfo = new Dictionary<string, object>
                         {
+                            ["errorCategory"] = errorCategory,
                             ["exceptionType"] = ex.GetType().Name,
                             ["stackTrace"] = ex.StackTrace ?? "",
                             ["automationId"] = automationId ?? "",
@@ -840,7 +853,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                             ["searchText"] = searchText ?? "",
                             ["backward"] = backward,
                             ["ignoreCase"] = ignoreCase,
-                            ["operationType"] = "findText"
+                            ["operationType"] = "findText",
+                            ["innerExceptionMessage"] = ex.InnerException?.Message ?? "",
+                            ["environment"] = Environment.OSVersion.ToString()
                         }
                     },
                     RequestMetadata = new RequestMetadata

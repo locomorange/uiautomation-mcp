@@ -15,6 +15,8 @@ namespace UIAutomationMCP.Server.Helpers
         private readonly SemaphoreSlim _semaphore = new(1, 1);
         private bool _disposed = false;
         private readonly object _lockObject = new object();
+        private string _lastStderrOutput = "";
+        private string _workerExecutablePath = "";
 
         public SubprocessExecutor(ILogger<SubprocessExecutor> logger, string workerPath)
         {
@@ -134,27 +136,59 @@ namespace UIAutomationMCP.Server.Helpers
                     if (string.IsNullOrEmpty(responseJson))
                     {
                         string errorOutput = "";
+                        string processStatus = "";
                         try
                         {
                             // Check if process has exited and get error info if available
                             if (_workerProcess?.HasExited == true)
                             {
                                 errorOutput = $"Worker process exited with code: {_workerProcess.ExitCode}";
+                                processStatus = $"Process ID was: {_workerProcess.Id}, Start time: {_workerProcess.StartTime}";
+                                
+                                // Try to get more detailed exit information
+                                var exitTime = _workerProcess.ExitTime;
+                                var totalRunTime = exitTime - _workerProcess.StartTime;
+                                processStatus += $", Exit time: {exitTime}, Total runtime: {totalRunTime.TotalMilliseconds}ms";
                             }
-                            // Don't try to read stderr synchronously due to async monitoring
+                            else if (_workerProcess != null)
+                            {
+                                processStatus = $"Process is still running. ID: {_workerProcess.Id}, Responding: {!_workerProcess.HasExited}";
+                            }
+                            else
+                            {
+                                processStatus = "Worker process is null";
+                            }
+                            
+                            // Collect stderr data if available
+                            if (!string.IsNullOrEmpty(_lastStderrOutput))
+                            {
+                                errorOutput += $". Last stderr: {_lastStderrOutput}";
+                            }
                         }
                         catch (Exception ex)
                         {
                             _logger.LogDebug(ex, "Failed to check worker process status");
+                            processStatus = $"Failed to get process status: {ex.Message}";
                         }
 
                         var contextMessage = $"Worker process returned empty response for operation '{operation}'";
                         contextMessage += $" with JSON: {GetParameterSummary(requestJson)}";
                         if (!string.IsNullOrEmpty(errorOutput))
                         {
-                            contextMessage += $". Stderr: {errorOutput}";
+                            contextMessage += $". Error details: {errorOutput}";
                         }
+                        if (!string.IsNullOrEmpty(processStatus))
+                        {
+                            contextMessage += $". Process status: {processStatus}";
+                        }
+                        
                         _logger.LogError("Empty response received: {Context}", contextMessage);
+                        
+                        // Log worker executable path for debugging
+                        _logger.LogError("Worker executable path: {WorkerPath}, Current directory: {CurrentDir}", 
+                            _workerExecutablePath, 
+                            Environment.CurrentDirectory);
+                            
                         throw new InvalidOperationException(contextMessage);
                     }
 
@@ -370,12 +404,16 @@ namespace UIAutomationMCP.Server.Helpers
 
                 _workerProcess = new Process { StartInfo = startInfo };
                 
+                // Store the worker executable path for debugging
+                _workerExecutablePath = startInfo.FileName + " " + startInfo.Arguments;
+                
                 // Set up async stderr monitoring
                 _workerProcess.ErrorDataReceived += (sender, e) =>
                 {
                     if (!string.IsNullOrEmpty(e.Data))
                     {
                         _logger.LogDebug("Worker stderr: {ErrorData}", e.Data);
+                        _lastStderrOutput = e.Data; // Store last stderr output for debugging
                     }
                 };
                 
@@ -571,5 +609,6 @@ namespace UIAutomationMCP.Server.Helpers
 
             _logger.LogInformation("SubprocessExecutor disposal completed");
         }
+
     }
 }

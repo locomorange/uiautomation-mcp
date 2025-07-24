@@ -91,11 +91,27 @@ namespace UIAutomationMCP.Worker
 
         static async Task Main(string[] args)
         {
-
             // Early UI Automation availability check
             if (!IsUIAutomationAvailable(out string errorReason))
             {
                 Console.Error.WriteLine($"UI Automation is not available in this environment: {errorReason}");
+                Console.Error.WriteLine($"Platform: {Environment.OSVersion}");
+                Console.Error.WriteLine($"User Interactive: {Environment.UserInteractive}");
+                Console.Error.WriteLine($"Is64BitOS: {Environment.Is64BitOperatingSystem}");
+                Console.Error.WriteLine($"Current Directory: {Environment.CurrentDirectory}");
+                
+                // Additional diagnostics for common issues
+                try
+                {
+                    var desktop = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop");
+                    Console.Error.WriteLine($"Desktop registry key accessible: {desktop != null}");
+                    desktop?.Close();
+                }
+                catch (Exception regEx)
+                {
+                    Console.Error.WriteLine($"Registry access failed: {regEx.Message}");
+                }
+                
                 Environment.Exit(1);
                 return;
             }
