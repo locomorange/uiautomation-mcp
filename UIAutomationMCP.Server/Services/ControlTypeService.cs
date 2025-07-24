@@ -43,25 +43,10 @@ namespace UIAutomationMCP.Server.Services
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId ?? "<null>",
-                            ["name"] = name ?? "<null>",
-                            ["validationFailed"] = true
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "ValidateControlTypePatterns",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -95,14 +80,6 @@ namespace UIAutomationMCP.Server.Services
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "ValidateControlTypePatterns",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -121,24 +98,10 @@ namespace UIAutomationMCP.Server.Services
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "ExecutionError",
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? ""
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "ValidateControlTypePatterns",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };

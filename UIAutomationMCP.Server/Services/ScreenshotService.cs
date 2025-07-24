@@ -185,25 +185,10 @@ namespace UIAutomationMCP.Server.Services
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["captureWidth"] = screenshotResult.Width,
-                            ["captureHeight"] = screenshotResult.Height,
-                            ["fileSize"] = screenshotResult.FileSize,
-                            ["hasBase64"] = !string.IsNullOrEmpty(screenshotResult.Base64Image)
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "TakeScreenshot",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["windowTitle"] = windowTitle ?? "",
-                            ["outputPath"] = outputPath ?? "",
-                            ["maxTokens"] = maxTokens,
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -222,24 +207,10 @@ namespace UIAutomationMCP.Server.Services
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "ExecutionError",
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? ""
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "TakeScreenshot",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["windowTitle"] = windowTitle ?? "",
-                            ["outputPath"] = outputPath ?? "",
-                            ["maxTokens"] = maxTokens,
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };

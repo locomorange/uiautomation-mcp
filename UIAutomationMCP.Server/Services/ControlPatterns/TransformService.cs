@@ -37,27 +37,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId ?? "<null>",
-                            ["name"] = name ?? "<null>",
-                            ["validationFailed"] = true
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "MoveElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["x"] = x,
-                            ["y"] = y,
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -93,16 +76,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "MoveElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["x"] = x,
-                            ["y"] = y,
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -121,26 +94,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "ExecutionError",
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? ""
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "MoveElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["x"] = x,
-                            ["y"] = y,
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -170,27 +127,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId ?? "<null>",
-                            ["name"] = name ?? "<null>",
-                            ["validationFailed"] = true
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "ResizeElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["width"] = width,
-                            ["height"] = height,
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -211,28 +151,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["width"] = width,
-                            ["height"] = height,
-                            ["validationFailed"] = true,
-                            ["requirement"] = "Positive dimensions"
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "ResizeElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["width"] = width,
-                            ["height"] = height,
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -268,16 +190,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "ResizeElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["width"] = width,
-                            ["height"] = height,
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -296,26 +208,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "ExecutionError",
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? ""
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "ResizeElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["width"] = width,
-                            ["height"] = height,
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -345,26 +241,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId ?? "<null>",
-                            ["name"] = name ?? "<null>",
-                            ["validationFailed"] = true
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "RotateElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["degrees"] = degrees,
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -399,15 +279,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "RotateElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["degrees"] = degrees,
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -426,25 +297,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "ExecutionError",
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? ""
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "RotateElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["degrees"] = degrees,
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -473,25 +329,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId ?? "<null>",
-                            ["name"] = name ?? "<null>",
-                            ["validationFailed"] = true
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "GetTransformCapabilities",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -525,24 +366,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["operationType"] = "getTransformCapabilities"
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "GetTransformCapabilities",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -567,26 +394,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? "",
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["operationType"] = "getTransformCapabilities"
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "GetTransformCapabilities",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };

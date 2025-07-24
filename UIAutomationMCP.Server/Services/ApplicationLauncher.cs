@@ -74,26 +74,10 @@ namespace UIAutomationMCP.Server.Services
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["processId"] = processId,
-                            ["processName"] = processName,
-                            ["hasExited"] = hasExited,
-                            ["applicationPath"] = applicationPath,
-                            ["arguments"] = arguments ?? "",
-                            ["workingDirectory"] = workingDirectory ?? ""
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "LaunchWin32Application",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["applicationPath"] = applicationPath,
-                            ["arguments"] = arguments ?? "",
-                            ["workingDirectory"] = workingDirectory ?? "",
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -118,23 +102,10 @@ namespace UIAutomationMCP.Server.Services
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? "",
-                            ["applicationPath"] = applicationPath
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "LaunchWin32Application",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["applicationPath"] = applicationPath,
-                            ["arguments"] = arguments ?? "",
-                            ["workingDirectory"] = workingDirectory ?? "",
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -192,23 +163,10 @@ namespace UIAutomationMCP.Server.Services
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["processId"] = processId,
-                            ["processName"] = "UWP App",
-                            ["hasExited"] = hasExited,
-                            ["appsFolderPath"] = appsFolderPath,
-                            ["uwpLaunchDelay"] = "1000ms"
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "LaunchUWPApplication",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["appsFolderPath"] = appsFolderPath,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -233,21 +191,10 @@ namespace UIAutomationMCP.Server.Services
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? "",
-                            ["appsFolderPath"] = appsFolderPath
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "LaunchUWPApplication",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["appsFolderPath"] = appsFolderPath,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -303,7 +250,7 @@ namespace UIAutomationMCP.Server.Services
 
                 _logger.LogInformation("Found application: {ApplicationName} with AppID: {AppID}", applicationName, appId);
 
-                // Step 2: アプリケーションを起動
+                // Step 2: アプリケーションを起勁E
                 var launchStartInfo = new ProcessStartInfo
                 {
                     FileName = "powershell.exe",
@@ -320,20 +267,20 @@ namespace UIAutomationMCP.Server.Services
 
                 _logger.LogInformation("Application launched by name: {ApplicationName}", applicationName);
 
-                await Task.Delay(2000, cancellationToken); // アプリケーションが起動するまで待機
+                await Task.Delay(2000, cancellationToken); // アプリケーションが起動するまで征E��E
 
-                // 起動したプロセスを検索
+                // 起動した�Eロセスを検索
                 var processId = 0;
                 var processName = applicationName;
                 Process? targetProcess = null;
                 
                 try
                 {
-                    // アプリケーション名の一部でプロセスを検索
+                    // アプリケーション名�E一部でプロセスを検索
                     var processes = Process.GetProcesses();
                     var searchTerms = applicationName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                     
-                    // より良いマッチングのために優先順位を付けて検索
+                    // より良ぁE�EチE��ングのために優先頁E��を付けて検索
                     targetProcess = processes
                         .Where(p => 
                         {
@@ -354,7 +301,7 @@ namespace UIAutomationMCP.Server.Services
                             {
                                 var score = 0;
                                 
-                                // ウィンドウタイトルに完全なアプリケーション名が含まれるものを最優先
+                                // ウィンドウタイトルに完�Eなアプリケーション名が含まれるも�Eを最優允E
                                 if (!string.IsNullOrEmpty(p.MainWindowTitle) && 
                                     p.MainWindowTitle.Contains(applicationName, StringComparison.OrdinalIgnoreCase))
                                     score += 100;
@@ -365,7 +312,7 @@ namespace UIAutomationMCP.Server.Services
                                     (!string.IsNullOrEmpty(p.MainWindowTitle) && p.MainWindowTitle.Contains(term, StringComparison.OrdinalIgnoreCase)));
                                 score += matchedTerms * 10;
                                 
-                                // プロセス名に検索語が含まれるものを優先
+                                // プロセス名に検索語が含まれるも�Eを優允E
                                 if (searchTerms.Any(term => p.ProcessName.Contains(term, StringComparison.OrdinalIgnoreCase)))
                                     score += 5;
                                 
@@ -403,24 +350,10 @@ namespace UIAutomationMCP.Server.Services
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["processId"] = processId,
-                            ["processName"] = processName,
-                            ["hasExited"] = false,
-                            ["applicationName"] = applicationName,
-                            ["windowTitle"] = targetProcess?.MainWindowTitle ?? "N/A",
-                            ["searchDelay"] = "2000ms"
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "LaunchApplicationByName",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["applicationName"] = applicationName,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -445,21 +378,10 @@ namespace UIAutomationMCP.Server.Services
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? "",
-                            ["applicationName"] = applicationName
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "LaunchApplicationByName",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["applicationName"] = applicationName,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };

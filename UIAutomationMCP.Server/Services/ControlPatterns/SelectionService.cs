@@ -38,25 +38,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId ?? "<null>",
-                            ["name"] = name ?? "<null>",
-                            ["validationFailed"] = true
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "SelectItem",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -90,25 +75,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["operationType"] = "selectItem"
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "SelectItem",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -133,27 +103,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? "",
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["operationType"] = "selectItem"
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "SelectItem",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -185,25 +138,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId ?? "<null>",
-                            ["name"] = name ?? "<null>",
-                            ["validationFailed"] = true
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "AddToSelection",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -237,25 +175,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["operationType"] = "addToSelection"
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "AddToSelection",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -280,27 +203,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? "",
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["operationType"] = "addToSelection"
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "AddToSelection",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -331,25 +237,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId ?? "<null>",
-                            ["name"] = name ?? "<null>",
-                            ["validationFailed"] = true
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "RemoveFromSelection",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -383,25 +274,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["operationType"] = "removeFromSelection"
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "RemoveFromSelection",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -426,27 +302,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? "",
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["operationType"] = "removeFromSelection"
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "RemoveFromSelection",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -477,26 +336,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "<null>",
-                            ["validationFailed"] = true
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "ClearSelection",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -530,25 +373,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["operationType"] = "clearSelection"
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "ClearSelection",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -573,27 +401,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? "",
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["operationType"] = "clearSelection"
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "ClearSelection",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -626,26 +437,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "<null>",
-                            ["validationFailed"] = true
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "GetSelectionContainer",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -679,25 +474,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["operationType"] = "getSelectionContainer"
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "GetSelectionContainer",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -722,27 +502,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? "",
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["operationType"] = "getSelectionContainer"
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "GetSelectionContainer",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -773,26 +536,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "<null>",
-                            ["validationFailed"] = true
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "GetSelection",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -826,25 +573,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["operationType"] = "getSelection"
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "GetSelection",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -869,27 +601,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? "",
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["operationType"] = "getSelection"
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "GetSelection",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };

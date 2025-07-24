@@ -37,26 +37,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId ?? "<null>",
-                            ["name"] = name ?? "<null>",
-                            ["validationFailed"] = true
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "ExpandCollapseElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["action"] = action ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -77,26 +61,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["action"] = action ?? "<null>",
-                            ["validationFailed"] = true,
-                            ["expectedActions"] = new[] { "expand", "collapse" }
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "ExpandCollapseElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["action"] = action ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -131,15 +99,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "ExpandCollapseElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["action"] = action,
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -158,25 +117,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "ExecutionError",
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? ""
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "ExpandCollapseElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["action"] = action,
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -206,27 +150,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId ?? "<null>",
-                            ["name"] = name ?? "<null>",
-                            ["validationFailed"] = true
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "ScrollElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["direction"] = direction ?? "",
-                            ["amount"] = amount,
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -247,27 +174,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["direction"] = direction ?? "<null>",
-                            ["validationFailed"] = true,
-                            ["expectedDirections"] = new[] { "up", "down", "left", "right" }
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "ScrollElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["direction"] = direction ?? "",
-                            ["amount"] = amount,
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -303,16 +213,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "ScrollElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["direction"] = direction,
-                            ["amount"] = amount,
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -331,26 +231,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "ExecutionError",
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? ""
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "ScrollElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["direction"] = direction,
-                            ["amount"] = amount,
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -380,25 +264,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId ?? "<null>",
-                            ["name"] = name ?? "<null>",
-                            ["validationFailed"] = true
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "ScrollElementIntoView",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -432,14 +301,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "ScrollElementIntoView",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -458,24 +319,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "ExecutionError",
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? ""
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "ScrollElementIntoView",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -505,27 +352,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId ?? "<null>",
-                            ["name"] = name ?? "<null>",
-                            ["validationFailed"] = true
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "SetScrollPercent",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["horizontalPercent"] = horizontalPercent,
-                            ["verticalPercent"] = verticalPercent,
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -546,28 +376,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["horizontalPercent"] = horizontalPercent,
-                            ["verticalPercent"] = verticalPercent,
-                            ["validationFailed"] = true,
-                            ["expectedRange"] = "-1 to 100"
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "SetScrollPercent",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["horizontalPercent"] = horizontalPercent,
-                            ["verticalPercent"] = verticalPercent,
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -603,16 +415,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "SetScrollPercent",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["horizontalPercent"] = horizontalPercent,
-                            ["verticalPercent"] = verticalPercent,
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -631,26 +433,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "ExecutionError",
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? ""
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "SetScrollPercent",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["horizontalPercent"] = horizontalPercent,
-                            ["verticalPercent"] = verticalPercent,
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -680,26 +466,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId ?? "<null>",
-                            ["name"] = name ?? "<null>",
-                            ["validationFailed"] = true
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "DockElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["dockPosition"] = dockPosition ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -720,26 +490,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["dockPosition"] = dockPosition ?? "<null>",
-                            ["validationFailed"] = true,
-                            ["expectedPositions"] = new[] { "top", "bottom", "left", "right", "fill", "none" }
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "DockElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["dockPosition"] = dockPosition ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -774,15 +528,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "DockElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["dockPosition"] = dockPosition,
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -801,25 +546,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "ExecutionError",
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? ""
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "DockElement",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["dockPosition"] = dockPosition,
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -849,25 +579,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId ?? "<null>",
-                            ["name"] = name ?? "<null>",
-                            ["validationFailed"] = true
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "GetScrollInfo",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -897,26 +612,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["operationCompleted"] = true
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "GetScrollInfo",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -935,27 +634,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["exceptionMessage"] = ex.Message
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "GetScrollInfo",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };

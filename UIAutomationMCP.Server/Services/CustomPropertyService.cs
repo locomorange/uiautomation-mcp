@@ -37,26 +37,10 @@ namespace UIAutomationMCP.Server.Services
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId ?? "<null>",
-                            ["name"] = name ?? "<null>",
-                            ["validationFailed"] = true
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "GetCustomProperties",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["propertyIds"] = propertyIds ?? Array.Empty<string>(),
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -91,15 +75,6 @@ namespace UIAutomationMCP.Server.Services
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "GetCustomProperties",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["propertyIds"] = propertyIds ?? Array.Empty<string>(),
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -118,25 +93,10 @@ namespace UIAutomationMCP.Server.Services
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "ExecutionError",
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? ""
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "GetCustomProperties",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["propertyIds"] = propertyIds ?? Array.Empty<string>(),
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -166,28 +126,10 @@ namespace UIAutomationMCP.Server.Services
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId ?? "<null>",
-                            ["name"] = name ?? "<null>",
-                            ["propertyId"] = propertyId ?? "<null>",
-                            ["validationFailed"] = true
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "SetCustomProperty",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["propertyId"] = propertyId ?? "",
-                            ["value"] = value ?? "<null>",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -208,28 +150,10 @@ namespace UIAutomationMCP.Server.Services
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["automationId"] = automationId ?? "<null>",
-                            ["name"] = name ?? "<null>",
-                            ["propertyId"] = propertyId ?? "<null>",
-                            ["validationFailed"] = true
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "SetCustomProperty",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["propertyId"] = propertyId ?? "",
-                            ["value"] = value ?? "<null>",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -265,16 +189,6 @@ namespace UIAutomationMCP.Server.Services
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "SetCustomProperty",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["propertyId"] = propertyId,
-                            ["value"] = value ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -293,26 +207,10 @@ namespace UIAutomationMCP.Server.Services
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "ExecutionError",
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? ""
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "SetCustomProperty",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["propertyId"] = propertyId,
-                            ["value"] = value ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };

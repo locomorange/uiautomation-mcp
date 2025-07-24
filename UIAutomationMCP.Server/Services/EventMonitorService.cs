@@ -54,28 +54,10 @@ namespace UIAutomationMCP.Server.Services
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            { "eventType", eventType },
-                            { "duration", duration },
-                            { "automationId", automationId ?? "All" },
-                            { "name", name ?? "All" },
-                            { "controlType", controlType ?? "All" },
-                            { "processId", processId?.ToString() ?? "All" }
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "MonitorEventsAsync",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["eventTypes"] = request.EventTypes,
-                            ["duration"] = request.Duration,
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = request.ProcessId ?? 0
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -149,26 +131,10 @@ namespace UIAutomationMCP.Server.Services
                         ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                         OperationId = operationId,
                         ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            { "eventType", eventType },
-                            { "automationId", automationId ?? "All" },
-                            { "name", name ?? "All" },
-                            { "controlType", controlType ?? "All" },
-                            { "processId", processId?.ToString() ?? "All" }
-                        }
                     },
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "StartEventMonitoringAsync",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["eventTypes"] = request.EventTypes,
-                            ["automationId"] = automationId ?? "",
-                            ["name"] = name ?? "",
-                            ["controlType"] = controlType ?? "",
-                            ["processId"] = request.ProcessId ?? 0
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -236,10 +202,6 @@ namespace UIAutomationMCP.Server.Services
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "StopEventMonitoringAsync",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["monitorId"] = request.MonitorId
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
@@ -308,11 +270,6 @@ namespace UIAutomationMCP.Server.Services
                     RequestMetadata = new RequestMetadata
                     {
                         RequestedMethod = "GetEventLogAsync",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["monitorId"] = request.MonitorId,
-                            ["maxCount"] = request.MaxCount
-                        },
                         TimeoutSeconds = timeoutSeconds
                     }
                 };

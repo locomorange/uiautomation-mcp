@@ -253,4 +253,40 @@ namespace UIAutomationMCP.Shared.Metadata
         [JsonPropertyName("propertiesCount")]
         public int? PropertiesCount { get; set; }
     }
+
+    /// <summary>
+    /// Metadata for application launcher operations
+    /// </summary>
+    public class ApplicationLauncherMetadata : ServiceMetadata
+    {
+        /// <summary>
+        /// The specific action performed (e.g., "applicationLaunched", "applicationTerminated")
+        /// </summary>
+        [JsonPropertyName("actionPerformed")]
+        public string ActionPerformed { get; set; } = "";
+
+        /// <summary>
+        /// Application executable path
+        /// </summary>
+        [JsonPropertyName("applicationPath")]
+        public string? ApplicationPath { get; set; }
+
+        /// <summary>
+        /// Process ID of the launched/terminated application
+        /// </summary>
+        [JsonPropertyName("processId")]
+        public int? ProcessId { get; set; }
+
+        /// <summary>
+        /// Whether the operation was successful
+        /// </summary>
+        [JsonPropertyName("operationSuccessful")]
+        public bool OperationSuccessful { get; set; } = true;
+
+        /// <summary>
+        /// Command line arguments used (for launch operations)
+        /// </summary>
+        [JsonPropertyName("commandLineArguments")]
+        public string? CommandLineArguments { get; set; }
+    }
 }
