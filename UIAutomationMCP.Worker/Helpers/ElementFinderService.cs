@@ -549,7 +549,7 @@ namespace UIAutomationMCP.Worker.Helpers
             // ControlType条件
             if (!string.IsNullOrEmpty(searchParams.ControlType))
             {
-                if (TryGetControlTypeByName(searchParams.ControlType, out var controlType))
+                if (ControlTypeHelper.TryGetControlType(searchParams.ControlType, out var controlType))
                 {
                     conditions.Add(new PropertyCondition(AutomationElement.ControlTypeProperty, controlType));
                 }
@@ -632,61 +632,6 @@ namespace UIAutomationMCP.Worker.Helpers
                 : null;
         }
 
-        /// <summary>
-        /// ControlType名からControlTypeオブジェクトを取得
-        /// </summary>
-        private bool TryGetControlTypeByName(string controlTypeName, out ControlType controlType)
-        {
-            controlType = ControlType.Custom;
-            
-            var controlTypes = new Dictionary<string, ControlType>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["Button"] = ControlType.Button,
-                ["Text"] = ControlType.Text,
-                ["Edit"] = ControlType.Edit,
-                ["ComboBox"] = ControlType.ComboBox,
-                ["List"] = ControlType.List,
-                ["ListBox"] = ControlType.List,
-                ["CheckBox"] = ControlType.CheckBox,
-                ["RadioButton"] = ControlType.RadioButton,
-                ["Group"] = ControlType.Group,
-                ["Window"] = ControlType.Window,
-                ["Menu"] = ControlType.Menu,
-                ["MenuItem"] = ControlType.MenuItem,
-                ["Tab"] = ControlType.Tab,
-                ["TabItem"] = ControlType.TabItem,
-                ["Tree"] = ControlType.Tree,
-                ["TreeItem"] = ControlType.TreeItem,
-                ["Table"] = ControlType.Table,
-                ["DataGrid"] = ControlType.DataGrid,
-                ["Image"] = ControlType.Image,
-                ["Slider"] = ControlType.Slider,
-                ["ProgressBar"] = ControlType.ProgressBar,
-                ["Hyperlink"] = ControlType.Hyperlink,
-                ["Calendar"] = ControlType.Calendar,
-                ["Document"] = ControlType.Document,
-                ["Pane"] = ControlType.Pane,
-                ["Separator"] = ControlType.Separator,
-                ["StatusBar"] = ControlType.StatusBar,
-                ["ToolBar"] = ControlType.ToolBar,
-                ["ToolTip"] = ControlType.ToolTip,
-                ["TitleBar"] = ControlType.TitleBar,
-                ["ScrollBar"] = ControlType.ScrollBar,
-                ["Spinner"] = ControlType.Spinner,
-                ["SplitButton"] = ControlType.SplitButton,
-                ["Header"] = ControlType.Header,
-                ["HeaderItem"] = ControlType.HeaderItem,
-                ["Thumb"] = ControlType.Thumb
-            };
-
-            if (controlTypes.TryGetValue(controlTypeName, out var foundType))
-            {
-                controlType = foundType;
-                return true;
-            }
-
-            return false;
-        }
 
         /// <summary>
         /// TreeScope文字列をTreeScope列挙型に変換

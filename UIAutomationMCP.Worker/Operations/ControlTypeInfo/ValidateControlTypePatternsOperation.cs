@@ -14,26 +14,6 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
         private readonly ElementFinderService _elementFinderService;
         private readonly ILogger<ValidateControlTypePatternsOperation> _logger;
 
-        // Control Type and Pattern mapping based on Microsoft Documentation
-        private static readonly Dictionary<ControlType, ControlTypePatternInfo> ControlTypePatterns = new()
-        {
-            [ControlType.Button] = new() { RequiredPatterns = new[] { "Invoke" }, OptionalPatterns = new[] { "ExpandCollapse", "Toggle" } },
-            [ControlType.CheckBox] = new() { RequiredPatterns = new[] { "Toggle" }, OptionalPatterns = Array.Empty<string>() },
-            [ControlType.ComboBox] = new() { RequiredPatterns = new[] { "ExpandCollapse" }, OptionalPatterns = new[] { "Value", "Selection" } },
-            [ControlType.Edit] = new() { RequiredPatterns = Array.Empty<string>(), OptionalPatterns = new[] { "Value", "Text", "RangeValue" } },
-            [ControlType.List] = new() { RequiredPatterns = Array.Empty<string>(), OptionalPatterns = new[] { "Selection", "Grid", "MultipleView", "Scroll" } },
-            [ControlType.ListItem] = new() { RequiredPatterns = new[] { "SelectionItem" }, OptionalPatterns = new[] { "ExpandCollapse", "GridItem", "Invoke", "ScrollItem", "Toggle", "Value" } },
-            [ControlType.Menu] = new() { RequiredPatterns = Array.Empty<string>(), OptionalPatterns = new[] { "ExpandCollapse" } },
-            [ControlType.MenuItem] = new() { RequiredPatterns = Array.Empty<string>(), OptionalPatterns = new[] { "ExpandCollapse", "Invoke", "Toggle", "SelectionItem" } },
-            [ControlType.RadioButton] = new() { RequiredPatterns = new[] { "SelectionItem" }, OptionalPatterns = new[] { "Toggle" } },
-            [ControlType.ScrollBar] = new() { RequiredPatterns = new[] { "RangeValue" }, OptionalPatterns = Array.Empty<string>() },
-            [ControlType.Slider] = new() { RequiredPatterns = new[] { "RangeValue" }, OptionalPatterns = new[] { "Selection", "Value" } },
-            [ControlType.TabItem] = new() { RequiredPatterns = new[] { "SelectionItem" }, OptionalPatterns = new[] { "Invoke" } },
-            [ControlType.Table] = new() { RequiredPatterns = new[] { "Grid", "Table" }, OptionalPatterns = new[] { "Selection", "Sort" } },
-            [ControlType.Tree] = new() { RequiredPatterns = Array.Empty<string>(), OptionalPatterns = new[] { "Selection", "Scroll" } },
-            [ControlType.TreeItem] = new() { RequiredPatterns = Array.Empty<string>(), OptionalPatterns = new[] { "ExpandCollapse", "Invoke", "ScrollItem", "SelectionItem", "Toggle" } },
-            [ControlType.Window] = new() { RequiredPatterns = Array.Empty<string>(), OptionalPatterns = new[] { "Transform", "Window" } }
-        };
 
         public ValidateControlTypePatternsOperation(
             ElementFinderService elementFinderService,
@@ -70,7 +50,8 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
                     .Select(pattern => pattern.ProgrammaticName)
                     .ToArray();
 
-                if (ControlTypePatterns.TryGetValue(controlType, out var expectedPatterns))
+                var expectedPatterns = ControlTypeHelper.GetPatternInfo(controlType);
+                if (expectedPatterns != null)
                 {
                     var missingRequired = expectedPatterns.RequiredPatterns
                         .Where(p => !availablePatterns.Any(ap => ap.Contains(p)))
@@ -126,10 +107,5 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
             }
         }
 
-        private class ControlTypePatternInfo
-        {
-            public string[] RequiredPatterns { get; set; } = Array.Empty<string>();
-            public string[] OptionalPatterns { get; set; } = Array.Empty<string>();
-        }
     }
 }

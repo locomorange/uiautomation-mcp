@@ -8,59 +8,94 @@ namespace UIAutomationMCP.Worker.Helpers
     public static class ControlTypeHelper
     {
         /// <summary>
-        /// 文字列からControlTypeを取得（完全版：40種類対応）
+        /// 統一的なControlType変換辞書（大文字小文字を区別しない）
         /// </summary>
-        public static ControlType? GetControlType(string controlTypeName)
+        private static readonly Dictionary<string, ControlType> ControlTypeMappings = new(StringComparer.OrdinalIgnoreCase)
         {
-            return controlTypeName?.ToLower() switch
+            // 基本コントロール
+            ["Button"] = ControlType.Button,
+            ["Calendar"] = ControlType.Calendar,
+            ["CheckBox"] = ControlType.CheckBox,
+            ["ComboBox"] = ControlType.ComboBox,
+            ["Edit"] = ControlType.Edit,
+            ["Hyperlink"] = ControlType.Hyperlink,
+            ["Image"] = ControlType.Image,
+            ["ListItem"] = ControlType.ListItem,
+            ["List"] = ControlType.List,
+            ["ListBox"] = ControlType.List, // エイリアス
+            ["Menu"] = ControlType.Menu,
+            ["MenuBar"] = ControlType.MenuBar,
+            ["MenuItem"] = ControlType.MenuItem,
+            ["ProgressBar"] = ControlType.ProgressBar,
+            ["RadioButton"] = ControlType.RadioButton,
+            ["ScrollBar"] = ControlType.ScrollBar,
+            ["Slider"] = ControlType.Slider,
+            ["Spinner"] = ControlType.Spinner,
+            ["StatusBar"] = ControlType.StatusBar,
+            ["Tab"] = ControlType.Tab,
+            ["TabItem"] = ControlType.TabItem,
+            ["Text"] = ControlType.Text,
+            ["ToolBar"] = ControlType.ToolBar,
+            ["ToolTip"] = ControlType.ToolTip,
+            ["Tree"] = ControlType.Tree,
+            ["TreeItem"] = ControlType.TreeItem,
+            
+            // コンテナコントロール
+            ["DataGrid"] = ControlType.DataGrid,
+            ["DataItem"] = ControlType.DataItem,
+            ["Document"] = ControlType.Document,
+            ["SplitButton"] = ControlType.SplitButton,
+            ["Window"] = ControlType.Window,
+            ["Pane"] = ControlType.Pane,
+            ["Header"] = ControlType.Header,
+            ["HeaderItem"] = ControlType.HeaderItem,
+            ["Table"] = ControlType.Table,
+            ["TitleBar"] = ControlType.TitleBar,
+            ["Separator"] = ControlType.Separator,
+            
+            // その他のコントロール
+            ["Group"] = ControlType.Group,
+            ["Thumb"] = ControlType.Thumb,
+            ["Custom"] = ControlType.Custom
+        };
+
+        /// <summary>
+        /// 文字列からControlTypeを取得（nullableバージョン）
+        /// </summary>
+        public static ControlType? GetControlType(string? controlTypeName)
+        {
+            if (string.IsNullOrEmpty(controlTypeName))
+                return null;
+
+            return ControlTypeMappings.TryGetValue(controlTypeName, out var controlType) ? controlType : null;
+        }
+
+        /// <summary>
+        /// 文字列からControlTypeを取得（out parameterバージョン、既存コードとの互換性のため）
+        /// </summary>
+        public static bool TryGetControlType(string? controlTypeName, out ControlType controlType)
+        {
+            controlType = ControlType.Custom;
+            
+            if (string.IsNullOrEmpty(controlTypeName))
+                return false;
+
+            if (ControlTypeMappings.TryGetValue(controlTypeName, out var foundType))
             {
-                // 基本コントロール
-                "button" => ControlType.Button,
-                "calendar" => ControlType.Calendar,
-                "checkbox" => ControlType.CheckBox,
-                "combobox" => ControlType.ComboBox,
-                "edit" => ControlType.Edit,
-                "hyperlink" => ControlType.Hyperlink,
-                "image" => ControlType.Image,
-                "listitem" => ControlType.ListItem,
-                "list" or "listbox" => ControlType.List,
-                "menu" => ControlType.Menu,
-                "menubar" => ControlType.MenuBar,
-                "menuitem" => ControlType.MenuItem,
-                "progressbar" => ControlType.ProgressBar,
-                "radiobutton" => ControlType.RadioButton,
-                "scrollbar" => ControlType.ScrollBar,
-                "slider" => ControlType.Slider,
-                "spinner" => ControlType.Spinner,
-                "statusbar" => ControlType.StatusBar,
-                "tab" => ControlType.Tab,
-                "tabitem" => ControlType.TabItem,
-                "text" => ControlType.Text,
-                "toolbar" => ControlType.ToolBar,
-                "tooltip" => ControlType.ToolTip,
-                "tree" => ControlType.Tree,
-                "treeitem" => ControlType.TreeItem,
-                
-                // コンテナコントロール
-                "datagrid" => ControlType.DataGrid,
-                "dataitem" => ControlType.DataItem,
-                "document" => ControlType.Document,
-                "splitbutton" => ControlType.SplitButton,
-                "window" => ControlType.Window,
-                "pane" => ControlType.Pane,
-                "header" => ControlType.Header,
-                "headeritem" => ControlType.HeaderItem,
-                "table" => ControlType.Table,
-                "titlebar" => ControlType.TitleBar,
-                "separator" => ControlType.Separator,
-                
-                // その他のコントロール
-                "group" => ControlType.Group,
-                "thumb" => ControlType.Thumb,
-                "custom" => ControlType.Custom,
-                
-                _ => null
-            };
+                controlType = foundType;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// ControlTypeから文字列名を取得
+        /// </summary>
+        public static string? GetControlTypeName(ControlType controlType)
+        {
+            var entry = ControlTypeMappings.FirstOrDefault(kvp => kvp.Value.Equals(controlType));
+            return entry.Key; // デフォルトではnullが返される
         }
 
         /// <summary>
@@ -68,49 +103,73 @@ namespace UIAutomationMCP.Worker.Helpers
         /// </summary>
         public static string[] GetAllControlTypeNames()
         {
-            return new[]
-            {
-                "button", "calendar", "checkbox", "combobox", "edit", "hyperlink", "image",
-                "listitem", "list", "listbox", "menu", "menubar", "menuitem", "progressbar",
-                "radiobutton", "scrollbar", "slider", "spinner", "statusbar", "tab", "tabitem",
-                "text", "toolbar", "tooltip", "tree", "treeitem", "datagrid", "dataitem",
-                "document", "splitbutton", "window", "pane", "header", "headeritem", "table",
-                "titlebar", "separator", "group", "thumb", "custom"
-            };
+            return ControlTypeMappings.Keys.ToArray();
         }
 
         /// <summary>
-        /// ControlTypeに必要なパターンを取得
+        /// ControlTypeのパターン情報
+        /// </summary>
+        public class ControlTypePatternInfo
+        {
+            public string[] RequiredPatterns { get; set; } = Array.Empty<string>();
+            public string[] OptionalPatterns { get; set; } = Array.Empty<string>();
+        }
+
+        /// <summary>
+        /// ControlTypeとパターンのマッピング（Microsoft Documentation準拠）
+        /// </summary>
+        private static readonly Dictionary<ControlType, ControlTypePatternInfo> ControlTypePatterns = new()
+        {
+            [ControlType.Button] = new() { RequiredPatterns = new[] { "Invoke" }, OptionalPatterns = new[] { "ExpandCollapse", "Toggle" } },
+            [ControlType.CheckBox] = new() { RequiredPatterns = new[] { "Toggle" }, OptionalPatterns = Array.Empty<string>() },
+            [ControlType.ComboBox] = new() { RequiredPatterns = new[] { "ExpandCollapse" }, OptionalPatterns = new[] { "Value", "Selection" } },
+            [ControlType.Edit] = new() { RequiredPatterns = Array.Empty<string>(), OptionalPatterns = new[] { "Value", "Text", "RangeValue" } },
+            [ControlType.List] = new() { RequiredPatterns = Array.Empty<string>(), OptionalPatterns = new[] { "Selection", "Grid", "MultipleView", "Scroll" } },
+            [ControlType.ListItem] = new() { RequiredPatterns = new[] { "SelectionItem" }, OptionalPatterns = new[] { "ExpandCollapse", "GridItem", "Invoke", "ScrollItem", "Toggle", "Value" } },
+            [ControlType.Menu] = new() { RequiredPatterns = Array.Empty<string>(), OptionalPatterns = new[] { "ExpandCollapse" } },
+            [ControlType.MenuItem] = new() { RequiredPatterns = Array.Empty<string>(), OptionalPatterns = new[] { "ExpandCollapse", "Invoke", "Toggle", "SelectionItem" } },
+            [ControlType.RadioButton] = new() { RequiredPatterns = new[] { "SelectionItem" }, OptionalPatterns = new[] { "Toggle" } },
+            [ControlType.ScrollBar] = new() { RequiredPatterns = new[] { "RangeValue" }, OptionalPatterns = Array.Empty<string>() },
+            [ControlType.Slider] = new() { RequiredPatterns = new[] { "RangeValue" }, OptionalPatterns = new[] { "Selection", "Value" } },
+            [ControlType.TabItem] = new() { RequiredPatterns = new[] { "SelectionItem" }, OptionalPatterns = new[] { "Invoke" } },
+            [ControlType.Table] = new() { RequiredPatterns = new[] { "Grid", "Table" }, OptionalPatterns = new[] { "Selection", "Sort" } },
+            [ControlType.Tree] = new() { RequiredPatterns = Array.Empty<string>(), OptionalPatterns = new[] { "Selection", "Scroll" } },
+            [ControlType.TreeItem] = new() { RequiredPatterns = Array.Empty<string>(), OptionalPatterns = new[] { "ExpandCollapse", "Invoke", "ScrollItem", "SelectionItem", "Toggle" } },
+            [ControlType.Window] = new() { RequiredPatterns = Array.Empty<string>(), OptionalPatterns = new[] { "Transform", "Window" } },
+            // 追加のControlType（従来のGetRequiredPatternsから）
+            [ControlType.ProgressBar] = new() { RequiredPatterns = new[] { "RangeValue" }, OptionalPatterns = Array.Empty<string>() },
+            [ControlType.Spinner] = new() { RequiredPatterns = new[] { "RangeValue" }, OptionalPatterns = Array.Empty<string>() },
+            [ControlType.Tab] = new() { RequiredPatterns = new[] { "Selection" }, OptionalPatterns = Array.Empty<string>() },
+            [ControlType.DataGrid] = new() { RequiredPatterns = new[] { "Grid", "Selection", "Table" }, OptionalPatterns = Array.Empty<string>() },
+            [ControlType.DataItem] = new() { RequiredPatterns = new[] { "SelectionItem" }, OptionalPatterns = Array.Empty<string>() },
+            [ControlType.Document] = new() { RequiredPatterns = new[] { "Text" }, OptionalPatterns = Array.Empty<string>() },
+            [ControlType.SplitButton] = new() { RequiredPatterns = new[] { "ExpandCollapse", "Invoke" }, OptionalPatterns = Array.Empty<string>() },
+            [ControlType.Hyperlink] = new() { RequiredPatterns = new[] { "Invoke" }, OptionalPatterns = Array.Empty<string>() },
+            [ControlType.Calendar] = new() { RequiredPatterns = new[] { "Grid", "Table" }, OptionalPatterns = Array.Empty<string>() }
+        };
+
+        /// <summary>
+        /// ControlTypeのパターン情報を取得
+        /// </summary>
+        public static ControlTypePatternInfo? GetPatternInfo(ControlType controlType)
+        {
+            return ControlTypePatterns.TryGetValue(controlType, out var info) ? info : null;
+        }
+
+        /// <summary>
+        /// ControlTypeに必要なパターンを取得（後方互換性のため）
         /// </summary>
         public static string[] GetRequiredPatterns(ControlType controlType)
         {
-            if (controlType == ControlType.Button) return new[] { "InvokePattern" };
-            if (controlType == ControlType.CheckBox) return new[] { "TogglePattern" };
-            if (controlType == ControlType.RadioButton) return new[] { "SelectionItemPattern" };
-            if (controlType == ControlType.ComboBox) return new[] { "ExpandCollapsePattern", "SelectionPattern" };
-            if (controlType == ControlType.Edit) return new[] { "ValuePattern" };
-            if (controlType == ControlType.List) return new[] { "SelectionPattern" };
-            if (controlType == ControlType.ListItem) return new[] { "SelectionItemPattern" };
-            if (controlType == ControlType.Menu) return new[] { "ExpandCollapsePattern" };
-            if (controlType == ControlType.MenuItem) return new[] { "InvokePattern" };
-            if (controlType == ControlType.ProgressBar) return new[] { "RangeValuePattern" };
-            if (controlType == ControlType.ScrollBar) return new[] { "RangeValuePattern" };
-            if (controlType == ControlType.Slider) return new[] { "RangeValuePattern" };
-            if (controlType == ControlType.Spinner) return new[] { "RangeValuePattern" };
-            if (controlType == ControlType.Tab) return new[] { "SelectionPattern" };
-            if (controlType == ControlType.TabItem) return new[] { "SelectionItemPattern" };
-            if (controlType == ControlType.Tree) return new[] { "SelectionPattern" };
-            if (controlType == ControlType.TreeItem) return new[] { "ExpandCollapsePattern", "SelectionItemPattern" };
-            if (controlType == ControlType.DataGrid) return new[] { "GridPattern", "SelectionPattern", "TablePattern" };
-            if (controlType == ControlType.DataItem) return new[] { "SelectionItemPattern" };
-            if (controlType == ControlType.Document) return new[] { "TextPattern" };
-            if (controlType == ControlType.SplitButton) return new[] { "ExpandCollapsePattern", "InvokePattern" };
-            if (controlType == ControlType.Window) return new[] { "TransformPattern", "WindowPattern" };
-            if (controlType == ControlType.Hyperlink) return new[] { "InvokePattern" };
-            if (controlType == ControlType.Table) return new[] { "GridPattern", "TablePattern" };
-            if (controlType == ControlType.Calendar) return new[] { "GridPattern", "TablePattern" };
-            
-            return Array.Empty<string>();
+            return GetPatternInfo(controlType)?.RequiredPatterns ?? Array.Empty<string>();
+        }
+
+        /// <summary>
+        /// ControlTypeの任意パターンを取得
+        /// </summary>
+        public static string[] GetOptionalPatterns(ControlType controlType)
+        {
+            return GetPatternInfo(controlType)?.OptionalPatterns ?? Array.Empty<string>();
         }
     }
 }
