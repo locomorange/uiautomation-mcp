@@ -2,20 +2,20 @@ using Microsoft.Extensions.Logging;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
-using UIAutomationMCP.Shared;
+using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Shared.Abstractions;
 using UIAutomationMCP.Shared.Results;
-using UIAutomationMCP.Shared.Serialization;
 using UIAutomationMCP.Shared.Requests;
-using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Shared.Validation;
+using UIAutomationMCP.Shared.Metadata;
+using UIAutomationMCP.Shared.Serialization;
 using UIAutomationMCP.Server.Interfaces;
-using System.Diagnostics;
+using UIAutomationMCP.Shared;
 
 namespace UIAutomationMCP.Server.Services
 {
-    public class ScreenshotService : IScreenshotService
+    public class ScreenshotService : BaseUIAutomationService<ScreenshotServiceMetadata>, IScreenshotService
     {
-        private readonly ILogger<ScreenshotService> _logger;
-        private readonly ISubprocessExecutor _executor;
         private readonly IElementSearchService _elementSearchService;
 
         // Win32 API declarations for screen dimensions
@@ -25,199 +25,250 @@ namespace UIAutomationMCP.Server.Services
         private const int SM_CXSCREEN = 0;  // Primary screen width
         private const int SM_CYSCREEN = 1;  // Primary screen height
 
-        public ScreenshotService(ILogger<ScreenshotService> logger, ISubprocessExecutor executor, IElementSearchService elementSearchService)
+        public ScreenshotService(IOperationExecutor executor, ILogger<ScreenshotService> logger, IElementSearchService elementSearchService)
+            : base(executor, logger)
         {
-            _logger = logger;
-            _executor = executor;
             _elementSearchService = elementSearchService;
         }
 
-        public async Task<ServerEnhancedResponse<ScreenshotResult>> TakeScreenshotAsync(string? windowTitle = null, string? outputPath = null, int maxTokens = 0, int? processId = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
+        protected override string GetOperationType() => "screenshot";
+
+        public async Task<ServerEnhancedResponse<ScreenshotResult>> TakeScreenshotAsync(
+            string? windowTitle = null, 
+            string? outputPath = null, 
+            int maxTokens = 0, 
+            int? processId = null, 
+            int timeoutSeconds = 60, 
+            CancellationToken cancellationToken = default)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
+            var request = new TakeScreenshotRequest
+            {
+                WindowTitle = windowTitle,
+                OutputPath = outputPath,
+                MaxTokens = maxTokens,
+                ProcessId = processId
+            };
+
+            // Use reflection to call the internal execution method
             try
             {
-                var screenshotResult = await Task.Run(async () =>
-                {
-                    _logger.LogInformation("Taking screenshot of window: {WindowTitle}, maxTokens: {MaxTokens}", windowTitle, maxTokens);
+                var screenshotResult = await ExecuteScreenshotOperation(request, cancellationToken);
+                var operationId = Guid.NewGuid().ToString("N")[..8];
 
-                    System.Drawing.Rectangle captureArea;
-                    IntPtr hwnd = IntPtr.Zero;
+                var context = new ServiceContext(nameof(TakeScreenshotAsync), timeoutSeconds);
 
-                    // Determine capture area
-                    if (!string.IsNullOrEmpty(windowTitle) || processId.HasValue)
-                    {
-                        _logger.LogInformation("Attempting to get window info for title: {WindowTitle}, processId: {ProcessId}", windowTitle, processId);
-                        
-                        // Use Worker to get window information via UIAutomation
-                        var windowInfo = await GetWindowInfoFromWorker(windowTitle, processId);
-                        if (windowInfo == null)
-                        {
-                            _logger.LogWarning("Window not found: {WindowTitle}, ProcessId: {ProcessId}", windowTitle, processId);
-                            return new ScreenshotResult { Success = false, Error = "Window not found" };
-                        }
+                var metadata = CreateSuccessMetadata(screenshotResult, context);
+                metadata.TargetWindowTitle = windowTitle;
+                metadata.TargetProcessId = processId;
+                metadata.MaxTokensRequested = maxTokens > 0 ? maxTokens : null;
 
-                        _logger.LogInformation("Window info retrieved successfully: {Keys}", string.Join(", ", windowInfo.Keys));
-
-                        // Extract bounding rectangle from window info
-                        if (windowInfo.TryGetValue("BoundingRectangle", out var boundingRectObj))
-                        {
-                            _logger.LogInformation("BoundingRectangle found, type: {Type}", 
-                                boundingRectObj?.GetType().Name ?? "null");
-                            
-                            if (boundingRectObj is Dictionary<string, object> boundingRect)
-                            {
-                                var x = Convert.ToInt32(boundingRect["X"]);
-                                var y = Convert.ToInt32(boundingRect["Y"]);
-                                var width = Convert.ToInt32(boundingRect["Width"]);
-                                var height = Convert.ToInt32(boundingRect["Height"]);
-                                
-                                captureArea = new System.Drawing.Rectangle(x, y, width, height);
-                                _logger.LogInformation("Capture area set to: {X}, {Y}, {Width}, {Height}", x, y, width, height);
-                            }
-                            else if (boundingRectObj is System.Text.Json.JsonElement jsonElement && jsonElement.ValueKind == System.Text.Json.JsonValueKind.Object)
-                            {
-                                // Handle JsonElement case
-                                var x = jsonElement.GetProperty("X").GetInt32();
-                                var y = jsonElement.GetProperty("Y").GetInt32();
-                                var width = jsonElement.GetProperty("Width").GetInt32();
-                                var height = jsonElement.GetProperty("Height").GetInt32();
-                                
-                                captureArea = new System.Drawing.Rectangle(x, y, width, height);
-                                _logger.LogInformation("Capture area set from JsonElement: {X}, {Y}, {Width}, {Height}", x, y, width, height);
-                            }
-                            else
-                            {
-                                _logger.LogError("BoundingRectangle is not in expected format. Type: {Type}", boundingRectObj?.GetType().Name ?? "null");
-                                return new ScreenshotResult { Success = false, Error = "Invalid BoundingRectangle format" };
-                            }
-                        }
-                        else
-                        {
-                            _logger.LogError("Failed to get window rectangle from UIAutomation. Available keys: {Keys}", string.Join(", ", windowInfo.Keys));
-                            return new ScreenshotResult { Success = false, Error = "Failed to get window rectangle" };
-                        }
-
-                        // Try to activate window using Worker's WindowAction for better reliability
-                        await ActivateWindowViaWorker(windowTitle, processId);
-                        
-                        // Wait a bit for window to come to foreground
-                        Thread.Sleep(500);
-                    }
-                    else
-                    {
-                        // Capture entire screen using Win32 API
-                        int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-                        int screenHeight = GetSystemMetrics(SM_CYSCREEN);
-                        
-                        if (screenWidth <= 0 || screenHeight <= 0)
-                        {
-                            _logger.LogError("Failed to get screen dimensions");
-                            return new ScreenshotResult { Success = false, Error = "Failed to get screen dimensions" };
-                        }
-                        
-                        captureArea = new System.Drawing.Rectangle(0, 0, screenWidth, screenHeight);
-                        _logger.LogInformation("Using primary screen dimensions: {Width}x{Height}", screenWidth, screenHeight);
-                    }
-
-                    // Validate capture area
-                    if (captureArea.Width <= 0 || captureArea.Height <= 0)
-                    {
-                        _logger.LogError("Invalid capture area dimensions: {Width}x{Height}", captureArea.Width, captureArea.Height);
-                        return new ScreenshotResult { Success = false, Error = "Invalid capture area dimensions" };
-                    }
-
-                    // Capture screenshot
-                    using var bitmap = new Bitmap(captureArea.Width, captureArea.Height);
-                    using var graphics = Graphics.FromImage(bitmap);
-                    graphics.CopyFromScreen(captureArea.Location, Point.Empty, captureArea.Size);
-
-                    // Generate output path if not provided
-                    if (string.IsNullOrEmpty(outputPath))
-                    {
-                        var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                        var fileName = $"screenshot_{timestamp}.png";
-                        outputPath = Path.Combine(Path.GetTempPath(), fileName);
-                    }
-
-                    // Ensure output directory exists
-                    var outputDir = Path.GetDirectoryName(outputPath);
-                    if (!string.IsNullOrEmpty(outputDir) && !Directory.Exists(outputDir))
-                    {
-                        Directory.CreateDirectory(outputDir);
-                    }
-
-                    // Save screenshot
-                    bitmap.Save(outputPath, ImageFormat.Png);
-
-                    // Prepare base64 data if needed
-                    string? base64Image = null;
-                    if (maxTokens > 0)
-                    {
-                        base64Image = await OptimizeImageForTokens(outputPath, maxTokens);
-                    }
-
-                    var fileInfo = new FileInfo(outputPath);
-                    var result = new ScreenshotResult
-                    {
-                        Success = true,
-                        OutputPath = outputPath,
-                        Base64Image = base64Image ?? string.Empty,
-                        Width = captureArea.Width,
-                        Height = captureArea.Height,
-                        FileSize = fileInfo.Length,
-                        Timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
-                    };
-
-                    _logger.LogInformation("Screenshot taken successfully: {OutputPath}, Size: {Width}x{Height}", outputPath, captureArea.Width, captureArea.Height);
-                    return result;
-                }, cancellationToken);
-
-                // Convert ScreenshotResult to ServerEnhancedResponse
-                var successResponse = new ServerEnhancedResponse<ScreenshotResult>
+                return new ServerEnhancedResponse<ScreenshotResult>
                 {
                     Success = screenshotResult.Success,
                     Data = screenshotResult,
                     ExecutionInfo = new ServerExecutionInfo
                     {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
+                        ServerProcessingTime = "00:00:00.000",
                         OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        ServerLogs = new List<string>()
                     },
                     RequestMetadata = new RequestMetadata
                     {
-                        RequestedMethod = "TakeScreenshot",
+                        RequestedMethod = nameof(TakeScreenshotAsync),
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                
-                _logger.LogInformationWithOperation(operationId, $"Screenshot operation completed successfully: {screenshotResult.OutputPath}");
-                return successResponse;
             }
             catch (Exception ex)
             {
-                var errorResponse = new ServerEnhancedResponse<ScreenshotResult>
+                return new ServerEnhancedResponse<ScreenshotResult>
                 {
                     Success = false,
                     ErrorMessage = ex.Message,
                     ExecutionInfo = new ServerExecutionInfo
                     {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
+                        ServerProcessingTime = "00:00:00.000",
+                        OperationId = Guid.NewGuid().ToString("N")[..8],
+                        ServerLogs = new List<string>()
                     },
                     RequestMetadata = new RequestMetadata
                     {
-                        RequestedMethod = "TakeScreenshot",
+                        RequestedMethod = nameof(TakeScreenshotAsync),
                         TimeoutSeconds = timeoutSeconds
                     }
                 };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to take screenshot for window: {windowTitle}");
-                return errorResponse;
             }
+        }
+
+        private static ValidationResult ValidateTakeScreenshotRequest(TakeScreenshotRequest request)
+        {
+            var errors = new List<string>();
+
+            if (request.MaxTokens < 0)
+            {
+                errors.Add("MaxTokens must be non-negative");
+            }
+
+            if (!string.IsNullOrEmpty(request.OutputPath))
+            {
+                try
+                {
+                    var directory = Path.GetDirectoryName(request.OutputPath);
+                    if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                    {
+                        var parentDirectory = Path.GetDirectoryName(directory);
+                        if (!string.IsNullOrEmpty(parentDirectory) && !Directory.Exists(parentDirectory))
+                        {
+                            errors.Add("Invalid output path - parent directory does not exist");
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    errors.Add("Invalid output path format");
+                }
+            }
+
+            return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;
+        }
+
+        private async Task<ScreenshotResult> ExecuteScreenshotOperation(TakeScreenshotRequest request, CancellationToken cancellationToken)
+        {
+            return await Task.Run(async () =>
+            {
+                _logger.LogInformation("Taking screenshot of window: {WindowTitle}, maxTokens: {MaxTokens}", request.WindowTitle, request.MaxTokens);
+
+                System.Drawing.Rectangle captureArea;
+
+                // Determine capture area
+                if (!string.IsNullOrEmpty(request.WindowTitle) || request.ProcessId.HasValue)
+                {
+                    _logger.LogInformation("Attempting to get window info for title: {WindowTitle}, processId: {ProcessId}", request.WindowTitle, request.ProcessId);
+                    
+                    // Use Worker to get window information via UIAutomation
+                    var windowInfo = await GetWindowInfoFromWorker(request.WindowTitle, request.ProcessId);
+                    if (windowInfo == null)
+                    {
+                        _logger.LogWarning("Window not found: {WindowTitle}, ProcessId: {ProcessId}", request.WindowTitle, request.ProcessId);
+                        return new ScreenshotResult { Success = false, Error = "Window not found" };
+                    }
+
+                    _logger.LogInformation("Window info retrieved successfully: {Keys}", string.Join(", ", windowInfo.Keys));
+
+                    // Extract bounding rectangle from window info
+                    if (windowInfo.TryGetValue("BoundingRectangle", out var boundingRectObj))
+                    {
+                        _logger.LogInformation("BoundingRectangle found, type: {Type}", 
+                            boundingRectObj?.GetType().Name ?? "null");
+                        
+                        if (boundingRectObj is Dictionary<string, object> boundingRect)
+                        {
+                            var x = Convert.ToInt32(boundingRect["X"]);
+                            var y = Convert.ToInt32(boundingRect["Y"]);
+                            var width = Convert.ToInt32(boundingRect["Width"]);
+                            var height = Convert.ToInt32(boundingRect["Height"]);
+                            
+                            captureArea = new System.Drawing.Rectangle(x, y, width, height);
+                            _logger.LogInformation("Capture area set to: {X}, {Y}, {Width}, {Height}", x, y, width, height);
+                        }
+                        else if (boundingRectObj is System.Text.Json.JsonElement jsonElement && jsonElement.ValueKind == System.Text.Json.JsonValueKind.Object)
+                        {
+                            // Handle JsonElement case
+                            var x = jsonElement.GetProperty("X").GetInt32();
+                            var y = jsonElement.GetProperty("Y").GetInt32();
+                            var width = jsonElement.GetProperty("Width").GetInt32();
+                            var height = jsonElement.GetProperty("Height").GetInt32();
+                            
+                            captureArea = new System.Drawing.Rectangle(x, y, width, height);
+                            _logger.LogInformation("Capture area set from JsonElement: {X}, {Y}, {Width}, {Height}", x, y, width, height);
+                        }
+                        else
+                        {
+                            _logger.LogError("BoundingRectangle is not in expected format. Type: {Type}", boundingRectObj?.GetType().Name ?? "null");
+                            return new ScreenshotResult { Success = false, Error = "Invalid BoundingRectangle format" };
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogError("Failed to get window rectangle from UIAutomation. Available keys: {Keys}", string.Join(", ", windowInfo.Keys));
+                        return new ScreenshotResult { Success = false, Error = "Failed to get window rectangle" };
+                    }
+
+                    // Try to activate window using Worker's WindowAction for better reliability
+                    await ActivateWindowViaWorker(request.WindowTitle, request.ProcessId);
+                    
+                    // Wait a bit for window to come to foreground
+                    Thread.Sleep(500);
+                }
+                else
+                {
+                    // Capture entire screen using Win32 API
+                    int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+                    int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+                    
+                    if (screenWidth <= 0 || screenHeight <= 0)
+                    {
+                        _logger.LogError("Failed to get screen dimensions");
+                        return new ScreenshotResult { Success = false, Error = "Failed to get screen dimensions" };
+                    }
+                    
+                    captureArea = new System.Drawing.Rectangle(0, 0, screenWidth, screenHeight);
+                    _logger.LogInformation("Using primary screen dimensions: {Width}x{Height}", screenWidth, screenHeight);
+                }
+
+                // Validate capture area
+                if (captureArea.Width <= 0 || captureArea.Height <= 0)
+                {
+                    _logger.LogError("Invalid capture area dimensions: {Width}x{Height}", captureArea.Width, captureArea.Height);
+                    return new ScreenshotResult { Success = false, Error = "Invalid capture area dimensions" };
+                }
+
+                // Capture screenshot
+                using var bitmap = new Bitmap(captureArea.Width, captureArea.Height);
+                using var graphics = Graphics.FromImage(bitmap);
+                graphics.CopyFromScreen(captureArea.Location, Point.Empty, captureArea.Size);
+
+                // Generate output path if not provided
+                string outputPath = request.OutputPath;
+                if (string.IsNullOrEmpty(outputPath))
+                {
+                    var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                    var fileName = $"screenshot_{timestamp}.png";
+                    outputPath = Path.Combine(Path.GetTempPath(), fileName);
+                }
+
+                // Ensure output directory exists
+                var outputDir = Path.GetDirectoryName(outputPath);
+                if (!string.IsNullOrEmpty(outputDir) && !Directory.Exists(outputDir))
+                {
+                    Directory.CreateDirectory(outputDir);
+                }
+
+                // Save screenshot
+                bitmap.Save(outputPath, ImageFormat.Png);
+
+                // Prepare base64 data if needed
+                string? base64Image = null;
+                if (request.MaxTokens > 0)
+                {
+                    base64Image = await OptimizeImageForTokens(outputPath, request.MaxTokens);
+                }
+
+                var fileInfo = new FileInfo(outputPath);
+                var result = new ScreenshotResult
+                {
+                    Success = true,
+                    OutputPath = outputPath,
+                    Base64Image = base64Image ?? string.Empty,
+                    Width = captureArea.Width,
+                    Height = captureArea.Height,
+                    FileSize = fileInfo.Length,
+                    Timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                };
+
+                _logger.LogInformation("Screenshot taken successfully: {OutputPath}, Size: {Width}x{Height}", outputPath, captureArea.Width, captureArea.Height);
+                return result;
+            }, cancellationToken);
         }
 
         private async Task<string> OptimizeImageForTokens(string imagePath, int maxTokens)
@@ -359,57 +410,6 @@ namespace UIAutomationMCP.Server.Services
             }
         }
 
-        private IntPtr FindWindowByProcessId(int processId)
-        {
-            try
-            {
-                var process = System.Diagnostics.Process.GetProcessById(processId);
-                return process.MainWindowHandle;
-            }
-            catch
-            {
-                return IntPtr.Zero;
-            }
-        }
-
-        private bool ActivateWindow(IntPtr hwnd)
-        {
-            try
-            {
-                // Try to restore window if minimized
-                if (IsIconic(hwnd))
-                {
-                    ShowWindow(hwnd, SW_RESTORE);
-                    Thread.Sleep(100);
-                }
-
-                // Bring window to foreground
-                SetForegroundWindow(hwnd);
-                Thread.Sleep(100);
-
-                // Alternative method if SetForegroundWindow fails
-                if (GetForegroundWindow() != hwnd)
-                {
-                    var currentThread = GetCurrentThreadId();
-                    var targetThread = GetWindowThreadProcessId(hwnd, out _);
-                    
-                    if (targetThread != currentThread)
-                    {
-                        AttachThreadInput(currentThread, targetThread, true);
-                        SetForegroundWindow(hwnd);
-                        AttachThreadInput(currentThread, targetThread, false);
-                    }
-                }
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to activate window");
-                return false;
-            }
-        }
-
         private async Task ActivateWindowViaWorker(string? windowTitle, int? processId)
         {
             try
@@ -444,43 +444,32 @@ namespace UIAutomationMCP.Server.Services
             }
         }
 
-        // Windows API declarations
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern IntPtr FindWindow(string? lpClassName, string? lpWindowName);
-
-        [DllImport("user32.dll")]
-        private static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
-
-        [DllImport("user32.dll")]
-        private static extern bool SetForegroundWindow(IntPtr hWnd);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
-
-        [DllImport("user32.dll")]
-        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
-        [DllImport("user32.dll")]
-        private static extern bool IsIconic(IntPtr hWnd);
-
-        [DllImport("kernel32.dll")]
-        private static extern uint GetCurrentThreadId();
-
-        [DllImport("user32.dll")]
-        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-
-        [DllImport("user32.dll")]
-        private static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
-
-        private const int SW_RESTORE = 9;
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct RECT
+        protected override ScreenshotServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
         {
-            public int Left;
-            public int Top;
-            public int Right;
-            public int Bottom;
+            var metadata = base.CreateSuccessMetadata(data, context);
+
+            if (data is ScreenshotResult screenshotResult)
+            {
+                metadata.OperationSuccessful = screenshotResult.Success;
+                metadata.OutputPath = screenshotResult.OutputPath;
+                metadata.ScreenshotWidth = screenshotResult.Width;
+                metadata.ScreenshotHeight = screenshotResult.Height;
+                metadata.FileSize = screenshotResult.FileSize;
+                metadata.HasBase64Data = !string.IsNullOrEmpty(screenshotResult.Base64Image);
+                metadata.ScreenshotTimestamp = screenshotResult.Timestamp;
+            }
+
+            return metadata;
         }
+
+    }
+
+    // Helper class for screenshot requests
+    public class TakeScreenshotRequest
+    {
+        public string? WindowTitle { get; set; }
+        public string? OutputPath { get; set; }
+        public int MaxTokens { get; set; }
+        public int? ProcessId { get; set; }
     }
 }

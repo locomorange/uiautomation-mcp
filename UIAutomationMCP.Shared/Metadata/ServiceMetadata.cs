@@ -260,22 +260,34 @@ namespace UIAutomationMCP.Shared.Metadata
     public class ApplicationLauncherMetadata : ServiceMetadata
     {
         /// <summary>
-        /// The specific action performed (e.g., "applicationLaunched", "applicationTerminated")
+        /// The specific action performed (e.g., "applicationLaunched", "uwpApplicationLaunched", "applicationLaunchedByName")
         /// </summary>
         [JsonPropertyName("actionPerformed")]
         public string ActionPerformed { get; set; } = "";
 
         /// <summary>
-        /// Application executable path
+        /// Application executable path or name
         /// </summary>
         [JsonPropertyName("applicationPath")]
         public string? ApplicationPath { get; set; }
 
         /// <summary>
-        /// Process ID of the launched/terminated application
+        /// Process ID of the launched application
         /// </summary>
         [JsonPropertyName("processId")]
         public int? ProcessId { get; set; }
+
+        /// <summary>
+        /// Process name of the launched application
+        /// </summary>
+        [JsonPropertyName("processName")]
+        public string? ProcessName { get; set; }
+
+        /// <summary>
+        /// Whether the process has exited
+        /// </summary>
+        [JsonPropertyName("hasExited")]
+        public bool? HasExited { get; set; }
 
         /// <summary>
         /// Whether the operation was successful
@@ -288,6 +300,24 @@ namespace UIAutomationMCP.Shared.Metadata
         /// </summary>
         [JsonPropertyName("commandLineArguments")]
         public string? CommandLineArguments { get; set; }
+
+        /// <summary>
+        /// Working directory used (for Win32 launch operations)
+        /// </summary>
+        [JsonPropertyName("workingDirectory")]
+        public string? WorkingDirectory { get; set; }
+
+        /// <summary>
+        /// Window title of the launched application (for name-based launch)
+        /// </summary>
+        [JsonPropertyName("windowTitle")]
+        public string? WindowTitle { get; set; }
+
+        /// <summary>
+        /// Application ID for UWP applications
+        /// </summary>
+        [JsonPropertyName("appId")]
+        public string? AppId { get; set; }
     }
 
     /// <summary>
@@ -648,5 +678,77 @@ namespace UIAutomationMCP.Shared.Metadata
         /// </summary>
         [JsonPropertyName("isSelectionRequired")]
         public bool? IsSelectionRequired { get; set; }
+    }
+
+    /// <summary>
+    /// Metadata for screenshot operations
+    /// </summary>
+    public class ScreenshotServiceMetadata : ServiceMetadata
+    {
+        /// <summary>
+        /// The specific action performed (always "screenshotTaken" for screenshot operations)
+        /// </summary>
+        [JsonPropertyName("actionPerformed")]
+        public string ActionPerformed { get; set; } = "screenshotTaken";
+
+        /// <summary>
+        /// Whether the operation was successful
+        /// </summary>
+        [JsonPropertyName("operationSuccessful")]
+        public bool OperationSuccessful { get; set; } = true;
+
+        /// <summary>
+        /// Output path where the screenshot was saved
+        /// </summary>
+        [JsonPropertyName("outputPath")]
+        public string? OutputPath { get; set; }
+
+        /// <summary>
+        /// Width of the captured screenshot
+        /// </summary>
+        [JsonPropertyName("screenshotWidth")]
+        public int? ScreenshotWidth { get; set; }
+
+        /// <summary>
+        /// Height of the captured screenshot
+        /// </summary>
+        [JsonPropertyName("screenshotHeight")]
+        public int? ScreenshotHeight { get; set; }
+
+        /// <summary>
+        /// File size of the screenshot in bytes
+        /// </summary>
+        [JsonPropertyName("fileSize")]
+        public long? FileSize { get; set; }
+
+        /// <summary>
+        /// Target window title (if capturing a specific window)
+        /// </summary>
+        [JsonPropertyName("targetWindowTitle")]
+        public string? TargetWindowTitle { get; set; }
+
+        /// <summary>
+        /// Target process ID (if capturing a specific window)
+        /// </summary>
+        [JsonPropertyName("targetProcessId")]
+        public int? TargetProcessId { get; set; }
+
+        /// <summary>
+        /// Whether base64 image data was generated
+        /// </summary>
+        [JsonPropertyName("hasBase64Data")]
+        public bool? HasBase64Data { get; set; }
+
+        /// <summary>
+        /// Maximum tokens requested for optimization
+        /// </summary>
+        [JsonPropertyName("maxTokensRequested")]
+        public int? MaxTokensRequested { get; set; }
+
+        /// <summary>
+        /// Timestamp when the screenshot was taken
+        /// </summary>
+        [JsonPropertyName("screenshotTimestamp")]
+        public string? ScreenshotTimestamp { get; set; }
     }
 }
