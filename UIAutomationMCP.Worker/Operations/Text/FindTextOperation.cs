@@ -41,7 +41,11 @@ namespace UIAutomationMCP.Worker.Operations.Text
                     { 
                         Success = false, 
                         Error = $"Element with AutomationId '{typedRequest.AutomationId}' and Name '{typedRequest.Name}' not found",
-                        Data = new TextSearchResult { Found = false, Text = typedRequest.SearchText }
+                        Data = new TextSearchResult 
+                        { 
+                            Matches = new List<TextMatch>(),
+                            SearchText = typedRequest.SearchText
+                        }
                     });
                 }
 
@@ -53,7 +57,11 @@ namespace UIAutomationMCP.Worker.Operations.Text
                     { 
                         Success = false, 
                         Error = "Element does not support TextPattern - text search requires a text control (TextBox, RichTextBox, etc.)",
-                        Data = new TextSearchResult { Found = false, Text = typedRequest.SearchText }
+                        Data = new TextSearchResult 
+                        { 
+                            Matches = new List<TextMatch>(),
+                            SearchText = typedRequest.SearchText
+                        }
                     });
                 }
 
@@ -67,7 +75,10 @@ namespace UIAutomationMCP.Worker.Operations.Text
                         { 
                             Success = false, 
                             Error = "Cannot access text content - element may not contain text",
-                            Data = new TextSearchResult { Found = false, Text = typedRequest.SearchText }
+                            Data = new TextSearchResult { 
+                                Matches = new List<TextMatch>(),
+                                SearchText = typedRequest.SearchText 
+                            }
                         });
                     }
 
@@ -85,16 +96,36 @@ namespace UIAutomationMCP.Worker.Operations.Text
                             Height = boundingRects[0].Height
                         } : new BoundingRectangle();
 
+                        // Create TextMatch for the found result
+                        var textMatch = new TextMatch
+                        {
+                            StartIndex = 0, // UI Automation doesn't provide exact index
+                            EndIndex = foundText.Length,
+                            Length = foundText.Length,
+                            MatchedText = foundText,
+                            BoundingRectangle = boundingRect,
+                            IsHighlighted = false,
+                            IsSelected = false
+                        };
+
                         return Task.FromResult(new OperationResult 
                         { 
                             Success = true, 
                             Data = new TextSearchResult 
                             { 
-                                Found = true, 
-                                Text = foundText,
-                                BoundingRectangle = boundingRect,
-                                StartIndex = 0, // Note: UI Automation doesn't provide exact index
-                                Length = foundText.Length
+                                // Primary properties - only set Matches
+                                Matches = new List<TextMatch> { textMatch },
+                                
+                                // Search context
+                                SearchText = typedRequest.SearchText,
+                                CaseSensitive = !typedRequest.IgnoreCase,
+                                SearchDirection = typedRequest.Backward ? "Backward" : "Forward",
+                                
+                                // Additional context
+                                AutomationId = typedRequest.AutomationId ?? "",
+                                Name = typedRequest.Name ?? "",
+                                ControlType = typedRequest.ControlType ?? "",
+                                ProcessId = typedRequest.ProcessId ?? 0
                             }
                         });
                     }
@@ -103,7 +134,22 @@ namespace UIAutomationMCP.Worker.Operations.Text
                         return Task.FromResult(new OperationResult 
                         { 
                             Success = true, 
-                            Data = new TextSearchResult { Found = false, Text = typedRequest.SearchText }
+                            Data = new TextSearchResult 
+                            { 
+                                // Primary properties - empty matches for not found
+                                Matches = new List<TextMatch>(),
+                                
+                                // Search context
+                                SearchText = typedRequest.SearchText,
+                                CaseSensitive = !typedRequest.IgnoreCase,
+                                SearchDirection = typedRequest.Backward ? "Backward" : "Forward",
+                                
+                                // Additional context
+                                AutomationId = typedRequest.AutomationId ?? "",
+                                Name = typedRequest.Name ?? "",
+                                ControlType = typedRequest.ControlType ?? "",
+                                ProcessId = typedRequest.ProcessId ?? 0
+                            }
                         });
                     }
                 }
@@ -114,7 +160,10 @@ namespace UIAutomationMCP.Worker.Operations.Text
                     { 
                         Success = false, 
                         Error = $"Text search failed due to UI automation error: {comEx.Message}",
-                        Data = new TextSearchResult { Found = false, Text = typedRequest.SearchText }
+                        Data = new TextSearchResult { 
+                            Matches = new List<TextMatch>(),
+                            SearchText = typedRequest.SearchText 
+                        }
                     });
                 }
                 catch (InvalidOperationException invalidOpEx)
@@ -124,7 +173,10 @@ namespace UIAutomationMCP.Worker.Operations.Text
                     { 
                         Success = false, 
                         Error = $"Text search operation is not valid for this element: {invalidOpEx.Message}",
-                        Data = new TextSearchResult { Found = false, Text = typedRequest.SearchText }
+                        Data = new TextSearchResult { 
+                            Matches = new List<TextMatch>(),
+                            SearchText = typedRequest.SearchText 
+                        }
                     });
                 }
             }
@@ -135,7 +187,10 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 { 
                     Success = false, 
                     Error = $"Failed to find text: {ex.Message}",
-                    Data = new TextSearchResult { Found = false, Text = "" }
+                    Data = new TextSearchResult { 
+                        Matches = new List<TextMatch>(),
+                        SearchText = "" 
+                    }
                 });
             }
         }

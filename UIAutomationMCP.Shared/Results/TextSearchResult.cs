@@ -1,10 +1,12 @@
 using System.Text.Json.Serialization;
+using System.Linq;
 using UIAutomationMCP.Shared.Results;
 
 namespace UIAutomationMCP.Shared.Results
 {
     public class TextSearchResult : BaseOperationResult
     {
+        // Element identification properties
         [JsonPropertyName("automationId")]
         public string? AutomationId { get; set; }
         
@@ -19,26 +21,10 @@ namespace UIAutomationMCP.Shared.Results
         
         [JsonPropertyName("processId")]
         public int ProcessId { get; set; }
+        
+        // Search parameters
         [JsonPropertyName("searchText")]
         public string? SearchText { get; set; }
-        
-        [JsonPropertyName("textFound")]
-        public bool TextFound { get; set; }
-        
-        [JsonPropertyName("matches")]
-        public List<TextMatch> Matches { get; set; } = new();
-        
-        [JsonPropertyName("matchCount")]
-        public int MatchCount { get; set; }
-        
-        [JsonPropertyName("searchDuration")]
-        public TimeSpan SearchDuration { get; set; }
-        
-        [JsonPropertyName("pattern")]
-        public string? Pattern { get; set; }
-        
-        [JsonPropertyName("searchParameters")]
-        public Dictionary<string, object> SearchParameters { get; set; } = new();
         
         [JsonPropertyName("caseSensitive")]
         public bool CaseSensitive { get; set; }
@@ -49,6 +35,43 @@ namespace UIAutomationMCP.Shared.Results
         [JsonPropertyName("searchDirection")]
         public string? SearchDirection { get; set; }
         
+        [JsonPropertyName("searchDuration")]
+        public TimeSpan SearchDuration { get; set; }
+        
+        [JsonPropertyName("pattern")]
+        public string? Pattern { get; set; }
+        
+        [JsonPropertyName("searchParameters")]
+        public Dictionary<string, object> SearchParameters { get; set; } = new();
+        
+        // Primary search results
+        [JsonPropertyName("matches")]
+        public List<TextMatch> Matches { get; set; } = new();
+        
+        // Computed properties (derived from Matches)
+        [JsonPropertyName("textFound")]
+        public bool TextFound => Matches.Count > 0;
+        
+        [JsonPropertyName("matchCount")]
+        public int MatchCount => Matches.Count;
+        
+        // Backward compatibility properties (derived from first match)
+        [JsonPropertyName("found")]
+        public bool Found => TextFound;
+        
+        [JsonPropertyName("text")]
+        public string? Text => Matches.FirstOrDefault()?.MatchedText;
+        
+        [JsonPropertyName("boundingRectangle")]
+        public BoundingRectangle BoundingRectangle => Matches.FirstOrDefault()?.BoundingRectangle ?? new BoundingRectangle();
+        
+        [JsonPropertyName("startIndex")]
+        public int StartIndex => Matches.FirstOrDefault()?.StartIndex ?? 0;
+        
+        [JsonPropertyName("length")]
+        public int Length => Matches.FirstOrDefault()?.Length ?? 0;
+        
+        // Additional properties
         [JsonPropertyName("startPosition")]
         public int StartPosition { get; set; }
         
@@ -57,21 +80,6 @@ namespace UIAutomationMCP.Shared.Results
         
         [JsonPropertyName("fullText")]
         public string? FullText { get; set; }
-        
-        [JsonPropertyName("found")]
-        public bool Found { get; set; }
-        
-        [JsonPropertyName("text")]
-        public string? Text { get; set; }
-        
-        [JsonPropertyName("boundingRectangle")]
-        public BoundingRectangle BoundingRectangle { get; set; } = new();
-        
-        [JsonPropertyName("startIndex")]
-        public int StartIndex { get; set; }
-        
-        [JsonPropertyName("length")]
-        public int Length { get; set; }
     }
 
     public class TextMatch
