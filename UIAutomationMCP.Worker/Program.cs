@@ -17,6 +17,7 @@ using UIAutomationMCP.Worker.Operations.Transform;
 using UIAutomationMCP.Worker.Operations.Window;
 using UIAutomationMCP.Worker.Operations.Range;
 using UIAutomationMCP.Worker.Operations.TreeNavigation;
+using UIAutomationMCP.Worker.Operations.Focus;
 using UIAutomationMCP.Worker.Helpers;
 
 namespace UIAutomationMCP.Worker
@@ -120,6 +121,7 @@ namespace UIAutomationMCP.Worker
             builder.Services.AddKeyedTransient<IUIAutomationOperation, ToggleElementOperation>("ToggleElement");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SetToggleStateOperation>("SetToggleState");
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SetElementValueOperation>("SetElementValue");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, SetFocusOperation>("SetFocus");
             
             // Search and tree operations
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SearchElementsOperation>("SearchElements");

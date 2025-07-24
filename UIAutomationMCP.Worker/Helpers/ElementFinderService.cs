@@ -622,30 +622,12 @@ namespace UIAutomationMCP.Worker.Helpers
         /// </summary>
         private Condition? CreatePatternCondition(string patternName)
         {
-            var patterns = new Dictionary<string, AutomationPattern>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["Invoke"] = InvokePattern.Pattern,
-                ["Value"] = ValuePattern.Pattern,
-                ["Toggle"] = TogglePattern.Pattern,
-                ["Selection"] = SelectionPattern.Pattern,
-                ["SelectionItem"] = SelectionItemPattern.Pattern,
-                ["Text"] = TextPattern.Pattern,
-                ["Range"] = RangeValuePattern.Pattern,
-                ["Scroll"] = ScrollPattern.Pattern,
-                ["Grid"] = GridPattern.Pattern,
-                ["GridItem"] = GridItemPattern.Pattern,
-                ["Table"] = TablePattern.Pattern,
-                ["TableItem"] = TableItemPattern.Pattern,
-                ["Transform"] = TransformPattern.Pattern,
-                ["Window"] = WindowPattern.Pattern,
-                ["Dock"] = DockPattern.Pattern,
-                ["ExpandCollapse"] = ExpandCollapsePattern.Pattern,
-                ["MultipleView"] = MultipleViewPattern.Pattern
-            };
+            // AutomationPatternHelperを使用して統一的にパターンを取得
+            var pattern = AutomationPatternHelper.GetAutomationPattern(patternName);
 
             // UI Automationではパターンフィルタは実行時チェックが必要
             // 検索後に手動でフィルタする必要がある
-            return patterns.TryGetValue(patternName, out var pattern)
+            return pattern != null
                 ? Condition.TrueCondition // 一旦全て取得し、後でパターンをチェック
                 : null;
         }
@@ -815,28 +797,8 @@ namespace UIAutomationMCP.Worker.Helpers
         /// </summary>
         private bool ElementSupportsPattern(AutomationElement element, string patternName)
         {
-            var patterns = new Dictionary<string, AutomationPattern>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["Invoke"] = InvokePattern.Pattern,
-                ["Value"] = ValuePattern.Pattern,
-                ["Toggle"] = TogglePattern.Pattern,
-                ["Selection"] = SelectionPattern.Pattern,
-                ["SelectionItem"] = SelectionItemPattern.Pattern,
-                ["Text"] = TextPattern.Pattern,
-                ["Range"] = RangeValuePattern.Pattern,
-                ["Scroll"] = ScrollPattern.Pattern,
-                ["Grid"] = GridPattern.Pattern,
-                ["GridItem"] = GridItemPattern.Pattern,
-                ["Table"] = TablePattern.Pattern,
-                ["TableItem"] = TableItemPattern.Pattern,
-                ["Transform"] = TransformPattern.Pattern,
-                ["Window"] = WindowPattern.Pattern,
-                ["Dock"] = DockPattern.Pattern,
-                ["ExpandCollapse"] = ExpandCollapsePattern.Pattern,
-                ["MultipleView"] = MultipleViewPattern.Pattern
-            };
-
-            if (patterns.TryGetValue(patternName, out var pattern))
+            var pattern = AutomationPatternHelper.GetAutomationPattern(patternName);
+            if (pattern != null)
             {
                 try
                 {

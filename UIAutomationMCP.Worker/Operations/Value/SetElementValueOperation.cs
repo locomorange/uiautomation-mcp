@@ -28,12 +28,15 @@ namespace UIAutomationMCP.Worker.Operations.Value
             {
                 var typedRequest = JsonSerializationHelper.Deserialize<SetValueRequest>(parametersJson)!;
                 
+                // パターン変換（リクエストから取得、デフォルトはValuePattern）
+                var requiredPattern = AutomationPatternHelper.GetAutomationPattern(typedRequest.RequiredPattern) ?? ValuePattern.Pattern;
+                
                 var element = _elementFinderService.FindElement(
                     automationId: typedRequest.AutomationId, 
                     name: typedRequest.Name,
                     controlType: typedRequest.ControlType,
                     processId: typedRequest.ProcessId,
-                    requiredPattern: ValuePattern.Pattern);
+                    requiredPattern: requiredPattern);
                 
                 if (element == null)
                 {

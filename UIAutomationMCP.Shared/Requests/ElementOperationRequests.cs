@@ -34,4 +34,9 @@ namespace UIAutomationMCP.Shared.Requests
         [JsonPropertyName("value")]
         public string Value { get; set; } = "";
     }
+
+    public class SetFocusRequest : ElementTargetRequest
+    {
+        public override string Operation => "SetFocus";
+    }
 }

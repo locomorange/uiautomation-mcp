@@ -26,12 +26,15 @@ namespace UIAutomationMCP.Worker.Operations.Toggle
             {
                 var typedRequest = JsonSerializationHelper.Deserialize<ToggleElementRequest>(parametersJson)!;
                 
+                // パターン変換（リクエストから取得、デフォルトはTogglePattern）
+                var requiredPattern = AutomationPatternHelper.GetAutomationPattern(typedRequest.RequiredPattern) ?? TogglePattern.Pattern;
+                
                 var element = _elementFinderService.FindElement(
                     automationId: typedRequest.AutomationId, 
                     name: typedRequest.Name,
                     controlType: typedRequest.ControlType,
                     processId: typedRequest.ProcessId,
-                    requiredPattern: TogglePattern.Pattern);
+                    requiredPattern: requiredPattern);
                 if (element == null)
                 {
                     return Task.FromResult(new OperationResult 

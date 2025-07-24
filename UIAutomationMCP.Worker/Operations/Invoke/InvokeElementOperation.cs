@@ -23,12 +23,15 @@ namespace UIAutomationMCP.Worker.Operations.Invoke
             {
                 var typedRequest = JsonSerializationHelper.Deserialize<InvokeElementRequest>(parametersJson)!;
                 
+                // パターン変換（リクエストから取得、デフォルトはInvokePattern）
+                var requiredPattern = AutomationPatternHelper.GetAutomationPattern(typedRequest.RequiredPattern) ?? InvokePattern.Pattern;
+                
                 var element = _elementFinderService.FindElement(
                     automationId: typedRequest.AutomationId, 
                     name: typedRequest.Name,
                     controlType: typedRequest.ControlType,
                     processId: typedRequest.ProcessId,
-                    requiredPattern: InvokePattern.Pattern);
+                    requiredPattern: requiredPattern);
                 if (element == null)
                 {
                     return Task.FromResult(new OperationResult

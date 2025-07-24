@@ -35,6 +35,7 @@ namespace UIAutomationMCP.Server.Tools
         private readonly IItemContainerService _itemContainerService;
         private readonly ISynchronizedInputService _synchronizedInputService;
         private readonly IEventMonitorService _eventMonitorService;
+        private readonly IFocusService _focusService;
         private readonly ISubprocessExecutor _subprocessExecutor;
 
         public UIAutomationTools(
@@ -61,6 +62,7 @@ namespace UIAutomationMCP.Server.Tools
             IItemContainerService itemContainerService,
             ISynchronizedInputService synchronizedInputService,
             IEventMonitorService eventMonitorService,
+            IFocusService focusService,
             ISubprocessExecutor subprocessExecutor)
         {
             _applicationLauncher = applicationLauncher;
@@ -86,6 +88,7 @@ namespace UIAutomationMCP.Server.Tools
             _itemContainerService = itemContainerService;
             _synchronizedInputService = synchronizedInputService;
             _eventMonitorService = eventMonitorService;
+            _focusService = focusService;
             _subprocessExecutor = subprocessExecutor;
         }
 
@@ -224,6 +227,22 @@ namespace UIAutomationMCP.Server.Tools
                 name: name,
                 controlType: controlType,
                 processId: processId, 
+                timeoutSeconds: timeoutSeconds));
+
+        [McpServerTool, Description("Set focus to a UI element using UI Automation SetFocus method")]
+        public async Task<object> SetFocus(
+            [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
+            [Description("Name of the element (fallback, display name)")] string? name = null,
+            [Description("ControlType to filter by (Edit, Button, etc.)")] string? controlType = null,
+            [Description("Required pattern for element filtering (optional, e.g., 'value', 'invoke')")] string? requiredPattern = null,
+            [Description("Parent process ID to limit search scope (use main application process, not child processes)")] int? processId = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => JsonSerializationHelper.Serialize(await _focusService.SetFocusAsync(
+                automationId: automationId,
+                name: name,
+                controlType: controlType,
+                requiredPattern: requiredPattern,
+                processId: processId,
                 timeoutSeconds: timeoutSeconds));
 
         [McpServerTool, Description("Select an element in a list, tab, or tree using SelectionItemPattern")]

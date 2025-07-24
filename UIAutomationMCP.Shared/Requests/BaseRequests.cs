@@ -50,6 +50,11 @@ namespace UIAutomationMCP.Shared.Requests
         [JsonPropertyName("processId")]
         public int? ProcessId { get; set; }
 
+        /// <summary>
+        /// 要素検索時に使用する必須パターン（検索精度向上用、省略可）
+        /// </summary>
+        [JsonPropertyName("requiredPattern")]
+        public string? RequiredPattern { get; set; }
 
     }
 
