@@ -751,4 +751,364 @@ namespace UIAutomationMCP.Shared.Metadata
         [JsonPropertyName("screenshotTimestamp")]
         public string? ScreenshotTimestamp { get; set; }
     }
+
+    /// <summary>
+    /// Metadata for multiple view operations
+    /// </summary>
+    public class MultipleViewServiceMetadata : ServiceMetadata
+    {
+        /// <summary>
+        /// The specific action performed (e.g., "availableViewsRetrieved", "viewSet", "currentViewRetrieved", "viewNameRetrieved")
+        /// </summary>
+        [JsonPropertyName("actionPerformed")]
+        public string ActionPerformed { get; set; } = "";
+
+        /// <summary>
+        /// Whether the operation was successful
+        /// </summary>
+        [JsonPropertyName("operationSuccessful")]
+        public bool OperationSuccessful { get; set; } = true;
+
+        /// <summary>
+        /// Element that was targeted for view operations (automation ID)
+        /// </summary>
+        [JsonPropertyName("targetAutomationId")]
+        public string? TargetAutomationId { get; set; }
+
+        /// <summary>
+        /// Element that was targeted for view operations (name)
+        /// </summary>
+        [JsonPropertyName("targetElementName")]
+        public string? TargetElementName { get; set; }
+
+        /// <summary>
+        /// Control type of the target element
+        /// </summary>
+        [JsonPropertyName("targetControlType")]
+        public string? TargetControlType { get; set; }
+
+        /// <summary>
+        /// View ID that was set or retrieved (for SetView and GetViewName operations)
+        /// </summary>
+        [JsonPropertyName("viewId")]
+        public int? ViewId { get; set; }
+
+        /// <summary>
+        /// Number of available views found (for GetAvailableViews operations)
+        /// </summary>
+        [JsonPropertyName("viewsCount")]
+        public int? ViewsCount { get; set; }
+
+        /// <summary>
+        /// Current view ID (for GetCurrentView operations)
+        /// </summary>
+        [JsonPropertyName("currentViewId")]
+        public int? CurrentViewId { get; set; }
+
+        /// <summary>
+        /// View name retrieved (for GetViewName operations)
+        /// </summary>
+        [JsonPropertyName("viewName")]
+        public string? ViewName { get; set; }
+    }
+
+    /// <summary>
+    /// Metadata for item container operations
+    /// </summary>
+    public class ItemContainerServiceMetadata : ServiceMetadata
+    {
+        /// <summary>
+        /// The specific action performed (always "itemSearchedByProperty" for ItemContainer operations)
+        /// </summary>
+        [JsonPropertyName("actionPerformed")]
+        public string ActionPerformed { get; set; } = "itemSearchedByProperty";
+
+        /// <summary>
+        /// Whether the operation was successful
+        /// </summary>
+        [JsonPropertyName("operationSuccessful")]
+        public bool OperationSuccessful { get; set; } = true;
+
+        /// <summary>
+        /// Container element that was searched (automation ID)
+        /// </summary>
+        [JsonPropertyName("containerAutomationId")]
+        public string? ContainerAutomationId { get; set; }
+
+        /// <summary>
+        /// Container element that was searched (name)
+        /// </summary>
+        [JsonPropertyName("containerElementName")]
+        public string? ContainerElementName { get; set; }
+
+        /// <summary>
+        /// Control type of the container element
+        /// </summary>
+        [JsonPropertyName("containerControlType")]
+        public string? ContainerControlType { get; set; }
+
+        /// <summary>
+        /// Property name that was searched for
+        /// </summary>
+        [JsonPropertyName("searchPropertyName")]
+        public string? SearchPropertyName { get; set; }
+
+        /// <summary>
+        /// Property value that was searched for
+        /// </summary>
+        [JsonPropertyName("searchPropertyValue")]
+        public string? SearchPropertyValue { get; set; }
+
+        /// <summary>
+        /// Starting element ID for search (if specified)
+        /// </summary>
+        [JsonPropertyName("startAfterId")]
+        public string? StartAfterId { get; set; }
+
+        /// <summary>
+        /// Number of items found
+        /// </summary>
+        [JsonPropertyName("itemsFound")]
+        public int? ItemsFound { get; set; }
+    }
+
+    /// <summary>
+    /// Metadata for virtualized item operations
+    /// </summary>
+    public class VirtualizedItemServiceMetadata : ServiceMetadata
+    {
+        /// <summary>
+        /// The specific action performed (always "itemRealized" for VirtualizedItem operations)
+        /// </summary>
+        [JsonPropertyName("actionPerformed")]
+        public string ActionPerformed { get; set; } = "itemRealized";
+
+        /// <summary>
+        /// Whether the operation was successful
+        /// </summary>
+        [JsonPropertyName("operationSuccessful")]
+        public bool OperationSuccessful { get; set; } = true;
+
+        /// <summary>
+        /// Element that was realized (automation ID)
+        /// </summary>
+        [JsonPropertyName("targetAutomationId")]
+        public string? TargetAutomationId { get; set; }
+
+        /// <summary>
+        /// Element that was realized (name)
+        /// </summary>
+        [JsonPropertyName("targetElementName")]
+        public string? TargetElementName { get; set; }
+
+        /// <summary>
+        /// Control type of the realized element
+        /// </summary>
+        [JsonPropertyName("targetControlType")]
+        public string? TargetControlType { get; set; }
+
+        /// <summary>
+        /// Whether the item was successfully realized
+        /// </summary>
+        [JsonPropertyName("itemRealized")]
+        public bool ItemRealized { get; set; } = true;
+    }
+
+    /// <summary>
+    /// Metadata for layout operations
+    /// </summary>
+    public class LayoutServiceMetadata : ServiceMetadata
+    {
+        /// <summary>
+        /// The specific action performed (e.g., "layoutInvalidated", "layoutUpdated")
+        /// </summary>
+        [JsonPropertyName("actionPerformed")]
+        public string ActionPerformed { get; set; } = "";
+
+        /// <summary>
+        /// Whether the operation was successful
+        /// </summary>
+        [JsonPropertyName("operationSuccessful")]
+        public bool OperationSuccessful { get; set; } = true;
+
+        /// <summary>
+        /// Element that was targeted for layout operations (automation ID)
+        /// </summary>
+        [JsonPropertyName("targetAutomationId")]
+        public string? TargetAutomationId { get; set; }
+
+        /// <summary>
+        /// Element that was targeted for layout operations (name)
+        /// </summary>
+        [JsonPropertyName("targetElementName")]
+        public string? TargetElementName { get; set; }
+
+        /// <summary>
+        /// Control type of the target element
+        /// </summary>
+        [JsonPropertyName("targetControlType")]
+        public string? TargetControlType { get; set; }
+    }
+
+    /// <summary>
+    /// Metadata for synchronized input operations
+    /// </summary>
+    public class SynchronizedInputServiceMetadata : ServiceMetadata
+    {
+        /// <summary>
+        /// The specific action performed (e.g., "inputSynchronized", "inputCanceled")
+        /// </summary>
+        [JsonPropertyName("actionPerformed")]
+        public string ActionPerformed { get; set; } = "";
+
+        /// <summary>
+        /// Whether the operation was successful
+        /// </summary>
+        [JsonPropertyName("operationSuccessful")]
+        public bool OperationSuccessful { get; set; } = true;
+
+        /// <summary>
+        /// Element that was targeted for input operations (automation ID)
+        /// </summary>
+        [JsonPropertyName("targetAutomationId")]
+        public string? TargetAutomationId { get; set; }
+
+        /// <summary>
+        /// Element that was targeted for input operations (name)
+        /// </summary>
+        [JsonPropertyName("targetElementName")]
+        public string? TargetElementName { get; set; }
+
+        /// <summary>
+        /// Control type of the target element
+        /// </summary>
+        [JsonPropertyName("targetControlType")]
+        public string? TargetControlType { get; set; }
+
+        /// <summary>
+        /// Type of input that was synchronized
+        /// </summary>
+        [JsonPropertyName("inputType")]
+        public string? InputType { get; set; }
+    }
+
+    /// <summary>
+    /// Metadata for transform operations
+    /// </summary>
+    public class TransformServiceMetadata : ServiceMetadata
+    {
+        /// <summary>
+        /// The specific action performed (e.g., "elementMoved", "elementResized", "elementRotated")
+        /// </summary>
+        [JsonPropertyName("actionPerformed")]
+        public string ActionPerformed { get; set; } = "";
+
+        /// <summary>
+        /// Whether the operation was successful
+        /// </summary>
+        [JsonPropertyName("operationSuccessful")]
+        public bool OperationSuccessful { get; set; } = true;
+
+        /// <summary>
+        /// Element that was transformed (automation ID)
+        /// </summary>
+        [JsonPropertyName("targetAutomationId")]
+        public string? TargetAutomationId { get; set; }
+
+        /// <summary>
+        /// Element that was transformed (name)
+        /// </summary>
+        [JsonPropertyName("targetElementName")]
+        public string? TargetElementName { get; set; }
+
+        /// <summary>
+        /// Control type of the target element
+        /// </summary>
+        [JsonPropertyName("targetControlType")]
+        public string? TargetControlType { get; set; }
+
+        /// <summary>
+        /// X position (for move operations)
+        /// </summary>
+        [JsonPropertyName("positionX")]
+        public double? PositionX { get; set; }
+
+        /// <summary>
+        /// Y position (for move operations)
+        /// </summary>
+        [JsonPropertyName("positionY")]
+        public double? PositionY { get; set; }
+
+        /// <summary>
+        /// Width (for resize operations)
+        /// </summary>
+        [JsonPropertyName("width")]
+        public double? Width { get; set; }
+
+        /// <summary>
+        /// Height (for resize operations)
+        /// </summary>
+        [JsonPropertyName("height")]
+        public double? Height { get; set; }
+
+        /// <summary>
+        /// Rotation degrees (for rotate operations)
+        /// </summary>
+        [JsonPropertyName("rotationDegrees")]
+        public double? RotationDegrees { get; set; }
+    }
+
+    /// <summary>
+    /// Metadata for table operations
+    /// </summary>
+    public class TableServiceMetadata : ServiceMetadata
+    {
+        /// <summary>
+        /// The specific action performed (e.g., "tableItemRetrieved", "rowHeaderRetrieved", "columnHeaderRetrieved")
+        /// </summary>
+        [JsonPropertyName("actionPerformed")]
+        public string ActionPerformed { get; set; } = "";
+
+        /// <summary>
+        /// Whether the operation was successful
+        /// </summary>
+        [JsonPropertyName("operationSuccessful")]
+        public bool OperationSuccessful { get; set; } = true;
+
+        /// <summary>
+        /// Element that was targeted for table operations (automation ID)
+        /// </summary>
+        [JsonPropertyName("targetAutomationId")]
+        public string? TargetAutomationId { get; set; }
+
+        /// <summary>
+        /// Element that was targeted for table operations (name)
+        /// </summary>
+        [JsonPropertyName("targetElementName")]
+        public string? TargetElementName { get; set; }
+
+        /// <summary>
+        /// Control type of the target element
+        /// </summary>
+        [JsonPropertyName("targetControlType")]
+        public string? TargetControlType { get; set; }
+
+        /// <summary>
+        /// Row index for table operations
+        /// </summary>
+        [JsonPropertyName("rowIndex")]
+        public int? RowIndex { get; set; }
+
+        /// <summary>
+        /// Column index for table operations
+        /// </summary>
+        [JsonPropertyName("columnIndex")]
+        public int? ColumnIndex { get; set; }
+
+        /// <summary>
+        /// Number of elements found
+        /// </summary>
+        [JsonPropertyName("elementsFound")]
+        public int? ElementsFound { get; set; }
+    }
 }
