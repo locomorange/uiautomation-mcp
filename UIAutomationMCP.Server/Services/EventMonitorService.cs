@@ -1,309 +1,212 @@
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Shared.Abstractions;
 using UIAutomationMCP.Shared.Results;
-using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Requests;
-using System.Diagnostics;
+using UIAutomationMCP.Shared.Validation;
+using UIAutomationMCP.Shared.Metadata;
 
 namespace UIAutomationMCP.Server.Services
 {
-    public class EventMonitorService : IEventMonitorService
+    public class EventMonitorService : BaseUIAutomationService<EventMonitorServiceMetadata>, IEventMonitorService
     {
-        private readonly ILogger<EventMonitorService> _logger;
-        private readonly SubprocessExecutor _executor;
-
-        public EventMonitorService(ILogger<EventMonitorService> logger, SubprocessExecutor executor)
+        public EventMonitorService(IOperationExecutor executor, ILogger<EventMonitorService> logger)
+            : base(executor, logger)
         {
-            _logger = logger;
-            _executor = executor;
         }
 
-        public async Task<ServerEnhancedResponse<EventMonitoringResult>> MonitorEventsAsync(string eventType, int duration, string? automationId = null, string? name = null, string? controlType = null, int? processId = null)
+        protected override string GetOperationType() => "eventMonitor";
+
+        public async Task<ServerEnhancedResponse<EventMonitoringResult>> MonitorEventsAsync(
+            string eventType, 
+            int duration, 
+            string? automationId = null, 
+            string? name = null, 
+            string? controlType = null, 
+            int? processId = null)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
             // Ensure sufficient timeout for event monitoring operations
-            var timeoutSeconds = Math.Max(duration + 60, 90); // Minimum 90 seconds or duration + 60
-            
-            try
+            var timeoutSeconds = Math.Max(duration + 60, 90);
+
+            var request = new MonitorEventsRequest
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting MonitorEvents for EventType={eventType}, Duration={duration}, AutomationId={automationId}, Name={name}, ControlType={controlType}");
+                EventTypes = new[] { eventType },
+                Duration = duration,
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                WindowTitle = null,
+                ProcessId = processId
+            };
 
-                var request = new MonitorEventsRequest
-                {
-                    EventTypes = new[] { eventType },
-                    Duration = duration,
-                    AutomationId = automationId,
-                    Name = name,
-                    ControlType = controlType,
-                    WindowTitle = null,
-                    ProcessId = processId
-                };
-
-                var result = await _executor.ExecuteAsync<MonitorEventsRequest, EventMonitoringResult>("MonitorEvents", request, timeoutSeconds);
-
-                stopwatch.Stop();
-                
-                var serverResponse = new ServerEnhancedResponse<EventMonitoringResult>
-                {
-                    Success = result.Success,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "MonitorEventsAsync",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-
-                if (!result.Success)
-                {
-                    serverResponse.ErrorMessage = result.ErrorMessage;
-                    _logger.LogWarningWithOperation(operationId, $"MonitorEvents failed: {result.ErrorMessage}");
-                }
-
-                return serverResponse;
-            }
-            catch (Exception ex)
-            {
-                stopwatch.Stop();
-                _logger.LogErrorWithOperation(operationId, ex, "MonitorEvents operation failed");
-                
-                return new ServerEnhancedResponse<EventMonitoringResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "MonitorEventsAsync",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-            }
+            return await ExecuteServiceOperationAsync<MonitorEventsRequest, EventMonitoringResult>(
+                "MonitorEvents",
+                request,
+                nameof(MonitorEventsAsync),
+                timeoutSeconds,
+                ValidateMonitorEventsRequest
+            );
         }
 
-        public async Task<ServerEnhancedResponse<EventMonitoringStartResult>> StartEventMonitoringAsync(string eventType, string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 60)
+        public async Task<ServerEnhancedResponse<EventMonitoringStartResult>> StartEventMonitoringAsync(
+            string eventType, 
+            string? automationId = null, 
+            string? name = null, 
+            string? controlType = null, 
+            int? processId = null, 
+            int timeoutSeconds = 60)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            try
+            var request = new StartEventMonitoringRequest
             {
-                _logger.LogInformationWithOperation(operationId, $"[EventMonitor] Starting StartEventMonitoring - EventType={eventType}, AutomationId={automationId ?? "null"}, Name={name ?? "null"}, ControlType={controlType ?? "null"}, ProcessId={processId?.ToString() ?? "null"}, TimeoutSeconds={timeoutSeconds}");
+                EventTypes = new[] { eventType },
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                WindowTitle = null,
+                ProcessId = processId
+            };
 
-                var request = new StartEventMonitoringRequest
-                {
-                    EventTypes = new[] { eventType },
-                    AutomationId = automationId,
-                    Name = name,
-                    ControlType = controlType,
-                    WindowTitle = null,
-                    ProcessId = processId
-                };
-
-                _logger.LogInformationWithOperation(operationId, $"[EventMonitor] Serialized request: EventTypes=[{string.Join(", ", request.EventTypes)}], AutomationId={request.AutomationId ?? "null"}, Name={request.Name ?? "null"}, ControlType={request.ControlType ?? "null"}, ProcessId={request.ProcessId?.ToString() ?? "null"}");
-                _logger.LogInformationWithOperation(operationId, $"[EventMonitor] Calling _executor.ExecuteAsync with operation='StartEventMonitoring', timeoutSeconds={timeoutSeconds}");
-
-                var result = await _executor.ExecuteAsync<StartEventMonitoringRequest, EventMonitoringStartResult>("StartEventMonitoring", request, timeoutSeconds);
-
-                _logger.LogInformationWithOperation(operationId, $"[EventMonitor] _executor.ExecuteAsync completed - Success={result?.Success}, SessionId={result?.SessionId ?? "null"}, ErrorMessage={result?.ErrorMessage ?? "null"}");
-
-                stopwatch.Stop();
-                
-                var serverResponse = new ServerEnhancedResponse<EventMonitoringStartResult>
-                {
-                    Success = result?.Success ?? false,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "StartEventMonitoringAsync",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-
-                if (result != null && !result.Success)
-                {
-                    serverResponse.ErrorMessage = result.ErrorMessage;
-                    _logger.LogWarningWithOperation(operationId, $"StartEventMonitoring failed: {result.ErrorMessage}");
-                }
-
-                return serverResponse;
-            }
-            catch (Exception ex)
-            {
-                stopwatch.Stop();
-                _logger.LogErrorWithOperation(operationId, ex, "StartEventMonitoring operation failed");
-                
-                return new ServerEnhancedResponse<EventMonitoringStartResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "StartEventMonitoringAsync",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-            }
+            return await ExecuteServiceOperationAsync<StartEventMonitoringRequest, EventMonitoringStartResult>(
+                "StartEventMonitoring",
+                request,
+                nameof(StartEventMonitoringAsync),
+                timeoutSeconds,
+                ValidateStartEventMonitoringRequest
+            );
         }
 
-        public async Task<ServerEnhancedResponse<EventMonitoringStopResult>> StopEventMonitoringAsync(string? sessionId = null, int timeoutSeconds = 60)
+        public async Task<ServerEnhancedResponse<EventMonitoringStopResult>> StopEventMonitoringAsync(
+            string? sessionId = null, 
+            int timeoutSeconds = 60)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            try
+            var request = new StopEventMonitoringRequest
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting StopEventMonitoring for session: {sessionId ?? "null"}");
+                MonitorId = sessionId ?? ""
+            };
 
-                var request = new StopEventMonitoringRequest
-                {
-                    MonitorId = sessionId ?? ""
-                };
-
-                var result = await _executor.ExecuteAsync<StopEventMonitoringRequest, EventMonitoringStopResult>("StopEventMonitoring", request, timeoutSeconds);
-
-                stopwatch.Stop();
-                
-                var serverResponse = new ServerEnhancedResponse<EventMonitoringStopResult>
-                {
-                    Success = result.Success,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "StopEventMonitoringAsync",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-
-                if (!result.Success)
-                {
-                    serverResponse.ErrorMessage = result.ErrorMessage;
-                    _logger.LogWarningWithOperation(operationId, $"StopEventMonitoring failed: {result.ErrorMessage}");
-                }
-
-                return serverResponse;
-            }
-            catch (Exception ex)
-            {
-                stopwatch.Stop();
-                _logger.LogErrorWithOperation(operationId, ex, "StopEventMonitoring operation failed");
-                
-                return new ServerEnhancedResponse<EventMonitoringStopResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "StopEventMonitoringAsync",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-            }
+            return await ExecuteServiceOperationAsync<StopEventMonitoringRequest, EventMonitoringStopResult>(
+                "StopEventMonitoring",
+                request,
+                nameof(StopEventMonitoringAsync),
+                timeoutSeconds,
+                ValidateStopEventMonitoringRequest
+            );
         }
 
-        public async Task<ServerEnhancedResponse<EventLogResult>> GetEventLogAsync(string? sessionId = null, int maxCount = 100, int timeoutSeconds = 60)
+        public async Task<ServerEnhancedResponse<EventLogResult>> GetEventLogAsync(
+            string? sessionId = null, 
+            int maxCount = 100, 
+            int timeoutSeconds = 60)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            try
+            var request = new GetEventLogRequest
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting GetEventLog for session: {sessionId ?? "null"}");
+                MonitorId = sessionId ?? "",
+                MaxCount = maxCount
+            };
 
-                var request = new GetEventLogRequest
-                {
-                    MonitorId = sessionId ?? "",
-                    MaxCount = maxCount
-                };
+            return await ExecuteServiceOperationAsync<GetEventLogRequest, EventLogResult>(
+                "GetEventLog",
+                request,
+                nameof(GetEventLogAsync),
+                timeoutSeconds,
+                ValidateGetEventLogRequest
+            );
+        }
 
-                var result = await _executor.ExecuteAsync<GetEventLogRequest, EventLogResult>("GetEventLog", request, timeoutSeconds);
+        private static ValidationResult ValidateMonitorEventsRequest(MonitorEventsRequest request)
+        {
+            var errors = new List<string>();
 
-                stopwatch.Stop();
-                
-                var serverResponse = new ServerEnhancedResponse<EventLogResult>
-                {
-                    Success = result.Success,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetEventLogAsync",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-
-                if (!result.Success)
-                {
-                    serverResponse.ErrorMessage = result.ErrorMessage;
-                    _logger.LogWarningWithOperation(operationId, $"GetEventLog failed: {result.ErrorMessage}");
-                }
-
-                return serverResponse;
-            }
-            catch (Exception ex)
+            if (request.EventTypes == null || request.EventTypes.Length == 0 || 
+                string.IsNullOrWhiteSpace(request.EventTypes[0]))
             {
-                stopwatch.Stop();
-                _logger.LogErrorWithOperation(operationId, ex, "GetEventLog operation failed");
-                
-                return new ServerEnhancedResponse<EventLogResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetEventLogAsync",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
+                errors.Add("Event type is required and cannot be empty");
             }
+
+            if (request.Duration <= 0)
+            {
+                errors.Add("Duration must be greater than 0");
+            }
+
+            return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;
+        }
+
+        private static ValidationResult ValidateStartEventMonitoringRequest(StartEventMonitoringRequest request)
+        {
+            if (request.EventTypes == null || request.EventTypes.Length == 0 || 
+                string.IsNullOrWhiteSpace(request.EventTypes[0]))
+            {
+                return ValidationResult.Failure("Event type is required and cannot be empty");
+            }
+
+            return ValidationResult.Success;
+        }
+
+        private static ValidationResult ValidateStopEventMonitoringRequest(StopEventMonitoringRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.MonitorId))
+            {
+                return ValidationResult.Failure("Monitor ID (session ID) is required to stop monitoring");
+            }
+
+            return ValidationResult.Success;
+        }
+
+        private static ValidationResult ValidateGetEventLogRequest(GetEventLogRequest request)
+        {
+            var errors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(request.MonitorId))
+            {
+                errors.Add("Monitor ID (session ID) is required to retrieve event log");
+            }
+
+            if (request.MaxCount <= 0)
+            {
+                errors.Add("Max count must be greater than 0");
+            }
+
+            return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;
+        }
+
+        protected override EventMonitorServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
+        {
+            var metadata = base.CreateSuccessMetadata(data, context);
+
+            if (data is EventMonitoringResult monitorResult)
+            {
+                metadata.ActionPerformed = "eventsMonitored";
+                metadata.EventsCount = monitorResult.CapturedEvents?.Count ?? 0;
+                metadata.MonitoringDuration = monitorResult.Duration;
+                metadata.EventType = monitorResult.EventType;
+                metadata.OperationSuccessful = monitorResult.Success;
+            }
+            else if (data is EventMonitoringStartResult startResult)
+            {
+                metadata.ActionPerformed = "monitoringStarted";
+                metadata.SessionId = startResult.SessionId;
+                metadata.EventType = startResult.EventType;
+                metadata.MonitoringActive = startResult.Success;
+                metadata.OperationSuccessful = startResult.Success;
+            }
+            else if (data is EventMonitoringStopResult stopResult)
+            {
+                metadata.ActionPerformed = "monitoringStopped";
+                metadata.SessionId = stopResult.SessionId;
+                metadata.EventsCount = stopResult.FinalEventCount;
+                metadata.MonitoringActive = false;
+                metadata.OperationSuccessful = stopResult.Success;
+            }
+            else if (data is EventLogResult logResult)
+            {
+                metadata.ActionPerformed = "eventLogRetrieved";
+                metadata.SessionId = logResult.MonitorId;
+                metadata.EventsCount = logResult.Events?.Count ?? 0;
+                metadata.MonitoringActive = logResult.SessionActive;
+                metadata.OperationSuccessful = logResult.Success;
+            }
+
+            return metadata;
         }
     }
 }

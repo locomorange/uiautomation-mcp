@@ -1,458 +1,230 @@
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Shared.Abstractions;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
-using System.Diagnostics;
+using UIAutomationMCP.Shared.Validation;
+using UIAutomationMCP.Shared.Metadata;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
-    public class GridService : IGridService
+    public class GridService : BaseUIAutomationService<GridServiceMetadata>, IGridService
     {
-        private readonly ILogger<GridService> _logger;
-        private readonly SubprocessExecutor _executor;
-
-        public GridService(ILogger<GridService> logger, SubprocessExecutor executor)
+        public GridService(IOperationExecutor executor, ILogger<GridService> logger)
+            : base(executor, logger)
         {
-            _logger = logger;
-            _executor = executor;
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetGridItemAsync(string? automationId = null, string? name = null, int row = 0, int column = 0, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
+        protected override string GetOperationType() => "grid";
+
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetGridItemAsync(
+            string? automationId = null, 
+            string? name = null, 
+            int row = 0, 
+            int column = 0, 
+            string? controlType = null, 
+            int? processId = null, 
+            int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
+            var request = new GetGridItemRequest
             {
-                var validationError = "Either AutomationId or Name is required and cannot be empty";
-                _logger.LogWarningWithOperation(operationId, $"GetGridItem validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetGridItem",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            if (row < 0 || column < 0)
-            {
-                var validationError = "Row and column indices must be non-negative";
-                _logger.LogWarningWithOperation(operationId, $"GetGridItem validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetGridItem",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Getting grid item at row {row}, column {column} for element with AutomationId: {automationId}, Name: {name}");
+                AutomationId = automationId,
+                Name = name,
+                Row = row,
+                Column = column,
+                ControlType = controlType,
+                ProcessId = processId ?? 0
+            };
 
-                var request = new GetGridItemRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    Row = row,
-                    Column = column,
-                    ControlType = controlType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<GetGridItemRequest, ElementSearchResult>("GetGridItem", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetGridItem",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Grid item retrieved successfully for element with AutomationId: {automationId}, Name: {name}");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetGridItem",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get grid item at row {row}, column {column} for element with AutomationId: {automationId}, Name: {name}");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<GetGridItemRequest, ElementSearchResult>(
+                "GetGridItem",
+                request,
+                nameof(GetGridItemAsync),
+                timeoutSeconds,
+                ValidateGridItemRequest
+            );
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetRowHeaderAsync(string? automationId = null, string? name = null, int row = 0, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetRowHeaderAsync(
+            string? automationId = null, 
+            string? name = null, 
+            int row = 0, 
+            string? controlType = null, 
+            int? processId = null, 
+            int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
+            var request = new GetRowHeaderRequest
             {
-                var validationError = "Either AutomationId or Name is required and cannot be empty";
-                _logger.LogWarningWithOperation(operationId, $"GetRowHeader validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetRowHeader",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            if (row < 0)
-            {
-                var validationError = "Row index must be non-negative";
-                _logger.LogWarningWithOperation(operationId, $"GetRowHeader validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetRowHeader",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Getting row header for row {row} in element with AutomationId: {automationId}, Name: {name}");
+                AutomationId = automationId,
+                Name = name,
+                Row = row,
+                ControlType = controlType,
+                ProcessId = processId ?? 0
+            };
 
-                var request = new GetRowHeaderRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    Row = row,
-                    ControlType = controlType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<GetRowHeaderRequest, ElementSearchResult>("GetRowHeader", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetRowHeader",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Row header retrieved successfully for element with AutomationId: {automationId}, Name: {name}");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetRowHeader",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get row header for row {row} in element with AutomationId: {automationId}, Name: {name}");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<GetRowHeaderRequest, ElementSearchResult>(
+                "GetRowHeader",
+                request,
+                nameof(GetRowHeaderAsync),
+                timeoutSeconds,
+                ValidateRowHeaderRequest
+            );
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetColumnHeaderAsync(string? automationId = null, string? name = null, int column = 0, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetColumnHeaderAsync(
+            string? automationId = null, 
+            string? name = null, 
+            int column = 0, 
+            string? controlType = null, 
+            int? processId = null, 
+            int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
+            var request = new GetColumnHeaderRequest
             {
-                var validationError = "Either AutomationId or Name is required and cannot be empty";
-                _logger.LogWarningWithOperation(operationId, $"GetColumnHeader validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetColumnHeader",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            if (column < 0)
-            {
-                var validationError = "Column index must be non-negative";
-                _logger.LogWarningWithOperation(operationId, $"GetColumnHeader validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetColumnHeader",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Getting column header for column {column} in element with AutomationId: {automationId}, Name: {name}");
+                AutomationId = automationId,
+                Name = name,
+                Column = column,
+                ControlType = controlType,
+                ProcessId = processId ?? 0
+            };
 
-                var request = new GetColumnHeaderRequest
-                {
-                    AutomationId = automationId,
-                    Name = name,
-                    Column = column,
-                    ControlType = controlType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<GetColumnHeaderRequest, ElementSearchResult>("GetColumnHeader", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetColumnHeader",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Column header retrieved successfully for element with AutomationId: {automationId}, Name: {name}");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<ElementSearchResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetColumnHeader",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get column header for column {column} in element with AutomationId: {automationId}, Name: {name}");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<GetColumnHeaderRequest, ElementSearchResult>(
+                "GetColumnHeader",
+                request,
+                nameof(GetColumnHeaderAsync),
+                timeoutSeconds,
+                ValidateColumnHeaderRequest
+            );
         }
 
-        public async Task<ServerEnhancedResponse<GridInfoResult>> GetGridInfoAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<GridInfoResult>> GetGridInfoAsync(
+            string? automationId = null, 
+            string? name = null, 
+            string? controlType = null, 
+            int? processId = null, 
+            int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
+            var request = new GetGridInfoRequest
+            {
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                ProcessId = processId ?? 0
+            };
+
+            return await ExecuteServiceOperationAsync<GetGridInfoRequest, GridInfoResult>(
+                "GetGridInfo",
+                request,
+                nameof(GetGridInfoAsync),
+                timeoutSeconds,
+                ValidateElementIdentificationRequest
+            );
+        }
+
+        private static ValidationResult ValidateGridItemRequest(GetGridItemRequest request)
+        {
+            var errors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(request.AutomationId) && string.IsNullOrWhiteSpace(request.Name))
+            {
+                errors.Add("Either AutomationId or Name is required for element identification");
+            }
+
+            if (request.Row < 0 || request.Column < 0)
+            {
+                errors.Add("Row and column indices must be non-negative");
+            }
+
+            return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;
+        }
+
+        private static ValidationResult ValidateRowHeaderRequest(GetRowHeaderRequest request)
+        {
+            var errors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(request.AutomationId) && string.IsNullOrWhiteSpace(request.Name))
+            {
+                errors.Add("Either AutomationId or Name is required for element identification");
+            }
+
+            if (request.Row < 0)
+            {
+                errors.Add("Row index must be non-negative");
+            }
+
+            return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;
+        }
+
+        private static ValidationResult ValidateColumnHeaderRequest(GetColumnHeaderRequest request)
+        {
+            var errors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(request.AutomationId) && string.IsNullOrWhiteSpace(request.Name))
+            {
+                errors.Add("Either AutomationId or Name is required for element identification");
+            }
+
+            if (request.Column < 0)
+            {
+                errors.Add("Column index must be non-negative");
+            }
+
+            return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;
+        }
+
+        private static ValidationResult ValidateElementIdentificationRequest<T>(T request) where T : class
+        {
+            // Use reflection to check common properties for element identification
+            var automationIdProp = typeof(T).GetProperty("AutomationId");
+            var nameProp = typeof(T).GetProperty("Name");
+
+            var automationId = automationIdProp?.GetValue(request) as string;
+            var name = nameProp?.GetValue(request) as string;
+
             if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                var validationError = "Either AutomationId or Name is required and cannot be empty";
-                _logger.LogWarningWithOperation(operationId, $"GetGridInfo validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<GridInfoResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetGridInfo",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
-                return validationResponse;
+                return ValidationResult.Failure("Either AutomationId or Name is required for element identification");
             }
 
-            try
+            return ValidationResult.Success;
+        }
+
+        protected override GridServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
+        {
+            var metadata = base.CreateSuccessMetadata(data, context);
+
+            if (data is ElementSearchResult searchResult)
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting GetGridInfo for AutomationId={automationId}, Name={name}");
+                metadata.ElementsFound = searchResult.Count;
+                metadata.OperationSuccessful = searchResult.Count > 0;
 
-                var request = new GetGridInfoRequest
+                if (context.MethodName.Contains("GetGridItem"))
                 {
-                    AutomationId = automationId,
-                    Name = name,
-                    ControlType = controlType,
-                    ProcessId = processId ?? 0
-                };
-
-                var result = await _executor.ExecuteAsync<GetGridInfoRequest, GridInfoResult>("GetGridInfo", request, timeoutSeconds);
-
-                stopwatch.Stop();
-                
-                var serverResponse = new ServerEnhancedResponse<GridInfoResult>
+                    metadata.ActionPerformed = "gridItemRetrieved";
+                    // Extract row/column from request if needed (would require request context)
+                }
+                else if (context.MethodName.Contains("GetRowHeader"))
                 {
-                    Success = result.Success,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetGridInfo",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-
-                _logger.LogInformationWithOperation(operationId, $"Successfully created enhanced response");
-                
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
-                
-                return serverResponse;
+                    metadata.ActionPerformed = "rowHeaderRetrieved";
+                    // Extract row from request if needed
+                }
+                else if (context.MethodName.Contains("GetColumnHeader"))
+                {
+                    metadata.ActionPerformed = "columnHeaderRetrieved";
+                    // Extract column from request if needed
+                }
             }
-            catch (Exception ex)
+            else if (data is GridInfoResult gridResult)
             {
-                stopwatch.Stop();
-                _logger.LogErrorWithOperation(operationId, ex, "Error in GetGridInfo operation");
-                
-                var errorResponse = new ServerEnhancedResponse<GridInfoResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetGridInfo",
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
-                
-                return errorResponse;
+                metadata.ActionPerformed = "gridInfoRetrieved";
+                metadata.TotalRows = gridResult.RowCount;
+                metadata.TotalColumns = gridResult.ColumnCount;
+                metadata.SupportsRowHeaders = gridResult.CanSelectMultiple;
+                metadata.SupportsColumnHeaders = gridResult.CanSelectMultiple;
+                metadata.OperationSuccessful = gridResult.Success;
             }
+
+            return metadata;
         }
     }
 }

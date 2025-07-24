@@ -463,4 +463,190 @@ namespace UIAutomationMCP.Shared.Metadata
         [JsonPropertyName("operationSuccessful")]
         public bool OperationSuccessful { get; set; } = true;
     }
+
+    /// <summary>
+    /// Metadata for grid operations
+    /// </summary>
+    public class GridServiceMetadata : ServiceMetadata
+    {
+        /// <summary>
+        /// The specific action performed (e.g., "gridItemRetrieved", "rowHeaderRetrieved", "columnHeaderRetrieved", "gridInfoRetrieved")
+        /// </summary>
+        [JsonPropertyName("actionPerformed")]
+        public string ActionPerformed { get; set; } = "";
+
+        /// <summary>
+        /// Number of elements found
+        /// </summary>
+        [JsonPropertyName("elementsFound")]
+        public int? ElementsFound { get; set; }
+
+        /// <summary>
+        /// Row index for grid item or row header operations
+        /// </summary>
+        [JsonPropertyName("rowIndex")]
+        public int? RowIndex { get; set; }
+
+        /// <summary>
+        /// Column index for grid item or column header operations
+        /// </summary>
+        [JsonPropertyName("columnIndex")]
+        public int? ColumnIndex { get; set; }
+
+        /// <summary>
+        /// Total row count (for grid info operations)
+        /// </summary>
+        [JsonPropertyName("totalRows")]
+        public int? TotalRows { get; set; }
+
+        /// <summary>
+        /// Total column count (for grid info operations)
+        /// </summary>
+        [JsonPropertyName("totalColumns")]
+        public int? TotalColumns { get; set; }
+
+        /// <summary>
+        /// Whether the operation was successful
+        /// </summary>
+        [JsonPropertyName("operationSuccessful")]
+        public bool OperationSuccessful { get; set; } = true;
+
+        /// <summary>
+        /// Whether the grid supports row headers
+        /// </summary>
+        [JsonPropertyName("supportsRowHeaders")]
+        public bool? SupportsRowHeaders { get; set; }
+
+        /// <summary>
+        /// Whether the grid supports column headers
+        /// </summary>
+        [JsonPropertyName("supportsColumnHeaders")]
+        public bool? SupportsColumnHeaders { get; set; }
+    }
+
+    /// <summary>
+    /// Metadata for event monitoring operations
+    /// </summary>
+    public class EventMonitorServiceMetadata : ServiceMetadata
+    {
+        /// <summary>
+        /// The specific action performed (e.g., "eventsMonitored", "monitoringStarted", "monitoringStopped", "eventLogRetrieved")
+        /// </summary>
+        [JsonPropertyName("actionPerformed")]
+        public string ActionPerformed { get; set; } = "";
+
+        /// <summary>
+        /// Event type being monitored (e.g., "Focus", "Selection", "Click")
+        /// </summary>
+        [JsonPropertyName("eventType")]
+        public string? EventType { get; set; }
+
+        /// <summary>
+        /// Session ID for the monitoring session
+        /// </summary>
+        [JsonPropertyName("sessionId")]
+        public string? SessionId { get; set; }
+
+        /// <summary>
+        /// Duration of monitoring in seconds (for MonitorEvents)
+        /// </summary>
+        [JsonPropertyName("monitoringDuration")]
+        public int? MonitoringDuration { get; set; }
+
+        /// <summary>
+        /// Number of events captured
+        /// </summary>
+        [JsonPropertyName("eventsCount")]
+        public int? EventsCount { get; set; }
+
+        /// <summary>
+        /// Maximum number of events requested (for GetEventLog)
+        /// </summary>
+        [JsonPropertyName("maxEventCount")]
+        public int? MaxEventCount { get; set; }
+
+        /// <summary>
+        /// Whether the operation was successful
+        /// </summary>
+        [JsonPropertyName("operationSuccessful")]
+        public bool OperationSuccessful { get; set; } = true;
+
+        /// <summary>
+        /// Whether monitoring is currently active
+        /// </summary>
+        [JsonPropertyName("monitoringActive")]
+        public bool? MonitoringActive { get; set; }
+
+        /// <summary>
+        /// Element that was targeted for monitoring (automation ID)
+        /// </summary>
+        [JsonPropertyName("targetAutomationId")]
+        public string? TargetAutomationId { get; set; }
+
+        /// <summary>
+        /// Element that was targeted for monitoring (name)
+        /// </summary>
+        [JsonPropertyName("targetElementName")]
+        public string? TargetElementName { get; set; }
+    }
+
+    /// <summary>
+    /// Metadata for selection operations
+    /// </summary>
+    public class SelectionServiceMetadata : ServiceMetadata
+    {
+        /// <summary>
+        /// The specific action performed (e.g., "itemSelected", "itemAddedToSelection", "itemRemovedFromSelection", "selectionCleared", "selectionContainerRetrieved", "selectionRetrieved")
+        /// </summary>
+        [JsonPropertyName("actionPerformed")]
+        public string ActionPerformed { get; set; } = "";
+
+        /// <summary>
+        /// Whether the operation was successful
+        /// </summary>
+        [JsonPropertyName("operationSuccessful")]
+        public bool OperationSuccessful { get; set; } = true;
+
+        /// <summary>
+        /// Element that was targeted for selection (automation ID)
+        /// </summary>
+        [JsonPropertyName("targetAutomationId")]
+        public string? TargetAutomationId { get; set; }
+
+        /// <summary>
+        /// Element that was targeted for selection (name)
+        /// </summary>
+        [JsonPropertyName("targetElementName")]
+        public string? TargetElementName { get; set; }
+
+        /// <summary>
+        /// Control type of the target element
+        /// </summary>
+        [JsonPropertyName("targetControlType")]
+        public string? TargetControlType { get; set; }
+
+        /// <summary>
+        /// Number of selected items (for GetSelection operations)
+        /// </summary>
+        [JsonPropertyName("selectedItemsCount")]
+        public int? SelectedItemsCount { get; set; }
+
+        /// <summary>
+        /// Whether multiple selection is supported
+        /// </summary>
+        [JsonPropertyName("supportsMultipleSelection")]
+        public bool? SupportsMultipleSelection { get; set; }
+
+        /// <summary>
+        /// Selection container automation ID (for GetSelectionContainer operations)
+        /// </summary>
+        [JsonPropertyName("selectionContainerAutomationId")]
+        public string? SelectionContainerAutomationId { get; set; }
+
+        /// <summary>
+        /// Whether the selection is required (for GetSelection operations)
+        /// </summary>
+        [JsonPropertyName("isSelectionRequired")]
+        public bool? IsSelectionRequired { get; set; }
+    }
 }
