@@ -98,6 +98,7 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(WorkerResponse<BaseOperationResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseBaseOperationResult,
                 Type t when t == typeof(WorkerResponse<ElementSearchResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseElementSearchResult,
                 Type t when t == typeof(WorkerResponse<ActionResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseActionResult,
+                Type t when t == typeof(WorkerResponse<WindowActionResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseWindowActionResult,
                 Type t when t == typeof(WorkerResponse<FindItemResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseFindItemResult,
                 Type t when t == typeof(WorkerResponse<ProcessResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseProcessResult,
                 Type t when t == typeof(WorkerResponse<ErrorResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseErrorResult,
@@ -117,6 +118,7 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(BaseOperationResult) => (JsonTypeInfo<T>)(object)_context.BaseOperationResult,
                 Type t when t == typeof(ElementSearchResult) => (JsonTypeInfo<T>)(object)_context.ElementSearchResult,
                 Type t when t == typeof(ActionResult) => (JsonTypeInfo<T>)(object)_context.ActionResult,
+                Type t when t == typeof(WindowActionResult) => (JsonTypeInfo<T>)(object)_context.WindowActionResult,
                 Type t when t == typeof(FindItemResult) => (JsonTypeInfo<T>)(object)_context.FindItemResult,
                 Type t when t == typeof(ProcessResult) => (JsonTypeInfo<T>)(object)_context.ProcessResult,
                 Type t when t == typeof(ErrorResult) => (JsonTypeInfo<T>)(object)_context.ErrorResult,
@@ -247,6 +249,7 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(WorkerResponse<BaseOperationResult>))]
     [JsonSerializable(typeof(WorkerResponse<ElementSearchResult>))]
     [JsonSerializable(typeof(WorkerResponse<ActionResult>))]
+    [JsonSerializable(typeof(WorkerResponse<WindowActionResult>))]
     [JsonSerializable(typeof(WorkerResponse<FindItemResult>))]
     [JsonSerializable(typeof(WorkerResponse<ProcessResult>))]
     [JsonSerializable(typeof(WorkerResponse<ElementTreeResult>))]
@@ -264,6 +267,7 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(BaseOperationResult))]
     [JsonSerializable(typeof(ElementSearchResult))]
     [JsonSerializable(typeof(ActionResult))]
+    [JsonSerializable(typeof(WindowActionResult))]
     [JsonSerializable(typeof(ErrorResult))]
     [JsonSerializable(typeof(UniversalResponse))]
     [JsonSerializable(typeof(ElementTreeResult))]
