@@ -46,7 +46,7 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
                 }
 
                 var sessionId = Guid.NewGuid().ToString("N")[..8];
-                _logger.LogInformation($"Starting continuous event monitoring session {sessionId} for {string.Join(", ", request.EventTypes)}");
+                _logger.LogInformation($"Starting continuous event monitoring session {sessionId} for {string.Join(", ", request.EventTypes)}. Current active sessions: {_activeSessions.Count}");
 
                 // MS Learn推奨: セッション管理とスレッドセーフティ
                 var session = new EventMonitoringSession(sessionId, request, _elementFinderService, _logger);

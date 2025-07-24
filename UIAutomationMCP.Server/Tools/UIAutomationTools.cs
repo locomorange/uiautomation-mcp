@@ -782,12 +782,15 @@ namespace UIAutomationMCP.Server.Tools
                 eventType, automationId: elementId ?? automationId, name: name, controlType: controlType, processId: processId));
 
         [McpServerTool, Description("Stop continuous event monitoring")]
-        public async Task<object> StopEventMonitoring()
-            => JsonSerializationHelper.Serialize(await _eventMonitorService.StopEventMonitoringAsync());
+        public async Task<object> StopEventMonitoring(
+            [Description("Session ID returned from StartEventMonitoring")] string? sessionId = null)
+            => JsonSerializationHelper.Serialize(await _eventMonitorService.StopEventMonitoringAsync(sessionId));
 
         [McpServerTool, Description("Get the current event log")]
-        public async Task<object> GetEventLog()
-            => JsonSerializationHelper.Serialize(await _eventMonitorService.GetEventLogAsync());
+        public async Task<object> GetEventLog(
+            [Description("Session ID returned from StartEventMonitoring")] string? sessionId = null,
+            [Description("Maximum number of events to retrieve")] int maxCount = 100)
+            => JsonSerializationHelper.Serialize(await _eventMonitorService.GetEventLogAsync(sessionId, maxCount));
 
         // Window Capabilities and State
 

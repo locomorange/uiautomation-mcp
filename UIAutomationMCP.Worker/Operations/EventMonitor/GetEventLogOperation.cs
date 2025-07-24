@@ -35,7 +35,7 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
                     };
                 }
 
-                _logger.LogInformation($"Getting event log for session: {request.MonitorId}");
+                _logger.LogInformation($"Getting event log for session: {request.MonitorId}. Available sessions: {string.Join(", ", StartEventMonitoringOperation.GetActiveSessions().Select(s => s.SessionId))}");
 
                 // セッションからイベントログを取得
                 var session = StartEventMonitoringOperation.GetSession(request.MonitorId);
