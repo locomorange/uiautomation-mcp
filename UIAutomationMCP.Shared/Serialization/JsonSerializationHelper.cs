@@ -190,6 +190,7 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(RemoveFromSelectionRequest) => (JsonTypeInfo<T>)(object)_context.RemoveFromSelectionRequest,
                 Type t when t == typeof(SelectElementRequest) => (JsonTypeInfo<T>)(object)_context.SelectElementRequest,
                 Type t when t == typeof(SelectItemRequest) => (JsonTypeInfo<T>)(object)_context.SelectItemRequest,
+                Type t when t == typeof(SetFocusRequest) => (JsonTypeInfo<T>)(object)_context.SetFocusRequest,
                 Type t when t == typeof(GetElementPropertiesRequest) => (JsonTypeInfo<T>)(object)_context.GetElementPropertiesRequest,
                 Type t when t == typeof(GetElementPatternsRequest) => (JsonTypeInfo<T>)(object)_context.GetElementPatternsRequest,
                 Type t when t == typeof(ValidateControlTypePatternsRequest) => (JsonTypeInfo<T>)(object)_context.ValidateControlTypePatternsRequest,
@@ -351,6 +352,7 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(RemoveFromSelectionRequest))]
     [JsonSerializable(typeof(SelectElementRequest))]
     [JsonSerializable(typeof(SelectItemRequest))]
+    [JsonSerializable(typeof(SetFocusRequest))]
     [JsonSerializable(typeof(GetElementPropertiesRequest))]
     [JsonSerializable(typeof(GetElementPatternsRequest))]
     [JsonSerializable(typeof(ValidateControlTypePatternsRequest))]
