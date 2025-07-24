@@ -75,6 +75,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 mockItemContainer.Object,
                 mockSynchronizedInput.Object,
                 mockEventMonitor.Object,
+                Mock.Of<IFocusService>(),
                 mockSubprocessExecutor.Object
             );
         }

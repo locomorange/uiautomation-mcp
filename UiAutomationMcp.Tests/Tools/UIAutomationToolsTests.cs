@@ -45,6 +45,7 @@ namespace UIAutomationMCP.Tests.Tools
         private readonly Mock<IItemContainerService> _mockItemContainerService;
         private readonly Mock<ISynchronizedInputService> _mockSynchronizedInputService;
         private readonly Mock<IEventMonitorService> _mockEventMonitorService;
+        private readonly Mock<IFocusService> _mockFocusService;
         private readonly Mock<ISubprocessExecutor> _mockSubprocessExecutor;
 
         public UIAutomationToolsTests(ITestOutputHelper output)
@@ -75,6 +76,7 @@ namespace UIAutomationMCP.Tests.Tools
             _mockItemContainerService = new Mock<IItemContainerService>();
             _mockSynchronizedInputService = new Mock<ISynchronizedInputService>();
             _mockEventMonitorService = new Mock<IEventMonitorService>();
+            _mockFocusService = new Mock<IFocusService>();
             _mockSubprocessExecutor = new Mock<ISubprocessExecutor>();
             
             _tools = new UIAutomationTools(
@@ -101,6 +103,7 @@ namespace UIAutomationMCP.Tests.Tools
                 _mockItemContainerService.Object,
                 _mockSynchronizedInputService.Object,
                 _mockEventMonitorService.Object,
+                _mockFocusService.Object,
                 _mockSubprocessExecutor.Object
             );
         }
