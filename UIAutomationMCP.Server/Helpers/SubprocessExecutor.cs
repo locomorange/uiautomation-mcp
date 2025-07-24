@@ -15,8 +15,6 @@ namespace UIAutomationMCP.Server.Helpers
         private readonly SemaphoreSlim _semaphore = new(1, 1);
         private bool _disposed = false;
         private readonly object _lockObject = new object();
-        private string _lastStderrOutput = "";
-        private string _workerExecutablePath = "";
 
         public SubprocessExecutor(ILogger<SubprocessExecutor> logger, string workerPath)
         {
@@ -39,8 +37,6 @@ namespace UIAutomationMCP.Server.Helpers
         {
             try
             {
-                _logger.LogInformation("[SubprocessExecutor] Operation started: {Operation} with RequestType: {RequestType}, ResultType: {ResultType}, Timeout: {TimeoutSeconds}s", 
-                    operation, typeof(TRequest).Name, typeof(TResult).Name, timeoutSeconds);
                 
                 if (_disposed)
                 {
@@ -60,25 +56,19 @@ namespace UIAutomationMCP.Server.Helpers
                     throw new ArgumentException("Timeout must be greater than zero", nameof(timeoutSeconds));
                 }
                 
-                _logger.LogInformation($"[SubprocessExecutor] Waiting for semaphore...");
                 await _semaphore.WaitAsync();
                 try
                 {
-                    _logger.LogInformation($"[SubprocessExecutor] Semaphore acquired. Ensuring worker process...");
                     await EnsureWorkerProcessAsync();
                 
                     var operationStartTime = DateTime.UtcNow;
                     // Direct type-safe serialization - no branching needed
                     string requestJson = JsonSerializationHelper.Serialize(request);
-                    _logger.LogInformation($"[SubprocessExecutor] Request serialized. Length: {requestJson.Length} chars");
-                    _logger.LogInformation("Sending request to worker at {StartTime}: {Request}", operationStartTime, requestJson);
 
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
                     
-                    _logger.LogInformation($"[SubprocessExecutor] Writing request to StandardInput...");
                     await _workerProcess!.StandardInput.WriteLineAsync(requestJson);
                     await _workerProcess.StandardInput.FlushAsync();
-                    _logger.LogInformation("Request sent and flushed to worker process");
 
                     var responseTask = _workerProcess.StandardOutput.ReadLineAsync();
                     var timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeoutSeconds), cts.Token);
@@ -86,131 +76,34 @@ namespace UIAutomationMCP.Server.Helpers
 
                     if (completedTask == timeoutTask)
                     {
-                        _logger.LogWarning("Worker operation timed out after {TimeoutSeconds}s: {Operation}. Allowing additional grace time...", timeoutSeconds, operation);
+                        _logger.LogWarning("Worker operation timed out after {TimeoutSeconds}s: {Operation}", timeoutSeconds, operation);
+                        cts.Cancel();
                         
-                        // Give additional grace time for slow operations
-                        var gracePeriod = Math.Min(timeoutSeconds / 2, 10); // Up to 10 seconds additional
-                        var extendedTimeoutTask = Task.Delay(TimeSpan.FromSeconds(gracePeriod));
-                        var extendedCompletedTask = await Task.WhenAny(responseTask, extendedTimeoutTask);
+                        // Check if worker process crashed
+                        if (_workerProcess?.HasExited == true)
+                        {
+                            _logger.LogWarning("Worker process crashed during operation, restarting");
+                            await RestartWorkerProcessAsync();
+                        }
                         
-                        if (extendedCompletedTask == extendedTimeoutTask)
-                        {
-                            _logger.LogWarning("Worker operation still timed out after grace period of {GracePeriod}s: {Operation}", gracePeriod, operation);
-                            
-                            // Advanced hang vs short timeout diagnosis
-                            var actualElapsed = (DateTime.UtcNow - operationStartTime).TotalSeconds;
-                            var totalTime = timeoutSeconds + gracePeriod;
-                            bool processAlive = _workerProcess?.HasExited == false;
-                            
-                            if (!processAlive)
-                            {
-                                _logger.LogWarning("DIAGNOSIS: HANG - Worker process crashed or terminated after {Elapsed:F1}s", actualElapsed);
-                            }
-                            else
-                            {
-                                // Simple diagnosis based purely on process responsiveness
-                                bool processResponding = true;
-                                try
-                                {
-                                    processResponding = _workerProcess!.Responding;
-                                }
-                                catch
-                                {
-                                    processResponding = false;
-                                }
-
-                                if (processResponding)
-                                {
-                                    _logger.LogWarning("DIAGNOSIS: SHORT TIMEOUT - Process is responsive, just need more time. Elapsed: {Elapsed:F1}s, Consider increasing timeout", actualElapsed);
-                                }
-                                else
-                                {
-                                    _logger.LogWarning("DIAGNOSIS: HANG - Process alive but not responding after {Elapsed:F1}s. Likely deadlock or infinite loop", actualElapsed);
-                                }
-                            }
-                            
-                            cts.Cancel();
-                            
-                            var gracefulShutdownTask = Task.Delay(TimeSpan.FromSeconds(2));
-                            var shutdownCompleted = await Task.WhenAny(responseTask, gracefulShutdownTask);
-                            
-                            if (shutdownCompleted == gracefulShutdownTask)
-                            {
-                                _logger.LogWarning("Worker process did not respond to cancellation, forcing restart");
-                                await RestartWorkerProcessAsync();
-                            }
-                            
-                            throw new TimeoutException($"Worker operation '{operation}' timed out after {timeoutSeconds + gracePeriod} seconds");
-                        }
-                        else
-                        {
-                            _logger.LogInformation("Worker operation completed within grace period after initial timeout");
-                        }
+                        throw new TimeoutException($"Worker operation '{operation}' timed out after {timeoutSeconds} seconds");
                     }
 
                     var responseJson = await responseTask;
                     if (string.IsNullOrEmpty(responseJson))
                     {
-                        string errorOutput = "";
-                        string processStatus = "";
-                        try
+                        var exitCode = _workerProcess?.HasExited == true ? _workerProcess.ExitCode : (int?)null;
+                        var errorMessage = $"Worker process returned empty response for operation '{operation}'";
+                        
+                        if (exitCode.HasValue)
                         {
-                            // Check if process has exited and get error info if available
-                            if (_workerProcess?.HasExited == true)
-                            {
-                                errorOutput = $"Worker process exited with code: {_workerProcess.ExitCode}";
-                                processStatus = $"Process ID was: {_workerProcess.Id}, Start time: {_workerProcess.StartTime}";
-                                
-                                // Try to get more detailed exit information
-                                var exitTime = _workerProcess.ExitTime;
-                                var totalRunTime = exitTime - _workerProcess.StartTime;
-                                processStatus += $", Exit time: {exitTime}, Total runtime: {totalRunTime.TotalMilliseconds}ms";
-                            }
-                            else if (_workerProcess != null)
-                            {
-                                processStatus = $"Process is still running. ID: {_workerProcess.Id}, Responding: {!_workerProcess.HasExited}";
-                            }
-                            else
-                            {
-                                processStatus = "Worker process is null";
-                            }
-                            
-                            // Collect stderr data if available
-                            if (!string.IsNullOrEmpty(_lastStderrOutput))
-                            {
-                                errorOutput += $". Last stderr: {_lastStderrOutput}";
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogDebug(ex, "Failed to check worker process status");
-                            processStatus = $"Failed to get process status: {ex.Message}";
-                        }
-
-                        var contextMessage = $"Worker process returned empty response for operation '{operation}'";
-                        contextMessage += $" with JSON: {GetParameterSummary(requestJson)}";
-                        if (!string.IsNullOrEmpty(errorOutput))
-                        {
-                            contextMessage += $". Error details: {errorOutput}";
-                        }
-                        if (!string.IsNullOrEmpty(processStatus))
-                        {
-                            contextMessage += $". Process status: {processStatus}";
+                            errorMessage += $" (process exited with code: {exitCode})";
                         }
                         
-                        _logger.LogError("Empty response received: {Context}", contextMessage);
-                        
-                        // Log worker executable path for debugging
-                        _logger.LogError("Worker executable path: {WorkerPath}, Current directory: {CurrentDir}", 
-                            _workerExecutablePath, 
-                            Environment.CurrentDirectory);
-                            
-                        throw new InvalidOperationException(contextMessage);
+                        _logger.LogError("{ErrorMessage}", errorMessage);
+                        throw new InvalidOperationException(errorMessage);
                     }
 
-                    _logger.LogInformation("Received response from worker (length: {Length}): {Response}", 
-                        responseJson.Length, 
-                        responseJson.Length > 1000 ? responseJson.Substring(0, 1000) + "..." : responseJson);
 
                     WorkerResponse<TResult>? response;
                     try
@@ -233,84 +126,38 @@ namespace UIAutomationMCP.Server.Helpers
 
                     if (!response.Success)
                     {
-                        var errorDetails = new
-                        {
-                            Operation = operation,
-                            RequestJson = requestJson,
-                            Error = response.Error,
-                            ErrorDetails = response.ErrorDetails,
-                            Timestamp = DateTime.UtcNow,
-                            WorkerPid = _workerProcess?.Id
-                        };
-                        
-                        var errorMessage = string.IsNullOrEmpty(response.Error) ? 
-                            "Unknown error occurred" : response.Error;
-                        
+                        var errorMessage = response.Error ?? "Unknown error occurred";
                         var contextualErrorMessage = $"Worker operation '{operation}' failed: {errorMessage}";
-                        contextualErrorMessage += $" (JSON: {GetParameterSummary(requestJson)})";
                         
-                        _logger.LogError("Worker operation failed: {Operation} for element: {ElementId} with category: {ErrorCategory}. Full details: {@ErrorDetails}", 
+                        _logger.LogError("Worker operation failed: {Operation} for element: {ElementId} with category: {ErrorCategory}", 
                             operation, 
                             response.ErrorDetails?.AutomationId ?? "unknown", 
-                            response.ErrorDetails?.ErrorCategory ?? "unknown", 
-                            errorDetails);
+                            response.ErrorDetails?.ErrorCategory ?? "unknown");
                         
-                        // Use structured error information if available
-                        if (response.ErrorDetails != null)
+                        // Use structured error information from ErrorDetails
+                        var errorCategory = response.ErrorDetails?.ErrorCategory?.ToLowerInvariant();
+                        
+                        switch (errorCategory)
                         {
-                            var errorCategory = response.ErrorDetails.ErrorCategory?.ToLowerInvariant();
-                            
-                            switch (errorCategory)
-                            {
-                                case "invalidargument":
-                                case "validation":
-                                    throw new ArgumentException(contextualErrorMessage);
-                                    
-                                case "notsupported":
-                                case "invalidoperation":
-                                    if (errorMessage.ToLowerInvariant().Contains("not supported"))
-                                        throw new NotSupportedException(contextualErrorMessage);
-                                    else
-                                        throw new InvalidOperationException(contextualErrorMessage);
-                                        
-                                case "unauthorized":
-                                    throw new UnauthorizedAccessException(contextualErrorMessage);
-                                    
-                                case "timeout":
-                                    throw new TimeoutException(contextualErrorMessage);
-                                    
-                                default:
-                                    throw new InvalidOperationException(contextualErrorMessage);
-                            }
-                        }
-                        else
-                        {
-                            // Fallback to legacy string-based classification for backward compatibility
-                            var errorLower = errorMessage.ToLowerInvariant();
-                            
-                            if (errorLower.Contains("not found") || errorLower.Contains("element") && errorLower.Contains("not") ||
-                                errorLower.Contains("invalid") && errorLower.Contains("id"))
-                            {
+                            case "invalidargument":
+                            case "validation":
+                            case "elementnotfound":
                                 throw new ArgumentException(contextualErrorMessage);
-                            }
-                            else if (errorLower.Contains("not supported") || errorLower.Contains("pattern") && errorLower.Contains("not") ||
-                                     errorLower.Contains("control") && errorLower.Contains("not"))
-                            {
+                                
+                            case "notsupported":
                                 throw new NotSupportedException(contextualErrorMessage);
-                            }
-                            else if (errorLower.Contains("read-only") || errorLower.Contains("access") && errorLower.Contains("denied") ||
-                                     errorLower.Contains("permission") || errorLower.Contains("unauthorized"))
-                            {
-                                throw new UnauthorizedAccessException(contextualErrorMessage);
-                            }
-                            else if (errorLower.Contains("timeout") || errorLower.Contains("time") && errorLower.Contains("out"))
-                            {
-                                throw new TimeoutException(contextualErrorMessage);
-                            }
-                            else
-                            {
+                                
+                            case "invalidoperation":
                                 throw new InvalidOperationException(contextualErrorMessage);
-                            }
+                                    
+                            case "unauthorized":
+                                throw new UnauthorizedAccessException(contextualErrorMessage);
+                                
+                            case "timeout":
+                                throw new TimeoutException(contextualErrorMessage);
+                                
+                            default:
+                                throw new InvalidOperationException(contextualErrorMessage);
                         }
                     }
 
@@ -318,7 +165,6 @@ namespace UIAutomationMCP.Server.Helpers
                     {
                         var dataJson = JsonSerializationHelper.Serialize(response.Data!);
                         var result = JsonSerializationHelper.Deserialize<TResult>(dataJson)!;
-                        _logger.LogInformation("[SubprocessExecutor] Operation completed successfully: {Operation} -> {ResultType}", operation, typeof(TResult).Name);
                         return result;
                     }
                     catch (JsonException ex)
@@ -335,57 +181,20 @@ namespace UIAutomationMCP.Server.Helpers
             }
             catch (Exception ex) when (!(ex is ArgumentException || ex is ObjectDisposedException))
             {
-                _logger.LogError(ex, "Unexpected error in ExecuteAsync for operation '{Operation}' with JSON: {RequestJson}", 
-                    operation, GetParameterSummary(JsonSerializationHelper.Serialize(request)));
+                _logger.LogError(ex, "Unexpected error in ExecuteAsync for operation '{Operation}'", operation);
                 throw new InvalidOperationException($"Internal server error occurred while executing operation '{operation}': {ex.Message}", ex);
             }
         }
 
 
-        /// <summary>
-        /// Generate a concise summary of JSON parameters for logging purposes
-        /// </summary>
-        /// <param name="json">The JSON string to summarize</param>
-        /// <returns>A safe string representation of the JSON parameters</returns>
-        private string GetParameterSummary(string json)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(json))
-                    return "empty";
-                
-                // Truncate long JSON strings for logging
-                if (json.Length > 200)
-                {
-                    return json.Substring(0, 200) + "...";
-                }
-                
-                return json;
-            }
-            catch
-            {
-                return "invalid-json";
-            }
-        }
 
         private async Task EnsureWorkerProcessAsync()
         {
             try
             {
-                _logger.LogInformation($"[SubprocessExecutor] EnsureWorkerProcessAsync called. Current process status: {(_workerProcess == null ? "null" : _workerProcess.HasExited ? "exited" : "running")}");
-                
                 if (_workerProcess == null || _workerProcess.HasExited)
                 {
-                    if (_workerProcess?.HasExited == true)
-                    {
-                        _logger.LogWarning($"[SubprocessExecutor] Worker process has exited. Exit code: {_workerProcess.ExitCode}");
-                    }
-                    _logger.LogInformation($"[SubprocessExecutor] Starting new worker process...");
                     await StartWorkerProcessAsync();
-                }
-                else
-                {
-                    _logger.LogInformation($"[SubprocessExecutor] Worker process is already running. Process ID: {_workerProcess.Id}");
                 }
             }
             catch (Exception ex)
@@ -399,14 +208,11 @@ namespace UIAutomationMCP.Server.Helpers
         {
             try
             {
-                _logger.LogInformation($"[SubprocessExecutor] StartWorkerProcessAsync called. Worker path: {_workerPath}");
-
                 ProcessStartInfo startInfo;
                 
                 // Check if it's a project directory (for development)
                 if (Directory.Exists(_workerPath) && File.Exists(Path.Combine(_workerPath, "UIAutomationMCP.Worker.csproj")))
                 {
-                    _logger.LogInformation($"[SubprocessExecutor] Detected project directory: {_workerPath}");
                     // Use dotnet run for project directory with Release configuration
                     startInfo = new ProcessStartInfo
                     {
@@ -419,7 +225,6 @@ namespace UIAutomationMCP.Server.Helpers
                         CreateNoWindow = true,
                         WorkingDirectory = _workerPath
                     };
-                    _logger.LogDebug($"[SubprocessExecutor] Starting worker using dotnet run from directory: {_workerPath}");
                 }
                 else if (_workerPath.EndsWith(".dll"))
                 {
@@ -440,7 +245,6 @@ namespace UIAutomationMCP.Server.Helpers
                         CreateNoWindow = true,
                         WorkingDirectory = Path.GetDirectoryName(_workerPath) ?? ""
                     };
-                    _logger.LogDebug("Starting worker DLL: {WorkerPath}", _workerPath);
                 }
                 else
                 {
@@ -461,21 +265,16 @@ namespace UIAutomationMCP.Server.Helpers
                         CreateNoWindow = true,
                         WorkingDirectory = Path.GetDirectoryName(_workerPath) ?? ""
                     };
-                    _logger.LogDebug("Starting worker executable: {WorkerPath}", _workerPath);
                 }
 
                 _workerProcess = new Process { StartInfo = startInfo };
-                
-                // Store the worker executable path for debugging
-                _workerExecutablePath = startInfo.FileName + " " + startInfo.Arguments;
                 
                 // Set up async stderr monitoring
                 _workerProcess.ErrorDataReceived += (sender, e) =>
                 {
                     if (!string.IsNullOrEmpty(e.Data))
                     {
-                        _logger.LogDebug("Worker stderr: {ErrorData}", e.Data);
-                        _lastStderrOutput = e.Data; // Store last stderr output for debugging
+                        _logger.LogWarning("Worker stderr: {ErrorData}", e.Data);
                     }
                 };
                 
@@ -539,21 +338,13 @@ namespace UIAutomationMCP.Server.Helpers
                                     _logger.LogError("Worker process did not respond to Kill signal");
                                 }
                             }
-                            else
-                            {
-                                _logger.LogDebug("Worker process exited gracefully with code: {ExitCode}", _workerProcess.ExitCode);
-                            }
                         }
                         catch (InvalidOperationException)
                         {
-                            // Process may have already exited
-                            _logger.LogDebug("Worker process already exited during graceful shutdown attempt");
+                            // Process may have already exited during graceful shutdown attempt
                         }
                     }
-                    else
-                    {
-                        _logger.LogDebug("Worker process was already exited with code: {ExitCode}", _workerProcess.ExitCode);
-                    }
+                    // Worker process was already exited
                 }
                 catch (Exception ex)
                 {
@@ -597,7 +388,6 @@ namespace UIAutomationMCP.Server.Helpers
                         try
                         {
                             _workerProcess.StandardInput.Close();
-                            _logger.LogDebug("Closed standard input for worker process");
                         }
                         catch (Exception ex)
                         {
@@ -613,16 +403,11 @@ namespace UIAutomationMCP.Server.Helpers
                             {
                                 // Kill the entire process tree to ensure cleanup
                                 _workerProcess.Kill(entireProcessTree: true);
-                                _logger.LogDebug("Kill signal sent to worker process tree");
                                 
                                 // Wait for forced termination to complete
                                 if (!_workerProcess.WaitForExit(2000))
                                 {
                                     _logger.LogError("Worker process did not respond to Kill signal within 2 seconds");
-                                }
-                                else
-                                {
-                                    _logger.LogInformation("Worker process terminated successfully");
                                 }
                             }
                             catch (Exception ex)
@@ -630,15 +415,8 @@ namespace UIAutomationMCP.Server.Helpers
                                 _logger.LogWarning(ex, "Error during forced termination of worker process");
                             }
                         }
-                        else
-                        {
-                            _logger.LogInformation("Worker process exited gracefully with code: {ExitCode}", _workerProcess.ExitCode);
-                        }
                     }
-                    else
-                    {
-                        _logger.LogDebug("Worker process was already exited with code: {ExitCode}", _workerProcess.ExitCode);
-                    }
+                    // Worker process was already exited
                 }
                 catch (Exception ex)
                 {
@@ -649,7 +427,6 @@ namespace UIAutomationMCP.Server.Helpers
                     try
                     {
                         _workerProcess.Dispose();
-                        _logger.LogDebug("Worker process disposed");
                     }
                     catch (Exception ex)
                     {
@@ -662,7 +439,6 @@ namespace UIAutomationMCP.Server.Helpers
             try
             {
                 _semaphore?.Dispose();
-                _logger.LogDebug("Semaphore disposed");
             }
             catch (Exception ex)
             {
