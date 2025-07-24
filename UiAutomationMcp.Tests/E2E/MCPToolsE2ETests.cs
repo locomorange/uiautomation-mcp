@@ -111,24 +111,24 @@ namespace UIAutomationMCP.Tests.E2E
         }
 
         [Fact]
-        public async Task GetWindows_ShouldReturnOpenWindows()
+        public async Task SearchElements_Windows_ShouldReturnOpenWindows()
         {
-            _output.WriteLine("Testing GetWindows tool...");
+            _output.WriteLine("Testing SearchElements with Window filter...");
 
             try
             {
-                var result = await _tools.GetWindows();
+                var result = await _tools.SearchElements(controlType: "Window", scope: "children");
                 Assert.NotNull(result);
                 
-                _output.WriteLine($"GetWindows result type: {result.GetType().Name}");
-                _output.WriteLine($"GetWindows result: {JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}");
+                _output.WriteLine($"SearchElements Windows result type: {result.GetType().Name}");
+                _output.WriteLine($"SearchElements Windows result: {JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}");
                 
                 // Test passes if no exception is thrown and result is not null
-                Assert.True(true, "GetWindows executed successfully");
+                Assert.True(true, "SearchElements Windows executed successfully");
             }
             catch (Exception ex)
             {
-                _output.WriteLine($"GetWindows failed: {ex.Message}");
+                _output.WriteLine($"SearchElements Windows failed: {ex.Message}");
                 _output.WriteLine($"Stack trace: {ex.StackTrace}");
                 throw;
             }
@@ -158,7 +158,7 @@ namespace UIAutomationMCP.Tests.E2E
                 }
                 
                 // Try to get window info for Notepad
-                var windowInfo = await _tools.GetWindows();
+                var windowInfo = await _tools.SearchElements(controlType: "Window", scope: "children");
                 _output.WriteLine($"Window info after launch: {JsonSerializer.Serialize(windowInfo, new JsonSerializerOptions { WriteIndented = true })}");
                 
                 Assert.True(true, "LaunchApplicationByName executed successfully");

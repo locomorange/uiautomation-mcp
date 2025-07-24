@@ -18,12 +18,12 @@ namespace UIAutomationMCP.Tests.E2E
         #region Window and Element Discovery Tools
 
         [Fact]
-        public async Task Test_01_GetWindows_ShouldFindWinUI3Gallery()
+        public async Task Test_01_SearchElements_Windows_ShouldFindWinUI3Gallery()
         {
-            Output.WriteLine("=== Testing GetWindows ===");
+            Output.WriteLine("=== Testing SearchElements(Window) ===");
             
-            var windows = await Tools.GetWindows();
-            LogResult("GetWindows", windows);
+            var windows = await Tools.SearchElements(controlType: "Window", scope: "children");
+            LogResult("SearchElements(Window)", windows);
             
             Assert.NotNull(windows);
         }
@@ -94,8 +94,8 @@ namespace UIAutomationMCP.Tests.E2E
             
             // GetWindowCapabilities method has been removed - functionality consolidated into other methods
             // Use GetWindows or SearchElements instead for window information
-            var windows = await Tools.GetWindows();
-            LogResult("GetWindows (replacing GetWindowCapabilities)", windows);
+            var windows = await Tools.SearchElements(controlType: "Window", scope: "children");
+            LogResult("SearchElements(Window) (replacing GetWindowCapabilities)", windows);
             
             Assert.NotNull(windows);
         }
@@ -107,8 +107,8 @@ namespace UIAutomationMCP.Tests.E2E
             
             // GetWindowInteractionState method has been removed - functionality consolidated into other methods
             // Use GetWindows or SearchElements instead for window state information
-            var windows = await Tools.GetWindows();
-            LogResult("GetWindows (replacing GetWindowInteractionState)", windows);
+            var windows = await Tools.SearchElements(controlType: "Window", scope: "children");
+            LogResult("SearchElements(Window) (replacing GetWindowInteractionState)", windows);
             
             Assert.NotNull(windows);
         }
@@ -371,7 +371,7 @@ namespace UIAutomationMCP.Tests.E2E
                                     
                                     Output.WriteLine("5. Attempting to restore window by clicking on taskbar or searching...");
                                     // Try to find the window again (it might be minimized)
-                                    var windowInfo = await Tools.GetWindows();
+                                    var windowInfo = await Tools.SearchElements(controlType: "Window", scope: "children");
                                     Output.WriteLine($"Window info after minimize: {JsonSerializer.Serialize(windowInfo)}");
                                     
                                     // Verify the invoke operation succeeded
@@ -690,7 +690,7 @@ namespace UIAutomationMCP.Tests.E2E
                 
                 // GetWindowCapabilities and GetWindowInteractionState methods have been removed
                 // Use GetWindows instead for window information
-                var windowInfo = await Tools.GetWindows();
+                var windowInfo = await Tools.SearchElements(controlType: "Window", scope: "children");
                 Output.WriteLine($"Window information: {JsonSerializer.Serialize(windowInfo)}");
                 var capabilities = windowInfo;
                 var interactionState = windowInfo;
@@ -699,7 +699,7 @@ namespace UIAutomationMCP.Tests.E2E
                 var capData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(capabilities));
                 bool capSuccess = capData.ValueKind != JsonValueKind.Null;
                 
-                Assert.True(capSuccess, "GetWindows should succeed");
+                Assert.True(capSuccess, "SearchElements(Window) should succeed");
                 
                 Output.WriteLine("✅ WindowPattern testing completed");
             }

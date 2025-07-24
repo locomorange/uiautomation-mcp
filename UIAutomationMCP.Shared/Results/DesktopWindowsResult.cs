@@ -2,27 +2,6 @@ using System.Text.Json.Serialization;
 
 namespace UIAutomationMCP.Shared.Results
 {
-    /// <summary>
-    /// Result class for desktop windows operations
-    /// </summary>
-    public class DesktopWindowsResult : CollectionOperationResult<WindowInfo>
-    {
-        [JsonPropertyName("windows")]
-        public List<WindowInfo> Windows 
-        { 
-            get => Items;
-            set => Items = value ?? new List<WindowInfo>();
-        }
-
-        [JsonPropertyName("totalCount")]
-        public int TotalCount { get; set; }
-
-        [JsonPropertyName("visibleCount")]
-        public int VisibleCount { get; set; }
-
-        [JsonPropertyName("timestamp")]
-        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-    }
 
     /// <summary>
     /// Information about a window

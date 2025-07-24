@@ -113,40 +113,39 @@ namespace UIAutomationMCP.Tests.Tools
         #region Window and Element Discovery Tests
 
         [Fact]
-        public async Task GetWindows_Success_ReturnsWindowList()
+        public async Task SearchElements_Windows_ReturnsWindowList()
         {
             // Arrange
-            var expectedWindows = new List<UIAutomationMCP.Shared.Results.WindowInfo>
+            var expectedElements = new List<ElementInfo>
             {
-                new UIAutomationMCP.Shared.Results.WindowInfo { Title = "Window1", ProcessName = "App1", ProcessId = 1234, Handle = 1001 },
-                new UIAutomationMCP.Shared.Results.WindowInfo { Title = "Window2", ProcessName = "App2", ProcessId = 5678, Handle = 1002 }
+                new ElementInfo { Name = "Window1", ProcessId = 1234, ControlType = "Window", IsVisible = true },
+                new ElementInfo { Name = "Window2", ProcessId = 5678, ControlType = "Window", IsVisible = true }
             };
             
-            var desktopWindowsResult = new DesktopWindowsResult
+            var searchElementsResult = new SearchElementsResult
             {
                 Success = true,
-                Windows = expectedWindows,
-                TotalCount = expectedWindows.Count,
-                VisibleCount = expectedWindows.Count
+                Elements = expectedElements.ToArray(),
+                Metadata = new SearchMetadata { TotalFound = expectedElements.Count }
             };
-            var serverResponse = new ServerEnhancedResponse<DesktopWindowsResult>
+            var serverResponse = new ServerEnhancedResponse<SearchElementsResult>
             {
                 Success = true,
-                Data = desktopWindowsResult,
+                Data = searchElementsResult,
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
             
-            _mockElementSearchService.Setup(s => s.GetWindowsAsync(60))
+            _mockElementSearchService.Setup(s => s.SearchElementsAsync(It.IsAny<UIAutomationMCP.Shared.Requests.SearchElementsRequest>(), 30))
                             .Returns(Task.FromResult(serverResponse));
 
             // Act
-            var result = await _tools.GetWindows();
+            var result = await _tools.SearchElements(controlType: "Window", scope: "children");
 
             // Assert
             Assert.NotNull(result);
-            _mockElementSearchService.Verify(s => s.GetWindowsAsync(60), Times.Once);
-            _output.WriteLine($"GetWindows test passed: Found {expectedWindows.Count} windows");
+            _mockElementSearchService.Verify(s => s.SearchElementsAsync(It.IsAny<UIAutomationMCP.Shared.Requests.SearchElementsRequest>(), 30), Times.Once);
+            _output.WriteLine($"SearchElements Windows test passed: Found {expectedElements.Count} windows");
         }
 
         [Fact(Skip = "CS0854 error with optional arguments in expression trees")]

@@ -103,7 +103,6 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(WorkerResponse<ErrorResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseErrorResult,
                 Type t when t == typeof(WorkerResponse<UniversalResponse>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseUniversalResponse,
                 Type t when t == typeof(WorkerResponse<BooleanResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseBooleanResult,
-                Type t when t == typeof(WorkerResponse<DesktopWindowsResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseDesktopWindowsResult,
                 Type t when t == typeof(WorkerResponse<TextInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTextInfoResult,
                 Type t when t == typeof(WorkerResponse<TextAttributesResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTextAttributesResult,
                 Type t when t == typeof(WorkerResponse<TextSearchResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTextSearchResult,
@@ -124,7 +123,6 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(UniversalResponse) => (JsonTypeInfo<T>)(object)_context.UniversalResponse,
                 Type t when t == typeof(ElementTreeResult) => (JsonTypeInfo<T>)(object)_context.ElementTreeResult,
                 Type t when t == typeof(TreeNavigationResult) => (JsonTypeInfo<T>)(object)_context.TreeNavigationResult,
-                Type t when t == typeof(DesktopWindowsResult) => (JsonTypeInfo<T>)(object)_context.DesktopWindowsResult,
                 Type t when t == typeof(BooleanResult) => (JsonTypeInfo<T>)(object)_context.BooleanResult,
                 Type t when t == typeof(ProcessLaunchResponse) => (JsonTypeInfo<T>)(object)_context.ProcessLaunchResponse,
                 Type t when t == typeof(TextInfoResult) => (JsonTypeInfo<T>)(object)_context.TextInfoResult,
@@ -144,7 +142,6 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(SetToggleStateRequest) => (JsonTypeInfo<T>)(object)_context.SetToggleStateRequest,
                 Type t when t == typeof(SetValueRequest) => (JsonTypeInfo<T>)(object)_context.SetValueRequest,
                 Type t when t == typeof(FindElementsRequest) => (JsonTypeInfo<T>)(object)_context.FindElementsRequest,
-                Type t when t == typeof(GetDesktopWindowsRequest) => (JsonTypeInfo<T>)(object)_context.GetDesktopWindowsRequest,
                 Type t when t == typeof(WindowActionRequest) => (JsonTypeInfo<T>)(object)_context.WindowActionRequest,
                 Type t when t == typeof(GetWindowInfoRequest) => (JsonTypeInfo<T>)(object)_context.GetWindowInfoRequest,
                 Type t when t == typeof(GetWindowInteractionStateRequest) => (JsonTypeInfo<T>)(object)_context.GetWindowInteractionStateRequest,
@@ -222,7 +219,6 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(ServerEnhancedResponse<BaseOperationResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseBaseOperationResult,
                 Type t when t == typeof(ServerEnhancedResponse<ProcessLaunchResponse>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseProcessLaunchResponse,
                 Type t when t == typeof(ServerEnhancedResponse<BooleanResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseBooleanResult,
-                Type t when t == typeof(ServerEnhancedResponse<DesktopWindowsResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseDesktopWindowsResult,
                 Type t when t == typeof(ServerEnhancedResponse<SearchElementsResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseSearchElementsResult,
                 Type t when t == typeof(ServerEnhancedResponse<ElementDetailResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseElementDetailResult,
                 Type t when t == typeof(ServerEnhancedResponse<TableInfoResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTableInfoResult,
@@ -250,7 +246,6 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(WorkerResponse<ActionResult>))]
     [JsonSerializable(typeof(WorkerResponse<FindItemResult>))]
     [JsonSerializable(typeof(WorkerResponse<ProcessResult>))]
-    [JsonSerializable(typeof(WorkerResponse<DesktopWindowsResult>))]
     [JsonSerializable(typeof(WorkerResponse<ElementTreeResult>))]
     [JsonSerializable(typeof(WorkerResponse<SearchElementsResult>))]
     [JsonSerializable(typeof(WorkerResponse<ElementDetailResult>))]
@@ -268,7 +263,6 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(ActionResult))]
     [JsonSerializable(typeof(ErrorResult))]
     [JsonSerializable(typeof(UniversalResponse))]
-    [JsonSerializable(typeof(DesktopWindowsResult))]
     [JsonSerializable(typeof(ElementTreeResult))]
     [JsonSerializable(typeof(BooleanResult))]
     [JsonSerializable(typeof(FindItemResult))]
@@ -306,7 +300,6 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(SetToggleStateRequest))]
     [JsonSerializable(typeof(SetValueRequest))]
     [JsonSerializable(typeof(FindElementsRequest))]
-    [JsonSerializable(typeof(GetDesktopWindowsRequest))]
     [JsonSerializable(typeof(WindowActionRequest))]
     [JsonSerializable(typeof(GetWindowInfoRequest))]
     [JsonSerializable(typeof(GetWindowInteractionStateRequest))]
@@ -392,7 +385,6 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(ServerEnhancedResponse<BaseOperationResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<ProcessLaunchResponse>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<BooleanResult>))]
-    [JsonSerializable(typeof(ServerEnhancedResponse<DesktopWindowsResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<SearchElementsResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<ElementDetailResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<TableInfoResult>))]

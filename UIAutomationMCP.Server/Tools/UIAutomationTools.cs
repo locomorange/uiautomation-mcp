@@ -90,11 +90,8 @@ namespace UIAutomationMCP.Server.Tools
         }
 
         // Window and Element Discovery
-        [McpServerTool, Description("Get information about all open windows")]
-        public async Task<object> GetWindows([Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
-            => JsonSerializationHelper.Serialize(await _elementSearchService.GetWindowsAsync(timeoutSeconds));
 
-        [McpServerTool, Description("Search for UI elements with optional detailed information. Returns basic ElementInfo by default, or comprehensive details when includeDetails=true. Replaces the need for separate GetElementDetails calls.")]
+        [McpServerTool, Description("Search for UI elements with optional detailed information. Returns basic ElementInfo by default, or comprehensive details when includeDetails=true. Replaces the need for separate GetElementDetails calls. For window listing, use controlType='Window' with scope='children'.")]
         public async Task<object> SearchElements(
             [Description("Cross-property search text (searches Name, AutomationId, ClassName)")] string? searchText = null,
             [Description("Specific AutomationId to search for")] string? automationId = null, 

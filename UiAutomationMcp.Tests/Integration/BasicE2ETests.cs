@@ -73,7 +73,11 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 10;
 
             // When
-            var windowsResult = await _elementSearchService.GetWindowsAsync(timeout);
+            var windowsResult = await _elementSearchService.SearchElementsAsync(new UIAutomationMCP.Shared.Requests.SearchElementsRequest
+            {
+                ControlType = "Window",
+                Scope = "children"
+            }, timeout);
             var elementsResult = await _elementSearchService.SearchElementsAsync(new UIAutomationMCP.Shared.Requests.SearchElementsRequest
             {
                 ControlType = "Button",
@@ -244,7 +248,11 @@ namespace UIAutomationMCP.Tests.Integration
             {
                 ControlType = "Button",
             });
-                var windowsResult = await _elementSearchService.GetWindowsAsync(timeout);
+                var windowsResult = await _elementSearchService.SearchElementsAsync(new UIAutomationMCP.Shared.Requests.SearchElementsRequest
+            {
+                ControlType = "Window",
+                Scope = "children"
+            }, timeout);
 
                 // Then
                 Assert.NotNull(elementsResult);

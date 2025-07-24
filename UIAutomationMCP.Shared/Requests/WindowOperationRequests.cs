@@ -4,19 +4,6 @@ namespace UIAutomationMCP.Shared.Requests
 {
     // === ウィンドウ操作 ===
 
-    public class GetDesktopWindowsRequest : TypedWorkerRequest
-    {
-        public override string Operation => "GetDesktopWindows";
-
-        [JsonPropertyName("includeInvisible")]
-        public bool IncludeInvisible { get; set; } = false;
-
-        /// <summary>
-        /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）
-        /// </summary>
-        [JsonPropertyName("timeoutSeconds")]
-        public int TimeoutSeconds { get; set; } = 10;
-    }
 
     public class WindowActionRequest : TypedWorkerRequest
     {
