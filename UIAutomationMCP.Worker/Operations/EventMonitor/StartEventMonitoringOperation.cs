@@ -34,9 +34,23 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
         {
             try
             {
+                _logger.LogInformation($"[EventMonitor Worker] StartEventMonitoringOperation.ExecuteAsync started. ParametersJson length: {parametersJson?.Length ?? 0}");
+                
+                if (string.IsNullOrEmpty(parametersJson))
+                {
+                    _logger.LogError($"[EventMonitor Worker] ParametersJson is null or empty");
+                    return new OperationResult 
+                    { 
+                        Success = false, 
+                        Error = "ParametersJson is null or empty",
+                        Data = new EventMonitoringStartResult()
+                    };
+                }
+                
                 var request = JsonSerializationHelper.Deserialize<StartEventMonitoringRequest>(parametersJson);
                 if (request == null)
                 {
+                    _logger.LogError($"[EventMonitor Worker] Failed to deserialize StartEventMonitoringRequest. ParametersJson: {parametersJson}");
                     return new OperationResult 
                     { 
                         Success = false, 
@@ -46,13 +60,17 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
                 }
 
                 var sessionId = Guid.NewGuid().ToString("N")[..8];
-                _logger.LogInformation($"Starting continuous event monitoring session {sessionId} for {string.Join(", ", request.EventTypes)}. Current active sessions: {_activeSessions.Count}");
+                _logger.LogInformation($"[EventMonitor Worker] Generated sessionId: {sessionId}. Request details - EventTypes: [{string.Join(", ", request.EventTypes)}], AutomationId: {request.AutomationId ?? "null"}, Name: {request.Name ?? "null"}, ControlType: {request.ControlType ?? "null"}, ProcessId: {request.ProcessId?.ToString() ?? "null"}");
+                _logger.LogInformation($"[EventMonitor Worker] Current active sessions count: {_activeSessions.Count}");
 
                 // MS Learn推奨: セッション管理とスレッドセーフティ
                 var session = new EventMonitoringSession(sessionId, request, _elementFinderService, _logger);
                 
+                _logger.LogInformation($"[EventMonitor Worker] Created EventMonitoringSession {sessionId}. Attempting to add to active sessions...");
+                
                 if (!_activeSessions.TryAdd(sessionId, session))
                 {
+                    _logger.LogError($"[EventMonitor Worker] Failed to add session {sessionId} to active sessions. Current sessions: [{string.Join(", ", _activeSessions.Keys)}]");
                     return new OperationResult 
                     { 
                         Success = false, 
@@ -61,9 +79,13 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
                     };
                 }
 
+                _logger.LogInformation($"[EventMonitor Worker] Successfully added session {sessionId} to active sessions. Total sessions: {_activeSessions.Count}");
+
                 try
                 {
+                    _logger.LogInformation($"[EventMonitor Worker] Starting session {sessionId}...");
                     await session.StartAsync();
+                    _logger.LogInformation($"[EventMonitor Worker] Session {sessionId} started successfully");
 
                     var result = new EventMonitoringStartResult
                     {
@@ -85,6 +107,7 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
                 catch
                 {
                     // 失敗した場合はセッションを削除
+                    _logger.LogError($"[EventMonitor Worker] Session {sessionId} startup failed. Removing from active sessions...");
                     _activeSessions.TryRemove(sessionId, out _);
                     session.Dispose();
                     throw;
@@ -92,7 +115,7 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "StartEventMonitoring operation failed");
+                _logger.LogError(ex, $"[EventMonitor Worker] StartEventMonitoring operation failed. Exception: {ex.Message}");
                 return new OperationResult 
                 { 
                     Success = false, 
@@ -177,13 +200,19 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
             if (_disposed)
                 throw new ObjectDisposedException(nameof(EventMonitoringSession));
 
+            _logger.LogInformation($"[EventMonitor Session] StartAsync called for session {_sessionId}");
+
             lock (_lockObject)
             {
                 if (_isActive)
+                {
+                    _logger.LogWarning($"[EventMonitor Session] Session {_sessionId} is already active");
                     throw new InvalidOperationException("Session is already active");
+                }
 
                 StartTime = DateTime.UtcNow;
                 _isActive = true;
+                _logger.LogInformation($"[EventMonitor Session] Session {_sessionId} marked as active. StartTime: {StartTime}");
             }
 
             // MS Learn推奨: 非UIスレッドでイベントハンドラを登録
@@ -191,12 +220,13 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
             {
                 try
                 {
+                    _logger.LogInformation($"[EventMonitor Session] Registering event handlers for session {_sessionId}...");
                     RegisterEventHandlers();
-                    _logger.LogInformation($"Event monitoring session {_sessionId} started successfully");
+                    _logger.LogInformation($"[EventMonitor Session] Event monitoring session {_sessionId} started successfully with {_eventHandlers.Count} handlers");
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"Failed to start event monitoring session {_sessionId}");
+                    _logger.LogError(ex, $"[EventMonitor Session] Failed to start event monitoring session {_sessionId}: {ex.Message}");
                     _isActive = false;
                     throw;
                 }
@@ -249,11 +279,15 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
 
         private void RegisterEventHandlers()
         {
+            _logger.LogInformation($"[EventMonitor Session] RegisterEventHandlers started for session {_sessionId}. EventTypes: [{string.Join(", ", _request.EventTypes)}]");
+            
             AutomationElement? targetElement = null;
 
             // 特定要素の監視が指定されている場合
             if (!string.IsNullOrEmpty(_request.AutomationId) || !string.IsNullOrEmpty(_request.Name))
             {
+                _logger.LogInformation($"[EventMonitor Session] Searching for target element - AutomationId: {_request.AutomationId ?? "null"}, Name: {_request.Name ?? "null"}, ControlType: {_request.ControlType ?? "null"}, WindowTitle: {_request.WindowTitle ?? "null"}, ProcessId: {_request.ProcessId?.ToString() ?? "null"}");
+                
                 targetElement = _elementFinderService.FindElement(
                     automationId: _request.AutomationId,
                     name: _request.Name,
@@ -263,29 +297,49 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
 
                 if (targetElement == null)
                 {
-                    _logger.LogWarning($"Target element not found for session {_sessionId}: AutomationId={_request.AutomationId}, Name={_request.Name}");
+                    _logger.LogWarning($"[EventMonitor Session] Target element not found for session {_sessionId}: AutomationId={_request.AutomationId}, Name={_request.Name}. Will monitor desktop (RootElement)");
                     // 要素が見つからなくてもデスクトップ全体の監視は続行
                 }
+                else
+                {
+                    _logger.LogInformation($"[EventMonitor Session] Target element found for session {_sessionId}: {GetElementDescription(targetElement)}");
+                }
+            }
+            else
+            {
+                _logger.LogInformation($"[EventMonitor Session] No specific target element specified for session {_sessionId}. Will monitor desktop (RootElement)");
             }
 
             var rootElement = targetElement ?? AutomationElement.RootElement;
+            _logger.LogInformation($"[EventMonitor Session] Using element for monitoring: {(targetElement != null ? "Target Element" : "RootElement")}");
 
             // 各イベントタイプに対してハンドラを登録
             foreach (var eventType in _request.EventTypes)
             {
+                _logger.LogInformation($"[EventMonitor Session] Creating event handler for eventType: {eventType} in session {_sessionId}");
+                
                 var handler = CreateEventHandler(eventType, rootElement);
                 if (handler != null)
                 {
                     _eventHandlers.Add(handler);
+                    _logger.LogInformation($"[EventMonitor Session] Successfully created and added event handler for eventType: {eventType} in session {_sessionId}");
+                }
+                else
+                {
+                    _logger.LogWarning($"[EventMonitor Session] Failed to create event handler for eventType: {eventType} in session {_sessionId}");
                 }
             }
+            
+            _logger.LogInformation($"[EventMonitor Session] RegisterEventHandlers completed for session {_sessionId}. Total handlers created: {_eventHandlers.Count}");
         }
 
         private IDisposable? CreateEventHandler(string eventType, AutomationElement element)
         {
             try
             {
-                return eventType.ToLower() switch
+                _logger.LogInformation($"[EventMonitor Session] CreateEventHandler called for eventType: {eventType} in session {_sessionId}");
+                
+                var handler = eventType.ToLower() switch
                 {
                     "focus" => CreateFocusChangedHandler(),
                     "invoke" => CreateInvokeHandler(element),
@@ -295,10 +349,21 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
                     "structure" => CreateStructureChangedHandler(element),
                     _ => CreateGenericAutomationEventHandler(element, eventType)
                 };
+                
+                if (handler != null)
+                {
+                    _logger.LogInformation($"[EventMonitor Session] Successfully created event handler for eventType: {eventType} in session {_sessionId}");
+                }
+                else
+                {
+                    _logger.LogWarning($"[EventMonitor Session] Handler creation returned null for eventType: {eventType} in session {_sessionId}");
+                }
+                
+                return handler;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Failed to create event handler for {eventType} in session {_sessionId}");
+                _logger.LogError(ex, $"[EventMonitor Session] Failed to create event handler for {eventType} in session {_sessionId}: {ex.Message}");
                 return null;
             }
         }

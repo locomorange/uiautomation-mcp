@@ -39,27 +39,42 @@ namespace UIAutomationMCP.Server.Helpers
         {
             try
             {
+                _logger.LogInformation($"[SubprocessExecutor] ExecuteAsync started - Operation: {operation}, RequestType: {typeof(TRequest).Name}, ResultType: {typeof(TResult).Name}, TimeoutSeconds: {timeoutSeconds}");
+                
                 if (_disposed)
+                {
+                    _logger.LogError($"[SubprocessExecutor] SubprocessExecutor is disposed");
                     throw new ObjectDisposedException(nameof(SubprocessExecutor));
+                }
                 
                 if (string.IsNullOrWhiteSpace(operation))
+                {
+                    _logger.LogError($"[SubprocessExecutor] Operation is null or empty");
                     throw new ArgumentException("Operation cannot be null or empty", nameof(operation));
+                }
                 
                 if (timeoutSeconds <= 0)
+                {
+                    _logger.LogError($"[SubprocessExecutor] Invalid timeout: {timeoutSeconds}");
                     throw new ArgumentException("Timeout must be greater than zero", nameof(timeoutSeconds));
+                }
                 
+                _logger.LogInformation($"[SubprocessExecutor] Waiting for semaphore...");
                 await _semaphore.WaitAsync();
                 try
                 {
+                    _logger.LogInformation($"[SubprocessExecutor] Semaphore acquired. Ensuring worker process...");
                     await EnsureWorkerProcessAsync();
                 
                     var operationStartTime = DateTime.UtcNow;
                     // Direct type-safe serialization - no branching needed
                     string requestJson = JsonSerializationHelper.Serialize(request);
+                    _logger.LogInformation($"[SubprocessExecutor] Request serialized. Length: {requestJson.Length} chars");
                     _logger.LogInformation("Sending request to worker at {StartTime}: {Request}", operationStartTime, requestJson);
 
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
                     
+                    _logger.LogInformation($"[SubprocessExecutor] Writing request to StandardInput...");
                     await _workerProcess!.StandardInput.WriteLineAsync(requestJson);
                     await _workerProcess.StandardInput.FlushAsync();
                     _logger.LogInformation("Request sent and flushed to worker process");
@@ -322,14 +337,25 @@ namespace UIAutomationMCP.Server.Helpers
         {
             try
             {
+                _logger.LogInformation($"[SubprocessExecutor] EnsureWorkerProcessAsync called. Current process status: {(_workerProcess == null ? "null" : _workerProcess.HasExited ? "exited" : "running")}");
+                
                 if (_workerProcess == null || _workerProcess.HasExited)
                 {
+                    if (_workerProcess?.HasExited == true)
+                    {
+                        _logger.LogWarning($"[SubprocessExecutor] Worker process has exited. Exit code: {_workerProcess.ExitCode}");
+                    }
+                    _logger.LogInformation($"[SubprocessExecutor] Starting new worker process...");
                     await StartWorkerProcessAsync();
+                }
+                else
+                {
+                    _logger.LogInformation($"[SubprocessExecutor] Worker process is already running. Process ID: {_workerProcess.Id}");
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to ensure worker process is running. Worker path: {WorkerPath}", _workerPath);
+                _logger.LogError(ex, $"[SubprocessExecutor] Failed to ensure worker process is running. Worker path: {_workerPath}");
                 throw new InvalidOperationException($"Failed to start or verify worker process: {ex.Message}", ex);
             }
         }
@@ -338,13 +364,14 @@ namespace UIAutomationMCP.Server.Helpers
         {
             try
             {
-                _logger.LogInformation("Starting worker process: {WorkerPath}", _workerPath);
+                _logger.LogInformation($"[SubprocessExecutor] StartWorkerProcessAsync called. Worker path: {_workerPath}");
 
                 ProcessStartInfo startInfo;
                 
                 // Check if it's a project directory (for development)
                 if (Directory.Exists(_workerPath) && File.Exists(Path.Combine(_workerPath, "UIAutomationMCP.Worker.csproj")))
                 {
+                    _logger.LogInformation($"[SubprocessExecutor] Detected project directory: {_workerPath}");
                     // Use dotnet run for project directory with Release configuration
                     startInfo = new ProcessStartInfo
                     {
@@ -357,7 +384,7 @@ namespace UIAutomationMCP.Server.Helpers
                         CreateNoWindow = true,
                         WorkingDirectory = _workerPath
                     };
-                    _logger.LogDebug("Starting worker using dotnet run from directory: {WorkerPath}", _workerPath);
+                    _logger.LogDebug($"[SubprocessExecutor] Starting worker using dotnet run from directory: {_workerPath}");
                 }
                 else if (_workerPath.EndsWith(".dll"))
                 {
