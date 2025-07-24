@@ -519,7 +519,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
         {
             var response = await _textService.FindTextAsync(automationId, name, searchText, backward, ignoreCase, controlType, processId, timeoutSeconds);
-            return JsonSerializationHelper.Serialize(response.Data);
+            return JsonSerializationHelper.Serialize(response);
         }
 
         [McpServerTool, Description("Get text formatting attributes (font, color, size, style) from an element using TextPattern")]

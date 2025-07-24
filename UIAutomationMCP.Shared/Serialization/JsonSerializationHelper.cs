@@ -222,6 +222,8 @@ namespace UIAutomationMCP.Shared.Serialization
                 Type t when t == typeof(ServerEnhancedResponse<SearchElementsResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseSearchElementsResult,
                 Type t when t == typeof(ServerEnhancedResponse<ElementDetailResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseElementDetailResult,
                 Type t when t == typeof(ServerEnhancedResponse<TableInfoResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTableInfoResult,
+                Type t when t == typeof(ServerEnhancedResponse<TextSearchResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTextSearchResult,
+                Type t when t == typeof(ServerEnhancedResponse<TextAttributesResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTextAttributesResult,
 
                 // Basic types
                 Type t when t == typeof(Dictionary<string, object>) => (JsonTypeInfo<T>)(object)_context.DictionaryStringObject,
@@ -264,6 +266,7 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(ErrorResult))]
     [JsonSerializable(typeof(UniversalResponse))]
     [JsonSerializable(typeof(ElementTreeResult))]
+    [JsonSerializable(typeof(TreeNavigationResult))]
     [JsonSerializable(typeof(BooleanResult))]
     [JsonSerializable(typeof(FindItemResult))]
     [JsonSerializable(typeof(TextInfoResult))]
@@ -388,6 +391,8 @@ namespace UIAutomationMCP.Shared.Serialization
     [JsonSerializable(typeof(ServerEnhancedResponse<SearchElementsResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<ElementDetailResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<TableInfoResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<TextSearchResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<TextAttributesResult>))]
     [JsonSerializable(typeof(ProcessLaunchResponse))]
     [JsonSerializable(typeof(ServerExecutionInfo))]
     [JsonSerializable(typeof(RequestMetadata))]
