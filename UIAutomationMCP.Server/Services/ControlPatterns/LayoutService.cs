@@ -5,7 +5,6 @@ using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Validation;
 using UIAutomationMCP.Shared.Metadata;
-using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {

@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using System.Diagnostics;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
@@ -7,7 +6,6 @@ using UIAutomationMCP.Shared.Validation;
 using UIAutomationMCP.Shared.Metadata;
 using UIAutomationMCP.Shared.Abstractions;
 using UIAutomationMCP.Server.Infrastructure;
-using UIAutomationMCP.Server.Helpers;
 
 namespace UIAutomationMCP.Server.Services
 {

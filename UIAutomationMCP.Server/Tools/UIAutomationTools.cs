@@ -36,7 +36,6 @@ namespace UIAutomationMCP.Server.Tools
         private readonly ISynchronizedInputService _synchronizedInputService;
         private readonly IEventMonitorService _eventMonitorService;
         private readonly IFocusService _focusService;
-        private readonly ISubprocessExecutor _subprocessExecutor;
 
         public UIAutomationTools(
             IApplicationLauncher applicationLauncher,
@@ -62,8 +61,7 @@ namespace UIAutomationMCP.Server.Tools
             IItemContainerService itemContainerService,
             ISynchronizedInputService synchronizedInputService,
             IEventMonitorService eventMonitorService,
-            IFocusService focusService,
-            ISubprocessExecutor subprocessExecutor)
+            IFocusService focusService)
         {
             _applicationLauncher = applicationLauncher;
             _screenshotService = screenshotService;
@@ -89,7 +87,6 @@ namespace UIAutomationMCP.Server.Tools
             _synchronizedInputService = synchronizedInputService;
             _eventMonitorService = eventMonitorService;
             _focusService = focusService;
-            _subprocessExecutor = subprocessExecutor;
         }
 
         // Window and Element Discovery
