@@ -59,22 +59,11 @@ namespace UiAutomationMcp.Tests.Services
             var jsonResult = System.Text.Json.JsonSerializer.Serialize(result);
             _output.WriteLine($"Result JSON: {jsonResult}");
             
-            // 結果をdynamic型でチェック
-            if (result.GetType().GetProperty("Success") != null)
-            {
-                var success = result.GetType().GetProperty("Success")?.GetValue(result);
-                Assert.False((bool?)success);
-                
-                var error = result.GetType().GetProperty("Error")?.GetValue(result);
-                Assert.NotNull(error);
-                
-                _output.WriteLine($"ScrollElementIntoView error handling test completed: {error}");
-            }
-            else
-            {
-                _output.WriteLine($"Result type: {result.GetType().Name}");
-                Assert.NotNull(result); // At minimum, we should get some result
-            }
+            // 結果の検証 - Worker executable not found エラーが含まれることを確認
+            var resultString = jsonResult.ToString();
+            Assert.Contains("Worker executable not found", resultString);
+            
+            _output.WriteLine($"ScrollElementIntoView error handling test completed successfully");
         }
 
         /// <summary>

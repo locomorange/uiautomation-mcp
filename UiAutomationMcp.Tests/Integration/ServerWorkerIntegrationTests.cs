@@ -127,7 +127,7 @@ namespace UiAutomationMcp.Tests.Integration
             // Then
             Assert.NotNull(result);
             var resultJson = System.Text.Json.JsonSerializer.Serialize(result);
-            Assert.Contains("Success", resultJson);
+            Assert.Contains("success", resultJson);
             Assert.Contains("false", resultJson);
             Assert.Contains("timed out", resultJson);
             _output.WriteLine($"InvokeService timeout test completed: {resultJson}");

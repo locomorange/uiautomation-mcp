@@ -99,7 +99,7 @@ namespace UiAutomationMcp.Tests.Integration
                 _output.WriteLine($"Expected exception (no UI element): {ex.Message}");
                 
                 // Worker自体が動作し、適切な操作が登録されていることを確認
-                Assert.Contains("GetScrollInfo", ex.Message.ToLowerInvariant() + _workerPath.ToLowerInvariant());
+                Assert.Contains("GetScrollInfo", ex.Message);
             }
         }
 
@@ -134,7 +134,7 @@ namespace UiAutomationMcp.Tests.Integration
                 _output.WriteLine($"Expected exception (no UI element): {ex.Message}");
                 
                 // Worker自体が動作し、適切な操作が登録されていることを確認
-                Assert.Contains("SetScrollPercent", ex.Message.ToLowerInvariant() + _workerPath.ToLowerInvariant());
+                Assert.Contains("SetScrollPercent", ex.Message);
             }
         }
 
