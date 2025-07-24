@@ -4,11 +4,10 @@ using System.Text.Json;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Serialization;
 using UIAutomationMCP.Shared.Abstractions;
-using UIAutomationMCP.Server.Interfaces;
 
 namespace UIAutomationMCP.Server.Helpers
 {
-    public class SubprocessExecutor : ISubprocessExecutor, IOperationExecutor, IDisposable
+    public class SubprocessExecutor : IOperationExecutor, IDisposable
     {
         private readonly ILogger<SubprocessExecutor> _logger;
         private readonly string _workerPath;

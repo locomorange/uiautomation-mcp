@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Helpers;
-using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Server.Tools;
 using UIAutomationMCP.Shared.Abstractions;
 
@@ -116,9 +115,6 @@ namespace UIAutomationMCP.Server
                 return new SubprocessExecutor(logger, workerPath);
             });
             
-            // Register as interface for services that expect ISubprocessExecutor
-            builder.Services.AddSingleton<ISubprocessExecutor>(provider => provider.GetRequiredService<SubprocessExecutor>());
-            
             // Register as IOperationExecutor for new BaseUIAutomationService architecture
             builder.Services.AddSingleton<IOperationExecutor>(provider => provider.GetRequiredService<SubprocessExecutor>());
             
@@ -160,12 +156,9 @@ namespace UIAutomationMCP.Server
                 // Dispose SubprocessExecutor to ensure worker processes are terminated
                 try
                 {
-                    var executor = host.Services.GetRequiredService<ISubprocessExecutor>();
-                    if (executor is IDisposable disposable)
-                    {
-                        disposable.Dispose();
-                        logger.LogInformation("[Program] SubprocessExecutor disposed successfully");
-                    }
+                    var executor = host.Services.GetRequiredService<SubprocessExecutor>();
+                    executor.Dispose();
+                    logger.LogInformation("[Program] SubprocessExecutor disposed successfully");
                 }
                 catch (Exception ex)
                 {

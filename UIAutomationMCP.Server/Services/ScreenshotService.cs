@@ -9,7 +9,6 @@ using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Validation;
 using UIAutomationMCP.Shared.Metadata;
 using UIAutomationMCP.Shared.Serialization;
-using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Shared;
 
 namespace UIAutomationMCP.Server.Services
