@@ -3,13 +3,15 @@ using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Shared.Abstractions;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Validation;
+using UIAutomationMCP.Shared.Metadata;
 
 namespace UIAutomationMCP.Server.Infrastructure
 {
     /// <summary>
-    /// Base class for all UI Automation services providing unified execution patterns
+    /// Base class for all UI Automation services providing unified execution patterns with type-safe metadata
     /// </summary>
-    public abstract class BaseUIAutomationService
+    public abstract class BaseUIAutomationService<TMetadata> 
+        where TMetadata : ServiceMetadata, new()
     {
         protected readonly IOperationExecutor _executor;
         protected readonly ILogger _logger;
@@ -99,12 +101,12 @@ namespace UIAutomationMCP.Server.Infrastructure
                     OperationId = context.OperationId,
                     ServerExecutedAt = context.StartedAt,
                     ServerLogs = LogCollectorExtensions.Instance.GetLogs(context.OperationId),
-                    AdditionalInfo = CreateSuccessAdditionalInfo(data, context)
+                    Metadata = CreateSuccessMetadata(data, context)
                 },
                 RequestMetadata = new RequestMetadata
                 {
                     RequestedMethod = methodName,
-                    RequestParameters = CreateRequestParameters(context),
+                    OperationId = context.OperationId,
                     TimeoutSeconds = timeoutSeconds
                 }
             };
@@ -126,12 +128,12 @@ namespace UIAutomationMCP.Server.Infrastructure
                     OperationId = context.OperationId,
                     ServerExecutedAt = context.StartedAt,
                     ServerLogs = LogCollectorExtensions.Instance.GetLogs(context.OperationId),
-                    AdditionalInfo = CreateValidationErrorAdditionalInfo(validation, context)
+                    Metadata = CreateValidationErrorMetadata(validation, context)
                 },
                 RequestMetadata = new RequestMetadata
                 {
                     RequestedMethod = context.MethodName,
-                    RequestParameters = CreateRequestParameters(context),
+                    OperationId = context.OperationId,
                     TimeoutSeconds = context.TimeoutSeconds
                 }
             };
@@ -153,12 +155,12 @@ namespace UIAutomationMCP.Server.Infrastructure
                     OperationId = context.OperationId,
                     ServerExecutedAt = context.StartedAt,
                     ServerLogs = LogCollectorExtensions.Instance.GetLogs(context.OperationId),
-                    AdditionalInfo = CreateOperationErrorAdditionalInfo(result, context)
+                    Metadata = CreateOperationErrorMetadata(result, context)
                 },
                 RequestMetadata = new RequestMetadata
                 {
                     RequestedMethod = methodName,
-                    RequestParameters = CreateRequestParameters(context),
+                    OperationId = context.OperationId,
                     TimeoutSeconds = timeoutSeconds
                 }
             };
@@ -180,12 +182,12 @@ namespace UIAutomationMCP.Server.Infrastructure
                     OperationId = context.OperationId,
                     ServerExecutedAt = context.StartedAt,
                     ServerLogs = LogCollectorExtensions.Instance.GetLogs(context.OperationId),
-                    AdditionalInfo = CreateUnhandledErrorAdditionalInfo(ex, context)
+                    Metadata = CreateUnhandledErrorMetadata(ex, context)
                 },
                 RequestMetadata = new RequestMetadata
                 {
                     RequestedMethod = methodName,
-                    RequestParameters = CreateRequestParameters(context),
+                    OperationId = context.OperationId,
                     TimeoutSeconds = timeoutSeconds
                 }
             };
@@ -193,56 +195,68 @@ namespace UIAutomationMCP.Server.Infrastructure
         
         #endregion
         
-        #region Additional Info Creation - Virtual for extensibility
+        #region Metadata Creation - Type-safe and extensible
         
-        protected virtual Dictionary<string, object> CreateSuccessAdditionalInfo<TResult>(TResult data, IServiceContext context)
+        /// <summary>
+        /// Create success metadata - override in derived classes for service-specific information
+        /// </summary>
+        protected virtual TMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
         {
-            return new Dictionary<string, object>
+            return new TMetadata
             {
-                ["operationCompleted"] = true,
-                ["operationType"] = context.MethodName
+                OperationType = GetOperationType(),
+                OperationCompleted = true,
+                ExecutionTimeMs = context.Stopwatch.Elapsed.TotalMilliseconds,
+                MethodName = context.MethodName
             };
         }
         
-        protected virtual Dictionary<string, object> CreateValidationErrorAdditionalInfo(ValidationResult validation, IServiceContext context)
+        /// <summary>
+        /// Create validation error metadata
+        /// </summary>
+        protected virtual TMetadata CreateValidationErrorMetadata(ValidationResult validation, IServiceContext context)
         {
-            return new Dictionary<string, object>
+            return new TMetadata
             {
-                ["errorCategory"] = "Validation",
-                ["validationErrors"] = validation.Errors,
-                ["operationType"] = context.MethodName
+                OperationType = GetOperationType(),
+                OperationCompleted = false,
+                ExecutionTimeMs = context.Stopwatch.Elapsed.TotalMilliseconds,
+                MethodName = context.MethodName
             };
         }
         
-        protected virtual Dictionary<string, object> CreateOperationErrorAdditionalInfo<TResult>(ServiceOperationResult<TResult> result, IServiceContext context)
+        /// <summary>
+        /// Create operation error metadata
+        /// </summary>
+        protected virtual TMetadata CreateOperationErrorMetadata<TResult>(ServiceOperationResult<TResult> result, IServiceContext context)
         {
-            return new Dictionary<string, object>
+            return new TMetadata
             {
-                ["errorCategory"] = result.ErrorCategory ?? "OperationError",
-                ["exceptionType"] = result.ExceptionType ?? "Unknown",
-                ["operationType"] = context.MethodName
+                OperationType = GetOperationType(),
+                OperationCompleted = false,
+                ExecutionTimeMs = context.Stopwatch.Elapsed.TotalMilliseconds,
+                MethodName = context.MethodName
             };
         }
         
-        protected virtual Dictionary<string, object> CreateUnhandledErrorAdditionalInfo(Exception ex, IServiceContext context)
+        /// <summary>
+        /// Create unhandled error metadata
+        /// </summary>
+        protected virtual TMetadata CreateUnhandledErrorMetadata(Exception ex, IServiceContext context)
         {
-            return new Dictionary<string, object>
+            return new TMetadata
             {
-                ["errorCategory"] = "UnhandledException",
-                ["exceptionType"] = ex.GetType().Name,
-                ["stackTrace"] = ex.StackTrace ?? "",
-                ["operationType"] = context.MethodName
+                OperationType = GetOperationType(),
+                OperationCompleted = false,
+                ExecutionTimeMs = context.Stopwatch.Elapsed.TotalMilliseconds,
+                MethodName = context.MethodName
             };
         }
         
-        protected virtual Dictionary<string, object> CreateRequestParameters(IServiceContext context)
-        {
-            return new Dictionary<string, object>
-            {
-                ["operationId"] = context.OperationId,
-                ["timeoutSeconds"] = context.TimeoutSeconds
-            };
-        }
+        /// <summary>
+        /// Get the operation type for this service - implement in derived classes
+        /// </summary>
+        protected abstract string GetOperationType();
         
         #endregion
         

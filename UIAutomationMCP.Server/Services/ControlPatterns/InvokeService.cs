@@ -4,15 +4,18 @@ using UIAutomationMCP.Shared.Abstractions;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Validation;
+using UIAutomationMCP.Shared.Metadata;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
-    public class InvokeService : BaseUIAutomationService, IInvokeService
+    public class InvokeService : BaseUIAutomationService<InvokeServiceMetadata>, IInvokeService
     {
         public InvokeService(IOperationExecutor executor, ILogger<InvokeService> logger)
             : base(executor, logger)
         {
         }
+
+        protected override string GetOperationType() => "invoke";
 
         public async Task<ServerEnhancedResponse<ActionResult>> InvokeElementAsync(
             string? automationId = null, 
@@ -48,19 +51,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             return ValidationResult.Success;
         }
 
-        protected override Dictionary<string, object> CreateSuccessAdditionalInfo<TResult>(TResult data, IServiceContext context)
+        protected override InvokeServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
         {
-            var baseInfo = base.CreateSuccessAdditionalInfo(data, context);
-            baseInfo["operationType"] = "invoke";
-            baseInfo["actionPerformed"] = "elementInvoked";
-            return baseInfo;
-        }
-
-        protected override Dictionary<string, object> CreateRequestParameters(IServiceContext context)
-        {
-            var baseParams = base.CreateRequestParameters(context);
-            baseParams["operation"] = "InvokeElement";
-            return baseParams;
+            var metadata = base.CreateSuccessMetadata(data, context);
+            // ActionPerformed is already set to "elementInvoked" by default in InvokeServiceMetadata
+            return metadata;
         }
     }
 }

@@ -193,4 +193,64 @@ namespace UIAutomationMCP.Shared.Metadata
         [JsonPropertyName("actionPerformed")]
         public string ActionPerformed { get; set; } = "elementInvoked";
     }
+
+    /// <summary>
+    /// Metadata for tree navigation operations
+    /// </summary>
+    public class TreeNavigationServiceMetadata : ServiceMetadata
+    {
+        /// <summary>
+        /// The specific action performed (e.g., "childrenRetrieved", "parentRetrieved", "siblingsRetrieved")
+        /// </summary>
+        [JsonPropertyName("actionPerformed")]
+        public string ActionPerformed { get; set; } = "";
+
+        /// <summary>
+        /// Number of children/siblings found
+        /// </summary>
+        [JsonPropertyName("elementsFound")]
+        public int? ElementsFound { get; set; }
+
+        /// <summary>
+        /// Element ID that was navigated from
+        /// </summary>
+        [JsonPropertyName("sourceElementId")]
+        public string? SourceElementId { get; set; }
+
+        /// <summary>
+        /// Whether navigation was successful
+        /// </summary>
+        [JsonPropertyName("navigationSuccessful")]
+        public bool NavigationSuccessful { get; set; } = true;
+    }
+
+    /// <summary>
+    /// Metadata for accessibility verification operations
+    /// </summary>
+    public class AccessibilityServiceMetadata : ServiceMetadata
+    {
+        /// <summary>
+        /// The specific action performed (e.g., "accessibilityVerified", "accessibilityPropertiesRetrieved")
+        /// </summary>
+        [JsonPropertyName("actionPerformed")]
+        public string ActionPerformed { get; set; } = "";
+
+        /// <summary>
+        /// Number of accessibility elements found
+        /// </summary>
+        [JsonPropertyName("elementsFound")]
+        public int? ElementsFound { get; set; }
+
+        /// <summary>
+        /// Whether accessibility verification was successful
+        /// </summary>
+        [JsonPropertyName("verificationSuccessful")]
+        public bool VerificationSuccessful { get; set; } = true;
+
+        /// <summary>
+        /// Accessibility properties count (for property operations)
+        /// </summary>
+        [JsonPropertyName("propertiesCount")]
+        public int? PropertiesCount { get; set; }
+    }
 }

@@ -4,15 +4,18 @@ using UIAutomationMCP.Shared.Abstractions;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Validation;
+using UIAutomationMCP.Shared.Metadata;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
-    public class ToggleService : BaseUIAutomationService, IToggleService
+    public class ToggleService : BaseUIAutomationService<ToggleServiceMetadata>, IToggleService
     {
         public ToggleService(IOperationExecutor executor, ILogger<ToggleService> logger)
             : base(executor, logger)
         {
         }
+
+        protected override string GetOperationType() => "toggle";
 
         public async Task<ServerEnhancedResponse<ActionResult>> ToggleElementAsync(
             string? automationId = null, 
@@ -91,20 +94,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;
         }
 
-        protected override Dictionary<string, object> CreateSuccessAdditionalInfo<TResult>(TResult data, IServiceContext context)
+        protected override ToggleServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
         {
-            var baseInfo = base.CreateSuccessAdditionalInfo(data, context);
-            baseInfo["operationType"] = "toggle";
-            baseInfo["actionPerformed"] = "elementToggled";
+            var metadata = base.CreateSuccessMetadata(data, context);
+            metadata.ActionPerformed = context.MethodName.Replace("Async", "").ToLowerInvariant();
             
-            return baseInfo;
-        }
-
-        protected override Dictionary<string, object> CreateRequestParameters(IServiceContext context)
-        {
-            var baseParams = base.CreateRequestParameters(context);
-            baseParams["operation"] = context.MethodName.Replace("Async", "");
-            return baseParams;
+            // Note: ActionResult doesn't contain state information like ToggleActionResult would
+            // If we need state information, we'd need to update the result types or use a different approach
+            
+            return metadata;
         }
     }
 }

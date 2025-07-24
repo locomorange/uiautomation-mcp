@@ -4,15 +4,18 @@ using UIAutomationMCP.Shared.Abstractions;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Validation;
+using UIAutomationMCP.Shared.Metadata;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
-    public class TextService : BaseUIAutomationService, ITextService
+    public class TextService : BaseUIAutomationService<TextServiceMetadata>, ITextService
     {
         public TextService(IOperationExecutor executor, ILogger<TextService> logger)
             : base(executor, logger)
         {
         }
+
+        protected override string GetOperationType() => "text";
 
         public async Task<ServerEnhancedResponse<ActionResult>> SelectTextAsync(
             string? automationId = null, 
@@ -230,35 +233,34 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;
         }
 
-        protected override Dictionary<string, object> CreateSuccessAdditionalInfo<TResult>(TResult data, IServiceContext context)
+        protected override TextServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
         {
-            var baseInfo = base.CreateSuccessAdditionalInfo(data, context);
-            baseInfo["operationType"] = "text";
+            var metadata = base.CreateSuccessMetadata(data, context);
             
             if (data is ActionResult)
             {
-                baseInfo["actionPerformed"] = context.MethodName.Replace("Async", "").ToLowerInvariant();
+                metadata.ActionPerformed = context.MethodName.Replace("Async", "").ToLowerInvariant();
+                
+                // For text operations, we can extract text length from the request context if needed
+                if (context.MethodName.Contains("SetText") || context.MethodName.Contains("AppendText"))
+                {
+                    // Text length would need to be extracted from request if we want to populate it
+                    // For now, we'll leave it null as we don't have easy access to the request data here
+                }
             }
             else if (data is TextAttributesResult attributesResult)
             {
-                baseInfo["actionPerformed"] = "textAttributesRetrieved";
-                baseInfo["hasAttributes"] = attributesResult.HasAttributes;
+                metadata.ActionPerformed = "textAttributesRetrieved";
+                metadata.HasAttributes = attributesResult.HasAttributes;
             }
             else if (data is TextSearchResult searchResult)
             {
-                baseInfo["actionPerformed"] = "textFound";
-                baseInfo["textFound"] = searchResult.Found;
-                baseInfo["startIndex"] = searchResult.StartIndex;
+                metadata.ActionPerformed = "textFound";
+                metadata.TextFound = searchResult.Found;
+                metadata.StartIndex = searchResult.StartIndex;
             }
             
-            return baseInfo;
-        }
-
-        protected override Dictionary<string, object> CreateRequestParameters(IServiceContext context)
-        {
-            var baseParams = base.CreateRequestParameters(context);
-            baseParams["operation"] = context.MethodName.Replace("Async", "");
-            return baseParams;
+            return metadata;
         }
     }
 }

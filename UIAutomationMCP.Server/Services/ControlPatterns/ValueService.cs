@@ -4,15 +4,18 @@ using UIAutomationMCP.Shared.Abstractions;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Validation;
+using UIAutomationMCP.Shared.Metadata;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
-    public class ValueService : BaseUIAutomationService, IValueService
+    public class ValueService : BaseUIAutomationService<ValueServiceMetadata>, IValueService
     {
         public ValueService(IOperationExecutor executor, ILogger<ValueService> logger)
             : base(executor, logger)
         {
         }
+
+        protected override string GetOperationType() => "value";
 
         public async Task<ServerEnhancedResponse<ActionResult>> SetValueAsync(
             string value, 
@@ -91,32 +94,22 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             return ValidationResult.Success;
         }
 
-        protected override Dictionary<string, object> CreateSuccessAdditionalInfo<TResult>(TResult data, IServiceContext context)
+        protected override ValueServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
         {
-            var baseInfo = base.CreateSuccessAdditionalInfo(data, context);
-            baseInfo["operationType"] = "value";
+            var metadata = base.CreateSuccessMetadata(data, context);
             
             if (data is ActionResult)
             {
-                baseInfo["actionPerformed"] = "valueSet";
+                metadata.ActionPerformed = "valueSet";
             }
             else if (data is TextInfoResult textResult)
             {
-                baseInfo["actionPerformed"] = "valueRetrieved";
-                baseInfo["valueLength"] = textResult.Text?.Length ?? 0;
-                baseInfo["hasValue"] = !string.IsNullOrEmpty(textResult.Text);
+                metadata.ActionPerformed = "valueRetrieved";
+                metadata.ValueLength = textResult.Text?.Length ?? 0;
+                metadata.HasValue = !string.IsNullOrEmpty(textResult.Text);
             }
             
-            return baseInfo;
+            return metadata;
         }
-
-        protected override Dictionary<string, object> CreateRequestParameters(IServiceContext context)
-        {
-            var baseParams = base.CreateRequestParameters(context);
-            baseParams["operation"] = context.MethodName.Replace("Async", "");
-            return baseParams;
-        }
-
-
     }
 }

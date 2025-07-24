@@ -6,10 +6,11 @@ using UIAutomationMCP.Shared.Options;
 using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Validation;
+using UIAutomationMCP.Shared.Metadata;
 
 namespace UIAutomationMCP.Server.Services
 {
-    public class ElementSearchService : BaseUIAutomationService, IElementSearchService
+    public class ElementSearchService : BaseUIAutomationService<SearchServiceMetadata>, IElementSearchService
     {
         private readonly IOptions<UIAutomationOptions> _options;
 
@@ -21,6 +22,8 @@ namespace UIAutomationMCP.Server.Services
         {
             _options = options;
         }
+
+        protected override string GetOperationType() => "search";
 
         public async Task<ServerEnhancedResponse<ElementSearchResult>> FindElementsAsync(
             string? windowTitle = null, 
@@ -110,31 +113,22 @@ namespace UIAutomationMCP.Server.Services
             return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;
         }
 
-        protected override Dictionary<string, object> CreateSuccessAdditionalInfo<TResult>(TResult data, IServiceContext context)
+        protected override SearchServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
         {
-            var baseInfo = base.CreateSuccessAdditionalInfo(data, context);
-            baseInfo["operationType"] = "search";
+            var metadata = base.CreateSuccessMetadata(data, context);
+            metadata.ActionPerformed = "elementsSearched";
 
             if (data is ElementSearchResult searchResult)
             {
-                baseInfo["elementsFound"] = searchResult.Count;
-                baseInfo["totalResults"] = searchResult.Items?.Count ?? 0;
-                baseInfo["actionPerformed"] = "elementsSearched";
+                metadata.ElementsFound = searchResult.Count;
+                metadata.TotalResults = searchResult.Items?.Count;
             }
             else if (data is SearchElementsResult elementsResult)
             {
-                baseInfo["elementsFound"] = elementsResult.Elements?.Length ?? 0;
-                baseInfo["actionPerformed"] = "elementsSearched";
+                metadata.ElementsFound = elementsResult.Elements?.Length ?? 0;
             }
 
-            return baseInfo;
-        }
-
-        protected override Dictionary<string, object> CreateRequestParameters(IServiceContext context)
-        {
-            var baseParams = base.CreateRequestParameters(context);
-            baseParams["operation"] = context.MethodName.Replace("Async", "");
-            return baseParams;
+            return metadata;
         }
     }
 }

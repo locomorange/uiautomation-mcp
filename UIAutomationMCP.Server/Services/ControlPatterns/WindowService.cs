@@ -4,15 +4,18 @@ using UIAutomationMCP.Shared.Abstractions;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Validation;
+using UIAutomationMCP.Shared.Metadata;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
-    public class WindowService : BaseUIAutomationService, IWindowService
+    public class WindowService : BaseUIAutomationService<WindowServiceMetadata>, IWindowService
     {
         public WindowService(IOperationExecutor executor, ILogger<WindowService> logger)
             : base(executor, logger)
         {
         }
+
+        protected override string GetOperationType() => "window";
 
         public async Task<ServerEnhancedResponse<ActionResult>> WindowOperationAsync(
             string operation, 
@@ -261,37 +264,41 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             return ValidationResult.Success;
         }
 
-        protected override Dictionary<string, object> CreateSuccessAdditionalInfo<TResult>(TResult data, IServiceContext context)
+        protected override WindowServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
         {
-            var baseInfo = base.CreateSuccessAdditionalInfo(data, context);
-            baseInfo["operationType"] = "window";
+            var metadata = base.CreateSuccessMetadata(data, context);
             
             if (data is ActionResult)
             {
-                baseInfo["actionPerformed"] = context.MethodName.Replace("Async", "").ToLowerInvariant();
+                metadata.ActionPerformed = context.MethodName.Replace("Async", "").ToLowerInvariant();
+                
+                // Extract size information for resize operations
+                if (context.MethodName.Contains("Resize"))
+                {
+                    // Size information would need to be extracted from request context
+                    // For now, we'll leave these null as we don't have easy access to the request data here
+                }
+                // Extract position information for move operations
+                else if (context.MethodName.Contains("Move"))
+                {
+                    // Position information would need to be extracted from request context
+                }
             }
             else if (data is BooleanResult boolResult)
             {
-                baseInfo["actionPerformed"] = "waitForInputIdle";
-                baseInfo["inputIdleAchieved"] = boolResult.Value;
+                metadata.ActionPerformed = "waitForInputIdle";
+                metadata.InputIdleAchieved = boolResult.Value;
             }
             else if (data is WindowInteractionStateResult)
             {
-                baseInfo["actionPerformed"] = "windowInteractionStateRetrieved";
+                metadata.ActionPerformed = "windowInteractionStateRetrieved";
             }
             else if (data is WindowCapabilitiesResult)
             {
-                baseInfo["actionPerformed"] = "windowCapabilitiesRetrieved";
+                metadata.ActionPerformed = "windowCapabilitiesRetrieved";
             }
             
-            return baseInfo;
-        }
-
-        protected override Dictionary<string, object> CreateRequestParameters(IServiceContext context)
-        {
-            var baseParams = base.CreateRequestParameters(context);
-            baseParams["operation"] = context.MethodName.Replace("Async", "");
-            return baseParams;
+            return metadata;
         }
     }
 }

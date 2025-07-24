@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using UIAutomationMCP.Shared.Metadata;
 
 namespace UIAutomationMCP.Shared.Results
 {
@@ -75,10 +76,10 @@ namespace UIAutomationMCP.Shared.Results
         public List<string> ServerLogs { get; set; } = new();
         
         /// <summary>
-        /// 追加情報（任意のキー・値ペア）
+        /// 型安全なサービスメタデータ
         /// </summary>
-        [JsonPropertyName("additionalInfo")]
-        public Dictionary<string, object> AdditionalInfo { get; set; } = new();
+        [JsonPropertyName("metadata")]
+        public ServiceMetadata? Metadata { get; set; }
     }
 
     /// <summary>
@@ -93,21 +94,21 @@ namespace UIAutomationMCP.Shared.Results
         public string RequestedMethod { get; set; } = "";
         
         /// <summary>
-        /// リクエストパラメータ
+        /// 操作ID
         /// </summary>
-        [JsonPropertyName("requestParameters")]
-        public Dictionary<string, object> RequestParameters { get; set; } = new();
-        
-        /// <summary>
-        /// クライアント情報
-        /// </summary>
-        [JsonPropertyName("clientInfo")]
-        public string ClientInfo { get; set; } = "MCP Client";
+        [JsonPropertyName("operationId")]
+        public string OperationId { get; set; } = "";
         
         /// <summary>
         /// タイムアウト秒数
         /// </summary>
         [JsonPropertyName("timeoutSeconds")]
         public int TimeoutSeconds { get; set; }
+        
+        /// <summary>
+        /// クライアント情報
+        /// </summary>
+        [JsonPropertyName("clientInfo")]
+        public string ClientInfo { get; set; } = "MCP Client";
     }
 }

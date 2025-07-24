@@ -1,767 +1,227 @@
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Shared.Abstractions;
 using UIAutomationMCP.Shared.Results;
-using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Requests;
-using System.Diagnostics;
+using UIAutomationMCP.Shared.Validation;
+using UIAutomationMCP.Shared.Metadata;
 
 namespace UIAutomationMCP.Server.Services
 {
-    public class TreeNavigationService : ITreeNavigationService
+    public class TreeNavigationService : BaseUIAutomationService<TreeNavigationServiceMetadata>, ITreeNavigationService
     {
-        private readonly ILogger<TreeNavigationService> _logger;
-        private readonly SubprocessExecutor _executor;
-
-        public TreeNavigationService(
-            ILogger<TreeNavigationService> logger,
-            SubprocessExecutor executor)
+        public TreeNavigationService(IOperationExecutor executor, ILogger<TreeNavigationService> logger)
+            : base(executor, logger)
         {
-            _logger = logger;
-            _executor = executor;
         }
+
+        protected override string GetOperationType() => "treeNavigation";
 
         public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetChildrenAsync(string elementId, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            var request = new GetChildrenRequest
             {
-                var validationError = "Element ID is required and cannot be empty";
-                _logger.LogWarningWithOperation(operationId, $"GetChildren validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<TreeNavigationResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
-                            ["validationFailed"] = true
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetChildren",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["elementId"] = elementId ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Getting children for element: {elementId}");
+                AutomationId = elementId,
+                ProcessId = processId
+            };
 
-                var request = new GetChildrenRequest
-                {
-                    AutomationId = elementId,
-                    ProcessId = processId
-                };
-
-                var result = await _executor.ExecuteAsync<GetChildrenRequest, TreeNavigationResult>("GetChildren", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<TreeNavigationResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetChildren",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["elementId"] = elementId,
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Children retrieved successfully for element: {elementId}");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<TreeNavigationResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "ExecutionError",
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? ""
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetChildren",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["elementId"] = elementId,
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get children for element: {elementId}");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<GetChildrenRequest, TreeNavigationResult>(
+                "GetChildren",
+                request,
+                nameof(GetChildrenAsync),
+                timeoutSeconds,
+                ValidateGetChildrenRequest
+            );
         }
 
         public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetParentAsync(string elementId, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            var request = new GetParentRequest
             {
-                var validationError = "Element ID is required and cannot be empty";
-                _logger.LogWarningWithOperation(operationId, $"GetParent validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<TreeNavigationResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
-                            ["validationFailed"] = true
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetParent",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["elementId"] = elementId ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Getting parent for element: {elementId}");
+                AutomationId = elementId,
+                ProcessId = processId
+            };
 
-                var request = new GetParentRequest
-                {
-                    AutomationId = elementId,
-                    ProcessId = processId
-                };
-
-                var result = await _executor.ExecuteAsync<GetParentRequest, TreeNavigationResult>("GetParent", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<TreeNavigationResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetParent",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["elementId"] = elementId,
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Parent retrieved successfully for element: {elementId}");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<TreeNavigationResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "ExecutionError",
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? ""
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetParent",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["elementId"] = elementId,
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get parent for element: {elementId}");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<GetParentRequest, TreeNavigationResult>(
+                "GetParent",
+                request,
+                nameof(GetParentAsync),
+                timeoutSeconds,
+                ValidateGetParentRequest
+            );
         }
 
         public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetSiblingsAsync(string elementId, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            var request = new GetSiblingsRequest
             {
-                var validationError = "Element ID is required and cannot be empty";
-                _logger.LogWarningWithOperation(operationId, $"GetSiblings validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<TreeNavigationResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
-                            ["validationFailed"] = true
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetSiblings",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["elementId"] = elementId ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Getting siblings for element: {elementId}");
+                AutomationId = elementId,
+                ProcessId = processId
+            };
 
-                var request = new GetSiblingsRequest
-                {
-                    AutomationId = elementId,
-                    ProcessId = processId
-                };
-
-                var result = await _executor.ExecuteAsync<GetSiblingsRequest, TreeNavigationResult>("GetSiblings", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<TreeNavigationResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetSiblings",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["elementId"] = elementId,
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Siblings retrieved successfully for element: {elementId}");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<TreeNavigationResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "ExecutionError",
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? ""
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetSiblings",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["elementId"] = elementId,
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get siblings for element: {elementId}");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<GetSiblingsRequest, TreeNavigationResult>(
+                "GetSiblings",
+                request,
+                nameof(GetSiblingsAsync),
+                timeoutSeconds,
+                ValidateGetSiblingsRequest
+            );
         }
 
         public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetDescendantsAsync(string elementId, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            var request = new GetDescendantsRequest
             {
-                var validationError = "Element ID is required and cannot be empty";
-                _logger.LogWarningWithOperation(operationId, $"GetDescendants validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<TreeNavigationResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
-                            ["validationFailed"] = true
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetDescendants",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["elementId"] = elementId ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Getting descendants for element: {elementId}");
+                AutomationId = elementId,
+                ProcessId = processId
+            };
 
-                var request = new GetDescendantsRequest
-                {
-                    AutomationId = elementId,
-                    ProcessId = processId
-                };
-
-                var result = await _executor.ExecuteAsync<GetDescendantsRequest, TreeNavigationResult>("GetDescendants", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<TreeNavigationResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetDescendants",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["elementId"] = elementId,
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Descendants retrieved successfully for element: {elementId}");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<TreeNavigationResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "ExecutionError",
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? ""
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetDescendants",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["elementId"] = elementId,
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get descendants for element: {elementId}");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<GetDescendantsRequest, TreeNavigationResult>(
+                "GetDescendants",
+                request,
+                nameof(GetDescendantsAsync),
+                timeoutSeconds,
+                ValidateGetDescendantsRequest
+            );
         }
 
         public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetAncestorsAsync(string elementId, int? processId = null, int timeoutSeconds = 30)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            // Input validation
-            if (string.IsNullOrWhiteSpace(elementId))
+            var request = new GetAncestorsRequest
             {
-                var validationError = "Element ID is required and cannot be empty";
-                _logger.LogWarningWithOperation(operationId, $"GetAncestors validation failed: {validationError}");
-                
-                var validationResponse = new ServerEnhancedResponse<TreeNavigationResult>
-                {
-                    Success = false,
-                    ErrorMessage = validationError,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "Validation",
-                            ["elementId"] = elementId ?? "<null>",
-                            ["validationFailed"] = true
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetAncestors",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["elementId"] = elementId ?? "",
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                return validationResponse;
-            }
-            
-            try
-            {
-                _logger.LogInformationWithOperation(operationId, $"Getting ancestors for element: {elementId}");
+                AutomationId = elementId,
+                ProcessId = processId
+            };
 
-                var request = new GetAncestorsRequest
-                {
-                    AutomationId = elementId,
-                    ProcessId = processId
-                };
-
-                var result = await _executor.ExecuteAsync<GetAncestorsRequest, TreeNavigationResult>("GetAncestors", request, timeoutSeconds);
-
-                var successResponse = new ServerEnhancedResponse<TreeNavigationResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId)
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetAncestors",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["elementId"] = elementId,
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogInformationWithOperation(operationId, $"Ancestors retrieved successfully for element: {elementId}");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ServerEnhancedResponse<TreeNavigationResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["errorCategory"] = "ExecutionError",
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? ""
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetAncestors",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["elementId"] = elementId,
-                            ["processId"] = processId ?? 0,
-                            ["timeoutSeconds"] = timeoutSeconds
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                _logger.LogErrorWithOperation(operationId, ex, $"Failed to get ancestors for element: {elementId}");
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<GetAncestorsRequest, TreeNavigationResult>(
+                "GetAncestors",
+                request,
+                nameof(GetAncestorsAsync),
+                timeoutSeconds,
+                ValidateGetAncestorsRequest
+            );
         }
 
         public async Task<ServerEnhancedResponse<ElementTreeResult>> GetElementTreeAsync(int? processId = null, int maxDepth = 3, int timeoutSeconds = 60)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var operationId = Guid.NewGuid().ToString("N")[..8];
-            
-            try
+            var request = new GetElementTreeRequest
             {
-                _logger.LogInformationWithOperation(operationId, $"Starting GetElementTree operation with ProcessId={processId}, MaxDepth={maxDepth}");
+                ProcessId = processId,
+                MaxDepth = maxDepth
+            };
 
-                var request = new GetElementTreeRequest
-                {
-                    ProcessId = processId,
-                    MaxDepth = maxDepth
-                };
-
-                _logger.LogInformationWithOperation(operationId, "Calling worker process for GetElementTree");
-                var workerResult = await _executor.ExecuteAsync<GetElementTreeRequest, ElementTreeResult>("GetElementTree", request, timeoutSeconds);
-                
-                stopwatch.Stop();
-                _logger.LogInformationWithOperation(operationId, $"Worker completed successfully in {stopwatch.Elapsed.TotalMilliseconds:F2}ms");
-
-                var serverResponse = new ServerEnhancedResponse<ElementTreeResult>
-                {
-                    Success = workerResult.Success,
-                    Data = workerResult,
-                    ErrorMessage = workerResult.ErrorMessage,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["workerProcessingTime"] = workerResult.ExecutionTime?.ToString() ?? "Unknown",
-                            ["totalElements"] = workerResult.TotalElements,
-                            ["maxDepthReached"] = workerResult.MaxDepth,
-                            ["buildDuration"] = workerResult.BuildDuration.ToString(),
-                            ["includeInvisible"] = workerResult.IncludeInvisible,
-                            ["includeOffscreen"] = workerResult.IncludeOffscreen
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetElementTree",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["processId"] = processId ?? 0,
-                            ["maxDepth"] = maxDepth
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-
-                _logger.LogInformationWithOperation(operationId, "Successfully created enhanced response");
-                
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
-                
-                return serverResponse;
-            }
-            catch (Exception ex)
-            {
-                stopwatch.Stop();
-                _logger.LogErrorWithOperation(operationId, ex, "Error in GetElementTree operation");
-                
-                var errorResponse = new ServerEnhancedResponse<ElementTreeResult>
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        ServerProcessingTime = stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
-                        OperationId = operationId,
-                        ServerLogs = LogCollectorExtensions.Instance.GetLogs(operationId),
-                        AdditionalInfo = new Dictionary<string, object>
-                        {
-                            ["exceptionType"] = ex.GetType().Name,
-                            ["stackTrace"] = ex.StackTrace ?? ""
-                        }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = "GetElementTree",
-                        RequestParameters = new Dictionary<string, object>
-                        {
-                            ["processId"] = processId ?? 0,
-                            ["maxDepth"] = maxDepth
-                        },
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-                
-                LogCollectorExtensions.Instance.ClearLogs(operationId);
-                
-                return errorResponse;
-            }
+            return await ExecuteServiceOperationAsync<GetElementTreeRequest, ElementTreeResult>(
+                "GetElementTree",
+                request,
+                nameof(GetElementTreeAsync),
+                timeoutSeconds,
+                ValidateGetElementTreeRequest
+            );
         }
 
-
-        private object? ConvertTreeNodeToDict(TreeNode? node)
+        private static ValidationResult ValidateGetChildrenRequest(GetChildrenRequest request)
         {
-            if (node == null) return null;
-            
-            // Flatten to simple structure avoiding nested complex objects
-            var simple = new Dictionary<string, object>
+            if (string.IsNullOrWhiteSpace(request.AutomationId))
             {
-                ["automationId"] = node.AutomationId ?? "",
-                ["name"] = node.Name ?? "",
-                ["className"] = node.ClassName ?? "",
-                ["controlType"] = node.ControlType ?? "",
-                ["isEnabled"] = node.IsEnabled,
-                ["isKeyboardFocusable"] = node.IsKeyboardFocusable,
-                ["hasKeyboardFocus"] = node.HasKeyboardFocus,
-                ["isPassword"] = node.IsPassword,
-                ["isVisible"] = node.IsVisible,
-                ["boundingX"] = node.BoundingRectangle.X,
-                ["boundingY"] = node.BoundingRectangle.Y,
-                ["boundingWidth"] = node.BoundingRectangle.Width,
-                ["boundingHeight"] = node.BoundingRectangle.Height,
-                ["processId"] = node.ProcessId,
-                ["runtimeId"] = node.RuntimeId ?? "",
-                ["supportedPatterns"] = string.Join(",", node.SupportedPatterns),
-                ["depth"] = node.Depth,
-                ["isExpanded"] = node.IsExpanded,
-                ["hasChildren"] = node.HasChildren,
-                ["parentAutomationId"] = node.ParentAutomationId ?? "",
-                ["parentName"] = node.ParentName ?? "",
-                ["childrenCount"] = node.Children.Count
-            };
-            
-            // Skip children arrays entirely for MCP compatibility
-            
-            return simple;
+                return ValidationResult.Failure("Element ID is required and cannot be empty");
+            }
+
+            return ValidationResult.Success;
         }
 
-        private Dictionary<string, object> ConvertTreeElementToDict(TreeElement element)
+        private static ValidationResult ValidateGetParentRequest(GetParentRequest request)
         {
-            return new Dictionary<string, object>
+            if (string.IsNullOrWhiteSpace(request.AutomationId))
             {
-                ["automationId"] = element.AutomationId ?? "",
-                ["parentAutomationId"] = element.ParentAutomationId ?? "",
-                ["parentName"] = element.ParentName ?? "",
-                ["name"] = element.Name ?? "",
-                ["className"] = element.ClassName ?? "",
-                ["controlType"] = element.ControlType ?? "",
-                ["isEnabled"] = element.IsEnabled,
-                ["isKeyboardFocusable"] = element.IsKeyboardFocusable,
-                ["hasKeyboardFocus"] = element.HasKeyboardFocus,
-                ["isPassword"] = element.IsPassword,
-                ["isVisible"] = element.IsVisible,
-                ["boundingX"] = element.BoundingRectangle.X,
-                ["boundingY"] = element.BoundingRectangle.Y,
-                ["boundingWidth"] = element.BoundingRectangle.Width,
-                ["boundingHeight"] = element.BoundingRectangle.Height,
-                ["supportedPatterns"] = string.Join(",", element.SupportedPatterns),
-                ["processId"] = element.ProcessId,
-                ["runtimeId"] = element.RuntimeId ?? "",
-                ["nativeWindowHandle"] = element.NativeWindowHandle,
-                ["isControlElement"] = element.IsControlElement,
-                ["isContentElement"] = element.IsContentElement,
-                ["hasChildren"] = element.HasChildren,
-                ["childCount"] = element.ChildCount
-            };
+                return ValidationResult.Failure("Element ID is required and cannot be empty");
+            }
+
+            return ValidationResult.Success;
+        }
+
+        private static ValidationResult ValidateGetSiblingsRequest(GetSiblingsRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.AutomationId))
+            {
+                return ValidationResult.Failure("Element ID is required and cannot be empty");
+            }
+
+            return ValidationResult.Success;
+        }
+
+        private static ValidationResult ValidateGetDescendantsRequest(GetDescendantsRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.AutomationId))
+            {
+                return ValidationResult.Failure("Element ID is required and cannot be empty");
+            }
+
+            return ValidationResult.Success;
+        }
+
+        private static ValidationResult ValidateGetAncestorsRequest(GetAncestorsRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.AutomationId))
+            {
+                return ValidationResult.Failure("Element ID is required and cannot be empty");
+            }
+
+            return ValidationResult.Success;
+        }
+
+        private static ValidationResult ValidateGetElementTreeRequest(GetElementTreeRequest request)
+        {
+            if (request.MaxDepth <= 0)
+            {
+                return ValidationResult.Failure("MaxDepth must be greater than 0");
+            }
+
+            return ValidationResult.Success;
+        }
+
+        protected override TreeNavigationServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
+        {
+            var metadata = base.CreateSuccessMetadata(data, context);
+            metadata.SourceElementId = "extracted_from_request"; // Would need request context to get actual value
+
+            if (data is TreeNavigationResult navResult)
+            {
+                if (context.MethodName.Contains("GetChildren"))
+                {
+                    metadata.ActionPerformed = "childrenRetrieved";
+                    metadata.ElementsFound = navResult.Elements?.Count ?? 0;
+                }
+                else if (context.MethodName.Contains("GetParent"))
+                {
+                    metadata.ActionPerformed = "parentRetrieved";
+                    metadata.ElementsFound = navResult.Elements?.Count ?? 0;
+                }
+                else if (context.MethodName.Contains("GetSiblings"))
+                {
+                    metadata.ActionPerformed = "siblingsRetrieved";
+                    metadata.ElementsFound = navResult.Elements?.Count ?? 0;
+                }
+                else if (context.MethodName.Contains("GetDescendants"))
+                {
+                    metadata.ActionPerformed = "descendantsRetrieved";
+                    metadata.ElementsFound = navResult.Elements?.Count ?? 0;
+                }
+                else if (context.MethodName.Contains("GetAncestors"))
+                {
+                    metadata.ActionPerformed = "ancestorsRetrieved";
+                    metadata.ElementsFound = navResult.Elements?.Count ?? 0;
+                }
+
+                metadata.NavigationSuccessful = navResult.Elements?.Count > 0;
+            }
+            else if (data is ElementTreeResult treeResult)
+            {
+                metadata.ActionPerformed = "elementTreeRetrieved";
+                metadata.ElementsFound = treeResult.TotalElements;
+                metadata.NavigationSuccessful = treeResult.TotalElements > 0;
+            }
+
+            return metadata;
         }
     }
 }
