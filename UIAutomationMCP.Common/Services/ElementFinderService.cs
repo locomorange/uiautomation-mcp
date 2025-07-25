@@ -1,11 +1,14 @@
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
+using UIAutomationMCP.Models;
+using UIAutomationMCP.Models.Results;
+using UIAutomationMCP.Common.Helpers;
 
 namespace UIAutomationMCP.Common.Services
 {
     /// <summary>
     /// Unified element finding service for UI Automation operations
-    /// Shared between Worker and Monitor processes
+    /// Provides consistent, performant element search functionality for all MCP tools
     /// </summary>
     public class ElementFinderService
     {
@@ -16,122 +19,230 @@ namespace UIAutomationMCP.Common.Services
             _logger = logger;
         }
 
-        /// <summary>
-        /// Find element by AutomationId or Name
-        /// </summary>
-        public AutomationElement? FindElement(
-            string? automationId = null, 
-            string? name = null, 
-            string? controlType = null, 
-            string? windowTitle = null, 
-            int? processId = null, 
-            TreeScope scope = TreeScope.Descendants,
-            AutomationPattern? requiredPattern = null)
-        {
-            // At least one identifier is required
-            if (string.IsNullOrEmpty(automationId) && string.IsNullOrEmpty(name))
-            {
-                _logger.LogWarning("Both AutomationId and Name are null or empty");
-                return null;
-            }
+        #region Core Search Methods
 
+        /// <summary>
+        /// Find a single element using search criteria
+        /// </summary>
+        /// <param name="searchCriteria">Search parameters</param>
+        /// <returns>Found element or null if not found</returns>
+        public AutomationElement? FindElement(ElementSearchCriteria searchCriteria)
+        {
             try
             {
-                AutomationElement rootElement = AutomationElement.RootElement;
-                
-                // If process ID is specified, find the root window first
-                if (processId.HasValue)
+                var rootElement = GetSearchRoot(searchCriteria);
+                if (rootElement == null)
                 {
-                    var processCondition = new PropertyCondition(AutomationElement.ProcessIdProperty, processId.Value);
-                    var processWindow = rootElement.FindFirst(TreeScope.Children, processCondition);
-                    if (processWindow != null)
-                    {
-                        rootElement = processWindow;
-                        scope = TreeScope.Descendants;
-                    }
+                    _logger.LogDebug("Search root not found");
+                    return null;
                 }
 
-                // If window title is specified, find the window first
-                if (!string.IsNullOrEmpty(windowTitle))
-                {
-                    var windowCondition = new PropertyCondition(AutomationElement.NameProperty, windowTitle);
-                    var window = rootElement.FindFirst(TreeScope.Children, windowCondition);
-                    if (window != null)
-                    {
-                        rootElement = window;
-                        scope = TreeScope.Descendants;
-                    }
-                }
-
-                // Build the search condition
-                Condition? condition = null;
-
-                // Primary search by AutomationId
-                if (!string.IsNullOrEmpty(automationId))
-                {
-                    condition = new PropertyCondition(AutomationElement.AutomationIdProperty, automationId);
-                }
-                // Fallback search by Name
-                else if (!string.IsNullOrEmpty(name))
-                {
-                    condition = new PropertyCondition(AutomationElement.NameProperty, name);
-                }
-
-                // Add ControlType filter if specified
-                if (!string.IsNullOrEmpty(controlType) && condition != null)
-                {
-                    if (TryGetControlType(controlType, out var controlTypeObj))
-                    {
-                        var controlTypeCondition = new PropertyCondition(AutomationElement.ControlTypeProperty, controlTypeObj);
-                        condition = new AndCondition(condition, controlTypeCondition);
-                    }
-                }
-
-                // Note: Pattern availability is checked after finding the element
-
+                var condition = BuildSearchCondition(searchCriteria);
                 if (condition == null)
                 {
                     _logger.LogWarning("No valid search condition could be built");
                     return null;
                 }
 
-                // Perform the search
+                var scope = GetSafeScope(searchCriteria.Scope);
                 var element = rootElement.FindFirst(scope, condition);
-                
+
                 if (element != null)
                 {
                     _logger.LogDebug("Found element: AutomationId={AutomationId}, Name={Name}, ControlType={ControlType}",
-                        element.Current.AutomationId,
-                        element.Current.Name,
-                        element.Current.ControlType.ProgrammaticName);
-                    
-                    // Check if required pattern is supported
-                    if (requiredPattern != null)
+                        GetSafeProperty(element, e => e.Current.AutomationId),
+                        GetSafeProperty(element, e => e.Current.Name),
+                        GetSafeProperty(element, e => e.Current.ControlType.ProgrammaticName));
+
+                    // Check pattern requirement if specified
+                    if (!string.IsNullOrEmpty(searchCriteria.RequiredPattern))
                     {
-                        var supportedPatterns = element.GetSupportedPatterns();
-                        if (!supportedPatterns.Contains(requiredPattern))
+                        if (!SupportsPattern(element, searchCriteria.RequiredPattern))
                         {
-                            _logger.LogDebug("Element found but does not support required pattern: {Pattern}",
-                                requiredPattern.ProgrammaticName);
+                            _logger.LogDebug("Element found but does not support required pattern: {Pattern}", searchCriteria.RequiredPattern);
                             return null;
                         }
                     }
-                }
-                else
-                {
-                    _logger.LogDebug("Element not found with AutomationId={AutomationId}, Name={Name}, ControlType={ControlType}",
-                        automationId, name, controlType);
                 }
 
                 return element;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error finding element: AutomationId={AutomationId}, Name={Name}", automationId, name);
+                _logger.LogError(ex, "Error finding element");
                 return null;
             }
         }
 
+        /// <summary>
+        /// Find multiple elements using search criteria
+        /// </summary>
+        /// <param name="searchCriteria">Search parameters</param>
+        /// <returns>Collection of found elements (empty if none found)</returns>
+        public AutomationElementCollection FindElements(ElementSearchCriteria searchCriteria)
+        {
+            try
+            {
+                var rootElement = GetSearchRoot(searchCriteria);
+                if (rootElement == null)
+                {
+                    _logger.LogDebug("Search root not found");
+                    return GetEmptyElementCollection();
+                }
+
+                var condition = BuildSearchCondition(searchCriteria);
+                if (condition == null)
+                {
+                    _logger.LogWarning("No valid search condition could be built");
+                    return GetEmptyElementCollection();
+                }
+
+                var scope = GetSafeScope(searchCriteria.Scope);
+                
+                _logger.LogDebug("Searching for elements with scope: {Scope}", scope);
+                var elements = rootElement.FindAll(scope, condition);
+                _logger.LogDebug("Found {Count} elements", elements?.Count ?? 0);
+
+                return elements;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error finding elements");
+                return GetEmptyElementCollection();
+            }
+        }
+
+        /// <summary>
+        /// Convert AutomationElement to BasicElementInfo using ElementInfoBuilder
+        /// </summary>
+        public BasicElementInfo GetElementBasicInfo(AutomationElement element)
+        {
+            try
+            {
+                // Use ElementInfoBuilder for consistent element information extraction
+                var elementInfo = ElementInfoBuilder.CreateElementInfo(element, includeDetails: false, _logger);
+                
+                return new BasicElementInfo
+                {
+                    AutomationId = elementInfo.AutomationId,
+                    Name = elementInfo.Name,
+                    ControlType = elementInfo.ControlType,
+                    ClassName = elementInfo.ClassName,
+                    IsEnabled = elementInfo.IsEnabled,
+                    ProcessId = elementInfo.ProcessId,
+                    BoundingRectangle = elementInfo.BoundingRectangle,
+                    IsOffscreen = elementInfo.IsOffscreen
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting element basic info");
+                return new BasicElementInfo
+                {
+                    AutomationId = "Error",
+                    Name = "Error retrieving element info",
+                    ControlType = "Unknown"
+                };
+            }
+        }
+
+        #endregion
+
+        #region Helper Methods
+
+        private AutomationElement? GetSearchRoot(ElementSearchCriteria criteria)
+        {
+            AutomationElement rootElement = AutomationElement.RootElement;
+
+            // Find process window if specified
+            if (criteria.ProcessId.HasValue)
+            {
+                var processCondition = new PropertyCondition(AutomationElement.ProcessIdProperty, criteria.ProcessId.Value);
+                var processWindow = rootElement.FindFirst(TreeScope.Children, processCondition);
+                if (processWindow != null)
+                {
+                    _logger.LogDebug("Found process window for ProcessId: {ProcessId}", criteria.ProcessId.Value);
+                    return processWindow;
+                }
+                else
+                {
+                    _logger.LogDebug("Process window not found for ProcessId: {ProcessId}", criteria.ProcessId.Value);
+                    return null;
+                }
+            }
+
+            // Find window by title if specified
+            if (!string.IsNullOrEmpty(criteria.WindowTitle))
+            {
+                var windowCondition = new PropertyCondition(AutomationElement.NameProperty, criteria.WindowTitle);
+                var window = rootElement.FindFirst(TreeScope.Children, windowCondition);
+                if (window != null)
+                {
+                    _logger.LogDebug("Found window with title: {WindowTitle}", criteria.WindowTitle);
+                    return window;
+                }
+                else
+                {
+                    _logger.LogDebug("Window not found with title: {WindowTitle}", criteria.WindowTitle);
+                    return null;
+                }
+            }
+
+            return rootElement;
+        }
+
+        private Condition? BuildSearchCondition(ElementSearchCriteria criteria)
+        {
+            var conditions = new List<Condition>();
+
+            // Primary identifiers
+            if (!string.IsNullOrEmpty(criteria.AutomationId))
+                conditions.Add(new PropertyCondition(AutomationElement.AutomationIdProperty, criteria.AutomationId));
+
+            if (!string.IsNullOrEmpty(criteria.Name))
+                conditions.Add(new PropertyCondition(AutomationElement.NameProperty, criteria.Name));
+
+            if (!string.IsNullOrEmpty(criteria.ClassName))
+                conditions.Add(new PropertyCondition(AutomationElement.ClassNameProperty, criteria.ClassName));
+
+            // Control type filter
+            if (!string.IsNullOrEmpty(criteria.ControlType))
+            {
+                if (TryGetControlType(criteria.ControlType, out var controlType))
+                {
+                    conditions.Add(new PropertyCondition(AutomationElement.ControlTypeProperty, controlType));
+                }
+            }
+
+            // Visibility filter
+            if (criteria.VisibleOnly)
+                conditions.Add(new PropertyCondition(AutomationElement.IsOffscreenProperty, false));
+
+            // Enabled filter
+            if (criteria.EnabledOnly)
+                conditions.Add(new PropertyCondition(AutomationElement.IsEnabledProperty, true));
+
+            // Return appropriate condition
+            if (conditions.Count == 0)
+                return null;
+            
+            if (conditions.Count == 1)
+                return conditions[0];
+            
+            return new AndCondition(conditions.ToArray());
+        }
+
+        private TreeScope GetSafeScope(string? scope)
+        {
+            // Default to Children for better performance and to avoid hangs
+            return scope?.ToLower() switch
+            {
+                "children" => TreeScope.Children,
+                "descendants" => TreeScope.Descendants, // Use with caution
+                "subtree" => TreeScope.Subtree,
+                _ => TreeScope.Children // Safe default
+            };
+        }
 
         private bool TryGetControlType(string controlTypeName, out ControlType? controlType)
         {
@@ -162,5 +273,111 @@ namespace UIAutomationMCP.Common.Services
                 return false;
             }
         }
+
+        private bool SupportsPattern(AutomationElement element, string patternName)
+        {
+            try
+            {
+                var supportedPatterns = element.GetSupportedPatterns();
+                return supportedPatterns.Any(p => p.ProgrammaticName.Contains(patternName, StringComparison.OrdinalIgnoreCase));
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private T GetSafeProperty<T>(AutomationElement element, Func<AutomationElement, T> getter)
+        {
+            try
+            {
+                return getter(element);
+            }
+            catch
+            {
+                return default(T)!;
+            }
+        }
+
+        private AutomationElementCollection GetEmptyElementCollection()
+        {
+            return AutomationElement.RootElement.FindAll(TreeScope.Children,
+                new PropertyCondition(AutomationElement.AutomationIdProperty, "___NonExistentElement___"));
+        }
+
+        #endregion
+
+        #region Legacy Compatibility Methods
+
+        /// <summary>
+        /// Legacy method for backwards compatibility
+        /// </summary>
+        [Obsolete("Use FindElement(ElementSearchCriteria) instead")]
+        public AutomationElement? FindElement(
+            string? automationId = null,
+            string? name = null,
+            string? controlType = null,
+            string? windowTitle = null,
+            int? processId = null,
+            TreeScope scope = TreeScope.Children,
+            AutomationPattern? requiredPattern = null)
+        {
+            var criteria = new ElementSearchCriteria
+            {
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                Scope = scope.ToString(),
+                RequiredPattern = requiredPattern?.ProgrammaticName
+            };
+
+            return FindElement(criteria);
+        }
+
+        /// <summary>
+        /// Legacy method for backwards compatibility
+        /// </summary>
+        [Obsolete("Use FindElements(ElementSearchCriteria) instead")]
+        public AutomationElementCollection FindElements(
+            string? automationId = null,
+            string? name = null,
+            string? controlType = null,
+            string? windowTitle = null,
+            int? processId = null,
+            TreeScope scope = TreeScope.Children)
+        {
+            var criteria = new ElementSearchCriteria
+            {
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                Scope = scope.ToString()
+            };
+
+            return FindElements(criteria);
+        }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// Unified search criteria for element finding operations
+    /// </summary>
+    public class ElementSearchCriteria
+    {
+        public string? AutomationId { get; set; }
+        public string? Name { get; set; }
+        public string? ClassName { get; set; }
+        public string? ControlType { get; set; }
+        public string? WindowTitle { get; set; }
+        public int? ProcessId { get; set; }
+        public string? Scope { get; set; } = "Children"; // Safe default
+        public bool VisibleOnly { get; set; } = false;
+        public bool EnabledOnly { get; set; } = false;
+        public string? RequiredPattern { get; set; }
     }
 }

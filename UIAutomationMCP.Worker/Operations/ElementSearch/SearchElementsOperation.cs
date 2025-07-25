@@ -57,17 +57,38 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             
             try
             {
-                // UI Automation availability check
-                if (!UIAutomationEnvironment.IsAvailable)
+                _logger?.LogDebug("Starting PerformSearchAsync");
+                
+                // UI Automation availability check - basic check only
+                try
                 {
-                    throw new InvalidOperationException($"UI Automation is not available: {UIAutomationEnvironment.UnavailabilityReason}");
+                    _logger?.LogDebug("Checking UI Automation availability");
+                    var rootElement = AutomationElement.RootElement;
+                    if (rootElement == null)
+                    {
+                        throw new InvalidOperationException("UI Automation root element is not available");
+                    }
+                    _logger?.LogDebug("UI Automation root element available");
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "UI Automation availability check failed");
+                    throw new InvalidOperationException($"UI Automation is not available: {ex.Message}");
                 }
 
-                // Convert request to advanced search parameters
-                var searchParams = ConvertToAdvancedSearchParameters(request);
-
-                // Perform advanced search using ElementFinderService
-                var foundElementsCollection = _elementFinderService.FindElementsAdvanced(searchParams);
+                // Perform search using ElementFinderService with new criteria-based API
+                _logger?.LogDebug("Starting FindElements with ControlType={ControlType}, ProcessId={ProcessId}", request.ControlType, request.ProcessId);
+                var searchCriteria = new ElementSearchCriteria
+                {
+                    AutomationId = request.AutomationId,
+                    Name = request.Name,
+                    ControlType = request.ControlType,
+                    WindowTitle = request.WindowTitle,
+                    ProcessId = request.ProcessId,
+                    Scope = request.Scope
+                };
+                var foundElementsCollection = _elementFinderService.FindElements(searchCriteria);
+                _logger?.LogDebug("FindElements completed, found {Count} elements", foundElementsCollection?.Count ?? 0);
 
                 // Convert to list for further processing
                 var foundElementsList = new List<AutomationElement>();
@@ -77,19 +98,10 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                         foundElementsList.Add(element);
                 }
 
-                // Apply fuzzy matching if needed
-                if (request.FuzzyMatch)
-                {
-                    foundElementsList = _elementFinderService.ApplyFuzzyFilter(foundElementsCollection, searchParams);
-                }
-
-                // Apply pattern filtering
-                foundElementsList = _elementFinderService.ApplyPatternFilter(foundElementsList, searchParams);
-
-                // Apply sorting if requested
+                // Apply basic filtering and sorting
                 if (!string.IsNullOrEmpty(request.SortBy))
                 {
-                    foundElementsList = _elementFinderService.SortElements(foundElementsList, request.SortBy);
+                    foundElementsList = SortElementsBasic(foundElementsList, request.SortBy);
                 }
 
                 // Apply result limits
@@ -99,8 +111,8 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     foundElementsList = foundElementsList.Take(request.MaxResults).ToList();
                 }
 
-                // Convert to ElementInfo array with optional details
-                var elements = ConvertToElementInfoArray(foundElementsList, request);
+                // Convert to BasicElementInfo array
+                var elements = ConvertToBasicElementInfoArray(foundElementsList);
 
                 searchStopwatch.Stop();
 
@@ -131,12 +143,53 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
         }
 
         /// <summary>
-        /// Convert AutomationElements to BasicElementInfo array
+        /// Convert AutomationElements to BasicElementInfo array using ElementFinderService
         /// </summary>
-        private BasicElementInfo[] ConvertToElementInfoArray(List<AutomationElement> elements, SearchElementsRequest request)
+        private BasicElementInfo[] ConvertToBasicElementInfoArray(List<AutomationElement> elements)
         {
             return elements.Select(e => _elementFinderService.GetElementBasicInfo(e)).ToArray();
         }
+
+        /// <summary>
+        /// Sort elements using basic criteria
+        /// </summary>
+        private List<AutomationElement> SortElementsBasic(List<AutomationElement> elements, string sortBy)
+        {
+            return sortBy?.ToLower() switch
+            {
+                "name" => elements.OrderBy(e => GetElementName(e)).ToList(),
+                "controltype" => elements.OrderBy(e => GetElementControlType(e)).ToList(),
+                "position" => elements.OrderBy(e => GetElementX(e))
+                                   .ThenBy(e => GetElementY(e)).ToList(),
+                _ => elements
+            };
+        }
+        
+        private string GetElementName(AutomationElement element)
+        {
+            try { return element.Current.Name ?? ""; }
+            catch { return ""; }
+        }
+        
+        private string GetElementControlType(AutomationElement element)
+        {
+            try { return element.Current.ControlType.ProgrammaticName ?? ""; }
+            catch { return ""; }
+        }
+        
+        private double GetElementX(AutomationElement element)
+        {
+            try { return element.Current.BoundingRectangle.X; }
+            catch { return 0; }
+        }
+        
+        private double GetElementY(AutomationElement element)
+        {
+            try { return element.Current.BoundingRectangle.Y; }
+            catch { return 0; }
+        }
+
+
 
         /// <summary>
         /// Build search criteria string for metadata
@@ -166,145 +219,6 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             return suggestions.ToArray();
         }
 
-        /// <summary>
-        /// SearchElementsRequestをAdvancedSearchParametersに変換
-        /// </summary>
-        private AdvancedSearchParameters ConvertToAdvancedSearchParameters(SearchElementsRequest request)
-        {
-            var searchParams = new AdvancedSearchParameters
-            {
-                SearchText = request.SearchText,
-                AutomationId = request.AutomationId,
-                Name = request.Name,
-                ClassName = request.ClassName,
-                ControlType = request.ControlType,
-                WindowTitle = request.WindowTitle,
-                ProcessId = request.ProcessId,
-                Scope = request.Scope,
-                VisibleOnly = request.VisibleOnly,
-                FuzzyMatch = request.FuzzyMatch,
-                EnabledOnly = request.EnabledOnly,
-                SortBy = request.SortBy,
-                CacheRequest = CreateCacheRequest()?.ToString() ?? string.Empty
-            };
-
-            // Parse RequiredPatterns
-            if (!string.IsNullOrEmpty(request.RequiredPatterns))
-            {
-                searchParams.RequiredPatterns = request.RequiredPatterns
-                    .Split(';', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(p => p.Trim())
-                    .ToArray();
-            }
-
-            // Parse AnyOfPatterns
-            if (!string.IsNullOrEmpty(request.AnyOfPatterns))
-            {
-                searchParams.AnyOfPatterns = request.AnyOfPatterns
-                    .Split(';', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(p => p.Trim())
-                    .ToArray();
-            }
-
-            return searchParams;
-        }
-
-        private CacheRequest CreateCacheRequest()
-        {
-            var cacheRequest = new CacheRequest();
-            cacheRequest.Add(AutomationElement.AutomationIdProperty);
-            cacheRequest.Add(AutomationElement.NameProperty);
-            cacheRequest.Add(AutomationElement.ClassNameProperty);
-            cacheRequest.Add(AutomationElement.ControlTypeProperty);
-            cacheRequest.Add(AutomationElement.IsEnabledProperty);
-            cacheRequest.Add(AutomationElement.ProcessIdProperty);
-            cacheRequest.Add(AutomationElement.BoundingRectangleProperty);
-            cacheRequest.Add(AutomationElement.IsOffscreenProperty);
-            cacheRequest.Add(AutomationElement.FrameworkIdProperty);
-            cacheRequest.Add(AutomationElement.HelpTextProperty);
-            cacheRequest.Add(AutomationElement.HasKeyboardFocusProperty);
-            cacheRequest.Add(AutomationElement.IsKeyboardFocusableProperty);
-            cacheRequest.Add(AutomationElement.IsPasswordProperty);
-            
-            // Add accessibility properties
-            cacheRequest.Add(AutomationElement.AcceleratorKeyProperty);
-            cacheRequest.Add(AutomationElement.AccessKeyProperty);
-            cacheRequest.Add(AutomationElement.ItemTypeProperty);
-            cacheRequest.Add(AutomationElement.ItemStatusProperty);
-            cacheRequest.Add(AutomationElement.CultureProperty);
-            cacheRequest.Add(AutomationElement.OrientationProperty);
-            
-            // Add patterns themselves for supportedPatterns detection
-            cacheRequest.Add(ValuePattern.Pattern);
-            cacheRequest.Add(TogglePattern.Pattern);
-            cacheRequest.Add(SelectionPattern.Pattern);
-            cacheRequest.Add(RangeValuePattern.Pattern);
-            cacheRequest.Add(GridPattern.Pattern);
-            cacheRequest.Add(TablePattern.Pattern);
-            cacheRequest.Add(ScrollPattern.Pattern);
-            cacheRequest.Add(TransformPattern.Pattern);
-            cacheRequest.Add(WindowPattern.Pattern);
-            cacheRequest.Add(ExpandCollapsePattern.Pattern);
-            cacheRequest.Add(DockPattern.Pattern);
-            cacheRequest.Add(MultipleViewPattern.Pattern);
-            cacheRequest.Add(TextPattern.Pattern);
-            cacheRequest.Add(GridItemPattern.Pattern);
-            cacheRequest.Add(TableItemPattern.Pattern);
-            cacheRequest.Add(InvokePattern.Pattern);
-            cacheRequest.Add(ScrollItemPattern.Pattern);
-            cacheRequest.Add(VirtualizedItemPattern.Pattern);
-            cacheRequest.Add(ItemContainerPattern.Pattern);
-            cacheRequest.Add(SynchronizedInputPattern.Pattern);
-            
-            // Add pattern properties
-            cacheRequest.Add(ValuePattern.ValueProperty);
-            cacheRequest.Add(ValuePattern.IsReadOnlyProperty);
-            cacheRequest.Add(TogglePattern.ToggleStateProperty);
-            cacheRequest.Add(SelectionPattern.CanSelectMultipleProperty);
-            cacheRequest.Add(SelectionPattern.IsSelectionRequiredProperty);
-            cacheRequest.Add(RangeValuePattern.ValueProperty);
-            cacheRequest.Add(RangeValuePattern.MinimumProperty);
-            cacheRequest.Add(RangeValuePattern.MaximumProperty);
-            cacheRequest.Add(RangeValuePattern.SmallChangeProperty);
-            cacheRequest.Add(RangeValuePattern.LargeChangeProperty);
-            cacheRequest.Add(RangeValuePattern.IsReadOnlyProperty);
-            cacheRequest.Add(GridPattern.RowCountProperty);
-            cacheRequest.Add(GridPattern.ColumnCountProperty);
-            cacheRequest.Add(TablePattern.RowCountProperty);
-            cacheRequest.Add(TablePattern.ColumnCountProperty);
-            cacheRequest.Add(TablePattern.RowOrColumnMajorProperty);
-            cacheRequest.Add(ScrollPattern.HorizontalScrollPercentProperty);
-            cacheRequest.Add(ScrollPattern.VerticalScrollPercentProperty);
-            cacheRequest.Add(ScrollPattern.HorizontalViewSizeProperty);
-            cacheRequest.Add(ScrollPattern.VerticalViewSizeProperty);
-            cacheRequest.Add(ScrollPattern.HorizontallyScrollableProperty);
-            cacheRequest.Add(ScrollPattern.VerticallyScrollableProperty);
-            cacheRequest.Add(TransformPattern.CanMoveProperty);
-            cacheRequest.Add(TransformPattern.CanResizeProperty);
-            cacheRequest.Add(TransformPattern.CanRotateProperty);
-            cacheRequest.Add(WindowPattern.WindowVisualStateProperty);
-            cacheRequest.Add(WindowPattern.WindowInteractionStateProperty);
-            cacheRequest.Add(WindowPattern.IsModalProperty);
-            cacheRequest.Add(WindowPattern.IsTopmostProperty);
-            cacheRequest.Add(WindowPattern.CanMaximizeProperty);
-            cacheRequest.Add(WindowPattern.CanMinimizeProperty);
-            cacheRequest.Add(ExpandCollapsePattern.ExpandCollapseStateProperty);
-            cacheRequest.Add(DockPattern.DockPositionProperty);
-            cacheRequest.Add(MultipleViewPattern.CurrentViewProperty);
-            cacheRequest.Add(GridItemPattern.RowProperty);
-            cacheRequest.Add(GridItemPattern.ColumnProperty);
-            cacheRequest.Add(GridItemPattern.RowSpanProperty);
-            cacheRequest.Add(GridItemPattern.ColumnSpanProperty);
-            cacheRequest.Add(GridItemPattern.ContainingGridProperty);
-            cacheRequest.Add(TableItemPattern.RowProperty);
-            cacheRequest.Add(TableItemPattern.ColumnProperty);
-            cacheRequest.Add(TableItemPattern.RowSpanProperty);
-            cacheRequest.Add(TableItemPattern.ColumnSpanProperty);
-            
-            cacheRequest.AutomationElementMode = AutomationElementMode.None;
-            cacheRequest.TreeFilter = Automation.RawViewCondition;
-            return cacheRequest;
-        }
 
     }
 }
