@@ -4,8 +4,8 @@ using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Serialization;
-using UIAutomationMCP.UIAutomation.Abstractions;
-using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.Common.Abstractions;
+using UIAutomationMCP.Common.Services;
 using UIAutomationMCP.Worker.Extensions;
 
 namespace UIAutomationMCP.Worker.Operations.TreeNavigation
@@ -64,7 +64,7 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
         private TreeNode BuildElementTree(AutomationElement element, int maxDepth, int currentDepth)
         {
             // Use ElementInfoBuilder to create base ElementInfo with all latest features
-            var elementInfo = UIAutomationMCP.UIAutomation.Helpers.ElementInfoBuilder.CreateElementInfo(element, includeDetails: false);
+            var elementInfo = UIAutomationMCP.Common.Helpers.ElementInfoBuilder.CreateElementInfo(element, includeDetails: false);
             
             // Create TreeNode from ElementInfo using constructor
             var node = new TreeNode(elementInfo)

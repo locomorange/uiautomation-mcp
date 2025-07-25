@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UIAutomationMCP.Monitor", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UIAutomationMCP.Core", "UIAutomationMCP.Core\UIAutomationMCP.Core.csproj", "{12345678-1234-1234-1234-123456789012}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UIAutomationMCP.UIAutomation", "UIAutomationMCP.UIAutomation\UIAutomationMCP.UIAutomation.csproj", "{23456789-2345-2345-2345-234567890123}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UIAutomationMCP.Common", "UIAutomationMCP.Common\UIAutomationMCP.Common.csproj", "{23456789-2345-2345-2345-234567890123}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UIAutomationMCP.Models", "UIAutomationMCP.Models\UIAutomationMCP.Models.csproj", "{34567890-3456-3456-3456-345678901234}"
 EndProject

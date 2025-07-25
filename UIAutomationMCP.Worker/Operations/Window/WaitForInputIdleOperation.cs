@@ -4,8 +4,8 @@ using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Core.Exceptions;
-using UIAutomationMCP.UIAutomation.Abstractions;
-using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.Common.Abstractions;
+using UIAutomationMCP.Common.Services;
 using UIAutomationMCP.Worker.Extensions;
 
 namespace UIAutomationMCP.Worker.Operations.Window

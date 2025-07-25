@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Windows.Automation;
 
-namespace UIAutomationMCP.UIAutomation.Helpers
+namespace UIAutomationMCP.Common.Helpers
 {
     /// <summary>
     /// Helper class for UI Automation environment checks and error handling

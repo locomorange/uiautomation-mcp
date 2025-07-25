@@ -4,7 +4,7 @@ using UIAutomationMCP.Monitor.Infrastructure;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Serialization;
-using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.Common.Services;
 using UIAutomationMCP.Monitor.Abstractions;
 
 namespace UIAutomationMCP.Monitor.Operations

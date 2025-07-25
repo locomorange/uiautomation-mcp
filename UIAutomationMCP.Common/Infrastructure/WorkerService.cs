@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace UIAutomationMCP.UIAutomation.Infrastructure
+namespace UIAutomationMCP.Common.Infrastructure
 {
     /// <summary>
     /// Worker service using common base functionality

@@ -3,7 +3,7 @@ using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
 
-namespace UIAutomationMCP.UIAutomation.Helpers
+namespace UIAutomationMCP.Common.Helpers
 {
     /// <summary>
     /// Common helper for creating ElementInfo objects with optional details

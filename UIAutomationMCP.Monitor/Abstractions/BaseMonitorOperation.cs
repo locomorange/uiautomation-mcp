@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.Monitor.Infrastructure;
-using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.Common.Services;
 using UIAutomationMCP.Core.Exceptions;
 
 namespace UIAutomationMCP.Monitor.Abstractions

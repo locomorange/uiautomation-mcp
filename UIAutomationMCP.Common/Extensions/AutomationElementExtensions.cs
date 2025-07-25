@@ -1,6 +1,6 @@
 using System.Windows.Automation;
 
-namespace UIAutomationMCP.UIAutomation.Extensions
+namespace UIAutomationMCP.Common.Extensions
 {
     /// <summary>
     /// AutomationElement extension methods for safe operations

@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using UIAutomationMCP.Monitor.Sessions;
-using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.Common.Services;
 
 namespace UIAutomationMCP.Monitor.Infrastructure
 {

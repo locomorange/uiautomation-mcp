@@ -1,6 +1,6 @@
 using System.Windows.Automation;
 
-namespace UIAutomationMCP.UIAutomation.Helpers
+namespace UIAutomationMCP.Common.Helpers
 {
     /// <summary>
     /// UI Automation condition builder helper

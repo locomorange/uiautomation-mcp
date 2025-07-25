@@ -3,9 +3,9 @@ using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Core.Exceptions;
-using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.Common.Services;
 
-namespace UIAutomationMCP.UIAutomation.Abstractions
+namespace UIAutomationMCP.Common.Abstractions
 {
     /// <summary>
     /// Base class for UI Automation operations providing common functionality

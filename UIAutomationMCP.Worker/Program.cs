@@ -3,8 +3,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Worker.Helpers;
 using UIAutomationMCP.Core.Configuration;
-using UIAutomationMCP.UIAutomation.Infrastructure;
-using UIAutomationMCP.UIAutomation.Abstractions;
+using UIAutomationMCP.Common.Infrastructure;
+using UIAutomationMCP.Common.Abstractions;
 using UIAutomationMCP.Worker.Operations.ElementSearch;
 using UIAutomationMCP.Worker.Operations.Invoke;
 using UIAutomationMCP.Worker.Operations.Toggle;
@@ -20,7 +20,7 @@ using UIAutomationMCP.Worker.Operations.Range;
 using UIAutomationMCP.Worker.Operations.TreeNavigation;
 using UIAutomationMCP.Worker.Operations.Focus;
 using UIAutomationMCP.Worker.Operations.EventMonitor;
-using UIAutomationMCP.UIAutomation.Helpers;
+using UIAutomationMCP.Common.Helpers;
 
 namespace UIAutomationMCP.Worker
 {
@@ -130,7 +130,7 @@ namespace UIAutomationMCP.Worker
             builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
             // Register helper services
-            builder.Services.AddSingleton<UIAutomationMCP.UIAutomation.Services.ElementFinderService>();
+            builder.Services.AddSingleton<UIAutomationMCP.Common.Services.ElementFinderService>();
             builder.Services.AddSingleton<FindElementsCacheService>();
 
             // Register UI Automation operations

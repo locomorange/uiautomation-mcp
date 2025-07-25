@@ -4,9 +4,9 @@ using System.Text.Json;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.Models.Results;
-using UIAutomationMCP.UIAutomation.Abstractions;
+using UIAutomationMCP.Common.Abstractions;
 
-namespace UIAutomationMCP.UIAutomation.Infrastructure
+namespace UIAutomationMCP.Common.Infrastructure
 {
     /// <summary>
     /// Base class for process hosts that handle stdin/stdout communication

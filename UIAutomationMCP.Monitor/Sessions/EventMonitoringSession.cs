@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Windows.Automation;
 using UIAutomationMCP.Models;
-using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.Common.Services;
 
 namespace UIAutomationMCP.Monitor.Sessions
 {

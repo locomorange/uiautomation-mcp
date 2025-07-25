@@ -5,9 +5,9 @@ using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.Core.Exceptions;
-using UIAutomationMCP.UIAutomation.Abstractions;
-using UIAutomationMCP.UIAutomation.Services;
-using UIAutomationMCP.UIAutomation.Helpers;
+using UIAutomationMCP.Common.Abstractions;
+using UIAutomationMCP.Common.Services;
+using UIAutomationMCP.Common.Helpers;
 
 namespace UIAutomationMCP.Worker.Operations.Value
 {

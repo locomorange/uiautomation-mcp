@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Automation;
-using UIAutomationMCP.UIAutomation.Extensions;
-using UIAutomationMCP.UIAutomation.Helpers;
+using UIAutomationMCP.Common.Extensions;
+using UIAutomationMCP.Common.Helpers;
 
 namespace UIAutomationMCP.Worker.Helpers
 {

@@ -3,8 +3,8 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
-using UIAutomationMCP.UIAutomation.Abstractions;
-using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.Common.Abstractions;
+using UIAutomationMCP.Common.Services;
 using UIAutomationMCP.Core.Exceptions;
 
 namespace UIAutomationMCP.Worker.Operations.Layout

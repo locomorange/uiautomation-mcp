@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Core.Infrastructure;
 using UIAutomationMCP.Monitor.Infrastructure;
 using UIAutomationMCP.Monitor.Operations;
-using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.Common.Services;
 using System.Reflection;
 
 namespace UIAutomationMCP.Monitor

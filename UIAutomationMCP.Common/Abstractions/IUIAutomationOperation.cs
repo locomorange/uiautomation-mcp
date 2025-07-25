@@ -1,6 +1,6 @@
 using UIAutomationMCP.Models;
 
-namespace UIAutomationMCP.UIAutomation.Abstractions
+namespace UIAutomationMCP.Common.Abstractions
 {
     /// <summary>
     /// Generic operation interface for type-safe UI automation operations

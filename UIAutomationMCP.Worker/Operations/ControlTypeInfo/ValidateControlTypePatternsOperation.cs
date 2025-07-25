@@ -3,8 +3,8 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
-using UIAutomationMCP.UIAutomation.Abstractions;
-using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.Common.Abstractions;
+using UIAutomationMCP.Common.Services;
 using UIAutomationMCP.Core.Exceptions;
 
 namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
@@ -46,7 +46,7 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
                 .Select(pattern => pattern.ProgrammaticName)
                 .ToArray();
 
-            var expectedPatterns = UIAutomationMCP.UIAutomation.Helpers.ControlTypeHelper.GetPatternInfo(controlType);
+            var expectedPatterns = UIAutomationMCP.Common.Helpers.ControlTypeHelper.GetPatternInfo(controlType);
             if (expectedPatterns != null)
             {
                 var missingRequired = expectedPatterns.RequiredPatterns

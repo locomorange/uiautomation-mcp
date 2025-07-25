@@ -1,7 +1,7 @@
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
 
-namespace UIAutomationMCP.UIAutomation.Services
+namespace UIAutomationMCP.Common.Services
 {
     /// <summary>
     /// Unified element finding service for UI Automation operations
