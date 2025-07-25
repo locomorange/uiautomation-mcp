@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using UIAutomationMCP.Common.Models;
 using UIAutomationMCP.Monitor.Sessions;
+using UIAutomationMCP.Monitor.Helpers;
 
 namespace UIAutomationMCP.Monitor.Infrastructure
 {
@@ -12,10 +13,14 @@ namespace UIAutomationMCP.Monitor.Infrastructure
     {
         private readonly ConcurrentDictionary<string, EventMonitoringSession> _activeSessions = new();
         private readonly ILogger<SessionManager> _logger;
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly ElementFinderService _elementFinderService;
 
-        public SessionManager(ILogger<SessionManager> logger)
+        public SessionManager(ILogger<SessionManager> logger, ILoggerFactory loggerFactory, ElementFinderService elementFinderService)
         {
             _logger = logger;
+            _loggerFactory = loggerFactory;
+            _elementFinderService = elementFinderService;
         }
 
         /// <summary>
@@ -43,7 +48,8 @@ namespace UIAutomationMCP.Monitor.Infrastructure
                 controlType,
                 windowTitle,
                 processId,
-                _logger.CreateLogger<EventMonitoringSession>());
+                _elementFinderService,
+                _loggerFactory.CreateLogger<EventMonitoringSession>());
 
             if (!_activeSessions.TryAdd(sessionId, session))
             {

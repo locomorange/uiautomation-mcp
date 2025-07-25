@@ -4,6 +4,7 @@ using UIAutomationMCP.Common.Abstractions;
 using UIAutomationMCP.Common.Infrastructure;
 using UIAutomationMCP.Monitor.Infrastructure;
 using UIAutomationMCP.Monitor.Operations;
+using UIAutomationMCP.Monitor.Helpers;
 using System.Reflection;
 
 namespace UIAutomationMCP.Monitor
@@ -46,7 +47,12 @@ namespace UIAutomationMCP.Monitor
             // Core services
             services.AddSingleton<OperationRegistry>();
             services.AddSingleton<MonitorHost>();
-            services.AddSingleton<SessionManager>();
+            services.AddSingleton<SessionManager>(provider =>
+                new SessionManager(
+                    provider.GetRequiredService<ILogger<SessionManager>>(),
+                    provider.GetRequiredService<ILoggerFactory>(),
+                    provider.GetRequiredService<ElementFinderService>()));
+            services.AddSingleton<ElementFinderService>();
 
             // Register operations
             services.AddTransient<StartEventMonitoringOperation>();

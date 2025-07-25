@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Windows.Automation;
 using UIAutomationMCP.Common.Models;
+using UIAutomationMCP.Monitor.Helpers;
 
 namespace UIAutomationMCP.Monitor.Sessions
 {
@@ -17,6 +18,7 @@ namespace UIAutomationMCP.Monitor.Sessions
         private readonly string? _controlType;
         private readonly string? _windowTitle;
         private readonly int? _processId;
+        private readonly ElementFinderService _elementFinderService;
         private readonly ILogger<EventMonitoringSession> _logger;
 
         private readonly List<IDisposable> _eventHandlers = new();
@@ -38,6 +40,7 @@ namespace UIAutomationMCP.Monitor.Sessions
             string? controlType,
             string? windowTitle,
             int? processId,
+            ElementFinderService elementFinderService,
             ILogger<EventMonitoringSession> logger)
         {
             _sessionId = sessionId;
@@ -47,6 +50,7 @@ namespace UIAutomationMCP.Monitor.Sessions
             _controlType = controlType;
             _windowTitle = windowTitle;
             _processId = processId;
+            _elementFinderService = elementFinderService;
             _logger = logger;
         }
 
@@ -147,18 +151,12 @@ namespace UIAutomationMCP.Monitor.Sessions
 
             try
             {
-                var condition = Condition.TrueCondition;
-
-                if (!string.IsNullOrEmpty(_automationId))
-                {
-                    condition = new PropertyCondition(AutomationElement.AutomationIdProperty, _automationId);
-                }
-                else if (!string.IsNullOrEmpty(_name))
-                {
-                    condition = new PropertyCondition(AutomationElement.NameProperty, _name);
-                }
-
-                return AutomationElement.RootElement.FindFirst(TreeScope.Descendants, condition);
+                return _elementFinderService.FindElement(
+                    automationId: _automationId,
+                    name: _name,
+                    controlType: _controlType,
+                    windowTitle: _windowTitle,
+                    processId: _processId);
             }
             catch (Exception ex)
             {
