@@ -1,4 +1,4 @@
-namespace UIAutomationMCP.Shared.Abstractions
+namespace UIAutomationMCP.Core.Abstractions
 {
     /// <summary>
     /// Executes operations in isolation (subprocess, separate service, etc.)

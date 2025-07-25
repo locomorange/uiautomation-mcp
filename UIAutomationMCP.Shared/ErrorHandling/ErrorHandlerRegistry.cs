@@ -1,4 +1,4 @@
-using UIAutomationMCP.Shared.Exceptions;
+using UIAutomationMCP.Core.Exceptions;
 using UIAutomationMCP.Shared.Results;
 
 namespace UIAutomationMCP.Shared.ErrorHandling

@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Abstractions;
 using UIAutomationMCP.Server.Helpers;
-using UIAutomationMCP.Shared.Abstractions;
+using UIAutomationMCP.Core.Abstractions;
 
 namespace UIAutomationMCP.Server.Infrastructure
 {

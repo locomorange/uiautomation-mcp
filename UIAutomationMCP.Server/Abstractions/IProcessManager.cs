@@ -1,4 +1,4 @@
-using UIAutomationMCP.Shared.Abstractions;
+using UIAutomationMCP.Core.Abstractions;
 
 namespace UIAutomationMCP.Server.Abstractions
 {

@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using UIAutomationMCP.Shared;
-using UIAutomationMCP.Shared.Options;
+using UIAutomationMCP.Core.Options;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;

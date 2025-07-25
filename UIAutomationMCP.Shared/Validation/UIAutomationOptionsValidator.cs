@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Options;
-using UIAutomationMCP.Shared.Options;
+using UIAutomationMCP.Core.Options;
 
-namespace UIAutomationMCP.Shared.Validation
+namespace UIAutomationMCP.Core.Validation
 {
     /// <summary>
     /// UIAutomationOptionsのバリデーター

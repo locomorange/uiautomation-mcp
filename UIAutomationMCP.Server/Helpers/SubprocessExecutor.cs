@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Serialization;
-using UIAutomationMCP.Shared.Abstractions;
+using UIAutomationMCP.Core.Abstractions;
 
 namespace UIAutomationMCP.Server.Helpers
 {

@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Configuration;
-using UIAutomationMCP.Shared.Options;
+using UIAutomationMCP.Core.Options;
 
 namespace UIAutomationMCP.Shared.Configuration
 {

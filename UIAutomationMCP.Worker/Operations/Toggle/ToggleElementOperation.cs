@@ -4,7 +4,7 @@ using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Serialization;
-using UIAutomationMCP.Shared.Exceptions;
+using UIAutomationMCP.Core.Exceptions;
 using UIAutomationMCP.Shared.ErrorHandling;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Helpers;

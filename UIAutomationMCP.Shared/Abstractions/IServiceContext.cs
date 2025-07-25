@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace UIAutomationMCP.Shared.Abstractions
+namespace UIAutomationMCP.Core.Abstractions
 {
     /// <summary>
     /// Service execution context for tracking operation state

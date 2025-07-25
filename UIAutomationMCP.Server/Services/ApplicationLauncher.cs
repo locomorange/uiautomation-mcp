@@ -2,9 +2,9 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;
-using UIAutomationMCP.Shared.Validation;
+using UIAutomationMCP.Core.Validation;
 using UIAutomationMCP.Shared.Metadata;
-using UIAutomationMCP.Shared.Abstractions;
+using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Server.Infrastructure;
 
 namespace UIAutomationMCP.Server.Services

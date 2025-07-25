@@ -1,11 +1,11 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using UIAutomationMCP.Server.Infrastructure;
-using UIAutomationMCP.Shared.Abstractions;
-using UIAutomationMCP.Shared.Options;
+using UIAutomationMCP.Core.Abstractions;
+using UIAutomationMCP.Core.Options;
 using UIAutomationMCP.Shared.Requests;
 using UIAutomationMCP.Shared.Results;
-using UIAutomationMCP.Shared.Validation;
+using UIAutomationMCP.Core.Validation;
 using UIAutomationMCP.Shared.Metadata;
 
 namespace UIAutomationMCP.Server.Services

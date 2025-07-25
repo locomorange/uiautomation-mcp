@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
-using UIAutomationMCP.Shared.Abstractions;
+using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Shared.Results;
-using UIAutomationMCP.Shared.Validation;
+using UIAutomationMCP.Core.Validation;
 using UIAutomationMCP.Shared.Metadata;
 
 namespace UIAutomationMCP.Server.Infrastructure
