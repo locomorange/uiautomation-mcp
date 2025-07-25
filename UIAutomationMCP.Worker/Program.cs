@@ -19,7 +19,6 @@ using UIAutomationMCP.Worker.Operations.Window;
 using UIAutomationMCP.Worker.Operations.Range;
 using UIAutomationMCP.Worker.Operations.TreeNavigation;
 using UIAutomationMCP.Worker.Operations.Focus;
-using UIAutomationMCP.Worker.Operations.EventMonitor;
 using UIAutomationMCP.Common.Helpers;
 
 namespace UIAutomationMCP.Worker
@@ -182,11 +181,6 @@ namespace UIAutomationMCP.Worker
             // Range operations
             builder.Services.AddKeyedTransient<IUIAutomationOperation, SetRangeValueOperation>("SetRangeValue");
             
-            // Event Monitor operations
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, MonitorEventsOperation>("MonitorEvents");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, StartEventMonitoringOperation>("StartEventMonitoring");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, StopEventMonitoringOperation>("StopEventMonitoring");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetEventLogOperation>("GetEventLog");
 
             // Utility operations
             builder.Services.AddKeyedTransient<IUIAutomationOperation, ValidateControlTypePatternsOperation>("ValidateControlTypePatterns"); 
