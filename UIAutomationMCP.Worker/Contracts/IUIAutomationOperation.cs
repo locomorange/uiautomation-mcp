@@ -1,17 +1,16 @@
-using UIAutomationMCP.Models;
+// This interface has been moved to UIAutomationMCP.UIAutomation.Abstractions
+// Use UIAutomationMCP.UIAutomation.Abstractions.IUIAutomationOperation instead
+// This file is kept for backward compatibility during migration
+
+using UIAutomationMCP.UIAutomation.Abstractions;
 
 namespace UIAutomationMCP.Worker.Contracts
 {
     /// <summary>
-    /// UI自動化操作を処理するオペレーションのインターフェース
+    /// Legacy interface - use UIAutomationMCP.UIAutomation.Abstractions.IUIAutomationOperation instead
     /// </summary>
-    public interface IUIAutomationOperation
+    [System.Obsolete("Use UIAutomationMCP.UIAutomation.Abstractions.IUIAutomationOperation instead")]
+    public interface IUIAutomationOperation : UIAutomationMCP.UIAutomation.Abstractions.IUIAutomationOperation
     {
-        /// <summary>
-        /// UI自動化操作を実行する
-        /// </summary>
-        /// <param name="parametersJson">操作パラメータのJSON文字列</param>
-        /// <returns>操作結果</returns>
-        Task<OperationResult> ExecuteAsync(string parametersJson);
     }
 }

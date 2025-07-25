@@ -3,8 +3,9 @@ using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Serialization;
-using UIAutomationMCP.Worker.Contracts;
-using UIAutomationMCP.Worker.Helpers;
+using UIAutomationMCP.UIAutomation.Abstractions;
+using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.UIAutomation.Helpers;
 
 namespace UIAutomationMCP.Worker.Operations.Focus
 {

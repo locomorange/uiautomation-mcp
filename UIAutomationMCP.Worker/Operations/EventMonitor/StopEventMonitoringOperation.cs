@@ -3,7 +3,7 @@ using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Serialization;
-using UIAutomationMCP.Worker.Contracts;
+using UIAutomationMCP.UIAutomation.Abstractions;
 
 namespace UIAutomationMCP.Worker.Operations.EventMonitor
 {

@@ -5,8 +5,9 @@ using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.Core.Exceptions;
 using UIAutomationMCP.Shared.ErrorHandling;
-using UIAutomationMCP.Worker.Contracts;
-using UIAutomationMCP.Worker.Helpers;
+using UIAutomationMCP.UIAutomation.Abstractions;
+using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.UIAutomation.Helpers;
 
 namespace UIAutomationMCP.Worker.Operations.Invoke
 {

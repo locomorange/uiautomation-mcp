@@ -1,17 +1,18 @@
 using System.Windows.Automation;
 
-namespace UIAutomationMCP.Worker.Helpers
+namespace UIAutomationMCP.UIAutomation.Helpers
 {
     /// <summary>
-    /// UI Automationパターンの文字列変換を行うヘルパークラス
+    /// UI Automation pattern string conversion helper
+    /// Shared between Worker and Monitor processes
     /// </summary>
     public static class AutomationPatternHelper
     {
         /// <summary>
-        /// 文字列からAutomationPatternに変換する
+        /// Convert string to AutomationPattern
         /// </summary>
-        /// <param name="patternName">パターン名（大文字小文字を区別しない）</param>
-        /// <returns>対応するAutomationPattern、見つからない場合はnull</returns>
+        /// <param name="patternName">Pattern name (case insensitive)</param>
+        /// <returns>Corresponding AutomationPattern, or null if not found</returns>
         public static AutomationPattern? GetAutomationPattern(string? patternName)
         {
             if (string.IsNullOrEmpty(patternName))
@@ -45,10 +46,10 @@ namespace UIAutomationMCP.Worker.Helpers
         }
 
         /// <summary>
-        /// AutomationPatternから文字列に変換する
+        /// Convert AutomationPattern to string
         /// </summary>
         /// <param name="pattern">AutomationPattern</param>
-        /// <returns>パターン名、不明な場合は"Unknown"</returns>
+        /// <returns>Pattern name string, or "Unknown" if not found</returns>
         public static string GetPatternName(AutomationPattern pattern)
         {
             if (pattern == InvokePattern.Pattern) return "Invoke";
@@ -74,6 +75,21 @@ namespace UIAutomationMCP.Worker.Helpers
             if (pattern == SynchronizedInputPattern.Pattern) return "SynchronizedInput";
             
             return "Unknown";
+        }
+
+        /// <summary>
+        /// Get all supported pattern names
+        /// </summary>
+        /// <returns>Array of supported pattern names</returns>
+        public static string[] GetSupportedPatterns()
+        {
+            return new[]
+            {
+                "Invoke", "Value", "Toggle", "Grid", "GridItem", "Table", "TableItem",
+                "Text", "Selection", "SelectionItem", "RangeValue", "Scroll", "ScrollItem",
+                "ExpandCollapse", "Window", "Transform", "Dock", "MultipleView",
+                "VirtualizedItem", "ItemContainer", "SynchronizedInput"
+            };
         }
     }
 }
