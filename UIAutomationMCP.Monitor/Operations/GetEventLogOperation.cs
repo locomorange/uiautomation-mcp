@@ -4,104 +4,60 @@ using UIAutomationMCP.Monitor.Infrastructure;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Serialization;
+using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.Monitor.Abstractions;
 
 namespace UIAutomationMCP.Monitor.Operations
 {
     /// <summary>
     /// Get event log operation for Monitor process
     /// </summary>
-    public class GetEventLogOperation
+    public class GetEventLogOperation : BaseMonitorOperation<GetEventLogRequest, EventLogResult>
     {
-        private readonly SessionManager _sessionManager;
-        private readonly ILogger<GetEventLogOperation> _logger;
-
         public GetEventLogOperation(
             SessionManager sessionManager,
+            ElementFinderService elementFinderService,
             ILogger<GetEventLogOperation> logger)
+            : base(sessionManager, elementFinderService, logger)
         {
-            _sessionManager = sessionManager;
-            _logger = logger;
         }
 
-        public async Task<OperationResult> ExecuteAsync(string parametersJson)
+        protected override async Task<EventLogResult> ExecuteOperationAsync(GetEventLogRequest request)
         {
-            try
+            _logger.LogInformation("Getting event log - MonitorId: {MonitorId}, MaxCount: {MaxCount}", 
+                request.MonitorId, request.MaxCount);
+
+            var session = _sessionManager.GetSession(request.MonitorId);
+            if (session == null)
             {
-                if (string.IsNullOrEmpty(parametersJson))
-                {
-                    return new OperationResult
-                    {
-                        Success = false,
-                        Error = "ParametersJson is null or empty",
-                        Data = new EventLogResult()
-                    };
-                }
-
-                var request = JsonSerializationHelper.Deserialize<GetEventLogRequest>(parametersJson);
-                if (request == null)
-                {
-                    return new OperationResult
-                    {
-                        Success = false,
-                        Error = "Failed to deserialize GetEventLogRequest",
-                        Data = new EventLogResult()
-                    };
-                }
-
-                _logger.LogInformation("Getting event log - MonitorId: {MonitorId}, MaxCount: {MaxCount}", 
-                    request.MonitorId, request.MaxCount);
-
-                var session = _sessionManager.GetSession(request.MonitorId);
-                if (session == null)
-                {
-                    _logger.LogWarning("Session not found: {MonitorId}", request.MonitorId);
-                    
-                    return new OperationResult
-                    {
-                        Success = false,
-                        Error = $"Monitoring session '{request.MonitorId}' not found",
-                        Data = new EventLogResult
-                        {
-                            Success = false,
-                            MonitorId = request.MonitorId,
-                            Events = new List<EventData>(),
-                            SessionActive = false
-                        }
-                    };
-                }
-
-                var typedEvents = session.GetCapturedEvents(request.MaxCount);
+                _logger.LogWarning("Session not found: {MonitorId}", request.MonitorId);
                 
-                // Convert typed events to legacy format for compatibility
-                var legacyEvents = typedEvents.Select(ConvertToLegacyEventData).ToList();
-
-                var result = new EventLogResult
-                {
-                    Success = true,
-                    MonitorId = request.MonitorId,
-                    Events = legacyEvents,
-                    SessionActive = session.IsActive
-                };
-
-                _logger.LogInformation("Retrieved {EventCount} events for session {SessionId}", 
-                    legacyEvents.Count, request.MonitorId);
-
-                return new OperationResult
-                {
-                    Success = true,
-                    Data = result
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "GetEventLog operation failed");
-                return new OperationResult
+                return new EventLogResult
                 {
                     Success = false,
-                    Error = $"GetEventLog failed: {ex.Message}",
-                    Data = new EventLogResult()
+                    MonitorId = request.MonitorId,
+                    Events = new List<EventData>(),
+                    SessionActive = false
                 };
             }
+
+            var typedEvents = session.GetCapturedEvents(request.MaxCount);
+            
+            // Convert typed events to legacy format for compatibility
+            var legacyEvents = typedEvents.Select(ConvertToLegacyEventData).ToList();
+
+            var result = new EventLogResult
+            {
+                Success = true,
+                MonitorId = request.MonitorId,
+                Events = legacyEvents,
+                SessionActive = session.IsActive
+            };
+
+            _logger.LogInformation("Retrieved {EventCount} events for session {SessionId}", 
+                legacyEvents.Count, request.MonitorId);
+
+            return result;
         }
 
         private EventData ConvertToLegacyEventData(TypedEventData typedEvent)
