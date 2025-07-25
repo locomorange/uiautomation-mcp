@@ -1,20 +1,20 @@
-using UIAutomationMCP.Models.Results;
-
-namespace UIAutomationMCP.Worker.Results
+namespace UIAutomationMCP.Models.Results
 {
-    // Common Worker operation results
+    // Common operation results
     public class UniversalResponse : BaseOperationResult { }
     public class TreeNavigationResult : BaseOperationResult { }
     public class FindItemResult : BaseOperationResult { }
     public class ElementDetailResult : BaseOperationResult { }
+    public class EventMonitoringResult : BaseOperationResult { }
+    public class TableInfoResult : BaseOperationResult { }
+    
+    // Support classes
     public class DetailMetadata { }
     public class ElementDetail { }
-    public class EventMonitoringResult : BaseOperationResult { }
     public class EventTimeRange { }
     public class ServerExecutionInfo { }
     public class RequestMetadata { }
     public class ServerEnhancedResponse<T> { }
-    public class TableInfoResult : BaseOperationResult { }
 
     // Pattern operation results
     public class SetRangeValueResult : BaseOperationResult { }
@@ -42,7 +42,7 @@ namespace UIAutomationMCP.Worker.Results
     public class ScrollElementResult : BaseOperationResult { }
 
     /// <summary>
-    /// Error handler registry for Worker operations
+    /// Error handler registry for operations
     /// </summary>
     public static class ErrorHandlerRegistry
     {

@@ -98,56 +98,56 @@ namespace UIAutomationMCP.Models.Serialization
                 Type t when t == typeof(WorkerResponse<BaseOperationResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseBaseOperationResult,
                 Type t when t == typeof(WorkerResponse<ElementSearchResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseElementSearchResult,
                 Type t when t == typeof(WorkerResponse<ActionResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseActionResult,
-                // Type t when t == typeof(WorkerResponse<WindowActionResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseWindowActionResult, // TODO: Create missing type
-                // Type t when t == typeof(WorkerResponse<FindItemResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseFindItemResult, // TODO: Create missing type
+                Type t when t == typeof(WorkerResponse<WindowActionResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseWindowActionResult,
+                Type t when t == typeof(WorkerResponse<FindItemResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseFindItemResult,
                 Type t when t == typeof(WorkerResponse<ProcessResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseProcessResult,
                 Type t when t == typeof(WorkerResponse<ErrorResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseErrorResult,
-                // Type t when t == typeof(WorkerResponse<UniversalResponse>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseUniversalResponse, // TODO: Create missing type
+                Type t when t == typeof(WorkerResponse<UniversalResponse>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseUniversalResponse,
                 Type t when t == typeof(WorkerResponse<BooleanResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseBooleanResult,
-                // Type t when t == typeof(WorkerResponse<TextInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTextInfoResult, // TODO: Create missing type
-                // Type t when t == typeof(WorkerResponse<TextAttributesResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTextAttributesResult, // TODO: Create missing type
-                // Type t when t == typeof(WorkerResponse<TextSearchResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTextSearchResult, // TODO: Create missing type
+                Type t when t == typeof(WorkerResponse<TextInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTextInfoResult,
+                Type t when t == typeof(WorkerResponse<TextAttributesResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTextAttributesResult,
+                Type t when t == typeof(WorkerResponse<TextSearchResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTextSearchResult,
                 Type t when t == typeof(WorkerResponse<ElementTreeResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseElementTreeResult,
-                // Type t when t == typeof(WorkerResponse<SearchElementsResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseSearchElementsResult, // TODO: Create missing type
-                // Type t when t == typeof(WorkerResponse<ElementDetailResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseElementDetailResult, // TODO: Create missing type
-                // Type t when t == typeof(WorkerResponse<TableInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTableInfoResult, // TODO: Create missing type
+                Type t when t == typeof(WorkerResponse<SearchElementsResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseSearchElementsResult,
+                Type t when t == typeof(WorkerResponse<ElementDetailResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseElementDetailResult,
+                Type t when t == typeof(WorkerResponse<TableInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTableInfoResult,
                 Type t when t == typeof(WorkerResponse<object>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseObject,
-                // Type t when t == typeof(WorkerResponse<EventMonitoringResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseEventMonitoringResult, // TODO: Create missing type
-                // Type t when t == typeof(WorkerResponse<EventMonitoringStartResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseEventMonitoringStartResult, // TODO: Create missing type
-                // Type t when t == typeof(WorkerResponse<EventMonitoringStopResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseEventMonitoringStopResult, // TODO: Create missing type
-                // Type t when t == typeof(WorkerResponse<EventLogResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseEventLogResult, // TODO: Create missing type
+                Type t when t == typeof(WorkerResponse<EventMonitoringResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseEventMonitoringResult,
+                Type t when t == typeof(WorkerResponse<EventMonitoringStartResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseEventMonitoringStartResult,
+                Type t when t == typeof(WorkerResponse<EventMonitoringStopResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseEventMonitoringStopResult,
+                Type t when t == typeof(WorkerResponse<EventLogResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseEventLogResult,
 
                 // Result types (consolidated from GetResultTypeInfo)
                 Type t when t == typeof(ScreenshotResult) => (JsonTypeInfo<T>)(object)_context.ScreenshotResult,
                 Type t when t == typeof(BaseOperationResult) => (JsonTypeInfo<T>)(object)_context.BaseOperationResult,
                 Type t when t == typeof(ElementSearchResult) => (JsonTypeInfo<T>)(object)_context.ElementSearchResult,
                 Type t when t == typeof(ActionResult) => (JsonTypeInfo<T>)(object)_context.ActionResult,
-                // Type t when t == typeof(WindowActionResult) => (JsonTypeInfo<T>)(object)_context.WindowActionResult, // TODO: Create missing type
-                // Type t when t == typeof(FindItemResult) => (JsonTypeInfo<T>)(object)_context.FindItemResult, // TODO: Create missing type
+                Type t when t == typeof(WindowActionResult) => (JsonTypeInfo<T>)(object)_context.WindowActionResult,
+                Type t when t == typeof(FindItemResult) => (JsonTypeInfo<T>)(object)_context.FindItemResult,
                 Type t when t == typeof(ProcessResult) => (JsonTypeInfo<T>)(object)_context.ProcessResult,
                 Type t when t == typeof(ErrorResult) => (JsonTypeInfo<T>)(object)_context.ErrorResult,
-                // Type t when t == typeof(UniversalResponse) => (JsonTypeInfo<T>)(object)_context.UniversalResponse, // TODO: Create missing type
+                Type t when t == typeof(UniversalResponse) => (JsonTypeInfo<T>)(object)_context.UniversalResponse,
                 Type t when t == typeof(ElementTreeResult) => (JsonTypeInfo<T>)(object)_context.ElementTreeResult,
-                // Type t when t == typeof(TreeNavigationResult) => (JsonTypeInfo<T>)(object)_context.TreeNavigationResult, // TODO: Create missing type
+                Type t when t == typeof(TreeNavigationResult) => (JsonTypeInfo<T>)(object)_context.TreeNavigationResult,
                 Type t when t == typeof(BooleanResult) => (JsonTypeInfo<T>)(object)_context.BooleanResult,
                 Type t when t == typeof(ProcessLaunchResponse) => (JsonTypeInfo<T>)(object)_context.ProcessLaunchResponse,
-                // Type t when t == typeof(TextInfoResult) => (JsonTypeInfo<T>)(object)_context.TextInfoResult, // TODO: Create missing type
-                // Type t when t == typeof(TextAttributesResult) => (JsonTypeInfo<T>)(object)_context.TextAttributesResult, // TODO: Create missing type
-                // Type t when t == typeof(TextSearchResult) => (JsonTypeInfo<T>)(object)_context.TextSearchResult, // TODO: Create missing type
-                // Type t when t == typeof(TextAttributeRange) => (JsonTypeInfo<T>)(object)_context.TextAttributeRange, // TODO: Create missing type
-                // Type t when t == typeof(TextRangeAttributes) => (JsonTypeInfo<T>)(object)_context.TextRangeAttributes, // TODO: Create missing type
-                // Type t when t == typeof(TextAttributes) => (JsonTypeInfo<T>)(object)_context.TextAttributes, // TODO: Create missing type
-                // Type t when t == typeof(SearchElementsResult) => (JsonTypeInfo<T>)(object)_context.SearchElementsResult, // TODO: Create missing type
-                // Type t when t == typeof(ElementDetailResult) => (JsonTypeInfo<T>)(object)_context.ElementDetailResult, // TODO: Create missing type
-                // Type t when t == typeof(TableInfoResult) => (JsonTypeInfo<T>)(object)_context.TableInfoResult, // TODO: Create missing type
+                Type t when t == typeof(TextInfoResult) => (JsonTypeInfo<T>)(object)_context.TextInfoResult,
+                Type t when t == typeof(TextAttributesResult) => (JsonTypeInfo<T>)(object)_context.TextAttributesResult,
+                Type t when t == typeof(TextSearchResult) => (JsonTypeInfo<T>)(object)_context.TextSearchResult,
+                Type t when t == typeof(TextAttributeRange) => (JsonTypeInfo<T>)(object)_context.TextAttributeRange,
+                Type t when t == typeof(TextRangeAttributes) => (JsonTypeInfo<T>)(object)_context.TextRangeAttributes,
+                Type t when t == typeof(TextAttributes) => (JsonTypeInfo<T>)(object)_context.TextAttributes,
+                Type t when t == typeof(SearchElementsResult) => (JsonTypeInfo<T>)(object)_context.SearchElementsResult,
+                Type t when t == typeof(ElementDetailResult) => (JsonTypeInfo<T>)(object)_context.ElementDetailResult,
+                Type t when t == typeof(TableInfoResult) => (JsonTypeInfo<T>)(object)_context.TableInfoResult,
                 
                 // EventMonitor Result types
-                // Type t when t == typeof(EventMonitoringResult) => (JsonTypeInfo<T>)(object)_context.EventMonitoringResult, // TODO: Create missing type
-                // Type t when t == typeof(EventMonitoringStartResult) => (JsonTypeInfo<T>)(object)_context.EventMonitoringStartResult, // TODO: Create missing type
-                // Type t when t == typeof(EventMonitoringStopResult) => (JsonTypeInfo<T>)(object)_context.EventMonitoringStopResult, // TODO: Create missing type
-                // Type t when t == typeof(EventLogResult) => (JsonTypeInfo<T>)(object)_context.EventLogResult, // TODO: Create missing type
+                Type t when t == typeof(EventMonitoringResult) => (JsonTypeInfo<T>)(object)_context.EventMonitoringResult,
+                Type t when t == typeof(EventMonitoringStartResult) => (JsonTypeInfo<T>)(object)_context.EventMonitoringStartResult,
+                Type t when t == typeof(EventMonitoringStopResult) => (JsonTypeInfo<T>)(object)_context.EventMonitoringStopResult,
+                Type t when t == typeof(EventLogResult) => (JsonTypeInfo<T>)(object)_context.EventLogResult,
                 Type t when t == typeof(TypedEventData) => (JsonTypeInfo<T>)(object)_context.TypedEventData,
-                // Type t when t == typeof(EventTimeRange) => (JsonTypeInfo<T>)(object)_context.EventTimeRange, // TODO: Create missing type
+                Type t when t == typeof(EventTimeRange) => (JsonTypeInfo<T>)(object)_context.EventTimeRange,
 
                 // Request types (consolidated from GetRequestTypeInfo)
                 Type t when t == typeof(InvokeElementRequest) => (JsonTypeInfo<T>)(object)_context.InvokeElementRequest,
@@ -230,25 +230,25 @@ namespace UIAutomationMCP.Models.Serialization
                 Type t when t == typeof(StopEventMonitoringRequest) => (JsonTypeInfo<T>)(object)_context.StopEventMonitoringRequest,
                 Type t when t == typeof(GetEventLogRequest) => (JsonTypeInfo<T>)(object)_context.GetEventLogRequest,
 
-                // ServerEnhancedResponse types - disabled, moved to server project
-                // Type t when t == typeof(ServerEnhancedResponse<ElementTreeResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseElementTreeResult,
-                // Type t when t == typeof(ServerEnhancedResponse<TreeNavigationResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTreeNavigationResult,
-                // Type t when t == typeof(ServerEnhancedResponse<ElementSearchResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseElementSearchResult,
-                // Type t when t == typeof(ServerEnhancedResponse<ProcessResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseProcessResult,
-                // Type t when t == typeof(ServerEnhancedResponse<ActionResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseActionResult,
-                // Type t when t == typeof(ServerEnhancedResponse<ScreenshotResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseScreenshotResult,
-                // Type t when t == typeof(ServerEnhancedResponse<BaseOperationResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseBaseOperationResult,
-                // Type t when t == typeof(ServerEnhancedResponse<ProcessLaunchResponse>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseProcessLaunchResponse,
-                // Type t when t == typeof(ServerEnhancedResponse<BooleanResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseBooleanResult,
-                // Type t when t == typeof(ServerEnhancedResponse<SearchElementsResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseSearchElementsResult, // TODO: Create missing type
-                // Type t when t == typeof(ServerEnhancedResponse<ElementDetailResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseElementDetailResult, // TODO: Create missing type
-                // Type t when t == typeof(ServerEnhancedResponse<TableInfoResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTableInfoResult, // TODO: Create missing type
-                // Type t when t == typeof(ServerEnhancedResponse<TextSearchResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTextSearchResult, // TODO: Create missing type
-                // Type t when t == typeof(ServerEnhancedResponse<TextAttributesResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTextAttributesResult, // TODO: Create missing type
-                // Type t when t == typeof(ServerEnhancedResponse<EventMonitoringResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseEventMonitoringResult, // TODO: Create missing type
-                // Type t when t == typeof(ServerEnhancedResponse<EventMonitoringStartResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseEventMonitoringStartResult, // TODO: Create missing type
-                // Type t when t == typeof(ServerEnhancedResponse<EventMonitoringStopResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseEventMonitoringStopResult, // TODO: Create missing type
-                // Type t when t == typeof(ServerEnhancedResponse<EventLogResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseEventLogResult, // TODO: Create missing type
+                // ServerEnhancedResponse types - now available in Models project
+                Type t when t == typeof(ServerEnhancedResponse<ElementTreeResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseElementTreeResult,
+                Type t when t == typeof(ServerEnhancedResponse<TreeNavigationResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTreeNavigationResult,
+                Type t when t == typeof(ServerEnhancedResponse<ElementSearchResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseElementSearchResult,
+                Type t when t == typeof(ServerEnhancedResponse<ProcessResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseProcessResult,
+                Type t when t == typeof(ServerEnhancedResponse<ActionResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseActionResult,
+                Type t when t == typeof(ServerEnhancedResponse<ScreenshotResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseScreenshotResult,
+                Type t when t == typeof(ServerEnhancedResponse<BaseOperationResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseBaseOperationResult,
+                Type t when t == typeof(ServerEnhancedResponse<ProcessLaunchResponse>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseProcessLaunchResponse,
+                Type t when t == typeof(ServerEnhancedResponse<BooleanResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseBooleanResult,
+                Type t when t == typeof(ServerEnhancedResponse<SearchElementsResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseSearchElementsResult,
+                Type t when t == typeof(ServerEnhancedResponse<ElementDetailResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseElementDetailResult,
+                Type t when t == typeof(ServerEnhancedResponse<TableInfoResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTableInfoResult,
+                Type t when t == typeof(ServerEnhancedResponse<TextSearchResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTextSearchResult,
+                Type t when t == typeof(ServerEnhancedResponse<TextAttributesResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseTextAttributesResult,
+                Type t when t == typeof(ServerEnhancedResponse<EventMonitoringResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseEventMonitoringResult,
+                Type t when t == typeof(ServerEnhancedResponse<EventMonitoringStartResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseEventMonitoringStartResult,
+                Type t when t == typeof(ServerEnhancedResponse<EventMonitoringStopResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseEventMonitoringStopResult,
+                Type t when t == typeof(ServerEnhancedResponse<EventLogResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseEventLogResult,
 
                 // Basic types
                 Type t when t == typeof(Dictionary<string, object>) => (JsonTypeInfo<T>)(object)_context.DictionaryStringObject,
@@ -271,17 +271,17 @@ namespace UIAutomationMCP.Models.Serialization
     [JsonSerializable(typeof(WorkerResponse<BaseOperationResult>))]
     [JsonSerializable(typeof(WorkerResponse<ElementSearchResult>))]
     [JsonSerializable(typeof(WorkerResponse<ActionResult>))]
-    // Worker-specific types moved to separate projects
-    // [JsonSerializable(typeof(WorkerResponse<WindowActionResult>))]
-    // [JsonSerializable(typeof(WorkerResponse<FindItemResult>))]
+    // Worker-specific types now in Models project
+    [JsonSerializable(typeof(WorkerResponse<WindowActionResult>))]
+    [JsonSerializable(typeof(WorkerResponse<FindItemResult>))]
     [JsonSerializable(typeof(WorkerResponse<ProcessResult>))]
     [JsonSerializable(typeof(WorkerResponse<ElementTreeResult>))]
-    // [JsonSerializable(typeof(WorkerResponse<SearchElementsResult>))]
-    // [JsonSerializable(typeof(WorkerResponse<ElementDetailResult>))]
-    // [JsonSerializable(typeof(WorkerResponse<TableInfoResult>))] // TODO: Create missing type
+    [JsonSerializable(typeof(WorkerResponse<SearchElementsResult>))]
+    [JsonSerializable(typeof(WorkerResponse<ElementDetailResult>))]
+    [JsonSerializable(typeof(WorkerResponse<TableInfoResult>))]
     [JsonSerializable(typeof(WorkerResponse<BooleanResult>))]
     [JsonSerializable(typeof(WorkerResponse<ErrorResult>))]
-    // [JsonSerializable(typeof(WorkerResponse<UniversalResponse>))] // TODO: Create missing type
+    [JsonSerializable(typeof(WorkerResponse<UniversalResponse>))]
     [JsonSerializable(typeof(Dictionary<string, object>))]
     [JsonSerializable(typeof(List<Dictionary<string, object>>))]
     // Result types
@@ -290,27 +290,27 @@ namespace UIAutomationMCP.Models.Serialization
     [JsonSerializable(typeof(BaseOperationResult))]
     [JsonSerializable(typeof(ElementSearchResult))]
     [JsonSerializable(typeof(ActionResult))]
-    // [JsonSerializable(typeof(WindowActionResult))] // TODO: Create missing type
+    [JsonSerializable(typeof(WindowActionResult))]
     [JsonSerializable(typeof(ErrorResult))]
-    // [JsonSerializable(typeof(UniversalResponse))] // TODO: Create missing type
+    [JsonSerializable(typeof(UniversalResponse))]
     [JsonSerializable(typeof(ElementTreeResult))]
-    // [JsonSerializable(typeof(TreeNavigationResult))] // TODO: Create missing type
+    [JsonSerializable(typeof(TreeNavigationResult))]
     [JsonSerializable(typeof(BooleanResult))]
-    // [JsonSerializable(typeof(FindItemResult))] // TODO: Create missing type
-    // [JsonSerializable(typeof(TextInfoResult))] // TODO: Create missing type
-    // [JsonSerializable(typeof(TextAttributesResult))] // TODO: Create missing type
-    // [JsonSerializable(typeof(TextSearchResult))] // TODO: Create missing type
-    // [JsonSerializable(typeof(TextAttributeRange))] // TODO: Create missing type
-    // [JsonSerializable(typeof(TextRangeAttributes))] // TODO: Create missing type
-    // [JsonSerializable(typeof(TextAttributes))] // TODO: Create missing type
-    // [JsonSerializable(typeof(TableInfoResult))] // TODO: Create missing type
-    // [JsonSerializable(typeof(WorkerResponse<TextInfoResult>))] // TODO: Create missing type
-    // [JsonSerializable(typeof(WorkerResponse<TextAttributesResult>))] // TODO: Create missing type
-    // [JsonSerializable(typeof(WorkerResponse<TextSearchResult>))] // TODO: Create missing type
-    // [JsonSerializable(typeof(WorkerResponse<EventMonitoringResult>))] // TODO: Create missing type
-    // [JsonSerializable(typeof(WorkerResponse<EventMonitoringStartResult>))] // TODO: Create missing type
-    // [JsonSerializable(typeof(WorkerResponse<EventMonitoringStopResult>))] // TODO: Create missing type
-    // [JsonSerializable(typeof(WorkerResponse<EventLogResult>))] // TODO: Create missing type
+    [JsonSerializable(typeof(FindItemResult))]
+    [JsonSerializable(typeof(TextInfoResult))]
+    [JsonSerializable(typeof(TextAttributesResult))]
+    [JsonSerializable(typeof(TextSearchResult))]
+    [JsonSerializable(typeof(TextAttributeRange))]
+    [JsonSerializable(typeof(TextRangeAttributes))]
+    [JsonSerializable(typeof(TextAttributes))]
+    [JsonSerializable(typeof(TableInfoResult))]
+    [JsonSerializable(typeof(WorkerResponse<TextInfoResult>))]
+    [JsonSerializable(typeof(WorkerResponse<TextAttributesResult>))]
+    [JsonSerializable(typeof(WorkerResponse<TextSearchResult>))]
+    [JsonSerializable(typeof(WorkerResponse<EventMonitoringResult>))]
+    [JsonSerializable(typeof(WorkerResponse<EventMonitoringStartResult>))]
+    [JsonSerializable(typeof(WorkerResponse<EventMonitoringStopResult>))]
+    [JsonSerializable(typeof(WorkerResponse<EventLogResult>))]
     // Basic types
     [JsonSerializable(typeof(string))]
     [JsonSerializable(typeof(int))]
@@ -407,45 +407,45 @@ namespace UIAutomationMCP.Models.Serialization
     // New MCP tools
     [JsonSerializable(typeof(SearchElementsRequest))]
     [JsonSerializable(typeof(GetElementDetailsRequest))]
-    // [JsonSerializable(typeof(SearchElementsResult))] // TODO: Create missing type
-    // [JsonSerializable(typeof(ElementDetailResult))] // TODO: Create missing type
-    // [JsonSerializable(typeof(BasicElementInfo))] // TODO: Create missing type
-    // [JsonSerializable(typeof(SearchMetadata))] // TODO: Create missing type
-    // [JsonSerializable(typeof(DetailMetadata))] // TODO: Create missing type
-    // [JsonSerializable(typeof(ElementDetail))] // TODO: Create missing type
+    [JsonSerializable(typeof(SearchElementsResult))]
+    [JsonSerializable(typeof(ElementDetailResult))]
+    [JsonSerializable(typeof(BasicElementInfo))]
+    [JsonSerializable(typeof(SearchMetadata))]
+    [JsonSerializable(typeof(DetailMetadata))]
+    [JsonSerializable(typeof(ElementDetail))]
     [JsonSerializable(typeof(ElementDetails))]
     [JsonSerializable(typeof(string[]))]
     [JsonSerializable(typeof(List<string>))]
-    // ServerEnhanced types - moved to server project
-    // [JsonSerializable(typeof(ServerEnhancedResponse<ElementTreeResult>))]
-    // [JsonSerializable(typeof(ServerEnhancedResponse<TreeNavigationResult>))]
-    // [JsonSerializable(typeof(ServerEnhancedResponse<ElementSearchResult>))]
-    // [JsonSerializable(typeof(ServerEnhancedResponse<ProcessResult>))]
-    // [JsonSerializable(typeof(ServerEnhancedResponse<ActionResult>))]
-    // [JsonSerializable(typeof(ServerEnhancedResponse<ScreenshotResult>))]
-    // [JsonSerializable(typeof(ServerEnhancedResponse<BaseOperationResult>))]
-    // [JsonSerializable(typeof(ServerEnhancedResponse<ProcessLaunchResponse>))]
-    // [JsonSerializable(typeof(ServerEnhancedResponse<BooleanResult>))]
-    // [JsonSerializable(typeof(ServerEnhancedResponse<SearchElementsResult>))] // TODO: Create missing type
-    // [JsonSerializable(typeof(ServerEnhancedResponse<ElementDetailResult>))] // TODO: Create missing type
-    // [JsonSerializable(typeof(ServerEnhancedResponse<TableInfoResult>))] // TODO: Create missing type
-    // [JsonSerializable(typeof(ServerEnhancedResponse<TextSearchResult>))] // TODO: Create missing type
-    // [JsonSerializable(typeof(ServerEnhancedResponse<TextAttributesResult>))] // TODO: Create missing type
+    // ServerEnhanced types - now available in Models project
+    [JsonSerializable(typeof(ServerEnhancedResponse<ElementTreeResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<TreeNavigationResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<ElementSearchResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<ProcessResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<ActionResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<ScreenshotResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<BaseOperationResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<ProcessLaunchResponse>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<BooleanResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<SearchElementsResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<ElementDetailResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<TableInfoResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<TextSearchResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<TextAttributesResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<EventMonitoringResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<EventMonitoringStartResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<EventMonitoringStopResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<EventLogResult>))]
     // EventMonitor Result types
-    // [JsonSerializable(typeof(EventMonitoringResult))] // TODO: Create missing type
-    // [JsonSerializable(typeof(EventMonitoringStartResult))] // TODO: Create missing type
-    // [JsonSerializable(typeof(EventMonitoringStopResult))] // TODO: Create missing type
-    // [JsonSerializable(typeof(EventLogResult))] // TODO: Create missing type
+    [JsonSerializable(typeof(EventMonitoringResult))]
+    [JsonSerializable(typeof(EventMonitoringStartResult))]
+    [JsonSerializable(typeof(EventMonitoringStopResult))]
+    [JsonSerializable(typeof(EventLogResult))]
     [JsonSerializable(typeof(TypedEventData))]
-    // [JsonSerializable(typeof(EventTimeRange))] // TODO: Create missing type
-    // EventMonitor ServerEnhanced types
-    // [JsonSerializable(typeof(ServerEnhancedResponse<EventMonitoringResult>))] // TODO: Create missing type
-    // [JsonSerializable(typeof(ServerEnhancedResponse<EventMonitoringStartResult>))] // TODO: Create missing type
-    // [JsonSerializable(typeof(ServerEnhancedResponse<EventMonitoringStopResult>))] // TODO: Create missing type
-    // [JsonSerializable(typeof(ServerEnhancedResponse<EventLogResult>))] // TODO: Create missing type
+    [JsonSerializable(typeof(EventTimeRange))]
+    // EventMonitor ServerEnhanced types - already included above
     [JsonSerializable(typeof(ProcessLaunchResponse))]
-    // [JsonSerializable(typeof(ServerExecutionInfo))] // Moved to Worker project
-    // [JsonSerializable(typeof(RequestMetadata))] // Moved to Worker project
+    [JsonSerializable(typeof(ServerExecutionInfo))] // Available in Models project
+    [JsonSerializable(typeof(RequestMetadata))] // Available in Models project
     // Pattern Info types
     [JsonSerializable(typeof(ToggleInfo))]
     [JsonSerializable(typeof(RangeInfo))]

@@ -7,7 +7,7 @@ using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.UIAutomation.Services;
 using UIAutomationMCP.UIAutomation.Helpers;
 using UIAutomationMCP.Worker.Extensions;
-using UIAutomationMCP.Worker.Results;
+using UIAutomationMCP.Models.Results;
 
 namespace UIAutomationMCP.Worker.Operations.Focus
 {

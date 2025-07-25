@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Windows.Automation;
 using UIAutomationMCP.UIAutomation.Services;
-using UIAutomationMCP.Worker.Results;
+using UIAutomationMCP.Models.Results;
 
 namespace UIAutomationMCP.Worker.Extensions
 {

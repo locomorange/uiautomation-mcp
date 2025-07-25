@@ -1,6 +1,4 @@
-using UIAutomationMCP.Models.Results;
-
-namespace UIAutomationMCP.Worker.Results
+namespace UIAutomationMCP.Models.Results
 {
     /// <summary>
     /// Result for element search operations
@@ -52,7 +50,7 @@ namespace UIAutomationMCP.Worker.Results
         public string ControlType { get; set; } = string.Empty;
         public string WindowTitle { get; set; } = string.Empty;
         public int? ProcessId { get; set; }
-        public bool FuzzyMatch { get; set; }
+        public bool FuzzyMatch { get; set; }                      
         public string[] RequiredPatterns { get; set; } = Array.Empty<string>();
     }
 }

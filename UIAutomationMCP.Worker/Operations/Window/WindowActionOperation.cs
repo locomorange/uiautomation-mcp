@@ -7,7 +7,7 @@ using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.UIAutomation.Services;
 using UIAutomationMCP.Worker.Extensions;
-using UIAutomationMCP.Worker.Results;
+using UIAutomationMCP.Models.Results;
 
 namespace UIAutomationMCP.Worker.Operations.Window
 {

@@ -1,6 +1,4 @@
-using UIAutomationMCP.Models.Results;
-
-namespace UIAutomationMCP.Worker.Results
+namespace UIAutomationMCP.Models.Results
 {
     /// <summary>
     /// Result for window action operations

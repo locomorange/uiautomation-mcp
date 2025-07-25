@@ -1,10 +1,7 @@
-using UIAutomationMCP.Models;
-using UIAutomationMCP.Models.Results;
-
-namespace UIAutomationMCP.Monitor.Results
+namespace UIAutomationMCP.Models.Results
 {
     /// <summary>
-    /// Result for starting event monitoring in Monitor process
+    /// Result for starting event monitoring
     /// </summary>
     public class EventMonitoringStartResult : BaseOperationResult 
     {
@@ -17,7 +14,7 @@ namespace UIAutomationMCP.Monitor.Results
     }
 
     /// <summary>
-    /// Result for stopping event monitoring in Monitor process
+    /// Result for stopping event monitoring
     /// </summary>
     public class EventMonitoringStopResult : BaseOperationResult 
     { 
@@ -27,7 +24,7 @@ namespace UIAutomationMCP.Monitor.Results
     }
 
     /// <summary>
-    /// Result for getting event log from Monitor process
+    /// Result for getting event log
     /// </summary>
     public class EventLogResult : BaseOperationResult 
     {
