@@ -35,6 +35,7 @@ namespace UIAutomationMCP.Models.Results
     public class SetValueResult : BaseOperationResult { }
     public class SetFocusResult : BaseOperationResult { }
     public class GetGridItemResult : BaseOperationResult { }
+    public class GridItemResult : BaseOperationResult { }
     public class GetRowHeaderResult : BaseOperationResult { }
     public class GetColumnHeaderResult : BaseOperationResult { }
     public class WaitForInputIdleResult : BaseOperationResult { }

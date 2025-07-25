@@ -25,7 +25,8 @@ namespace UIAutomationMCP.UIAutomation.Services
             string? controlType = null, 
             string? windowTitle = null, 
             int? processId = null, 
-            TreeScope scope = TreeScope.Descendants)
+            TreeScope scope = TreeScope.Descendants,
+            AutomationPattern? requiredPattern = null)
         {
             // At least one identifier is required
             if (string.IsNullOrEmpty(automationId) && string.IsNullOrEmpty(name))
@@ -86,6 +87,18 @@ namespace UIAutomationMCP.UIAutomation.Services
                     }
                 }
 
+                // Add required pattern filter if specified
+                if (requiredPattern != null && condition != null)
+                {
+                    // Get the pattern availability property for the specific pattern
+                    var patternAvailableProperty = Helpers.AutomationPatternHelper.GetPatternAvailableProperty(requiredPattern);
+                    if (patternAvailableProperty != null)
+                    {
+                        var patternCondition = new PropertyCondition(patternAvailableProperty, true);
+                        condition = new AndCondition(condition, patternCondition);
+                    }
+                }
+
                 if (condition == null)
                 {
                     _logger.LogWarning("No valid search condition could be built");
@@ -116,6 +129,7 @@ namespace UIAutomationMCP.UIAutomation.Services
                 return null;
             }
         }
+
 
         private bool TryGetControlType(string controlTypeName, out ControlType? controlType)
         {
