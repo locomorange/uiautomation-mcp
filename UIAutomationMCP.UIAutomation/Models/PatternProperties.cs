@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace UIAutomationMCP.Common.Models
+namespace UIAutomationMCP.UIAutomation.Models
 {
     /// <summary>
     /// Base class for all pattern properties

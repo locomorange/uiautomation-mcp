@@ -26,6 +26,7 @@
 
 
   <ItemGroup>
+    <ProjectReference Include="..\UIAutomationMCP.Core\UIAutomationMCP.Core.csproj" />
     <ProjectReference Include="..\UIAutomationMCP.Shared\UIAutomationMCP.Shared.csproj" />
     <ProjectReference Include="..\UIAutomationMCP.Worker\UIAutomationMCP.Worker.csproj" />
   </ItemGroup>
