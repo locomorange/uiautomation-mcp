@@ -1,6 +1,6 @@
 using Moq;
-using UIAutomationMCP.Shared;
-using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Models;
+using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Tests.UnitTests.Base;
 using Xunit.Abstractions;

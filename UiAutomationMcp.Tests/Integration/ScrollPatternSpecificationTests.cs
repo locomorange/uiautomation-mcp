@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using UIAutomationMCP.Shared;
-using UIAutomationMCP.Shared.Requests;
-using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Models;
+using UIAutomationMCP.Models.Requests;
+using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using Xunit.Abstractions;

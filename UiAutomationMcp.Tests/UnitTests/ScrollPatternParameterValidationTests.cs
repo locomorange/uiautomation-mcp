@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Shared;
+using UIAutomationMCP.Models;
 using UIAutomationMCP.Worker.Operations.Layout;
 using UIAutomationMCP.Worker.Helpers;
 using Moq;

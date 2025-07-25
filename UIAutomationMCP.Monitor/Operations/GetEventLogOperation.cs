@@ -1,10 +1,9 @@
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Core.Models;
+using UIAutomationMCP.Models;
 using UIAutomationMCP.Monitor.Infrastructure;
-using UIAutomationMCP.Shared;
-using UIAutomationMCP.Shared.Requests;
-using UIAutomationMCP.Shared.Results;
-using UIAutomationMCP.Shared.Serialization;
+using UIAutomationMCP.Models.Requests;
+using UIAutomationMCP.Models.Results;
+using UIAutomationMCP.Models.Serialization;
 
 namespace UIAutomationMCP.Monitor.Operations
 {

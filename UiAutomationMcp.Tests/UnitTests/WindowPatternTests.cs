@@ -1,4 +1,4 @@
-using UIAutomationMCP.Shared;
+using UIAutomationMCP.Models;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Operations.Window;
 using Xunit.Abstractions;

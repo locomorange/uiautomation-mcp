@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Shared;
+using UIAutomationMCP.Models;
 
 namespace UIAutomationMCP.Worker.Helpers
 {

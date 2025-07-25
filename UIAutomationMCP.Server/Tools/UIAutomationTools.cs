@@ -2,9 +2,9 @@ using ModelContextProtocol.Server;
 using System.ComponentModel;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
-using UIAutomationMCP.Shared;
-using UIAutomationMCP.Shared.Results;
-using UIAutomationMCP.Shared.Serialization;
+using UIAutomationMCP.Models;
+using UIAutomationMCP.Models.Results;
+using UIAutomationMCP.Models.Serialization;
 
 namespace UIAutomationMCP.Server.Tools
 {
@@ -109,7 +109,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Include detailed pattern information, accessibility data, and hierarchy (default: false)")] bool includeDetails = false,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
         {
-            var request = new UIAutomationMCP.Shared.Requests.SearchElementsRequest
+            var request = new UIAutomationMCP.Models.Requests.SearchElementsRequest
             {
                 SearchText = searchText,
                 AutomationId = automationId,

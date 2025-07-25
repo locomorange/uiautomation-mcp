@@ -1,5 +1,5 @@
-using UIAutomationMCP.Shared.Requests;
-using UIAutomationMCP.Shared.Serialization;
+using UIAutomationMCP.Models.Requests;
+using UIAutomationMCP.Models.Serialization;
 using System.Text.Json;
 
 namespace UiAutomationMcp.Tests.Requests

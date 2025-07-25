@@ -4,12 +4,12 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using UIAutomationMCP.Server.Infrastructure;
 using UIAutomationMCP.Core.Abstractions;
-using UIAutomationMCP.Shared.Results;
-using UIAutomationMCP.Shared.Requests;
+using UIAutomationMCP.Models.Results;
+using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Core.Validation;
-using UIAutomationMCP.Shared.Metadata;
-using UIAutomationMCP.Shared.Serialization;
-using UIAutomationMCP.Shared;
+using UIAutomationMCP.Models.Metadata;
+using UIAutomationMCP.Models.Serialization;
+using UIAutomationMCP.Models;
 
 namespace UIAutomationMCP.Server.Services
 {

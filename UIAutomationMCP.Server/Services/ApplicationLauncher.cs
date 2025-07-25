@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Shared;
-using UIAutomationMCP.Shared.Results;
-using UIAutomationMCP.Shared.Requests;
+using UIAutomationMCP.Models;
+using UIAutomationMCP.Models.Results;
+using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Core.Validation;
-using UIAutomationMCP.Shared.Metadata;
+using UIAutomationMCP.Models.Metadata;
 using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Server.Infrastructure;
 

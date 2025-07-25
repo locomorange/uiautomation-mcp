@@ -1,4 +1,4 @@
-using UIAutomationMCP.Shared;
+using UIAutomationMCP.Models;
 using System.Text.Json;
 
 namespace UiAutomationMcp.Tests.Models

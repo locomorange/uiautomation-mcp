@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using UIAutomationMCP.Shared;
+using UIAutomationMCP.Models;
 using UIAutomationMCP.Core.Options;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services;
@@ -73,12 +73,12 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 10;
 
             // When
-            var windowsResult = await _elementSearchService.SearchElementsAsync(new UIAutomationMCP.Shared.Requests.SearchElementsRequest
+            var windowsResult = await _elementSearchService.SearchElementsAsync(new UIAutomationMCP.Models.Requests.SearchElementsRequest
             {
                 ControlType = "Window",
                 Scope = "children"
             }, timeout);
-            var elementsResult = await _elementSearchService.SearchElementsAsync(new UIAutomationMCP.Shared.Requests.SearchElementsRequest
+            var elementsResult = await _elementSearchService.SearchElementsAsync(new UIAutomationMCP.Models.Requests.SearchElementsRequest
             {
                 ControlType = "Button",
             });
@@ -244,11 +244,11 @@ namespace UIAutomationMCP.Tests.Integration
                 var timeout = 10;
 
                 // When
-                var elementsResult = await _elementSearchService.SearchElementsAsync(new UIAutomationMCP.Shared.Requests.SearchElementsRequest
+                var elementsResult = await _elementSearchService.SearchElementsAsync(new UIAutomationMCP.Models.Requests.SearchElementsRequest
             {
                 ControlType = "Button",
             });
-                var windowsResult = await _elementSearchService.SearchElementsAsync(new UIAutomationMCP.Shared.Requests.SearchElementsRequest
+                var windowsResult = await _elementSearchService.SearchElementsAsync(new UIAutomationMCP.Models.Requests.SearchElementsRequest
             {
                 ControlType = "Window",
                 Scope = "children"

@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Helpers;
-using UIAutomationMCP.Shared;
+using UIAutomationMCP.Models;
 using Xunit.Abstractions;
 
 namespace UiAutomationMcp.Tests.Services

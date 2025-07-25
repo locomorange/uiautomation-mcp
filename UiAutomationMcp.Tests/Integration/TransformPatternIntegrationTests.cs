@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using UIAutomationMCP.Shared;
-using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Models;
+using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using Xunit.Abstractions;
@@ -58,7 +58,7 @@ namespace UIAutomationMCP.Tests.Integration
 
         private T DeserializeResult<T>(object jsonResult) where T : notnull
         {
-            var result = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Deserialize<T>(jsonResult.ToString()!);
+            var result = UIAutomationMCP.Models.Serialization.JsonSerializationHelper.Deserialize<T>(jsonResult.ToString()!);
             Assert.NotNull(result);
             return result;
         }

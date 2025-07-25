@@ -2,8 +2,8 @@ using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using UIAutomationMCP.Shared;
-using UIAutomationMCP.Shared.Serialization;
+using UIAutomationMCP.Models;
+using UIAutomationMCP.Models.Serialization;
 
 namespace UIAutomationMCP.Worker.Helpers
 {

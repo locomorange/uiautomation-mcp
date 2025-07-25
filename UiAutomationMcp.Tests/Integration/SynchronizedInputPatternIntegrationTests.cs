@@ -4,8 +4,8 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Interfaces;
-using UIAutomationMCP.Shared.Requests;
-using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Models.Requests;
+using UIAutomationMCP.Models.Results;
 using Xunit;
 
 namespace UiAutomationMcp.Tests.Integration;

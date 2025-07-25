@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Models.Results;
 
 namespace UIAutomationMCP.Server.Services
 {

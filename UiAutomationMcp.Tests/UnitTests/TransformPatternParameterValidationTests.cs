@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using UIAutomationMCP.Shared;
+using UIAutomationMCP.Models;
 using UIAutomationMCP.Core.Options;
-using UIAutomationMCP.Shared.Requests;
+using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Worker.Contracts;
 using UIAutomationMCP.Worker.Operations.Transform;
 using UIAutomationMCP.Worker.Helpers;

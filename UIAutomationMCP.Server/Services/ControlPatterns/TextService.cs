@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Infrastructure;
 using UIAutomationMCP.Core.Abstractions;
-using UIAutomationMCP.Shared.Results;
-using UIAutomationMCP.Shared.Requests;
+using UIAutomationMCP.Models.Results;
+using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Core.Validation;
-using UIAutomationMCP.Shared.Metadata;
+using UIAutomationMCP.Models.Metadata;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
@@ -107,7 +107,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             int? processId = null, 
             int timeoutSeconds = 30)
         {
-            var request = new UIAutomationMCP.Shared.Requests.GetTextAttributesRequest
+            var request = new UIAutomationMCP.Models.Requests.GetTextAttributesRequest
             {
                 AutomationId = automationId,
                 Name = name,
@@ -118,7 +118,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AttributeName = attributeName
             };
 
-            return await ExecuteServiceOperationAsync<UIAutomationMCP.Shared.Requests.GetTextAttributesRequest, TextAttributesResult>(
+            return await ExecuteServiceOperationAsync<UIAutomationMCP.Models.Requests.GetTextAttributesRequest, TextAttributesResult>(
                 "GetTextAttributes",
                 request,
                 nameof(GetTextAttributesAsync),
@@ -137,7 +137,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             int? processId = null, 
             int timeoutSeconds = 30)
         {
-            var request = new UIAutomationMCP.Shared.Requests.FindTextRequest
+            var request = new UIAutomationMCP.Models.Requests.FindTextRequest
             {
                 AutomationId = automationId,
                 Name = name,
@@ -148,7 +148,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 IgnoreCase = ignoreCase
             };
 
-            return await ExecuteServiceOperationAsync<UIAutomationMCP.Shared.Requests.FindTextRequest, TextSearchResult>(
+            return await ExecuteServiceOperationAsync<UIAutomationMCP.Models.Requests.FindTextRequest, TextSearchResult>(
                 "FindText",
                 request,
                 nameof(FindTextAsync),
@@ -199,7 +199,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             return ValidationResult.Success;
         }
 
-        private static ValidationResult ValidateGetTextAttributesRequest(UIAutomationMCP.Shared.Requests.GetTextAttributesRequest request)
+        private static ValidationResult ValidateGetTextAttributesRequest(UIAutomationMCP.Models.Requests.GetTextAttributesRequest request)
         {
             var errors = new List<string>();
 
@@ -216,7 +216,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;
         }
 
-        private static ValidationResult ValidateFindTextRequest(UIAutomationMCP.Shared.Requests.FindTextRequest request)
+        private static ValidationResult ValidateFindTextRequest(UIAutomationMCP.Models.Requests.FindTextRequest request)
         {
             var errors = new List<string>();
 

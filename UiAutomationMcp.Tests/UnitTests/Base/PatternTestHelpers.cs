@@ -1,5 +1,5 @@
 using Moq;
-using UIAutomationMCP.Shared;
+using UIAutomationMCP.Models;
 using Xunit;
 using Xunit.Abstractions;
 

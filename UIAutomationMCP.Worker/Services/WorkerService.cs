@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
-using UIAutomationMCP.Shared;
-using UIAutomationMCP.Shared.Serialization;
+using UIAutomationMCP.Models;
+using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.Shared.ErrorHandling;
-using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Worker.Contracts;
 
 namespace UIAutomationMCP.Worker.Services

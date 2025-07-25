@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Moq;
-using UIAutomationMCP.Shared;
-using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Models;
+using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
@@ -10,7 +10,7 @@ using UIAutomationMCP.Server.Interfaces;
 using Xunit.Abstractions;
 using System.Threading;
 using System.Text.Json;
-using UIAutomationMCP.Shared.Serialization;
+using UIAutomationMCP.Models.Serialization;
 
 namespace UIAutomationMCP.Tests.Tools
 {
@@ -139,7 +139,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             
-            _mockElementSearchService.Setup(s => s.SearchElementsAsync(It.IsAny<UIAutomationMCP.Shared.Requests.SearchElementsRequest>(), 30))
+            _mockElementSearchService.Setup(s => s.SearchElementsAsync(It.IsAny<UIAutomationMCP.Models.Requests.SearchElementsRequest>(), 30))
                             .Returns(Task.FromResult(serverResponse));
 
             // Act
@@ -147,7 +147,7 @@ namespace UIAutomationMCP.Tests.Tools
 
             // Assert
             Assert.NotNull(result);
-            _mockElementSearchService.Verify(s => s.SearchElementsAsync(It.IsAny<UIAutomationMCP.Shared.Requests.SearchElementsRequest>(), 30), Times.Once);
+            _mockElementSearchService.Verify(s => s.SearchElementsAsync(It.IsAny<UIAutomationMCP.Models.Requests.SearchElementsRequest>(), 30), Times.Once);
             _output.WriteLine($"SearchElements Windows test passed: Found {expectedElements.Count} windows");
         }
 
@@ -174,7 +174,7 @@ namespace UIAutomationMCP.Tests.Tools
                 RequestMetadata = new RequestMetadata()
             };
             
-            // _mockElementSearchService.Setup(s => s.SearchElementsAsync(It.IsNotNull<UIAutomationMCP.Shared.Requests.SearchElementsRequest>()))
+            // _mockElementSearchService.Setup(s => s.SearchElementsAsync(It.IsNotNull<UIAutomationMCP.Models.Requests.SearchElementsRequest>()))
             //                        .Returns(Task.FromResult(serverResponse));
             //
             // // Act
@@ -182,7 +182,7 @@ namespace UIAutomationMCP.Tests.Tools
             //
             // // Assert
             // Assert.NotNull(result);
-            // _mockElementSearchService.Verify(s => s.SearchElementsAsync(It.IsNotNull<UIAutomationMCP.Shared.Requests.SearchElementsRequest>()), Times.Once);
+            // _mockElementSearchService.Verify(s => s.SearchElementsAsync(It.IsNotNull<UIAutomationMCP.Models.Requests.SearchElementsRequest>()), Times.Once);
             return; // Skip test body due to CS0854 error
         }
 

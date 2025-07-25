@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using UIAutomationMCP.Shared;
-using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Models;
+using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using Xunit.Abstractions;
@@ -62,7 +62,7 @@ namespace UIAutomationMCP.Tests.Integration
 
         private T DeserializeResult<T>(object jsonResult) where T : notnull
         {
-            var result = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Deserialize<T>(jsonResult.ToString()!);
+            var result = UIAutomationMCP.Models.Serialization.JsonSerializationHelper.Deserialize<T>(jsonResult.ToString()!);
             Assert.NotNull(result);
             return result;
         }
@@ -103,7 +103,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Assert
             Assert.NotNull(jsonResult);
-            var result = UIAutomationMCP.Shared.Serialization.JsonSerializationHelper.Deserialize<ServerEnhancedResponse<TransformCapabilitiesResult>>(jsonResult.ToString()!);
+            var result = UIAutomationMCP.Models.Serialization.JsonSerializationHelper.Deserialize<ServerEnhancedResponse<TransformCapabilitiesResult>>(jsonResult.ToString()!);
             Assert.NotNull(result);
             
             // 要素が存在しない場合でも、APIの構造は仕様に準拠している必要がある
@@ -195,7 +195,7 @@ namespace UIAutomationMCP.Tests.Integration
                 elementId, windowTitle, 100.0, 200.0, null, null, timeout);
             
             Assert.NotNull(moveJsonResult);
-            var moveResult = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(moveJsonResult);
+            var moveResult = DeserializeResult<UIAutomationMCP.Models.Results.ServerEnhancedResponse<UIAutomationMCP.Models.Results.ActionResult>>(moveJsonResult);
             Assert.False(moveResult.Success); // 要素が存在しないため失敗
             _output.WriteLine("✓ Move operation handled appropriately");
 
@@ -204,7 +204,7 @@ namespace UIAutomationMCP.Tests.Integration
                 automationId: elementId, width: 800.0, height: 600.0, timeoutSeconds: timeout);
             
             Assert.NotNull(resizeJsonResult);
-            var resizeResult = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(resizeJsonResult);
+            var resizeResult = DeserializeResult<UIAutomationMCP.Models.Results.ServerEnhancedResponse<UIAutomationMCP.Models.Results.ActionResult>>(resizeJsonResult);
             Assert.False(resizeResult.Success); // 要素が存在しないため失敗
             _output.WriteLine("✓ Resize operation handled appropriately");
 
@@ -213,7 +213,7 @@ namespace UIAutomationMCP.Tests.Integration
                 automationId: elementId, degrees: 90.0, timeoutSeconds: timeout);
             
             Assert.NotNull(rotateJsonResult);
-            var rotateResult = DeserializeResult<UIAutomationMCP.Shared.Results.ServerEnhancedResponse<UIAutomationMCP.Shared.Results.ActionResult>>(rotateJsonResult);
+            var rotateResult = DeserializeResult<UIAutomationMCP.Models.Results.ServerEnhancedResponse<UIAutomationMCP.Models.Results.ActionResult>>(rotateJsonResult);
             Assert.False(rotateResult.Success); // 要素が存在しないため失敗
             _output.WriteLine("✓ Rotate operation handled appropriately");
 

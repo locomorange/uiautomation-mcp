@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Helpers;
-using UIAutomationMCP.Shared.Requests;
+using UIAutomationMCP.Models.Requests;
 using Moq;
 using System.IO;
 

@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text.Json;
-using UIAutomationMCP.Shared;
-using UIAutomationMCP.Shared.Serialization;
+using UIAutomationMCP.Models;
+using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.Core.Abstractions;
 
 namespace UIAutomationMCP.Server.Helpers

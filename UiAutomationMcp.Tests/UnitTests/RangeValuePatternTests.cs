@@ -1,11 +1,11 @@
 using Moq;
-using UIAutomationMCP.Shared;
+using UIAutomationMCP.Models;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
-using UIAutomationMCP.Shared.Models;
+using UIAutomationMCP.Models;
 using UIAutomationMCP.Server.Interfaces;
-using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Models.Results;
 using Xunit.Abstractions;
 
 namespace UIAutomationMCP.Tests.UnitTests

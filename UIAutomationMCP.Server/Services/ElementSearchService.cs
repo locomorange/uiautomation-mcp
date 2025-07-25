@@ -3,10 +3,10 @@ using Microsoft.Extensions.Options;
 using UIAutomationMCP.Server.Infrastructure;
 using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Core.Options;
-using UIAutomationMCP.Shared.Requests;
-using UIAutomationMCP.Shared.Results;
+using UIAutomationMCP.Models.Requests;
+using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Core.Validation;
-using UIAutomationMCP.Shared.Metadata;
+using UIAutomationMCP.Models.Metadata;
 
 namespace UIAutomationMCP.Server.Services
 {

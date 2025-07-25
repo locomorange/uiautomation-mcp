@@ -1,9 +1,9 @@
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Shared;
-using UIAutomationMCP.Shared.Results;
-using UIAutomationMCP.Shared.Requests;
-using UIAutomationMCP.Shared.Serialization;
+using UIAutomationMCP.Models;
+using UIAutomationMCP.Models.Results;
+using UIAutomationMCP.Models.Requests;
+using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.Core.Exceptions;
 using UIAutomationMCP.Shared.ErrorHandling;
 using UIAutomationMCP.Worker.Contracts;
