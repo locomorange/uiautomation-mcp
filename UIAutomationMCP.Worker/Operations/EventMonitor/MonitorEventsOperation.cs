@@ -68,7 +68,7 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
                     {
                         Success = true,
                         EventType = string.Join(", ", request.EventTypes),
-                        Duration = request.Duration,
+                        Duration = TimeSpan.FromSeconds(request.Duration),
                         ElementId = request.AutomationId,
                         WindowTitle = request.WindowTitle,
                         ProcessId = request.ProcessId,

@@ -87,17 +87,7 @@ namespace UIAutomationMCP.UIAutomation.Services
                     }
                 }
 
-                // Add required pattern filter if specified
-                if (requiredPattern != null && condition != null)
-                {
-                    // Get the pattern availability property for the specific pattern
-                    var patternAvailableProperty = Helpers.AutomationPatternHelper.GetPatternAvailableProperty(requiredPattern);
-                    if (patternAvailableProperty != null)
-                    {
-                        var patternCondition = new PropertyCondition(patternAvailableProperty, true);
-                        condition = new AndCondition(condition, patternCondition);
-                    }
-                }
+                // Note: Pattern availability is checked after finding the element
 
                 if (condition == null)
                 {
@@ -114,6 +104,18 @@ namespace UIAutomationMCP.UIAutomation.Services
                         element.Current.AutomationId,
                         element.Current.Name,
                         element.Current.ControlType.ProgrammaticName);
+                    
+                    // Check if required pattern is supported
+                    if (requiredPattern != null)
+                    {
+                        var supportedPatterns = element.GetSupportedPatterns();
+                        if (!supportedPatterns.Contains(requiredPattern))
+                        {
+                            _logger.LogDebug("Element found but does not support required pattern: {Pattern}",
+                                requiredPattern.ProgrammaticName);
+                            return null;
+                        }
+                    }
                 }
                 else
                 {

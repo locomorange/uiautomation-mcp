@@ -254,9 +254,9 @@ namespace UIAutomationMCP.Worker.Operations.Text
             {
                 // Font attributes
                 attributes.FontName = GetAttributeValue<string>(textRange, TextPattern.FontNameAttribute);
-                attributes.FontSize = GetAttributeValue<double?>(textRange, TextPattern.FontSizeAttribute);
+                attributes.FontSize = GetAttributeValue<double?>(textRange, TextPattern.FontSizeAttribute) ?? 0.0;
                 attributes.FontWeight = GetAttributeValue<object>(textRange, TextPattern.FontWeightAttribute)?.ToString();
-                attributes.IsItalic = GetAttributeValue<bool?>(textRange, TextPattern.IsItalicAttribute);
+                attributes.IsItalic = GetAttributeValue<bool?>(textRange, TextPattern.IsItalicAttribute) ?? false;
                 
                 // Colors - Microsoft Learn recommends checking for 0 as "not set"
                 var foregroundColor = GetAttributeValue<int>(textRange, TextPattern.ForegroundColorAttribute);
@@ -272,7 +272,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 attributes.IsBold = DetermineBoldFromFontWeight(fontWeight);
 
                 // Italic
-                attributes.IsItalic = GetAttributeValue<bool?>(textRange, TextPattern.IsItalicAttribute);
+                attributes.IsItalic = GetAttributeValue<bool?>(textRange, TextPattern.IsItalicAttribute) ?? false;
 
                 // Underline
                 var underlineStyleValue = GetAttributeValue<object>(textRange, TextPattern.UnderlineStyleAttribute);
@@ -286,8 +286,8 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 // Other attributes
                 attributes.HorizontalTextAlignment = GetAttributeValue<object>(textRange, TextPattern.HorizontalTextAlignmentAttribute)?.ToString();
                 attributes.Culture = GetAttributeValue<System.Globalization.CultureInfo>(textRange, TextPattern.CultureAttribute)?.Name;
-                attributes.IsReadOnly = GetAttributeValue<bool?>(textRange, TextPattern.IsReadOnlyAttribute);
-                attributes.IsHidden = GetAttributeValue<bool?>(textRange, TextPattern.IsHiddenAttribute);
+                attributes.IsReadOnly = GetAttributeValue<bool?>(textRange, TextPattern.IsReadOnlyAttribute) ?? false;
+                attributes.IsHidden = GetAttributeValue<bool?>(textRange, TextPattern.IsHiddenAttribute) ?? false;
             }
             catch (Exception ex)
             {
@@ -525,9 +525,9 @@ namespace UIAutomationMCP.Worker.Operations.Text
             {
                 // Font attributes
                 attributes.FontName = GetAttributeValue<string>(textRange, TextPattern.FontNameAttribute);
-                attributes.FontSize = GetAttributeValue<double?>(textRange, TextPattern.FontSizeAttribute);
+                attributes.FontSize = GetAttributeValue<double?>(textRange, TextPattern.FontSizeAttribute) ?? 0.0;
                 attributes.FontWeight = GetAttributeValue<object>(textRange, TextPattern.FontWeightAttribute)?.ToString();
-                attributes.IsItalic = GetAttributeValue<bool?>(textRange, TextPattern.IsItalicAttribute);
+                attributes.IsItalic = GetAttributeValue<bool?>(textRange, TextPattern.IsItalicAttribute) ?? false;
                 
                 // Colors - Microsoft Learn recommends checking for 0 as "not set"
                 var foregroundColor = GetAttributeValue<int>(textRange, TextPattern.ForegroundColorAttribute);
@@ -557,10 +557,10 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 // Other attributes
                 attributes.HorizontalTextAlignment = GetAttributeValue<object>(textRange, TextPattern.HorizontalTextAlignmentAttribute)?.ToString();
                 attributes.Culture = GetAttributeValue<System.Globalization.CultureInfo>(textRange, TextPattern.CultureAttribute)?.Name;
-                attributes.IsReadOnly = GetAttributeValue<bool?>(textRange, TextPattern.IsReadOnlyAttribute);
-                attributes.IsHidden = GetAttributeValue<bool?>(textRange, TextPattern.IsHiddenAttribute);
-                attributes.IsSubscript = GetAttributeValue<bool?>(textRange, TextPattern.IsSubscriptAttribute);
-                attributes.IsSuperscript = GetAttributeValue<bool?>(textRange, TextPattern.IsSuperscriptAttribute);
+                attributes.IsReadOnly = GetAttributeValue<bool?>(textRange, TextPattern.IsReadOnlyAttribute) ?? false;
+                attributes.IsHidden = GetAttributeValue<bool?>(textRange, TextPattern.IsHiddenAttribute) ?? false;
+                attributes.IsSubscript = GetAttributeValue<bool?>(textRange, TextPattern.IsSubscriptAttribute) ?? false;
+                attributes.IsSuperscript = GetAttributeValue<bool?>(textRange, TextPattern.IsSuperscriptAttribute) ?? false;
             }
             catch (Exception ex)
             {

@@ -66,10 +66,20 @@ namespace UIAutomationMCP.Worker.Operations.Grid
                     });
                 }
 
+                // Get GridItem pattern info
+                GridItemPattern? gridItemPattern = null;
+                if (gridItem.TryGetCurrentPattern(GridItemPattern.Pattern, out var itemPattern))
+                {
+                    gridItemPattern = itemPattern as GridItemPattern;
+                }
+
                 var result = new GridItemResult
                 {
-                    Row = typedRequest.Row,
-                    Column = typedRequest.Column,
+                    Row = gridItemPattern?.Current.Row ?? typedRequest.Row,
+                    Column = gridItemPattern?.Current.Column ?? typedRequest.Column,
+                    RowSpan = gridItemPattern?.Current.RowSpan ?? 1,
+                    ColumnSpan = gridItemPattern?.Current.ColumnSpan ?? 1,
+                    ContainingGridId = gridItemPattern?.Current.ContainingGrid?.Current.AutomationId ?? string.Empty,
                     Element = UIAutomationMCP.UIAutomation.Helpers.ElementInfoBuilder.CreateElementInfo(gridItem, includeDetails: true, _logger)
                 };
 

@@ -46,7 +46,7 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
                     {
                         Success = false,
                         MonitorId = request.MonitorId,
-                        Events = new List<EventData>()
+                        Events = new List<TypedEventData>()
                     };
 
                     return Task.FromResult(new OperationResult 

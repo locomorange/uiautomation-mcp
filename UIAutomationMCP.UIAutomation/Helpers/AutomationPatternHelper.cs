@@ -92,57 +92,5 @@ namespace UIAutomationMCP.UIAutomation.Helpers
             };
         }
 
-        /// <summary>
-        /// Get the pattern availability property for a given AutomationPattern
-        /// </summary>
-        /// <param name="pattern">The AutomationPattern to get the availability property for</param>
-        /// <returns>The corresponding availability property, or null if not found</returns>
-        public static AutomationProperty? GetPatternAvailableProperty(AutomationPattern pattern)
-        {
-            if (pattern == InvokePattern.Pattern)
-                return InvokePattern.IsInvokePatternAvailableProperty;
-            else if (pattern == ValuePattern.Pattern)
-                return ValuePattern.IsValuePatternAvailableProperty;
-            else if (pattern == TogglePattern.Pattern)
-                return TogglePattern.IsTogglePatternAvailableProperty;
-            else if (pattern == GridPattern.Pattern)
-                return GridPattern.IsGridPatternAvailableProperty;
-            else if (pattern == GridItemPattern.Pattern)
-                return GridItemPattern.IsGridItemPatternAvailableProperty;
-            else if (pattern == TablePattern.Pattern)
-                return TablePattern.IsTablePatternAvailableProperty;
-            else if (pattern == TableItemPattern.Pattern)
-                return TableItemPattern.IsTableItemPatternAvailableProperty;
-            else if (pattern == TextPattern.Pattern)
-                return TextPattern.IsTextPatternAvailableProperty;
-            else if (pattern == SelectionPattern.Pattern)
-                return SelectionPattern.IsSelectionPatternAvailableProperty;
-            else if (pattern == SelectionItemPattern.Pattern)
-                return SelectionItemPattern.IsSelectionItemPatternAvailableProperty;
-            else if (pattern == RangeValuePattern.Pattern)
-                return RangeValuePattern.IsRangeValuePatternAvailableProperty;
-            else if (pattern == ScrollPattern.Pattern)
-                return ScrollPattern.IsScrollPatternAvailableProperty;
-            else if (pattern == ScrollItemPattern.Pattern)
-                return ScrollItemPattern.IsScrollItemPatternAvailableProperty;
-            else if (pattern == ExpandCollapsePattern.Pattern)
-                return ExpandCollapsePattern.IsExpandCollapsePatternAvailableProperty;
-            else if (pattern == WindowPattern.Pattern)
-                return WindowPattern.IsWindowPatternAvailableProperty;
-            else if (pattern == TransformPattern.Pattern)
-                return TransformPattern.IsTransformPatternAvailableProperty;
-            else if (pattern == DockPattern.Pattern)
-                return DockPattern.IsDockPatternAvailableProperty;
-            else if (pattern == MultipleViewPattern.Pattern)
-                return MultipleViewPattern.IsMultipleViewPatternAvailableProperty;
-            else if (pattern == VirtualizedItemPattern.Pattern)
-                return VirtualizedItemPattern.IsVirtualizedItemPatternAvailableProperty;
-            else if (pattern == ItemContainerPattern.Pattern)
-                return ItemContainerPattern.IsItemContainerPatternAvailableProperty;
-            else if (pattern == SynchronizedInputPattern.Pattern)
-                return SynchronizedInputPattern.IsSynchronizedInputPatternAvailableProperty;
-            
-            return null;
-        }
     }
 }

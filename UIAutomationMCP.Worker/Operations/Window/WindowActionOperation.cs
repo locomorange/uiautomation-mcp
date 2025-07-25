@@ -32,9 +32,11 @@ namespace UIAutomationMCP.Worker.Operations.Window
                 
                 var action = typedRequest.Action;
                 var windowTitle = typedRequest.WindowTitle ?? "";
-                var processId = typedRequest.ProcessId ?? 0;
+                var processId = typedRequest.ProcessId;
 
-                var window = _elementFinderService.GetSearchRoot(windowTitle, processId);
+                var window = _elementFinderService.FindElement(
+                    windowTitle: windowTitle, 
+                    processId: processId);
                 if (window == null)
                 {
                     return Task.FromResult(new OperationResult 
