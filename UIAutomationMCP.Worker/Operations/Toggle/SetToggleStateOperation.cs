@@ -4,129 +4,97 @@ using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Serialization;
+using UIAutomationMCP.Core.Exceptions;
 using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.UIAutomation.Helpers;
 
 namespace UIAutomationMCP.Worker.Operations.Toggle
 {
-    public class SetToggleStateOperation : IUIAutomationOperation
+    public class SetToggleStateOperation : BaseUIAutomationOperation<SetToggleStateRequest, ToggleActionResult>
     {
-        private readonly ElementFinderService _elementFinderService;
-        private readonly ILogger<SetToggleStateOperation> _logger;
-
         public SetToggleStateOperation(ElementFinderService elementFinderService, ILogger<SetToggleStateOperation> logger)
+            : base(elementFinderService, logger)
         {
-            _elementFinderService = elementFinderService;
-            _logger = logger;
         }
 
-        public Task<OperationResult> ExecuteAsync(string parametersJson)
+        protected override async Task<ToggleActionResult> ExecuteOperationAsync(SetToggleStateRequest request)
         {
-            try
-            {
-                var typedRequest = JsonSerializationHelper.Deserialize<SetToggleStateRequest>(parametersJson)!;
+            // Use TogglePattern as the default required pattern
+            var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? TogglePattern.Pattern;
+            
+            var element = _elementFinderService.FindElement(
+                automationId: request.AutomationId, 
+                name: request.Name,
+                controlType: request.ControlType,
+                windowTitle: request.WindowTitle,
+                processId: request.ProcessId ?? 0,
+                requiredPattern: requiredPattern);
                 
-                var automationId = typedRequest.AutomationId;
-                var name = typedRequest.Name;
-                var controlType = typedRequest.ControlType;
-                var windowTitle = typedRequest.WindowTitle;
-                var processId = typedRequest.ProcessId ?? 0;
-                var toggleState = typedRequest.State;
-
-                var element = _elementFinderService.FindElement(
-                    automationId: automationId, 
-                    name: name, 
-                    controlType: controlType, 
-                    windowTitle: windowTitle, 
-                    processId: processId);
-                if (element == null)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Element not found",
-                        Data = new ToggleActionResult { ActionName = "SetToggleState" }
-                    });
-                }
-
-                if (!element.TryGetCurrentPattern(TogglePattern.Pattern, out var pattern) || pattern is not TogglePattern togglePattern)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "TogglePattern not supported",
-                        Data = new ToggleActionResult { ActionName = "SetToggleState" }
-                    });
-                }
-
-                if (!Enum.TryParse<ToggleState>(toggleState, true, out var targetState))
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = $"Invalid toggle state: {toggleState}. Valid values: On, Off, Indeterminate",
-                        Data = new ToggleActionResult { ActionName = "SetToggleState" }
-                    });
-                }
-
-                var initialState = togglePattern.Current.ToggleState;
-                var currentState = initialState;
-                
-                while (currentState != targetState)
-                {
-                    togglePattern.Toggle();
-                    var newState = togglePattern.Current.ToggleState;
-                    
-                    if (newState == currentState)
-                    {
-                        return Task.FromResult(new OperationResult 
-                        { 
-                            Success = false, 
-                            Error = $"Element does not support toggle state: {toggleState}",
-                            Data = new ToggleActionResult 
-                            { 
-                                ActionName = "SetToggleState",
-                                Completed = false,
-                                PreviousState = initialState.ToString(),
-                                CurrentState = currentState.ToString(),
-                                Details = $"Failed to set toggle state to {targetState} for element (AutomationId: '{automationId}', Name: '{name}')"
-                            }
-                        });
-                    }
-                    
-                    currentState = newState;
-                }
-
-                var result = new ToggleActionResult
-                {
-                    ActionName = "SetToggleState",
-                    Completed = true,
-                    ExecutedAt = DateTime.UtcNow,
-                    PreviousState = initialState.ToString(),
-                    CurrentState = currentState.ToString(),
-                    Details = $"Successfully toggled element (AutomationId: '{automationId}', Name: '{name}') to {targetState} (was {initialState})"
-                };
-
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = true, 
-                    Data = result
-                });
-            }
-            catch (Exception ex)
+            if (element == null)
             {
-                _logger.LogError(ex, "SetToggleState operation failed");
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = false, 
-                    Error = $"Failed to set toggle state: {ex.Message}",
-                    Data = new ToggleActionResult 
-                    { 
-                        ActionName = "SetToggleState",
-                        Completed = false
-                    }
-                });
+                throw new UIAutomationElementNotFoundException("SetToggleState", request.AutomationId);
             }
+
+            if (!element.TryGetCurrentPattern(TogglePattern.Pattern, out var pattern) || pattern is not TogglePattern togglePattern)
+            {
+                throw new UIAutomationInvalidOperationException("SetToggleState", request.AutomationId, "TogglePattern not supported");
+            }
+
+            if (!Enum.TryParse<ToggleState>(request.State, true, out var targetState))
+            {
+                throw new UIAutomationInvalidOperationException("SetToggleState", request.AutomationId, $"Invalid toggle state: {request.State}. Valid values: On, Off, Indeterminate");
+            }
+
+            var initialState = togglePattern.Current.ToggleState;
+            var currentState = initialState;
+            
+            while (currentState != targetState)
+            {
+                togglePattern.Toggle();
+                
+                // Wait a moment for the state to update
+                await Task.Delay(50);
+                
+                var newState = togglePattern.Current.ToggleState;
+                
+                if (newState == currentState)
+                {
+                    throw new UIAutomationInvalidOperationException("SetToggleState", request.AutomationId, $"Element does not support toggle state: {request.State}");
+                }
+                
+                currentState = newState;
+            }
+
+            return new ToggleActionResult
+            {
+                ActionName = "SetToggleState",
+                Completed = true,
+                ExecutedAt = DateTime.UtcNow,
+                PreviousState = initialState.ToString(),
+                CurrentState = currentState.ToString(),
+                Details = $"Successfully toggled element (AutomationId: '{request.AutomationId}', Name: '{request.Name}') to {targetState} (was {initialState})"
+            };
+        }
+
+        protected override Core.Validation.ValidationResult ValidateRequest(SetToggleStateRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.AutomationId) && string.IsNullOrWhiteSpace(request.Name))
+            {
+                return Core.Validation.ValidationResult.Failure("Either AutomationId or Name is required");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.State))
+            {
+                return Core.Validation.ValidationResult.Failure("State is required");
+            }
+
+            if (!Enum.TryParse<ToggleState>(request.State, true, out _))
+            {
+                return Core.Validation.ValidationResult.Failure($"Invalid toggle state: {request.State}. Valid values: On, Off, Indeterminate");
+            }
+
+            return Core.Validation.ValidationResult.Success;
         }
     }
 }

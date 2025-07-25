@@ -1,3 +1,4 @@
+using UIAutomationMCP.Models.Abstractions;
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Abstractions;
 using UIAutomationMCP.Server.Helpers;

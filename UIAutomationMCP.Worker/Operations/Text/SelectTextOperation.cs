@@ -4,123 +4,85 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
-using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.Core.Exceptions;
 
 namespace UIAutomationMCP.Worker.Operations.Text
 {
-    public class SelectTextOperation : IUIAutomationOperation
+    public class SelectTextOperation : BaseUIAutomationOperation<SelectTextRequest, ActionResult>
     {
-        private readonly ElementFinderService _elementFinderService;
-        private readonly ILogger<SelectTextOperation> _logger;
-
         public SelectTextOperation(
             ElementFinderService elementFinderService,
             ILogger<SelectTextOperation> logger)
+            : base(elementFinderService, logger)
         {
-            _elementFinderService = elementFinderService;
-            _logger = logger;
         }
 
-        public Task<OperationResult> ExecuteAsync(string parametersJson)
+        protected override Core.Validation.ValidationResult ValidateRequest(SelectTextRequest request)
         {
-            try
+            if (string.IsNullOrEmpty(request.AutomationId) && string.IsNullOrEmpty(request.Name))
             {
-                var typedRequest = JsonSerializationHelper.Deserialize<SelectTextRequest>(parametersJson)!;
-                
-                var element = _elementFinderService.FindElement(
-                    automationId: typedRequest.AutomationId, 
-                    name: typedRequest.Name, 
-                    controlType: typedRequest.ControlType, 
-                    windowTitle: typedRequest.WindowTitle, 
-                    processId: typedRequest.ProcessId ?? 0);
-                
-                if (element == null)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = $"Element with AutomationId '{typedRequest.AutomationId}' and Name '{typedRequest.Name}' not found",
-                        Data = new ActionResult 
-                        { 
-                            ActionName = "SelectText", 
-                            Completed = false, 
-                            ExecutedAt = DateTime.UtcNow 
-                        }
-                    });
-                }
-
-                if (!element.TryGetCurrentPattern(TextPattern.Pattern, out var pattern) || pattern is not TextPattern textPattern)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Element does not support TextPattern",
-                        Data = new ActionResult 
-                        { 
-                            ActionName = "SelectText", 
-                            Completed = false, 
-                            ExecutedAt = DateTime.UtcNow 
-                        }
-                    });
-                }
-
-                var documentRange = textPattern.DocumentRange;
-                var fullText = documentRange.GetText(-1);
-                
-                if (typedRequest.StartIndex < 0 || typedRequest.StartIndex >= fullText.Length)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Start index is out of range",
-                        Data = new ActionResult 
-                        { 
-                            ActionName = "SelectText", 
-                            Completed = false, 
-                            ExecutedAt = DateTime.UtcNow 
-                        }
-                    });
-                }
-                
-                var length = typedRequest.Length;
-                if (typedRequest.StartIndex + length > fullText.Length)
-                    length = fullText.Length - typedRequest.StartIndex;
-
-                var textRange = documentRange.Clone();
-                textRange.MoveEndpointByUnit(TextPatternRangeEndpoint.Start, TextUnit.Character, typedRequest.StartIndex);
-                textRange.MoveEndpointByUnit(TextPatternRangeEndpoint.End, TextUnit.Character, typedRequest.StartIndex);
-                textRange.MoveEndpointByUnit(TextPatternRangeEndpoint.End, TextUnit.Character, length);
-                textRange.Select();
-
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = true, 
-                    Data = new ActionResult 
-                    { 
-                        ActionName = "SelectText", 
-                        Completed = true, 
-                        ExecutedAt = DateTime.UtcNow,
-                        Details = $"Selected text from index {typedRequest.StartIndex}, length {length}: '{fullText.Substring(typedRequest.StartIndex, length)}'"
-                    }
-                });
+                return Core.Validation.ValidationResult.Failure("Either AutomationId or Name is required");
             }
-            catch (Exception ex)
+
+            if (request.StartIndex < 0)
             {
-                _logger.LogError(ex, "SelectText operation failed");
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = false, 
-                    Error = $"Failed to select text: {ex.Message}",
-                    Data = new ActionResult 
-                    { 
-                        ActionName = "SelectText", 
-                        Completed = false, 
-                        ExecutedAt = DateTime.UtcNow 
-                    }
-                });
+                return Core.Validation.ValidationResult.Failure("StartIndex must be non-negative");
             }
+
+            if (request.Length <= 0)
+            {
+                return Core.Validation.ValidationResult.Failure("Length must be greater than 0");
+            }
+
+            return Core.Validation.ValidationResult.Success;
+        }
+
+        protected override Task<ActionResult> ExecuteOperationAsync(SelectTextRequest request)
+        {
+            var element = _elementFinderService.FindElement(
+                automationId: request.AutomationId, 
+                name: request.Name, 
+                controlType: request.ControlType, 
+                windowTitle: request.WindowTitle, 
+                processId: request.ProcessId ?? 0);
+            
+            if (element == null)
+            {
+                throw new UIAutomationElementNotFoundException("Operation", null, $"Element with AutomationId '{request.AutomationId}' and Name '{request.Name}' not found");
+            }
+
+            if (!element.TryGetCurrentPattern(TextPattern.Pattern, out var pattern) || pattern is not TextPattern textPattern)
+            {
+                throw new UIAutomationElementNotFoundException("Operation", null, "Element does not support TextPattern");
+            }
+
+            var documentRange = textPattern.DocumentRange;
+            var fullText = documentRange.GetText(-1);
+            
+            if (request.StartIndex >= fullText.Length)
+            {
+                throw new UIAutomationElementNotFoundException("Operation", null, "Start index is out of range");
+            }
+            
+            var length = request.Length;
+            if (request.StartIndex + length > fullText.Length)
+                length = fullText.Length - request.StartIndex;
+
+            var textRange = documentRange.Clone();
+            textRange.MoveEndpointByUnit(TextPatternRangeEndpoint.Start, TextUnit.Character, request.StartIndex);
+            textRange.MoveEndpointByUnit(TextPatternRangeEndpoint.End, TextUnit.Character, request.StartIndex);
+            textRange.MoveEndpointByUnit(TextPatternRangeEndpoint.End, TextUnit.Character, length);
+            textRange.Select();
+
+            return Task.FromResult(new ActionResult 
+            { 
+                ActionName = "SelectText", 
+                Completed = true, 
+                ExecutedAt = DateTime.UtcNow,
+                Details = $"Selected text from index {request.StartIndex}, length {length}: '{fullText.Substring(request.StartIndex, length)}'"
+            });
         }
     }
 }

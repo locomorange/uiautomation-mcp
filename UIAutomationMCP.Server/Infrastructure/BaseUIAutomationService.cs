@@ -3,7 +3,7 @@ using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Core.Validation;
-using UIAutomationMCP.Models.Metadata;
+using UIAutomationMCP.Models.Abstractions;
 
 namespace UIAutomationMCP.Server.Infrastructure
 {

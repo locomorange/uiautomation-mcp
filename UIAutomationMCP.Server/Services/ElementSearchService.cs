@@ -1,3 +1,4 @@
+using UIAutomationMCP.Models.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using UIAutomationMCP.Server.Infrastructure;
@@ -6,7 +7,7 @@ using UIAutomationMCP.Core.Options;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Core.Validation;
-using UIAutomationMCP.Models.Metadata;
+using UIAutomationMCP.Models.Results;
 
 namespace UIAutomationMCP.Server.Services
 {

@@ -4,125 +4,104 @@ using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Serialization;
+using UIAutomationMCP.Core.Exceptions;
 using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.UIAutomation.Services;
 using UIAutomationMCP.Worker.Extensions;
-using UIAutomationMCP.Models.Results;
 
 namespace UIAutomationMCP.Worker.Operations.Window
 {
-    public class WindowActionOperation : IUIAutomationOperation
+    public class WindowActionOperation : BaseUIAutomationOperation<WindowActionRequest, WindowActionResult>
     {
-        private readonly ElementFinderService _elementFinderService;
-        private readonly ILogger<WindowActionOperation> _logger;
-
         public WindowActionOperation(
             ElementFinderService elementFinderService, 
             ILogger<WindowActionOperation> logger)
+            : base(elementFinderService, logger)
         {
-            _elementFinderService = elementFinderService;
-            _logger = logger;
         }
 
-        public Task<OperationResult> ExecuteAsync(string parametersJson)
+        protected override async Task<WindowActionResult> ExecuteOperationAsync(WindowActionRequest request)
         {
-            try
+            var action = request.Action;
+            var windowTitle = request.WindowTitle ?? "";
+            var processId = request.ProcessId;
+
+            var window = _elementFinderService.FindElement(
+                windowTitle: windowTitle, 
+                processId: processId);
+            if (window == null)
             {
-                var typedRequest = JsonSerializationHelper.Deserialize<WindowActionRequest>(parametersJson)!;
-                
-                var action = typedRequest.Action;
-                var windowTitle = typedRequest.WindowTitle ?? "";
-                var processId = typedRequest.ProcessId;
-
-                var window = _elementFinderService.FindElement(
-                    windowTitle: windowTitle, 
-                    processId: processId);
-                if (window == null)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Window not found",
-                        Data = new WindowActionResult { ActionName = action }
-                    });
-                }
-
-                if (!window.TryGetCurrentPattern(WindowPattern.Pattern, out var pattern) || pattern is not WindowPattern windowPattern)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "WindowPattern not supported",
-                        Data = new WindowActionResult { ActionName = action }
-                    });
-                }
-
-                // Get the current state before action
-                var previousState = windowPattern.Current.WindowVisualState.ToString();
-                var windowHandle = window.Current.NativeWindowHandle;
-                
-                var result = new WindowActionResult
-                {
-                    ActionName = action,
-                    WindowTitle = window.Current.Name,
-                    WindowHandle = windowHandle,
-                    PreviousState = previousState,
-                    Completed = true,
-                    ExecutedAt = DateTime.UtcNow
-                };
-
-                switch (action.ToLowerInvariant())
-                {
-                    case "minimize":
-                        windowPattern.SetWindowVisualState(WindowVisualState.Minimized);
-                        result.CurrentState = "Minimized";
-                        break;
-                    case "maximize":
-                        windowPattern.SetWindowVisualState(WindowVisualState.Maximized);
-                        result.CurrentState = "Maximized";
-                        break;
-                    case "normal":
-                    case "restore":
-                        windowPattern.SetWindowVisualState(WindowVisualState.Normal);
-                        result.CurrentState = "Normal";
-                        break;
-                    case "close":
-                        windowPattern.Close();
-                        result.CurrentState = "Closed";
-                        break;
-                    case "setfocus":
-                        window.SetFocus();
-                        result.CurrentState = windowPattern.Current.WindowVisualState.ToString();
-                        break;
-                    default:
-                        return Task.FromResult(new OperationResult 
-                        { 
-                            Success = false, 
-                            Error = $"Unsupported window action: {action}",
-                            Data = result
-                        });
-                }
-
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = true, 
-                    Data = result
-                });
+                throw new UIAutomationElementNotFoundException("Window", windowTitle);
             }
-            catch (Exception ex)
+
+            if (!window.TryGetCurrentPattern(WindowPattern.Pattern, out var pattern) || pattern is not WindowPattern windowPattern)
             {
-                _logger.LogError(ex, "WindowAction operation failed");
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = false, 
-                    Error = $"Failed to perform window action: {ex.Message}",
-                    Data = new WindowActionResult 
-                    { 
-                        ActionName = "",
-                        Completed = false
-                    }
-                });
+                throw new UIAutomationInvalidOperationException("WindowAction", windowTitle, "WindowPattern not supported");
             }
+
+            // Get the current state before action
+            var previousState = windowPattern.Current.WindowVisualState.ToString();
+            var windowHandle = window.Current.NativeWindowHandle;
+            
+            var result = new WindowActionResult
+            {
+                ActionName = action,
+                WindowTitle = window.Current.Name,
+                WindowHandle = windowHandle,
+                PreviousState = previousState,
+                Completed = true,
+                ExecutedAt = DateTime.UtcNow
+            };
+
+            switch (action.ToLowerInvariant())
+            {
+                case "minimize":
+                    windowPattern.SetWindowVisualState(WindowVisualState.Minimized);
+                    result.CurrentState = "Minimized";
+                    break;
+                case "maximize":
+                    windowPattern.SetWindowVisualState(WindowVisualState.Maximized);
+                    result.CurrentState = "Maximized";
+                    break;
+                case "normal":
+                case "restore":
+                    windowPattern.SetWindowVisualState(WindowVisualState.Normal);
+                    result.CurrentState = "Normal";
+                    break;
+                case "close":
+                    windowPattern.Close();
+                    result.CurrentState = "Closed";
+                    break;
+                case "setfocus":
+                    window.SetFocus();
+                    result.CurrentState = windowPattern.Current.WindowVisualState.ToString();
+                    break;
+                default:
+                    throw new UIAutomationInvalidOperationException("WindowAction", windowTitle, $"Unsupported window action: {action}");
+            }
+
+            return result;
+        }
+
+        protected override Core.Validation.ValidationResult ValidateRequest(WindowActionRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Action))
+            {
+                return Core.Validation.ValidationResult.Failure("Action is required");
+            }
+
+            var validActions = new[] { "minimize", "maximize", "normal", "restore", "close", "setfocus" };
+            if (!validActions.Contains(request.Action.ToLowerInvariant()))
+            {
+                return Core.Validation.ValidationResult.Failure($"Invalid action '{request.Action}'. Valid actions are: {string.Join(", ", validActions)}");
+            }
+
+            if (request.ProcessId.HasValue && request.ProcessId <= 0)
+            {
+                return Core.Validation.ValidationResult.Failure("ProcessId must be greater than 0 when specified");
+            }
+
+            return Core.Validation.ValidationResult.Success;
         }
     }
 }

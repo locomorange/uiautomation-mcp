@@ -3,107 +3,84 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
-using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.Core.Exceptions;
 
 namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
 {
-    public class ValidateControlTypePatternsOperation : IUIAutomationOperation
+    public class ValidateControlTypePatternsOperation : BaseUIAutomationOperation<ValidateControlTypePatternsRequest, BooleanResult>
     {
-        private readonly ElementFinderService _elementFinderService;
-        private readonly ILogger<ValidateControlTypePatternsOperation> _logger;
-
-
         public ValidateControlTypePatternsOperation(
             ElementFinderService elementFinderService,
             ILogger<ValidateControlTypePatternsOperation> logger)
+            : base(elementFinderService, logger)
         {
-            _elementFinderService = elementFinderService;
-            _logger = logger;
         }
 
-        public Task<OperationResult> ExecuteAsync(string parametersJson)
+        protected override Core.Validation.ValidationResult ValidateRequest(ValidateControlTypePatternsRequest request)
         {
-            try
+            if (string.IsNullOrEmpty(request.AutomationId) && string.IsNullOrEmpty(request.Name))
             {
-                var typedRequest = JsonSerializationHelper.Deserialize<ValidateControlTypePatternsRequest>(parametersJson)!;
-                
-                var element = _elementFinderService.FindElement(
-                    automationId: typedRequest.AutomationId, 
-                    name: typedRequest.Name, 
-                    controlType: typedRequest.ControlType, 
-                    processId: typedRequest.ProcessId ?? 0);
-                
-                if (element == null)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Element not found",
-                        Data = new BooleanResult { Value = false, Description = "Element not found" }
-                    });
-                }
+                return Core.Validation.ValidationResult.Failure("Either AutomationId or Name is required");
+            }
 
-                var controlType = element.Current.ControlType;
-                var availablePatterns = element.GetSupportedPatterns()
-                    .Select(pattern => pattern.ProgrammaticName)
+            return Core.Validation.ValidationResult.Success;
+        }
+
+        protected override Task<BooleanResult> ExecuteOperationAsync(ValidateControlTypePatternsRequest request)
+        {
+            var element = _elementFinderService.FindElement(
+                automationId: request.AutomationId, 
+                name: request.Name, 
+                controlType: request.ControlType, 
+                processId: request.ProcessId ?? 0);
+            
+            if (element == null)
+            {
+                throw new UIAutomationElementNotFoundException("Operation", null, "Element not found");
+            }
+
+            var controlType = element.Current.ControlType;
+            var availablePatterns = element.GetSupportedPatterns()
+                .Select(pattern => pattern.ProgrammaticName)
+                .ToArray();
+
+            var expectedPatterns = UIAutomationMCP.UIAutomation.Helpers.ControlTypeHelper.GetPatternInfo(controlType);
+            if (expectedPatterns != null)
+            {
+                var missingRequired = expectedPatterns.RequiredPatterns
+                    .Where(p => !availablePatterns.Any(ap => ap.Contains(p)))
                     .ToArray();
 
-                var expectedPatterns = UIAutomationMCP.UIAutomation.Helpers.ControlTypeHelper.GetPatternInfo(controlType);
-                if (expectedPatterns != null)
+                var presentOptional = expectedPatterns.OptionalPatterns
+                    .Where(p => availablePatterns.Any(ap => ap.Contains(p)))
+                    .ToArray();
+
+                var unexpectedPatterns = availablePatterns
+                    .Where(ap => !expectedPatterns.RequiredPatterns.Concat(expectedPatterns.OptionalPatterns)
+                        .Any(ep => ap.Contains(ep)))
+                    .ToArray();
+
+                var isValid = missingRequired.Length == 0;
+
+                var result = new BooleanResult
                 {
-                    var missingRequired = expectedPatterns.RequiredPatterns
-                        .Where(p => !availablePatterns.Any(ap => ap.Contains(p)))
-                        .ToArray();
+                    Value = isValid,
+                    Description = isValid ? "All required patterns are supported" : $"Missing {missingRequired.Length} required pattern(s)"
+                };
 
-                    var presentOptional = expectedPatterns.OptionalPatterns
-                        .Where(p => availablePatterns.Any(ap => ap.Contains(p)))
-                        .ToArray();
-
-                    var unexpectedPatterns = availablePatterns
-                        .Where(ap => !expectedPatterns.RequiredPatterns.Concat(expectedPatterns.OptionalPatterns)
-                            .Any(ep => ap.Contains(ep)))
-                        .ToArray();
-
-                    var isValid = missingRequired.Length == 0;
-
-                    var result = new BooleanResult
-                    {
-                        Value = isValid,
-                        Description = isValid ? "All required patterns are supported" : $"Missing {missingRequired.Length} required pattern(s)"
-                    };
-
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = true, 
-                        Data = result 
-                    });
-                }
-                else
-                {
-                    var result = new BooleanResult
-                    {
-                        Value = true,
-                        Description = $"No specific pattern requirements defined for control type: {controlType.LocalizedControlType}"
-                    };
-
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = true, 
-                        Data = result 
-                    });
-                }
+                return Task.FromResult(result);
             }
-            catch (Exception ex)
+            else
             {
-                _logger.LogError(ex, "ValidateControlTypePatterns operation failed");
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = false, 
-                    Error = $"Failed to validate control type patterns: {ex.Message}",
-                    Data = new BooleanResult { Value = false, Description = "Operation failed" }
-                });
+                var result = new BooleanResult
+                {
+                    Value = true,
+                    Description = $"No specific pattern requirements defined for control type: {controlType.LocalizedControlType}"
+                };
+
+                return Task.FromResult(result);
             }
         }
 

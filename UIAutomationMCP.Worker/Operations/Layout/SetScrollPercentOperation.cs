@@ -3,135 +3,73 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
-using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.Core.Exceptions;
 
 namespace UIAutomationMCP.Worker.Operations.Layout
 {
-    public class SetScrollPercentOperation : IUIAutomationOperation
+    public class SetScrollPercentOperation : BaseUIAutomationOperation<SetScrollPercentRequest, ScrollActionResult>
     {
-        private readonly ElementFinderService _elementFinderService;
-        private readonly ILogger<SetScrollPercentOperation> _logger;
-
         public SetScrollPercentOperation(
             ElementFinderService elementFinderService, 
-            ILogger<SetScrollPercentOperation> logger)
+            ILogger<SetScrollPercentOperation> logger) : base(elementFinderService, logger)
         {
-            _elementFinderService = elementFinderService;
-            _logger = logger;
         }
 
-        public Task<OperationResult> ExecuteAsync(string parametersJson)
+        protected override async Task<ScrollActionResult> ExecuteOperationAsync(SetScrollPercentRequest request)
         {
-            try
+            var horizontalPercent = request.HorizontalPercent;
+            var verticalPercent = request.VerticalPercent;
+
+            // Validate percentage ranges (ScrollPattern uses -1 for NoScroll)
+            if ((horizontalPercent < -1 || horizontalPercent > 100) && horizontalPercent != ScrollPattern.NoScroll)
             {
-                var typedRequest = JsonSerializationHelper.Deserialize<SetScrollPercentRequest>(parametersJson)!;
-                
-                var horizontalPercent = typedRequest.HorizontalPercent;
-                var verticalPercent = typedRequest.VerticalPercent;
-
-                // Validate percentage ranges (ScrollPattern uses -1 for NoScroll)
-                if ((horizontalPercent < -1 || horizontalPercent > 100) && horizontalPercent != ScrollPattern.NoScroll)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Horizontal percentage must be between 0-100 or -1 for no change",
-                        Data = new ScrollActionResult()
-                    });
-                }
-
-                if ((verticalPercent < -1 || verticalPercent > 100) && verticalPercent != ScrollPattern.NoScroll)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Vertical percentage must be between 0-100 or -1 for no change",
-                        Data = new ScrollActionResult()
-                    });
-                }
-
-                var element = _elementFinderService.FindElement(
-                    automationId: typedRequest.AutomationId, 
-                    name: typedRequest.Name,
-                    controlType: typedRequest.ControlType,
-                    processId: typedRequest.ProcessId);
-                
-                if (element == null)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Element not found",
-                        Data = new ScrollActionResult()
-                    });
-                }
-
-                if (!element.TryGetCurrentPattern(ScrollPattern.Pattern, out var pattern) || pattern is not ScrollPattern scrollPattern)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Element does not support ScrollPattern",
-                        Data = new ScrollActionResult()
-                    });
-                }
-
-                // Use ScrollPattern.NoScroll (-1) to indicate no change for that axis
-                var finalHorizontalPercent = horizontalPercent == -1 ? ScrollPattern.NoScroll : horizontalPercent;
-                var finalVerticalPercent = verticalPercent == -1 ? ScrollPattern.NoScroll : verticalPercent;
-
-                scrollPattern.SetScrollPercent(finalHorizontalPercent, finalVerticalPercent);
-
-                // Get current scroll position after setting
-                var result = new ScrollActionResult
-                {
-                    ActionName = "SetScrollPercent",
-                    Completed = true,
-                    ExecutedAt = DateTime.UtcNow,
-                    HorizontalPercent = scrollPattern.Current.HorizontalScrollPercent,
-                    VerticalPercent = scrollPattern.Current.VerticalScrollPercent,
-                    HorizontalViewSize = scrollPattern.Current.HorizontalViewSize,
-                    VerticalViewSize = scrollPattern.Current.VerticalViewSize,
-                    HorizontallyScrollable = scrollPattern.Current.HorizontallyScrollable,
-                    VerticallyScrollable = scrollPattern.Current.VerticallyScrollable
-                };
-
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = true, 
-                    Data = result 
-                });
+                throw new ArgumentException("Horizontal percentage must be between 0-100 or -1 for no change");
             }
-            catch (ArgumentOutOfRangeException ex)
+
+            if ((verticalPercent < -1 || verticalPercent > 100) && verticalPercent != ScrollPattern.NoScroll)
             {
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = false, 
-                    Error = $"Scroll percentage out of range: {ex.Message}",
-                    Data = new ScrollActionResult()
-                });
+                throw new ArgumentException("Vertical percentage must be between 0-100 or -1 for no change");
             }
-            catch (InvalidOperationException ex)
+
+            var element = _elementFinderService.FindElement(
+                automationId: request.AutomationId, 
+                name: request.Name,
+                controlType: request.ControlType,
+                processId: request.ProcessId);
+            
+            if (element == null)
             {
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = false, 
-                    Error = $"Scroll operation not supported: {ex.Message}",
-                    Data = new ScrollActionResult()
-                });
+                throw new UIAutomationElementNotFoundException("Operation", null, "Element not found");
             }
-            catch (Exception ex)
+
+            if (!element.TryGetCurrentPattern(ScrollPattern.Pattern, out var pattern) || pattern is not ScrollPattern scrollPattern)
             {
-                _logger.LogError(ex, "SetScrollPercent operation failed");
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = false, 
-                    Error = $"Failed to set scroll percentage: {ex.Message}",
-                    Data = new ScrollActionResult()
-                });
+                throw new UIAutomationElementNotFoundException("Operation", null, "Element does not support ScrollPattern");
             }
+
+            // Use ScrollPattern.NoScroll (-1) to indicate no change for that axis
+            var finalHorizontalPercent = horizontalPercent == -1 ? ScrollPattern.NoScroll : horizontalPercent;
+            var finalVerticalPercent = verticalPercent == -1 ? ScrollPattern.NoScroll : verticalPercent;
+
+            scrollPattern.SetScrollPercent(finalHorizontalPercent, finalVerticalPercent);
+
+            // Get current scroll position after setting
+            var result = new ScrollActionResult
+            {
+                ActionName = "SetScrollPercent",
+                Completed = true,
+                ExecutedAt = DateTime.UtcNow,
+                HorizontalPercent = scrollPattern.Current.HorizontalScrollPercent,
+                VerticalPercent = scrollPattern.Current.VerticalScrollPercent,
+                HorizontalViewSize = scrollPattern.Current.HorizontalViewSize,
+                VerticalViewSize = scrollPattern.Current.VerticalViewSize,
+                HorizontallyScrollable = scrollPattern.Current.HorizontallyScrollable,
+                VerticallyScrollable = scrollPattern.Current.VerticallyScrollable
+            };
+
+            return result;
         }
     }
 }

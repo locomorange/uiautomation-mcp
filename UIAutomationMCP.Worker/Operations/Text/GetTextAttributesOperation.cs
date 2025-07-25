@@ -4,63 +4,35 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
-using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.Core.Exceptions;
 
 namespace UIAutomationMCP.Worker.Operations.Text
 {
-    public class GetTextAttributesOperation(
-        ElementFinderService elementFinderService,
-        ILogger<GetTextAttributesOperation> logger) : IUIAutomationOperation
+    public class GetTextAttributesOperation : BaseUIAutomationOperation<GetTextAttributesRequest, TextAttributesResult>
     {
-        private readonly ElementFinderService _elementFinderService = elementFinderService;
-        private readonly ILogger<GetTextAttributesOperation> _logger = logger;
-
-        public Task<OperationResult> ExecuteAsync(string parametersJson)
+        public GetTextAttributesOperation(
+            ElementFinderService elementFinderService,
+            ILogger<GetTextAttributesOperation> logger)
+            : base(elementFinderService, logger)
         {
-            GetTextAttributesRequest? request = null;
+        }
+
+        protected override Core.Validation.ValidationResult ValidateRequest(GetTextAttributesRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.AutomationId) && string.IsNullOrWhiteSpace(request.Name))
+            {
+                return Core.Validation.ValidationResult.Failure("Either AutomationId or Name is required");
+            }
+
+            return Core.Validation.ValidationResult.Success;
+        }
+
+        protected override Task<TextAttributesResult> ExecuteOperationAsync(GetTextAttributesRequest request)
+        {
             try
             {
-                // Extract the actual request parameters from the input JSON
-                string actualParametersJson;
-                try
-                {
-                    var jsonDoc = System.Text.Json.JsonDocument.Parse(parametersJson);
-                    var root = jsonDoc.RootElement;
-                    
-                    if (root.TryGetProperty("request", out var requestElement))
-                    {
-                        // If request is a string, use it directly; if object, serialize it
-                        if (requestElement.ValueKind == System.Text.Json.JsonValueKind.String)
-                        {
-                            actualParametersJson = requestElement.GetString() ?? "{}";
-                        }
-                        else
-                        {
-                            actualParametersJson = requestElement.GetRawText();
-                        }
-                    }
-                    else
-                    {
-                        // If no request property, use the whole input (backward compatibility)
-                        actualParametersJson = parametersJson;
-                    }
-                }
-                catch (System.Text.Json.JsonException)
-                {
-                    // If JSON parsing fails, assume the input is already the request parameters
-                    actualParametersJson = parametersJson;
-                }
-
-                request = JsonSerializationHelper.Deserialize<GetTextAttributesRequest>(actualParametersJson)!;
-                
-                // Validate required parameters early
-                if (string.IsNullOrWhiteSpace(request.AutomationId) && string.IsNullOrWhiteSpace(request.Name))
-                {
-                    return Task.FromResult(CreateErrorResult(request, "Either AutomationId or Name is required"));
-                }
-                
                 var element = _elementFinderService.FindElement(
                     automationId: request.AutomationId, 
                     name: request.Name,
@@ -69,72 +41,59 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 
                 if (element == null)
                 {
-                    return Task.FromResult(CreateErrorResult(request, "Element not found"));
+                    throw new UIAutomationElementNotFoundException("Operation", null, "Element not found");
                 }
 
                 // Check if element supports TextPattern before proceeding
                 if (!IsTextPatternSupported(element))
                 {
                     _logger.LogWarning("Element does not support TextPattern: {AutomationId}", request.AutomationId);
-                    return Task.FromResult(CreateErrorResult(request, 
-                        "Element does not support TextPattern - text attributes can only be retrieved from text controls (TextBox, RichTextBox, Document, etc.)"));
+                    throw new UIAutomationElementNotFoundException("Operation", null, "Element does not support TextPattern - text attributes can only be retrieved from text controls (TextBox, RichTextBox, Document, etc.)");
                 }
 
                 if (!element.TryGetCurrentPattern(TextPattern.Pattern, out var pattern) || pattern is not TextPattern textPattern)
                 {
-                    return Task.FromResult(CreateErrorResult(request, "Failed to obtain TextPattern from element"));
+                    throw new UIAutomationElementNotFoundException("Operation", null, "Failed to obtain TextPattern from element");
                 }
 
                 var result = ExtractTextAttributes(textPattern, request);
-                return Task.FromResult(new OperationResult { Success = true, Data = result });
+                return Task.FromResult(result);
             }
             catch (ElementNotAvailableException ex)
             {
-                // Element no longer exists (e.g., dialog closed, application terminated)
                 _logger.LogWarning(ex, "Element not available during text attributes operation: {AutomationId}", request?.AutomationId);
-                return Task.FromResult(CreateErrorResult(request, "Element is no longer available (may have been closed or destroyed)"));
+                throw new UIAutomationElementNotFoundException("Operation", null, "Element is no longer available (may have been closed or destroyed)");
             }
             catch (ElementNotEnabledException ex)
             {
-                // Element exists but is disabled
                 _logger.LogWarning(ex, "Element not enabled during text attributes operation: {AutomationId}", request?.AutomationId);
-                return Task.FromResult(CreateErrorResult(request, "Element is disabled and cannot be accessed"));
+                throw new UIAutomationElementNotFoundException("Operation", null, "Element is disabled and cannot be accessed");
             }
             catch (InvalidOperationException ex)
             {
-                // TextPattern operations may not be valid for current element state
                 _logger.LogError(ex, "Invalid operation during text attributes retrieval: {AutomationId}", request?.AutomationId);
-                return Task.FromResult(CreateErrorResult(request, $"Text attributes operation is not valid for this element: {ex.Message}"));
+                throw new UIAutomationElementNotFoundException("Operation", null, $"Text attributes operation is not valid for this element: {ex.Message}");
             }
             catch (ArgumentException ex)
             {
-                // Invalid parameters (e.g., range out of bounds)
                 _logger.LogError(ex, "Invalid argument in text attributes operation: {AutomationId}", request?.AutomationId);
-                return Task.FromResult(CreateErrorResult(request, $"Invalid parameter: {ex.Message}"));
+                throw new UIAutomationElementNotFoundException("Operation", null, $"Invalid parameter: {ex.Message}");
             }
             catch (System.Runtime.InteropServices.COMException ex)
             {
-                // COM interop errors - common in UI Automation when accessing system-level elements
                 _logger.LogError(ex, "COM error during text attributes operation: HRESULT=0x{HResult:X8}", ex.HResult);
                 var errorMessage = GetCOMErrorMessage(ex);
-                return Task.FromResult(CreateErrorResult(request, errorMessage));
+                throw new UIAutomationElementNotFoundException("Operation", null, errorMessage);
             }
             catch (TimeoutException ex)
             {
-                // Operation timed out
                 _logger.LogError(ex, "Timeout during text attributes operation: {AutomationId}", request?.AutomationId);
-                return Task.FromResult(CreateErrorResult(request, "Operation timed out - target application may be unresponsive"));
+                throw new UIAutomationElementNotFoundException("Operation", null, "Operation timed out - target application may be unresponsive");
             }
             catch (UnauthorizedAccessException ex)
             {
-                // Security/permission issues
                 _logger.LogError(ex, "Access denied during text attributes operation: {AutomationId}", request?.AutomationId);
-                return Task.FromResult(CreateErrorResult(request, "Access denied - insufficient permissions to access the element"));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error in GetTextAttributes operation: {AutomationId}", request?.AutomationId);
-                return Task.FromResult(CreateErrorResult(request, $"Unexpected error: {ex.Message}"));
+                throw new UIAutomationElementNotFoundException("Operation", null, "Access denied - insufficient permissions to access the element");
             }
         }
 
@@ -165,20 +124,6 @@ namespace UIAutomationMCP.Worker.Operations.Text
             };
         }
 
-        private static OperationResult CreateErrorResult(GetTextAttributesRequest? request, string error)
-        {
-            return new OperationResult
-            {
-                Success = false,
-                Error = error,
-                Data = new TextAttributesResult
-                {
-                    AutomationId = request?.AutomationId ?? "",
-                    Name = request?.Name ?? "",
-                    HasAttributes = false
-                }
-            };
-        }
 
         private TextAttributesResult ExtractTextAttributes(TextPattern textPattern, GetTextAttributesRequest request)
         {
@@ -209,7 +154,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 TextContent = fullText[startIndex..endIndex],
                 HasAttributes = true,
                 Pattern = "TextPattern",
-                SegmentationMode = shouldSegment,
+                SegmentationMode = shouldSegment.ToString(),
                 SupportedAttributes = GetSupportedAttributes()
             };
 

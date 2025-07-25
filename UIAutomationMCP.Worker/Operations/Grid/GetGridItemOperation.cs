@@ -3,102 +3,82 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
-using UIAutomationMCP.Models.Serialization;
+using UIAutomationMCP.Core.Exceptions;
 using UIAutomationMCP.UIAutomation.Abstractions;
+using UIAutomationMCP.UIAutomation.Helpers;
 using UIAutomationMCP.UIAutomation.Services;
 
 namespace UIAutomationMCP.Worker.Operations.Grid
 {
-    public class GetGridItemOperation : IUIAutomationOperation
+    public class GetGridItemOperation : BaseUIAutomationOperation<GetGridItemRequest, GridItemResult>
     {
-        private readonly ElementFinderService _elementFinderService;
-        private readonly ILogger<GetGridItemOperation> _logger;
-
         public GetGridItemOperation(
             ElementFinderService elementFinderService, 
             ILogger<GetGridItemOperation> logger)
+            : base(elementFinderService, logger)
         {
-            _elementFinderService = elementFinderService;
-            _logger = logger;
         }
 
-        public Task<OperationResult> ExecuteAsync(string parametersJson)
+        protected override Core.Validation.ValidationResult ValidateRequest(GetGridItemRequest request)
         {
-            try
-            {
-                var typedRequest = JsonSerializationHelper.Deserialize<GetGridItemRequest>(parametersJson)!;
+            var baseResult = base.ValidateRequest(request);
+            if (!baseResult.IsValid)
+                return baseResult;
+
+            if (request.Row < 0)
+                return Core.Validation.ValidationResult.Failure("Row index must be non-negative");
+
+            if (request.Column < 0)
+                return Core.Validation.ValidationResult.Failure("Column index must be non-negative");
+
+            return Core.Validation.ValidationResult.Success;
+        }
+
+        protected override Task<GridItemResult> ExecuteOperationAsync(GetGridItemRequest request)
+        {
+            var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? GridPattern.Pattern;
                 
-                var element = _elementFinderService.FindElement(
-                    automationId: typedRequest.AutomationId, 
-                    name: typedRequest.Name,
-                    controlType: typedRequest.ControlType,
-                    processId: typedRequest.ProcessId,
-                    requiredPattern: GridPattern.Pattern);
-                
-                if (element == null)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Element not found",
-                        Data = new GridItemResult()
-                    });
-                }
-
-                if (!element.TryGetCurrentPattern(GridPattern.Pattern, out var pattern) || pattern is not GridPattern gridPattern)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "GridPattern not supported",
-                        Data = new GridItemResult()
-                    });
-                }
-
-                var gridItem = gridPattern.GetItem(typedRequest.Row, typedRequest.Column);
-                if (gridItem == null)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Grid item not found",
-                        Data = new GridItemResult()
-                    });
-                }
-
-                // Get GridItem pattern info
-                GridItemPattern? gridItemPattern = null;
-                if (gridItem.TryGetCurrentPattern(GridItemPattern.Pattern, out var itemPattern))
-                {
-                    gridItemPattern = itemPattern as GridItemPattern;
-                }
-
-                var result = new GridItemResult
-                {
-                    Row = gridItemPattern?.Current.Row ?? typedRequest.Row,
-                    Column = gridItemPattern?.Current.Column ?? typedRequest.Column,
-                    RowSpan = gridItemPattern?.Current.RowSpan ?? 1,
-                    ColumnSpan = gridItemPattern?.Current.ColumnSpan ?? 1,
-                    ContainingGridId = gridItemPattern?.Current.ContainingGrid?.Current.AutomationId ?? string.Empty,
-                    Element = UIAutomationMCP.UIAutomation.Helpers.ElementInfoBuilder.CreateElementInfo(gridItem, includeDetails: true, _logger)
-                };
-
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = true, 
-                    Data = result 
-                });
-            }
-            catch (Exception ex)
+            var element = _elementFinderService.FindElement(
+                automationId: request.AutomationId, 
+                name: request.Name,
+                controlType: request.ControlType,
+                processId: request.ProcessId,
+                requiredPattern: requiredPattern);
+            
+            if (element == null)
             {
-                _logger.LogError(ex, "GetGridItem operation failed");
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = false, 
-                    Error = $"Failed to get grid item: {ex.Message}",
-                    Data = new GridItemResult()
-                });
+                throw new UIAutomationElementNotFoundException("Operation", null, "Element not found");
             }
+
+            if (!element.TryGetCurrentPattern(GridPattern.Pattern, out var pattern) || pattern is not GridPattern gridPattern)
+            {
+                throw new UIAutomationInvalidOperationException("Operation", null, "GridPattern not supported");
+            }
+
+            var gridItem = gridPattern.GetItem(request.Row, request.Column);
+            if (gridItem == null)
+            {
+                throw new UIAutomationElementNotFoundException("Operation", null, "Grid item not found");
+            }
+
+            // Get GridItem pattern info
+            GridItemPattern? gridItemPattern = null;
+            if (gridItem.TryGetCurrentPattern(GridItemPattern.Pattern, out var itemPattern))
+            {
+                gridItemPattern = itemPattern as GridItemPattern;
+            }
+
+            var result = new GridItemResult
+            {
+                Row = gridItemPattern?.Current.Row ?? request.Row,
+                Column = gridItemPattern?.Current.Column ?? request.Column,
+                RowSpan = gridItemPattern?.Current.RowSpan ?? 1,
+                ColumnSpan = gridItemPattern?.Current.ColumnSpan ?? 1,
+                ContainingGridId = gridItemPattern?.Current.ContainingGrid?.Current.AutomationId ?? string.Empty,
+                Element = ElementInfoBuilder.CreateElementInfo(gridItem, includeDetails: true, _logger)
+            };
+
+            return Task.FromResult(result);
         }
 
     }

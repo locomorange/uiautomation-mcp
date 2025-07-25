@@ -3,119 +3,76 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
-using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.Core.Exceptions;
 
 namespace UIAutomationMCP.Worker.Operations.Layout
 {
-    public class ExpandCollapseElementOperation : IUIAutomationOperation
+    public class ExpandCollapseElementOperation : BaseUIAutomationOperation<ExpandCollapseElementRequest, ExpandCollapseResult>
     {
-        private readonly ElementFinderService _elementFinderService;
-        private readonly ILogger<ExpandCollapseElementOperation> _logger;
-
         public ExpandCollapseElementOperation(
             ElementFinderService elementFinderService, 
-            ILogger<ExpandCollapseElementOperation> logger)
+            ILogger<ExpandCollapseElementOperation> logger) : base(elementFinderService, logger)
         {
-            _elementFinderService = elementFinderService;
-            _logger = logger;
         }
 
-        public Task<OperationResult> ExecuteAsync(string parametersJson)
+        protected override async Task<ExpandCollapseResult> ExecuteOperationAsync(ExpandCollapseElementRequest request)
         {
-            try
+            var element = _elementFinderService.FindElement(
+                automationId: request.AutomationId, 
+                name: request.Name,
+                controlType: request.ControlType,
+                processId: request.ProcessId);
+            
+            if (element == null)
             {
-                var typedRequest = JsonSerializationHelper.Deserialize<ExpandCollapseElementRequest>(parametersJson)!;
-                
-                var element = _elementFinderService.FindElement(
-                    automationId: typedRequest.AutomationId, 
-                    name: typedRequest.Name,
-                    controlType: typedRequest.ControlType,
-                    processId: typedRequest.ProcessId);
-                
-                if (element == null)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Element not found",
-                        Data = new ExpandCollapseResult { ActionName = "ExpandCollapse" }
-                    });
-                }
+                throw new UIAutomationElementNotFoundException("Operation", null, "Element not found");
+            }
 
-                if (!element.TryGetCurrentPattern(ExpandCollapsePattern.Pattern, out var pattern) || pattern is not ExpandCollapsePattern expandCollapsePattern)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Element does not support ExpandCollapsePattern",
-                        Data = new ExpandCollapseResult { ActionName = "ExpandCollapse" }
-                    });
-                }
+            if (!element.TryGetCurrentPattern(ExpandCollapsePattern.Pattern, out var pattern) || pattern is not ExpandCollapsePattern expandCollapsePattern)
+            {
+                throw new UIAutomationElementNotFoundException("Operation", null, "Element does not support ExpandCollapsePattern");
+            }
 
-                var currentState = expandCollapsePattern.Current.ExpandCollapseState;
-                var previousState = currentState.ToString();
-                var action = typedRequest.Action ?? "toggle";
-                
-                switch (action.ToLowerInvariant())
-                {
-                    case "expand":
-                        expandCollapsePattern.Expand();
-                        break;
-                    case "collapse":
+            var currentState = expandCollapsePattern.Current.ExpandCollapseState;
+            var previousState = currentState.ToString();
+            var action = request.Action ?? "toggle";
+            
+            switch (action.ToLowerInvariant())
+            {
+                case "expand":
+                    expandCollapsePattern.Expand();
+                    break;
+                case "collapse":
+                    expandCollapsePattern.Collapse();
+                    break;
+                case "toggle":
+                    if (currentState == ExpandCollapseState.Expanded)
                         expandCollapsePattern.Collapse();
-                        break;
-                    case "toggle":
-                        if (currentState == ExpandCollapseState.Expanded)
-                            expandCollapsePattern.Collapse();
-                        else
-                            expandCollapsePattern.Expand();
-                        break;
-                    default:
-                        return Task.FromResult(new OperationResult 
-                        { 
-                            Success = false, 
-                            Error = $"Unsupported expand/collapse action: {action}",
-                            Data = new ExpandCollapseResult { ActionName = "ExpandCollapse" }
-                        });
-                }
-
-                // Small delay to allow UI to update
-                System.Threading.Thread.Sleep(100);
-
-                var newState = expandCollapsePattern.Current.ExpandCollapseState;
-                
-                var result = new ExpandCollapseResult
-                {
-                    ActionName = "ExpandCollapse",
-                    Completed = true,
-                    ExecutedAt = DateTime.UtcNow,
-                    PreviousState = previousState,
-                    CurrentState = newState.ToString(),
-                    Details = $"Expand/Collapse action: {action}"
-                };
-
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = true, 
-                    Data = result
-                });
+                    else
+                        expandCollapsePattern.Expand();
+                    break;
+                default:
+                    throw new ArgumentException($"Unsupported expand/collapse action: {action}");
             }
-            catch (Exception ex)
+
+            // Small delay to allow UI to update
+            System.Threading.Thread.Sleep(100);
+
+            var newState = expandCollapsePattern.Current.ExpandCollapseState;
+            
+            var result = new ExpandCollapseResult
             {
-                _logger.LogError(ex, "ExpandCollapseElement operation failed");
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = false, 
-                    Error = $"Failed to expand/collapse element: {ex.Message}",
-                    Data = new ExpandCollapseResult 
-                    { 
-                        ActionName = "ExpandCollapse",
-                        Completed = false
-                    }
-                });
-            }
+                ActionName = "ExpandCollapse",
+                Completed = true,
+                ExecutedAt = DateTime.UtcNow,
+                PreviousState = previousState,
+                CurrentState = newState.ToString(),
+                Details = $"Expand/Collapse action: {action}"
+            };
+
+            return result;
         }
     }
 }

@@ -1,3 +1,4 @@
+using UIAutomationMCP.Models.Abstractions;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 

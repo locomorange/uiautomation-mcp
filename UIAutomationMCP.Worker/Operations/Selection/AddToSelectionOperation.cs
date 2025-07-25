@@ -4,116 +4,94 @@ using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Serialization;
+using UIAutomationMCP.Core.Exceptions;
 using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.UIAutomation.Helpers;
 
 namespace UIAutomationMCP.Worker.Operations.Selection
 {
-    public class AddToSelectionOperation : IUIAutomationOperation
+    public class AddToSelectionOperation : BaseUIAutomationOperation<AddToSelectionRequest, SelectionActionResult>
     {
-        private readonly ElementFinderService _elementFinderService;
-        private readonly ILogger<AddToSelectionOperation> _logger;
-
         public AddToSelectionOperation(
             ElementFinderService elementFinderService, 
             ILogger<AddToSelectionOperation> logger)
+            : base(elementFinderService, logger)
         {
-            _elementFinderService = elementFinderService;
-            _logger = logger;
         }
 
-        public Task<OperationResult> ExecuteAsync(string parametersJson)
+        protected override async Task<SelectionActionResult> ExecuteOperationAsync(AddToSelectionRequest request)
         {
-            try
+            // パターン変換（リクエストから取得、デフォルトはSelectionItemPattern）
+            var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? SelectionItemPattern.Pattern;
+            
+            var element = _elementFinderService.FindElement(
+                automationId: request.AutomationId, 
+                name: request.Name, 
+                controlType: request.ControlType, 
+                windowTitle: request.WindowTitle, 
+                processId: request.ProcessId ?? 0,
+                requiredPattern: requiredPattern);
+            
+            if (element == null)
             {
-                var typedRequest = JsonSerializationHelper.Deserialize<AddToSelectionRequest>(parametersJson)!;
-                
-                var element = _elementFinderService.FindElement(
-                    automationId: typedRequest.AutomationId, 
-                    name: typedRequest.Name, 
-                    controlType: typedRequest.ControlType, 
-                    windowTitle: typedRequest.WindowTitle, 
-                    processId: typedRequest.ProcessId ?? 0);
-                
-                if (element == null)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Element not found",
-                        Data = new SelectionActionResult { ActionName = "AddToSelection", SelectionType = "Add" }
-                    });
-                }
+                throw new UIAutomationElementNotFoundException("AddToSelection", request.AutomationId);
+            }
 
-                if (!element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var pattern) || pattern is not SelectionItemPattern selectionPattern)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "SelectionItemPattern not supported",
-                        Data = new SelectionActionResult { ActionName = "AddToSelection", SelectionType = "Add" }
-                    });
-                }
+            if (!element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var pattern) || pattern is not SelectionItemPattern selectionPattern)
+            {
+                throw new UIAutomationInvalidOperationException("AddToSelection", request.AutomationId, "SelectionItemPattern not supported");
+            }
 
-                selectionPattern.AddToSelection();
+            selectionPattern.AddToSelection();
 
-                var result = new SelectionActionResult
+            var result = new SelectionActionResult
+            {
+                ActionName = "AddToSelection",
+                Completed = true,
+                ExecutedAt = DateTime.UtcNow,
+                SelectionType = "Add",
+                SelectedElement = new ElementInfo
                 {
-                    ActionName = "AddToSelection",
-                    Completed = true,
-                    ExecutedAt = DateTime.UtcNow,
-                    SelectionType = "Add",
-                    SelectedElement = new ElementInfo
+                    AutomationId = element.Current.AutomationId,
+                    Name = element.Current.Name,
+                    ControlType = element.Current.ControlType.LocalizedControlType,
+                    ClassName = element.Current.ClassName,
+                    IsEnabled = element.Current.IsEnabled,
+                    IsVisible = !element.Current.IsOffscreen,
+                    ProcessId = element.Current.ProcessId,
+                    BoundingRectangle = new BoundingRectangle
                     {
-                        AutomationId = element.Current.AutomationId,
-                        Name = element.Current.Name,
-                        ControlType = element.Current.ControlType.LocalizedControlType,
-                        ClassName = element.Current.ClassName,
-                        IsEnabled = element.Current.IsEnabled,
-                        IsVisible = !element.Current.IsOffscreen,
-                        ProcessId = element.Current.ProcessId,
-                        BoundingRectangle = new BoundingRectangle
-                        {
-                            X = element.Current.BoundingRectangle.X,
-                            Y = element.Current.BoundingRectangle.Y,
-                            Width = element.Current.BoundingRectangle.Width,
-                            Height = element.Current.BoundingRectangle.Height
-                        }
+                        X = element.Current.BoundingRectangle.X,
+                        Y = element.Current.BoundingRectangle.Y,
+                        Width = element.Current.BoundingRectangle.Width,
+                        Height = element.Current.BoundingRectangle.Height
                     }
-                };
-
-                // Try to get selection count from parent container
-                if (element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var itemPattern) && 
-                    itemPattern is SelectionItemPattern selectionItemPattern &&
-                    selectionItemPattern.Current.SelectionContainer is AutomationElement container &&
-                    container.TryGetCurrentPattern(SelectionPattern.Pattern, out var containerPattern) && 
-                    containerPattern is SelectionPattern selectionContainerPattern)
-                {
-                    var currentSelection = selectionContainerPattern.Current.GetSelection();
-                    result.CurrentSelectionCount = currentSelection.Length;
                 }
+            };
 
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = true, 
-                    Data = result
-                });
-            }
-            catch (Exception ex)
+            // Try to get selection count from parent container
+            if (element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var itemPattern) && 
+                itemPattern is SelectionItemPattern selectionItemPattern &&
+                selectionItemPattern.Current.SelectionContainer is AutomationElement container &&
+                container.TryGetCurrentPattern(SelectionPattern.Pattern, out var containerPattern) && 
+                containerPattern is SelectionPattern selectionContainerPattern)
             {
-                _logger.LogError(ex, "AddToSelection operation failed");
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = false, 
-                    Error = $"Failed to add element to selection: {ex.Message}",
-                    Data = new SelectionActionResult 
-                    { 
-                        ActionName = "AddToSelection",
-                        SelectionType = "Add",
-                        Completed = false
-                    }
-                });
+                var currentSelection = selectionContainerPattern.Current.GetSelection();
+                result.CurrentSelectionCount = currentSelection.Length;
             }
+
+            return result;
+        }
+
+        protected override Core.Validation.ValidationResult ValidateRequest(AddToSelectionRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.AutomationId))
+            {
+                return Core.Validation.ValidationResult.Failure("Element ID is required");
+            }
+
+            return Core.Validation.ValidationResult.Success;
         }
     }
 }

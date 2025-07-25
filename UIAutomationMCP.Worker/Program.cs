@@ -1,8 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using UIAutomationMCP.Worker.Helpers;
 using UIAutomationMCP.Core.Configuration;
-using UIAutomationMCP.Worker.Services;
+using UIAutomationMCP.UIAutomation.Infrastructure;
 using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.Worker.Operations.ElementSearch;
 using UIAutomationMCP.Worker.Operations.Invoke;

@@ -24,10 +24,10 @@ namespace UIAutomationMCP.Models.Results
         public string? TargetControlType { get; set; }
         
         [JsonPropertyName("actionParameters")]
-        public Dictionary<string, object> ActionParameters { get; set; } = new();
+        public string ActionParameters { get; set; } = string.Empty;
         
         [JsonPropertyName("elementState")]
-        public Dictionary<string, object> ElementState { get; set; } = new();
+        public string ElementState { get; set; } = string.Empty;
         
         [JsonPropertyName("executionTimeMs")]
         public double ExecutionTimeMs { get; set; }
@@ -57,10 +57,10 @@ namespace UIAutomationMCP.Models.Results
         public bool StateChanged { get; set; }
         
         [JsonPropertyName("beforeState")]
-        public Dictionary<string, object> BeforeState { get; set; } = new();
+        public string BeforeState { get; set; } = string.Empty;
         
         [JsonPropertyName("afterState")]
-        public Dictionary<string, object> AfterState { get; set; } = new();
+        public string AfterState { get; set; } = string.Empty;
         
         [JsonPropertyName("completed")]
         public bool Completed { get; set; }

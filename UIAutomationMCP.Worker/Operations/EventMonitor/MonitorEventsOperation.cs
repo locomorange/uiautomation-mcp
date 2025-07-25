@@ -3,10 +3,9 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
-using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.UIAutomation.Services;
-using UIAutomationMCP.Models.Results;
+using UIAutomationMCP.Core.Exceptions;
 
 namespace UIAutomationMCP.Worker.Operations.EventMonitor
 {
@@ -14,92 +13,76 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
     /// MS Learn ベストプラクティスに従った一時的なイベント監視操作
     /// 指定期間中のイベントを収集して返す
     /// </summary>
-    public class MonitorEventsOperation : IUIAutomationOperation
+    public class MonitorEventsOperation : BaseUIAutomationOperation<MonitorEventsRequest, EventMonitoringResult>
     {
-        private readonly ElementFinderService _elementFinderService;
-        private readonly ILogger<MonitorEventsOperation> _logger;
         private readonly List<TypedEventData> _capturedEvents = new();
         private readonly object _eventLock = new();
 
         public MonitorEventsOperation(
             ElementFinderService elementFinderService,
             ILogger<MonitorEventsOperation> logger)
+            : base(elementFinderService, logger)
         {
-            _elementFinderService = elementFinderService;
-            _logger = logger;
         }
 
-        public async Task<OperationResult> ExecuteAsync(string parametersJson)
+        protected override Core.Validation.ValidationResult ValidateRequest(MonitorEventsRequest request)
         {
+            if (request.EventTypes == null || !request.EventTypes.Any())
+            {
+                return Core.Validation.ValidationResult.Failure("EventTypes cannot be null or empty");
+            }
+
+            if (request.Duration <= 0)
+            {
+                return Core.Validation.ValidationResult.Failure("Duration must be greater than 0");
+            }
+
+            return Core.Validation.ValidationResult.Success;
+        }
+
+        protected override async Task<EventMonitoringResult> ExecuteOperationAsync(MonitorEventsRequest request)
+        {
+            _logger.LogInformation($"Starting event monitoring for {string.Join(", ", request.EventTypes)} for {request.Duration} seconds");
+
+            // MS Learn推奨: イベントハンドラは別スレッドで処理される
+            var eventHandlers = new List<IDisposable>();
+            
             try
             {
-                var request = JsonSerializationHelper.Deserialize<MonitorEventsRequest>(parametersJson);
-                if (request == null)
+                // 各イベントタイプに対してハンドラを登録
+                foreach (var eventType in request.EventTypes)
                 {
-                    return new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Failed to deserialize MonitorEventsRequest",
-                        Data = new EventMonitoringResult()
-                    };
-                }
-
-                _logger.LogInformation($"Starting event monitoring for {string.Join(", ", request.EventTypes)} for {request.Duration} seconds");
-
-                // MS Learn推奨: イベントハンドラは別スレッドで処理される
-                var eventHandlers = new List<IDisposable>();
-                
-                try
-                {
-                    // 各イベントタイプに対してハンドラを登録
-                    foreach (var eventType in request.EventTypes)
+                    var handler = RegisterEventHandler(eventType, request);
+                    if (handler != null)
                     {
-                        var handler = RegisterEventHandler(eventType, request);
-                        if (handler != null)
-                        {
-                            eventHandlers.Add(handler);
-                        }
+                        eventHandlers.Add(handler);
                     }
-
-                    // 指定期間待機
-                    await Task.Delay(TimeSpan.FromSeconds(request.Duration));
-
-                    var result = new EventMonitoringResult
-                    {
-                        Success = true,
-                        EventType = string.Join(", ", request.EventTypes),
-                        Duration = TimeSpan.FromSeconds(request.Duration),
-                        ElementId = request.AutomationId,
-                        WindowTitle = request.WindowTitle,
-                        ProcessId = request.ProcessId,
-                        CapturedEvents = new List<TypedEventData>(_capturedEvents)
-                    };
-
-                    return new OperationResult 
-                    { 
-                        Success = true, 
-                        Data = result
-                    };
                 }
-                finally
+
+                // 指定期間待機
+                await Task.Delay(TimeSpan.FromSeconds(request.Duration));
+
+                var result = new EventMonitoringResult
                 {
-                    // MS Learn推奨: 必ずイベントハンドラを解除
-                    foreach (var handler in eventHandlers)
-                    {
-                        handler?.Dispose();
-                    }
-                    _logger.LogInformation("All event handlers disposed");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "MonitorEvents operation failed");
-                return new OperationResult 
-                { 
-                    Success = false, 
-                    Error = $"MonitorEvents failed: {ex.Message}",
-                    Data = new EventMonitoringResult()
+                    Success = true,
+                    EventType = string.Join(", ", request.EventTypes),
+                    Duration = TimeSpan.FromSeconds(request.Duration),
+                    ElementId = request.AutomationId,
+                    WindowTitle = request.WindowTitle,
+                    ProcessId = request.ProcessId,
+                    CapturedEvents = new List<TypedEventData>(_capturedEvents)
                 };
+
+                return result;
+            }
+            finally
+            {
+                // MS Learn推奨: 必ずイベントハンドラを解除
+                foreach (var handler in eventHandlers)
+                {
+                    handler?.Dispose();
+                }
+                _logger.LogInformation("All event handlers disposed");
             }
         }
 

@@ -52,5 +52,11 @@ namespace UIAutomationMCP.Models.Results
         public int? ProcessId { get; set; }
         public bool FuzzyMatch { get; set; }                      
         public string[] RequiredPatterns { get; set; } = Array.Empty<string>();
+        public string Scope { get; set; } = "Descendants";
+        public bool VisibleOnly { get; set; } = true;
+        public bool EnabledOnly { get; set; } = false;
+        public string SortBy { get; set; } = string.Empty;
+        public string CacheRequest { get; set; } = string.Empty;
+        public string[] AnyOfPatterns { get; set; } = Array.Empty<string>();
     }
 }

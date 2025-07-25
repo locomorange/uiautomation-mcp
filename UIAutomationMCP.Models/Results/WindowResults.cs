@@ -11,5 +11,8 @@ namespace UIAutomationMCP.Models.Results
         public string PreviousState { get; set; } = string.Empty;
         public string CurrentState { get; set; } = string.Empty;
         public bool Completed { get; set; }
+        public new DateTime ExecutedAt { get; set; }
+        public string WindowStyle { get; set; } = string.Empty;
+        public string? Details { get; set; }
     }
 }

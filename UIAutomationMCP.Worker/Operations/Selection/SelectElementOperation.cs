@@ -4,110 +4,93 @@ using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Serialization;
+using UIAutomationMCP.Core.Exceptions;
 using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.UIAutomation.Helpers;
 
 namespace UIAutomationMCP.Worker.Operations.Selection
 {
-    public class SelectElementOperation : IUIAutomationOperation
+    public class SelectElementOperation : BaseUIAutomationOperation<SelectElementRequest, SelectionActionResult>
     {
-        private readonly ElementFinderService _elementFinderService;
-        private readonly ILogger<SelectElementOperation> _logger;
-
         public SelectElementOperation(
             ElementFinderService elementFinderService, 
             ILogger<SelectElementOperation> logger)
+            : base(elementFinderService, logger)
         {
-            _elementFinderService = elementFinderService;
-            _logger = logger;
         }
 
-        public Task<OperationResult> ExecuteAsync(string parametersJson)
+        protected override async Task<SelectionActionResult> ExecuteOperationAsync(SelectElementRequest request)
         {
-            try
+            // パターン変換（リクエストから取得、デフォルトはSelectionItemPattern）
+            var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? SelectionItemPattern.Pattern;
+            
+            var element = _elementFinderService.FindElement(
+                automationId: request.AutomationId, 
+                name: request.Name,
+                controlType: request.ControlType,
+                processId: request.ProcessId,
+                requiredPattern: requiredPattern);
+            
+            if (element == null)
             {
-                var typedRequest = JsonSerializationHelper.Deserialize<SelectElementRequest>(parametersJson)!;
-                
-                var element = _elementFinderService.FindElement(
-                    automationId: typedRequest.AutomationId, 
-                    name: typedRequest.Name,
-                    controlType: typedRequest.ControlType,
-                    processId: typedRequest.ProcessId);
-                
-                if (element == null)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Element not found",
-                        Data = new SelectionActionResult { ActionName = "Select" }
-                    });
-                }
+                throw new UIAutomationElementNotFoundException("SelectElement", request.AutomationId);
+            }
 
-                if (!element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var pattern) || pattern is not SelectionItemPattern selectionPattern)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "SelectionItemPattern not supported",
-                        Data = new SelectionActionResult { ActionName = "Select" }
-                    });
-                }
+            if (!element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var pattern) || pattern is not SelectionItemPattern selectionPattern)
+            {
+                throw new UIAutomationInvalidOperationException("SelectElement", request.AutomationId, "SelectionItemPattern not supported");
+            }
 
-                selectionPattern.Select();
+            selectionPattern.Select();
 
-                var result = new SelectionActionResult
+            var result = new SelectionActionResult
+            {
+                ActionName = "Select",
+                Completed = true,
+                ExecutedAt = DateTime.UtcNow,
+                SelectionType = "Select",
+                SelectedElement = new ElementInfo
                 {
-                    ActionName = "Select",
-                    Completed = true,
-                    ExecutedAt = DateTime.UtcNow,
-                    SelectionType = "Select",
-                    SelectedElement = new ElementInfo
+                    AutomationId = element.Current.AutomationId,
+                    Name = element.Current.Name,
+                    ControlType = element.Current.ControlType.LocalizedControlType,
+                    ClassName = element.Current.ClassName,
+                    IsEnabled = element.Current.IsEnabled,
+                    IsVisible = !element.Current.IsOffscreen,
+                    ProcessId = element.Current.ProcessId,
+                    BoundingRectangle = new BoundingRectangle
                     {
-                        AutomationId = element.Current.AutomationId,
-                        Name = element.Current.Name,
-                        ControlType = element.Current.ControlType.LocalizedControlType,
-                        ClassName = element.Current.ClassName,
-                        IsEnabled = element.Current.IsEnabled,
-                        IsVisible = !element.Current.IsOffscreen,
-                        ProcessId = element.Current.ProcessId,
-                        BoundingRectangle = new BoundingRectangle
-                        {
-                            X = element.Current.BoundingRectangle.X,
-                            Y = element.Current.BoundingRectangle.Y,
-                            Width = element.Current.BoundingRectangle.Width,
-                            Height = element.Current.BoundingRectangle.Height
-                        }
+                        X = element.Current.BoundingRectangle.X,
+                        Y = element.Current.BoundingRectangle.Y,
+                        Width = element.Current.BoundingRectangle.Width,
+                        Height = element.Current.BoundingRectangle.Height
                     }
-                };
-
-                // Try to get selection count from parent container
-                if (element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var itemPattern) && 
-                    itemPattern is SelectionItemPattern selectionItemPattern &&
-                    selectionItemPattern.Current.SelectionContainer is AutomationElement container &&
-                    container.TryGetCurrentPattern(SelectionPattern.Pattern, out var containerPattern) && 
-                    containerPattern is SelectionPattern selectionContainerPattern)
-                {
-                    var currentSelection = selectionContainerPattern.Current.GetSelection();
-                    result.CurrentSelectionCount = currentSelection.Length;
                 }
+            };
 
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = true, 
-                    Data = result 
-                });
-            }
-            catch (Exception ex)
+            // Try to get selection count from parent container
+            if (element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var itemPattern) && 
+                itemPattern is SelectionItemPattern selectionItemPattern &&
+                selectionItemPattern.Current.SelectionContainer is AutomationElement container &&
+                container.TryGetCurrentPattern(SelectionPattern.Pattern, out var containerPattern) && 
+                containerPattern is SelectionPattern selectionContainerPattern)
             {
-                _logger.LogError(ex, "SelectElement operation failed");
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = false, 
-                    Error = $"Failed to select element: {ex.Message}",
-                    Data = new SelectionActionResult { ActionName = "Select" }
-                });
+                var currentSelection = selectionContainerPattern.Current.GetSelection();
+                result.CurrentSelectionCount = currentSelection.Length;
             }
+
+            return result;
+        }
+
+        protected override Core.Validation.ValidationResult ValidateRequest(SelectElementRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.AutomationId))
+            {
+                return Core.Validation.ValidationResult.Failure("Element ID is required");
+            }
+
+            return Core.Validation.ValidationResult.Success;
         }
     }
 }

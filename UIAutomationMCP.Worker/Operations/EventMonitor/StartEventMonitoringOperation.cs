@@ -4,9 +4,9 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
-using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.Core.Exceptions;
 
 namespace UIAutomationMCP.Worker.Operations.EventMonitor
 {
@@ -14,114 +14,73 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
     /// MS Learn ベストプラクティスに従った継続的なイベント監視操作
     /// バックグラウンドで継続的にイベントを監視し、セッション管理を行う
     /// </summary>
-    public class StartEventMonitoringOperation : IUIAutomationOperation
+    public class StartEventMonitoringOperation : BaseUIAutomationOperation<StartEventMonitoringRequest, EventMonitoringStartResult>
     {
-        private readonly ElementFinderService _elementFinderService;
-        private readonly ILogger<StartEventMonitoringOperation> _logger;
-        
         // MS Learn推奨: 複数のイベントセッションを安全に管理
         private static readonly ConcurrentDictionary<string, EventMonitoringSession> _activeSessions = new();
 
         public StartEventMonitoringOperation(
             ElementFinderService elementFinderService,
             ILogger<StartEventMonitoringOperation> logger)
+            : base(elementFinderService, logger)
         {
-            _elementFinderService = elementFinderService;
-            _logger = logger;
         }
 
-        public async Task<OperationResult> ExecuteAsync(string parametersJson)
+        protected override Core.Validation.ValidationResult ValidateRequest(StartEventMonitoringRequest request)
         {
+            if (request.EventTypes == null || !request.EventTypes.Any())
+            {
+                return Core.Validation.ValidationResult.Failure("EventTypes cannot be null or empty");
+            }
+
+            // Additional validation can be added here if needed
+            return Core.Validation.ValidationResult.Success;
+        }
+
+        protected override async Task<EventMonitoringStartResult> ExecuteOperationAsync(StartEventMonitoringRequest request)
+        {
+            var sessionId = Guid.NewGuid().ToString("N")[..8];
+            _logger.LogInformation($"[EventMonitor Worker] Generated sessionId: {sessionId}. Request details - EventTypes: [{string.Join(", ", request.EventTypes)}], AutomationId: {request.AutomationId ?? "null"}, Name: {request.Name ?? "null"}, ControlType: {request.ControlType ?? "null"}, ProcessId: {request.ProcessId?.ToString() ?? "null"}");
+            _logger.LogInformation($"[EventMonitor Worker] Current active sessions count: {_activeSessions.Count}");
+
+            // MS Learn推奨: セッション管理とスレッドセーフティ
+            var session = new EventMonitoringSession(sessionId, request, _elementFinderService, _logger);
+            
+            _logger.LogInformation($"[EventMonitor Worker] Created EventMonitoringSession {sessionId}. Attempting to add to active sessions...");
+            
+            if (!_activeSessions.TryAdd(sessionId, session))
+            {
+                throw new UIAutomationElementNotFoundException("Operation", null, "Failed to create monitoring session");
+            }
+
+            _logger.LogInformation($"[EventMonitor Worker] Successfully added session {sessionId} to active sessions. Total sessions: {_activeSessions.Count}");
+
             try
             {
-                _logger.LogInformation($"[EventMonitor Worker] StartEventMonitoringOperation.ExecuteAsync started. ParametersJson length: {parametersJson?.Length ?? 0}");
-                
-                if (string.IsNullOrEmpty(parametersJson))
+                _logger.LogInformation($"[EventMonitor Worker] Starting session {sessionId}...");
+                await session.StartAsync();
+                _logger.LogInformation($"[EventMonitor Worker] Session {sessionId} started successfully");
+
+                var result = new EventMonitoringStartResult
                 {
-                    _logger.LogError($"[EventMonitor Worker] ParametersJson is null or empty");
-                    return new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "ParametersJson is null or empty",
-                        Data = new EventMonitoringStartResult()
-                    };
-                }
-                
-                var request = JsonSerializationHelper.Deserialize<StartEventMonitoringRequest>(parametersJson);
-                if (request == null)
-                {
-                    _logger.LogError($"[EventMonitor Worker] Failed to deserialize StartEventMonitoringRequest. ParametersJson: {parametersJson}");
-                    return new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Failed to deserialize StartEventMonitoringRequest",
-                        Data = new EventMonitoringStartResult()
-                    };
-                }
-
-                var sessionId = Guid.NewGuid().ToString("N")[..8];
-                _logger.LogInformation($"[EventMonitor Worker] Generated sessionId: {sessionId}. Request details - EventTypes: [{string.Join(", ", request.EventTypes)}], AutomationId: {request.AutomationId ?? "null"}, Name: {request.Name ?? "null"}, ControlType: {request.ControlType ?? "null"}, ProcessId: {request.ProcessId?.ToString() ?? "null"}");
-                _logger.LogInformation($"[EventMonitor Worker] Current active sessions count: {_activeSessions.Count}");
-
-                // MS Learn推奨: セッション管理とスレッドセーフティ
-                var session = new EventMonitoringSession(sessionId, request, _elementFinderService, _logger);
-                
-                _logger.LogInformation($"[EventMonitor Worker] Created EventMonitoringSession {sessionId}. Attempting to add to active sessions...");
-                
-                if (!_activeSessions.TryAdd(sessionId, session))
-                {
-                    _logger.LogError($"[EventMonitor Worker] Failed to add session {sessionId} to active sessions. Current sessions: [{string.Join(", ", _activeSessions.Keys)}]");
-                    return new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Failed to create monitoring session",
-                        Data = new EventMonitoringStartResult()
-                    };
-                }
-
-                _logger.LogInformation($"[EventMonitor Worker] Successfully added session {sessionId} to active sessions. Total sessions: {_activeSessions.Count}");
-
-                try
-                {
-                    _logger.LogInformation($"[EventMonitor Worker] Starting session {sessionId}...");
-                    await session.StartAsync();
-                    _logger.LogInformation($"[EventMonitor Worker] Session {sessionId} started successfully");
-
-                    var result = new EventMonitoringStartResult
-                    {
-                        Success = true,
-                        EventType = string.Join(", ", request.EventTypes),
-                        ElementId = request.AutomationId,
-                        WindowTitle = request.WindowTitle,
-                        ProcessId = request.ProcessId,
-                        SessionId = sessionId,
-                        MonitoringStatus = "Started"
-                    };
-
-                    return new OperationResult 
-                    { 
-                        Success = true, 
-                        Data = result
-                    };
-                }
-                catch
-                {
-                    // 失敗した場合はセッションを削除
-                    _logger.LogError($"[EventMonitor Worker] Session {sessionId} startup failed. Removing from active sessions...");
-                    _activeSessions.TryRemove(sessionId, out _);
-                    session.Dispose();
-                    throw;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"[EventMonitor Worker] StartEventMonitoring operation failed. Exception: {ex.Message}");
-                return new OperationResult 
-                { 
-                    Success = false, 
-                    Error = $"StartEventMonitoring failed: {ex.Message}",
-                    Data = new EventMonitoringStartResult()
+                    Success = true,
+                    EventType = string.Join(", ", request.EventTypes),
+                    ElementId = request.AutomationId,
+                    WindowTitle = request.WindowTitle,
+                    ProcessId = request.ProcessId,
+                    SessionId = sessionId,
+                    MonitoringStatus = "Started"
                 };
+
+                return result;
+            }
+            catch
+            {
+                // 失敗した場合はセッションを削除
+                _logger.LogError($"[EventMonitor Worker] Session {sessionId} startup failed. Removing from active sessions...");
+                _activeSessions.TryRemove(sessionId, out _);
+                session.Dispose();
+                throw;
             }
         }
 

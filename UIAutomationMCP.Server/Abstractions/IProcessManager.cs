@@ -1,3 +1,4 @@
+using UIAutomationMCP.Models.Abstractions;
 using UIAutomationMCP.Core.Abstractions;
 
 namespace UIAutomationMCP.Server.Abstractions

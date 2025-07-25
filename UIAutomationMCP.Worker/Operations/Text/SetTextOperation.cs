@@ -3,109 +3,76 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
-using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.Core.Exceptions;
 
 namespace UIAutomationMCP.Worker.Operations.Text
 {
-    public class SetTextOperation : IUIAutomationOperation
+    public class SetTextOperation : BaseUIAutomationOperation<SetTextRequest, SetValueResult>
     {
-        private readonly ElementFinderService _elementFinderService;
-        private readonly ILogger<SetTextOperation> _logger;
-
         public SetTextOperation(
             ElementFinderService elementFinderService,
             ILogger<SetTextOperation> logger)
+            : base(elementFinderService, logger)
         {
-            _elementFinderService = elementFinderService;
-            _logger = logger;
         }
 
-        public Task<OperationResult> ExecuteAsync(string parametersJson)
+        protected override Core.Validation.ValidationResult ValidateRequest(SetTextRequest request)
         {
-            try
+            if (string.IsNullOrEmpty(request.AutomationId) && string.IsNullOrEmpty(request.Name))
             {
-                var typedRequest = JsonSerializationHelper.Deserialize<SetTextRequest>(parametersJson)!;
-                
-                var element = _elementFinderService.FindElement(
-                    automationId: typedRequest.AutomationId, 
-                    name: typedRequest.Name,
-                    controlType: typedRequest.ControlType,
-                    processId: typedRequest.ProcessId);
-                
-                if (element == null)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Element not found",
-                        Data = new SetValueResult { ActionName = "SetText" }
-                    });
-                }
+                return Core.Validation.ValidationResult.Failure("Either AutomationId or Name is required");
+            }
 
-                // Primary method: Use ValuePattern for text input controls
-                if (element.TryGetCurrentPattern(ValuePattern.Pattern, out var valuePattern) && valuePattern is ValuePattern vp)
-                {
-                    if (!vp.Current.IsReadOnly)
-                    {
-                        var previousValue = vp.Current.Value ?? "";
-                        vp.SetValue(typedRequest.Text);
-                        
-                        var result = new SetValueResult
-                        {
-                            ActionName = "SetText",
-                            Completed = true,
-                            ExecutedAt = DateTime.UtcNow,
-                            PreviousState = previousValue,
-                            CurrentState = typedRequest.Text,
-                            AttemptedValue = typedRequest.Text
-                        };
+            if (request.Text == null)
+            {
+                return Core.Validation.ValidationResult.Failure("Text cannot be null");
+            }
 
-                        return Task.FromResult(new OperationResult 
-                        { 
-                            Success = true, 
-                            Data = result 
-                        });
-                    }
-                    else
+            return Core.Validation.ValidationResult.Success;
+        }
+
+        protected override Task<SetValueResult> ExecuteOperationAsync(SetTextRequest request)
+        {
+            var element = _elementFinderService.FindElement(
+                automationId: request.AutomationId, 
+                name: request.Name,
+                controlType: request.ControlType,
+                processId: request.ProcessId);
+            
+            if (element == null)
+            {
+                throw new UIAutomationElementNotFoundException("Operation", null, "Element not found");
+            }
+
+            // Primary method: Use ValuePattern for text input controls
+            if (element.TryGetCurrentPattern(ValuePattern.Pattern, out var valuePattern) && valuePattern is ValuePattern vp)
+            {
+                if (!vp.Current.IsReadOnly)
+                {
+                    var previousValue = vp.Current.Value ?? "";
+                    vp.SetValue(request.Text);
+                    
+                    var result = new SetValueResult
                     {
-                        return Task.FromResult(new OperationResult 
-                        { 
-                            Success = false, 
-                            Error = "Element is read-only",
-                            Data = new SetValueResult 
-                            { 
-                                ActionName = "SetText",
-                                Completed = false,
-                                AttemptedValue = typedRequest.Text
-                            }
-                        });
-                    }
-                }
-                
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = false, 
-                    Error = "Element does not support text modification",
-                    Data = new SetValueResult 
-                    { 
                         ActionName = "SetText",
-                        Completed = false,
-                        AttemptedValue = typedRequest.Text
-                    }
-                });
+                        Completed = true,
+                        ExecutedAt = DateTime.UtcNow,
+                        PreviousState = previousValue,
+                        CurrentState = request.Text,
+                        AttemptedValue = request.Text
+                    };
+
+                    return Task.FromResult(result);
+                }
+                else
+                {
+                    throw new UIAutomationElementNotFoundException("Operation", null, "Element is read-only");
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "SetText operation failed");
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = false, 
-                    Error = $"Failed to set text: {ex.Message}",
-                    Data = new SetValueResult { ActionName = "SetText" }
-                });
-            }
+            
+            throw new UIAutomationElementNotFoundException("Operation", null, "Element does not support text modification");
         }
     }
 }

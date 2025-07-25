@@ -4,111 +4,71 @@ using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Serialization;
+using UIAutomationMCP.Core.Exceptions;
 using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.UIAutomation.Services;
 using UIAutomationMCP.UIAutomation.Helpers;
 
 namespace UIAutomationMCP.Worker.Operations.Value
 {
-    public class SetElementValueOperation : IUIAutomationOperation
+    public class SetElementValueOperation : BaseUIAutomationOperation<SetValueRequest, SetValueResult>
     {
-        private readonly ElementFinderService _elementFinderService;
-        private readonly ILogger<SetElementValueOperation> _logger;
-
         public SetElementValueOperation(
             ElementFinderService elementFinderService, 
             ILogger<SetElementValueOperation> logger)
+            : base(elementFinderService, logger)
         {
-            _elementFinderService = elementFinderService;
-            _logger = logger;
         }
 
-        public Task<OperationResult> ExecuteAsync(string parametersJson)
+        protected override async Task<SetValueResult> ExecuteOperationAsync(SetValueRequest request)
         {
-            try
+            // パターン変換（リクエストから取得、デフォルトはValuePattern）
+            var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? ValuePattern.Pattern;
+            
+            var element = _elementFinderService.FindElement(
+                automationId: request.AutomationId, 
+                name: request.Name,
+                controlType: request.ControlType,
+                processId: request.ProcessId,
+                requiredPattern: requiredPattern);
+            
+            if (element == null)
             {
-                var typedRequest = JsonSerializationHelper.Deserialize<SetValueRequest>(parametersJson)!;
-                
-                // パターン変換（リクエストから取得、デフォルトはValuePattern）
-                var requiredPattern = AutomationPatternHelper.GetAutomationPattern(typedRequest.RequiredPattern) ?? ValuePattern.Pattern;
-                
-                var element = _elementFinderService.FindElement(
-                    automationId: typedRequest.AutomationId, 
-                    name: typedRequest.Name,
-                    controlType: typedRequest.ControlType,
-                    processId: typedRequest.ProcessId,
-                    requiredPattern: requiredPattern);
-                
-                if (element == null)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Element not found",
-                        Data = new SetValueResult { AttemptedValue = typedRequest.Value }
-                    });
-                }
-
-                if (!element.TryGetCurrentPattern(ValuePattern.Pattern, out var pattern) || pattern is not ValuePattern valuePattern)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "ValuePattern not supported",
-                        Data = new SetValueResult { AttemptedValue = typedRequest.Value }
-                    });
-                }
-
-                var previousValue = valuePattern.Current.Value ?? "";
-                
-                try
-                {
-                    valuePattern.SetValue(typedRequest.Value);
-                    
-                    var currentValue = valuePattern.Current.Value ?? "";
-                    
-                    var result = new SetValueResult
-                    {
-                        ActionName = "SetValue",
-                        Completed = true,
-                        PreviousState = previousValue,
-                        CurrentState = currentValue,
-                        AttemptedValue = typedRequest.Value
-                    };
-                    
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = true,
-                        Data = result
-                    });
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to set element value");
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = $"Failed to set value: {ex.Message}",
-                        Data = new SetValueResult 
-                        { 
-                            ActionName = "SetValue",
-                            Completed = false,
-                            PreviousState = previousValue,
-                            AttemptedValue = typedRequest.Value 
-                        }
-                    });
-                }
+                throw new UIAutomationElementNotFoundException("SetElementValue", request.AutomationId);
             }
-            catch (Exception ex)
+
+            if (!element.TryGetCurrentPattern(ValuePattern.Pattern, out var pattern) || pattern is not ValuePattern valuePattern)
             {
-                _logger.LogError(ex, "SetElementValue operation failed");
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = false, 
-                    Error = $"Failed to execute operation: {ex.Message}",
-                    Data = new SetValueResult { AttemptedValue = "" }
-                });
+                throw new UIAutomationInvalidOperationException("SetElementValue", request.AutomationId, "ValuePattern not supported");
             }
+
+            var previousValue = valuePattern.Current.Value ?? "";
+            valuePattern.SetValue(request.Value);
+            var currentValue = valuePattern.Current.Value ?? "";
+            
+            return new SetValueResult
+            {
+                ActionName = "SetValue",
+                Completed = true,
+                PreviousState = previousValue,
+                CurrentState = currentValue,
+                AttemptedValue = request.Value
+            };
+        }
+
+        protected override Core.Validation.ValidationResult ValidateRequest(SetValueRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.AutomationId))
+            {
+                return Core.Validation.ValidationResult.Failure("Element ID is required");
+            }
+
+            if (request.Value == null)
+            {
+                return Core.Validation.ValidationResult.Failure("Value is required");
+            }
+
+            return Core.Validation.ValidationResult.Success;
         }
     }
 }

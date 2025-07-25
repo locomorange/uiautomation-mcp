@@ -3,130 +3,97 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
-using UIAutomationMCP.Models.Serialization;
+using UIAutomationMCP.Core.Exceptions;
 using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.UIAutomation.Helpers;
 
 namespace UIAutomationMCP.Worker.Operations.Selection
 {
-    public class SelectItemOperation : IUIAutomationOperation
+    public class SelectItemOperation : BaseUIAutomationOperation<SelectItemRequest, SelectionActionResult>
     {
-        private readonly ElementFinderService _elementFinderService;
-        private readonly ILogger<SelectItemOperation> _logger;
-
         public SelectItemOperation(
             ElementFinderService elementFinderService, 
             ILogger<SelectItemOperation> logger)
+            : base(elementFinderService, logger)
         {
-            _elementFinderService = elementFinderService;
-            _logger = logger;
         }
 
-        public Task<OperationResult> ExecuteAsync(string parametersJson)
+        protected override async Task<SelectionActionResult> ExecuteOperationAsync(SelectItemRequest request)
         {
-            try
+            // Pattern conversion (get from request, default to SelectionItemPattern)
+            var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? SelectionItemPattern.Pattern;
+            
+            var element = _elementFinderService.FindElement(
+                automationId: request.AutomationId, 
+                name: request.Name,
+                controlType: request.ControlType,
+                windowTitle: request.WindowTitle, 
+                processId: request.ProcessId,
+                requiredPattern: requiredPattern);
+            
+            if (element == null)
             {
-                var typedRequest = JsonSerializationHelper.Deserialize<SelectItemRequest>(parametersJson)!;
-                
-                var element = _elementFinderService.FindElement(
-                    automationId: typedRequest.AutomationId, 
-                    name: typedRequest.Name,
-                    controlType: typedRequest.ControlType,
-                    windowTitle: typedRequest.WindowTitle, 
-                    processId: typedRequest.ProcessId);
-                
-                if (element == null)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Element not found",
-                        Data = new SelectionActionResult
-                        {
-                            ActionName = "SelectItem",
-                            Completed = false,
-                            SelectionType = "Select"
-                        }
-                    });
-                }
-
-                if (!element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var pattern) || pattern is not SelectionItemPattern selectionPattern)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "SelectionItemPattern not supported",
-                        Data = new SelectionActionResult
-                        {
-                            ActionName = "SelectItem",
-                            Completed = false,
-                            SelectionType = "Select"
-                        }
-                    });
-                }
-
-                selectionPattern.Select();
-                
-                var selectedElement = new ElementInfo
-                {
-                    AutomationId = element.Current.AutomationId,
-                    Name = element.Current.Name,
-                    ControlType = element.Current.ControlType.LocalizedControlType,
-                    LocalizedControlType = element.Current.ControlType.LocalizedControlType,
-                    IsEnabled = element.Current.IsEnabled,
-                    ProcessId = element.Current.ProcessId,
-                    ClassName = element.Current.ClassName,
-                    BoundingRectangle = new BoundingRectangle
-                    {
-                        X = element.Current.BoundingRectangle.X,
-                        Y = element.Current.BoundingRectangle.Y,
-                        Width = element.Current.BoundingRectangle.Width,
-                        Height = element.Current.BoundingRectangle.Height
-                    },
-                    IsVisible = !element.Current.IsOffscreen,
-                    IsOffscreen = element.Current.IsOffscreen,
-                    FrameworkId = element.Current.FrameworkId,
-                    SupportedPatterns = new string[0], // Basic info only
-                    Details = new ElementDetails
-                    {
-                        HelpText = element.Current.HelpText ?? "",
-                        HasKeyboardFocus = element.Current.HasKeyboardFocus,
-                        IsKeyboardFocusable = element.Current.IsKeyboardFocusable,
-                        IsPassword = element.Current.IsPassword
-                    }
-                };
-                
-                var result = new SelectionActionResult
-                {
-                    ActionName = "SelectItem",
-                    Completed = true,
-                    ExecutedAt = DateTime.UtcNow,
-                    SelectionType = "Select",
-                    SelectedElement = selectedElement,
-                    CurrentSelectionCount = 1
-                };
-                
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = true, 
-                    Data = result
-                });
+                throw new UIAutomationElementNotFoundException("SelectItem", request.AutomationId);
             }
-            catch (Exception ex)
+
+            if (!element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var pattern) || pattern is not SelectionItemPattern selectionPattern)
             {
-                _logger.LogError(ex, "SelectItem operation failed");
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = false, 
-                    Error = $"Failed to select element: {ex.Message}",
-                    Data = new SelectionActionResult
-                    {
-                        ActionName = "SelectItem",
-                        Completed = false,
-                        SelectionType = "Select"
-                    }
-                });
+                throw new UIAutomationInvalidOperationException("SelectItem", request.AutomationId, "SelectionItemPattern not supported");
             }
+
+            selectionPattern.Select();
+            
+            var selectedElement = new ElementInfo
+            {
+                AutomationId = element.Current.AutomationId,
+                Name = element.Current.Name,
+                ControlType = element.Current.ControlType.LocalizedControlType,
+                LocalizedControlType = element.Current.ControlType.LocalizedControlType,
+                IsEnabled = element.Current.IsEnabled,
+                ProcessId = element.Current.ProcessId,
+                ClassName = element.Current.ClassName,
+                BoundingRectangle = new BoundingRectangle
+                {
+                    X = element.Current.BoundingRectangle.X,
+                    Y = element.Current.BoundingRectangle.Y,
+                    Width = element.Current.BoundingRectangle.Width,
+                    Height = element.Current.BoundingRectangle.Height
+                },
+                IsVisible = !element.Current.IsOffscreen,
+                IsOffscreen = element.Current.IsOffscreen,
+                FrameworkId = element.Current.FrameworkId,
+                SupportedPatterns = new string[0], // Basic info only
+                Details = new ElementDetails
+                {
+                    HelpText = element.Current.HelpText ?? "",
+                    HasKeyboardFocus = element.Current.HasKeyboardFocus,
+                    IsKeyboardFocusable = element.Current.IsKeyboardFocusable,
+                    IsPassword = element.Current.IsPassword
+                }
+            };
+            
+            var result = new SelectionActionResult
+            {
+                ActionName = "SelectItem",
+                Completed = true,
+                ExecutedAt = DateTime.UtcNow,
+                SelectionType = "Select",
+                SelectedElement = selectedElement,
+                CurrentSelectionCount = 1
+            };
+            
+            return result;
+        }
+
+        protected override Core.Validation.ValidationResult ValidateRequest(SelectItemRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.AutomationId) && string.IsNullOrWhiteSpace(request.Name))
+            {
+                return Core.Validation.ValidationResult.Failure("Either AutomationId or Name is required");
+            }
+
+            return Core.Validation.ValidationResult.Success;
         }
     }
 }

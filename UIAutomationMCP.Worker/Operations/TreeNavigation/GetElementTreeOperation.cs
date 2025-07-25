@@ -1,105 +1,64 @@
 using System.Windows.Automation;
+using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.Worker.Extensions;
 
 namespace UIAutomationMCP.Worker.Operations.TreeNavigation
 {
-    public class GetElementTreeOperation : IUIAutomationOperation
+    public class GetElementTreeOperation : BaseUIAutomationOperation<GetElementTreeRequest, ElementTreeResult>
     {
-        private readonly ElementFinderService _elementFinderService;
-
-        public GetElementTreeOperation(ElementFinderService elementFinderService)
+        public GetElementTreeOperation(ElementFinderService elementFinderService, ILogger<GetElementTreeOperation> logger)
+            : base(elementFinderService, logger)
         {
-            _elementFinderService = elementFinderService;
         }
 
-        public async Task<OperationResult<ElementTreeResult>> ExecuteAsync(string parametersJson)
-        {
-            var result = await ExecuteInternalAsync(parametersJson);
-            return result;
-        }
-
-        async Task<OperationResult> IUIAutomationOperation.ExecuteAsync(string parametersJson)
-        {
-            var typedResult = await ExecuteAsync(parametersJson);
-            return new OperationResult
-            {
-                Success = typedResult.Success,
-                Error = typedResult.Error,
-                Data = typedResult.Data,
-                ExecutionSeconds = typedResult.ExecutionSeconds
-            };
-        }
-
-        private async Task<OperationResult<ElementTreeResult>> ExecuteInternalAsync(string parametersJson)
+        protected override async Task<ElementTreeResult> ExecuteOperationAsync(GetElementTreeRequest request)
         {
             var startTime = DateTime.UtcNow;
             
-            try
+            var windowTitle = request.WindowTitle ?? "";
+            var processId = request.ProcessId ?? 0;
+            var maxDepth = request.MaxDepth;
+
+            // Get search root
+            var searchRoot = _elementFinderService.GetSearchRoot(processId, windowTitle);
+            if (searchRoot == null)
             {
-                // Deserialize request
-                var typedRequest = JsonSerializationHelper.Deserialize<GetElementTreeRequest>(parametersJson);
-                
-                if (typedRequest == null)
-                {
-                    return new OperationResult<ElementTreeResult>
-                    {
-                        Success = false,
-                        Error = "Invalid request format. Expected GetElementTreeRequest.",
-                        Data = new ElementTreeResult()
-                    };
-                }
-
-                var windowTitle = typedRequest.WindowTitle ?? "";
-                var processId = typedRequest.ProcessId ?? 0;
-                var maxDepth = typedRequest.MaxDepth;
-
-                // Get search root
-                var searchRoot = _elementFinderService.GetSearchRoot(windowTitle, processId);
-                if (searchRoot == null)
-                {
-                    // If no specific window found, use desktop root
-                    searchRoot = AutomationElement.RootElement;
-                }
-
-                // Build element tree
-                var rootNode = await Task.Run(() => BuildElementTree(searchRoot, maxDepth, 0));
-                
-                // Calculate build duration
-                var buildDuration = DateTime.UtcNow - startTime;
-                
-                var result = new ElementTreeResult
-                {
-                    RootNode = rootNode,
-                    TotalElements = CountElements(rootNode),
-                    MaxDepth = GetMaxDepth(rootNode),
-                    WindowTitle = windowTitle,
-                    ProcessId = processId,
-                    BuildDuration = buildDuration,
-                    TreeScope = "Subtree"
-                };
-
-                return new OperationResult<ElementTreeResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionSeconds = buildDuration.TotalSeconds
-                };
+                // If no specific window found, use desktop root
+                searchRoot = AutomationElement.RootElement;
             }
-            catch (Exception ex)
+
+            // Build element tree
+            var rootNode = await Task.Run(() => BuildElementTree(searchRoot, maxDepth, 0));
+            
+            // Calculate build duration
+            var buildDuration = DateTime.UtcNow - startTime;
+            
+            return new ElementTreeResult
             {
-                return new OperationResult<ElementTreeResult>
-                {
-                    Success = false,
-                    Error = $"Error building element tree: {ex.Message}",
-                    Data = new ElementTreeResult(),
-                    ExecutionSeconds = (DateTime.UtcNow - startTime).TotalSeconds
-                };
+                RootNode = rootNode,
+                TotalElements = CountElements(rootNode),
+                MaxDepth = GetMaxDepth(rootNode),
+                WindowTitle = windowTitle,
+                ProcessId = processId,
+                BuildDuration = buildDuration,
+                TreeScope = "Subtree"
+            };
+        }
+
+        protected override Core.Validation.ValidationResult ValidateRequest(GetElementTreeRequest request)
+        {
+            if (request.MaxDepth < 0)
+            {
+                return Core.Validation.ValidationResult.Failure("MaxDepth must be non-negative");
             }
+
+            return Core.Validation.ValidationResult.Success;
         }
 
         private TreeNode BuildElementTree(AutomationElement element, int maxDepth, int currentDepth)

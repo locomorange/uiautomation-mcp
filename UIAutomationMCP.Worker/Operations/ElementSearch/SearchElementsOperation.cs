@@ -4,76 +4,51 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
-using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.UIAutomation.Services;
 using UIAutomationMCP.UIAutomation.Helpers;
-using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Worker.Extensions;
+using UIAutomationMCP.Core.Exceptions;
 
 namespace UIAutomationMCP.Worker.Operations.ElementSearch
 {
-    public class SearchElementsOperation : IUIAutomationOperation
+    public class SearchElementsOperation : BaseUIAutomationOperation<SearchElementsRequest, SearchElementsResult>
     {
-        private readonly ElementFinderService _elementFinderService;
-        private readonly ILogger<SearchElementsOperation>? _logger;
-
-        public SearchElementsOperation(ElementFinderService elementFinderService, ILogger<SearchElementsOperation>? logger = null)
+        public SearchElementsOperation(ElementFinderService elementFinderService, ILogger<SearchElementsOperation> logger)
+            : base(elementFinderService, logger)
         {
-            _elementFinderService = elementFinderService;
-            _logger = logger;
         }
-        public async Task<OperationResult<SearchElementsResult>> ExecuteAsync(string parametersJson)
+        protected override Core.Validation.ValidationResult ValidateRequest(SearchElementsRequest request)
+        {
+            if (request.MaxResults <= 0)
+            {
+                return Core.Validation.ValidationResult.Failure("MaxResults must be greater than 0");
+            }
+
+            // Allow empty search criteria as it's valid for global search
+            return Core.Validation.ValidationResult.Success;
+        }
+
+        protected override async Task<SearchElementsResult> ExecuteOperationAsync(SearchElementsRequest request)
         {
             var stopwatch = Stopwatch.StartNew();
             
             try
             {
-                var request = JsonSerializationHelper.Deserialize<SearchElementsRequest>(parametersJson);
-                if (request == null)
-                {
-                    return new OperationResult<SearchElementsResult>
-                    {
-                        Success = false,
-                        Error = "Failed to deserialize SearchElementsRequest"
-                    };
-                }
-
                 // タイムアウト処理はSubprocessExecutorで行うため、直接実行
                 SearchElementsResult result = await PerformSearchAsync(request);
 
                 stopwatch.Stop();
                 result.ExecutionTime = stopwatch.Elapsed;
                 
-                return new OperationResult<SearchElementsResult>
-                {
-                    Success = true,
-                    Data = result,
-                    ExecutionSeconds = stopwatch.Elapsed.TotalSeconds
-                };
+                return result;
             }
             catch (Exception ex)
             {
                 stopwatch.Stop();
-                return new OperationResult<SearchElementsResult>
-                {
-                    Success = false,
-                    Error = $"Operation failed: {ex.Message}",
-                    ExecutionSeconds = stopwatch.Elapsed.TotalSeconds
-                };
+                _logger?.LogError(ex, "SearchElements operation failed");
+                throw new UIAutomationElementNotFoundException("Operation", null, $"Operation failed: {ex.Message}");
             }
-        }
-
-        async Task<OperationResult> IUIAutomationOperation.ExecuteAsync(string parametersJson)
-        {
-            var typedResult = await ExecuteAsync(parametersJson);
-            return new OperationResult
-            {
-                Success = typedResult.Success,
-                Error = typedResult.Error,
-                Data = typedResult.Data,
-                ExecutionSeconds = typedResult.ExecutionSeconds
-            };
         }
 
         private Task<SearchElementsResult> PerformSearchAsync(SearchElementsRequest request)
@@ -210,7 +185,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 FuzzyMatch = request.FuzzyMatch,
                 EnabledOnly = request.EnabledOnly,
                 SortBy = request.SortBy,
-                CacheRequest = CreateCacheRequest()
+                CacheRequest = CreateCacheRequest()?.ToString() ?? string.Empty
             };
 
             // Parse RequiredPatterns

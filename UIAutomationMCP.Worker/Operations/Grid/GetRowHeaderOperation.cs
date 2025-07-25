@@ -3,105 +3,77 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
-using UIAutomationMCP.Models.Serialization;
+using UIAutomationMCP.Core.Exceptions;
 using UIAutomationMCP.UIAutomation.Abstractions;
+using UIAutomationMCP.UIAutomation.Helpers;
 using UIAutomationMCP.UIAutomation.Services;
 
 namespace UIAutomationMCP.Worker.Operations.Grid
 {
-    public class GetRowHeaderOperation : IUIAutomationOperation
+    public class GetRowHeaderOperation : BaseUIAutomationOperation<GetRowHeaderRequest, ElementSearchResult>
     {
-        private readonly ElementFinderService _elementFinderService;
-        private readonly ILogger<GetRowHeaderOperation> _logger;
-
         public GetRowHeaderOperation(
             ElementFinderService elementFinderService, 
             ILogger<GetRowHeaderOperation> logger)
+            : base(elementFinderService, logger)
         {
-            _elementFinderService = elementFinderService;
-            _logger = logger;
         }
 
-        public Task<OperationResult> ExecuteAsync(string parametersJson)
+        protected override Core.Validation.ValidationResult ValidateRequest(GetRowHeaderRequest request)
         {
-            try
-            {
-                var typedRequest = JsonSerializationHelper.Deserialize<GetRowHeaderRequest>(parametersJson)!;
+            var baseResult = base.ValidateRequest(request);
+            if (!baseResult.IsValid)
+                return baseResult;
+
+            if (request.Row < 0)
+                return Core.Validation.ValidationResult.Failure("Row index must be non-negative");
+
+            return Core.Validation.ValidationResult.Success;
+        }
+
+        protected override Task<ElementSearchResult> ExecuteOperationAsync(GetRowHeaderRequest request)
+        {
+            var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? GridPattern.Pattern;
                 
-                var element = _elementFinderService.FindElement(
-                    automationId: typedRequest.AutomationId, 
-                    name: typedRequest.Name,
-                    controlType: typedRequest.ControlType,
-                    processId: typedRequest.ProcessId,
-                    requiredPattern: GridPattern.Pattern);
-                
-                if (element == null)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Element not found",
-                        Data = new ElementSearchResult()
-                    });
-                }
-
-                if (!element.TryGetCurrentPattern(GridPattern.Pattern, out var pattern) || pattern is not GridPattern gridPattern)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "GridPattern not supported",
-                        Data = new ElementSearchResult()
-                    });
-                }
-
-                // Check if row is within bounds
-                if (typedRequest.Row >= gridPattern.Current.RowCount)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Row index out of range",
-                        Data = new ElementSearchResult()
-                    });
-                }
-
-                // Try to get the first item in the specified row (assuming header is at column 0)
-                var headerElement = gridPattern.GetItem(typedRequest.Row, 0);
-                if (headerElement == null)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "No header element found at specified row",
-                        Data = new ElementSearchResult()
-                    });
-                }
-
-                var headerInfo = UIAutomationMCP.UIAutomation.Helpers.ElementInfoBuilder.CreateElementInfo(headerElement, includeDetails: true, _logger);
-
-                var result = new ElementSearchResult
-                {
-                    SearchCriteria = "Grid row header search"
-                };
-                result.Elements.Add(headerInfo);
-
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = true, 
-                    Data = result 
-                });
-            }
-            catch (Exception ex)
+            var element = _elementFinderService.FindElement(
+                automationId: request.AutomationId, 
+                name: request.Name,
+                controlType: request.ControlType,
+                processId: request.ProcessId,
+                requiredPattern: requiredPattern);
+            
+            if (element == null)
             {
-                _logger.LogError(ex, "GetRowHeader operation failed");
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = false, 
-                    Error = $"Failed to get row header: {ex.Message}",
-                    Data = new ElementSearchResult()
-                });
+                throw new UIAutomationElementNotFoundException("Operation", null, "Element not found");
             }
+
+            if (!element.TryGetCurrentPattern(GridPattern.Pattern, out var pattern) || pattern is not GridPattern gridPattern)
+            {
+                throw new UIAutomationInvalidOperationException("Operation", null, "GridPattern not supported");
+            }
+
+            // Check if row is within bounds
+            if (request.Row >= gridPattern.Current.RowCount)
+            {
+                throw new UIAutomationInvalidOperationException("Operation", null, "Row index out of range");
+            }
+
+            // Try to get the first item in the specified row (assuming header is at column 0)
+            var headerElement = gridPattern.GetItem(request.Row, 0);
+            if (headerElement == null)
+            {
+                throw new UIAutomationElementNotFoundException("Operation", null, "No header element found at specified row");
+            }
+
+            var headerInfo = ElementInfoBuilder.CreateElementInfo(headerElement, includeDetails: true, _logger);
+
+            var result = new ElementSearchResult
+            {
+                SearchCriteria = "Grid row header search"
+            };
+            result.Elements.Add(headerInfo);
+
+            return Task.FromResult(result);
         }
 
     }

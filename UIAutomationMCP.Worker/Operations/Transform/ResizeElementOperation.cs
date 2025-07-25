@@ -4,123 +4,97 @@ using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Serialization;
+using UIAutomationMCP.Core.Exceptions;
 using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.UIAutomation.Helpers;
 
 namespace UIAutomationMCP.Worker.Operations.Transform
 {
-    public class ResizeElementOperation : IUIAutomationOperation
+    public class ResizeElementOperation : BaseUIAutomationOperation<ResizeElementRequest, TransformActionResult>
     {
-        private readonly ElementFinderService _elementFinderService;
-        private readonly ILogger<ResizeElementOperation> _logger;
-
         public ResizeElementOperation(
             ElementFinderService elementFinderService, 
             ILogger<ResizeElementOperation> logger)
+            : base(elementFinderService, logger)
         {
-            _elementFinderService = elementFinderService;
-            _logger = logger;
         }
 
-        public Task<OperationResult> ExecuteAsync(string parametersJson)
+        protected override async Task<TransformActionResult> ExecuteOperationAsync(ResizeElementRequest request)
         {
-            try
+            // Use TransformPattern as the default required pattern
+            var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? TransformPattern.Pattern;
+            
+            var element = _elementFinderService.FindElement(
+                automationId: request.AutomationId, 
+                name: request.Name,
+                controlType: request.ControlType,
+                windowTitle: request.WindowTitle,
+                processId: request.ProcessId ?? 0,
+                requiredPattern: requiredPattern);
+                
+            if (element == null)
             {
-                var typedRequest = JsonSerializationHelper.Deserialize<ResizeElementRequest>(parametersJson)!;
-                
-                var width = typedRequest.Width;
-                var height = typedRequest.Height;
-
-                if (width <= 0 || height <= 0)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Width and height must be greater than 0",
-                        Data = new TransformActionResult { ActionName = "Resize", TransformType = "Resize" }
-                    });
-                }
-
-                var element = _elementFinderService.FindElement(
-                    automationId: typedRequest.AutomationId, 
-                    name: typedRequest.Name, 
-                    controlType: typedRequest.ControlType, 
-                    windowTitle: typedRequest.WindowTitle, 
-                    processId: typedRequest.ProcessId ?? 0);
-                
-                if (element == null)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = $"Element with AutomationId '{typedRequest.AutomationId}' and Name '{typedRequest.Name}' not found",
-                        Data = new TransformActionResult { ActionName = "Resize", TransformType = "Resize" }
-                    });
-                }
-
-                if (!element.TryGetCurrentPattern(TransformPattern.Pattern, out var pattern) || pattern is not TransformPattern transformPattern)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Element does not support TransformPattern",
-                        Data = new TransformActionResult { ActionName = "Resize", TransformType = "Resize" }
-                    });
-                }
-
-                if (!transformPattern.Current.CanResize)
-                {
-                    return Task.FromResult(new OperationResult 
-                    { 
-                        Success = false, 
-                        Error = "Element cannot be resized (CanResize = false)",
-                        Data = new TransformActionResult { ActionName = "Resize", TransformType = "Resize" }
-                    });
-                }
-
-                transformPattern.Resize(width, height);
-                
-                // Get updated bounds after resize
-                var currentRect = element.Current.BoundingRectangle;
-                var newBounds = new BoundingRectangle
-                {
-                    X = currentRect.X,
-                    Y = currentRect.Y,
-                    Width = width,
-                    Height = height
-                };
-
-                var result = new TransformActionResult
-                {
-                    ActionName = "Resize",
-                    TransformType = "Resize",
-                    Completed = true,
-                    ExecutedAt = DateTime.UtcNow,
-                    NewBounds = newBounds,
-                    Details = $"Resized element to {width}x{height}"
-                };
-
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = true, 
-                    Data = result
-                });
+                throw new UIAutomationElementNotFoundException("ResizeElement", request.AutomationId);
             }
-            catch (Exception ex)
+
+            if (!element.TryGetCurrentPattern(TransformPattern.Pattern, out var pattern) || pattern is not TransformPattern transformPattern)
             {
-                _logger.LogError(ex, "ResizeElement operation failed");
-                return Task.FromResult(new OperationResult 
-                { 
-                    Success = false, 
-                    Error = $"Failed to resize element: {ex.Message}",
-                    Data = new TransformActionResult 
-                    { 
-                        ActionName = "Resize",
-                        TransformType = "Resize",
-                        Completed = false
-                    }
-                });
+                throw new UIAutomationInvalidOperationException("ResizeElement", request.AutomationId, "TransformPattern not supported");
             }
+
+            if (!transformPattern.Current.CanResize)
+            {
+                throw new UIAutomationInvalidOperationException("ResizeElement", request.AutomationId, "Element cannot be resized (CanResize = false)");
+            }
+
+            var width = request.Width;
+            var height = request.Height;
+
+            transformPattern.Resize(width, height);
+            
+            // Wait a moment for the transformation to complete
+            await Task.Delay(50);
+            
+            // Get updated bounds after resize
+            var currentRect = element.Current.BoundingRectangle;
+            var newBounds = new BoundingRectangle
+            {
+                X = currentRect.X,
+                Y = currentRect.Y,
+                Width = width,
+                Height = height
+            };
+
+            return new TransformActionResult
+            {
+                ActionName = "Resize",
+                TransformType = "Resize",
+                Completed = true,
+                ExecutedAt = DateTime.UtcNow,
+                NewBounds = newBounds.ToString(),
+                Details = $"Resized element to {width}x{height}"
+            };
+        }
+
+        protected override Core.Validation.ValidationResult ValidateRequest(ResizeElementRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.AutomationId) && string.IsNullOrWhiteSpace(request.Name))
+            {
+                return Core.Validation.ValidationResult.Failure("Either AutomationId or Name is required");
+            }
+
+            if (request.Width <= 0)
+            {
+                return Core.Validation.ValidationResult.Failure("Width must be greater than 0");
+            }
+
+            if (request.Height <= 0)
+            {
+                return Core.Validation.ValidationResult.Failure("Height must be greater than 0");
+            }
+
+            return Core.Validation.ValidationResult.Success;
         }
     }
 }
