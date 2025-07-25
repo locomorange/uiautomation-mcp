@@ -293,7 +293,6 @@ namespace UIAutomationMCP.Server.Tools
         [McpServerTool, Description("Clear all selections in a container")]
         public async Task<object> ClearSelection(
             [Description("Automation ID or name of the container element")] string containerElementId, 
-            [Description("Title of the window containing the element (optional)")] string? windowTitle = null, 
             [Description("Parent process ID of the target window (use main application process, not child processes)")] int? processId = null, 
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _selectionService.ClearSelectionAsync(automationId: containerElementId, processId: processId, timeoutSeconds: timeoutSeconds));
@@ -656,7 +655,6 @@ namespace UIAutomationMCP.Server.Tools
         [McpServerTool, Description("Verify accessibility compliance for a window or element")]
         public async Task<object> VerifyAccessibility(
             [Description("Automation ID or name of the element (optional, checks entire window if not specified)")] string? elementId = null,
-            [Description("Title of the window to verify")] string? windowTitle = null,
             [Description("Parent process ID of the target window (use main application process, not child processes)")] int? processId = null,
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
             => JsonSerializationHelper.Serialize(await _accessibilityService.VerifyAccessibilityAsync(automationId: elementId, processId: processId, timeoutSeconds: timeoutSeconds));

@@ -1515,15 +1515,15 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            _mockAccessibilityService.Setup(s => s.VerifyAccessibilityAsync("button1", "TestWindow", null, null, 30))
+            _mockAccessibilityService.Setup(s => s.VerifyAccessibilityAsync("button1", null, null, null, 30))
                                    .Returns(Task.FromResult(serverResponse));
 
             // Act
-            var result = await _tools.VerifyAccessibility("button1", "TestWindow");
+            var result = await _tools.VerifyAccessibility("button1");
 
             // Assert
             Assert.NotNull(result);
-            _mockAccessibilityService.Verify(s => s.VerifyAccessibilityAsync("button1", "TestWindow", null, null, 30), Times.Once);
+            _mockAccessibilityService.Verify(s => s.VerifyAccessibilityAsync("button1", null, null, null, 30), Times.Once);
             _output.WriteLine("GetAccessibilityInfo test passed");
         }
 

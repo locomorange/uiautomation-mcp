@@ -71,7 +71,7 @@ namespace UIAutomationMCP.Tests.Integration
             try
             {
                 // Act
-                var result = await _selectionService.GetSelectionAsync(containerId, windowTitle, null, 30);
+                var result = await _selectionService.GetSelectionAsync(containerId, null, null, null, 30);
 
                 // Assert
                 Assert.NotNull(result);
@@ -112,7 +112,7 @@ namespace UIAutomationMCP.Tests.Integration
             try
             {
                 // Act
-                var result = await _selectionService.GetSelectionContainerAsync(elementId, windowTitle, null, 30);
+                var result = await _selectionService.GetSelectionContainerAsync(elementId, null, null, null, 30);
 
                 // Assert
                 Assert.NotNull(result);
@@ -150,7 +150,7 @@ namespace UIAutomationMCP.Tests.Integration
             try
             {
                 // Act
-                var result = await _selectionService.AddToSelectionAsync(elementId, windowTitle, null, 30);
+                var result = await _selectionService.AddToSelectionAsync(elementId, null, null, null, 30);
 
                 // Assert
                 Assert.NotNull(result);
@@ -184,7 +184,7 @@ namespace UIAutomationMCP.Tests.Integration
             try
             {
                 // Act
-                var result = await _selectionService.RemoveFromSelectionAsync(elementId, windowTitle, null, 30);
+                var result = await _selectionService.RemoveFromSelectionAsync(elementId, null, null, null, 30);
 
                 // Assert
                 Assert.NotNull(result);
@@ -213,12 +213,11 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange
             var containerId = "test-selection-container";
-            var windowTitle = "Clear Selection Test Window";
             
             try
             {
                 // Act
-                var result = await _selectionService.ClearSelectionAsync(containerId, windowTitle, null, 30);
+                var result = await _selectionService.ClearSelectionAsync(automationId: containerId, processId: null, timeoutSeconds: 30);
 
                 // Assert
                 Assert.NotNull(result);
@@ -257,8 +256,8 @@ namespace UIAutomationMCP.Tests.Integration
             try
             {
                 // Act - Test that service can handle selection changes
-                var beforeResult = await _selectionService.GetSelectionAsync(containerId, windowTitle, null, 30);
-                var afterResult = await _selectionService.GetSelectionAsync(containerId, windowTitle, null, 30);
+                var beforeResult = await _selectionService.GetSelectionAsync(containerId, null, null, null, 30);
+                var afterResult = await _selectionService.GetSelectionAsync(containerId, null, null, null, 30);
 
                 // Assert
                 Assert.NotNull(beforeResult);
@@ -293,7 +292,7 @@ namespace UIAutomationMCP.Tests.Integration
             try
             {
                 // Act
-                var result = await _selectionService.SelectItemAsync(elementId, windowTitle, null, 30);
+                var result = await _selectionService.SelectItemAsync(elementId, null, null, null, 30);
 
                 // Assert
                 Assert.NotNull(result);
