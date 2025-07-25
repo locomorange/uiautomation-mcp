@@ -187,7 +187,7 @@ namespace UIAutomationMCP.Common.Infrastructure
                 var jsonDoc = JsonDocument.Parse(input);
                 var root = jsonDoc.RootElement;
                 
-                if (!root.TryGetProperty("operation", out var opElement))
+                if (!root.TryGetProperty("operation", out var opElement) && !root.TryGetProperty("Operation", out opElement))
                 {
                     _logger.LogWarning("Missing operation property in request: {Input}", input);
                     WriteResponse(WorkerResponse<object>.CreateError("Missing operation property"));

@@ -92,10 +92,13 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
 
                 // Convert to list for further processing
                 var foundElementsList = new List<AutomationElement>();
-                foreach (AutomationElement element in foundElementsCollection)
+                if (foundElementsCollection != null)
                 {
-                    if (element != null)
-                        foundElementsList.Add(element);
+                    foreach (AutomationElement element in foundElementsCollection)
+                    {
+                        if (element != null)
+                            foundElementsList.Add(element);
+                    }
                 }
 
                 // Apply basic filtering and sorting

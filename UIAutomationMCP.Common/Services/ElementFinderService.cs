@@ -103,7 +103,7 @@ namespace UIAutomationMCP.Common.Services
                 var elements = rootElement.FindAll(scope, condition);
                 _logger.LogDebug("Found {Count} elements", elements?.Count ?? 0);
 
-                return elements;
+                return elements ?? GetEmptyElementCollection();
             }
             catch (Exception ex)
             {
