@@ -57,10 +57,10 @@ namespace UIAutomationMCP.Worker.Operations.Focus
                 TargetName = elementInfo.Name,
                 TargetAutomationId = elementInfo.AutomationId,
                 TargetControlType = elementInfo.ControlType,
-                BeforeState = $"{{ \"HasKeyboardFocus\": {beforeFocused.ToString().ToLower()} }}",
-                AfterState = $"{{ \"HasKeyboardFocus\": {afterFocused.ToString().ToLower()} }}",
+                BeforeState = new ElementState { HasFocus = beforeFocused },
+                AfterState = new ElementState { HasFocus = afterFocused },
                 StateChanged = beforeFocused != afterFocused,
-                ActionParameters = $"{{ \"RequiredPattern\": \"{request.RequiredPattern ?? "None"}\" }}"
+                ActionParameters = new ActionParameters { AdditionalProperties = new Dictionary<string, object> { { "RequiredPattern", request.RequiredPattern ?? "None" } } }
             };
         }
 

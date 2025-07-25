@@ -26,7 +26,7 @@ namespace UIAutomationMCP.Models.Results
         public ElementInfo? Element { get; set; }
         public List<string> SupportedPatterns { get; set; } = new List<string>();
         public List<string> AvailableProperties { get; set; } = new List<string>();
-        public string ElementState { get; set; } = string.Empty;
+        public ElementState? ElementState { get; set; }
         public BoundingRectangle? BoundingRectangle { get; set; }
     }
     public class EventMonitoringResult : BaseOperationResult 

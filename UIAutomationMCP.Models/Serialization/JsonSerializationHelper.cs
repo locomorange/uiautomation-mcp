@@ -515,6 +515,16 @@ namespace UIAutomationMCP.Models.Serialization
     [JsonSerializable(typeof(TransformCapabilitiesResult))]
     [JsonSerializable(typeof(WindowInteractionStateResult))]
     [JsonSerializable(typeof(WindowCapabilitiesResult))]
+    // Action Types
+    [JsonSerializable(typeof(ActionParameters))]
+    [JsonSerializable(typeof(ElementState))]
+    [JsonSerializable(typeof(SelectionState))]
+    [JsonSerializable(typeof(ScrollState))]
+    [JsonSerializable(typeof(RangeState))]
+    [JsonSerializable(typeof(WindowStateInfo))]
+    [JsonSerializable(typeof(ToggleStateInfo))]
+    [JsonSerializable(typeof(ExpandCollapseStateInfo))]
+    [JsonSerializable(typeof(DockPositionInfo))]
     [JsonSourceGenerationOptions(
         WriteIndented = false, 
         PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,

@@ -226,7 +226,7 @@ namespace UIAutomationMCP.Server.Services
                 // Capture screenshot
                 using var bitmap = new Bitmap(captureArea.Width, captureArea.Height);
                 using var graphics = Graphics.FromImage(bitmap);
-                graphics.CopyFromScreen(captureArea.Location, Point.Empty, captureArea.Size);
+                graphics.CopyFromScreen(captureArea.Location, System.Drawing.Point.Empty, captureArea.Size);
 
                 // Generate output path if not provided
                 string outputPath = request.OutputPath;
