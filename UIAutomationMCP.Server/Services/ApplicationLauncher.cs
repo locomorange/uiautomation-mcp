@@ -487,7 +487,7 @@ namespace UIAutomationMCP.Server.Services
                 }
 
                 // Wait a bit for the UWP app to launch
-                await Task.Delay(2000, cancellationToken);
+                await Task.Delay(500, cancellationToken);
 
                 // Note: For UWP apps, we can't easily get the actual app process
                 // The explorer process launches the UWP app and exits
