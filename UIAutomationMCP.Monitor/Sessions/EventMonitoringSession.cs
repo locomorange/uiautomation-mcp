@@ -151,12 +151,15 @@ namespace UIAutomationMCP.Monitor.Sessions
 
             try
             {
-                return _elementFinderService.FindElement(
-                    automationId: _automationId,
-                    name: _name,
-                    controlType: _controlType,
-                    windowTitle: _windowTitle,
-                    processId: _processId);
+                var searchCriteria = new ElementSearchCriteria
+                {
+                    AutomationId = _automationId,
+                    Name = _name,
+                    ControlType = _controlType,
+                    WindowTitle = _windowTitle,
+                    ProcessId = _processId
+                };
+                return _elementFinderService.FindElement(searchCriteria);
             }
             catch (Exception ex)
             {

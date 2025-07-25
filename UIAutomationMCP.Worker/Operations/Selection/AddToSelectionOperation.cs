@@ -25,13 +25,16 @@ namespace UIAutomationMCP.Worker.Operations.Selection
             // パターン変換（リクエストから取得、デフォルトはSelectionItemPattern）
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? SelectionItemPattern.Pattern;
             
-            var element = _elementFinderService.FindElement(
-                automationId: request.AutomationId, 
-                name: request.Name, 
-                controlType: request.ControlType, 
-                windowTitle: request.WindowTitle, 
-                processId: request.ProcessId ?? 0,
-                requiredPattern: requiredPattern);
+            var searchCriteria = new ElementSearchCriteria
+            {
+                AutomationId = request.AutomationId,
+                Name = request.Name,
+                ControlType = request.ControlType,
+                WindowTitle = request.WindowTitle,
+                ProcessId = request.ProcessId,
+                RequiredPattern = requiredPattern?.ProgrammaticName
+            };
+            var element = _elementFinderService.FindElement(searchCriteria);
             
             if (element == null)
             {

@@ -19,12 +19,15 @@ namespace UIAutomationMCP.Worker.Operations.Layout
 
         protected override async Task<StateChangeResult<string>> ExecuteOperationAsync(DockElementRequest request)
         {
-            var element = _elementFinderService.FindElement(
-                automationId: request.AutomationId, 
-                name: request.Name, 
-                controlType: request.ControlType, 
-                windowTitle: request.WindowTitle, 
-                processId: request.ProcessId ?? 0);
+            var searchCriteria = new ElementSearchCriteria
+            {
+                AutomationId = request.AutomationId,
+                Name = request.Name,
+                ControlType = request.ControlType,
+                WindowTitle = request.WindowTitle,
+                ProcessId = request.ProcessId
+            };
+            var element = _elementFinderService.FindElement(searchCriteria);
             
             if (element == null)
             {

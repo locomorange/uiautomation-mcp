@@ -33,11 +33,14 @@ namespace UIAutomationMCP.Worker.Operations.Layout
                 throw new ArgumentException("Vertical percentage must be between 0-100 or -1 for no change");
             }
 
-            var element = _elementFinderService.FindElement(
-                automationId: request.AutomationId, 
-                name: request.Name,
-                controlType: request.ControlType,
-                processId: request.ProcessId);
+            var searchCriteria = new ElementSearchCriteria
+            {
+                AutomationId = request.AutomationId,
+                Name = request.Name,
+                ControlType = request.ControlType,
+                ProcessId = request.ProcessId
+            };
+            var element = _elementFinderService.FindElement(searchCriteria);
             
             if (element == null)
             {

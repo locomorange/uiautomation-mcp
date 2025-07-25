@@ -307,61 +307,6 @@ namespace UIAutomationMCP.Common.Services
 
         #endregion
 
-        #region Legacy Compatibility Methods
-
-        /// <summary>
-        /// Legacy method for backwards compatibility
-        /// </summary>
-        [Obsolete("Use FindElement(ElementSearchCriteria) instead")]
-        public AutomationElement? FindElement(
-            string? automationId = null,
-            string? name = null,
-            string? controlType = null,
-            string? windowTitle = null,
-            int? processId = null,
-            TreeScope scope = TreeScope.Children,
-            AutomationPattern? requiredPattern = null)
-        {
-            var criteria = new ElementSearchCriteria
-            {
-                AutomationId = automationId,
-                Name = name,
-                ControlType = controlType,
-                WindowTitle = windowTitle,
-                ProcessId = processId,
-                Scope = scope.ToString(),
-                RequiredPattern = requiredPattern?.ProgrammaticName
-            };
-
-            return FindElement(criteria);
-        }
-
-        /// <summary>
-        /// Legacy method for backwards compatibility
-        /// </summary>
-        [Obsolete("Use FindElements(ElementSearchCriteria) instead")]
-        public AutomationElementCollection FindElements(
-            string? automationId = null,
-            string? name = null,
-            string? controlType = null,
-            string? windowTitle = null,
-            int? processId = null,
-            TreeScope scope = TreeScope.Children)
-        {
-            var criteria = new ElementSearchCriteria
-            {
-                AutomationId = automationId,
-                Name = name,
-                ControlType = controlType,
-                WindowTitle = windowTitle,
-                ProcessId = processId,
-                Scope = scope.ToString()
-            };
-
-            return FindElements(criteria);
-        }
-
-        #endregion
     }
 
     /// <summary>

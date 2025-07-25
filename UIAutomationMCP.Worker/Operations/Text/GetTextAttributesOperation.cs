@@ -33,11 +33,14 @@ namespace UIAutomationMCP.Worker.Operations.Text
         {
             try
             {
-                var element = _elementFinderService.FindElement(
-                    automationId: request.AutomationId, 
-                    name: request.Name,
-                    controlType: request.ControlType,
-                    processId: request.ProcessId ?? 0);
+                var searchCriteria = new ElementSearchCriteria
+                {
+                    AutomationId = request.AutomationId,
+                    Name = request.Name,
+                    ControlType = request.ControlType,
+                    ProcessId = request.ProcessId
+                };
+                var element = _elementFinderService.FindElement(searchCriteria);
                 
                 if (element == null)
                 {

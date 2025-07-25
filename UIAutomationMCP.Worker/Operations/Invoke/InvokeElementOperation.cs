@@ -24,12 +24,15 @@ namespace UIAutomationMCP.Worker.Operations.Invoke
             // パターン変換（リクエストから取得、デフォルトはInvokePattern）
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? InvokePattern.Pattern;
             
-            var element = _elementFinderService.FindElement(
-                automationId: request.AutomationId, 
-                name: request.Name,
-                controlType: request.ControlType,
-                processId: request.ProcessId,
-                requiredPattern: requiredPattern);
+            var searchCriteria = new ElementSearchCriteria
+            {
+                AutomationId = request.AutomationId,
+                Name = request.Name,
+                ControlType = request.ControlType,
+                ProcessId = request.ProcessId,
+                RequiredPattern = requiredPattern?.ProgrammaticName
+            };
+            var element = _elementFinderService.FindElement(searchCriteria);
             
             if (element == null)
             {

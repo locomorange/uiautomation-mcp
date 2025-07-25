@@ -26,9 +26,12 @@ namespace UIAutomationMCP.Worker.Operations.Window
             var windowTitle = request.WindowTitle ?? "";
             var processId = request.ProcessId;
 
-            var window = _elementFinderService.FindElement(
-                windowTitle: windowTitle, 
-                processId: processId);
+            var searchCriteria = new ElementSearchCriteria
+            {
+                WindowTitle = windowTitle,
+                ProcessId = processId
+            };
+            var window = _elementFinderService.FindElement(searchCriteria);
             if (window == null)
             {
                 throw new UIAutomationElementNotFoundException("Window", windowTitle);
