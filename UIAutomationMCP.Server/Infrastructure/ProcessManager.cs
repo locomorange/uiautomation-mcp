@@ -19,19 +19,22 @@ namespace UIAutomationMCP.Server.Infrastructure
         public ProcessManager(
             ILogger<ProcessManager> logger,
             ILoggerFactory loggerFactory,
+            CancellationTokenSource shutdownCts,
             string workerPath,
             string? monitorPath = null)
         {
             _logger = logger;
             _workerExecutor = new SubprocessExecutor(
                 loggerFactory.CreateLogger<SubprocessExecutor>(), 
-                workerPath);
+                workerPath,
+                shutdownCts);
 
             if (!string.IsNullOrEmpty(monitorPath))
             {
                 _monitorExecutor = new SubprocessExecutor(
                     loggerFactory.CreateLogger<SubprocessExecutor>(), 
-                    monitorPath);
+                    monitorPath,
+                    shutdownCts);
             }
 
             _logger.LogInformation("ProcessManager initialized - Worker: {WorkerPath}, Monitor: {MonitorPath}", 

@@ -12,15 +12,17 @@ namespace UIAutomationMCP.Server.Helpers
     {
         private readonly ILogger<SubprocessExecutor> _logger;
         private readonly string _workerPath;
+        private readonly CancellationTokenSource _shutdownCts;
         private Process? _workerProcess;
         private readonly SemaphoreSlim _semaphore = new(1, 1);
         private bool _disposed = false;
         private readonly object _lockObject = new object();
 
-        public SubprocessExecutor(ILogger<SubprocessExecutor> logger, string workerPath)
+        public SubprocessExecutor(ILogger<SubprocessExecutor> logger, string workerPath, CancellationTokenSource shutdownCts)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _workerPath = !string.IsNullOrWhiteSpace(workerPath) ? workerPath : throw new ArgumentException("Worker path cannot be null or empty", nameof(workerPath));
+            _shutdownCts = shutdownCts ?? throw new ArgumentNullException(nameof(shutdownCts));
         }
 
         /// <summary>
@@ -67,16 +69,23 @@ namespace UIAutomationMCP.Server.Helpers
                     string requestJson = JsonSerializationHelper.Serialize(request);
 
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
+                    using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, _shutdownCts.Token);
                     
-                    await _workerProcess!.StandardInput.WriteLineAsync(requestJson);
-                    await _workerProcess.StandardInput.FlushAsync();
+                    await _workerProcess!.StandardInput.WriteLineAsync(requestJson.AsMemory(), combinedCts.Token);
+                    await _workerProcess.StandardInput.FlushAsync(combinedCts.Token);
 
                     var responseTask = _workerProcess.StandardOutput.ReadLineAsync();
-                    var timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeoutSeconds), cts.Token);
+                    var timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeoutSeconds), combinedCts.Token);
                     var completedTask = await Task.WhenAny(responseTask, timeoutTask);
 
                     if (completedTask == timeoutTask)
                     {
+                        if (combinedCts.Token.IsCancellationRequested && _shutdownCts.Token.IsCancellationRequested)
+                        {
+                            _logger.LogInformation("Worker operation cancelled due to shutdown: {Operation}", operation);
+                            throw new OperationCanceledException("Operation cancelled due to server shutdown");
+                        }
+                        
                         _logger.LogWarning("Worker operation timed out after {TimeoutSeconds}s: {Operation}", timeoutSeconds, operation);
                         cts.Cancel();
                         
@@ -179,6 +188,11 @@ namespace UIAutomationMCP.Server.Helpers
                 {
                     _semaphore.Release();
                 }
+            }
+            catch (OperationCanceledException ex) when (_shutdownCts.Token.IsCancellationRequested)
+            {
+                _logger.LogInformation("Operation '{Operation}' cancelled due to server shutdown", operation);
+                throw new OperationCanceledException("Operation cancelled due to server shutdown", ex);
             }
             catch (Exception ex) when (!(ex is ArgumentException || ex is ObjectDisposedException))
             {

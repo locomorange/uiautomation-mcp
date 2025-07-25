@@ -19,6 +19,10 @@ namespace UIAutomationMCP.Server
 
             var builder = Host.CreateApplicationBuilder(args);
 
+            // Register shutdown CancellationTokenSource for graceful shutdown
+            var shutdownCts = new CancellationTokenSource();
+            builder.Services.AddSingleton(shutdownCts);
+
             // Configure logging for MCP - stderr logging to avoid MCP protocol interference
             builder.Logging.ClearProviders();
             builder.Logging.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Debug);
@@ -132,7 +136,8 @@ namespace UIAutomationMCP.Server
                 logger.LogInformation("ProcessManager configured - Worker: {WorkerPath}, Monitor: {MonitorPath}", 
                     workerPath, monitorPath ?? "Not available (fallback to Worker)");
                 
-                return new ProcessManager(logger, loggerFactory, workerPath, monitorPath);
+                var shutdownCts = provider.GetRequiredService<CancellationTokenSource>();
+                return new ProcessManager(logger, loggerFactory, shutdownCts, workerPath, monitorPath);
             });
             
             // Register ProcessManager as both IProcessManager and IOperationExecutor
@@ -172,9 +177,13 @@ namespace UIAutomationMCP.Server
             lifetime.ApplicationStopping.Register(() =>
             {
                 var logger = host.Services.GetRequiredService<ILogger<Program>>();
-                logger.LogInformation("[Program] MCP Server shutdown requested - cleaning up resources");
+                logger.LogInformation("[Program] MCP Server shutdown requested - cancelling operations");
                 
-                // Dispose ProcessManager to ensure worker and monitor processes are terminated
+                // Cancel all ongoing operations first
+                var shutdownCts = host.Services.GetRequiredService<CancellationTokenSource>();
+                shutdownCts.Cancel();
+                
+                // Then dispose ProcessManager to ensure worker and monitor processes are terminated
                 try
                 {
                     var processManager = host.Services.GetRequiredService<ProcessManager>();
