@@ -17,18 +17,19 @@ namespace UIAutomationMCP.Server.Infrastructure
 
         public ProcessManager(
             ILogger<ProcessManager> logger,
+            ILoggerFactory loggerFactory,
             string workerPath,
             string? monitorPath = null)
         {
             _logger = logger;
             _workerExecutor = new SubprocessExecutor(
-                logger.CreateLogger<SubprocessExecutor>(), 
+                loggerFactory.CreateLogger<SubprocessExecutor>(), 
                 workerPath);
 
             if (!string.IsNullOrEmpty(monitorPath))
             {
                 _monitorExecutor = new SubprocessExecutor(
-                    logger.CreateLogger<SubprocessExecutor>(), 
+                    loggerFactory.CreateLogger<SubprocessExecutor>(), 
                     monitorPath);
             }
 

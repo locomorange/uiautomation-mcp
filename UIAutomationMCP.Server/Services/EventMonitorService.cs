@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Server.Abstractions;
 using UIAutomationMCP.Shared.Abstractions;
 using UIAutomationMCP.Shared.Results;
 using UIAutomationMCP.Shared.Requests;

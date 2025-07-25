@@ -4,6 +4,8 @@ using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Server.Abstractions;
 using UIAutomationMCP.Server.Tools;
 using UIAutomationMCP.Shared.Abstractions;
 
@@ -54,45 +56,56 @@ namespace UIAutomationMCP.Server
             // Register ControlType service
             builder.Services.AddSingleton<IControlTypeService, ControlTypeService>();
             
-            // Register subprocess executor
-            builder.Services.AddSingleton<SubprocessExecutor>(provider =>
+            // Register ProcessManager for worker and monitor process management
+            builder.Services.AddSingleton<ProcessManager>(provider =>
             {
-                var logger = provider.GetRequiredService<ILogger<SubprocessExecutor>>();
+                var logger = provider.GetRequiredService<ILogger<ProcessManager>>();
+                var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
                 var baseDir = AppDomain.CurrentDomain.BaseDirectory;
                 
                 // Determine if we're in development or production
                 var isDevelopment = baseDir.Contains("bin\\Debug") || baseDir.Contains("bin\\Release");
                 
                 string? workerPath = null;
+                string? monitorPath = null;
                 
                 if (isDevelopment)
                 {
-                    // In development, look for the Worker project
+                    // In development, look for the Worker and Monitor projects
                     var solutionDir = Directory.GetParent(baseDir)?.Parent?.Parent?.Parent?.Parent?.FullName;
                     if (solutionDir != null)
                     {
+                        // Worker path
                         workerPath = Path.Combine(solutionDir, "UIAutomationMCP.Worker");
                         if (!Directory.Exists(workerPath))
                         {
-                            // Try the built executable
                             var config = baseDir.Contains("Debug") ? "Debug" : "Release";
                             workerPath = Path.Combine(solutionDir, "UIAutomationMCP.Worker", "bin", config, "net9.0-windows", "UIAutomationMCP-Worker.exe");
+                        }
+                        
+                        // Monitor path
+                        monitorPath = Path.Combine(solutionDir, "UIAutomationMCP.Monitor");
+                        if (!Directory.Exists(monitorPath))
+                        {
+                            var config = baseDir.Contains("Debug") ? "Debug" : "Release";
+                            monitorPath = Path.Combine(solutionDir, "UIAutomationMCP.Monitor", "bin", config, "net9.0", "UIAutomationMCP.Monitor.exe");
                         }
                     }
                 }
                 else
                 {
-                    // In production/tool deployment, Worker should be in same directory
+                    // In production/tool deployment, executables should be in same directory
                     workerPath = Path.Combine(baseDir, "UIAutomationMCP-Worker.exe");
+                    monitorPath = Path.Combine(baseDir, "UIAutomationMCP.Monitor.exe");
                 }
 
+                // Validate worker path (required)
                 if (workerPath == null || (!File.Exists(workerPath) && !Directory.Exists(workerPath)))
                 {
                     var searchedPaths = new List<string>();
                     if (!string.IsNullOrEmpty(workerPath))
                         searchedPaths.Add(workerPath);
                     
-                    // Add additional diagnostic information about searched paths
                     var solutionDir = Directory.GetParent(baseDir)?.Parent?.Parent?.Parent?.Parent?.FullName;
                     if (solutionDir != null)
                     {
@@ -108,15 +121,22 @@ namespace UIAutomationMCP.Server
                     throw new InvalidOperationException($"UIAutomationMCP.Worker not found. Searched: {string.Join(", ", searchedPaths)}");
                 }
 
-                logger.LogInformation("Worker path configured: {WorkerPath}. Exists: {Exists}. IsDirectory: {IsDirectory}", 
-                    workerPath, 
-                    Directory.Exists(workerPath) || File.Exists(workerPath),
-                    Directory.Exists(workerPath));
-                return new SubprocessExecutor(logger, workerPath);
+                // Validate monitor path (optional - will fallback to worker if not available)
+                if (monitorPath != null && !File.Exists(monitorPath) && !Directory.Exists(monitorPath))
+                {
+                    logger.LogWarning("Monitor process not found at {MonitorPath}. Monitor operations will fallback to Worker process.", monitorPath);
+                    monitorPath = null;
+                }
+
+                logger.LogInformation("ProcessManager configured - Worker: {WorkerPath}, Monitor: {MonitorPath}", 
+                    workerPath, monitorPath ?? "Not available (fallback to Worker)");
+                
+                return new ProcessManager(logger, loggerFactory, workerPath, monitorPath);
             });
             
-            // Register as IOperationExecutor for new BaseUIAutomationService architecture
-            builder.Services.AddSingleton<IOperationExecutor>(provider => provider.GetRequiredService<SubprocessExecutor>());
+            // Register ProcessManager as both IProcessManager and IOperationExecutor
+            builder.Services.AddSingleton<IProcessManager>(provider => provider.GetRequiredService<ProcessManager>());
+            builder.Services.AddSingleton<IOperationExecutor>(provider => provider.GetRequiredService<ProcessManager>());
             
             // All UI Automation services are now handled through subprocess executor
 
@@ -153,16 +173,16 @@ namespace UIAutomationMCP.Server
                 var logger = host.Services.GetRequiredService<ILogger<Program>>();
                 logger.LogInformation("[Program] MCP Server shutdown requested - cleaning up resources");
                 
-                // Dispose SubprocessExecutor to ensure worker processes are terminated
+                // Dispose ProcessManager to ensure worker and monitor processes are terminated
                 try
                 {
-                    var executor = host.Services.GetRequiredService<SubprocessExecutor>();
-                    executor.Dispose();
-                    logger.LogInformation("[Program] SubprocessExecutor disposed successfully");
+                    var processManager = host.Services.GetRequiredService<ProcessManager>();
+                    processManager.Dispose();
+                    logger.LogInformation("[Program] ProcessManager disposed successfully");
                 }
                 catch (Exception ex)
                 {
-                    logger.LogWarning(ex, "[Program] Error disposing SubprocessExecutor");
+                    logger.LogWarning(ex, "[Program] Error disposing ProcessManager");
                 }
             });
 
