@@ -1,6 +1,7 @@
 using UIAutomationMCP.Models.Abstractions;
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Server.Abstractions;
 using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
@@ -11,8 +12,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
     public class ItemContainerService : BaseUIAutomationService<ItemContainerServiceMetadata>, IItemContainerService
     {
-        public ItemContainerService(IOperationExecutor executor, ILogger<ItemContainerService> logger)
-            : base(executor, logger)
+        public ItemContainerService(IProcessManager processManager, ILogger<ItemContainerService> logger)
+            : base(processManager, logger)
         {
         }
 

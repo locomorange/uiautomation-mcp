@@ -80,20 +80,21 @@ namespace UIAutomationMCP.Server
                     var solutionDir = Directory.GetParent(baseDir)?.Parent?.Parent?.Parent?.Parent?.FullName;
                     if (solutionDir != null)
                     {
+                        var config = baseDir.Contains("Debug") ? "Debug" : "Release";
+                        
                         // Worker path
                         workerPath = Path.Combine(solutionDir, "UIAutomationMCP.Worker");
                         if (!Directory.Exists(workerPath))
                         {
-                            var config = baseDir.Contains("Debug") ? "Debug" : "Release";
                             workerPath = Path.Combine(solutionDir, "UIAutomationMCP.Worker", "bin", config, "net9.0-windows", "UIAutomationMCP-Worker.exe");
                         }
                         
                         // Monitor path
-                        monitorPath = Path.Combine(solutionDir, "UIAutomationMCP.Monitor");
-                        if (!Directory.Exists(monitorPath))
+                        monitorPath = Path.Combine(solutionDir, "UIAutomationMCP.Monitor", "bin", config, "net9.0-windows", "UIAutomationMCP.Monitor.exe");
+                        if (!File.Exists(monitorPath))
                         {
-                            var config = baseDir.Contains("Debug") ? "Debug" : "Release";
-                            monitorPath = Path.Combine(solutionDir, "UIAutomationMCP.Monitor", "bin", config, "net9.0", "UIAutomationMCP.Monitor.exe");
+                            // Fallback to directory if exe not found
+                            monitorPath = Path.Combine(solutionDir, "UIAutomationMCP.Monitor");
                         }
                     }
                 }

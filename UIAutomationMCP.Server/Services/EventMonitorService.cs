@@ -12,8 +12,8 @@ namespace UIAutomationMCP.Server.Services
 {
     public class EventMonitorService : BaseUIAutomationService<EventMonitorServiceMetadata>, IEventMonitorService
     {
-        public EventMonitorService(IOperationExecutor executor, ILogger<EventMonitorService> logger)
-            : base(executor, logger)
+        public EventMonitorService(IProcessManager processManager, ILogger<EventMonitorService> logger)
+            : base(processManager, logger)
         {
         }
 
@@ -68,7 +68,7 @@ namespace UIAutomationMCP.Server.Services
                 ProcessId = processId
             };
 
-            return await ExecuteServiceOperationAsync<StartEventMonitoringRequest, EventMonitoringStartResult>(
+            return await ExecuteMonitorServiceOperationAsync<StartEventMonitoringRequest, EventMonitoringStartResult>(
                 "StartEventMonitoring",
                 request,
                 nameof(StartEventMonitoringAsync),
@@ -86,7 +86,7 @@ namespace UIAutomationMCP.Server.Services
                 MonitorId = sessionId ?? ""
             };
 
-            return await ExecuteServiceOperationAsync<StopEventMonitoringRequest, EventMonitoringStopResult>(
+            return await ExecuteMonitorServiceOperationAsync<StopEventMonitoringRequest, EventMonitoringStopResult>(
                 "StopEventMonitoring",
                 request,
                 nameof(StopEventMonitoringAsync),
@@ -106,7 +106,7 @@ namespace UIAutomationMCP.Server.Services
                 MaxCount = maxCount
             };
 
-            return await ExecuteServiceOperationAsync<GetEventLogRequest, EventLogResult>(
+            return await ExecuteMonitorServiceOperationAsync<GetEventLogRequest, EventLogResult>(
                 "GetEventLog",
                 request,
                 nameof(GetEventLogAsync),

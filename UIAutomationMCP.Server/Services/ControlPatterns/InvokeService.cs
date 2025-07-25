@@ -1,6 +1,7 @@
 using UIAutomationMCP.Models.Abstractions;
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Server.Abstractions;
 using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
@@ -11,8 +12,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
     public class InvokeService : BaseUIAutomationService<InvokeServiceMetadata>, IInvokeService
     {
-        public InvokeService(IOperationExecutor executor, ILogger<InvokeService> logger)
-            : base(executor, logger)
+        public InvokeService(IProcessManager processManager, ILogger<InvokeService> logger)
+            : base(processManager, logger)
         {
         }
 

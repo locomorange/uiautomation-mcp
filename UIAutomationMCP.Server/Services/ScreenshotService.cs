@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Server.Abstractions;
 using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
@@ -25,8 +26,8 @@ namespace UIAutomationMCP.Server.Services
         private const int SM_CXSCREEN = 0;  // Primary screen width
         private const int SM_CYSCREEN = 1;  // Primary screen height
 
-        public ScreenshotService(IOperationExecutor executor, ILogger<ScreenshotService> logger, IElementSearchService elementSearchService)
-            : base(executor, logger)
+        public ScreenshotService(IProcessManager processManager, ILogger<ScreenshotService> logger, IElementSearchService elementSearchService)
+            : base(processManager, logger)
         {
             _elementSearchService = elementSearchService;
         }
@@ -424,7 +425,7 @@ namespace UIAutomationMCP.Server.Services
                     ProcessId = processId ?? 0
                 };
 
-                var result = await _executor.ExecuteAsync<WindowActionRequest, WindowActionResult>("WindowAction", request, 5);
+                var result = await _processManager.ExecuteWorkerOperationAsync<WindowActionRequest, WindowActionResult>("WindowAction", request, 5);
                 if (result != null && result.Success)
                 {
                     _logger.LogInformation("Window activated successfully via Worker: {WindowTitle}", windowTitle);

@@ -2,6 +2,7 @@ using UIAutomationMCP.Models.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Server.Abstractions;
 using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Core.Options;
 using UIAutomationMCP.Models.Requests;
@@ -16,10 +17,10 @@ namespace UIAutomationMCP.Server.Services
         private readonly IOptions<UIAutomationOptions> _options;
 
         public ElementSearchService(
-            IOperationExecutor executor, 
+            IProcessManager processManager, 
             ILogger<ElementSearchService> logger,
             IOptions<UIAutomationOptions> options)
-            : base(executor, logger)
+            : base(processManager, logger)
         {
             _options = options;
         }

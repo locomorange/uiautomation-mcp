@@ -1,6 +1,7 @@
 using UIAutomationMCP.Models.Abstractions;
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Server.Abstractions;
 using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
@@ -11,8 +12,8 @@ namespace UIAutomationMCP.Server.Services
 {
     public class TreeNavigationService : BaseUIAutomationService<TreeNavigationServiceMetadata>, ITreeNavigationService
     {
-        public TreeNavigationService(IOperationExecutor executor, ILogger<TreeNavigationService> logger)
-            : base(executor, logger)
+        public TreeNavigationService(IProcessManager processManager, ILogger<TreeNavigationService> logger)
+            : base(processManager, logger)
         {
         }
 

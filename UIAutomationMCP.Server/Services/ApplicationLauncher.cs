@@ -6,6 +6,7 @@ using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Core.Validation;
 using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Server.Abstractions;
 
 namespace UIAutomationMCP.Server.Services
 {
@@ -18,8 +19,8 @@ namespace UIAutomationMCP.Server.Services
 
     public class ApplicationLauncher : BaseUIAutomationService<ApplicationLauncherMetadata>, IApplicationLauncher
     {
-        public ApplicationLauncher(IOperationExecutor executor, ILogger<ApplicationLauncher> logger)
-            : base(executor, logger)
+        public ApplicationLauncher(IProcessManager processManager, ILogger<ApplicationLauncher> logger)
+            : base(processManager, logger)
         {
         }
 

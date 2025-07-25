@@ -1,6 +1,7 @@
 using UIAutomationMCP.Models.Abstractions;
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Server.Abstractions;
 using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
@@ -11,8 +12,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
     public class RangeService : BaseUIAutomationService<RangeServiceMetadata>, IRangeService
     {
-        public RangeService(IOperationExecutor executor, ILogger<RangeService> logger)
-            : base(executor, logger)
+        public RangeService(IProcessManager processManager, ILogger<RangeService> logger)
+            : base(processManager, logger)
         {
         }
 

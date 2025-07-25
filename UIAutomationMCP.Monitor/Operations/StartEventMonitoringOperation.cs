@@ -30,12 +30,15 @@ namespace UIAutomationMCP.Monitor.Operations
             // Validate that the target element exists if element identification is provided
             if (!string.IsNullOrEmpty(request.AutomationId) || !string.IsNullOrEmpty(request.Name))
             {
-                var targetElement = _elementFinderService.FindElement(
-                    request.AutomationId,
-                    request.Name,
-                    request.ControlType,
-                    request.WindowTitle,
-                    request.ProcessId);
+                var searchCriteria = new ElementSearchCriteria
+                {
+                    AutomationId = request.AutomationId,
+                    Name = request.Name,
+                    ControlType = request.ControlType,
+                    WindowTitle = request.WindowTitle,
+                    ProcessId = request.ProcessId
+                };
+                var targetElement = _elementFinderService.FindElement(searchCriteria);
                 
                 if (targetElement == null)
                 {

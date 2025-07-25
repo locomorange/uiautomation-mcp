@@ -1,6 +1,7 @@
 using UIAutomationMCP.Models.Abstractions;
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Server.Abstractions;
 using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
@@ -11,8 +12,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
     public class MultipleViewService : BaseUIAutomationService<MultipleViewServiceMetadata>, IMultipleViewService
     {
-        public MultipleViewService(IOperationExecutor executor, ILogger<MultipleViewService> logger)
-            : base(executor, logger)
+        public MultipleViewService(IProcessManager processManager, ILogger<MultipleViewService> logger)
+            : base(processManager, logger)
         {
         }
 

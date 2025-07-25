@@ -1,6 +1,7 @@
 using UIAutomationMCP.Models.Abstractions;
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Server.Abstractions;
 using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
@@ -11,8 +12,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
     public class SynchronizedInputService : BaseUIAutomationService<SynchronizedInputServiceMetadata>, ISynchronizedInputService
     {
-        public SynchronizedInputService(IOperationExecutor executor, ILogger<SynchronizedInputService> logger)
-            : base(executor, logger)
+        public SynchronizedInputService(IProcessManager processManager, ILogger<SynchronizedInputService> logger)
+            : base(processManager, logger)
         {
         }
 

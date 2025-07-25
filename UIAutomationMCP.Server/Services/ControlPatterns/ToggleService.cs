@@ -1,6 +1,7 @@
 using UIAutomationMCP.Models.Abstractions;
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Server.Abstractions;
 using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
@@ -11,8 +12,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
     public class ToggleService : BaseUIAutomationService<ToggleServiceMetadata>, IToggleService
     {
-        public ToggleService(IOperationExecutor executor, ILogger<ToggleService> logger)
-            : base(executor, logger)
+        public ToggleService(IProcessManager processManager, ILogger<ToggleService> logger)
+            : base(processManager, logger)
         {
         }
 

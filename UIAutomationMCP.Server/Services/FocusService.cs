@@ -1,6 +1,7 @@
 using UIAutomationMCP.Models.Abstractions;
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Server.Abstractions;
 using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
@@ -11,8 +12,8 @@ namespace UIAutomationMCP.Server.Services
 {
     public class FocusService : BaseUIAutomationService<FocusServiceMetadata>, IFocusService
     {
-        public FocusService(IOperationExecutor executor, ILogger<FocusService> logger)
-            : base(executor, logger)
+        public FocusService(IProcessManager processManager, ILogger<FocusService> logger)
+            : base(processManager, logger)
         {
         }
 

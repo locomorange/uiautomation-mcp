@@ -4,6 +4,7 @@ using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Core.Validation;
 using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Server.Abstractions;
 
 namespace UIAutomationMCP.Server.Infrastructure
 {
@@ -13,12 +14,12 @@ namespace UIAutomationMCP.Server.Infrastructure
     public abstract class BaseUIAutomationService<TMetadata> 
         where TMetadata : ServiceMetadata, new()
     {
-        protected readonly IOperationExecutor _executor;
+        protected readonly IProcessManager _processManager;
         protected readonly ILogger _logger;
         
-        protected BaseUIAutomationService(IOperationExecutor executor, ILogger logger)
+        protected BaseUIAutomationService(IProcessManager processManager, ILogger logger)
         {
-            _executor = executor ?? throw new ArgumentNullException(nameof(executor));
+            _processManager = processManager ?? throw new ArgumentNullException(nameof(processManager));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
         
@@ -46,8 +47,59 @@ namespace UIAutomationMCP.Server.Infrastructure
                 // 2. Unified logging - start
                 LogOperationStart(operationName, context);
                 
-                // 3. Execute operation
-                var result = await _executor.ExecuteAsync<TRequest, TResult>(operationName, request, timeoutSeconds);
+                // 3. Execute operation in Worker process
+                var result = await _processManager.ExecuteWorkerOperationAsync<TRequest, TResult>(operationName, request, timeoutSeconds);
+                
+                // 4. Handle result
+                if (result.Success)
+                {
+                    LogOperationSuccess(operationName, context);
+                    return CreateSuccessResponse(result.Data!, context, methodName, timeoutSeconds);
+                }
+                else
+                {
+                    LogOperationError(operationName, result.Error!, context);
+                    return CreateOperationErrorResponse<TResult>(result, context, methodName, timeoutSeconds);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogUnhandledException(operationName, ex, context);
+                return CreateUnhandledErrorResponse<TResult>(ex, context, methodName, timeoutSeconds);
+            }
+            finally
+            {
+                context.Stopwatch.Stop();
+                CleanupLogs(context.OperationId);
+            }
+        }
+        
+        /// <summary>
+        /// Execute a service operation in Monitor process with unified error handling, logging, and response creation
+        /// </summary>
+        protected async Task<ServerEnhancedResponse<TResult>> ExecuteMonitorServiceOperationAsync<TRequest, TResult>(
+            string operationName,
+            TRequest request,
+            string methodName,
+            int timeoutSeconds = 30,
+            Func<TRequest, ValidationResult>? customValidation = null)
+        {
+            var context = new ServiceContext(methodName, timeoutSeconds);
+            
+            try
+            {
+                // 1. Unified validation
+                var validation = ValidateRequest(request, customValidation);
+                if (!validation.IsValid)
+                {
+                    return CreateValidationErrorResponse<TResult>(validation, context);
+                }
+                
+                // 2. Unified logging - start
+                LogOperationStart(operationName, context);
+                
+                // 3. Execute operation in Monitor process
+                var result = await _processManager.ExecuteMonitorOperationAsync<TRequest, TResult>(operationName, request, timeoutSeconds);
                 
                 // 4. Handle result
                 if (result.Success)

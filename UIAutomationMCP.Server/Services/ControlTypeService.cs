@@ -1,6 +1,7 @@
 using UIAutomationMCP.Models.Abstractions;
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Server.Abstractions;
 using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
@@ -11,8 +12,8 @@ namespace UIAutomationMCP.Server.Services
 {
     public class ControlTypeService : BaseUIAutomationService<ControlTypeServiceMetadata>, IControlTypeService
     {
-        public ControlTypeService(IOperationExecutor executor, ILogger<ControlTypeService> logger)
-            : base(executor, logger)
+        public ControlTypeService(IProcessManager processManager, ILogger<ControlTypeService> logger)
+            : base(processManager, logger)
         {
         }
 
