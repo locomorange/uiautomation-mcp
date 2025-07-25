@@ -166,7 +166,7 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
         private readonly ElementFinderService _elementFinderService;
         private readonly ILogger _logger;
         private readonly List<IDisposable> _eventHandlers = new();
-        private readonly ConcurrentQueue<EventData> _capturedEvents = new();
+        private readonly ConcurrentQueue<TypedEventData> _capturedEvents = new();
         private readonly object _lockObject = new();
         private bool _isActive = false;
         private bool _disposed = false;
@@ -258,9 +258,9 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
             _logger.LogInformation($"Event monitoring session {_sessionId} stopped. Captured {_capturedEvents.Count} events");
         }
 
-        public List<EventData> GetCapturedEvents(int maxCount = 100)
+        public List<TypedEventData> GetCapturedEvents(int maxCount = 100)
         {
-            var events = new List<EventData>();
+            var events = new List<TypedEventData>();
             var count = 0;
             
             while (_capturedEvents.TryDequeue(out var eventData) && count < maxCount)
@@ -272,7 +272,7 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
             return events;
         }
 
-        public List<EventData> PeekCapturedEvents(int maxCount = 100)
+        public List<TypedEventData> PeekCapturedEvents(int maxCount = 100)
         {
             return _capturedEvents.Take(maxCount).ToList();
         }
@@ -374,15 +374,11 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
             {
                 if (!_isActive) return;
                 
-                _capturedEvents.Enqueue(new EventData
+                _capturedEvents.Enqueue(new FocusEventData
                 {
-                    EventType = "Focus",
                     Timestamp = DateTime.UtcNow,
                     SourceElement = "Focus changed",
-                    EventDataProperties = new Dictionary<string, object>
-                    {
-                        ["SessionId"] = _sessionId
-                    }
+                    SessionId = _sessionId
                 });
             };
 
@@ -407,16 +403,12 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
             {
                 if (!_isActive) return;
                 
-                _capturedEvents.Enqueue(new EventData
+                _capturedEvents.Enqueue(new InvokeEventData
                 {
-                    EventType = "Invoke",
                     Timestamp = DateTime.UtcNow,
                     SourceElement = GetElementDescription(sender as AutomationElement),
-                    EventDataProperties = new Dictionary<string, object>
-                    {
-                        ["SessionId"] = _sessionId,
-                        ["EventId"] = e.EventId.ProgrammaticName
-                    }
+                    SessionId = _sessionId,
+                    EventId = e.EventId.ProgrammaticName
                 });
             };
 
@@ -448,16 +440,12 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
             {
                 if (!_isActive) return;
                 
-                _capturedEvents.Enqueue(new EventData
+                _capturedEvents.Enqueue(new SelectionEventData
                 {
-                    EventType = "Selection",
                     Timestamp = DateTime.UtcNow,
                     SourceElement = GetElementDescription(sender as AutomationElement),
-                    EventDataProperties = new Dictionary<string, object>
-                    {
-                        ["SessionId"] = _sessionId,
-                        ["EventId"] = e.EventId.ProgrammaticName
-                    }
+                    SessionId = _sessionId,
+                    EventId = e.EventId.ProgrammaticName
                 });
             };
 
@@ -489,16 +477,12 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
             {
                 if (!_isActive) return;
                 
-                _capturedEvents.Enqueue(new EventData
+                _capturedEvents.Enqueue(new TextChangedEventData
                 {
-                    EventType = "Text",
                     Timestamp = DateTime.UtcNow,
                     SourceElement = GetElementDescription(sender as AutomationElement),
-                    EventDataProperties = new Dictionary<string, object>
-                    {
-                        ["SessionId"] = _sessionId,
-                        ["EventId"] = e.EventId.ProgrammaticName
-                    }
+                    SessionId = _sessionId,
+                    EventId = e.EventId.ProgrammaticName
                 });
             };
 
@@ -530,18 +514,14 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
             {
                 if (!_isActive) return;
                 
-                _capturedEvents.Enqueue(new EventData
+                _capturedEvents.Enqueue(new PropertyChangedEventData
                 {
-                    EventType = "Property",
                     Timestamp = DateTime.UtcNow,
                     SourceElement = GetElementDescription(sender as AutomationElement),
-                    EventDataProperties = new Dictionary<string, object>
-                    {
-                        ["SessionId"] = _sessionId,
-                        ["PropertyId"] = e.Property.ProgrammaticName,
-                        ["NewValue"] = e.NewValue?.ToString() ?? "null",
-                        ["OldValue"] = e.OldValue?.ToString() ?? "null"
-                    }
+                    SessionId = _sessionId,
+                    PropertyId = e.Property.ProgrammaticName,
+                    NewValue = e.NewValue?.ToString() ?? "null",
+                    OldValue = e.OldValue?.ToString() ?? "null"
                 });
             };
 
@@ -580,17 +560,13 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
             {
                 if (!_isActive) return;
                 
-                _capturedEvents.Enqueue(new EventData
+                _capturedEvents.Enqueue(new StructureChangedEventData
                 {
-                    EventType = "Structure",
                     Timestamp = DateTime.UtcNow,
                     SourceElement = GetElementDescription(sender as AutomationElement),
-                    EventDataProperties = new Dictionary<string, object>
-                    {
-                        ["SessionId"] = _sessionId,
-                        ["StructureChangeType"] = e.StructureChangeType.ToString(),
-                        ["RuntimeId"] = e.GetRuntimeId()?.ToArray() ?? Array.Empty<int>()
-                    }
+                    SessionId = _sessionId,
+                    StructureChangeType = e.StructureChangeType.ToString(),
+                    RuntimeId = e.GetRuntimeId()?.ToArray() ?? Array.Empty<int>()
                 });
             };
 
@@ -636,16 +612,12 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
             {
                 if (!_isActive) return;
                 
-                _capturedEvents.Enqueue(new EventData
+                _capturedEvents.Enqueue(new GenericEventData(eventType)
                 {
-                    EventType = eventType,
                     Timestamp = DateTime.UtcNow,
                     SourceElement = GetElementDescription(sender as AutomationElement),
-                    EventDataProperties = new Dictionary<string, object>
-                    {
-                        ["SessionId"] = _sessionId,
-                        ["EventId"] = e.EventId.ProgrammaticName
-                    }
+                    SessionId = _sessionId,
+                    EventId = e.EventId.ProgrammaticName
                 });
             };
 

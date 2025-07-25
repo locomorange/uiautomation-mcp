@@ -50,7 +50,7 @@ namespace UIAutomationMCP.Worker.Operations.ControlTypeInfo
                     .Select(pattern => pattern.ProgrammaticName)
                     .ToArray();
 
-                var expectedPatterns = ControlTypeHelper.GetPatternInfo(controlType);
+                var expectedPatterns = UIAutomationMCP.UIAutomation.Helpers.ControlTypeHelper.GetPatternInfo(controlType);
                 if (expectedPatterns != null)
                 {
                     var missingRequired = expectedPatterns.RequiredPatterns

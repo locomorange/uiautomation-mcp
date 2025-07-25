@@ -6,6 +6,7 @@ using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.UIAutomation.Services;
 using UIAutomationMCP.Monitor.Abstractions;
+using UIAutomationMCP.Monitor.Results;
 
 namespace UIAutomationMCP.Monitor.Operations
 {

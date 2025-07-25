@@ -7,6 +7,9 @@ using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.UIAutomation.Helpers;
+using UIAutomationMCP.Worker.Results;
+using UIAutomationMCP.Worker.Extensions;
 
 namespace UIAutomationMCP.Worker.Operations.ElementSearch
 {
@@ -150,6 +153,42 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 
                 throw new InvalidOperationException($"Search operation failed: {ex.Message}", ex);
             }
+        }
+
+        /// <summary>
+        /// Convert AutomationElements to BasicElementInfo array
+        /// </summary>
+        private BasicElementInfo[] ConvertToElementInfoArray(List<AutomationElement> elements, SearchElementsRequest request)
+        {
+            return elements.Select(e => _elementFinderService.GetElementBasicInfo(e)).ToArray();
+        }
+
+        /// <summary>
+        /// Build search criteria string for metadata
+        /// </summary>
+        private string BuildSearchCriteria(SearchElementsRequest request)
+        {
+            var criteria = new List<string>();
+            if (!string.IsNullOrEmpty(request.SearchText)) criteria.Add($"SearchText: {request.SearchText}");
+            if (!string.IsNullOrEmpty(request.AutomationId)) criteria.Add($"AutomationId: {request.AutomationId}");
+            if (!string.IsNullOrEmpty(request.Name)) criteria.Add($"Name: {request.Name}");
+            if (!string.IsNullOrEmpty(request.ControlType)) criteria.Add($"ControlType: {request.ControlType}");
+            return string.Join(", ", criteria);
+        }
+
+        /// <summary>
+        /// Generate suggested refinements based on search results
+        /// </summary>
+        private string[] GenerateSuggestedRefinements(SearchElementsRequest request, int totalFound)
+        {
+            var suggestions = new List<string>();
+            if (totalFound > 100)
+            {
+                suggestions.Add("Add more specific search criteria to narrow results");
+                if (string.IsNullOrEmpty(request.ControlType))
+                    suggestions.Add("Specify a ControlType to filter by element type");
+            }
+            return suggestions.ToArray();
         }
 
         /// <summary>
@@ -302,7 +341,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 {
                     try
                     {
-                        var elementInfo = ElementInfoBuilder.CreateElementInfoFromCached(element, request.IncludeDetails, _logger);
+                        var elementInfo = UIAutomationMCP.UIAutomation.Helpers.ElementInfoBuilder.CreateElementInfoFromCached(element, request.IncludeDetails, _logger);
                         result.Add(elementInfo);
                     }
                     catch (ElementNotAvailableException)

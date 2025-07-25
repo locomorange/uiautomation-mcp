@@ -246,6 +246,9 @@ namespace UIAutomationMCP.Models
         public string? Error { get; set; }
         public object? Data { get; set; }
         public double ExecutionSeconds { get; set; }
+        
+        public static OperationResult FromSuccess() => new() { Success = true };
+        public static OperationResult FromError(string error) => new() { Success = false, Error = error };
     }
 
     public class OperationResult<T>
@@ -254,6 +257,9 @@ namespace UIAutomationMCP.Models
         public T? Data { get; set; }
         public string? Error { get; set; }
         public double ExecutionSeconds { get; set; }
+        
+        public static OperationResult<T> FromSuccess(T data) => new() { Success = true, Data = data };
+        public static OperationResult<T> FromError(string error) => new() { Success = false, Error = error };
     }
 
     public class ScreenshotResult : OperationResult

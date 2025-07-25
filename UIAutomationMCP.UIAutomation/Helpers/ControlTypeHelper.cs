@@ -1,18 +1,19 @@
 using System.Windows.Automation;
 
-namespace UIAutomationMCP.Worker.Helpers
+namespace UIAutomationMCP.UIAutomation.Helpers
 {
     /// <summary>
-    /// ControlType関連の共通ヘルパークラス
+    /// ControlType related common helper class
+    /// Shared between Worker and Monitor processes
     /// </summary>
     public static class ControlTypeHelper
     {
         /// <summary>
-        /// 統一的なControlType変換辞書（大文字小文字を区別しない）
+        /// Unified ControlType conversion dictionary (case insensitive)
         /// </summary>
         private static readonly Dictionary<string, ControlType> ControlTypeMappings = new(StringComparer.OrdinalIgnoreCase)
         {
-            // 基本コントロール
+            // Basic controls
             ["Button"] = ControlType.Button,
             ["Calendar"] = ControlType.Calendar,
             ["CheckBox"] = ControlType.CheckBox,
@@ -22,7 +23,7 @@ namespace UIAutomationMCP.Worker.Helpers
             ["Image"] = ControlType.Image,
             ["ListItem"] = ControlType.ListItem,
             ["List"] = ControlType.List,
-            ["ListBox"] = ControlType.List, // エイリアス
+            ["ListBox"] = ControlType.List, // Alias
             ["Menu"] = ControlType.Menu,
             ["MenuBar"] = ControlType.MenuBar,
             ["MenuItem"] = ControlType.MenuItem,
@@ -40,7 +41,7 @@ namespace UIAutomationMCP.Worker.Helpers
             ["Tree"] = ControlType.Tree,
             ["TreeItem"] = ControlType.TreeItem,
             
-            // コンテナコントロール
+            // Container controls
             ["DataGrid"] = ControlType.DataGrid,
             ["DataItem"] = ControlType.DataItem,
             ["Document"] = ControlType.Document,
@@ -53,14 +54,14 @@ namespace UIAutomationMCP.Worker.Helpers
             ["TitleBar"] = ControlType.TitleBar,
             ["Separator"] = ControlType.Separator,
             
-            // その他のコントロール
+            // Other controls
             ["Group"] = ControlType.Group,
             ["Thumb"] = ControlType.Thumb,
             ["Custom"] = ControlType.Custom
         };
 
         /// <summary>
-        /// 文字列からControlTypeを取得（nullableバージョン）
+        /// Get ControlType from string (nullable version)
         /// </summary>
         public static ControlType? GetControlType(string? controlTypeName)
         {
@@ -71,7 +72,7 @@ namespace UIAutomationMCP.Worker.Helpers
         }
 
         /// <summary>
-        /// 文字列からControlTypeを取得（out parameterバージョン、既存コードとの互換性のため）
+        /// Get ControlType from string (out parameter version for existing code compatibility)
         /// </summary>
         public static bool TryGetControlType(string? controlTypeName, out ControlType controlType)
         {
@@ -90,16 +91,16 @@ namespace UIAutomationMCP.Worker.Helpers
         }
 
         /// <summary>
-        /// ControlTypeから文字列名を取得
+        /// Get string name from ControlType
         /// </summary>
         public static string? GetControlTypeName(ControlType controlType)
         {
             var entry = ControlTypeMappings.FirstOrDefault(kvp => kvp.Value.Equals(controlType));
-            return entry.Key; // デフォルトではnullが返される
+            return entry.Key; // Returns null by default
         }
 
         /// <summary>
-        /// サポートされているすべてのControlType名を取得
+        /// Get all supported ControlType names
         /// </summary>
         public static string[] GetAllControlTypeNames()
         {
@@ -107,7 +108,7 @@ namespace UIAutomationMCP.Worker.Helpers
         }
 
         /// <summary>
-        /// ControlTypeのパターン情報
+        /// ControlType pattern information
         /// </summary>
         public class ControlTypePatternInfo
         {
@@ -116,7 +117,7 @@ namespace UIAutomationMCP.Worker.Helpers
         }
 
         /// <summary>
-        /// ControlTypeとパターンのマッピング（Microsoft Documentation準拠）
+        /// ControlType and pattern mapping (Microsoft Documentation compliant)
         /// </summary>
         private static readonly Dictionary<ControlType, ControlTypePatternInfo> ControlTypePatterns = new()
         {
@@ -136,7 +137,7 @@ namespace UIAutomationMCP.Worker.Helpers
             [ControlType.Tree] = new() { RequiredPatterns = Array.Empty<string>(), OptionalPatterns = new[] { "Selection", "Scroll" } },
             [ControlType.TreeItem] = new() { RequiredPatterns = Array.Empty<string>(), OptionalPatterns = new[] { "ExpandCollapse", "Invoke", "ScrollItem", "SelectionItem", "Toggle" } },
             [ControlType.Window] = new() { RequiredPatterns = Array.Empty<string>(), OptionalPatterns = new[] { "Transform", "Window" } },
-            // 追加のControlType（従来のGetRequiredPatternsから）
+            // Additional ControlTypes (from legacy GetRequiredPatterns)
             [ControlType.ProgressBar] = new() { RequiredPatterns = new[] { "RangeValue" }, OptionalPatterns = Array.Empty<string>() },
             [ControlType.Spinner] = new() { RequiredPatterns = new[] { "RangeValue" }, OptionalPatterns = Array.Empty<string>() },
             [ControlType.Tab] = new() { RequiredPatterns = new[] { "Selection" }, OptionalPatterns = Array.Empty<string>() },
@@ -149,7 +150,7 @@ namespace UIAutomationMCP.Worker.Helpers
         };
 
         /// <summary>
-        /// ControlTypeのパターン情報を取得
+        /// Get ControlType pattern information
         /// </summary>
         public static ControlTypePatternInfo? GetPatternInfo(ControlType controlType)
         {
@@ -157,7 +158,7 @@ namespace UIAutomationMCP.Worker.Helpers
         }
 
         /// <summary>
-        /// ControlTypeに必要なパターンを取得（後方互換性のため）
+        /// Get required patterns for ControlType (for backward compatibility)
         /// </summary>
         public static string[] GetRequiredPatterns(ControlType controlType)
         {
@@ -165,7 +166,7 @@ namespace UIAutomationMCP.Worker.Helpers
         }
 
         /// <summary>
-        /// ControlTypeの任意パターンを取得
+        /// Get optional patterns for ControlType
         /// </summary>
         public static string[] GetOptionalPatterns(ControlType controlType)
         {

@@ -70,7 +70,7 @@ namespace UIAutomationMCP.Worker.Operations.Grid
                 {
                     Row = typedRequest.Row,
                     Column = typedRequest.Column,
-                    Element = ElementInfoBuilder.CreateElementInfo(gridItem, includeDetails: true, _logger)
+                    Element = UIAutomationMCP.UIAutomation.Helpers.ElementInfoBuilder.CreateElementInfo(gridItem, includeDetails: true, _logger)
                 };
 
                 return Task.FromResult(new OperationResult 

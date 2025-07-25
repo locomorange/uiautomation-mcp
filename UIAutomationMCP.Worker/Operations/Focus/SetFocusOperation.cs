@@ -6,6 +6,8 @@ using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.UIAutomation.Services;
 using UIAutomationMCP.UIAutomation.Helpers;
+using UIAutomationMCP.Worker.Extensions;
+using UIAutomationMCP.Worker.Results;
 
 namespace UIAutomationMCP.Worker.Operations.Focus
 {
@@ -31,8 +33,7 @@ namespace UIAutomationMCP.Worker.Operations.Focus
                     automationId: typedRequest.AutomationId, 
                     name: typedRequest.Name,
                     controlType: typedRequest.ControlType,
-                    processId: typedRequest.ProcessId,
-                    requiredPattern: requiredPattern);
+                    processId: typedRequest.ProcessId);
                     
                 if (element == null)
                 {

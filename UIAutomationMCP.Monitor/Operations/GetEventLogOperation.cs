@@ -6,6 +6,7 @@ using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.UIAutomation.Services;
 using UIAutomationMCP.Monitor.Abstractions;
+using UIAutomationMCP.Monitor.Results;
 
 namespace UIAutomationMCP.Monitor.Operations
 {
@@ -36,75 +37,26 @@ namespace UIAutomationMCP.Monitor.Operations
                 {
                     Success = false,
                     MonitorId = request.MonitorId,
-                    Events = new List<EventData>(),
+                    Events = new List<TypedEventData>(),
                     SessionActive = false
                 };
             }
 
             var typedEvents = session.GetCapturedEvents(request.MaxCount);
-            
-            // Convert typed events to legacy format for compatibility
-            var legacyEvents = typedEvents.Select(ConvertToLegacyEventData).ToList();
 
             var result = new EventLogResult
             {
                 Success = true,
                 MonitorId = request.MonitorId,
-                Events = legacyEvents,
+                Events = typedEvents,
                 SessionActive = session.IsActive
             };
 
             _logger.LogInformation("Retrieved {EventCount} events for session {SessionId}", 
-                legacyEvents.Count, request.MonitorId);
+                typedEvents.Count, request.MonitorId);
 
             return result;
         }
 
-        private EventData ConvertToLegacyEventData(TypedEventData typedEvent)
-        {
-            var legacyEvent = new EventData
-            {
-                EventType = typedEvent.EventType,
-                Timestamp = typedEvent.Timestamp,
-                SourceElement = typedEvent.SourceElement,
-                EventDataProperties = new Dictionary<string, object>
-                {
-                    ["SessionId"] = typedEvent.SessionId
-                }
-            };
-
-            // Add type-specific properties
-            switch (typedEvent)
-            {
-                case InvokeEventData invokeEvent:
-                    legacyEvent.EventDataProperties["EventId"] = invokeEvent.EventId;
-                    break;
-                
-                case SelectionEventData selectionEvent:
-                    legacyEvent.EventDataProperties["EventId"] = selectionEvent.EventId;
-                    break;
-                
-                case TextChangedEventData textEvent:
-                    legacyEvent.EventDataProperties["EventId"] = textEvent.EventId;
-                    break;
-                
-                case PropertyChangedEventData propertyEvent:
-                    legacyEvent.EventDataProperties["PropertyId"] = propertyEvent.PropertyId;
-                    legacyEvent.EventDataProperties["NewValue"] = propertyEvent.NewValue;
-                    legacyEvent.EventDataProperties["OldValue"] = propertyEvent.OldValue;
-                    break;
-                
-                case StructureChangedEventData structureEvent:
-                    legacyEvent.EventDataProperties["StructureChangeType"] = structureEvent.StructureChangeType;
-                    legacyEvent.EventDataProperties["RuntimeId"] = structureEvent.RuntimeId;
-                    break;
-                
-                case GenericEventData genericEvent:
-                    legacyEvent.EventDataProperties["EventId"] = genericEvent.EventId;
-                    break;
-            }
-
-            return legacyEvent;
-        }
     }
 }

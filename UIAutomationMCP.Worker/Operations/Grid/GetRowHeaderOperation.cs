@@ -78,7 +78,7 @@ namespace UIAutomationMCP.Worker.Operations.Grid
                     });
                 }
 
-                var headerInfo = ElementInfoBuilder.CreateElementInfo(headerElement, includeDetails: true, _logger);
+                var headerInfo = UIAutomationMCP.UIAutomation.Helpers.ElementInfoBuilder.CreateElementInfo(headerElement, includeDetails: true, _logger);
 
                 var result = new ElementSearchResult
                 {

@@ -6,6 +6,7 @@ using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.UIAutomation.Abstractions;
 using UIAutomationMCP.UIAutomation.Services;
+using UIAutomationMCP.Worker.Results;
 
 namespace UIAutomationMCP.Worker.Operations.EventMonitor
 {
@@ -17,7 +18,7 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
     {
         private readonly ElementFinderService _elementFinderService;
         private readonly ILogger<MonitorEventsOperation> _logger;
-        private readonly List<EventData> _capturedEvents = new();
+        private readonly List<TypedEventData> _capturedEvents = new();
         private readonly object _eventLock = new();
 
         public MonitorEventsOperation(
@@ -71,7 +72,7 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
                         ElementId = request.AutomationId,
                         WindowTitle = request.WindowTitle,
                         ProcessId = request.ProcessId,
-                        CapturedEvents = new List<EventData>(_capturedEvents)
+                        CapturedEvents = new List<TypedEventData>(_capturedEvents)
                     };
 
                     return new OperationResult 
@@ -156,12 +157,10 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
             {
                 lock (_eventLock)
                 {
-                    _capturedEvents.Add(new EventData
+                    _capturedEvents.Add(new FocusEventData
                     {
-                        EventType = "Focus",
                         Timestamp = DateTime.UtcNow,
-                        SourceElement = "Focus changed to element",
-                        EventDataProperties = new Dictionary<string, object>()
+                        SourceElement = "Focus changed to element"
                     });
                 }
             };
@@ -190,15 +189,11 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
             {
                 lock (_eventLock)
                 {
-                    _capturedEvents.Add(new EventData
+                    _capturedEvents.Add(new InvokeEventData
                     {
-                        EventType = "Invoke",
                         Timestamp = DateTime.UtcNow,
                         SourceElement = GetElementDescription(sender as AutomationElement),
-                        EventDataProperties = new Dictionary<string, object>
-                        {
-                            ["EventId"] = e.EventId.ProgrammaticName
-                        }
+                        EventId = e.EventId.ProgrammaticName
                     });
                 }
             };
@@ -234,15 +229,11 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
             {
                 lock (_eventLock)
                 {
-                    _capturedEvents.Add(new EventData
+                    _capturedEvents.Add(new SelectionEventData
                     {
-                        EventType = "Selection",
                         Timestamp = DateTime.UtcNow,
                         SourceElement = GetElementDescription(sender as AutomationElement),
-                        EventDataProperties = new Dictionary<string, object>
-                        {
-                            ["EventId"] = e.EventId.ProgrammaticName
-                        }
+                        EventId = e.EventId.ProgrammaticName
                     });
                 }
             };
@@ -279,15 +270,11 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
             {
                 lock (_eventLock)
                 {
-                    _capturedEvents.Add(new EventData
+                    _capturedEvents.Add(new TextChangedEventData
                     {
-                        EventType = "Text",
                         Timestamp = DateTime.UtcNow,
                         SourceElement = GetElementDescription(sender as AutomationElement),
-                        EventDataProperties = new Dictionary<string, object>
-                        {
-                            ["EventId"] = e.EventId.ProgrammaticName
-                        }
+                        EventId = e.EventId.ProgrammaticName
                     });
                 }
             };
@@ -323,17 +310,13 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
             {
                 lock (_eventLock)
                 {
-                    _capturedEvents.Add(new EventData
+                    _capturedEvents.Add(new PropertyChangedEventData
                     {
-                        EventType = "Property",
                         Timestamp = DateTime.UtcNow,
                         SourceElement = GetElementDescription(sender as AutomationElement),
-                        EventDataProperties = new Dictionary<string, object>
-                        {
-                            ["PropertyId"] = e.Property.ProgrammaticName,
-                            ["NewValue"] = e.NewValue?.ToString() ?? "null",
-                            ["OldValue"] = e.OldValue?.ToString() ?? "null"
-                        }
+                        PropertyId = e.Property.ProgrammaticName,
+                        NewValue = e.NewValue?.ToString() ?? "null",
+                        OldValue = e.OldValue?.ToString() ?? "null"
                     });
                 }
             };
@@ -377,16 +360,12 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
             {
                 lock (_eventLock)
                 {
-                    _capturedEvents.Add(new EventData
+                    _capturedEvents.Add(new StructureChangedEventData
                     {
-                        EventType = "Structure",
                         Timestamp = DateTime.UtcNow,
                         SourceElement = GetElementDescription(sender as AutomationElement),
-                        EventDataProperties = new Dictionary<string, object>
-                        {
-                            ["StructureChangeType"] = e.StructureChangeType.ToString(),
-                            ["RuntimeId"] = e.GetRuntimeId()?.ToArray() ?? Array.Empty<int>()
-                        }
+                        StructureChangeType = e.StructureChangeType.ToString(),
+                        RuntimeId = e.GetRuntimeId()?.ToArray() ?? Array.Empty<int>()
                     });
                 }
             };
@@ -437,15 +416,11 @@ namespace UIAutomationMCP.Worker.Operations.EventMonitor
             {
                 lock (_eventLock)
                 {
-                    _capturedEvents.Add(new EventData
+                    _capturedEvents.Add(new GenericEventData(eventType)
                     {
-                        EventType = eventType,
                         Timestamp = DateTime.UtcNow,
                         SourceElement = GetElementDescription(sender as AutomationElement),
-                        EventDataProperties = new Dictionary<string, object>
-                        {
-                            ["EventId"] = e.EventId.ProgrammaticName
-                        }
+                        EventId = e.EventId.ProgrammaticName
                     });
                 }
             };

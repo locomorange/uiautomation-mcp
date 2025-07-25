@@ -105,7 +105,7 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
         private TreeNode BuildElementTree(AutomationElement element, int maxDepth, int currentDepth)
         {
             // Use ElementInfoBuilder to create base ElementInfo with all latest features
-            var elementInfo = ElementInfoBuilder.CreateElementInfo(element, includeDetails: false);
+            var elementInfo = UIAutomationMCP.UIAutomation.Helpers.ElementInfoBuilder.CreateElementInfo(element, includeDetails: false);
             
             // Create TreeNode from ElementInfo using constructor
             var node = new TreeNode(elementInfo)
