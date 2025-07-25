@@ -8,6 +8,7 @@ using UIAutomationMCP.Server.Infrastructure;
 using UIAutomationMCP.Server.Abstractions;
 using UIAutomationMCP.Server.Tools;
 using UIAutomationMCP.Core.Abstractions;
+using UIAutomationMCP.Models.Abstractions;
 
 namespace UIAutomationMCP.Server
 {

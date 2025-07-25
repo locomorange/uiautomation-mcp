@@ -34,6 +34,11 @@ namespace UIAutomationMCP.Models.Results
         public int ElementsFound { get; set; }
         public string SearchScope { get; set; } = string.Empty;
         public bool UsedFallback { get; set; }
+        public bool OperationSuccessful { get; set; }
+        public string ActionPerformed { get; set; } = string.Empty;
+        public string SearchCriteria { get; set; } = string.Empty;
+        public bool SearchResultsLimited { get; set; }
+        public int TotalResults { get; set; }
     }
 
     /// <summary>
@@ -43,6 +48,10 @@ namespace UIAutomationMCP.Models.Results
     {
         public int PropertiesProcessed { get; set; }
         public string PropertyType { get; set; } = string.Empty;
+        public bool OperationSuccessful { get; set; }
+        public string ActionPerformed { get; set; } = string.Empty;
+        public int ElementsFound { get; set; }
+        public int PropertiesCount { get; set; }
     }
 
     /// <summary>
@@ -68,6 +77,10 @@ namespace UIAutomationMCP.Models.Results
         public int ElementsFound { get; set; }
         public bool OperationSuccessful { get; set; }
         public string ActionPerformed { get; set; } = string.Empty;
+        public int TotalRows { get; set; }
+        public int TotalColumns { get; set; }
+        public bool SupportsRowHeaders { get; set; }
+        public bool SupportsColumnHeaders { get; set; }
     }
 
     /// <summary>
@@ -77,6 +90,8 @@ namespace UIAutomationMCP.Models.Results
     {
         public string InvokeMethod { get; set; } = string.Empty;
         public bool InvokeSuccessful { get; set; }
+        public bool OperationSuccessful { get; set; }
+        public string ActionPerformed { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -86,6 +101,9 @@ namespace UIAutomationMCP.Models.Results
     {
         public int ContainerSize { get; set; }
         public string ContainerType { get; set; } = string.Empty;
+        public bool OperationSuccessful { get; set; }
+        public string ActionPerformed { get; set; } = string.Empty;
+        public int ItemsFound { get; set; }
     }
 
     /// <summary>
@@ -109,6 +127,9 @@ namespace UIAutomationMCP.Models.Results
     {
         public int ViewCount { get; set; }
         public string CurrentView { get; set; } = string.Empty;
+        public bool OperationSuccessful { get; set; }
+        public string ActionPerformed { get; set; } = string.Empty;
+        public int ViewsCount { get; set; }
     }
 
     /// <summary>
@@ -121,6 +142,12 @@ namespace UIAutomationMCP.Models.Results
         public double CurrentValue { get; set; }
         public bool OperationSuccessful { get; set; }
         public string ActionPerformed { get; set; } = string.Empty;
+        public double RangeValue { get; set; }
+        public double MinimumValue { get; set; }
+        public double MaximumValue { get; set; }
+        public double SmallChange { get; set; }
+        public double LargeChange { get; set; }
+        public bool IsReadOnly { get; set; }
     }
 
     /// <summary>
@@ -145,6 +172,8 @@ namespace UIAutomationMCP.Models.Results
     {
         public string InputType { get; set; } = string.Empty;
         public bool InputProcessed { get; set; }
+        public bool OperationSuccessful { get; set; }
+        public string ActionPerformed { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -181,6 +210,8 @@ namespace UIAutomationMCP.Models.Results
     {
         public string ToggleState { get; set; } = string.Empty;
         public string PreviousState { get; set; } = string.Empty;
+        public bool OperationSuccessful { get; set; }
+        public string ActionPerformed { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -190,6 +221,8 @@ namespace UIAutomationMCP.Models.Results
     {
         public string TransformType { get; set; } = string.Empty;
         public bool TransformSuccessful { get; set; }
+        public bool OperationSuccessful { get; set; }
+        public string ActionPerformed { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -202,6 +235,8 @@ namespace UIAutomationMCP.Models.Results
         public string PreviousValue { get; set; } = string.Empty;
         public bool OperationSuccessful { get; set; }
         public string ActionPerformed { get; set; } = string.Empty;
+        public int ValueLength { get; set; }
+        public bool HasValue { get; set; }
     }
 
     /// <summary>
@@ -211,6 +246,9 @@ namespace UIAutomationMCP.Models.Results
     {
         public bool IsVirtualized { get; set; }
         public int VirtualIndex { get; set; }
+        public bool OperationSuccessful { get; set; }
+        public string ActionPerformed { get; set; } = string.Empty;
+        public bool ItemRealized { get; set; }
     }
 
     /// <summary>
@@ -221,6 +259,9 @@ namespace UIAutomationMCP.Models.Results
         public string WindowState { get; set; } = string.Empty;
         public string WindowOperation { get; set; } = string.Empty;
         public bool IsModal { get; set; }
+        public bool OperationSuccessful { get; set; }
+        public string ActionPerformed { get; set; } = string.Empty;
+        public bool InputIdleAchieved { get; set; }
     }
 
     /// <summary>
@@ -252,6 +293,9 @@ namespace UIAutomationMCP.Models.Results
         public long FileSize { get; set; }
         public bool HasBase64Data { get; set; }
         public string ScreenshotTimestamp { get; set; } = string.Empty;
+        public string TargetWindowTitle { get; set; } = string.Empty;
+        public int? TargetProcessId { get; set; }
+        public int? MaxTokensRequested { get; set; }
     }
 
     /// <summary>
@@ -261,6 +305,8 @@ namespace UIAutomationMCP.Models.Results
     {
         public string FocusOperation { get; set; } = string.Empty;
         public bool FocusSuccessful { get; set; }
+        public bool OperationSuccessful { get; set; }
+        public string ActionPerformed { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -271,6 +317,12 @@ namespace UIAutomationMCP.Models.Results
         public int EventCount { get; set; }
         public string MonitoringStatus { get; set; } = string.Empty;
         public TimeSpan MonitoringDuration { get; set; }
+        public string ActionPerformed { get; set; } = string.Empty;
+        public string SessionId { get; set; } = string.Empty;
+        public int EventsCount { get; set; }
+        public bool MonitoringActive { get; set; }
+        public bool OperationSuccessful { get; set; }
+        public string EventType { get; set; } = string.Empty;
     }
 
     /// <summary>

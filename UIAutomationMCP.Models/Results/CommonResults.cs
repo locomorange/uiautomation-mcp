@@ -523,6 +523,7 @@ namespace UIAutomationMCP.Models.Results
         public string RowOrColumnMajor { get; set; } = string.Empty;
         public bool HasRowHeaders { get; set; }
         public bool HasColumnHeaders { get; set; }
+        public bool CanSelectMultiple { get; set; }
     }
 
     public class ScrollInfoResult : BaseOperationResult

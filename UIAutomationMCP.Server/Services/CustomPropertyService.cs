@@ -119,7 +119,7 @@ namespace UIAutomationMCP.Server.Services
                 {
                     metadata.ActionPerformed = "customPropertiesRetrieved";
                     // Count total properties - use estimate based on available data
-                    metadata.PropertiesCount = searchResult.Items?.Count;
+                    metadata.PropertiesCount = searchResult.Items?.Count ?? 0;
                 }
                 else if (context.MethodName.Contains("SetCustomProperty"))
                 {

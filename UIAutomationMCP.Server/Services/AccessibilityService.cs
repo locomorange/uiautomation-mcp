@@ -138,7 +138,7 @@ namespace UIAutomationMCP.Server.Services
                     metadata.ActionPerformed = "accessibilityPropertiesRetrieved";
                     metadata.ElementsFound = searchResult.Count;
                     // Estimate properties count based on elements found
-                    metadata.PropertiesCount = searchResult.Items?.Count;
+                    metadata.PropertiesCount = searchResult.Items?.Count ?? 0;
                 }
 
                 metadata.VerificationSuccessful = searchResult.Count > 0;

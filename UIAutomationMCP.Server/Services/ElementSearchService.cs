@@ -122,7 +122,7 @@ namespace UIAutomationMCP.Server.Services
             if (data is ElementSearchResult searchResult)
             {
                 metadata.ElementsFound = searchResult.Count;
-                metadata.TotalResults = searchResult.Items?.Count;
+                metadata.TotalResults = searchResult.Items?.Count ?? 0;
             }
             else if (data is SearchElementsResult elementsResult)
             {
