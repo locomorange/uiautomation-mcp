@@ -4,6 +4,7 @@ using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.Monitor.Infrastructure;
 using UIAutomationMCP.Common.Services;
 using UIAutomationMCP.Core.Exceptions;
+using UIAutomationMCP.Common.Abstractions;
 
 namespace UIAutomationMCP.Monitor.Abstractions
 {
@@ -12,7 +13,7 @@ namespace UIAutomationMCP.Monitor.Abstractions
     /// </summary>
     /// <typeparam name="TRequest">Request type</typeparam>
     /// <typeparam name="TResult">Result type</typeparam>
-    public abstract class BaseMonitorOperation<TRequest, TResult> : IMonitorOperation<TRequest, TResult>, IMonitorOperation
+    public abstract class BaseMonitorOperation<TRequest, TResult> : IMonitorOperation<TRequest, TResult>, IMonitorOperation, IUIAutomationOperation
         where TRequest : class
         where TResult : class
     {

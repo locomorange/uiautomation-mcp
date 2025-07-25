@@ -1,10 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Core.Infrastructure;
 using UIAutomationMCP.Monitor.Infrastructure;
 using UIAutomationMCP.Monitor.Operations;
 using UIAutomationMCP.Common.Services;
-using System.Reflection;
+using UIAutomationMCP.Common.Abstractions;
 
 namespace UIAutomationMCP.Monitor
 {
@@ -15,48 +15,47 @@ namespace UIAutomationMCP.Monitor
     {
         static async Task Main(string[] args)
         {
-            // Configure services
-            var services = new ServiceCollection();
-            ConfigureServices(services);
-            
-            var serviceProvider = services.BuildServiceProvider();
-            
-            try
-            {
-                var monitorHost = serviceProvider.GetRequiredService<MonitorHost>();
-                await monitorHost.RunAsync();
-            }
-            catch (Exception ex)
-            {
-                var logger = serviceProvider.GetService<ILogger<Program>>();
-                logger?.LogCritical(ex, "Monitor process failed");
-                Environment.Exit(1);
-            }
-        }
+            var builder = Host.CreateApplicationBuilder(args);
 
-        private static void ConfigureServices(IServiceCollection services)
-        {
-            // Logging
-            services.AddLogging(builder =>
-            {
-                builder.AddConsole();
-                builder.SetMinimumLevel(LogLevel.Information);
-            });
+            // Configure logging
+            builder.Logging.ClearProviders();
+            builder.Logging.AddConsole();
+            builder.Logging.SetMinimumLevel(LogLevel.Information);
 
             // Core services
-            services.AddSingleton<OperationRegistry>();
-            services.AddSingleton<MonitorHost>();
-            services.AddSingleton<SessionManager>(provider =>
+            builder.Services.AddSingleton<ElementFinderService>();
+            builder.Services.AddSingleton<SessionManager>(provider =>
                 new SessionManager(
                     provider.GetRequiredService<ILogger<SessionManager>>(),
                     provider.GetRequiredService<ILoggerFactory>(),
                     provider.GetRequiredService<ElementFinderService>()));
-            services.AddSingleton<ElementFinderService>();
 
-            // Register operations
-            services.AddTransient<StartEventMonitoringOperation>();
-            services.AddTransient<StopEventMonitoringOperation>();
-            services.AddTransient<GetEventLogOperation>();
+            // Register monitor operations using keyed services
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, StartEventMonitoringOperation>("StartEventMonitoring");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, StopEventMonitoringOperation>("StopEventMonitoring");
+            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetEventLogOperation>("GetEventLog");
+
+            // Register Monitor service
+            builder.Services.AddSingleton<MonitorService>();
+
+            var host = builder.Build();
+
+            try
+            {
+                var monitorService = host.Services.GetRequiredService<MonitorService>();
+                await monitorService.RunAsync();
+            }
+            catch (Exception ex)
+            {
+                var logger = host.Services.GetService<ILogger<Program>>();
+                logger?.LogCritical(ex, "Monitor process failed");
+                Environment.Exit(1);
+            }
+            finally
+            {
+                host.Dispose();
+            }
         }
+
     }
 }
