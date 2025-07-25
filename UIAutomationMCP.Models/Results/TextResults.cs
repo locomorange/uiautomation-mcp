@@ -85,6 +85,8 @@ namespace UIAutomationMCP.Models.Results
         public string ControlType { get; set; } = string.Empty;
         public int? ProcessId { get; set; }
         public List<TextMatch> Matches { get; set; } = new List<TextMatch>();
+        public bool Found { get; set; }
+        public int StartIndex { get; set; }
     }
     public class TextAttributeRange : BaseOperationResult { }
     public class TextRangeAttributes : BaseOperationResult { }

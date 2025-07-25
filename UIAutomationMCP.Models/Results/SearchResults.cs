@@ -36,6 +36,7 @@ namespace UIAutomationMCP.Models.Results
         public bool IsOffscreen { get; set; }
         public int ProcessId { get; set; }
         public string WindowTitle { get; set; } = string.Empty;
+        public BoundingRectangle? BoundingRectangle { get; set; }
     }
 
     /// <summary>

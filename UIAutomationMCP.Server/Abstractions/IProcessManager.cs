@@ -1,5 +1,5 @@
-using UIAutomationMCP.Models.Abstractions;
 using UIAutomationMCP.Core.Abstractions;
+using UIAutomationMCP.Models.Abstractions;
 
 namespace UIAutomationMCP.Server.Abstractions
 {

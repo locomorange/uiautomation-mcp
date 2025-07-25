@@ -76,6 +76,11 @@ namespace UIAutomationMCP.Models.Results
         public DateTime EndTime { get; set; }
         public TimeSpan Duration => EndTime - StartTime;
         public string ServerVersion { get; set; } = string.Empty;
+        public string ServerProcessingTime { get; set; } = string.Empty;
+        public string OperationId { get; set; } = string.Empty;
+        public DateTime ServerExecutedAt { get; set; }
+        public List<string> ServerLogs { get; set; } = new List<string>();
+        public object? Metadata { get; set; }
     }
     public class RequestMetadata 
     { 
@@ -83,6 +88,9 @@ namespace UIAutomationMCP.Models.Results
         public string ClientId { get; set; } = string.Empty;
         public DateTime RequestTime { get; set; }
         public string RequestType { get; set; } = string.Empty;
+        public string RequestedMethod { get; set; } = string.Empty;
+        public string OperationId { get; set; } = string.Empty;
+        public int TimeoutSeconds { get; set; }
     }
     public class ServerEnhancedResponse<T> 
     { 
@@ -91,6 +99,7 @@ namespace UIAutomationMCP.Models.Results
         public string ErrorMessage { get; set; } = string.Empty;
         public ServerExecutionInfo ExecutionInfo { get; set; } = new ServerExecutionInfo();
         public RequestMetadata Metadata { get; set; } = new RequestMetadata();
+        public RequestMetadata RequestMetadata { get; set; } = new RequestMetadata();
     }
 
     // Pattern operation results

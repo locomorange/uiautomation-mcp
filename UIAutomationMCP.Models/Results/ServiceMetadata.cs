@@ -20,6 +20,10 @@ namespace UIAutomationMCP.Models.Results
     {
         public string AccessibilityLevel { get; set; } = string.Empty;
         public int PropertyCount { get; set; }
+        public string ActionPerformed { get; set; } = string.Empty;
+        public int ElementsFound { get; set; }
+        public bool VerificationSuccessful { get; set; }
+        public int PropertiesCount { get; set; }
     }
 
     /// <summary>
@@ -48,6 +52,9 @@ namespace UIAutomationMCP.Models.Results
     {
         public string ControlType { get; set; } = string.Empty;
         public int PatternsValidated { get; set; }
+        public int ElementsFound { get; set; }
+        public bool ValidationSuccessful { get; set; }
+        public int SupportedPatternsCount { get; set; }
     }
 
     /// <summary>
@@ -58,6 +65,9 @@ namespace UIAutomationMCP.Models.Results
         public int RowCount { get; set; }
         public int ColumnCount { get; set; }
         public string GridOperation { get; set; } = string.Empty;
+        public int ElementsFound { get; set; }
+        public bool OperationSuccessful { get; set; }
+        public string ActionPerformed { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -85,6 +95,11 @@ namespace UIAutomationMCP.Models.Results
     {
         public string LayoutOperation { get; set; } = string.Empty;
         public string LayoutResult { get; set; } = string.Empty;
+        public string ActionPerformed { get; set; } = string.Empty;
+        public bool ScrollActionSuccessful { get; set; }
+        public double ScrollAmount { get; set; }
+        public string ScrollDirection { get; set; } = string.Empty;
+        public bool OperationSuccessful { get; set; }
     }
 
     /// <summary>
@@ -104,6 +119,8 @@ namespace UIAutomationMCP.Models.Results
         public double MinValue { get; set; }
         public double MaxValue { get; set; }
         public double CurrentValue { get; set; }
+        public bool OperationSuccessful { get; set; }
+        public string ActionPerformed { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -114,6 +131,11 @@ namespace UIAutomationMCP.Models.Results
         public int SelectedCount { get; set; }
         public bool MultipleSelection { get; set; }
         public string SelectionType { get; set; } = string.Empty;
+        public string ActionPerformed { get; set; } = string.Empty;
+        public int SelectedItemsCount { get; set; }
+        public bool SupportsMultipleSelection { get; set; }
+        public bool IsSelectionRequired { get; set; }
+        public bool OperationSuccessful { get; set; }
     }
 
     /// <summary>
@@ -133,6 +155,9 @@ namespace UIAutomationMCP.Models.Results
         public int RowCount { get; set; }
         public int ColumnCount { get; set; }
         public string TableOperation { get; set; } = string.Empty;
+        public bool OperationSuccessful { get; set; }
+        public string ActionPerformed { get; set; } = string.Empty;
+        public int ElementsFound { get; set; }
     }
 
     /// <summary>
@@ -143,6 +168,10 @@ namespace UIAutomationMCP.Models.Results
         public int TextLength { get; set; }
         public string TextOperation { get; set; } = string.Empty;
         public bool HasFormatting { get; set; }
+        public string ActionPerformed { get; set; } = string.Empty;
+        public bool HasAttributes { get; set; }
+        public bool TextFound { get; set; }
+        public int StartIndex { get; set; }
     }
 
     /// <summary>
@@ -171,6 +200,8 @@ namespace UIAutomationMCP.Models.Results
         public string ValueType { get; set; } = string.Empty;
         public bool IsReadOnly { get; set; }
         public string PreviousValue { get; set; } = string.Empty;
+        public bool OperationSuccessful { get; set; }
+        public string ActionPerformed { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -200,6 +231,10 @@ namespace UIAutomationMCP.Models.Results
         public int NodesTraversed { get; set; }
         public int MaxDepth { get; set; }
         public string NavigationType { get; set; } = string.Empty;
+        public string SourceElementId { get; set; } = string.Empty;
+        public string ActionPerformed { get; set; } = string.Empty;
+        public int ElementsFound { get; set; }
+        public bool NavigationSuccessful { get; set; }
     }
 
     /// <summary>
@@ -210,6 +245,13 @@ namespace UIAutomationMCP.Models.Results
         public string ImageFormat { get; set; } = string.Empty;
         public int ImageSize { get; set; }
         public string CaptureMethod { get; set; } = string.Empty;
+        public bool OperationSuccessful { get; set; }
+        public string OutputPath { get; set; } = string.Empty;
+        public int ScreenshotWidth { get; set; }
+        public int ScreenshotHeight { get; set; }
+        public long FileSize { get; set; }
+        public bool HasBase64Data { get; set; }
+        public string ScreenshotTimestamp { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -239,5 +281,10 @@ namespace UIAutomationMCP.Models.Results
         public string ApplicationPath { get; set; } = string.Empty;
         public int ProcessId { get; set; }
         public bool LaunchSuccessful { get; set; }
+        public bool OperationSuccessful { get; set; }
+        public string ProcessName { get; set; } = string.Empty;
+        public bool HasExited { get; set; }
+        public string WindowTitle { get; set; } = string.Empty;
+        public string ActionPerformed { get; set; } = string.Empty;
     }
 }

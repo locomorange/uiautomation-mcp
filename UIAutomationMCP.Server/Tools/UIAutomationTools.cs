@@ -1,4 +1,3 @@
-using UIAutomationMCP.Models.Abstractions;
 using ModelContextProtocol.Server;
 using System.ComponentModel;
 using UIAutomationMCP.Server.Services;
