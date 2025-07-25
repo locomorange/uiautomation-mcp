@@ -1,519 +1,133 @@
-using UIAutomationMCP.Models.Abstractions;
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
-using UIAutomationMCP.Models.Results;
-using UIAutomationMCP.Models.Requests;
-using UIAutomationMCP.Core.Validation;
-using UIAutomationMCP.Core.Abstractions;
-using UIAutomationMCP.Server.Infrastructure;
-using UIAutomationMCP.Server.Abstractions;
+using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services
 {
     public interface IApplicationLauncher
     {
-        Task<ServerEnhancedResponse<ProcessLaunchResponse>> LaunchWin32ApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default);
-        Task<ServerEnhancedResponse<ProcessLaunchResponse>> LaunchUWPApplicationAsync(string appsFolderPath, int timeoutSeconds = 60, CancellationToken cancellationToken = default);
-        Task<ServerEnhancedResponse<ProcessLaunchResponse>> LaunchApplicationByNameAsync(string applicationName, int timeoutSeconds = 60, CancellationToken cancellationToken = default);
+        Task<ProcessLaunchResponse> LaunchWin32ApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default);
+        Task<ProcessLaunchResponse> LaunchUWPApplicationAsync(string appsFolderPath, int timeoutSeconds = 60, CancellationToken cancellationToken = default);
+        Task<ProcessLaunchResponse> LaunchApplicationByNameAsync(string applicationName, int timeoutSeconds = 60, CancellationToken cancellationToken = default);
     }
 
-    public class ApplicationLauncher : BaseUIAutomationService<ApplicationLauncherMetadata>, IApplicationLauncher
+    public class ApplicationLauncher : IApplicationLauncher
     {
-        public ApplicationLauncher(IProcessManager processManager, ILogger<ApplicationLauncher> logger)
-            : base(processManager, logger)
+        private readonly ILogger<ApplicationLauncher> _logger;
+
+        public ApplicationLauncher(ILogger<ApplicationLauncher> logger)
         {
+            _logger = logger;
         }
 
-        protected override string GetOperationType() => "application";
-
-        public async Task<ServerEnhancedResponse<ProcessLaunchResponse>> LaunchWin32ApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
+        public async Task<ProcessLaunchResponse> LaunchWin32ApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
         {
-            var request = new LaunchWin32ApplicationRequest
-            {
-                ApplicationPath = applicationPath,
-                Arguments = arguments,
-                WorkingDirectory = workingDirectory
-            };
-
-            // Validate the request
-            var validation = ValidateLaunchWin32ApplicationRequest(request);
-            if (!validation.IsValid)
-            {
-                var operationId = Guid.NewGuid().ToString("N")[..8];
-                return new ServerEnhancedResponse<ProcessLaunchResponse>
-                {
-                    Success = false,
-                    ErrorMessage = string.Join("; ", validation.Errors),
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        OperationId = operationId,
-                        ServerExecutedAt = DateTime.UtcNow
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = nameof(LaunchWin32ApplicationAsync),
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-            }
+            if (string.IsNullOrWhiteSpace(applicationPath))
+                return ProcessLaunchResponse.CreateError("ApplicationPath is required");
 
             try
             {
-                var processResult = await ExecuteLaunchWin32ApplicationOperation(request, cancellationToken);
-                var operationId = Guid.NewGuid().ToString("N")[..8];
-
-                var context = new ServiceContext(nameof(LaunchWin32ApplicationAsync), timeoutSeconds);
-                var metadata = CreateSuccessMetadata(processResult, context);
-
-                return new ServerEnhancedResponse<ProcessLaunchResponse>
+                var processInfo = new ProcessStartInfo
                 {
-                    Success = processResult.Success,
-                    Data = processResult,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        OperationId = operationId,
-                        ServerExecutedAt = DateTime.UtcNow,
-                        ServerLogs = new List<string> { $"Successfully launched Win32 application: {applicationPath}" }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = nameof(LaunchWin32ApplicationAsync),
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-            }
-            catch (Exception ex)
-            {
-                var operationId = Guid.NewGuid().ToString("N")[..8];
-                return new ServerEnhancedResponse<ProcessLaunchResponse>
-                {
-                    Success = false,
-                    ErrorMessage = $"Error launching Win32 application '{applicationPath}': {ex.Message}",
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        OperationId = operationId,
-                        ServerExecutedAt = DateTime.UtcNow
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = nameof(LaunchWin32ApplicationAsync),
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-            }
-        }
-
-        public async Task<ServerEnhancedResponse<ProcessLaunchResponse>> LaunchUWPApplicationAsync(string appsFolderPath, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
-        {
-            var request = new LaunchUWPApplicationRequest
-            {
-                AppsFolderPath = appsFolderPath
-            };
-
-            // Validate the request
-            var validation = ValidateLaunchUWPApplicationRequest(request);
-            if (!validation.IsValid)
-            {
-                var operationId = Guid.NewGuid().ToString("N")[..8];
-                return new ServerEnhancedResponse<ProcessLaunchResponse>
-                {
-                    Success = false,
-                    ErrorMessage = string.Join("; ", validation.Errors),
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        OperationId = operationId,
-                        ServerExecutedAt = DateTime.UtcNow
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = nameof(LaunchUWPApplicationAsync),
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-            }
-
-            try
-            {
-                var processResult = await ExecuteLaunchUWPApplicationOperation(request, cancellationToken);
-                var operationId = Guid.NewGuid().ToString("N")[..8];
-
-                var context = new ServiceContext(nameof(LaunchUWPApplicationAsync), timeoutSeconds);
-                var metadata = CreateSuccessMetadata(processResult, context);
-
-                return new ServerEnhancedResponse<ProcessLaunchResponse>
-                {
-                    Success = processResult.Success,
-                    Data = processResult,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        OperationId = operationId,
-                        ServerExecutedAt = DateTime.UtcNow,
-                        ServerLogs = new List<string> { $"Successfully launched UWP application: {appsFolderPath}" }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = nameof(LaunchUWPApplicationAsync),
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-            }
-            catch (Exception ex)
-            {
-                var operationId = Guid.NewGuid().ToString("N")[..8];
-                return new ServerEnhancedResponse<ProcessLaunchResponse>
-                {
-                    Success = false,
-                    ErrorMessage = $"Error launching UWP application '{appsFolderPath}': {ex.Message}",
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        OperationId = operationId,
-                        ServerExecutedAt = DateTime.UtcNow
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = nameof(LaunchUWPApplicationAsync),
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-            }
-        }
-
-        public async Task<ServerEnhancedResponse<ProcessLaunchResponse>> LaunchApplicationByNameAsync(string applicationName, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
-        {
-            var request = new LaunchApplicationByNameRequest
-            {
-                ApplicationName = applicationName
-            };
-
-            // Validate the request
-            var validation = ValidateLaunchApplicationByNameRequest(request);
-            if (!validation.IsValid)
-            {
-                var operationId = Guid.NewGuid().ToString("N")[..8];
-                return new ServerEnhancedResponse<ProcessLaunchResponse>
-                {
-                    Success = false,
-                    ErrorMessage = string.Join("; ", validation.Errors),
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        OperationId = operationId,
-                        ServerExecutedAt = DateTime.UtcNow
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = nameof(LaunchApplicationByNameAsync),
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-            }
-
-            try
-            {
-                var processResult = await ExecuteLaunchApplicationByNameOperation(request, cancellationToken);
-                var operationId = Guid.NewGuid().ToString("N")[..8];
-
-                var context = new ServiceContext(nameof(LaunchApplicationByNameAsync), timeoutSeconds);
-                var metadata = CreateSuccessMetadata(processResult, context);
-
-                return new ServerEnhancedResponse<ProcessLaunchResponse>
-                {
-                    Success = processResult.Success,
-                    Data = processResult,
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        OperationId = operationId,
-                        ServerExecutedAt = DateTime.UtcNow,
-                        ServerLogs = new List<string> { $"Successfully launched application: {applicationName}" }
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = nameof(LaunchApplicationByNameAsync),
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-            }
-            catch (Exception ex)
-            {
-                var operationId = Guid.NewGuid().ToString("N")[..8];
-                return new ServerEnhancedResponse<ProcessLaunchResponse>
-                {
-                    Success = false,
-                    ErrorMessage = $"Error launching application '{applicationName}': {ex.Message}",
-                    ExecutionInfo = new ServerExecutionInfo
-                    {
-                        OperationId = operationId,
-                        ServerExecutedAt = DateTime.UtcNow
-                    },
-                    RequestMetadata = new RequestMetadata
-                    {
-                        RequestedMethod = nameof(LaunchApplicationByNameAsync),
-                        TimeoutSeconds = timeoutSeconds
-                    }
-                };
-            }
-        }
-
-        private static ValidationResult ValidateLaunchWin32ApplicationRequest(LaunchWin32ApplicationRequest request)
-        {
-            var errors = new List<string>();
-
-            if (string.IsNullOrWhiteSpace(request.ApplicationPath))
-            {
-                errors.Add("ApplicationPath is required");
-            }
-
-            return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;
-        }
-
-        private static ValidationResult ValidateLaunchUWPApplicationRequest(LaunchUWPApplicationRequest request)
-        {
-            var errors = new List<string>();
-
-            if (string.IsNullOrWhiteSpace(request.AppsFolderPath))
-            {
-                errors.Add("AppsFolderPath is required");
-            }
-            else if (!request.AppsFolderPath.StartsWith("shell:AppsFolder\\", StringComparison.OrdinalIgnoreCase) && 
-                     !request.AppsFolderPath.StartsWith("shell:AppsFolder/", StringComparison.OrdinalIgnoreCase))
-            {
-                errors.Add("Invalid UWP app path. Must start with 'shell:AppsFolder\\'");
-            }
-
-            return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;
-        }
-
-        private static ValidationResult ValidateLaunchApplicationByNameRequest(LaunchApplicationByNameRequest request)
-        {
-            var errors = new List<string>();
-
-            if (string.IsNullOrWhiteSpace(request.ApplicationName))
-            {
-                errors.Add("ApplicationName is required");
-            }
-
-            return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;
-        }
-
-        protected override ApplicationLauncherMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
-        {
-            var metadata = base.CreateSuccessMetadata(data, context);
-
-            if (data is ProcessLaunchResponse processResponse)
-            {
-                metadata.OperationSuccessful = processResponse.Success;
-                metadata.ProcessId = processResponse.ProcessId;
-                metadata.ProcessName = processResponse.ProcessName;
-                metadata.HasExited = processResponse.HasExited;
-                metadata.WindowTitle = processResponse.WindowTitle;
-
-                if (context.MethodName.Contains("LaunchWin32Application"))
-                {
-                    metadata.ActionPerformed = "applicationLaunched";
-                }
-                else if (context.MethodName.Contains("LaunchUWPApplication"))
-                {
-                    metadata.ActionPerformed = "uwpApplicationLaunched";
-                }
-                else if (context.MethodName.Contains("LaunchApplicationByName"))
-                {
-                    metadata.ActionPerformed = "applicationLaunchedByName";
-                }
-            }
-
-            return metadata;
-        }
-
-        private async Task<ProcessLaunchResponse> ExecuteLaunchApplicationByNameOperation(LaunchApplicationByNameRequest request, CancellationToken cancellationToken)
-        {
-            try
-            {
-                // Try to launch the application by name using shell execute
-                var processInfo = new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = request.ApplicationName,
+                    FileName = applicationPath,
+                    Arguments = arguments ?? "",
+                    WorkingDirectory = workingDirectory ?? "",
                     UseShellExecute = true,
                     CreateNoWindow = false
                 };
 
-                var process = System.Diagnostics.Process.Start(processInfo);
-                
+                var process = Process.Start(processInfo);
                 if (process == null)
-                {
-                    return new ProcessLaunchResponse
-                    {
-                        Success = false,
-                        ProcessId = 0,
-                        ProcessName = request.ApplicationName,
-                        HasExited = true,
-                        WindowTitle = "",
-                        Error = $"Failed to launch application: {request.ApplicationName}"
-                    };
-                }
+                    return ProcessLaunchResponse.CreateError($"Failed to launch application: {applicationPath}");
 
-                // Wait a bit for the process to initialize
                 await Task.Delay(1000, cancellationToken);
 
-                // Try to get the main window title
                 string windowTitle = "";
                 try
                 {
                     if (!process.HasExited && process.MainWindowHandle != IntPtr.Zero)
-                    {
                         windowTitle = process.MainWindowTitle;
-                    }
                 }
-                catch
-                {
-                    // Ignore errors getting window title
-                }
+                catch { /* Ignore window title errors */ }
 
-                return new ProcessLaunchResponse
-                {
-                    Success = true,
-                    ProcessId = process.Id,
-                    ProcessName = process.ProcessName,
-                    HasExited = process.HasExited,
-                    WindowTitle = windowTitle
-                };
+                return ProcessLaunchResponse.CreateSuccess(process.Id, process.ProcessName, process.HasExited, windowTitle);
             }
             catch (Exception ex)
             {
-                return new ProcessLaunchResponse
-                {
-                    Success = false,
-                    ProcessId = 0,
-                    ProcessName = request.ApplicationName,
-                    HasExited = true,
-                    WindowTitle = "",
-                    Error = $"Error launching application '{request.ApplicationName}': {ex.Message}"
-                };
+                _logger.LogError(ex, "Error launching Win32 application '{ApplicationPath}'", applicationPath);
+                return ProcessLaunchResponse.CreateError($"Error launching application '{applicationPath}': {ex.Message}");
             }
         }
 
-        private async Task<ProcessLaunchResponse> ExecuteLaunchWin32ApplicationOperation(LaunchWin32ApplicationRequest request, CancellationToken cancellationToken)
+        public async Task<ProcessLaunchResponse> LaunchUWPApplicationAsync(string appsFolderPath, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrWhiteSpace(appsFolderPath))
+                return ProcessLaunchResponse.CreateError("AppsFolderPath is required");
+
+            if (!appsFolderPath.StartsWith("shell:AppsFolder\\", StringComparison.OrdinalIgnoreCase) && 
+                !appsFolderPath.StartsWith("shell:AppsFolder/", StringComparison.OrdinalIgnoreCase))
+                return ProcessLaunchResponse.CreateError("Invalid UWP app path. Must start with 'shell:AppsFolder\\'");
+
             try
             {
-                // Try to launch the Win32 application by path
-                var processInfo = new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = request.ApplicationPath,
-                    Arguments = request.Arguments ?? "",
-                    WorkingDirectory = request.WorkingDirectory ?? "",
-                    UseShellExecute = true,
-                    CreateNoWindow = false
-                };
-
-                var process = System.Diagnostics.Process.Start(processInfo);
-                
-                if (process == null)
-                {
-                    return new ProcessLaunchResponse
-                    {
-                        Success = false,
-                        ProcessId = 0,
-                        ProcessName = System.IO.Path.GetFileNameWithoutExtension(request.ApplicationPath),
-                        HasExited = true,
-                        WindowTitle = "",
-                        Error = $"Failed to launch application: {request.ApplicationPath}"
-                    };
-                }
-
-                // Wait a bit for the process to initialize
-                await Task.Delay(1000, cancellationToken);
-
-                // Try to get the main window title
-                string windowTitle = "";
-                try
-                {
-                    if (!process.HasExited && process.MainWindowHandle != IntPtr.Zero)
-                    {
-                        windowTitle = process.MainWindowTitle;
-                    }
-                }
-                catch
-                {
-                    // Ignore errors getting window title
-                }
-
-                return new ProcessLaunchResponse
-                {
-                    Success = true,
-                    ProcessId = process.Id,
-                    ProcessName = process.ProcessName,
-                    HasExited = process.HasExited,
-                    WindowTitle = windowTitle
-                };
-            }
-            catch (Exception ex)
-            {
-                return new ProcessLaunchResponse
-                {
-                    Success = false,
-                    ProcessId = 0,
-                    ProcessName = System.IO.Path.GetFileNameWithoutExtension(request.ApplicationPath),
-                    HasExited = true,
-                    WindowTitle = "",
-                    Error = $"Error launching application '{request.ApplicationPath}': {ex.Message}"
-                };
-            }
-        }
-
-        private async Task<ProcessLaunchResponse> ExecuteLaunchUWPApplicationOperation(LaunchUWPApplicationRequest request, CancellationToken cancellationToken)
-        {
-            try
-            {
-                // Launch UWP application using shell:AppsFolder path
-                var processInfo = new System.Diagnostics.ProcessStartInfo
+                var processInfo = new ProcessStartInfo
                 {
                     FileName = "explorer.exe",
-                    Arguments = request.AppsFolderPath,
+                    Arguments = appsFolderPath,
                     UseShellExecute = true,
                     CreateNoWindow = false
                 };
 
-                var process = System.Diagnostics.Process.Start(processInfo);
-                
+                var process = Process.Start(processInfo);
                 if (process == null)
-                {
-                    return new ProcessLaunchResponse
-                    {
-                        Success = false,
-                        ProcessId = 0,
-                        ProcessName = "UWP App",
-                        HasExited = true,
-                        WindowTitle = "",
-                        Error = $"Failed to launch UWP application: {request.AppsFolderPath}"
-                    };
-                }
+                    return ProcessLaunchResponse.CreateError($"Failed to launch UWP application: {appsFolderPath}");
 
-                // Wait a bit for the UWP app to launch
                 await Task.Delay(500, cancellationToken);
 
-                // Note: For UWP apps, we can't easily get the actual app process
-                // The explorer process launches the UWP app and exits
-                return new ProcessLaunchResponse
-                {
-                    Success = true,
-                    ProcessId = process.Id,
-                    ProcessName = "UWP App",
-                    HasExited = process.HasExited,
-                    WindowTitle = ""
-                };
+                return ProcessLaunchResponse.CreateSuccess(process.Id, "UWP App", process.HasExited, "");
             }
             catch (Exception ex)
             {
-                return new ProcessLaunchResponse
-                {
-                    Success = false,
-                    ProcessId = 0,
-                    ProcessName = "UWP App",
-                    HasExited = true,
-                    WindowTitle = "",
-                    Error = $"Error launching UWP application '{request.AppsFolderPath}': {ex.Message}"
-                };
+                _logger.LogError(ex, "Error launching UWP application '{AppsFolderPath}'", appsFolderPath);
+                return ProcessLaunchResponse.CreateError($"Error launching UWP application '{appsFolderPath}': {ex.Message}");
             }
         }
 
+        public async Task<ProcessLaunchResponse> LaunchApplicationByNameAsync(string applicationName, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(applicationName))
+                return ProcessLaunchResponse.CreateError("ApplicationName is required");
+
+            try
+            {
+                var processInfo = new ProcessStartInfo
+                {
+                    FileName = applicationName,
+                    UseShellExecute = true,
+                    CreateNoWindow = false
+                };
+
+                var process = Process.Start(processInfo);
+                if (process == null)
+                    return ProcessLaunchResponse.CreateError($"Failed to launch application: {applicationName}");
+
+                await Task.Delay(1000, cancellationToken);
+
+                string windowTitle = "";
+                try
+                {
+                    if (!process.HasExited && process.MainWindowHandle != IntPtr.Zero)
+                        windowTitle = process.MainWindowTitle;
+                }
+                catch { /* Ignore window title errors */ }
+
+                return ProcessLaunchResponse.CreateSuccess(process.Id, process.ProcessName, process.HasExited, windowTitle);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error launching application '{ApplicationName}'", applicationName);
+                return ProcessLaunchResponse.CreateError($"Error launching application '{applicationName}': {ex.Message}");
+            }
+        }
     }
 }
