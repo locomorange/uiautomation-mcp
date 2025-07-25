@@ -1,10 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Common.Abstractions;
-using UIAutomationMCP.Common.Infrastructure;
+using UIAutomationMCP.Core.Infrastructure;
 using UIAutomationMCP.Monitor.Infrastructure;
 using UIAutomationMCP.Monitor.Operations;
-using UIAutomationMCP.Monitor.Helpers;
+using UIAutomationMCP.UIAutomation.Services;
 using System.Reflection;
 
 namespace UIAutomationMCP.Monitor

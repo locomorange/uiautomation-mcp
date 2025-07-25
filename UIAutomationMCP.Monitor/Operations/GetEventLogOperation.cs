@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Logging;
-using UIAutomationMCP.Common.Models;
+using UIAutomationMCP.Core.Models;
 using UIAutomationMCP.Monitor.Infrastructure;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Requests;

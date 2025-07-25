@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using UIAutomationMCP.Common.Abstractions;
-using UIAutomationMCP.Common.Infrastructure;
+using UIAutomationMCP.Core.Abstractions;
+using UIAutomationMCP.Core.Infrastructure;
 using UIAutomationMCP.Shared;
 using UIAutomationMCP.Shared.Serialization;
 using UIAutomationMCP.Monitor.Operations;
