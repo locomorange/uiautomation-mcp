@@ -4,7 +4,6 @@ using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Core.Validation;
-using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Server.Infrastructure;
 
@@ -145,23 +144,5 @@ namespace UIAutomationMCP.Server.Services
             return metadata;
         }
 
-    }
-
-    // Request classes for application launcher operations
-    public class LaunchWin32ApplicationRequest
-    {
-        public string ApplicationPath { get; set; } = "";
-        public string? Arguments { get; set; }
-        public string? WorkingDirectory { get; set; }
-    }
-
-    public class LaunchUWPApplicationRequest
-    {
-        public string AppsFolderPath { get; set; } = "";
-    }
-
-    public class LaunchApplicationByNameRequest
-    {
-        public string ApplicationName { get; set; } = "";
     }
 }

@@ -229,6 +229,9 @@ namespace UIAutomationMCP.Models.Serialization
                 Type t when t == typeof(StartEventMonitoringRequest) => (JsonTypeInfo<T>)(object)_context.StartEventMonitoringRequest,
                 Type t when t == typeof(StopEventMonitoringRequest) => (JsonTypeInfo<T>)(object)_context.StopEventMonitoringRequest,
                 Type t when t == typeof(GetEventLogRequest) => (JsonTypeInfo<T>)(object)_context.GetEventLogRequest,
+                Type t when t == typeof(LaunchWin32ApplicationRequest) => (JsonTypeInfo<T>)(object)_context.LaunchWin32ApplicationRequest,
+                Type t when t == typeof(LaunchUWPApplicationRequest) => (JsonTypeInfo<T>)(object)_context.LaunchUWPApplicationRequest,
+                Type t when t == typeof(LaunchApplicationByNameRequest) => (JsonTypeInfo<T>)(object)_context.LaunchApplicationByNameRequest,
 
                 // ServerEnhancedResponse types - now available in Models project
                 Type t when t == typeof(ServerEnhancedResponse<ElementTreeResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseElementTreeResult,
@@ -389,6 +392,9 @@ namespace UIAutomationMCP.Models.Serialization
     [JsonSerializable(typeof(StartEventMonitoringRequest))]
     [JsonSerializable(typeof(StopEventMonitoringRequest))]
     [JsonSerializable(typeof(GetEventLogRequest))]
+    [JsonSerializable(typeof(LaunchWin32ApplicationRequest))]
+    [JsonSerializable(typeof(LaunchUWPApplicationRequest))]
+    [JsonSerializable(typeof(LaunchApplicationByNameRequest))]
     [JsonSerializable(typeof(GetElementPropertiesRequest))]
     [JsonSerializable(typeof(GetElementPatternsRequest))]
     [JsonSerializable(typeof(ValidateControlTypePatternsRequest))]
