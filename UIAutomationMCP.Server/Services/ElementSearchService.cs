@@ -107,9 +107,10 @@ namespace UIAutomationMCP.Server.Services
 
             if (string.IsNullOrWhiteSpace(request.AutomationId) && 
                 string.IsNullOrWhiteSpace(request.Name) && 
-                string.IsNullOrWhiteSpace(request.ControlType))
+                string.IsNullOrWhiteSpace(request.ControlType) &&
+                string.IsNullOrWhiteSpace(request.WindowTitle))
             {
-                errors.Add("At least one search criteria (AutomationId, Name, or ControlType) must be provided");
+                errors.Add("At least one search criteria (AutomationId, Name, ControlType, or WindowTitle) must be provided");
             }
 
             return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;

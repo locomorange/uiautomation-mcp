@@ -204,6 +204,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             if (!string.IsNullOrEmpty(request.AutomationId)) criteria.Add($"AutomationId: {request.AutomationId}");
             if (!string.IsNullOrEmpty(request.Name)) criteria.Add($"Name: {request.Name}");
             if (!string.IsNullOrEmpty(request.ControlType)) criteria.Add($"ControlType: {request.ControlType}");
+            if (!string.IsNullOrEmpty(request.WindowTitle)) criteria.Add($"WindowTitle: {request.WindowTitle}");
             return string.Join(", ", criteria);
         }
 
