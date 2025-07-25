@@ -22,6 +22,7 @@ namespace UIAutomationMCP.Server.Services
 
         public async Task<ProcessLaunchResponse> LaunchWin32ApplicationAsync(string applicationPath, string? arguments = null, string? workingDirectory = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
         {
+            // applicationPath can be either a full path to an executable or just an application name (e.g., "notepad", "calc")
             if (string.IsNullOrWhiteSpace(applicationPath))
                 return ProcessLaunchResponse.CreateError("ApplicationPath is required");
 
@@ -100,32 +101,51 @@ namespace UIAutomationMCP.Server.Services
 
             try
             {
+                // Use PowerShell to search for the application
+                var searchScript = $"Get-StartApps | Where-Object {{ $_.Name -like '*{applicationName}*' }} | Select-Object -First 1 -ExpandProperty AppID";
+                
                 var processInfo = new ProcessStartInfo
                 {
-                    FileName = applicationName,
+                    FileName = "powershell.exe",
+                    Arguments = $"-NoProfile -Command \"{searchScript}\"",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                using var searchProcess = Process.Start(processInfo);
+                if (searchProcess == null)
+                    return ProcessLaunchResponse.CreateError("Failed to start PowerShell search");
+
+                var appId = await searchProcess.StandardOutput.ReadToEndAsync();
+                await searchProcess.WaitForExitAsync(cancellationToken);
+
+                if (searchProcess.ExitCode != 0 || string.IsNullOrWhiteSpace(appId))
+                    return ProcessLaunchResponse.CreateError($"Application '{applicationName}' not found");
+
+                appId = appId.Trim();
+
+                // Launch the application using the found AppID
+                var launchInfo = new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = $"shell:AppsFolder\\{appId}",
                     UseShellExecute = true,
                     CreateNoWindow = false
                 };
 
-                var process = Process.Start(processInfo);
+                var process = Process.Start(launchInfo);
                 if (process == null)
                     return ProcessLaunchResponse.CreateError($"Failed to launch application: {applicationName}");
 
                 await Task.Delay(1000, cancellationToken);
 
-                string windowTitle = "";
-                try
-                {
-                    if (!process.HasExited && process.MainWindowHandle != IntPtr.Zero)
-                        windowTitle = process.MainWindowTitle;
-                }
-                catch { /* Ignore window title errors */ }
-
-                return ProcessLaunchResponse.CreateSuccess(process.Id, process.ProcessName, process.HasExited, windowTitle);
+                return ProcessLaunchResponse.CreateSuccess(process.Id, applicationName, process.HasExited, "");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error launching application '{ApplicationName}'", applicationName);
+                _logger.LogError(ex, "Error launching application by name '{ApplicationName}'", applicationName);
                 return ProcessLaunchResponse.CreateError($"Error launching application '{applicationName}': {ex.Message}");
             }
         }
