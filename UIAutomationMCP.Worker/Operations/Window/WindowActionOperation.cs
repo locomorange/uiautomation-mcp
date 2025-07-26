@@ -20,7 +20,7 @@ namespace UIAutomationMCP.Worker.Operations.Window
         {
         }
 
-        protected override async Task<WindowActionResult> ExecuteOperationAsync(WindowActionRequest request)
+        protected override Task<WindowActionResult> ExecuteOperationAsync(WindowActionRequest request)
         {
             var action = request.Action;
             var windowTitle = request.WindowTitle ?? "";
@@ -83,7 +83,7 @@ namespace UIAutomationMCP.Worker.Operations.Window
                     throw new UIAutomationInvalidOperationException("WindowAction", windowTitle, $"Unsupported window action: {action}");
             }
 
-            return result;
+            return Task.FromResult(result);
         }
 
         protected override Core.Validation.ValidationResult ValidateRequest(WindowActionRequest request)

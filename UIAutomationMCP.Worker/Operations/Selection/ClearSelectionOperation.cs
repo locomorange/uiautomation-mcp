@@ -19,7 +19,7 @@ namespace UIAutomationMCP.Worker.Operations.Selection
         {
         }
 
-        protected override async Task<SelectionActionResult> ExecuteOperationAsync(ClearSelectionRequest request)
+        protected override Task<SelectionActionResult> ExecuteOperationAsync(ClearSelectionRequest request)
         {
             // Pattern conversion (get from request, default to SelectionPattern)
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? SelectionPattern.Pattern;
@@ -69,7 +69,7 @@ namespace UIAutomationMCP.Worker.Operations.Selection
                 Details = $"Cleared {clearedCount} selected items from element: {element.Current.AutomationId}"
             };
 
-            return result;
+            return Task.FromResult(result);
         }
 
         protected override Core.Validation.ValidationResult ValidateRequest(ClearSelectionRequest request)

@@ -17,7 +17,7 @@ namespace UIAutomationMCP.Worker.Operations.Layout
         {
         }
 
-        protected override async Task<ScrollActionResult> ExecuteOperationAsync(ScrollElementIntoViewRequest request)
+        protected override Task<ScrollActionResult> ExecuteOperationAsync(ScrollElementIntoViewRequest request)
         {
             var searchCriteria = new ElementSearchCriteria
             {
@@ -47,7 +47,7 @@ namespace UIAutomationMCP.Worker.Operations.Layout
                 ExecutedAt = DateTime.UtcNow
             };
             
-            return result;
+            return Task.FromResult(result);
         }
     }
 }

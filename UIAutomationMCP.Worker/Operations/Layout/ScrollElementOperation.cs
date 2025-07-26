@@ -17,7 +17,7 @@ namespace UIAutomationMCP.Worker.Operations.Layout
         {
         }
 
-        protected override async Task<ScrollActionResult> ExecuteOperationAsync(ScrollElementRequest request)
+        protected override Task<ScrollActionResult> ExecuteOperationAsync(ScrollElementRequest request)
         {
             var searchCriteria = new ElementSearchCriteria
             {
@@ -86,7 +86,7 @@ namespace UIAutomationMCP.Worker.Operations.Layout
                 Details = $"Scrolled {direction} by {amount}"
             };
 
-            return result;
+            return Task.FromResult(result);
         }
     }
 }

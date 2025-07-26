@@ -20,7 +20,7 @@ namespace UIAutomationMCP.Worker.Operations.Range
         {
         }
 
-        protected override async Task<SetRangeValueResult> ExecuteOperationAsync(SetRangeValueRequest request)
+        protected override Task<SetRangeValueResult> ExecuteOperationAsync(SetRangeValueRequest request)
         {
             // パターン変換（リクエストから取得、デフォルトはRangeValuePattern）
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? RangeValuePattern.Pattern;
@@ -74,7 +74,7 @@ namespace UIAutomationMCP.Worker.Operations.Range
             rangePattern.SetValue(value);
             var newValue = rangePattern.Current.Value;
             
-            return new SetRangeValueResult
+            return Task.FromResult(new SetRangeValueResult
             {
                 ActionName = "SetRangeValue",
                 Completed = true,
@@ -85,7 +85,7 @@ namespace UIAutomationMCP.Worker.Operations.Range
                 Maximum = maximum,
                 AttemptedValue = attemptedValue,
                 WasClampedToRange = wasClampedToRange
-            };
+            });
         }
 
         protected override Core.Validation.ValidationResult ValidateRequest(SetRangeValueRequest request)

@@ -19,7 +19,7 @@ namespace UIAutomationMCP.Worker.Operations.Window
         {
         }
 
-        protected override async Task<WaitForInputIdleResult> ExecuteOperationAsync(WaitForInputIdleRequest request)
+        protected override Task<WaitForInputIdleResult> ExecuteOperationAsync(WaitForInputIdleRequest request)
         {
             var windowTitle = request.WindowTitle ?? "";
             var processId = request.ProcessId ?? 0;
@@ -40,7 +40,7 @@ namespace UIAutomationMCP.Worker.Operations.Window
             var success = windowPattern.WaitForInputIdle(timeoutMilliseconds);
             var elapsed = DateTime.Now - startTime;
 
-            return new WaitForInputIdleResult
+            return Task.FromResult(new WaitForInputIdleResult
             {
                 ActionName = "WaitForInputIdle",
                 Completed = success,
@@ -51,7 +51,7 @@ namespace UIAutomationMCP.Worker.Operations.Window
                 Message = success 
                     ? "Window became idle within the specified timeout"
                     : $"Window did not become idle within {timeoutMilliseconds}ms timeout"
-            };
+            });
         }
 
         protected override Core.Validation.ValidationResult ValidateRequest(WaitForInputIdleRequest request)

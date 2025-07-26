@@ -20,7 +20,7 @@ namespace UIAutomationMCP.Worker.Operations.Value
         {
         }
 
-        protected override async Task<SetValueResult> ExecuteOperationAsync(SetValueRequest request)
+        protected override Task<SetValueResult> ExecuteOperationAsync(SetValueRequest request)
         {
             // パターン変換（リクエストから取得、デフォルトはValuePattern）
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? ValuePattern.Pattern;
@@ -49,14 +49,14 @@ namespace UIAutomationMCP.Worker.Operations.Value
             valuePattern.SetValue(request.Value);
             var currentValue = valuePattern.Current.Value ?? "";
             
-            return new SetValueResult
+            return Task.FromResult(new SetValueResult
             {
                 ActionName = "SetValue",
                 Completed = true,
                 PreviousState = previousValue,
                 CurrentState = currentValue,
                 AttemptedValue = request.Value
-            };
+            });
         }
 
         protected override Core.Validation.ValidationResult ValidateRequest(SetValueRequest request)

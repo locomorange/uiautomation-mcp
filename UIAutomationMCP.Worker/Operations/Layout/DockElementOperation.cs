@@ -17,7 +17,7 @@ namespace UIAutomationMCP.Worker.Operations.Layout
         {
         }
 
-        protected override async Task<StateChangeResult<string>> ExecuteOperationAsync(DockElementRequest request)
+        protected override Task<StateChangeResult<string>> ExecuteOperationAsync(DockElementRequest request)
         {
             var searchCriteria = new ElementSearchCriteria
             {
@@ -66,7 +66,7 @@ namespace UIAutomationMCP.Worker.Operations.Layout
                 Details = $"Docked element (AutomationId: '{request.AutomationId}', Name: '{request.Name}') to {dockPosition}, actual position: {updatedPosition}"
             };
 
-            return result;
+            return Task.FromResult(result);
         }
     }
 }

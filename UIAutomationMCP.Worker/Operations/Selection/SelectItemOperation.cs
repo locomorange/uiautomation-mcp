@@ -19,7 +19,7 @@ namespace UIAutomationMCP.Worker.Operations.Selection
         {
         }
 
-        protected override async Task<SelectionActionResult> ExecuteOperationAsync(SelectItemRequest request)
+        protected override Task<SelectionActionResult> ExecuteOperationAsync(SelectItemRequest request)
         {
             // Pattern conversion (get from request, default to SelectionItemPattern)
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? SelectionItemPattern.Pattern;
@@ -86,7 +86,7 @@ namespace UIAutomationMCP.Worker.Operations.Selection
                 CurrentSelectionCount = 1
             };
             
-            return result;
+            return Task.FromResult(result);
         }
 
         protected override Core.Validation.ValidationResult ValidateRequest(SelectItemRequest request)

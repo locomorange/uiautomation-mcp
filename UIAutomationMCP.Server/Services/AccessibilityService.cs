@@ -6,7 +6,6 @@ using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Core.Validation;
-using UIAutomationMCP.Models.Results;
 
 namespace UIAutomationMCP.Server.Services
 {

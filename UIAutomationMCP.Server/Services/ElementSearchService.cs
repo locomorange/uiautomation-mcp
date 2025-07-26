@@ -8,7 +8,6 @@ using UIAutomationMCP.Core.Options;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Core.Validation;
-using UIAutomationMCP.Models.Results;
 
 namespace UIAutomationMCP.Server.Services
 {

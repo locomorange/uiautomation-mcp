@@ -17,7 +17,7 @@ namespace UIAutomationMCP.Worker.Operations.Layout
         {
         }
 
-        protected override async Task<ScrollActionResult> ExecuteOperationAsync(SetScrollPercentRequest request)
+        protected override Task<ScrollActionResult> ExecuteOperationAsync(SetScrollPercentRequest request)
         {
             var horizontalPercent = request.HorizontalPercent;
             var verticalPercent = request.VerticalPercent;
@@ -72,7 +72,7 @@ namespace UIAutomationMCP.Worker.Operations.Layout
                 VerticallyScrollable = scrollPattern.Current.VerticallyScrollable
             };
 
-            return result;
+            return Task.FromResult(result);
         }
     }
 }

@@ -17,7 +17,7 @@ namespace UIAutomationMCP.Worker.Operations.Layout
         {
         }
 
-        protected override async Task<ExpandCollapseResult> ExecuteOperationAsync(ExpandCollapseElementRequest request)
+        protected override Task<ExpandCollapseResult> ExecuteOperationAsync(ExpandCollapseElementRequest request)
         {
             var searchCriteria = new ElementSearchCriteria
             {
@@ -75,7 +75,7 @@ namespace UIAutomationMCP.Worker.Operations.Layout
                 Details = $"Expand/Collapse action: {action}"
             };
 
-            return result;
+            return Task.FromResult(result);
         }
     }
 }

@@ -19,7 +19,7 @@ namespace UIAutomationMCP.Worker.Operations.Invoke
         {
         }
 
-        protected override async Task<ActionResult> ExecuteOperationAsync(InvokeElementRequest request)
+        protected override Task<ActionResult> ExecuteOperationAsync(InvokeElementRequest request)
         {
             // パターン変換（リクエストから取得、デフォルトはInvokePattern）
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? InvokePattern.Pattern;
@@ -36,32 +36,34 @@ namespace UIAutomationMCP.Worker.Operations.Invoke
             
             if (element == null)
             {
-                throw new UIAutomationElementNotFoundException("InvokeElement", request.AutomationId);
+                var elementIdentifier = !string.IsNullOrWhiteSpace(request.AutomationId) ? request.AutomationId : request.Name ?? "unknown";
+                throw new UIAutomationElementNotFoundException("InvokeElement", elementIdentifier);
             }
 
             if (!element.TryGetCurrentPattern(InvokePattern.Pattern, out var pattern) || pattern is not InvokePattern invokePattern)
             {
-                throw new UIAutomationInvalidOperationException("InvokeElement", request.AutomationId, "InvokePattern not supported");
+                var elementIdentifier = !string.IsNullOrWhiteSpace(request.AutomationId) ? request.AutomationId : request.Name ?? "unknown";
+                throw new UIAutomationInvalidOperationException("InvokeElement", elementIdentifier, "InvokePattern not supported");
             }
 
             var elementInfo = _elementFinderService.GetElementBasicInfo(element);
             
             invokePattern.Invoke();
             
-            return new ActionResult
+            return Task.FromResult(new ActionResult
             {
                 ActionName = "Invoke",
                 Completed = true,
                 ExecutedAt = DateTime.UtcNow,
                 Details = $"Invoked element: {elementInfo.Name} (Type: {elementInfo.ControlType}, ID: {elementInfo.AutomationId})"
-            };
+            });
         }
 
         protected override Core.Validation.ValidationResult ValidateRequest(InvokeElementRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.AutomationId))
+            if (string.IsNullOrWhiteSpace(request.AutomationId) && string.IsNullOrWhiteSpace(request.Name))
             {
-                return Core.Validation.ValidationResult.Failure("Element ID is required");
+                return Core.Validation.ValidationResult.Failure("Either AutomationId or Name is required for invoke operation");
             }
 
             return Core.Validation.ValidationResult.Success;

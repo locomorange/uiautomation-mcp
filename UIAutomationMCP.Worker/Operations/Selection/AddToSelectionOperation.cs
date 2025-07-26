@@ -20,7 +20,7 @@ namespace UIAutomationMCP.Worker.Operations.Selection
         {
         }
 
-        protected override async Task<SelectionActionResult> ExecuteOperationAsync(AddToSelectionRequest request)
+        protected override Task<SelectionActionResult> ExecuteOperationAsync(AddToSelectionRequest request)
         {
             // パターン変換（リクエストから取得、デフォルトはSelectionItemPattern）
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? SelectionItemPattern.Pattern;
@@ -84,7 +84,7 @@ namespace UIAutomationMCP.Worker.Operations.Selection
                 result.CurrentSelectionCount = currentSelection.Length;
             }
 
-            return result;
+            return Task.FromResult(result);
         }
 
         protected override Core.Validation.ValidationResult ValidateRequest(AddToSelectionRequest request)
