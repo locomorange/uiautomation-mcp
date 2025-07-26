@@ -14,7 +14,9 @@ namespace UIAutomationMCP.Server.Abstractions
         Task<ServiceOperationResult<TResult>> ExecuteWorkerOperationAsync<TRequest, TResult>(
             string operationName, 
             TRequest request, 
-            int timeoutSeconds = 60);
+            int timeoutSeconds = 60)
+            where TRequest : notnull
+            where TResult : notnull;
 
         /// <summary>
         /// Execute operation in Monitor process (long-term monitoring operations)
@@ -22,7 +24,9 @@ namespace UIAutomationMCP.Server.Abstractions
         Task<ServiceOperationResult<TResult>> ExecuteMonitorOperationAsync<TRequest, TResult>(
             string operationName, 
             TRequest request, 
-            int timeoutSeconds = 60);
+            int timeoutSeconds = 60)
+            where TRequest : notnull
+            where TResult : notnull;
 
         /// <summary>
         /// Check if Monitor process is available

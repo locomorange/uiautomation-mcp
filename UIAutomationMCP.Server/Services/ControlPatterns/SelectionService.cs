@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using UIAutomationMCP.Models.Abstractions;
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Server.Infrastructure;
@@ -162,7 +163,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             );
         }
 
-        private static ValidationResult ValidateElementIdentificationRequest<T>(T request) where T : class
+        private static ValidationResult ValidateElementIdentificationRequest<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(T request) where T : class
         {
             // Use reflection to check common properties for element identification
             var automationIdProp = typeof(T).GetProperty("AutomationId");

@@ -52,6 +52,8 @@ namespace UIAutomationMCP.Server.Infrastructure
             string operationName, 
             TRequest request, 
             int timeoutSeconds = 60)
+            where TRequest : notnull
+            where TResult : notnull
         {
             if (_disposed)
                 throw new ObjectDisposedException(nameof(ProcessManager));
@@ -69,6 +71,8 @@ namespace UIAutomationMCP.Server.Infrastructure
             string operationName, 
             TRequest request, 
             int timeoutSeconds = 60)
+            where TRequest : notnull
+            where TResult : notnull
         {
             if (_disposed)
                 throw new ObjectDisposedException(nameof(ProcessManager));
@@ -92,6 +96,8 @@ namespace UIAutomationMCP.Server.Infrastructure
             string operationName, 
             TRequest request, 
             int timeoutSeconds = 60)
+            where TRequest : notnull
+            where TResult : notnull
         {
             // For backward compatibility, route to Worker by default
             return await ExecuteWorkerOperationAsync<TRequest, TResult>(operationName, request, timeoutSeconds);

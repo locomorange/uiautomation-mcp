@@ -32,6 +32,8 @@ namespace UIAutomationMCP.Server.Infrastructure
             string methodName,
             int timeoutSeconds = 30,
             Func<TRequest, ValidationResult>? customValidation = null)
+            where TRequest : notnull
+            where TResult : notnull
         {
             var context = new ServiceContext(methodName, timeoutSeconds);
             
@@ -83,6 +85,8 @@ namespace UIAutomationMCP.Server.Infrastructure
             string methodName,
             int timeoutSeconds = 30,
             Func<TRequest, ValidationResult>? customValidation = null)
+            where TRequest : notnull
+            where TResult : notnull
         {
             var context = new ServiceContext(methodName, timeoutSeconds);
             

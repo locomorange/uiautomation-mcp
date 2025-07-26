@@ -6,6 +6,7 @@ using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Core.Validation;
+using System.Diagnostics.CodeAnalysis;
 
 namespace UIAutomationMCP.Server.Services
 {
@@ -72,7 +73,7 @@ namespace UIAutomationMCP.Server.Services
             );
         }
 
-        private static ValidationResult ValidateElementIdentificationRequest<T>(T request) where T : class
+        private static ValidationResult ValidateElementIdentificationRequest<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(T request) where T : class
         {
             // Use reflection to check common properties for element identification
             var automationIdProp = typeof(T).GetProperty("AutomationId");
