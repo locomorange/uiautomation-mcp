@@ -153,6 +153,10 @@ namespace UIAutomationMCP.Server.Infrastructure
                 Data = data,
                 ExecutionInfo = new ServerExecutionInfo
                 {
+                    ExecutionId = context.OperationId,
+                    StartTime = context.StartedAt,
+                    EndTime = context.StartedAt.Add(context.Stopwatch.Elapsed),
+                    ServerVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0",
                     ServerProcessingTime = context.Stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                     OperationId = context.OperationId,
                     ServerExecutedAt = context.StartedAt,
@@ -180,6 +184,10 @@ namespace UIAutomationMCP.Server.Infrastructure
                 ErrorMessage = errorMessage,
                 ExecutionInfo = new ServerExecutionInfo
                 {
+                    ExecutionId = context.OperationId,
+                    StartTime = context.StartedAt,
+                    EndTime = context.StartedAt.Add(context.Stopwatch.Elapsed),
+                    ServerVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0",
                     ServerProcessingTime = context.Stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                     OperationId = context.OperationId,
                     ServerExecutedAt = context.StartedAt,
@@ -207,6 +215,10 @@ namespace UIAutomationMCP.Server.Infrastructure
                 ErrorMessage = result.Error ?? string.Empty,
                 ExecutionInfo = new ServerExecutionInfo
                 {
+                    ExecutionId = context.OperationId,
+                    StartTime = context.StartedAt,
+                    EndTime = context.StartedAt.Add(context.Stopwatch.Elapsed),
+                    ServerVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0",
                     ServerProcessingTime = context.Stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                     OperationId = context.OperationId,
                     ServerExecutedAt = context.StartedAt,
@@ -234,6 +246,10 @@ namespace UIAutomationMCP.Server.Infrastructure
                 ErrorMessage = ex.Message,
                 ExecutionInfo = new ServerExecutionInfo
                 {
+                    ExecutionId = context.OperationId,
+                    StartTime = context.StartedAt,
+                    EndTime = context.StartedAt.Add(context.Stopwatch.Elapsed),
+                    ServerVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0",
                     ServerProcessingTime = context.Stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                     OperationId = context.OperationId,
                     ServerExecutedAt = context.StartedAt,
