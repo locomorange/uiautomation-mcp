@@ -117,7 +117,7 @@ namespace UIAutomationMCP.Server.Helpers
                     string responseJson;
                     try
                     {
-                        responseJson = await responseTask;
+                        responseJson = await responseTask ?? string.Empty;
                     }
                     catch (OperationCanceledException) when (combinedCts.Token.IsCancellationRequested)
                     {

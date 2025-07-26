@@ -19,6 +19,8 @@ namespace UIAutomationMCP.Models.Abstractions
         Task<ServiceOperationResult<TResult>> ExecuteAsync<TRequest, TResult>(
             string operationName, 
             TRequest request, 
-            int timeoutSeconds = 30);
+            int timeoutSeconds = 30)
+            where TRequest : notnull
+            where TResult : notnull;
     }
 }

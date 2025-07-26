@@ -58,7 +58,7 @@ namespace UIAutomationMCP.Server.Services
                 var context = new ServiceContext(nameof(TakeScreenshotAsync), timeoutSeconds);
 
                 var metadata = CreateSuccessMetadata(screenshotResult, context);
-                metadata.TargetWindowTitle = windowTitle;
+                metadata.TargetWindowTitle = windowTitle ?? string.Empty;
                 metadata.TargetProcessId = processId;
                 metadata.MaxTokensRequested = maxTokens > 0 ? maxTokens : null;
 
@@ -229,7 +229,7 @@ namespace UIAutomationMCP.Server.Services
                 graphics.CopyFromScreen(captureArea.Location, System.Drawing.Point.Empty, captureArea.Size);
 
                 // Generate output path if not provided
-                string outputPath = request.OutputPath;
+                string outputPath = request.OutputPath ?? string.Empty;
                 if (string.IsNullOrEmpty(outputPath))
                 {
                     var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
@@ -425,14 +425,14 @@ namespace UIAutomationMCP.Server.Services
                 };
 
                 var result = await _processManager.ExecuteWorkerOperationAsync<WindowActionRequest, WindowActionResult>("WindowAction", request, 5);
-                if (result != null && result.Success)
+                if (result.Success)
                 {
                     _logger.LogInformation("Window activated successfully via Worker: {WindowTitle}", windowTitle);
                 }
                 else
                 {
                     _logger.LogWarning("Failed to activate window via Worker. Result: {Result}", 
-                        result != null ? JsonSerializationHelper.Serialize(result) : "null");
+                        JsonSerializationHelper.Serialize(result));
                 }
 
                 // Wait for window state changes

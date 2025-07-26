@@ -200,7 +200,7 @@ namespace UIAutomationMCP.Server.Infrastructure
             return new ServerEnhancedResponse<TResult>
             {
                 Success = false,
-                ErrorMessage = result.Error,
+                ErrorMessage = result.Error ?? string.Empty,
                 ExecutionInfo = new ServerExecutionInfo
                 {
                     ServerProcessingTime = context.Stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
