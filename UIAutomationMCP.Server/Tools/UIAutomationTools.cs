@@ -175,6 +175,14 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
             => JsonSerializationHelper.Serialize(await _applicationLauncher.LaunchApplicationByNameAsync(applicationName, timeoutSeconds));
 
+        [McpServerTool, Description("Launch any application with automatic detection (Win32/UWP)")]
+        public async Task<object> LaunchApplication(
+            [Description("Application name, path, or identifier")] string application,
+            [Description("Command line arguments (optional)")] string? arguments = null,
+            [Description("Working directory (optional)")] string? workingDirectory = null,
+            [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
+            => JsonSerializationHelper.Serialize(await _applicationLauncher.LaunchApplicationAsync(application, arguments, workingDirectory, timeoutSeconds));
+
         // Core Interaction Patterns
         [McpServerTool, Description("Invoke an element (click button, activate menu item) using InvokePattern")]
         public async Task<object> InvokeElement(
