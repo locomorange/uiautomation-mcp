@@ -74,7 +74,7 @@ namespace UIAutomationMCP.Server.Helpers
                     await _workerProcess!.StandardInput.WriteLineAsync(requestJson.AsMemory(), combinedCts.Token);
                     await _workerProcess.StandardInput.FlushAsync(combinedCts.Token);
 
-                    var responseTask = _workerProcess.StandardOutput.ReadLineAsync();
+                    var responseTask = _workerProcess.StandardOutput.ReadLineAsync(combinedCts.Token).AsTask();
                     var timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeoutSeconds), combinedCts.Token);
                     var completedTask = await Task.WhenAny(responseTask, timeoutTask);
 
@@ -89,6 +89,21 @@ namespace UIAutomationMCP.Server.Helpers
                         _logger.LogWarning("Worker operation timed out after {TimeoutSeconds}s: {Operation}", timeoutSeconds, operation);
                         cts.Cancel();
                         
+                        // Wait for the responseTask to complete or be cancelled to avoid stream conflicts
+                        try
+                        {
+                            await responseTask;
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            // Expected when the task is cancelled due to timeout
+                            _logger.LogDebug("Response task cancelled due to timeout for operation: {Operation}", operation);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogDebug(ex, "Exception while waiting for response task completion: {Operation}", operation);
+                        }
+                        
                         // Check if worker process crashed
                         if (_workerProcess?.HasExited == true)
                         {
@@ -99,7 +114,16 @@ namespace UIAutomationMCP.Server.Helpers
                         throw new TimeoutException($"Worker operation '{operation}' timed out after {timeoutSeconds} seconds");
                     }
 
-                    var responseJson = await responseTask;
+                    string responseJson;
+                    try
+                    {
+                        responseJson = await responseTask;
+                    }
+                    catch (OperationCanceledException) when (combinedCts.Token.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException("Operation was cancelled");
+                    }
+                    
                     if (string.IsNullOrEmpty(responseJson))
                     {
                         var exitCode = _workerProcess?.HasExited == true ? _workerProcess.ExitCode : (int?)null;
