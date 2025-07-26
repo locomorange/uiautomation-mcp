@@ -87,7 +87,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
                         EndIndex = foundText.Length,
                         Length = foundText.Length,
                         MatchedText = foundText,
-                        BoundingRectangle = boundingRect.ToString(),
+                        BoundingRectangle = boundingRect?.ToString() ?? string.Empty,
                         IsHighlighted = false,
                         IsSelected = false
                     };

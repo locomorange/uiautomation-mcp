@@ -203,7 +203,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 // Font attributes
                 attributes.FontName = GetAttributeValue<string>(textRange, TextPattern.FontNameAttribute);
                 attributes.FontSize = GetAttributeValue<double?>(textRange, TextPattern.FontSizeAttribute) ?? 0.0;
-                attributes.FontWeight = GetAttributeValue<object>(textRange, TextPattern.FontWeightAttribute)?.ToString();
+                attributes.FontWeight = GetAttributeValue<object>(textRange, TextPattern.FontWeightAttribute)?.ToString() ?? string.Empty;
                 attributes.IsItalic = GetAttributeValue<bool?>(textRange, TextPattern.IsItalicAttribute) ?? false;
                 
                 // Colors - Microsoft Learn recommends checking for 0 as "not set"
@@ -225,15 +225,15 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 // Underline
                 var underlineStyleValue = GetAttributeValue<object>(textRange, TextPattern.UnderlineStyleAttribute);
                 attributes.IsUnderline = underlineStyleValue != null && !string.Equals(underlineStyleValue.ToString(), "None", StringComparison.OrdinalIgnoreCase);
-                attributes.UnderlineStyle = underlineStyleValue?.ToString();
+                attributes.UnderlineStyle = underlineStyleValue?.ToString() ?? string.Empty;
 
                 var strikethroughStyle = GetAttributeValue<object>(textRange, TextPattern.StrikethroughStyleAttribute);
                 attributes.IsStrikethrough = strikethroughStyle != null && !string.Equals(strikethroughStyle.ToString(), "None", StringComparison.OrdinalIgnoreCase);
-                attributes.StrikethroughStyle = strikethroughStyle?.ToString();
+                attributes.StrikethroughStyle = strikethroughStyle?.ToString() ?? string.Empty;
 
                 // Other attributes
-                attributes.HorizontalTextAlignment = GetAttributeValue<object>(textRange, TextPattern.HorizontalTextAlignmentAttribute)?.ToString();
-                attributes.Culture = GetAttributeValue<System.Globalization.CultureInfo>(textRange, TextPattern.CultureAttribute)?.Name;
+                attributes.HorizontalTextAlignment = GetAttributeValue<object>(textRange, TextPattern.HorizontalTextAlignmentAttribute)?.ToString() ?? string.Empty;
+                attributes.Culture = GetAttributeValue<System.Globalization.CultureInfo>(textRange, TextPattern.CultureAttribute)?.Name ?? string.Empty;
                 attributes.IsReadOnly = GetAttributeValue<bool?>(textRange, TextPattern.IsReadOnlyAttribute) ?? false;
                 attributes.IsHidden = GetAttributeValue<bool?>(textRange, TextPattern.IsHiddenAttribute) ?? false;
             }
@@ -474,7 +474,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 // Font attributes
                 attributes.FontName = GetAttributeValue<string>(textRange, TextPattern.FontNameAttribute);
                 attributes.FontSize = GetAttributeValue<double?>(textRange, TextPattern.FontSizeAttribute) ?? 0.0;
-                attributes.FontWeight = GetAttributeValue<object>(textRange, TextPattern.FontWeightAttribute)?.ToString();
+                attributes.FontWeight = GetAttributeValue<object>(textRange, TextPattern.FontWeightAttribute)?.ToString() ?? string.Empty;
                 attributes.IsItalic = GetAttributeValue<bool?>(textRange, TextPattern.IsItalicAttribute) ?? false;
                 
                 // Colors - Microsoft Learn recommends checking for 0 as "not set"
@@ -494,17 +494,17 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 var underlineStyleValue = GetAttributeValue<object>(textRange, TextPattern.UnderlineStyleAttribute);
                 attributes.IsUnderline = underlineStyleValue != null && 
                     !string.Equals(underlineStyleValue.ToString(), "None", StringComparison.OrdinalIgnoreCase);
-                attributes.UnderlineStyle = underlineStyleValue?.ToString();
+                attributes.UnderlineStyle = underlineStyleValue?.ToString() ?? string.Empty;
 
                 // Strikethrough
                 var strikethroughStyle = GetAttributeValue<object>(textRange, TextPattern.StrikethroughStyleAttribute);
                 attributes.IsStrikethrough = strikethroughStyle != null && 
                     !string.Equals(strikethroughStyle.ToString(), "None", StringComparison.OrdinalIgnoreCase);
-                attributes.StrikethroughStyle = strikethroughStyle?.ToString();
+                attributes.StrikethroughStyle = strikethroughStyle?.ToString() ?? string.Empty;
 
                 // Other attributes
-                attributes.HorizontalTextAlignment = GetAttributeValue<object>(textRange, TextPattern.HorizontalTextAlignmentAttribute)?.ToString();
-                attributes.Culture = GetAttributeValue<System.Globalization.CultureInfo>(textRange, TextPattern.CultureAttribute)?.Name;
+                attributes.HorizontalTextAlignment = GetAttributeValue<object>(textRange, TextPattern.HorizontalTextAlignmentAttribute)?.ToString() ?? string.Empty;
+                attributes.Culture = GetAttributeValue<System.Globalization.CultureInfo>(textRange, TextPattern.CultureAttribute)?.Name ?? string.Empty;
                 attributes.IsReadOnly = GetAttributeValue<bool?>(textRange, TextPattern.IsReadOnlyAttribute) ?? false;
                 attributes.IsHidden = GetAttributeValue<bool?>(textRange, TextPattern.IsHiddenAttribute) ?? false;
                 attributes.IsSubscript = GetAttributeValue<bool?>(textRange, TextPattern.IsSubscriptAttribute) ?? false;

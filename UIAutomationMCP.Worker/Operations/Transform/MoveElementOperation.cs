@@ -74,7 +74,7 @@ namespace UIAutomationMCP.Worker.Operations.Transform
                 TransformType = "Move",
                 Completed = true,
                 ExecutedAt = DateTime.UtcNow,
-                NewBounds = newBounds.ToString(),
+                NewBounds = newBounds,
                 Details = $"Moved element to position ({x}, {y})"
             };
         }

@@ -127,16 +127,9 @@ namespace UIAutomationMCP.Models.Results
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public string TransformType { get; set; } = string.Empty;
-        public double? X { get; set; }
-        public double? Y { get; set; }
-        public double? Width { get; set; }
-        public double? Height { get; set; }
-        public double? Rotation { get; set; }
-        public string? PreviousState { get; set; }
-        public string? CurrentState { get; set; }
-        public string Details { get; set; } = string.Empty;
-        public string NewBounds { get; set; } = string.Empty;
+        public BoundingRectangle? NewBounds { get; set; }
         public double? RotationAngle { get; set; }
+        public string Details { get; set; } = string.Empty;
     }
 
     /// <summary>

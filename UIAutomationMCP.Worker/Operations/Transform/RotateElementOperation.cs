@@ -74,7 +74,7 @@ namespace UIAutomationMCP.Worker.Operations.Transform
                 TransformType = "Rotate",
                 Completed = true,
                 ExecutedAt = DateTime.UtcNow,
-                NewBounds = newBounds.ToString(),
+                NewBounds = newBounds,
                 RotationAngle = degrees,
                 Details = $"Rotated element by {degrees} degrees"
             };

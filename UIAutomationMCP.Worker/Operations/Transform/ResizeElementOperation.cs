@@ -75,7 +75,7 @@ namespace UIAutomationMCP.Worker.Operations.Transform
                 TransformType = "Resize",
                 Completed = true,
                 ExecutedAt = DateTime.UtcNow,
-                NewBounds = newBounds.ToString(),
+                NewBounds = newBounds,
                 Details = $"Resized element to {width}x{height}"
             };
         }
