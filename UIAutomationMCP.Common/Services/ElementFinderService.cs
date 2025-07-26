@@ -224,7 +224,11 @@ namespace UIAutomationMCP.Common.Services
 
             // Return appropriate condition
             if (conditions.Count == 0)
-                return null;
+            {
+                // If no specific conditions are specified, return a condition that matches all elements
+                // This is useful when searching by ProcessId only to get all child elements
+                return Condition.TrueCondition;
+            }
             
             if (conditions.Count == 1)
                 return conditions[0];
