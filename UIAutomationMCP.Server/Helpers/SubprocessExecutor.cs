@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text.Json;
 using UIAutomationMCP.Models;
@@ -8,7 +9,7 @@ using UIAutomationMCP.Models.Abstractions;
 
 namespace UIAutomationMCP.Server.Helpers
 {
-    public class SubprocessExecutor : IOperationExecutor, IDisposable
+    public class SubprocessExecutor : IOperationExecutor, IDisposable, IAsyncDisposable
     {
         private readonly ILogger<SubprocessExecutor> _logger;
         private readonly string _workerPath;
@@ -17,6 +18,7 @@ namespace UIAutomationMCP.Server.Helpers
         private readonly SemaphoreSlim _semaphore = new(1, 1);
         private bool _disposed = false;
         private readonly object _lockObject = new object();
+        private readonly ConcurrentDictionary<string, TaskCompletionSource<bool>> _pendingOperations = new();
 
         public SubprocessExecutor(ILogger<SubprocessExecutor> logger, string workerPath, CancellationTokenSource shutdownCts)
         {
@@ -38,14 +40,21 @@ namespace UIAutomationMCP.Server.Helpers
             where TRequest : notnull 
             where TResult : notnull
         {
+            var operationId = Guid.NewGuid().ToString();
+            var operationTcs = new TaskCompletionSource<bool>();
+            
             try
             {
-                
                 if (_disposed)
                 {
                     _logger.LogError("[SubprocessExecutor] SubprocessExecutor is disposed for operation: {Operation}", operation);
                     throw new ObjectDisposedException(nameof(SubprocessExecutor));
                 }
+
+                // Track this operation
+                _pendingOperations.TryAdd(operationId, operationTcs);
+                _logger.LogDebug("[SubprocessExecutor] Operation {Operation} (ID: {OperationId}) started. Total pending: {Count}", 
+                    operation, operationId, _pendingOperations.Count);
                 
                 if (string.IsNullOrWhiteSpace(operation))
                 {
@@ -222,6 +231,14 @@ namespace UIAutomationMCP.Server.Helpers
             {
                 _logger.LogError(ex, "Unexpected error in ExecuteAsync for operation '{Operation}'", operation);
                 throw new InvalidOperationException($"Internal server error occurred while executing operation '{operation}': {ex.Message}", ex);
+            }
+            finally
+            {
+                // Complete and remove operation tracking
+                operationTcs.TrySetResult(true);
+                _pendingOperations.TryRemove(operationId, out _);
+                _logger.LogDebug("[SubprocessExecutor] Operation {Operation} (ID: {OperationId}) completed. Total pending: {Count}", 
+                    operation, operationId, _pendingOperations.Count);
             }
         }
 
@@ -524,6 +541,64 @@ namespace UIAutomationMCP.Server.Helpers
             {
                 return ServiceOperationResult<TResult>.FromException(ex, "UnhandledException");
             }
+        }
+
+        /// <summary>
+        /// Async disposal that waits for all pending operations to complete
+        /// </summary>
+        public async ValueTask DisposeAsync()
+        {
+            if (_disposed) return;
+
+            lock (_lockObject)
+            {
+                if (_disposed) return;
+                _disposed = true;
+            }
+
+            _logger.LogInformation("[SubprocessExecutor] Async disposal started - waiting for {Count} pending operations", _pendingOperations.Count);
+
+            // Wait for all pending operations to complete with timeout protection
+            if (!_pendingOperations.IsEmpty)
+            {
+                var timeout = TimeSpan.FromSeconds(30);
+                var allOperations = _pendingOperations.Values.ToArray();
+                
+                try
+                {
+                    var completionTask = Task.WhenAll(allOperations.Select(tcs => tcs.Task));
+                    var timeoutTask = Task.Delay(timeout);
+                    
+                    var completedTask = await Task.WhenAny(completionTask, timeoutTask);
+                    
+                    if (completedTask == completionTask)
+                    {
+                        _logger.LogInformation("[SubprocessExecutor] All {Count} pending operations completed successfully", allOperations.Length);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("[SubprocessExecutor] Timeout reached after {Timeout}s, {Remaining} operations still pending", 
+                            timeout.TotalSeconds, _pendingOperations.Count);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "[SubprocessExecutor] Error while waiting for pending operations to complete");
+                }
+                
+                // Clear any remaining operations
+                var remainingCount = _pendingOperations.Count;
+                if (remainingCount > 0)
+                {
+                    _logger.LogWarning("[SubprocessExecutor] Clearing {Count} remaining pending operations", remainingCount);
+                    _pendingOperations.Clear();
+                }
+            }
+
+            // Dispose synchronously as normal
+            Dispose();
+            
+            _logger.LogInformation("[SubprocessExecutor] Async disposal completed");
         }
 
     }

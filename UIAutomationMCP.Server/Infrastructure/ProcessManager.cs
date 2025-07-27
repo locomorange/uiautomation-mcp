@@ -9,7 +9,7 @@ namespace UIAutomationMCP.Server.Infrastructure
     /// <summary>
     /// Manages both Worker and Monitor processes
     /// </summary>
-    public class ProcessManager : IProcessManager, IDisposable
+    public class ProcessManager : IProcessManager, IDisposable, IAsyncDisposable
     {
         private readonly SubprocessExecutor _workerExecutor;
         private readonly SubprocessExecutor? _monitorExecutor;
@@ -130,6 +130,48 @@ namespace UIAutomationMCP.Server.Infrastructure
 
             _disposed = true;
             _logger.LogInformation("ProcessManager disposed");
+        }
+
+        /// <summary>
+        /// Async disposal that waits for Worker operations to complete
+        /// </summary>
+        public async ValueTask DisposeAsync()
+        {
+            if (_disposed)
+                return;
+
+            _logger.LogInformation("Async disposing ProcessManager - waiting for operations to complete");
+
+            // Wait for Worker operations to complete
+            if (_workerExecutor != null)
+            {
+                try
+                {
+                    await _workerExecutor.DisposeAsync();
+                    _logger.LogDebug("Worker executor async disposal completed");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error during Worker executor async disposal");
+                }
+            }
+
+            // Wait for Monitor operations to complete
+            if (_monitorExecutor != null)
+            {
+                try
+                {
+                    await _monitorExecutor.DisposeAsync();
+                    _logger.LogDebug("Monitor executor async disposal completed");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error during Monitor executor async disposal");
+                }
+            }
+
+            _disposed = true;
+            _logger.LogInformation("ProcessManager async disposal completed");
         }
     }
 }

@@ -9,8 +9,12 @@ This allows running Windows-specific commands and utilities from the Linux envir
 
 # Testing Commands
 
-## Quick MCP Server Test:
+## Single-Command MCP Server Test (stdin closure resolved):
 ```bash
 cd UIAutomationMCP.Server
-(echo '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test", "version": "1.0"}}}'; sleep 1; echo '{"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "GetElementTree", "arguments": {"maxDepth": 2, "processId": 16444}}}'; sleep 3) | dotnet run --configuration Release
+# Simple initialization test
+echo '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test", "version": "1.0"}}}' | dotnet run --configuration Release
+
+# Test with multiple operations
+(echo '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test", "version": "1.0"}}}'; echo '{"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "GetElementTree", "arguments": {"maxDepth": 2, "processId": 0}}}') | dotnet run --configuration Release
 ```
