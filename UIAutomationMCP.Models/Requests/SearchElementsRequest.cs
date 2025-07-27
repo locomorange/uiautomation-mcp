@@ -111,6 +111,13 @@ namespace UIAutomationMCP.Models.Requests
         /// </summary>
         [JsonPropertyName("useRegex")]
         public bool UseRegex { get; set; } = false;
+
+        /// <summary>
+        /// UIAutomationキャッシュをバイパスしてリアルタイム検索を行うかどうか（デフォルト: false）
+        /// ウィンドウ検出などリアルタイム性が重要な場合に使用
+        /// </summary>
+        [JsonPropertyName("bypassCache")]
+        public bool BypassCache { get; set; } = false;
     }
 
     /// <summary>

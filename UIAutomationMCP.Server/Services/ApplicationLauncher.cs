@@ -32,12 +32,14 @@ namespace UIAutomationMCP.Server.Services
         {
             try
             {
+                _logger.LogDebug("Capturing window snapshot with cache bypass enabled");
                 var request = new SearchElementsRequest
                 {
                     ControlType = "Window",
                     Scope = "children", // Desktop direct children only
                     MaxResults = 1000,
-                    IncludeDetails = false
+                    IncludeDetails = false,
+                    BypassCache = true // Force real-time window detection
                 };
 
                 var result = await ExecuteServiceOperationAsync<SearchElementsRequest, SearchElementsResult>(
@@ -50,7 +52,7 @@ namespace UIAutomationMCP.Server.Services
                         ProcessId = e.ProcessId,
                         Name = e.Name ?? "",
                         AutomationId = e.AutomationId ?? "",
-                        BoundingRectangle = e.BoundingRectangle
+                        BoundingRectangle = e.BoundingRectangle ?? new BoundingRectangle()
                     }).ToList();
                 }
 
@@ -64,12 +66,39 @@ namespace UIAutomationMCP.Server.Services
         }
 
         /// <summary>
-        /// Detect new windows by comparing before and after snapshots
+        /// Detect new windows by comparing before and after snapshots using unique window identification
         /// </summary>
         private List<WindowInfo> DetectNewWindows(List<WindowInfo> beforeWindows, List<WindowInfo> afterWindows)
         {
-            var beforeIds = beforeWindows.Select(w => w.ProcessId).ToHashSet();
-            return afterWindows.Where(w => !beforeIds.Contains(w.ProcessId)).ToList();
+            // Create unique identifiers for windows using ProcessId + Name + BoundingRectangle
+            var beforeWindowKeys = beforeWindows.Select(w => GetWindowUniqueKey(w)).ToHashSet();
+            var newWindows = afterWindows.Where(w => !beforeWindowKeys.Contains(GetWindowUniqueKey(w))).ToList();
+            
+            // Detailed logging for debugging
+            _logger.LogDebug("Window detection comparison:");
+            _logger.LogDebug("  Before windows: {Count} windows: [{Windows}]", 
+                beforeWindows.Count, string.Join(", ", beforeWindows.Select(w => $"{w.ProcessId}({w.Name})")));
+            _logger.LogDebug("  After windows: {Count} windows: [{Windows}]", 
+                afterWindows.Count, string.Join(", ", afterWindows.Select(w => $"{w.ProcessId}({w.Name})")));
+            _logger.LogDebug("  New windows detected: {Count} windows: [{Windows}]", 
+                newWindows.Count, string.Join(", ", newWindows.Select(w => $"{w.ProcessId}({w.Name})")));
+            
+            // Additional debugging: show unique keys for better understanding
+            _logger.LogDebug("  Before window keys: [{Keys}]", 
+                string.Join(", ", beforeWindowKeys.Take(3)));
+            _logger.LogDebug("  New window keys: [{Keys}]", 
+                string.Join(", ", newWindows.Take(3).Select(w => GetWindowUniqueKey(w))));
+            
+            return newWindows;
+        }
+
+        /// <summary>
+        /// Generate unique key for window identification using ProcessId, Name, and Position
+        /// </summary>
+        private string GetWindowUniqueKey(WindowInfo window)
+        {
+            var rect = window.BoundingRectangle;
+            return $"{window.ProcessId}|{window.Name ?? ""}|{rect.X},{rect.Y},{rect.Width},{rect.Height}";
         }
 
         /// <summary>
@@ -80,30 +109,42 @@ namespace UIAutomationMCP.Server.Services
             var stopwatch = Stopwatch.StartNew();
             var retries = 0;
 
+            _logger.LogDebug("Starting window detection - launched PID: {LaunchedPID}, max wait: {MaxWait}ms", 
+                launchedProcessId, maxWaitMs);
+
             while (stopwatch.ElapsedMilliseconds < maxWaitMs)
             {
                 try
                 {
                     retries++;
+                    _logger.LogDebug("Window detection retry {Retry} at {ElapsedMs}ms", retries, stopwatch.ElapsedMilliseconds);
+                    
                     var currentWindows = await CaptureWindowSnapshotAsync();
                     var newWindows = DetectNewWindows(beforeWindows, currentWindows);
 
                     if (newWindows.Any())
                     {
-                        _logger.LogDebug("Found {Count} new windows after {Retries} retries", newWindows.Count, retries);
-                        return SelectBestProcessId(newWindows, launchedProcessId);
+                        _logger.LogInformation("Found {Count} new windows after {Retries} retries and {ElapsedMs}ms", 
+                            newWindows.Count, retries, stopwatch.ElapsedMilliseconds);
+                        var selectedPid = SelectBestProcessId(newWindows, launchedProcessId);
+                        _logger.LogInformation("Selected PID {SelectedPID} from new windows", selectedPid);
+                        return selectedPid;
+                    }
+                    else
+                    {
+                        _logger.LogDebug("No new windows found in retry {Retry}", retries);
                     }
 
                     await Task.Delay(500);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogDebug(ex, "Error during window detection retry {Retry}", retries);
+                    _logger.LogWarning(ex, "Error during window detection retry {Retry}", retries);
                     await Task.Delay(500);
                 }
             }
 
-            _logger.LogDebug("Window detection timed out after {ElapsedMs}ms and {Retries} retries", stopwatch.ElapsedMilliseconds, retries);
+            _logger.LogWarning("Window detection timed out after {ElapsedMs}ms and {Retries} retries", stopwatch.ElapsedMilliseconds, retries);
             return 0;
         }
 

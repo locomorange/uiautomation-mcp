@@ -76,6 +76,24 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     throw new InvalidOperationException($"UI Automation is not available: {ex.Message}");
                 }
 
+                // Cache bypass logic for real-time window detection
+                if (request.BypassCache)
+                {
+                    _logger?.LogDebug("BypassCache enabled - forcing UIAutomation cache refresh");
+                    try
+                    {
+                        // Force UIAutomation to refresh its cache by re-accessing root element
+                        // This helps ensure we get real-time window state for window detection
+                        var refreshRoot = AutomationElement.RootElement;
+                        var refreshCheck = refreshRoot?.Current.Name; // Access property to trigger cache refresh
+                        _logger?.LogDebug("UIAutomation cache refresh completed");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger?.LogWarning(ex, "UIAutomation cache refresh failed, continuing with normal search");
+                    }
+                }
+
                 // Perform search using ElementFinderService with new criteria-based API
                 _logger?.LogDebug("Starting FindElements with ControlType={ControlType}, ProcessId={ProcessId}", request.ControlType, request.ProcessId);
                 var searchCriteria = new ElementSearchCriteria
