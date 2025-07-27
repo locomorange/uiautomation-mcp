@@ -1,5 +1,10 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
+using UIAutomationMCP.Models.Results;
+using UIAutomationMCP.Models.Requests;
+using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Server.Abstractions;
 using System.Diagnostics;
 
 namespace UIAutomationMCP.Server.Services
@@ -9,15 +14,124 @@ namespace UIAutomationMCP.Server.Services
         Task<ProcessLaunchResponse> LaunchApplicationAsync(string application, string? arguments = null, string? workingDirectory = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default);
     }
 
-    public class ApplicationLauncher : IApplicationLauncher
+    public class ApplicationLauncher : BaseUIAutomationService<ApplicationLauncherMetadata>, IApplicationLauncher
     {
-        private readonly ILogger<ApplicationLauncher> _logger;
-
-        public ApplicationLauncher(ILogger<ApplicationLauncher> logger)
+        public ApplicationLauncher(IProcessManager processManager, ILogger<ApplicationLauncher> logger)
+            : base(processManager, logger)
         {
-            _logger = logger;
         }
 
+        protected override string GetOperationType() => "applicationLauncher";
+
+        #region UIAutomation-based window detection methods
+
+        /// <summary>
+        /// Capture current window snapshot using UIAutomation
+        /// </summary>
+        private async Task<List<WindowInfo>> CaptureWindowSnapshotAsync()
+        {
+            try
+            {
+                var request = new SearchElementsRequest
+                {
+                    ControlType = "Window",
+                    Scope = "children", // Desktop direct children only
+                    MaxResults = 1000,
+                    IncludeDetails = false
+                };
+
+                var result = await ExecuteServiceOperationAsync<SearchElementsRequest, SearchElementsResult>(
+                    "SearchElements", request, nameof(CaptureWindowSnapshotAsync), 30);
+
+                if (result.Success && result.Data?.Elements != null)
+                {
+                    return result.Data.Elements.Select(e => new WindowInfo
+                    {
+                        ProcessId = e.ProcessId,
+                        Name = e.Name ?? "",
+                        AutomationId = e.AutomationId ?? "",
+                        BoundingRectangle = e.BoundingRectangle
+                    }).ToList();
+                }
+
+                return new List<WindowInfo>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to capture window snapshot");
+                return new List<WindowInfo>();
+            }
+        }
+
+        /// <summary>
+        /// Detect new windows by comparing before and after snapshots
+        /// </summary>
+        private List<WindowInfo> DetectNewWindows(List<WindowInfo> beforeWindows, List<WindowInfo> afterWindows)
+        {
+            var beforeIds = beforeWindows.Select(w => w.ProcessId).ToHashSet();
+            return afterWindows.Where(w => !beforeIds.Contains(w.ProcessId)).ToList();
+        }
+
+        /// <summary>
+        /// Wait for window appearance with periodic checks
+        /// </summary>
+        private async Task<int> WaitForWindowAppearanceAsync(List<WindowInfo> beforeWindows, int? launchedProcessId, int maxWaitMs)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var retries = 0;
+
+            while (stopwatch.ElapsedMilliseconds < maxWaitMs)
+            {
+                try
+                {
+                    retries++;
+                    var currentWindows = await CaptureWindowSnapshotAsync();
+                    var newWindows = DetectNewWindows(beforeWindows, currentWindows);
+
+                    if (newWindows.Any())
+                    {
+                        _logger.LogDebug("Found {Count} new windows after {Retries} retries", newWindows.Count, retries);
+                        return SelectBestProcessId(newWindows, launchedProcessId);
+                    }
+
+                    await Task.Delay(500);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "Error during window detection retry {Retry}", retries);
+                    await Task.Delay(500);
+                }
+            }
+
+            _logger.LogDebug("Window detection timed out after {ElapsedMs}ms and {Retries} retries", stopwatch.ElapsedMilliseconds, retries);
+            return 0;
+        }
+
+        /// <summary>
+        /// Select best process ID from detected new windows
+        /// </summary>
+        private int SelectBestProcessId(List<WindowInfo> newWindows, int? launchedProcessId)
+        {
+            if (!newWindows.Any()) return 0;
+
+            // 1. Prefer window matching launched process ID
+            if (launchedProcessId.HasValue)
+            {
+                var matchingWindow = newWindows.FirstOrDefault(w => w.ProcessId == launchedProcessId.Value);
+                if (matchingWindow != null)
+                {
+                    _logger.LogDebug("Found window for launched process {ProcessId}", launchedProcessId.Value);
+                    return matchingWindow.ProcessId;
+                }
+            }
+
+            // 2. Select most recent window (highest process ID)
+            var latestWindow = newWindows.OrderByDescending(w => w.ProcessId).First();
+            _logger.LogDebug("Selected latest window with ProcessId {ProcessId}", latestWindow.ProcessId);
+            return latestWindow.ProcessId;
+        }
+
+        #endregion
 
         public async Task<ProcessLaunchResponse> LaunchApplicationAsync(string application, string? arguments = null, string? workingDirectory = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
         {
@@ -191,29 +305,64 @@ namespace UIAutomationMCP.Server.Services
 
         private async Task<ProcessLaunchResponse> LaunchWin32Process(string executablePath, string? arguments, string? workingDirectory, HashSet<int> beforeProcesses, CancellationToken cancellationToken)
         {
-            var processInfo = new ProcessStartInfo
-            {
-                FileName = executablePath,
-                Arguments = arguments ?? "",
-                WorkingDirectory = workingDirectory ?? "",
-                UseShellExecute = false
-            };
-
-            var process = Process.Start(processInfo);
-            if (process != null)
-            {
-                return ProcessLaunchResponse.CreateSuccess(process.Id, Path.GetFileNameWithoutExtension(executablePath), process.HasExited);
-            }
-
-            // Fallback: Find new process using diff
+            var detectionStopwatch = Stopwatch.StartNew();
             var appName = Path.GetFileNameWithoutExtension(executablePath);
-            var newProcessId = await FindNewProcess(appName, beforeProcesses, 5000, cancellationToken);
-            if (newProcessId > 0)
+            
+            try
             {
-                return ProcessLaunchResponse.CreateSuccess(newProcessId, appName, false);
-            }
+                // 1. Capture window snapshot before launch
+                var beforeWindows = await CaptureWindowSnapshotAsync();
+                _logger.LogDebug("Captured {Count} windows before launching {Application}", beforeWindows.Count, appName);
 
-            return ProcessLaunchResponse.CreateError("Failed to start Win32 process");
+                // 2. Start the process
+                var processInfo = new ProcessStartInfo
+                {
+                    FileName = executablePath,
+                    Arguments = arguments ?? "",
+                    WorkingDirectory = workingDirectory ?? "",
+                    UseShellExecute = false
+                };
+
+                var process = Process.Start(processInfo);
+                var launchedProcessId = process?.Id;
+                _logger.LogDebug("Started process {Application} with PID {ProcessId}", appName, launchedProcessId);
+
+                // 3. Wait for window to appear using UIAutomation detection
+                var targetProcessId = await WaitForWindowAppearanceAsync(beforeWindows, launchedProcessId, 5000);
+
+                detectionStopwatch.Stop();
+
+                if (targetProcessId > 0)
+                {
+                    _logger.LogInformation("Successfully detected window for {Application}, final PID: {ProcessId} (launched PID: {LaunchedPID})", 
+                        appName, targetProcessId, launchedProcessId);
+                    return ProcessLaunchResponse.CreateSuccess(targetProcessId, appName, false);
+                }
+
+                // Fallback: Return launched process ID if available
+                if (launchedProcessId.HasValue)
+                {
+                    _logger.LogWarning("Window detection failed for {Application}, returning launched PID: {ProcessId}", 
+                        appName, launchedProcessId.Value);
+                    return ProcessLaunchResponse.CreateSuccess(launchedProcessId.Value, appName, false);
+                }
+
+                // Final fallback: Use old process diff method
+                _logger.LogWarning("Both UIAutomation and direct process launch failed, trying legacy detection for {Application}", appName);
+                var newProcessId = await FindNewProcess(appName, beforeProcesses, 2000, cancellationToken);
+                if (newProcessId > 0)
+                {
+                    return ProcessLaunchResponse.CreateSuccess(newProcessId, appName, false);
+                }
+
+                return ProcessLaunchResponse.CreateError($"Failed to start or detect Win32 process for {appName}");
+            }
+            catch (Exception ex)
+            {
+                detectionStopwatch.Stop();
+                _logger.LogError(ex, "Error during Win32 process launch for {Application}", appName);
+                return ProcessLaunchResponse.CreateError($"Win32 launch failed: {ex.Message}");
+            }
         }
 
         private async Task<ProcessLaunchResponse> TryLaunchUWP(string application, HashSet<int> beforeProcesses, CancellationToken cancellationToken)
@@ -332,6 +481,25 @@ namespace UIAutomationMCP.Server.Services
             }
 
             return 0;
+        }
+
+        protected override ApplicationLauncherMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
+        {
+            var metadata = base.CreateSuccessMetadata(data, context);
+            
+            if (data is ProcessLaunchResponse response)
+            {
+                metadata.ApplicationPath = response.ProcessName ?? "";
+                metadata.ProcessId = response.ProcessId;
+                metadata.LaunchSuccessful = response.Success;
+                metadata.OperationSuccessful = response.Success;
+                metadata.ProcessName = response.ProcessName ?? "";
+                metadata.HasExited = response.HasExited;
+                metadata.ActionPerformed = "applicationLaunched";
+                metadata.UsedUIAutomationDetection = true;
+            }
+            
+            return metadata;
         }
     }
 }
