@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
+using System.Collections.Concurrent;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.Models.Results;
@@ -16,6 +17,8 @@ namespace UIAutomationMCP.Common.Infrastructure
     {
         protected readonly ILogger _logger;
         protected readonly IServiceProvider _serviceProvider;
+        private readonly ConcurrentDictionary<string, Task> _runningOperations = new();
+        private volatile bool _shutdownRequested = false;
 
         protected ProcessHostBase(ILogger logger, IServiceProvider serviceProvider)
         {
@@ -43,13 +46,29 @@ namespace UIAutomationMCP.Common.Infrastructure
                         // Check if stdin is closed or we received EOF
                         if (input == null)
                         {
-                            _logger.LogInformation("Standard input closed, shutting down {ProcessType} process", GetProcessType());
+                            _logger.LogInformation("Standard input closed, waiting for running operations to complete in {ProcessType} process", GetProcessType());
+                            _shutdownRequested = true;
+                            await WaitForRunningOperationsAsync();
+                            _logger.LogInformation("All operations completed, shutting down {ProcessType} process", GetProcessType());
                             break;
                         }
                         
                         if (string.IsNullOrEmpty(input))
                         {
                             _logger.LogDebug("Empty input received, continuing");
+                            continue;
+                        }
+
+                        // Check if shutdown was requested
+                        if (_shutdownRequested)
+                        {
+                            _logger.LogWarning("Shutdown requested, rejecting new operation");
+                            WriteResponse(new WorkerResponse<object> 
+                            { 
+                                Success = false, 
+                                Error = "Server is shutting down, operation rejected",
+                                Data = null
+                            });
                             continue;
                         }
 
@@ -101,38 +120,65 @@ namespace UIAutomationMCP.Common.Infrastructure
         /// <returns>Response object</returns>
         protected virtual async Task<WorkerResponse<object>> ProcessRequestAsync(string operationName, string parametersJson)
         {
+            var operationId = Guid.NewGuid().ToString();
+            
             try
             {
-                _logger.LogInformation("[{ProcessType}] Starting operation: {Operation} at {Time}", GetProcessType(), operationName, DateTime.UtcNow);
-                _logger.LogDebug("[{ProcessType}] Parameters: {Parameters}", GetProcessType(), parametersJson.Length > 200 ? parametersJson.Substring(0, 200) + "..." : parametersJson);
+                _logger.LogInformation("[{ProcessType}] Starting operation: {Operation} (ID: {OperationId}) at {Time}", 
+                    GetProcessType(), operationName, operationId, DateTime.UtcNow);
+                _logger.LogDebug("[{ProcessType}] Parameters: {Parameters}", GetProcessType(), 
+                    parametersJson.Length > 200 ? parametersJson.Substring(0, 200) + "..." : parametersJson);
 
-                // Try to get the operation for this request
-                var operation = _serviceProvider.GetKeyedService<IUIAutomationOperation>(operationName);
-                if (operation != null)
+                // Create operation task for tracking
+                var operationTask = ExecuteOperationInternalAsync(operationName, parametersJson);
+                
+                // Track the operation
+                _runningOperations.TryAdd(operationId, operationTask);
+                _logger.LogDebug("[{ProcessType}] Operation {Operation} (ID: {OperationId}) added to tracking. Total running: {Count}", 
+                    GetProcessType(), operationName, operationId, _runningOperations.Count);
+
+                try
                 {
-                    _logger.LogDebug("[{ProcessType}] Operation handler found: {OperationType}", GetProcessType(), operation.GetType().Name);
-                    var operationResult = await operation.ExecuteAsync(parametersJson);
-                    
-                    _logger.LogInformation("[{ProcessType}] Operation completed: {Operation} at {Time}, Success: {Success}, Error: {Error}", 
-                        GetProcessType(), operationName, DateTime.UtcNow, operationResult.Success, operationResult.Error ?? "None");
-                    
-                    return ConvertOperationResult(operationResult, operationName);
+                    var result = await operationTask;
+                    _logger.LogInformation("[{ProcessType}] Operation completed: {Operation} (ID: {OperationId}) at {Time}, Success: {Success}", 
+                        GetProcessType(), operationName, operationId, DateTime.UtcNow, result.Success);
+                    return result;
                 }
-
-                // Allow derived classes to handle specific operations
-                var customResult = await HandleCustomOperationAsync(operationName, parametersJson);
-                if (customResult != null)
+                finally
                 {
-                    return customResult;
+                    // Remove from tracking when completed
+                    _runningOperations.TryRemove(operationId, out _);
+                    _logger.LogDebug("[{ProcessType}] Operation {Operation} (ID: {OperationId}) removed from tracking. Total running: {Count}", 
+                        GetProcessType(), operationName, operationId, _runningOperations.Count);
                 }
-
-                return WorkerResponse<object>.CreateError($"No operation found for: {operationName}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[{ProcessType}] Operation {Operation} failed", GetProcessType(), operationName);
+                _logger.LogError(ex, "[{ProcessType}] Operation {Operation} (ID: {OperationId}) failed", GetProcessType(), operationName, operationId);
+                _runningOperations.TryRemove(operationId, out _);
                 return WorkerResponse<object>.CreateError($"Operation failed: {ex.Message}");
             }
+        }
+
+        private async Task<WorkerResponse<object>> ExecuteOperationInternalAsync(string operationName, string parametersJson)
+        {
+            // Try to get the operation for this request
+            var operation = _serviceProvider.GetKeyedService<IUIAutomationOperation>(operationName);
+            if (operation != null)
+            {
+                _logger.LogDebug("[{ProcessType}] Operation handler found: {OperationType}", GetProcessType(), operation.GetType().Name);
+                var operationResult = await operation.ExecuteAsync(parametersJson);
+                return ConvertOperationResult(operationResult, operationName);
+            }
+
+            // Allow derived classes to handle specific operations
+            var customResult = await HandleCustomOperationAsync(operationName, parametersJson);
+            if (customResult != null)
+            {
+                return customResult;
+            }
+
+            return WorkerResponse<object>.CreateError($"No operation found for: {operationName}");
         }
 
         /// <summary>
@@ -220,6 +266,55 @@ namespace UIAutomationMCP.Common.Infrastructure
             var json = JsonSerializationHelper.Serialize(response);
             Console.WriteLine(json);
             Console.Out.Flush(); // Ensure immediate output
+        }
+
+        /// <summary>
+        /// Wait for all running operations to complete with timeout protection
+        /// </summary>
+        private async Task WaitForRunningOperationsAsync()
+        {
+            if (_runningOperations.IsEmpty)
+            {
+                _logger.LogInformation("[{ProcessType}] No running operations to wait for", GetProcessType());
+                return;
+            }
+
+            _logger.LogInformation("[{ProcessType}] Waiting for {Count} running operations to complete", 
+                GetProcessType(), _runningOperations.Count);
+
+            var timeout = TimeSpan.FromSeconds(30); // Maximum wait time
+            var allOperations = _runningOperations.Values.ToArray();
+            
+            try
+            {
+                var completionTask = Task.WhenAll(allOperations);
+                var timeoutTask = Task.Delay(timeout);
+                
+                var completedTask = await Task.WhenAny(completionTask, timeoutTask);
+                
+                if (completedTask == completionTask)
+                {
+                    _logger.LogInformation("[{ProcessType}] All {Count} operations completed successfully", 
+                        GetProcessType(), allOperations.Length);
+                }
+                else
+                {
+                    _logger.LogWarning("[{ProcessType}] Timeout reached after {Timeout}s, {Running} operations still running", 
+                        GetProcessType(), timeout.TotalSeconds, _runningOperations.Count);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[{ProcessType}] Error while waiting for operations to complete", GetProcessType());
+            }
+            
+            // Clear any remaining operations
+            var remainingCount = _runningOperations.Count;
+            if (remainingCount > 0)
+            {
+                _logger.LogWarning("[{ProcessType}] Clearing {Count} remaining operations", GetProcessType(), remainingCount);
+                _runningOperations.Clear();
+            }
         }
 
         /// <summary>
