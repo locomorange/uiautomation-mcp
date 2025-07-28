@@ -26,7 +26,7 @@ namespace UIAutomationMCP.Server
             // Configure logging for MCP - stderr logging to avoid MCP protocol interference
             builder.Logging.ClearProviders();
             builder.Logging.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Debug);
-            builder.Logging.SetMinimumLevel(LogLevel.Information);
+            builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
             // Register application services
             builder.Services.AddSingleton<IApplicationLauncher, ApplicationLauncher>();

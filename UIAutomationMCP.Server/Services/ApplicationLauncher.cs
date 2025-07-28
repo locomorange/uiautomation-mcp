@@ -269,6 +269,71 @@ namespace UIAutomationMCP.Server.Services
             return bestByWindowCount.ProcessId;
         }
 
+        /// <summary>
+        /// Unified process detection method used after launching applications
+        /// </summary>
+        private async Task<int> DetectLaunchedProcess(string appName, HashSet<int> beforeProcesses, int? launchedProcessId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // Find all new processes using process difference detection
+                var candidateProcesses = await FindAllNewProcesses(appName, beforeProcesses, 8000, cancellationToken);
+                _logger.LogDebug("Found {Count} candidate processes for {Application}: [{Candidates}]", 
+                    candidateProcesses.Count, appName, string.Join(", ", candidateProcesses));
+
+                if (candidateProcesses.Any())
+                {
+                    // Validate candidates using SearchElements requests
+                    var validatedProcesses = await ValidateProcessCandidatesAsync(candidateProcesses, appName);
+                    _logger.LogDebug("Validated {Count} processes with windows for {Application}: [{Validated}]", 
+                        validatedProcesses.Count, appName, string.Join(", ", validatedProcesses.Select(p => p.ProcessId)));
+
+                    // Select the best validated process
+                    var selectedProcessId = SelectBestValidatedProcess(validatedProcesses, launchedProcessId, appName);
+                    
+                    if (selectedProcessId > 0)
+                    {
+                        _logger.LogInformation("Successfully detected process for {Application}, final PID: {ProcessId} (launched PID: {LaunchedPID})", 
+                            appName, selectedProcessId, launchedProcessId);
+                        return selectedProcessId;
+                    }
+                    else if (validatedProcesses.Any())
+                    {
+                        // Fallback: return the best validated process even if no main window found
+                        var fallbackProcess = validatedProcesses.OrderByDescending(p => p.ValidWindowCount).ThenByDescending(p => p.ProcessId).First();
+                        _logger.LogInformation("No ideal process found, using fallback validated PID: {ProcessId} with {WindowCount} windows for {Application}", 
+                            fallbackProcess.ProcessId, fallbackProcess.ValidWindowCount, appName);
+                        return fallbackProcess.ProcessId;
+                    }
+                    else
+                    {
+                        // Fallback: For applications that don't have UIAutomation-accessible windows,
+                        // return the newest process (highest PID) as a reasonable default
+                        var fallbackProcessId = candidateProcesses.OrderByDescending(pid => pid).First();
+                        _logger.LogWarning("SearchElements validation failed for all candidates for {Application}: [{Candidates}]. Using fallback strategy: selecting newest process PID {FallbackPID}", 
+                            appName, string.Join(", ", candidateProcesses), fallbackProcessId);
+                        
+                        return fallbackProcessId;
+                    }
+                }
+
+                // Fallback: Return launched process ID if available
+                if (launchedProcessId.HasValue)
+                {
+                    _logger.LogWarning("Process detection failed for {Application}, returning launched PID: {ProcessId}", 
+                        appName, launchedProcessId.Value);
+                    return launchedProcessId.Value;
+                }
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during process detection for {Application}", appName);
+                return 0;
+            }
+        }
+
         #endregion
 
         public async Task<ProcessLaunchResponse> LaunchApplicationAsync(string application, string? arguments = null, string? workingDirectory = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default)
@@ -276,31 +341,50 @@ namespace UIAutomationMCP.Server.Services
             if (string.IsNullOrWhiteSpace(application))
                 return ProcessLaunchResponse.CreateError("Application is required");
 
+            var detectionStopwatch = Stopwatch.StartNew();
+            
             try
             {
                 // Get baseline processes before launching
                 var beforeProcesses = GetRelevantProcesses(application);
+                _logger.LogDebug("Baseline processes for {Application}: {Count} processes", application, beforeProcesses.Count);
                 
                 // Step 1: Try Win32 application launch
-                var win32Result = await TryLaunchWin32(application, arguments, workingDirectory, beforeProcesses, cancellationToken);
-                if (win32Result.Success)
+                var win32LaunchResult = await TryLaunchWin32(application, arguments, workingDirectory, cancellationToken);
+                if (win32LaunchResult.LaunchSucceeded)
                 {
-                    _logger.LogInformation("Successfully launched Win32 application: {Application}, PID: {ProcessId}", application, win32Result.ProcessId);
-                    return win32Result;
+                    _logger.LogDebug("Win32 launch succeeded for {Application}, now detecting process", application);
+                    var processId = await DetectLaunchedProcess(application, beforeProcesses, win32LaunchResult.LaunchedProcessId, cancellationToken);
+                    if (processId > 0)
+                    {
+                        detectionStopwatch.Stop();
+                        _logger.LogInformation("Successfully launched Win32 application: {Application}, PID: {ProcessId} in {ElapsedMs}ms", 
+                            application, processId, detectionStopwatch.ElapsedMilliseconds);
+                        return ProcessLaunchResponse.CreateSuccess(processId, application, false);
+                    }
                 }
 
                 // Step 2: Try UWP application launch
-                var uwpResult = await TryLaunchUWP(application, beforeProcesses, cancellationToken);
-                if (uwpResult.Success)
+                var uwpLaunchResult = await TryLaunchUWP(application, cancellationToken);
+                if (uwpLaunchResult.LaunchSucceeded)
                 {
-                    _logger.LogInformation("Successfully launched UWP application: {Application}, PID: {ProcessId}", application, uwpResult.ProcessId);
-                    return uwpResult;
+                    _logger.LogDebug("UWP launch succeeded for {Application}, now detecting process", application);
+                    var processId = await DetectLaunchedProcess(application, beforeProcesses, null, cancellationToken);
+                    if (processId > 0)
+                    {
+                        detectionStopwatch.Stop();
+                        _logger.LogInformation("Successfully launched UWP application: {Application}, PID: {ProcessId} in {ElapsedMs}ms", 
+                            application, processId, detectionStopwatch.ElapsedMilliseconds);
+                        return ProcessLaunchResponse.CreateSuccess(processId, application, false, uwpLaunchResult.AppId);
+                    }
                 }
 
+                detectionStopwatch.Stop();
                 return ProcessLaunchResponse.CreateError($"Failed to launch application: {application}. Tried Win32 and UWP methods.");
             }
             catch (Exception ex)
             {
+                detectionStopwatch.Stop();
                 _logger.LogError(ex, "Error launching application: {Application}", application);
                 return ProcessLaunchResponse.CreateError($"Exception during launch: {ex.Message}");
             }
@@ -359,29 +443,29 @@ namespace UIAutomationMCP.Server.Services
             }
         }
 
-        private async Task<ProcessLaunchResponse> TryLaunchWin32(string application, string? arguments, string? workingDirectory, HashSet<int> beforeProcesses, CancellationToken cancellationToken)
+        private async Task<LaunchResult> TryLaunchWin32(string application, string? arguments, string? workingDirectory, CancellationToken cancellationToken)
         {
             try
             {
                 // Check if it's a full path
                 if (Path.IsPathFullyQualified(application) && File.Exists(application))
                 {
-                    return await LaunchWin32Process(application, arguments, workingDirectory, beforeProcesses, cancellationToken);
+                    return await LaunchWin32Process(application, arguments, workingDirectory, cancellationToken);
                 }
 
                 // Try to find executable using 'where' command
                 var executablePath = await FindExecutablePath(application, cancellationToken);
                 if (!string.IsNullOrEmpty(executablePath))
                 {
-                    return await LaunchWin32Process(executablePath, arguments, workingDirectory, beforeProcesses, cancellationToken);
+                    return await LaunchWin32Process(executablePath, arguments, workingDirectory, cancellationToken);
                 }
 
-                return ProcessLaunchResponse.CreateError("Win32 executable not found");
+                return LaunchResult.Failure("Win32 executable not found");
             }
             catch (Exception ex)
             {
                 _logger.LogDebug(ex, "Win32 launch failed for {Application}", application);
-                return ProcessLaunchResponse.CreateError($"Win32 launch failed: {ex.Message}");
+                return LaunchResult.Failure($"Win32 launch failed: {ex.Message}");
             }
         }
 
@@ -441,16 +525,15 @@ namespace UIAutomationMCP.Server.Services
             }
         }
 
-        private async Task<ProcessLaunchResponse> LaunchWin32Process(string executablePath, string? arguments, string? workingDirectory, HashSet<int> beforeProcesses, CancellationToken cancellationToken)
+        private Task<LaunchResult> LaunchWin32Process(string executablePath, string? arguments, string? workingDirectory, CancellationToken cancellationToken)
         {
-            var detectionStopwatch = Stopwatch.StartNew();
             var appName = Path.GetFileNameWithoutExtension(executablePath);
             
             try
             {
                 _logger.LogDebug("Starting Win32 process launch for {Application}", appName);
 
-                // 1. Start the process
+                // Start the process
                 var processInfo = new ProcessStartInfo
                 {
                     FileName = executablePath,
@@ -461,73 +544,23 @@ namespace UIAutomationMCP.Server.Services
 
                 var process = Process.Start(processInfo);
                 var launchedProcessId = process?.Id;
-                _logger.LogDebug("Started process {Application} with PID {ProcessId}", appName, launchedProcessId);
+                _logger.LogDebug("Started Win32 process {Application} with PID {ProcessId}", appName, launchedProcessId);
 
-                // 2. Find all new processes using process difference detection
-                var candidateProcesses = await FindAllNewProcesses(appName, beforeProcesses, 3000, cancellationToken);
-                _logger.LogDebug("Found {Count} candidate processes for {Application}: [{Candidates}]", 
-                    candidateProcesses.Count, appName, string.Join(", ", candidateProcesses));
-
-                if (candidateProcesses.Any())
-                {
-                    // 3. Validate candidates using SearchElements requests
-                    var validatedProcesses = await ValidateProcessCandidatesAsync(candidateProcesses, appName);
-                    _logger.LogDebug("Validated {Count} processes with windows for {Application}: [{Validated}]", 
-                        validatedProcesses.Count, appName, string.Join(", ", validatedProcesses.Select(p => p.ProcessId)));
-
-                    // 4. Select the best validated process or return multiple candidates
-                    var selectedProcessId = SelectBestValidatedProcess(validatedProcesses, launchedProcessId, appName);
-                    
-                    detectionStopwatch.Stop();
-                    
-                    if (selectedProcessId > 0)
-                    {
-                        _logger.LogInformation("Successfully detected process for {Application}, final PID: {ProcessId} (launched PID: {LaunchedPID}) in {ElapsedMs}ms", 
-                            appName, selectedProcessId, launchedProcessId, detectionStopwatch.ElapsedMilliseconds);
-                        return ProcessLaunchResponse.CreateSuccess(selectedProcessId, appName, false);
-                    }
-                    else if (validatedProcesses.Any())
-                    {
-                        // Fallback: return the best validated process even if no main window found
-                        var fallbackProcess = validatedProcesses.OrderByDescending(p => p.ValidWindowCount).ThenByDescending(p => p.ProcessId).First();
-                        _logger.LogInformation("No ideal process found, using fallback validated PID: {ProcessId} with {WindowCount} windows for {Application}", 
-                            fallbackProcess.ProcessId, fallbackProcess.ValidWindowCount, appName);
-                        return ProcessLaunchResponse.CreateSuccess(fallbackProcess.ProcessId, appName, false);
-                    }
-                    else
-                    {
-                        // Fallback: For modern applications that don't have UIAutomation-accessible windows,
-                        // return the newest process (highest PID) as a reasonable default
-                        var fallbackProcessId = candidateProcesses.OrderByDescending(pid => pid).First();
-                        _logger.LogWarning("SearchElements validation failed for all candidates for {Application}: [{Candidates}]. Using fallback strategy: selecting newest process PID {FallbackPID}", 
-                            appName, string.Join(", ", candidateProcesses), fallbackProcessId);
-                        
-                        return ProcessLaunchResponse.CreateSuccess(fallbackProcessId, appName, false);
-                    }
-                }
-
-                // Fallback: Return launched process ID if available
-                if (launchedProcessId.HasValue)
-                {
-                    _logger.LogWarning("Process validation failed for {Application}, returning launched PID: {ProcessId}", 
-                        appName, launchedProcessId.Value);
-                    return ProcessLaunchResponse.CreateSuccess(launchedProcessId.Value, appName, false);
-                }
-
-                return ProcessLaunchResponse.CreateError($"Failed to start or detect Win32 process for {appName}");
+                return Task.FromResult(LaunchResult.Success(launchedProcessId));
             }
             catch (Exception ex)
             {
-                detectionStopwatch.Stop();
                 _logger.LogError(ex, "Error during Win32 process launch for {Application}", appName);
-                return ProcessLaunchResponse.CreateError($"Win32 launch failed: {ex.Message}");
+                return Task.FromResult(LaunchResult.Failure($"Win32 launch failed: {ex.Message}"));
             }
         }
 
-        private async Task<ProcessLaunchResponse> TryLaunchUWP(string application, HashSet<int> beforeProcesses, CancellationToken cancellationToken)
+        private async Task<LaunchResult> TryLaunchUWP(string application, CancellationToken cancellationToken)
         {
             try
             {
+                _logger.LogDebug("Starting UWP application launch for {Application}", application);
+
                 // Use Get-StartApps to find UWP application
                 var script = $@"
                     Get-StartApps | Where-Object {{ 
@@ -538,8 +571,10 @@ namespace UIAutomationMCP.Server.Services
                 var appId = await RunPowerShellScript(script, cancellationToken);
                 if (string.IsNullOrWhiteSpace(appId))
                 {
-                    return ProcessLaunchResponse.CreateError("UWP application not found");
+                    return LaunchResult.Failure("UWP application not found");
                 }
+
+                _logger.LogDebug("Found UWP application {Application} with AppID: {AppId}", application, appId);
 
                 // Launch via shell:AppsFolder
                 var explorerProcess = Process.Start(new ProcessStartInfo
@@ -550,19 +585,14 @@ namespace UIAutomationMCP.Server.Services
                     CreateNoWindow = false
                 });
 
-                // Find the actual UWP process using diff
-                var newProcessId = await FindNewProcess(application, beforeProcesses, 8000, cancellationToken);
-                if (newProcessId > 0)
-                {
-                    return ProcessLaunchResponse.CreateSuccess(newProcessId, application, false, appId);
-                }
+                _logger.LogDebug("Started UWP application {Application} via explorer", application);
 
-                return ProcessLaunchResponse.CreateError("UWP application launched but process not found");
+                return LaunchResult.Success(null, appId);
             }
             catch (Exception ex)
             {
-                _logger.LogDebug(ex, "UWP launch failed for {Application}", application);
-                return ProcessLaunchResponse.CreateError($"UWP launch failed: {ex.Message}");
+                _logger.LogError(ex, "Error during UWP application launch for {Application}", application);
+                return LaunchResult.Failure($"UWP launch failed: {ex.Message}");
             }
         }
 
@@ -600,47 +630,6 @@ namespace UIAutomationMCP.Server.Services
             }
         }
 
-        private async Task<int> FindNewProcess(string appName, HashSet<int> beforeProcesses, int maxWaitMs, CancellationToken cancellationToken)
-        {
-            var stopwatch = Stopwatch.StartNew();
-
-            while (stopwatch.ElapsedMilliseconds < maxWaitMs && !cancellationToken.IsCancellationRequested)
-            {
-                try
-                {
-                    var currentProcesses = Process.GetProcesses()
-                        .Where(p => IsRelevantProcess(p, appName))
-                        .ToList();
-
-                    var newProcesses = currentProcesses.Where(p => !beforeProcesses.Contains(p.Id)).ToList();
-
-                    if (newProcesses.Any())
-                    {
-                        var newProcess = newProcesses.First();
-                        var processId = newProcess.Id;
-                        
-                        // Dispose all processes
-                        foreach (var p in currentProcesses)
-                            p.Dispose();
-
-                        return processId;
-                    }
-
-                    // Dispose all processes
-                    foreach (var p in currentProcesses)
-                        p.Dispose();
-
-                    await Task.Delay(500, cancellationToken);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogDebug(ex, "Error during process search for {AppName}", appName);
-                    await Task.Delay(500, cancellationToken);
-                }
-            }
-
-            return 0;
-        }
 
         protected override ApplicationLauncherMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
         {
@@ -672,5 +661,22 @@ namespace UIAutomationMCP.Server.Services
         public int ValidWindowCount { get; set; }
         public List<string> WindowNames { get; set; } = new();
         public bool HasMainWindow { get; set; }
+    }
+
+    /// <summary>
+    /// Result of attempting to launch an application (before process detection)
+    /// </summary>
+    internal class LaunchResult
+    {
+        public bool LaunchSucceeded { get; set; }
+        public int? LaunchedProcessId { get; set; }
+        public string? AppId { get; set; }
+        public string? ErrorMessage { get; set; }
+
+        public static LaunchResult Success(int? processId = null, string? appId = null) => 
+            new() { LaunchSucceeded = true, LaunchedProcessId = processId, AppId = appId };
+
+        public static LaunchResult Failure(string error) => 
+            new() { LaunchSucceeded = false, ErrorMessage = error };
     }
 }
