@@ -92,8 +92,9 @@ namespace UIAutomationMCP.Common.Helpers
                 // First get element's process ID
                 var elementProcessId = useCached ? element.Cached.ProcessId : element.Current.ProcessId;
                 
-                // Use TreeWalker to traverse up to window element
+                // Walk up to desktop root element
                 var current = element;
+                AutomationElement? topLevelWindow = null;
                 
                 while (current != null)
                 {
@@ -101,16 +102,18 @@ namespace UIAutomationMCP.Common.Helpers
                     {
                         var controlType = useCached ? current.Cached.ControlType : current.Current.ControlType;
                         
-                        // If window element is found
+                        // Check if we've reached the desktop root
+                        if (controlType == ControlType.Pane && 
+                            TreeWalker.ControlViewWalker.GetParent(current) == null)
+                        {
+                            // Desktop root found - topLevelWindow should be the parent window
+                            break;
+                        }
+                        
+                        // Keep track of potential top-level window
                         if (controlType == ControlType.Window)
                         {
-                            var windowProcessId = useCached ? current.Cached.ProcessId : current.Current.ProcessId;
-                            
-                            // Identify main process ID from window's process ID
-                            var windowMainProcessId = FindMainProcessId(windowProcessId);
-                            
-                            // Return null if same as own process
-                            return windowMainProcessId == elementProcessId ? null : windowMainProcessId;
+                            topLevelWindow = current;
                         }
                         
                         // Move to parent element
@@ -121,6 +124,18 @@ namespace UIAutomationMCP.Common.Helpers
                         // If access error occurs, move to parent element
                         current = TreeWalker.ControlViewWalker.GetParent(current);
                     }
+                }
+                
+                // Use the top-level window found during traversal
+                if (topLevelWindow != null)
+                {
+                    var windowProcessId = useCached ? topLevelWindow.Cached.ProcessId : topLevelWindow.Current.ProcessId;
+                    
+                    // Identify main process ID from window's process ID
+                    var windowMainProcessId = FindMainProcessId(windowProcessId);
+                    
+                    // Return null if same as own process
+                    return windowMainProcessId == elementProcessId ? null : windowMainProcessId;
                 }
                 
                 // If no window found, identify main process from element's process ID
