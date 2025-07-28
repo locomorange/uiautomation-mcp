@@ -16,6 +16,8 @@ namespace UIAutomationMCP.Server
     {
         static async Task Main(string[] args)
         {
+            // Configure Console output for MCP STDIO transport
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
 
             var builder = Host.CreateApplicationBuilder(args);
 
@@ -23,9 +25,12 @@ namespace UIAutomationMCP.Server
             var shutdownCts = new CancellationTokenSource();
             builder.Services.AddSingleton(shutdownCts);
 
-            // Configure logging for MCP - stderr logging to avoid MCP protocol interference
+            // Configure logging for MCP - stderr only to avoid stdout protocol interference
             builder.Logging.ClearProviders();
-            builder.Logging.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Debug);
+            builder.Logging.AddConsole(options => 
+            {
+                options.LogToStandardErrorThreshold = LogLevel.Trace;
+            });
             builder.Logging.SetMinimumLevel(LogLevel.Information);
 
             // Register application services
@@ -162,82 +167,34 @@ namespace UIAutomationMCP.Server
 
             var host = builder.Build();
 
-            // Setup graceful shutdown handling with proper cleanup
-            var lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
-            var cancellationTokenSource = new CancellationTokenSource();
-            
-            // Handle console cancellation (Ctrl+C)
-            Console.CancelKeyPress += (_, e) =>
+            // Test ApplicationLauncher directly if no arguments provided
+            if (args.Length > 0 && args[0] == "--test-app-launcher")
             {
-                e.Cancel = true; // Prevent immediate termination
-                var logger = host.Services.GetRequiredService<ILogger<Program>>();
-                logger.LogInformation("[Program] Shutdown signal received, initiating graceful shutdown");
-                cancellationTokenSource.Cancel();
-            };
-
-            lifetime.ApplicationStopping.Register(() =>
-            {
-                var logger = host.Services.GetRequiredService<ILogger<Program>>();
-                logger.LogInformation("[Program] stdin closed - no new requests will be accepted, waiting for current operations to complete naturally");
+                Console.Error.WriteLine("Testing ApplicationLauncher directly...");
                 
-                // DO NOT cancel shutdown token here - let operations complete with their normal timeouts
-                // The server will shut down naturally after:
-                // 1. Current operations complete (with normal timeouts like 60s for ApplicationLauncher)
-                // 2. JSON responses are fully sent to stdout  
-                // 3. MCP protocol completes gracefully
-            });
-
-            // Run the MCP server with proper shutdown handling
-            try
-            {
-                // Console.WriteLine("DEBUG: Starting MCP server");
-                // Console.Out.Flush();
-                await host.RunAsync(cancellationTokenSource.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                // Expected during graceful shutdown
-                var logger = host.Services.GetRequiredService<ILogger<Program>>();
-                logger.LogInformation("[Program] MCP Server shutdown completed");
-            }
-            catch (Exception ex)
-            {
-                // Don't try to access disposed services during shutdown
-                try
-                {
-                    var logger = host.Services.GetRequiredService<ILogger<Program>>();
-                    logger.LogError(ex, "[Program] MCP Server terminated with error");
-                }
-                catch (ObjectDisposedException)
-                {
-                    // Services already disposed during shutdown - ignore logging
-                }
-                throw;
-            }
-            finally
-            {
-                // Minimal cleanup - let MCP protocol complete naturally
-                try
-                {
-                    // Ensure all output is flushed before disposing
-                    Console.Out.Flush();
-                    Console.Error.Flush();
-                }
-                catch (Exception flushEx)
-                {
-                    Console.Error.WriteLine($"[Program] Error flushing streams: {flushEx.Message}");
-                }
+                var launcher = host.Services.GetRequiredService<IApplicationLauncher>();
                 
-                // Simple host disposal
                 try
                 {
-                    host.Dispose();
+                    Console.Error.WriteLine("Launching calculator...");
+                    var result = await launcher.LaunchApplicationAsync("calc", null, null, 60);
+                    
+                    Console.Error.WriteLine($"Launch result: Success={result.Success}, ProcessId={result.ProcessId}");
+                    if (!result.Success)
+                    {
+                        Console.Error.WriteLine($"Error: {result.Error}");
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Console.Error.WriteLine($"[Program] Error disposing host: {ex.Message}");
+                    Console.Error.WriteLine($"Exception: {ex.Message}");
                 }
+                
+                return;
             }
+
+            // Simple MCP server - let the framework handle lifecycle
+            await host.RunAsync();
         }
     }
 }
