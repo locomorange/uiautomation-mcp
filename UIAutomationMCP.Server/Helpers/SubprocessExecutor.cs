@@ -420,6 +420,45 @@ namespace UIAutomationMCP.Server.Helpers
         }
 
 
+        /// <summary>
+        /// Wait for all pending operations to complete with timeout protection
+        /// </summary>
+        public async Task WaitForPendingOperationsAsync(int timeoutSeconds = 30)
+        {
+            if (_pendingOperations.IsEmpty)
+            {
+                _logger.LogInformation("No pending operations to wait for");
+                return;
+            }
+
+            _logger.LogInformation("Waiting for {Count} pending operations to complete", _pendingOperations.Count);
+
+            var timeout = TimeSpan.FromSeconds(timeoutSeconds);
+            var allOperations = _pendingOperations.Values.ToArray();
+            
+            try
+            {
+                var completionTask = Task.WhenAll(allOperations.Select(tcs => tcs.Task));
+                var timeoutTask = Task.Delay(timeout);
+                
+                var completedTask = await Task.WhenAny(completionTask, timeoutTask);
+                
+                if (completedTask == completionTask)
+                {
+                    _logger.LogInformation("All {Count} pending operations completed successfully", allOperations.Length);
+                }
+                else
+                {
+                    _logger.LogWarning("Timeout reached after {Timeout}s, {Pending} operations still pending", 
+                        timeout.TotalSeconds, _pendingOperations.Count);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while waiting for pending operations to complete");
+            }
+        }
+
         public void Dispose()
         {
             if (_disposed) return;

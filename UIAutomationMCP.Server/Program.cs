@@ -26,7 +26,7 @@ namespace UIAutomationMCP.Server
             // Configure logging for MCP - stderr logging to avoid MCP protocol interference
             builder.Logging.ClearProviders();
             builder.Logging.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Debug);
-            builder.Logging.SetMinimumLevel(LogLevel.Debug);
+            builder.Logging.SetMinimumLevel(LogLevel.Information);
 
             // Register application services
             builder.Services.AddSingleton<IApplicationLauncher, ApplicationLauncher>();
@@ -178,28 +178,20 @@ namespace UIAutomationMCP.Server
             lifetime.ApplicationStopping.Register(() =>
             {
                 var logger = host.Services.GetRequiredService<ILogger<Program>>();
-                logger.LogInformation("[Program] MCP Server shutdown requested - cancelling operations");
+                logger.LogInformation("[Program] stdin closed - no new requests will be accepted, waiting for current operations to complete naturally");
                 
-                // Cancel all ongoing operations first
-                var shutdownCts = host.Services.GetRequiredService<CancellationTokenSource>();
-                shutdownCts.Cancel();
-                
-                // Then dispose ProcessManager to ensure worker and monitor processes are terminated
-                try
-                {
-                    var processManager = host.Services.GetRequiredService<ProcessManager>();
-                    processManager.Dispose();
-                    logger.LogInformation("[Program] ProcessManager disposed successfully");
-                }
-                catch (Exception ex)
-                {
-                    logger.LogWarning(ex, "[Program] Error disposing ProcessManager");
-                }
+                // DO NOT cancel shutdown token here - let operations complete with their normal timeouts
+                // The server will shut down naturally after:
+                // 1. Current operations complete (with normal timeouts like 60s for ApplicationLauncher)
+                // 2. JSON responses are fully sent to stdout  
+                // 3. MCP protocol completes gracefully
             });
 
             // Run the MCP server with proper shutdown handling
             try
             {
+                // Console.WriteLine("DEBUG: Starting MCP server");
+                // Console.Out.Flush();
                 await host.RunAsync(cancellationTokenSource.Token);
             }
             catch (OperationCanceledException)
@@ -224,22 +216,26 @@ namespace UIAutomationMCP.Server
             }
             finally
             {
-                // Ensure all resources are cleaned up
+                // Minimal cleanup - let MCP protocol complete naturally
+                try
+                {
+                    // Ensure all output is flushed before disposing
+                    Console.Out.Flush();
+                    Console.Error.Flush();
+                }
+                catch (Exception flushEx)
+                {
+                    Console.Error.WriteLine($"[Program] Error flushing streams: {flushEx.Message}");
+                }
+                
+                // Simple host disposal
                 try
                 {
                     host.Dispose();
                 }
                 catch (Exception ex)
                 {
-                    try
-                    {
-                        var logger = host.Services.GetRequiredService<ILogger<Program>>();
-                        logger.LogWarning(ex, "[Program] Error during host disposal");
-                    }
-                    catch (ObjectDisposedException)
-                    {
-                        // Ignore if services are already disposed
-                    }
+                    Console.Error.WriteLine($"[Program] Error disposing host: {ex.Message}");
                 }
             }
         }
