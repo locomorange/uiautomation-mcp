@@ -5,6 +5,7 @@ using UIAutomationMCP.Monitor.Infrastructure;
 using UIAutomationMCP.Monitor.Operations;
 using UIAutomationMCP.Common.Services;
 using UIAutomationMCP.Common.Abstractions;
+using UIAutomationMCP.Models.Logging;
 
 namespace UIAutomationMCP.Monitor
 {
@@ -43,17 +44,22 @@ namespace UIAutomationMCP.Monitor
 
             try
             {
+                await ProcessLogRelay.LogInfoAsync("Monitor.Program", "Monitor process starting", "monitor");
+                
                 var monitorService = host.Services.GetRequiredService<MonitorService>();
                 await monitorService.RunAsync();
             }
             catch (Exception ex)
             {
+                await ProcessLogRelay.LogErrorAsync("Monitor.Program", "Monitor process failed", "monitor", ex);
+                
                 var logger = host.Services.GetService<ILogger<Program>>();
                 logger?.LogCritical(ex, "Monitor process failed");
                 Environment.Exit(1);
             }
             finally
             {
+                await ProcessLogRelay.LogInfoAsync("Monitor.Program", "Monitor process shutting down", "monitor");
                 host.Dispose();
             }
         }

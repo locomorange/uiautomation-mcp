@@ -1,10 +1,12 @@
 using ModelContextProtocol.Server;
+using ModelContextProtocol;
 using System.ComponentModel;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Serialization;
+using UIAutomationMCP.Models.Logging;
 
 namespace UIAutomationMCP.Server.Tools
 {
@@ -35,6 +37,7 @@ namespace UIAutomationMCP.Server.Tools
         private readonly ISynchronizedInputService _synchronizedInputService;
         private readonly IEventMonitorService _eventMonitorService;
         private readonly IFocusService _focusService;
+        private readonly IMcpLogService _mcpLogService;
 
         public UIAutomationTools(
             IApplicationLauncher applicationLauncher,
@@ -60,7 +63,8 @@ namespace UIAutomationMCP.Server.Tools
             IItemContainerService itemContainerService,
             ISynchronizedInputService synchronizedInputService,
             IEventMonitorService eventMonitorService,
-            IFocusService focusService)
+            IFocusService focusService,
+            IMcpLogService mcpLogService)
         {
             _applicationLauncher = applicationLauncher;
             _screenshotService = screenshotService;
@@ -86,6 +90,7 @@ namespace UIAutomationMCP.Server.Tools
             _synchronizedInputService = synchronizedInputService;
             _eventMonitorService = eventMonitorService;
             _focusService = focusService;
+            _mcpLogService = mcpLogService;
         }
 
         // Window and Element Discovery
@@ -110,28 +115,58 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Use ProcessId as search root (true) or as filter (false) (default: true)")] bool useProcessIdAsSearchRoot = true,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
         {
-            var request = new UIAutomationMCP.Models.Requests.SearchElementsRequest
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            await _mcpLogService.LogInformationAsync("UIAutomationTools", 
+                $"SearchElements started - SearchText: {searchText}, AutomationId: {automationId}, ControlType: {controlType}", 
+                operationId: operationId,
+                data: new Dictionary<string, object?> 
+                { 
+                    ["searchText"] = searchText,
+                    ["automationId"] = automationId,
+                    ["controlType"] = controlType,
+                    ["processId"] = processId,
+                    ["scope"] = scope,
+                    ["maxResults"] = maxResults
+                });
+
+            try
             {
-                SearchText = searchText,
-                AutomationId = automationId,
-                Name = name,
-                ControlType = controlType,
-                ClassName = className,
-                WindowTitle = windowTitle,
-                ProcessId = processId,
-                Scope = scope,
-                RequiredPatterns = requiredPattern,
-                AnyOfPatterns = null,
-                VisibleOnly = visibleOnly,
-                FuzzyMatch = fuzzyMatch,
-                EnabledOnly = enabledOnly,
-                MaxResults = maxResults,
-                SortBy = sortBy,
-                IncludeDetails = includeDetails,
-                UseProcessIdAsSearchRoot = useProcessIdAsSearchRoot
-            };
-            
-            return JsonSerializationHelper.Serialize(await _elementSearchService.SearchElementsAsync(request, timeoutSeconds));
+                var request = new UIAutomationMCP.Models.Requests.SearchElementsRequest
+                {
+                    SearchText = searchText,
+                    AutomationId = automationId,
+                    Name = name,
+                    ControlType = controlType,
+                    ClassName = className,
+                    WindowTitle = windowTitle,
+                    ProcessId = processId,
+                    Scope = scope,
+                    RequiredPatterns = requiredPattern,
+                    AnyOfPatterns = null,
+                    VisibleOnly = visibleOnly,
+                    FuzzyMatch = fuzzyMatch,
+                    EnabledOnly = enabledOnly,
+                    MaxResults = maxResults,
+                    SortBy = sortBy,
+                    IncludeDetails = includeDetails,
+                    UseProcessIdAsSearchRoot = useProcessIdAsSearchRoot
+                };
+                
+                var result = await _elementSearchService.SearchElementsAsync(request, timeoutSeconds);
+                
+                await _mcpLogService.LogInformationAsync("UIAutomationTools", 
+                    $"SearchElements completed - Found {result.Data?.Elements?.Length ?? 0} elements", 
+                    operationId: operationId,
+                    data: new Dictionary<string, object?> { ["elementCount"] = result.Data?.Elements?.Length ?? 0 });
+                
+                return JsonSerializationHelper.Serialize(result);
+            }
+            catch (Exception ex)
+            {
+                await _mcpLogService.LogErrorAsync("UIAutomationTools", 
+                    "SearchElements failed", ex, operationId: operationId);
+                throw;
+            }
         }
 
 
@@ -162,7 +197,42 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Command line arguments (optional)")] string? arguments = null,
             [Description("Working directory (optional)")] string? workingDirectory = null,
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
-            => JsonSerializationHelper.Serialize(await _applicationLauncher.LaunchApplicationAsync(application, arguments, workingDirectory, timeoutSeconds));
+        {
+            var operationId = Guid.NewGuid().ToString("N")[..8];
+            await _mcpLogService.LogInformationAsync("UIAutomationTools", 
+                $"LaunchApplication started - Application: {application}", 
+                operationId: operationId,
+                data: new Dictionary<string, object?> 
+                { 
+                    ["application"] = application,
+                    ["arguments"] = arguments,
+                    ["workingDirectory"] = workingDirectory,
+                    ["timeoutSeconds"] = timeoutSeconds
+                });
+
+            try
+            {
+                var result = await _applicationLauncher.LaunchApplicationAsync(application, arguments, workingDirectory, timeoutSeconds);
+                
+                await _mcpLogService.LogInformationAsync("UIAutomationTools", 
+                    $"LaunchApplication completed - Success: {result.Success}, ProcessId: {result.ProcessId}", 
+                    operationId: operationId,
+                    data: new Dictionary<string, object?> 
+                    { 
+                        ["success"] = result.Success,
+                        ["processId"] = result.ProcessId,
+                        ["error"] = result.Error
+                    });
+
+                return JsonSerializationHelper.Serialize(result);
+            }
+            catch (Exception ex)
+            {
+                await _mcpLogService.LogErrorAsync("UIAutomationTools", 
+                    "LaunchApplication failed", ex, operationId: operationId);
+                throw;
+            }
+        }
 
         // Core Interaction Patterns
         [McpServerTool, Description("Invoke an element (click button, activate menu item) using InvokePattern")]

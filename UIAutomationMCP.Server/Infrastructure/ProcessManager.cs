@@ -3,6 +3,7 @@ using UIAutomationMCP.Server.Abstractions;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Models.Logging;
 
 namespace UIAutomationMCP.Server.Infrastructure
 {
@@ -14,6 +15,7 @@ namespace UIAutomationMCP.Server.Infrastructure
         private readonly SubprocessExecutor _workerExecutor;
         private readonly SubprocessExecutor? _monitorExecutor;
         private readonly ILogger<ProcessManager> _logger;
+        private IMcpLogService? _mcpLogService;
         private bool _disposed = false;
 
         public ProcessManager(
@@ -37,8 +39,41 @@ namespace UIAutomationMCP.Server.Infrastructure
                     shutdownCts);
             }
 
+            // Set log message callbacks for subprocess executors
+            _workerExecutor.SetLogMessageCallback(ProcessLogMessage);
+            if (_monitorExecutor != null)
+            {
+                _monitorExecutor.SetLogMessageCallback(ProcessLogMessage);
+            }
+
             _logger.LogInformation("ProcessManager initialized - Worker: {WorkerPath}, Monitor: {MonitorPath}", 
                 workerPath, monitorPath ?? "Not configured");
+        }
+
+        /// <summary>
+        /// Set MCP log service for relaying subprocess logs
+        /// </summary>
+        public void SetMcpLogService(IMcpLogService mcpLogService)
+        {
+            _mcpLogService = mcpLogService;
+        }
+
+        /// <summary>
+        /// Process log message from subprocess and relay to MCP
+        /// </summary>
+        private async Task ProcessLogMessage(string logJson)
+        {
+            try
+            {
+                if (_mcpLogService != null)
+                {
+                    await _mcpLogService.ProcessInterProcessLogAsync(logJson);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to process subprocess log message: {LogJson}", logJson);
+            }
         }
 
         public bool IsWorkerProcessAvailable => !_disposed;

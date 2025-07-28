@@ -10,7 +10,7 @@
     <Version>0.1.0</Version>
     <Authors>Locomorange</Authors>
     <Description>Windows UI Automation Model Context Protocol (MCP) server</Description>
-    <PublishAot>true</PublishAot>
+    <!-- <PublishAot>true</PublishAot> Disabled for MCP logging compatibility -->
     <RuntimeIdentifiers>win-x64;win-x86;win-arm64</RuntimeIdentifiers>
     <InvariantGlobalization>false</InvariantGlobalization>
     <StripSymbols>true</StripSymbols>

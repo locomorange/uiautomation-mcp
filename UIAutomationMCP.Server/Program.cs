@@ -9,6 +9,7 @@ using UIAutomationMCP.Server.Abstractions;
 using UIAutomationMCP.Server.Tools;
 using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Models.Logging;
 
 namespace UIAutomationMCP.Server
 {
@@ -32,6 +33,9 @@ namespace UIAutomationMCP.Server
                 options.LogToStandardErrorThreshold = LogLevel.Trace;
             });
             builder.Logging.SetMinimumLevel(LogLevel.Information);
+
+            // Register MCP logging service
+            builder.Services.AddSingleton<IMcpLogService, McpLoggingService>();
 
             // Register application services
             builder.Services.AddSingleton<IApplicationLauncher, ApplicationLauncher>();
@@ -143,7 +147,13 @@ namespace UIAutomationMCP.Server
                     workerPath, monitorPath ?? "Not available (fallback to Worker)");
                 
                 var shutdownCts = provider.GetRequiredService<CancellationTokenSource>();
-                return new ProcessManager(logger, loggerFactory, shutdownCts, workerPath, monitorPath);
+                var processManager = new ProcessManager(logger, loggerFactory, shutdownCts, workerPath, monitorPath);
+                
+                // Set MCP log service for subprocess log relay
+                var mcpLogService = provider.GetRequiredService<IMcpLogService>();
+                processManager.SetMcpLogService(mcpLogService);
+                
+                return processManager;
             });
             
             // Register ProcessManager as both IProcessManager and IOperationExecutor
@@ -170,24 +180,25 @@ namespace UIAutomationMCP.Server
             // Test ApplicationLauncher directly if no arguments provided
             if (args.Length > 0 && args[0] == "--test-app-launcher")
             {
-                Console.Error.WriteLine("Testing ApplicationLauncher directly...");
+                var mcpLog = host.Services.GetRequiredService<IMcpLogService>();
+                await mcpLog.LogInformationAsync("Program", "Testing ApplicationLauncher directly...");
                 
                 var launcher = host.Services.GetRequiredService<IApplicationLauncher>();
                 
                 try
                 {
-                    Console.Error.WriteLine("Launching calculator...");
+                    await mcpLog.LogInformationAsync("Program", "Launching calculator...");
                     var result = await launcher.LaunchApplicationAsync("calc", null, null, 60);
                     
-                    Console.Error.WriteLine($"Launch result: Success={result.Success}, ProcessId={result.ProcessId}");
+                    await mcpLog.LogInformationAsync("Program", $"Launch result: Success={result.Success}, ProcessId={result.ProcessId}");
                     if (!result.Success)
                     {
-                        Console.Error.WriteLine($"Error: {result.Error}");
+                        await mcpLog.LogErrorAsync("Program", $"Launch failed: {result.Error}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.Error.WriteLine($"Exception: {ex.Message}");
+                    await mcpLog.LogErrorAsync("Program", "Launch exception occurred", ex);
                 }
                 
                 return;

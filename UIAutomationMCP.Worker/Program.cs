@@ -20,6 +20,7 @@ using UIAutomationMCP.Worker.Operations.Range;
 using UIAutomationMCP.Worker.Operations.TreeNavigation;
 using UIAutomationMCP.Worker.Operations.Focus;
 using UIAutomationMCP.Common.Helpers;
+using UIAutomationMCP.Models.Logging;
 
 namespace UIAutomationMCP.Worker
 {
@@ -95,22 +96,30 @@ namespace UIAutomationMCP.Worker
             // Early UI Automation availability check
             if (!IsUIAutomationAvailable(out string errorReason))
             {
-                Console.Error.WriteLine($"UI Automation is not available in this environment: {errorReason}");
-                Console.Error.WriteLine($"Platform: {Environment.OSVersion}");
-                Console.Error.WriteLine($"User Interactive: {Environment.UserInteractive}");
-                Console.Error.WriteLine($"Is64BitOS: {Environment.Is64BitOperatingSystem}");
-                Console.Error.WriteLine($"Current Directory: {Environment.CurrentDirectory}");
-                
+                // Send environment error information via MCP relay
+                await ProcessLogRelay.LogErrorAsync("Worker.Environment", 
+                    $"UI Automation is not available in this environment: {errorReason}",
+                    "worker",
+                    data: new Dictionary<string, object?>
+                    {
+                        ["platform"] = Environment.OSVersion.ToString(),
+                        ["userInteractive"] = Environment.UserInteractive,
+                        ["is64BitOS"] = Environment.Is64BitOperatingSystem,
+                        ["currentDirectory"] = Environment.CurrentDirectory
+                    });
+
                 // Additional diagnostics for common issues
                 try
                 {
                     var desktop = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop");
-                    Console.Error.WriteLine($"Desktop registry key accessible: {desktop != null}");
+                    await ProcessLogRelay.LogInfoAsync("Worker.Environment", 
+                        $"Desktop registry key accessible: {desktop != null}", "worker");
                     desktop?.Close();
                 }
                 catch (Exception regEx)
                 {
-                    Console.Error.WriteLine($"Registry access failed: {regEx.Message}");
+                    await ProcessLogRelay.LogErrorAsync("Worker.Environment", 
+                        "Registry access failed", "worker", regEx);
                 }
                 
                 Environment.Exit(1);

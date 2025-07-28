@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using UIAutomationMCP.Models.Logging;
 
 namespace UIAutomationMCP.Worker.Helpers
 {
@@ -32,14 +33,45 @@ namespace UIAutomationMCP.Worker.Helpers
             var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
             var logMessage = $"[{timestamp}] [{logLevel}] [{_categoryName}] {message}";
             
-            if (exception != null)
+            // Send to MCP relay asynchronously
+            _ = Task.Run(async () =>
             {
-                logMessage += $"\nException: {exception}";
-            }
-            
-            // Write to debug output and stderr for debugging SubprocessExecutor communication
-            Debug.WriteLine(logMessage);
-            Console.Error.WriteLine($"[WORKER] {logMessage}");
+                try
+                {
+                    var data = new Dictionary<string, object?>
+                    {
+                        ["timestamp"] = timestamp,
+                        ["categoryName"] = _categoryName,
+                        ["eventId"] = eventId.Id
+                    };
+
+                    await ProcessLogRelay.SendLogToServerAsync(
+                        logLevel.ToMcpLogLevel(),
+                        _categoryName,
+                        message,
+                        "worker",
+                        null,
+                        data
+                    );
+
+                    // If there's an exception, send a separate error log
+                    if (exception != null)
+                    {
+                        await ProcessLogRelay.LogErrorAsync(_categoryName, 
+                            $"Exception in {_categoryName}", "worker", exception);
+                    }
+                }
+                catch
+                {
+                    // Fallback to stderr if MCP relay fails
+                    Debug.WriteLine(logMessage);
+                    Console.Error.WriteLine($"[WORKER] {logMessage}");
+                    if (exception != null)
+                    {
+                        Console.Error.WriteLine($"[WORKER] Exception: {exception}");
+                    }
+                }
+            });
         }
 
         private class NullDisposable : IDisposable

@@ -6,6 +6,7 @@ using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Models.Logging;
 
 namespace UIAutomationMCP.Server.Helpers
 {
@@ -19,12 +20,23 @@ namespace UIAutomationMCP.Server.Helpers
         private bool _disposed = false;
         private readonly object _lockObject = new object();
         private readonly ConcurrentDictionary<string, TaskCompletionSource<bool>> _pendingOperations = new();
+        
+        // Log relay callback
+        private Func<string, Task>? _logMessageCallback;
 
         public SubprocessExecutor(ILogger<SubprocessExecutor> logger, string workerPath, CancellationTokenSource shutdownCts)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _workerPath = !string.IsNullOrWhiteSpace(workerPath) ? workerPath : throw new ArgumentException("Worker path cannot be null or empty", nameof(workerPath));
             _shutdownCts = shutdownCts ?? throw new ArgumentNullException(nameof(shutdownCts));
+        }
+
+        /// <summary>
+        /// Set callback for handling log messages from subprocess
+        /// </summary>
+        public void SetLogMessageCallback(Func<string, Task> callback)
+        {
+            _logMessageCallback = callback;
         }
 
         /// <summary>
@@ -325,12 +337,31 @@ namespace UIAutomationMCP.Server.Helpers
 
                 _workerProcess = new Process { StartInfo = startInfo };
                 
-                // Set up async stderr monitoring
-                _workerProcess.ErrorDataReceived += (sender, e) =>
+                // Set up async stderr monitoring with log message processing
+                _workerProcess.ErrorDataReceived += async (sender, e) =>
                 {
                     if (!string.IsNullOrEmpty(e.Data))
                     {
-                        _logger.LogWarning("Worker stderr: {ErrorData}", e.Data);
+                        // Check if this is a log message for relay
+                        if (e.Data.StartsWith("[MCP_LOG]"))
+                        {
+                            var logJson = e.Data.Substring("[MCP_LOG]".Length);
+                            if (_logMessageCallback != null)
+                            {
+                                try
+                                {
+                                    await _logMessageCallback(logJson);
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogError(ex, "Failed to process log message from subprocess: {LogJson}", logJson);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Worker stderr: {ErrorData}", e.Data);
+                        }
                     }
                 };
                 
