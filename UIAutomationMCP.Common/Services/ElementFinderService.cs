@@ -154,14 +154,14 @@ namespace UIAutomationMCP.Common.Services
         {
             AutomationElement rootElement = AutomationElement.RootElement;
 
-            // Find process window if specified
-            if (criteria.ProcessId.HasValue)
+            // Find process window if specified and UseProcessIdAsSearchRoot is true
+            if (criteria.ProcessId.HasValue && criteria.UseProcessIdAsSearchRoot)
             {
                 var processCondition = new PropertyCondition(AutomationElement.ProcessIdProperty, criteria.ProcessId.Value);
                 var processWindow = rootElement.FindFirst(TreeScope.Children, processCondition);
                 if (processWindow != null)
                 {
-                    _logger.LogDebug("Found process window for ProcessId: {ProcessId}", criteria.ProcessId.Value);
+                    _logger.LogDebug("Found process window for ProcessId: {ProcessId} (used as search root)", criteria.ProcessId.Value);
                     return processWindow;
                 }
                 else
@@ -212,6 +212,13 @@ namespace UIAutomationMCP.Common.Services
                 {
                     conditions.Add(new PropertyCondition(AutomationElement.ControlTypeProperty, controlType));
                 }
+            }
+
+            // ProcessId filter when UseProcessIdAsSearchRoot is false
+            if (criteria.ProcessId.HasValue && !criteria.UseProcessIdAsSearchRoot)
+            {
+                conditions.Add(new PropertyCondition(AutomationElement.ProcessIdProperty, criteria.ProcessId.Value));
+                _logger.LogDebug("Added ProcessId: {ProcessId} as filter condition", criteria.ProcessId.Value);
             }
 
             // Visibility filter
@@ -328,5 +335,6 @@ namespace UIAutomationMCP.Common.Services
         public bool VisibleOnly { get; set; } = false;
         public bool EnabledOnly { get; set; } = false;
         public string? RequiredPattern { get; set; }
+        public bool UseProcessIdAsSearchRoot { get; set; } = true;
     }
 }

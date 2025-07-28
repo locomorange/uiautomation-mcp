@@ -103,7 +103,8 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     ControlType = request.ControlType,
                     WindowTitle = request.WindowTitle,
                     ProcessId = request.ProcessId,
-                    Scope = request.Scope
+                    Scope = request.Scope,
+                    UseProcessIdAsSearchRoot = request.UseProcessIdAsSearchRoot
                 };
                 var foundElementsCollection = _elementFinderService.FindElements(searchCriteria);
                 _logger?.LogDebug("FindElements completed, found {Count} elements", foundElementsCollection?.Count ?? 0);
