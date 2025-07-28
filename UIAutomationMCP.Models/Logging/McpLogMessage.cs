@@ -68,27 +68,21 @@ namespace UIAutomationMCP.Models.Logging
         }
 
         /// <summary>
-        /// Serialize for inter-process communication
+        /// Serialize for inter-process communication (AOT-compatible)
         /// </summary>
         public string ToJson()
         {
-            return JsonSerializer.Serialize(this, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
+            return JsonSerializer.Serialize(this, McpLogSerializationContext.Default.McpLogMessage);
         }
 
         /// <summary>
-        /// Deserialize from inter-process communication
+        /// Deserialize from inter-process communication (AOT-compatible)
         /// </summary>
         public static McpLogMessage? FromJson(string json)
         {
             try
             {
-                return JsonSerializer.Deserialize<McpLogMessage>(json, new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                });
+                return JsonSerializer.Deserialize(json, McpLogSerializationContext.Default.McpLogMessage);
             }
             catch
             {

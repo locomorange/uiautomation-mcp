@@ -182,7 +182,7 @@ namespace UIAutomationMCP.Server.Services
 
             try
             {
-                var dataStr = message.Data.Count > 0 ? System.Text.Json.JsonSerializer.Serialize(message.Data) : "";
+                var dataStr = message.Data.Count > 0 ? System.Text.Json.JsonSerializer.Serialize(message.Data, McpLogSerializationContext.Default.DictionaryStringObject) : "";
                 _fallbackLogger.Log(netLogLevel, "[{Source}] [{Logger}] {Message} {Data}",
                     message.Source, message.Logger, message.Message, dataStr);
             }
