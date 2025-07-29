@@ -102,24 +102,8 @@ namespace UIAutomationMCP.Server.Services
 
         private static ValidationResult ValidateSearchElementsRequest(SearchElementsRequest request)
         {
-            var errors = new List<string>();
-
-            // ProcessIdが指定されている場合は、他の条件は必須ではない
-            if (request.ProcessId.HasValue && request.ProcessId > 0)
-            {
-                return ValidationResult.Success;
-            }
-
-            // ProcessIdが指定されていない場合は、従来通りの検証
-            if (string.IsNullOrWhiteSpace(request.AutomationId) && 
-                string.IsNullOrWhiteSpace(request.Name) && 
-                string.IsNullOrWhiteSpace(request.ControlType) &&
-                string.IsNullOrWhiteSpace(request.WindowTitle))
-            {
-                errors.Add("At least one search criteria must be provided, or specify a ProcessId");
-            }
-
-            return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;
+            // 検索条件が1つもなくても許可する（全要素取得を許可）
+            return ValidationResult.Success;
         }
 
         protected override SearchServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)

@@ -152,8 +152,14 @@ namespace UIAutomationMCP.Common.Services
 
         private AutomationElement? GetSearchRoot(ElementSearchCriteria criteria)
         {
-            AutomationElement rootElement = AutomationElement.RootElement;
+            AutomationElement? rootElement = AutomationElement.RootElement;
             _logger.LogDebug("Starting with AutomationElement.RootElement: {RootName}", rootElement?.Current.Name ?? "null");
+
+            if (rootElement == null)
+            {
+                _logger.LogError("AutomationElement.RootElement is null");
+                return null;
+            }
 
             // Find process window if specified and UseProcessIdAsSearchRoot is true
             if (criteria.ProcessId.HasValue && criteria.UseProcessIdAsSearchRoot)
@@ -198,7 +204,8 @@ namespace UIAutomationMCP.Common.Services
                 _logger.LogDebug("ProcessId not specified but UseProcessIdAsSearchRoot is true, using RootElement");
             }
 
-            _logger.LogDebug("Using RootElement as search root");
+            // Default case: use RootElement for global searches
+            _logger.LogDebug("Using RootElement as search root for global search");
             return rootElement;
         }
 
