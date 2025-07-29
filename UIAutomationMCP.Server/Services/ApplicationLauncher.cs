@@ -83,100 +83,108 @@ namespace UIAutomationMCP.Server.Services
         }
 
         /// <summary>
-        /// Validate process candidates using SearchElements to check for valid application windows
+        /// Validate process candidates using SearchElements with process ID filtering and parent PID analysis
         /// </summary>
-        private async Task<List<ValidatedProcess>> ValidateProcessCandidatesAsync(List<int> candidateProcesses, string appName)
+        private async Task<List<ValidatedProcess>> ValidateProcessCandidatesAsync(List<int> candidateProcesses, string appName, int timeoutSeconds = 20)
         {
-            var validatedProcesses = new List<ValidatedProcess>();
-            
-            foreach (var processId in candidateProcesses)
+            if (!candidateProcesses.Any())
             {
-                try
-                {
-                    _logger.LogDebug("Validating process {ProcessId} for {AppName} using SearchElements", processId, appName);
-                    
-                    // Try multiple search strategies for better process validation
-                    var searchStrategies = new[]
-                    {
-                        new SearchElementsRequest { ProcessId = processId, ControlType = "", Scope = "subtree", MaxResults = 20, IncludeDetails = false, BypassCache = true }, // Any elements
-                        new SearchElementsRequest { ProcessId = processId, ControlType = "Window", Scope = "subtree", MaxResults = 20, IncludeDetails = false, BypassCache = true }, // Windows
-                        new SearchElementsRequest { ProcessId = processId, ControlType = "Pane", Scope = "subtree", MaxResults = 20, IncludeDetails = false, BypassCache = true }, // Panes
-                        new SearchElementsRequest { ProcessId = processId, ControlType = "Button", Scope = "subtree", MaxResults = 20, IncludeDetails = false, BypassCache = true }, // Buttons
-                        new SearchElementsRequest { ProcessId = processId, ControlType = "Document", Scope = "subtree", MaxResults = 20, IncludeDetails = false, BypassCache = true } // Documents
-                    };
-
-                    SearchElementsResult? validResult = null;
-                    string usedStrategy = "";
-                    
-                    foreach (var (request, index) in searchStrategies.Select((req, i) => (req, i)))
-                    {
-                        try
-                        {
-                            _logger.LogDebug("Trying strategy {Index} for PID {ProcessId}: ControlType='{ControlType}', Scope='{Scope}'", 
-                                index, processId, request.ControlType, request.Scope);
-                            
-                            var result = await ExecuteServiceOperationAsync<SearchElementsRequest, SearchElementsResult>(
-                                "SearchElements", request, nameof(ValidateProcessCandidatesAsync), 5); // Short timeout for validation
-
-                            if (result.Success && result.Data?.Elements != null && result.Data.Elements.Any())
-                            {
-                                validResult = result.Data;
-                                usedStrategy = $"Strategy{index}(ControlType='{request.ControlType}')";
-                                _logger.LogInformation("Strategy {Index} succeeded for PID {ProcessId}: found {Count} elements with ControlType='{ControlType}'", 
-                                    index, processId, result.Data.Elements.Length, request.ControlType);
-                                break;
-                            }
-                            else
-                            {
-                                _logger.LogDebug("Strategy {Index} failed for PID {ProcessId}: {Reason}", 
-                                    index, processId, result.Success ? "no elements found" : "operation failed");
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogDebug(ex, "Strategy {Index} exception for PID {ProcessId}", index, processId);
-                        }
-                    }
-
-                    if (validResult != null)
-                    {
-                        var elements = validResult.Elements.ToList();
-                        var validElements = elements.Where(IsValidApplicationElement).ToList();
-                        
-                        if (validElements.Any())
-                        {
-                            var validated = new ValidatedProcess
-                            {
-                                ProcessId = processId,
-                                WindowCount = elements.Count,
-                                ValidWindowCount = validElements.Count,
-                                WindowNames = validElements.Select(w => w.Name ?? "").Where(n => !string.IsNullOrEmpty(n)).ToList(),
-                                HasMainWindow = validElements.Any(w => IsMainApplicationElement(w, appName))
-                            };
-                            
-                            validatedProcesses.Add(validated);
-                            _logger.LogInformation("Process {ProcessId} validated using {Strategy}: {ElementCount} elements, {ValidCount} valid, HasMain: {HasMain}, Names: [{Names}]", 
-                                processId, usedStrategy, validated.WindowCount, validated.ValidWindowCount, validated.HasMainWindow,
-                                string.Join(", ", validated.WindowNames));
-                        }
-                        else
-                        {
-                            _logger.LogDebug("Process {ProcessId} has {ElementCount} elements but no valid application elements", 
-                                processId, elements.Count);
-                        }
-                    }
-                    else
-                    {
-                        _logger.LogDebug("Process {ProcessId} validation failed: all search strategies unsuccessful", processId);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogDebug(ex, "Error validating process {ProcessId} for {AppName}", processId, appName);
-                }
+                return new List<ValidatedProcess>();
             }
 
-            return validatedProcesses;
+            _logger.LogDebug("Validating {Count} process candidates using SearchElements with parent PID analysis", candidateProcesses.Count);
+            
+            try
+            {
+                // Use ProcessId filter to search elements from all candidate processes efficiently
+                var allElements = new List<BasicElementInfo>();
+                
+                foreach (var processId in candidateProcesses)
+                {
+                    try
+                    {
+                        _logger.LogDebug("Searching elements for ProcessId={ProcessId}", processId);
+                        
+                        var request = new SearchElementsRequest 
+                        { 
+                            ProcessId = processId,
+                            UseProcessIdAsSearchRoot = false, // Search desktop-wide, filter by ProcessId
+                            Scope = "subtree", 
+                            MaxResults = 50, 
+                            IncludeDetails = false, 
+                            BypassCache = true 
+                        };
+                        
+                        var result = await ExecuteServiceOperationAsync<SearchElementsRequest, SearchElementsResult>(
+                            "SearchElements", request, nameof(ValidateProcessCandidatesAsync), timeoutSeconds);
+
+                        if (result.Success && result.Data?.Elements != null && result.Data.Elements.Any())
+                        {
+                            allElements.AddRange(result.Data.Elements);
+                            _logger.LogDebug("Found {Count} elements for ProcessId={ProcessId}", 
+                                result.Data.Elements.Length, processId);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug(ex, "Exception searching ProcessId={ProcessId}", processId);
+                    }
+                }
+
+                _logger.LogDebug("Total elements found: {Count} from {ProcessCount} processes", allElements.Count, candidateProcesses.Count);
+
+                // Filter to valid application elements
+                var relevantElements = allElements
+                    .Where(IsValidApplicationElement)
+                    .ToList();
+
+                _logger.LogInformation("Parent PID Analysis: Found {Count} relevant elements from candidate processes. Candidates: [{Candidates}]", 
+                    relevantElements.Count, string.Join(", ", candidateProcesses));
+                
+                // Group elements by their MainProcessId (parent process) or fallback to ProcessId
+                var candidateSet = candidateProcesses.ToHashSet();
+                var processGrouped = relevantElements
+                    .GroupBy(e => e.MainProcessId ?? e.ProcessId)
+                    .Where(g => candidateSet.Contains(g.Key))
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
+                _logger.LogInformation("Process Grouping: Found {GroupCount} process groups: [{ProcessIds}]",
+                    processGrouped.Count, string.Join(", ", processGrouped.Keys));
+
+                var validatedProcesses = new List<ValidatedProcess>();
+
+                foreach (var (processId, elements) in processGrouped)
+                {
+                    var validElements = elements.Where(IsValidApplicationElement).ToList();
+                    
+                    if (validElements.Any())
+                    {
+                        var validated = new ValidatedProcess
+                        {
+                            ProcessId = processId,
+                            WindowCount = elements.Count,
+                            ValidWindowCount = validElements.Count,
+                            WindowNames = validElements.Select(w => w.Name ?? "").Where(n => !string.IsNullOrEmpty(n)).Distinct().ToList(),
+                            HasMainWindow = validElements.Any(w => IsMainApplicationElement(w, appName))
+                        };
+                        
+                        validatedProcesses.Add(validated);
+                        _logger.LogInformation("Process {ProcessId} validated via parent PID analysis: {ElementCount} elements, {ValidCount} valid, HasMain: {HasMain}, Names: [{Names}]", 
+                            processId, validated.WindowCount, validated.ValidWindowCount, validated.HasMainWindow,
+                            string.Join(", ", validated.WindowNames));
+                    }
+                }
+
+                _logger.LogInformation("Parent PID analysis completed: validated {Count} processes from {CandidateCount} candidates", 
+                    validatedProcesses.Count, candidateProcesses.Count);
+
+                return validatedProcesses;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during parent PID analysis for {AppName}", appName);
+                return new List<ValidatedProcess>();
+            }
         }
 
         /// <summary>
@@ -272,7 +280,7 @@ namespace UIAutomationMCP.Server.Services
         /// <summary>
         /// Unified process detection method used after launching applications
         /// </summary>
-        private async Task<int> DetectLaunchedProcess(string appName, HashSet<int> beforeProcesses, int? launchedProcessId, CancellationToken cancellationToken)
+        private async Task<int> DetectLaunchedProcess(string appName, HashSet<int> beforeProcesses, int? launchedProcessId, int timeoutSeconds, CancellationToken cancellationToken)
         {
             try
             {
@@ -284,7 +292,7 @@ namespace UIAutomationMCP.Server.Services
                 if (candidateProcesses.Any())
                 {
                     // Validate candidates using SearchElements requests
-                    var validatedProcesses = await ValidateProcessCandidatesAsync(candidateProcesses, appName);
+                    var validatedProcesses = await ValidateProcessCandidatesAsync(candidateProcesses, appName, timeoutSeconds);
                     _logger.LogDebug("Validated {Count} processes with windows for {Application}: [{Validated}]", 
                         validatedProcesses.Count, appName, string.Join(", ", validatedProcesses.Select(p => p.ProcessId)));
 
@@ -354,7 +362,7 @@ namespace UIAutomationMCP.Server.Services
                 if (win32LaunchResult.LaunchSucceeded)
                 {
                     _logger.LogDebug("Win32 launch succeeded for {Application}, now detecting process", application);
-                    var processId = await DetectLaunchedProcess(application, beforeProcesses, win32LaunchResult.LaunchedProcessId, cancellationToken);
+                    var processId = await DetectLaunchedProcess(application, beforeProcesses, win32LaunchResult.LaunchedProcessId, timeoutSeconds, cancellationToken);
                     if (processId > 0)
                     {
                         detectionStopwatch.Stop();
@@ -369,7 +377,7 @@ namespace UIAutomationMCP.Server.Services
                 if (uwpLaunchResult.LaunchSucceeded)
                 {
                     _logger.LogDebug("UWP launch succeeded for {Application}, now detecting process", application);
-                    var processId = await DetectLaunchedProcess(application, beforeProcesses, null, cancellationToken);
+                    var processId = await DetectLaunchedProcess(application, beforeProcesses, null, timeoutSeconds, cancellationToken);
                     if (processId > 0)
                     {
                         detectionStopwatch.Stop();

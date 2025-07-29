@@ -175,6 +175,9 @@ namespace UIAutomationMCP.Server
                 .WithStdioServerTransport()
                 .WithTools<UIAutomationTools>();
 
+            // Configure hosted service to set MCP endpoint after initialization
+            builder.Services.AddHostedService<McpEndpointConfiguration>();
+
             var host = builder.Build();
 
             // Test ApplicationLauncher directly if no arguments provided

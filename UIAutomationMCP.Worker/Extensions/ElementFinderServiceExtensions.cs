@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Windows.Automation;
 using UIAutomationMCP.Common.Services;
 using UIAutomationMCP.Models.Results;
+using UIAutomationMCP.Common.Helpers;
 
 namespace UIAutomationMCP.Worker.Extensions
 {
@@ -80,6 +81,9 @@ namespace UIAutomationMCP.Worker.Extensions
         {
             try
             {
+                // Create temporary ElementInfo to get MainProcessId using existing logic
+                var tempElementInfo = ElementInfoBuilder.CreateElementInfo(element, false);
+                
                 return new BasicElementInfo
                 {
                     AutomationId = element.Current.AutomationId ?? string.Empty,
@@ -88,7 +92,8 @@ namespace UIAutomationMCP.Worker.Extensions
                     ControlType = element.Current.ControlType.ProgrammaticName,
                     IsEnabled = element.Current.IsEnabled,
                     IsOffscreen = element.Current.IsOffscreen,
-                    ProcessId = element.Current.ProcessId
+                    ProcessId = element.Current.ProcessId,
+                    MainProcessId = tempElementInfo.MainProcessId
                 };
             }
             catch

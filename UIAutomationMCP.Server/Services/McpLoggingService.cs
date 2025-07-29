@@ -9,7 +9,7 @@ namespace UIAutomationMCP.Server.Services
     /// </summary>
     public class McpLoggingService : IMcpLogService
     {
-        private readonly IMcpEndpoint? _mcpEndpoint;
+        private IMcpEndpoint? _mcpEndpoint;
         private readonly ILogger<McpLoggingService> _fallbackLogger;
         private readonly Queue<McpLogMessage> _pendingLogs = new();
         private readonly object _lock = new();
@@ -31,6 +31,7 @@ namespace UIAutomationMCP.Server.Services
             {
                 if (_mcpEndpoint == null)
                 {
+                    _mcpEndpoint = mcpEndpoint;
                     _mcpEndpointAvailable = true;
                     
                     // Send any pending logs
