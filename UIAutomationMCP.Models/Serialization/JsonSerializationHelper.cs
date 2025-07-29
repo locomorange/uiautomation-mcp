@@ -415,7 +415,6 @@ namespace UIAutomationMCP.Models.Serialization
     [JsonSerializable(typeof(GetElementDetailsRequest))]
     [JsonSerializable(typeof(SearchElementsResult))]
     [JsonSerializable(typeof(ElementDetailResult))]
-    [JsonSerializable(typeof(BasicElementInfo))]
     [JsonSerializable(typeof(SearchMetadata))]
     [JsonSerializable(typeof(DetailMetadata))]
     [JsonSerializable(typeof(ElementDetail))]

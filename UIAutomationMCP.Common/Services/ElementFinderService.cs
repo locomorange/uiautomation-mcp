@@ -113,31 +113,19 @@ namespace UIAutomationMCP.Common.Services
         }
 
         /// <summary>
-        /// Convert AutomationElement to BasicElementInfo using ElementInfoBuilder
+        /// Convert AutomationElement to ElementInfo using ElementInfoBuilder
         /// </summary>
-        public BasicElementInfo GetElementBasicInfo(AutomationElement element)
+        public ElementInfo GetElementBasicInfo(AutomationElement element)
         {
             try
             {
                 // Use ElementInfoBuilder for consistent element information extraction
-                var elementInfo = ElementInfoBuilder.CreateElementInfo(element, includeDetails: false, _logger);
-                
-                return new BasicElementInfo
-                {
-                    AutomationId = elementInfo.AutomationId,
-                    Name = elementInfo.Name,
-                    ControlType = elementInfo.ControlType,
-                    ClassName = elementInfo.ClassName,
-                    IsEnabled = elementInfo.IsEnabled,
-                    ProcessId = elementInfo.ProcessId,
-                    BoundingRectangle = elementInfo.BoundingRectangle,
-                    IsOffscreen = elementInfo.IsOffscreen
-                };
+                return ElementInfoBuilder.CreateElementInfo(element, includeDetails: false, _logger);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting element basic info");
-                return new BasicElementInfo
+                return new ElementInfo
                 {
                     AutomationId = "Error",
                     Name = "Error retrieving element info",

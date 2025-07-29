@@ -3,6 +3,7 @@ using System.Windows.Automation;
 using UIAutomationMCP.Common.Services;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Common.Helpers;
+using UIAutomationMCP.Models;
 
 namespace UIAutomationMCP.Worker.Extensions
 {
@@ -77,28 +78,16 @@ namespace UIAutomationMCP.Worker.Extensions
             return AutomationElement.RootElement;
         }
 
-        public static BasicElementInfo GetElementBasicInfo(this ElementFinderService service, AutomationElement element)
+        public static ElementInfo GetElementBasicInfo(this ElementFinderService service, AutomationElement element)
         {
             try
             {
-                // Create temporary ElementInfo to get MainProcessId using existing logic
-                var tempElementInfo = ElementInfoBuilder.CreateElementInfo(element, false);
-                
-                return new BasicElementInfo
-                {
-                    AutomationId = element.Current.AutomationId ?? string.Empty,
-                    Name = element.Current.Name ?? string.Empty,
-                    ClassName = element.Current.ClassName ?? string.Empty,
-                    ControlType = element.Current.ControlType.ProgrammaticName,
-                    IsEnabled = element.Current.IsEnabled,
-                    IsOffscreen = element.Current.IsOffscreen,
-                    ProcessId = element.Current.ProcessId,
-                    MainProcessId = tempElementInfo.MainProcessId
-                };
+                // Use ElementInfoBuilder for consistent element information extraction
+                return ElementInfoBuilder.CreateElementInfo(element, false);
             }
             catch
             {
-                return new BasicElementInfo();
+                return new ElementInfo();
             }
         }
     }

@@ -28,7 +28,7 @@ namespace UIAutomationMCP.Server.Services
         /// <summary>
         /// Capture all UI elements using SearchElements
         /// </summary>
-        private async Task<List<BasicElementInfo>> CaptureAllElements(int timeoutSeconds, CancellationToken cancellationToken)
+        private async Task<List<ElementInfo>> CaptureAllElements(int timeoutSeconds, CancellationToken cancellationToken)
         {
             try
             {
@@ -52,19 +52,19 @@ namespace UIAutomationMCP.Server.Services
                 }
 
                 _logger.LogWarning("Failed to capture UI elements");
-                return new List<BasicElementInfo>();
+                return new List<ElementInfo>();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error capturing UI elements");
-                return new List<BasicElementInfo>();
+                return new List<ElementInfo>();
             }
         }
 
         /// <summary>
         /// Find new process IDs by comparing PID lists
         /// </summary>
-        private List<BasicElementInfo> FindNewElements(List<BasicElementInfo> beforeElements, List<BasicElementInfo> afterElements)
+        private List<ElementInfo> FindNewElements(List<ElementInfo> beforeElements, List<ElementInfo> afterElements)
         {
             // Get PID lists
             var beforePids = beforeElements.Select(e => e.ProcessId).ToList();
@@ -103,14 +103,14 @@ namespace UIAutomationMCP.Server.Services
         /// <summary>
         /// Wait for new elements to appear after application launch
         /// </summary>
-        private async Task<List<BasicElementInfo>> WaitForNewElements(
-            List<BasicElementInfo> beforeElements, 
+        private async Task<List<ElementInfo>> WaitForNewElements(
+            List<ElementInfo> beforeElements, 
             string appName, 
             int maxWaitMs, 
             CancellationToken cancellationToken)
         {
             var stopwatch = Stopwatch.StartNew();
-            var allNewElements = new List<BasicElementInfo>();
+            var allNewElements = new List<ElementInfo>();
 
             _logger.LogDebug("Waiting for new elements for {AppName}, max wait: {MaxWait}ms", appName, maxWaitMs);
 
@@ -154,7 +154,7 @@ namespace UIAutomationMCP.Server.Services
         /// <summary>
         /// Check if an element is related to the launched application
         /// </summary>
-        private bool IsRelatedToApp(BasicElementInfo element, string appName)
+        private bool IsRelatedToApp(ElementInfo element, string appName)
         {
             var name = element.Name ?? "";
             var className = element.ClassName ?? "";

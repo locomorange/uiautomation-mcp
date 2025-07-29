@@ -133,8 +133,8 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     foundElementsList = foundElementsList.Take(request.MaxResults).ToList();
                 }
 
-                // Convert to BasicElementInfo array
-                var elements = ConvertToBasicElementInfoArray(foundElementsList);
+                // Convert to ElementInfo array
+                var elements = foundElementsList.Select(e => _elementFinderService.GetElementBasicInfo(e)).ToArray();
 
                 searchStopwatch.Stop();
 
@@ -164,13 +164,6 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             }
         }
 
-        /// <summary>
-        /// Convert AutomationElements to BasicElementInfo array using ElementFinderService
-        /// </summary>
-        private BasicElementInfo[] ConvertToBasicElementInfoArray(List<AutomationElement> elements)
-        {
-            return elements.Select(e => _elementFinderService.GetElementBasicInfo(e)).ToArray();
-        }
 
         /// <summary>
         /// Sort elements using basic criteria
