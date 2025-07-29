@@ -22,7 +22,7 @@ namespace UIAutomationMCP.Monitor.Operations
         {
         }
 
-        protected override async Task<EventMonitoringStopResult> ExecuteOperationAsync(StopEventMonitoringRequest request)
+        protected override Task<EventMonitoringStopResult> ExecuteOperationAsync(StopEventMonitoringRequest request)
         {
             _logger.LogInformation("Stopping event monitoring - MonitorId: {MonitorId}", request.MonitorId);
 
@@ -31,13 +31,13 @@ namespace UIAutomationMCP.Monitor.Operations
             {
                 _logger.LogWarning("Session not found: {MonitorId}", request.MonitorId);
                 
-                return new EventMonitoringStopResult
+                return Task.FromResult(new EventMonitoringStopResult
                 {
                     Success = false,
                     SessionId = request.MonitorId,
                     FinalEventCount = 0,
                     MonitoringStatus = "Session not found"
-                };
+                });
             }
 
             var finalEventCount = session.EventCount;
@@ -60,7 +60,7 @@ namespace UIAutomationMCP.Monitor.Operations
             _logger.LogInformation("Event monitoring stopped successfully - SessionId: {SessionId}, FinalEventCount: {EventCount}",
                 request.MonitorId, finalEventCount);
 
-            return result;
+            return Task.FromResult(result);
         }
     }
 }

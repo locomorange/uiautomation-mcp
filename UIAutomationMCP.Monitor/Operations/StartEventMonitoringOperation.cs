@@ -68,8 +68,8 @@ namespace UIAutomationMCP.Monitor.Operations
             {
                 Success = true,
                 EventType = string.Join(", ", request.EventTypes),
-                ElementId = request.AutomationId,
-                WindowTitle = request.WindowTitle,
+                ElementId = request.AutomationId ?? string.Empty,
+                WindowTitle = request.WindowTitle ?? string.Empty,
                 ProcessId = request.ProcessId,
                 SessionId = sessionId,
                 MonitoringStatus = "Started"

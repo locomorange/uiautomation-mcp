@@ -22,7 +22,7 @@ namespace UIAutomationMCP.Monitor.Operations
         {
         }
 
-        protected override async Task<EventLogResult> ExecuteOperationAsync(GetEventLogRequest request)
+        protected override Task<EventLogResult> ExecuteOperationAsync(GetEventLogRequest request)
         {
             _logger.LogInformation("Getting event log - MonitorId: {MonitorId}, MaxCount: {MaxCount}", 
                 request.MonitorId, request.MaxCount);
@@ -32,13 +32,13 @@ namespace UIAutomationMCP.Monitor.Operations
             {
                 _logger.LogWarning("Session not found: {MonitorId}", request.MonitorId);
                 
-                return new EventLogResult
+                return Task.FromResult(new EventLogResult
                 {
                     Success = false,
                     MonitorId = request.MonitorId,
                     Events = new List<TypedEventData>(),
                     SessionActive = false
-                };
+                });
             }
 
             var typedEvents = session.GetCapturedEvents(request.MaxCount);
@@ -54,7 +54,7 @@ namespace UIAutomationMCP.Monitor.Operations
             _logger.LogInformation("Retrieved {EventCount} events for session {SessionId}", 
                 typedEvents.Count, request.MonitorId);
 
-            return result;
+            return Task.FromResult(result);
         }
 
     }
