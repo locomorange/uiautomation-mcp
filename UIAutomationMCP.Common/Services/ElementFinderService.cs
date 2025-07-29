@@ -153,15 +153,17 @@ namespace UIAutomationMCP.Common.Services
         private AutomationElement? GetSearchRoot(ElementSearchCriteria criteria)
         {
             AutomationElement rootElement = AutomationElement.RootElement;
+            _logger.LogDebug("Starting with AutomationElement.RootElement: {RootName}", rootElement?.Current.Name ?? "null");
 
             // Find process window if specified and UseProcessIdAsSearchRoot is true
             if (criteria.ProcessId.HasValue && criteria.UseProcessIdAsSearchRoot)
             {
+                _logger.LogDebug("Searching for process window with ProcessId: {ProcessId}", criteria.ProcessId.Value);
                 var processCondition = new PropertyCondition(AutomationElement.ProcessIdProperty, criteria.ProcessId.Value);
                 var processWindow = rootElement.FindFirst(TreeScope.Children, processCondition);
                 if (processWindow != null)
                 {
-                    _logger.LogDebug("Found process window for ProcessId: {ProcessId} (used as search root)", criteria.ProcessId.Value);
+                    _logger.LogDebug("Found process window for ProcessId: {ProcessId} -> Name: {WindowName} (used as search root)", criteria.ProcessId.Value, processWindow.Current.Name);
                     return processWindow;
                 }
                 else
@@ -174,6 +176,7 @@ namespace UIAutomationMCP.Common.Services
             // Find window by title if specified
             if (!string.IsNullOrEmpty(criteria.WindowTitle))
             {
+                _logger.LogDebug("Searching for window by title: {WindowTitle}", criteria.WindowTitle);
                 var windowCondition = new PropertyCondition(AutomationElement.NameProperty, criteria.WindowTitle);
                 var window = rootElement.FindFirst(TreeScope.Children, windowCondition);
                 if (window != null)
@@ -188,22 +191,42 @@ namespace UIAutomationMCP.Common.Services
                 }
             }
 
+            // If ProcessId is not specified but UseProcessIdAsSearchRoot is true, 
+            // still use root element (don't return null)
+            if (!criteria.ProcessId.HasValue && criteria.UseProcessIdAsSearchRoot)
+            {
+                _logger.LogDebug("ProcessId not specified but UseProcessIdAsSearchRoot is true, using RootElement");
+            }
+
+            _logger.LogDebug("Using RootElement as search root");
             return rootElement;
         }
 
         private Condition? BuildSearchCondition(ElementSearchCriteria criteria)
         {
             var conditions = new List<Condition>();
+            
+            _logger.LogDebug("Building search condition with criteria: AutomationId={AutomationId}, Name={Name}, ControlType={ControlType}, WindowTitle={WindowTitle}, ProcessId={ProcessId}, UseProcessIdAsSearchRoot={UseProcessIdAsSearchRoot}",
+                criteria.AutomationId, criteria.Name, criteria.ControlType, criteria.WindowTitle, criteria.ProcessId, criteria.UseProcessIdAsSearchRoot);
 
             // Primary identifiers
             if (!string.IsNullOrEmpty(criteria.AutomationId))
+            {
                 conditions.Add(new PropertyCondition(AutomationElement.AutomationIdProperty, criteria.AutomationId));
+                _logger.LogDebug("Added AutomationId condition: {AutomationId}", criteria.AutomationId);
+            }
 
             if (!string.IsNullOrEmpty(criteria.Name))
+            {
                 conditions.Add(new PropertyCondition(AutomationElement.NameProperty, criteria.Name));
+                _logger.LogDebug("Added Name condition: {Name}", criteria.Name);
+            }
 
             if (!string.IsNullOrEmpty(criteria.ClassName))
+            {
                 conditions.Add(new PropertyCondition(AutomationElement.ClassNameProperty, criteria.ClassName));
+                _logger.LogDebug("Added ClassName condition: {ClassName}", criteria.ClassName);
+            }
 
             // Control type filter
             if (!string.IsNullOrEmpty(criteria.ControlType))
@@ -211,6 +234,11 @@ namespace UIAutomationMCP.Common.Services
                 if (TryGetControlType(criteria.ControlType, out var controlType))
                 {
                     conditions.Add(new PropertyCondition(AutomationElement.ControlTypeProperty, controlType));
+                    _logger.LogDebug("Added ControlType condition: {ControlType} -> {ProgrammaticName}", criteria.ControlType, controlType?.ProgrammaticName);
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to add ControlType condition for: {ControlType}", criteria.ControlType);
                 }
             }
 
@@ -223,23 +251,34 @@ namespace UIAutomationMCP.Common.Services
 
             // Visibility filter
             if (criteria.VisibleOnly)
+            {
                 conditions.Add(new PropertyCondition(AutomationElement.IsOffscreenProperty, false));
+                _logger.LogDebug("Added VisibleOnly condition");
+            }
 
             // Enabled filter
             if (criteria.EnabledOnly)
+            {
                 conditions.Add(new PropertyCondition(AutomationElement.IsEnabledProperty, true));
+                _logger.LogDebug("Added EnabledOnly condition");
+            }
 
             // Return appropriate condition
             if (conditions.Count == 0)
             {
                 // If no specific conditions are specified, return a condition that matches all elements
                 // This is useful when searching by ProcessId only to get all child elements
+                _logger.LogDebug("No conditions specified, using TrueCondition");
                 return Condition.TrueCondition;
             }
             
             if (conditions.Count == 1)
+            {
+                _logger.LogDebug("Using single condition");
                 return conditions[0];
+            }
             
+            _logger.LogDebug("Using AndCondition with {Count} conditions", conditions.Count);
             return new AndCondition(conditions.ToArray());
         }
 
@@ -261,10 +300,13 @@ namespace UIAutomationMCP.Common.Services
 
             try
             {
+                _logger.LogDebug("Trying to resolve ControlType: {ControlTypeName}", controlTypeName);
+                
                 var field = typeof(ControlType).GetField(controlTypeName);
                 if (field?.GetValue(null) is ControlType ct)
                 {
                     controlType = ct;
+                    _logger.LogDebug("✓ Resolved {ControlTypeName} -> {ProgrammaticName}", controlTypeName, ct.ProgrammaticName);
                     return true;
                 }
 
@@ -273,9 +315,11 @@ namespace UIAutomationMCP.Common.Services
                 if (field?.GetValue(null) is ControlType ct2)
                 {
                     controlType = ct2;
+                    _logger.LogDebug("✓ Resolved {ControlTypeName} -> {ProgrammaticName} (with suffix)", controlTypeName, ct2.ProgrammaticName);
                     return true;
                 }
 
+                _logger.LogWarning("✗ Failed to resolve ControlType: {ControlTypeName}", controlTypeName);
                 return false;
             }
             catch (Exception ex)
