@@ -23,324 +23,150 @@ namespace UIAutomationMCP.Server.Services
 
         protected override string GetOperationType() => "applicationLauncher";
 
-        #region Process-based detection methods with SearchElements validation
+        #region Element-based detection methods
 
         /// <summary>
-        /// Find all new processes that match the application name
+        /// Capture all UI elements using SearchElements
         /// </summary>
-        private async Task<List<int>> FindAllNewProcesses(string appName, HashSet<int> beforeProcesses, int maxWaitMs, CancellationToken cancellationToken)
+        private async Task<List<BasicElementInfo>> CaptureAllElements(int timeoutSeconds, CancellationToken cancellationToken)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var foundProcesses = new HashSet<int>();
-
-            _logger.LogDebug("Starting process detection for {AppName}, max wait: {MaxWait}ms", appName, maxWaitMs);
-
-            while (stopwatch.ElapsedMilliseconds < maxWaitMs && !cancellationToken.IsCancellationRequested)
-            {
-                try
-                {
-                    var currentProcesses = Process.GetProcesses()
-                        .Where(p => IsRelevantProcess(p, appName))
-                        .ToList();
-
-                    var newProcesses = currentProcesses.Where(p => !beforeProcesses.Contains(p.Id)).ToList();
-
-                    foreach (var newProcess in newProcesses)
-                    {
-                        if (!foundProcesses.Contains(newProcess.Id))
-                        {
-                            foundProcesses.Add(newProcess.Id);
-                            _logger.LogDebug("Found new process candidate: {ProcessId} ({ProcessName}) for {AppName}", 
-                                newProcess.Id, newProcess.ProcessName, appName);
-                        }
-                    }
-
-                    // Dispose all processes
-                    foreach (var p in currentProcesses)
-                        p.Dispose();
-
-                    // Wait a bit longer to capture processes that might launch with delay (like calc.exe -> CalculatorApp.exe)
-                    if (foundProcesses.Any() && stopwatch.ElapsedMilliseconds > 1000)
-                    {
-                        _logger.LogDebug("Found {Count} processes after {ElapsedMs}ms, continuing for potential delayed launches", 
-                            foundProcesses.Count, stopwatch.ElapsedMilliseconds);
-                    }
-
-                    await Task.Delay(500, cancellationToken);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogDebug(ex, "Error during process search for {AppName}", appName);
-                    await Task.Delay(500, cancellationToken);
-                }
-            }
-
-            var result = foundProcesses.ToList();
-            _logger.LogInformation("Process detection completed for {AppName}: found {Count} candidates in {ElapsedMs}ms: [{Processes}]", 
-                appName, result.Count, stopwatch.ElapsedMilliseconds, string.Join(", ", result));
-            
-            return result;
-        }
-
-        /// <summary>
-        /// Validate process candidates using SearchElements with process ID filtering and parent PID analysis
-        /// </summary>
-        private async Task<List<ValidatedProcess>> ValidateProcessCandidatesAsync(List<int> candidateProcesses, string appName, int timeoutSeconds = 20)
-        {
-            if (!candidateProcesses.Any())
-            {
-                return new List<ValidatedProcess>();
-            }
-
-            _logger.LogDebug("Validating {Count} process candidates using SearchElements with parent PID analysis", candidateProcesses.Count);
-            
             try
             {
-                // Use ProcessId filter to search elements from all candidate processes efficiently
-                var allElements = new List<BasicElementInfo>();
+                _logger.LogDebug("Capturing all UI elements with scope 'children'");
                 
-                foreach (var processId in candidateProcesses)
-                {
-                    try
-                    {
-                        _logger.LogDebug("Searching elements for ProcessId={ProcessId}", processId);
-                        
-                        var request = new SearchElementsRequest 
-                        { 
-                            ProcessId = processId,
-                            UseProcessIdAsSearchRoot = false, // Search desktop-wide, filter by ProcessId
-                            Scope = "subtree", 
-                            MaxResults = 50, 
-                            IncludeDetails = false, 
-                            BypassCache = true 
-                        };
-                        
-                        var result = await ExecuteServiceOperationAsync<SearchElementsRequest, SearchElementsResult>(
-                            "SearchElements", request, nameof(ValidateProcessCandidatesAsync), timeoutSeconds);
+                var request = new SearchElementsRequest 
+                { 
+                    Scope = "children", // Search only direct children of desktop (windows)
+                    MaxResults = 1000, 
+                    IncludeDetails = false, 
+                    BypassCache = true // Force fresh data - essential for detecting new elements
+                };
+                
+                var result = await ExecuteServiceOperationAsync<SearchElementsRequest, SearchElementsResult>(
+                    "SearchElements", request, nameof(CaptureAllElements), timeoutSeconds);
 
-                        if (result.Success && result.Data?.Elements != null && result.Data.Elements.Any())
-                        {
-                            allElements.AddRange(result.Data.Elements);
-                            _logger.LogDebug("Found {Count} elements for ProcessId={ProcessId}", 
-                                result.Data.Elements.Length, processId);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogDebug(ex, "Exception searching ProcessId={ProcessId}", processId);
-                    }
+                if (result.Success && result.Data?.Elements != null)
+                {
+                    _logger.LogDebug("Captured {Count} UI elements", result.Data.Elements.Length);
+                    return result.Data.Elements.ToList();
                 }
 
-                _logger.LogDebug("Total elements found: {Count} from {ProcessCount} processes", allElements.Count, candidateProcesses.Count);
-
-                // Filter to valid application elements
-                var relevantElements = allElements
-                    .Where(IsValidApplicationElement)
-                    .ToList();
-
-                _logger.LogInformation("Parent PID Analysis: Found {Count} relevant elements from candidate processes. Candidates: [{Candidates}]", 
-                    relevantElements.Count, string.Join(", ", candidateProcesses));
-                
-                // Group elements by their MainProcessId (parent process) or fallback to ProcessId
-                var candidateSet = candidateProcesses.ToHashSet();
-                var processGrouped = relevantElements
-                    .GroupBy(e => e.MainProcessId ?? e.ProcessId)
-                    .Where(g => candidateSet.Contains(g.Key))
-                    .ToDictionary(g => g.Key, g => g.ToList());
-
-                _logger.LogInformation("Process Grouping: Found {GroupCount} process groups: [{ProcessIds}]",
-                    processGrouped.Count, string.Join(", ", processGrouped.Keys));
-
-                var validatedProcesses = new List<ValidatedProcess>();
-
-                foreach (var (processId, elements) in processGrouped)
-                {
-                    var validElements = elements.Where(IsValidApplicationElement).ToList();
-                    
-                    if (validElements.Any())
-                    {
-                        var validated = new ValidatedProcess
-                        {
-                            ProcessId = processId,
-                            WindowCount = elements.Count,
-                            ValidWindowCount = validElements.Count,
-                            WindowNames = validElements.Select(w => w.Name ?? "").Where(n => !string.IsNullOrEmpty(n)).Distinct().ToList(),
-                            HasMainWindow = validElements.Any(w => IsMainApplicationElement(w, appName))
-                        };
-                        
-                        validatedProcesses.Add(validated);
-                        _logger.LogInformation("Process {ProcessId} validated via parent PID analysis: {ElementCount} elements, {ValidCount} valid, HasMain: {HasMain}, Names: [{Names}]", 
-                            processId, validated.WindowCount, validated.ValidWindowCount, validated.HasMainWindow,
-                            string.Join(", ", validated.WindowNames));
-                    }
-                }
-
-                _logger.LogInformation("Parent PID analysis completed: validated {Count} processes from {CandidateCount} candidates", 
-                    validatedProcesses.Count, candidateProcesses.Count);
-
-                return validatedProcesses;
+                _logger.LogWarning("Failed to capture UI elements");
+                return new List<BasicElementInfo>();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during parent PID analysis for {AppName}", appName);
-                return new List<ValidatedProcess>();
+                _logger.LogError(ex, "Error capturing UI elements");
+                return new List<BasicElementInfo>();
             }
         }
 
         /// <summary>
-        /// Check if an element represents a valid application element (broader than just windows)
+        /// Find new process IDs by comparing PID lists
         /// </summary>
-        private bool IsValidApplicationElement(BasicElementInfo element)
+        private List<BasicElementInfo> FindNewElements(List<BasicElementInfo> beforeElements, List<BasicElementInfo> afterElements)
         {
-            // Filter out system and shell elements
+            // Get PID lists
+            var beforePids = beforeElements.Select(e => e.ProcessId).ToList();
+            var afterPids = afterElements.Select(e => e.ProcessId).ToList();
+            
+            _logger.LogDebug("Before PIDs: [{BeforePids}]", string.Join(", ", beforePids.Take(10)));
+            _logger.LogDebug("After PIDs: [{AfterPids}]", string.Join(", ", afterPids.Take(10)));
+            
+            // Find new PIDs that appeared after launch
+            var newPids = new HashSet<int>();
+            
+            // Simple approach: if a PID appears more times in after than before, it's new
+            var beforePidCounts = beforePids.GroupBy(p => p).ToDictionary(g => g.Key, g => g.Count());
+            var afterPidCounts = afterPids.GroupBy(p => p).ToDictionary(g => g.Key, g => g.Count());
+            
+            foreach (var (pid, afterCount) in afterPidCounts)
+            {
+                var beforeCount = beforePidCounts.GetValueOrDefault(pid, 0);
+                if (afterCount > beforeCount)
+                {
+                    newPids.Add(pid);
+                    _logger.LogInformation("PID {Pid} increased from {Before} to {After} windows - marking as new", 
+                        pid, beforeCount, afterCount);
+                }
+            }
+            
+            // Return all elements with new PIDs
+            var newElements = afterElements.Where(e => newPids.Contains(e.ProcessId)).ToList();
+            
+            _logger.LogInformation("Before: {BeforeCount} windows, After: {AfterCount} windows, New PIDs: [{NewPids}], New elements: {NewCount}", 
+                beforeElements.Count, afterElements.Count, string.Join(", ", newPids), newElements.Count);
+            
+            return newElements;
+        }
+
+        /// <summary>
+        /// Wait for new elements to appear after application launch
+        /// </summary>
+        private async Task<List<BasicElementInfo>> WaitForNewElements(
+            List<BasicElementInfo> beforeElements, 
+            string appName, 
+            int maxWaitMs, 
+            CancellationToken cancellationToken)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var allNewElements = new List<BasicElementInfo>();
+
+            _logger.LogDebug("Waiting for new elements for {AppName}, max wait: {MaxWait}ms", appName, maxWaitMs);
+
+            while (stopwatch.ElapsedMilliseconds < maxWaitMs && !cancellationToken.IsCancellationRequested)
+            {
+                var currentElements = await CaptureAllElements(10, cancellationToken);
+                var newElements = FindNewElements(beforeElements, currentElements);
+
+                if (newElements.Any())
+                {
+                    // Merge new elements, avoiding duplicates by ProcessId
+                    var existingProcessIds = new HashSet<int>(allNewElements.Select(e => e.ProcessId));
+                    var uniqueNewElements = newElements.Where(e => !existingProcessIds.Contains(e.ProcessId)).ToList();
+                    
+                    allNewElements.AddRange(uniqueNewElements);
+                    _logger.LogDebug("Found {NewCount} new unique elements, total: {TotalCount}", 
+                        uniqueNewElements.Count, allNewElements.Count);
+
+                    // If we found elements related to the app, wait a bit more for additional elements
+                    if (allNewElements.Any(e => IsRelatedToApp(e, appName)) && stopwatch.ElapsedMilliseconds < maxWaitMs - 1000)
+                    {
+                        await Task.Delay(500, cancellationToken);
+                        continue;
+                    }
+                }
+
+                if (allNewElements.Any())
+                {
+                    break; // We have elements, stop waiting
+                }
+
+                await Task.Delay(500, cancellationToken); // Longer delay to allow UI elements to be created
+            }
+
+            _logger.LogInformation("Element detection completed for {AppName}: found {Count} new elements in {ElapsedMs}ms", 
+                appName, allNewElements.Count, stopwatch.ElapsedMilliseconds);
+            
+            return allNewElements;
+        }
+
+        /// <summary>
+        /// Check if an element is related to the launched application
+        /// </summary>
+        private bool IsRelatedToApp(BasicElementInfo element, string appName)
+        {
             var name = element.Name ?? "";
             var className = element.ClassName ?? "";
-            var controlType = element.ControlType ?? "";
-            
-            // Exclude common system elements
-            if (name.Equals("Program Manager", StringComparison.OrdinalIgnoreCase) ||
-                name.Equals("Shell_TrayWnd", StringComparison.OrdinalIgnoreCase) ||
-                className.Equals("Shell_TrayWnd", StringComparison.OrdinalIgnoreCase) ||
-                className.Equals("Progman", StringComparison.OrdinalIgnoreCase) ||
-                name.Equals("Desktop", StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            // Accept various UI elements that indicate an active application
-            var validControlTypes = new[] { "Window", "Pane", "Button", "Document", "Edit", "Text", "Group" };
-            if (!string.IsNullOrEmpty(controlType) && !validControlTypes.Contains(controlType, StringComparer.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            // Must be enabled for user interaction (allow offscreen elements for now)
-            return element.IsEnabled;
-        }
-
-        /// <summary>
-        /// Check if an element is likely from the main application (broader than just windows)
-        /// </summary>
-        private bool IsMainApplicationElement(BasicElementInfo element, string appName)
-        {
-            var name = element.Name ?? "";
             var cleanAppName = Path.GetFileNameWithoutExtension(appName).ToLowerInvariant();
             
-            // Check if element name contains the application name or common calculator terms
             return name.ToLowerInvariant().Contains(cleanAppName) ||
-                   name.ToLowerInvariant().Contains(appName.ToLowerInvariant()) ||
+                   className.ToLowerInvariant().Contains(cleanAppName) ||
                    (cleanAppName == "calc" && (name.ToLowerInvariant().Contains("calculator") || 
                                                name.ToLowerInvariant().Contains("計算") ||
                                                name.ToLowerInvariant().Contains("電卓")));
         }
 
-        /// <summary>
-        /// Select the best validated process based on selection criteria
-        /// </summary>
-        private int SelectBestValidatedProcess(List<ValidatedProcess> validatedProcesses, int? launchedProcessId, string appName)
-        {
-            if (!validatedProcesses.Any())
-            {
-                _logger.LogDebug("No validated processes available for selection");
-                return 0;
-            }
-
-            _logger.LogDebug("Selecting best process from {Count} validated candidates for {AppName}", 
-                validatedProcesses.Count, appName);
-
-            // 1. Prefer processes with main application window
-            var mainWindowProcesses = validatedProcesses.Where(p => p.HasMainWindow).ToList();
-            if (mainWindowProcesses.Any())
-            {
-                var selected = mainWindowProcesses.OrderByDescending(p => p.ProcessId).First();
-                _logger.LogInformation("Selected process {ProcessId} with main window (Names: [{Names}])", 
-                    selected.ProcessId, string.Join(", ", selected.WindowNames));
-                return selected.ProcessId;
-            }
-
-            // 2. Prefer processes that match the launched process ID if available
-            if (launchedProcessId.HasValue)
-            {
-                var matchingProcess = validatedProcesses.FirstOrDefault(p => p.ProcessId == launchedProcessId.Value);
-                if (matchingProcess != null)
-                {
-                    _logger.LogInformation("Selected launched process {ProcessId} (Names: [{Names}])", 
-                        matchingProcess.ProcessId, string.Join(", ", matchingProcess.WindowNames));
-                    return matchingProcess.ProcessId;
-                }
-            }
-
-            // 3. Prefer processes with more valid windows
-            var bestByWindowCount = validatedProcesses.OrderByDescending(p => p.ValidWindowCount).ThenByDescending(p => p.ProcessId).First();
-            _logger.LogInformation("Selected process {ProcessId} with {ValidCount} valid windows (Names: [{Names}])", 
-                bestByWindowCount.ProcessId, bestByWindowCount.ValidWindowCount, string.Join(", ", bestByWindowCount.WindowNames));
-            return bestByWindowCount.ProcessId;
-        }
-
-        /// <summary>
-        /// Unified process detection method used after launching applications
-        /// </summary>
-        private async Task<int> DetectLaunchedProcess(string appName, HashSet<int> beforeProcesses, int? launchedProcessId, int timeoutSeconds, CancellationToken cancellationToken)
-        {
-            try
-            {
-                // Find all new processes using process difference detection
-                var candidateProcesses = await FindAllNewProcesses(appName, beforeProcesses, 8000, cancellationToken);
-                _logger.LogDebug("Found {Count} candidate processes for {Application}: [{Candidates}]", 
-                    candidateProcesses.Count, appName, string.Join(", ", candidateProcesses));
-
-                if (candidateProcesses.Any())
-                {
-                    // Validate candidates using SearchElements requests
-                    var validatedProcesses = await ValidateProcessCandidatesAsync(candidateProcesses, appName, timeoutSeconds);
-                    _logger.LogDebug("Validated {Count} processes with windows for {Application}: [{Validated}]", 
-                        validatedProcesses.Count, appName, string.Join(", ", validatedProcesses.Select(p => p.ProcessId)));
-
-                    // Select the best validated process
-                    var selectedProcessId = SelectBestValidatedProcess(validatedProcesses, launchedProcessId, appName);
-                    
-                    if (selectedProcessId > 0)
-                    {
-                        _logger.LogInformation("Successfully detected process for {Application}, final PID: {ProcessId} (launched PID: {LaunchedPID})", 
-                            appName, selectedProcessId, launchedProcessId);
-                        return selectedProcessId;
-                    }
-                    else if (validatedProcesses.Any())
-                    {
-                        // Fallback: return the best validated process even if no main window found
-                        var fallbackProcess = validatedProcesses.OrderByDescending(p => p.ValidWindowCount).ThenByDescending(p => p.ProcessId).First();
-                        _logger.LogInformation("No ideal process found, using fallback validated PID: {ProcessId} with {WindowCount} windows for {Application}", 
-                            fallbackProcess.ProcessId, fallbackProcess.ValidWindowCount, appName);
-                        return fallbackProcess.ProcessId;
-                    }
-                    else
-                    {
-                        // Fallback: For applications that don't have UIAutomation-accessible windows,
-                        // return the newest process (highest PID) as a reasonable default
-                        var fallbackProcessId = candidateProcesses.OrderByDescending(pid => pid).First();
-                        _logger.LogWarning("SearchElements validation failed for all candidates for {Application}: [{Candidates}]. Using fallback strategy: selecting newest process PID {FallbackPID}", 
-                            appName, string.Join(", ", candidateProcesses), fallbackProcessId);
-                        
-                        return fallbackProcessId;
-                    }
-                }
-
-                // Fallback: Return launched process ID if available
-                if (launchedProcessId.HasValue)
-                {
-                    _logger.LogWarning("Process detection failed for {Application}, returning launched PID: {ProcessId}", 
-                        appName, launchedProcessId.Value);
-                    return launchedProcessId.Value;
-                }
-
-                return 0;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error during process detection for {Application}", appName);
-                return 0;
-            }
-        }
 
         #endregion
 
@@ -353,21 +179,35 @@ namespace UIAutomationMCP.Server.Services
             
             try
             {
-                // Get baseline processes before launching
-                var beforeProcesses = GetRelevantProcesses(application);
-                _logger.LogDebug("Baseline processes for {Application}: {Count} processes", application, beforeProcesses.Count);
+                // Capture baseline UI elements before launching
+                var beforeElements = await CaptureAllElements(timeoutSeconds, cancellationToken);
+                _logger.LogInformation("Baseline elements for {Application}: {Count} elements", application, beforeElements.Count);
                 
                 // Step 1: Try Win32 application launch
                 var win32LaunchResult = await TryLaunchWin32(application, arguments, workingDirectory, cancellationToken);
                 if (win32LaunchResult.LaunchSucceeded)
                 {
-                    _logger.LogDebug("Win32 launch succeeded for {Application}, now detecting process", application);
-                    var processId = await DetectLaunchedProcess(application, beforeProcesses, win32LaunchResult.LaunchedProcessId, timeoutSeconds, cancellationToken);
-                    if (processId > 0)
+                    _logger.LogInformation("Win32 launch succeeded for {Application}, now detecting new elements", application);
+                    // Wait a moment for the application to create its UI elements
+                    await Task.Delay(1000, cancellationToken);
+                    var newElements = await WaitForNewElements(beforeElements, application, 8000, cancellationToken);
+                    _logger.LogInformation("Found {Count} new elements after Win32 launch", newElements.Count);
+                    if (newElements.Any())
                     {
                         detectionStopwatch.Stop();
-                        _logger.LogInformation("Successfully launched Win32 application: {Application}, PID: {ProcessId} in {ElapsedMs}ms", 
-                            application, processId, detectionStopwatch.ElapsedMilliseconds);
+                        
+                        // Group elements by ProcessId and find the most relevant process
+                        var elementsByProcess = newElements.GroupBy(e => e.ProcessId).ToList();
+                        var mostRelevantGroup = elementsByProcess
+                            .OrderByDescending(g => g.Any(e => IsRelatedToApp(e, application)) ? 1 : 0)
+                            .ThenByDescending(g => g.Count())
+                            .First();
+                        
+                        var processId = mostRelevantGroup.Key;
+                        var relevantElements = mostRelevantGroup.ToList();
+                        
+                        _logger.LogInformation("Successfully launched Win32 application: {Application}, PID: {ProcessId}, found {Count} elements for this process (total new: {TotalCount}) in {ElapsedMs}ms", 
+                            application, processId, relevantElements.Count, newElements.Count, detectionStopwatch.ElapsedMilliseconds);
                         return ProcessLaunchResponse.CreateSuccess(processId, application, false);
                     }
                 }
@@ -376,18 +216,34 @@ namespace UIAutomationMCP.Server.Services
                 var uwpLaunchResult = await TryLaunchUWP(application, cancellationToken);
                 if (uwpLaunchResult.LaunchSucceeded)
                 {
-                    _logger.LogDebug("UWP launch succeeded for {Application}, now detecting process", application);
-                    var processId = await DetectLaunchedProcess(application, beforeProcesses, null, timeoutSeconds, cancellationToken);
-                    if (processId > 0)
+                    _logger.LogInformation("UWP launch succeeded for {Application}, now detecting new elements", application);
+                    // Wait a moment for the application to create its UI elements
+                    await Task.Delay(1000, cancellationToken);
+                    var newElements = await WaitForNewElements(beforeElements, application, 8000, cancellationToken);
+                    _logger.LogInformation("Found {Count} new elements after UWP launch", newElements.Count);
+                    if (newElements.Any())
                     {
                         detectionStopwatch.Stop();
-                        _logger.LogInformation("Successfully launched UWP application: {Application}, PID: {ProcessId} in {ElapsedMs}ms", 
-                            application, processId, detectionStopwatch.ElapsedMilliseconds);
-                        return ProcessLaunchResponse.CreateSuccess(processId, application, false, uwpLaunchResult.AppId);
+                        
+                        // Group elements by ProcessId and find the most relevant process
+                        var elementsByProcess = newElements.GroupBy(e => e.ProcessId).ToList();
+                        var mostRelevantGroup = elementsByProcess
+                            .OrderByDescending(g => g.Any(e => IsRelatedToApp(e, application)) ? 1 : 0)
+                            .ThenByDescending(g => g.Count())
+                            .First();
+                        
+                        var processId = mostRelevantGroup.Key;
+                        var relevantElements = mostRelevantGroup.ToList();
+                        
+                        _logger.LogInformation("Successfully launched UWP application: {Application}, PID: {ProcessId}, found {Count} elements for this process (total new: {TotalCount}) in {ElapsedMs}ms", 
+                            application, processId, relevantElements.Count, newElements.Count, detectionStopwatch.ElapsedMilliseconds);
+                        return ProcessLaunchResponse.CreateSuccess(processId, application, false);
                     }
                 }
 
                 detectionStopwatch.Stop();
+                _logger.LogWarning("Failed to launch application: {Application}. Win32 success: {Win32Success}, UWP success: {UwpSuccess}", 
+                    application, win32LaunchResult.LaunchSucceeded, uwpLaunchResult.LaunchSucceeded);
                 return ProcessLaunchResponse.CreateError($"Failed to launch application: {application}. Tried Win32 and UWP methods.");
             }
             catch (Exception ex)
@@ -455,24 +311,29 @@ namespace UIAutomationMCP.Server.Services
         {
             try
             {
+                _logger.LogInformation("Attempting Win32 launch for {Application}", application);
+                
                 // Check if it's a full path
                 if (Path.IsPathFullyQualified(application) && File.Exists(application))
                 {
+                    _logger.LogDebug("Using full path: {Path}", application);
                     return await LaunchWin32Process(application, arguments, workingDirectory, cancellationToken);
                 }
 
                 // Try to find executable using 'where' command
                 var executablePath = await FindExecutablePath(application, cancellationToken);
+                _logger.LogDebug("Found executable path: {Path}", executablePath ?? "null");
                 if (!string.IsNullOrEmpty(executablePath))
                 {
                     return await LaunchWin32Process(executablePath, arguments, workingDirectory, cancellationToken);
                 }
 
+                _logger.LogWarning("Win32 executable not found for {Application}", application);
                 return LaunchResult.Failure("Win32 executable not found");
             }
             catch (Exception ex)
             {
-                _logger.LogDebug(ex, "Win32 launch failed for {Application}", application);
+                _logger.LogError(ex, "Win32 launch failed for {Application}", application);
                 return LaunchResult.Failure($"Win32 launch failed: {ex.Message}");
             }
         }
@@ -552,7 +413,18 @@ namespace UIAutomationMCP.Server.Services
 
                 var process = Process.Start(processInfo);
                 var launchedProcessId = process?.Id;
-                _logger.LogDebug("Started Win32 process {Application} with PID {ProcessId}", appName, launchedProcessId);
+                _logger.LogInformation("Started Win32 process {Application} with PID {ProcessId}", appName, launchedProcessId);
+                
+                // Verify the process is still running
+                if (process != null && !process.HasExited)
+                {
+                    _logger.LogInformation("Process {ProcessId} is running with name: {ProcessName}", 
+                        process.Id, process.ProcessName);
+                }
+                else
+                {
+                    _logger.LogWarning("Process {ProcessId} has already exited or failed to start", launchedProcessId);
+                }
 
                 return Task.FromResult(LaunchResult.Success(launchedProcessId));
             }
@@ -652,24 +524,13 @@ namespace UIAutomationMCP.Server.Services
                 metadata.ProcessName = response.ProcessName ?? "";
                 metadata.HasExited = response.HasExited;
                 metadata.ActionPerformed = "applicationLaunched";
-                metadata.UsedUIAutomationDetection = false; // Now using process detection + SearchElements validation
+                metadata.UsedUIAutomationDetection = true; // Now using element-based detection with SearchElements
             }
             
             return metadata;
         }
     }
 
-    /// <summary>
-    /// Represents a process that has been validated using SearchElements
-    /// </summary>
-    internal class ValidatedProcess
-    {
-        public int ProcessId { get; set; }
-        public int WindowCount { get; set; }
-        public int ValidWindowCount { get; set; }
-        public List<string> WindowNames { get; set; } = new();
-        public bool HasMainWindow { get; set; }
-    }
 
     /// <summary>
     /// Result of attempting to launch an application (before process detection)
