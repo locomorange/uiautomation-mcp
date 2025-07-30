@@ -32,6 +32,9 @@ namespace UIAutomationMCP.Worker.Operations.Window
                 UseWindowHandleAsFilter = true,
                 RequiredPattern = "Window"
             };
+            _logger.LogDebug("WindowAction: Using filter mode with WindowHandle={WindowHandle}, UseWindowHandleAsFilter={UseFilter}", 
+                request.WindowHandle, searchCriteria.UseWindowHandleAsFilter);
+            Console.Error.WriteLine($"*** WORKER DEBUG *** WindowAction with WindowHandle={request.WindowHandle}, UseWindowHandleAsFilter={searchCriteria.UseWindowHandleAsFilter}");
             var window = _elementFinderService.FindElement(searchCriteria);
             if (window == null)
             {
@@ -51,7 +54,7 @@ namespace UIAutomationMCP.Worker.Operations.Window
 
             // Get the current state before action
             var previousState = windowPattern.Current.WindowVisualState.ToString();
-            var windowHandle = window.Current.NativeWindowHandle;
+            var windowHandle = (long)window.Current.NativeWindowHandle;
             
             var result = new WindowActionResult
             {

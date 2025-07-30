@@ -176,7 +176,8 @@ namespace UIAutomationMCP.Common.Services
             // When using WindowHandle as filter, always start from RootElement
             if (criteria.UseWindowHandleAsFilter)
             {
-                _logger.LogDebug("Using WindowHandle as filter, starting from RootElement");
+                _logger.LogInformation("*** FILTER MODE *** Using WindowHandle as filter, starting from RootElement");
+                Console.Error.WriteLine($"*** ELEMENTFINDER DEBUG *** Filter mode active for WindowHandle={criteria.WindowHandle}");
                 return rootElement;
             }
 
@@ -247,8 +248,8 @@ namespace UIAutomationMCP.Common.Services
             // WindowHandle filter (when used as filter)
             if (criteria.UseWindowHandleAsFilter && criteria.WindowHandle.HasValue)
             {
-                conditions.Add(new PropertyCondition(AutomationElement.NativeWindowHandleProperty, criteria.WindowHandle.Value));
-                _logger.LogDebug("Added WindowHandle filter condition: {WindowHandle}", criteria.WindowHandle.Value);
+                conditions.Add(new PropertyCondition(AutomationElement.NativeWindowHandleProperty, (int)criteria.WindowHandle.Value));
+                _logger.LogInformation("*** FILTER MODE ACTIVE *** Added WindowHandle filter condition: {WindowHandle}", criteria.WindowHandle.Value);
             }
 
             // Visibility filter

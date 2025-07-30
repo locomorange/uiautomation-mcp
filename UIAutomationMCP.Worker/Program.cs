@@ -137,6 +137,10 @@ namespace UIAutomationMCP.Worker
             builder.Logging.ClearProviders();
             // Add file logging for debugging but avoid console output pollution
             builder.Logging.AddProvider(new DebugLoggerProvider());
+            // TEMPORARY: Add console error logging for debugging
+            builder.Logging.AddConsole(options => {
+                options.LogToStandardErrorThreshold = LogLevel.Debug;
+            });
             builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
             // Register helper services
