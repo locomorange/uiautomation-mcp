@@ -26,7 +26,6 @@ namespace UIAutomationMCP.Common.Helpers
                 IsVisible = !element.Current.IsOffscreen,
                 IsOffscreen = element.Current.IsOffscreen,
                 ProcessId = element.Current.ProcessId,
-                MainProcessId = GetMainProcessId(element, false),
                 ClassName = element.Current.ClassName ?? "",
                 FrameworkId = string.IsNullOrEmpty(element.Current.FrameworkId) ? null : element.Current.FrameworkId,
                 BoundingRectangle = new BoundingRectangle
@@ -68,7 +67,6 @@ namespace UIAutomationMCP.Common.Helpers
                 IsVisible = !element.Cached.IsOffscreen,
                 IsOffscreen = element.Cached.IsOffscreen,
                 ProcessId = element.Cached.ProcessId,
-                MainProcessId = GetMainProcessId(element, true),
                 ClassName = element.Cached.ClassName ?? "",
                 FrameworkId = string.IsNullOrEmpty(element.Cached.FrameworkId) ? null : element.Cached.FrameworkId,
                 BoundingRectangle = new BoundingRectangle
@@ -95,153 +93,6 @@ namespace UIAutomationMCP.Common.Helpers
             return elementInfo;
         }
 
-        private static int? GetMainProcessId(AutomationElement element, bool useCached = false)
-        {
-            try
-            {
-                // First get element's process ID
-                var elementProcessId = useCached ? element.Cached.ProcessId : element.Current.ProcessId;
-                
-                // Walk up to desktop root element
-                var current = element;
-                AutomationElement? topLevelWindow = null;
-                
-                while (current != null)
-                {
-                    try
-                    {
-                        var controlType = useCached ? current.Cached.ControlType : current.Current.ControlType;
-                        
-                        // Check if we've reached the desktop root
-                        if (controlType == ControlType.Pane && 
-                            TreeWalker.ControlViewWalker.GetParent(current) == null)
-                        {
-                            // Desktop root found - topLevelWindow should be the parent window
-                            break;
-                        }
-                        
-                        // Keep track of potential top-level window
-                        if (controlType == ControlType.Window)
-                        {
-                            topLevelWindow = current;
-                        }
-                        
-                        // Move to parent element
-                        current = TreeWalker.ControlViewWalker.GetParent(current);
-                    }
-                    catch
-                    {
-                        // If access error occurs, move to parent element
-                        current = TreeWalker.ControlViewWalker.GetParent(current);
-                    }
-                }
-                
-                // Use the top-level window found during traversal
-                if (topLevelWindow != null)
-                {
-                    var windowProcessId = useCached ? topLevelWindow.Cached.ProcessId : topLevelWindow.Current.ProcessId;
-                    
-                    // Identify main process ID from window's process ID
-                    var windowMainProcessId = FindMainProcessId(windowProcessId);
-                    
-                    // Return null if same as own process
-                    return windowMainProcessId == elementProcessId ? null : windowMainProcessId;
-                }
-                
-                // If no window found, identify main process from element's process ID
-                var mainProcessId = FindMainProcessId(elementProcessId);
-                
-                // Return null if same as own process
-                return mainProcessId == elementProcessId ? null : mainProcessId;
-            }
-            catch (Exception)
-            {
-                // Return null if parent element retrieval fails
-                return null;
-            }
-        }
-
-        private static int? FindMainProcessId(int processId)
-        {
-            try
-            {
-                using var process = Process.GetProcessById(processId);
-                var current = process;
-                var visited = new HashSet<int>();
-                
-                // Traverse parent processes to find main process
-                while (current != null && !visited.Contains(current.Id))
-                {
-                    visited.Add(current.Id);
-                    
-                    try
-                    {
-                        // Get parent process
-                        var parentId = GetParentProcessId(current.Id);
-                        if (parentId == null || parentId == 0)
-                        {
-                            // If no parent process, current is main process
-                            return current.Id;
-                        }
-                        
-                        // If parent exists and has same process name, move to parent
-                        try
-                        {
-                            var parentProcess = Process.GetProcessById(parentId.Value);
-                            if (parentProcess.ProcessName.Equals(current.ProcessName, StringComparison.OrdinalIgnoreCase))
-                            {
-                                if (current != process) current.Dispose();
-                                current = parentProcess;
-                            }
-                            else
-                            {
-                                // If different process name, current is main process
-                                parentProcess.Dispose();
-                                return current.Id;
-                            }
-                        }
-                        catch (ArgumentException)
-                        {
-                            // If parent process already terminated, current is main process
-                            return current.Id;
-                        }
-                    }
-                    catch
-                    {
-                        // If parent process access fails, current is main process
-                        return current.Id;
-                    }
-                }
-                
-                return current?.Id ?? processId;
-            }
-            catch
-            {
-                // If process info retrieval fails, return original process ID
-                return processId;
-            }
-        }
-
-        private static int? GetParentProcessId(int processId)
-        {
-            try
-            {
-                var query = $"SELECT ParentProcessId FROM Win32_Process WHERE ProcessId = {processId}";
-                using var searcher = new System.Management.ManagementObjectSearcher(query);
-                using var results = searcher.Get();
-                
-                foreach (System.Management.ManagementObject obj in results)
-                {
-                    return Convert.ToInt32(obj["ParentProcessId"]);
-                }
-                
-                return null;
-            }
-            catch
-            {
-                return null;
-            }
-        }
 
         private static string[] GetSupportedPatternsArray(AutomationElement element, bool useCached = false)
         {

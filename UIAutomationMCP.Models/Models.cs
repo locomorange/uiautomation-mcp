@@ -62,11 +62,6 @@ namespace UIAutomationMCP.Models
         [JsonPropertyName("processId")]
         public int ProcessId { get; set; }
         
-        /// <summary>
-        /// メインプロセスID（存在する場合）
-        /// </summary>
-        [JsonPropertyName("mainProcessId")]
-        public int? MainProcessId { get; set; }
         
         /// <summary>
         /// 要素の境界矩形
