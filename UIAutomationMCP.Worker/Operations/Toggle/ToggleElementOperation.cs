@@ -20,7 +20,7 @@ namespace UIAutomationMCP.Worker.Operations.Toggle
 
         protected override async Task<ToggleActionResult> ExecuteOperationAsync(ToggleElementRequest request)
         {
-            // パターン変換�E�リクエストから取得、デフォルト�ETogglePattern�E�E
+            // パターン変換�E�E�E�リクエストから取得、デフォルト�ETogglePattern�E�E�E�E
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? TogglePattern.Pattern;
             
             var searchCriteria = new ElementSearchCriteria
@@ -28,7 +28,6 @@ namespace UIAutomationMCP.Worker.Operations.Toggle
                 AutomationId = request.AutomationId,
                 Name = request.Name,
                 ControlType = request.ControlType,
-                ProcessId = request.ProcessId,
                 RequiredPattern = requiredPattern?.ProgrammaticName,
                 WindowHandle = request.WindowHandle
             };

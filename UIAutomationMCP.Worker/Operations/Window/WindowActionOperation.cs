@@ -24,14 +24,13 @@ namespace UIAutomationMCP.Worker.Operations.Window
         {
             var action = request.Action;
             var windowTitle = request.WindowTitle ?? "";
-            var processId = request.ProcessId;
+            var ;
 
             var searchCriteria = new ElementSearchCriteria
             {
                 WindowTitle = windowTitle,
                 ProcessId = processId,
-            }                WindowHandle = request.WindowHandle
-            }
+            , WindowHandle = request.WindowHandle };
             var window = _elementFinderService.FindElement(searchCriteria);
             if (window == null)
             {

@@ -25,9 +25,7 @@ namespace UIAutomationMCP.Worker.Operations.Layout
                 Name = request.Name,
                 ControlType = request.ControlType,
                 WindowTitle = request.WindowTitle,
-                ProcessId = request.ProcessId,
-            }                WindowHandle = request.WindowHandle
-            }
+                , WindowHandle = request.WindowHandle };
             var element = _elementFinderService.FindElement(searchCriteria);
             
             if (element == null)

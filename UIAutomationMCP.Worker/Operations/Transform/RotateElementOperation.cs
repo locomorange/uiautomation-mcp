@@ -31,10 +31,8 @@ namespace UIAutomationMCP.Worker.Operations.Transform
                 Name = request.Name,
                 ControlType = request.ControlType,
                 WindowTitle = request.WindowTitle,
-                ProcessId = request.ProcessId,
                 RequiredPattern = requiredPattern?.ProgrammaticName,
-            }                WindowHandle = request.WindowHandle
-            }
+            , WindowHandle = request.WindowHandle };
             var element = _elementFinderService.FindElement(searchCriteria);
                 
             if (element == null)

@@ -35,7 +35,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             
             try
             {
-                // タイムアウト処理はSubprocessExecutorで行うため、直接実行
+                // タイムアウト�E琁E�E�ESubprocessExecutorで行うため、直接実衁E
                 SearchElementsResult result = await PerformSearchAsync(request);
 
                 stopwatch.Stop();
@@ -95,14 +95,13 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                 }
 
                 // Perform search using ElementFinderService with new criteria-based API
-                _logger?.LogDebug("Starting FindElements with ControlType={ControlType}, ProcessId={ProcessId}", request.ControlType, request.ProcessId);
+                _logger?.LogDebug("Starting FindElements with ControlType={ControlType}, WindowHandle={WindowHandle}", request.ControlType, request.WindowHandle);
                 var searchCriteria = new ElementSearchCriteria
                 {
                     AutomationId = request.AutomationId,
                     Name = request.Name,
                     ControlType = request.ControlType,
                     WindowTitle = request.WindowTitle,
-                    ProcessId = request.ProcessId,
                     Scope = request.Scope,
                     WindowHandle = request.WindowHandle
                 };

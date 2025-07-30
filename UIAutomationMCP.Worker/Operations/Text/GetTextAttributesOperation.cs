@@ -38,7 +38,6 @@ namespace UIAutomationMCP.Worker.Operations.Text
                     AutomationId = request.AutomationId,
                     Name = request.Name,
                     ControlType = request.ControlType,
-                    ProcessId = request.ProcessId,
                     WindowHandle = request.WindowHandle
                 };
                 var element = _elementFinderService.FindElement(searchCriteria);
@@ -152,7 +151,6 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 AutomationId = request.AutomationId ?? "",
                 Name = request.Name ?? "",
                 ControlType = request.ControlType ?? "",
-                ProcessId = request.ProcessId ?? 0,
                 StartPosition = startIndex,
                 EndPosition = endIndex,
                 TextContent = fullText[startIndex..endIndex],

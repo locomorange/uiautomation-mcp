@@ -21,7 +21,7 @@ namespace UIAutomationMCP.Worker.Operations.Invoke
 
         protected override Task<ActionResult> ExecuteOperationAsync(InvokeElementRequest request)
         {
-            // パターン変換（リクエストから取得、デフォルトはInvokePattern）
+            // パターン変換�E�リクエストから取得、デフォルト�EInvokePattern�E�E
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? InvokePattern.Pattern;
             
             var searchCriteria = new ElementSearchCriteria
@@ -29,7 +29,6 @@ namespace UIAutomationMCP.Worker.Operations.Invoke
                 AutomationId = request.AutomationId,
                 Name = request.Name,
                 ControlType = request.ControlType,
-                ProcessId = request.ProcessId,
                 RequiredPattern = requiredPattern?.ProgrammaticName,
                 WindowHandle = request.WindowHandle
             };

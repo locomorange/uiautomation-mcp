@@ -47,12 +47,6 @@ namespace UIAutomationMCP.Models.Requests
         public string? WindowTitle { get; set; }
 
         /// <summary>
-        /// プロセスID
-        /// </summary>
-        [JsonPropertyName("processId")]
-        public int? ProcessId { get; set; }
-
-        /// <summary>
         /// 検索スコープ（descendants、children、subtree）
         /// </summary>
         [JsonPropertyName("scope")]
@@ -149,12 +143,6 @@ namespace UIAutomationMCP.Models.Requests
         public string? Name { get; set; }
 
         /// <summary>
-        /// プロセスID
-        /// </summary>
-        [JsonPropertyName("processId")]
-        public int? ProcessId { get; set; }
-
-        /// <summary>
         /// ウィンドウタイトル
         /// </summary>
         [JsonPropertyName("windowTitle")]
@@ -171,5 +159,12 @@ namespace UIAutomationMCP.Models.Requests
         /// </summary>
         [JsonPropertyName("includeParent")]
         public bool IncludeParent { get; set; } = false;
+
+        /// <summary>
+        /// ネイティブウィンドウハンドル（HWND）による直接要素指定
+        /// 指定された場合、他の検索条件より優先される
+        /// </summary>
+        [JsonPropertyName("windowHandle")]
+        public long? WindowHandle { get; set; }
     }
 }

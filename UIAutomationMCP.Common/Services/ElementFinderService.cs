@@ -202,8 +202,8 @@ namespace UIAutomationMCP.Common.Services
         {
             var conditions = new List<Condition>();
             
-            _logger.LogDebug("Building search condition with criteria: AutomationId={AutomationId}, Name={Name}, ControlType={ControlType}, WindowTitle={WindowTitle}, ProcessId={ProcessId}",
-                criteria.AutomationId, criteria.Name, criteria.ControlType, criteria.WindowTitle, criteria.ProcessId);
+            _logger.LogDebug("Building search condition with criteria: AutomationId={AutomationId}, Name={Name}, ControlType={ControlType}, WindowTitle={WindowTitle}, WindowHandle={WindowHandle}",
+                criteria.AutomationId, criteria.Name, criteria.ControlType, criteria.WindowTitle, criteria.WindowHandle);
 
             // Primary identifiers
             if (!string.IsNullOrEmpty(criteria.AutomationId))
@@ -238,12 +238,6 @@ namespace UIAutomationMCP.Common.Services
                 }
             }
 
-            // ProcessId filter
-            if (criteria.ProcessId.HasValue)
-            {
-                conditions.Add(new PropertyCondition(AutomationElement.ProcessIdProperty, criteria.ProcessId.Value));
-                _logger.LogDebug("Added ProcessId: {ProcessId} as filter condition", criteria.ProcessId.Value);
-            }
 
             // Visibility filter
             if (criteria.VisibleOnly)
@@ -370,7 +364,6 @@ namespace UIAutomationMCP.Common.Services
         public string? ClassName { get; set; }
         public string? ControlType { get; set; }
         public string? WindowTitle { get; set; }
-        public int? ProcessId { get; set; }
         public string? Scope { get; set; } = "Descendants"; // Changed default for better coverage
         public bool VisibleOnly { get; set; } = false;
         public bool EnabledOnly { get; set; } = false;

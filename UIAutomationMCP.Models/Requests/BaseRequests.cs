@@ -44,11 +44,6 @@ namespace UIAutomationMCP.Models.Requests
         [JsonPropertyName("windowTitle")]
         public string? WindowTitle { get; set; }
 
-        /// <summary>
-        /// 要素検索のコンテキストとなるプロセスID
-        /// </summary>
-        [JsonPropertyName("processId")]
-        public int? ProcessId { get; set; }
 
         /// <summary>
         /// 要素検索時に使用する必須パターン（検索精度向上用、省略可）
