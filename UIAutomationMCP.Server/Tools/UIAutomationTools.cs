@@ -112,7 +112,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Maximum number of results to return (default: 50)")] int maxResults = 50,
             [Description("Sort results by: Name, ControlType, Position (optional)")] string? sortBy = null,
             [Description("Include detailed pattern information, accessibility data, and hierarchy (default: false)")] bool includeDetails = false,
-            [Description("Use ProcessId as search root (true) or as filter (false) (default: true)")] bool useProcessIdAsSearchRoot = true,
+            [Description("Native window handle (HWND) for direct element targeting")] long? windowHandle = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _elementSearchService.SearchElementsAsync(
                 new UIAutomationMCP.Models.Requests.SearchElementsRequest
@@ -133,7 +133,7 @@ namespace UIAutomationMCP.Server.Tools
                     MaxResults = maxResults,
                     SortBy = sortBy,
                     IncludeDetails = includeDetails,
-                    UseProcessIdAsSearchRoot = useProcessIdAsSearchRoot
+                    WindowHandle = windowHandle
                 }, timeoutSeconds));
 
 

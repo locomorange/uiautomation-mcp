@@ -120,12 +120,12 @@ namespace UIAutomationMCP.Models.Requests
         public bool BypassCache { get; set; } = false;
 
         /// <summary>
-        /// ProcessIdを検索ルートとして使用するかどうか（デフォルト: true）
-        /// true: ProcessIdのウィンドウを検索ルートとして使用（現在の動作）
-        /// false: デスクトップ全体から検索し、結果をProcessIdでフィルタリング
+        /// ネイティブウィンドウハンドル（HWND）による直接要素指定
+        /// 指定された場合、他の検索条件より優先される
         /// </summary>
-        [JsonPropertyName("useProcessIdAsSearchRoot")]
-        public bool UseProcessIdAsSearchRoot { get; set; } = true;
+        [JsonPropertyName("windowHandle")]
+        public long? WindowHandle { get; set; }
+
     }
 
     /// <summary>

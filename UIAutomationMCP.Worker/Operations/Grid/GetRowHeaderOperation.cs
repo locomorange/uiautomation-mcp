@@ -41,8 +41,9 @@ namespace UIAutomationMCP.Worker.Operations.Grid
                 Name = request.Name,
                 ControlType = request.ControlType,
                 ProcessId = request.ProcessId,
-                RequiredPattern = requiredPattern?.ProgrammaticName
-            };
+                RequiredPattern = requiredPattern?.ProgrammaticName,
+            }                WindowHandle = request.WindowHandle
+            }
             var element = _elementFinderService.FindElement(searchCriteria);
             
             if (element == null)

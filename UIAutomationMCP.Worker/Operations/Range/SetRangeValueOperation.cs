@@ -22,8 +22,7 @@ namespace UIAutomationMCP.Worker.Operations.Range
 
         protected override Task<SetRangeValueResult> ExecuteOperationAsync(SetRangeValueRequest request)
         {
-            // パターン変換（リクエストから取得、デフォルトはRangeValuePattern）
-            var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? RangeValuePattern.Pattern;
+            // パターン変換�E�リクエストから取得、デフォルト�ERangeValuePattern�E�E            var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? RangeValuePattern.Pattern;
             
             var searchCriteria = new ElementSearchCriteria
             {
@@ -32,8 +31,9 @@ namespace UIAutomationMCP.Worker.Operations.Range
                 ControlType = request.ControlType,
                 WindowTitle = request.WindowTitle,
                 ProcessId = request.ProcessId,
-                RequiredPattern = requiredPattern?.ProgrammaticName
-            };
+                RequiredPattern = requiredPattern?.ProgrammaticName,
+            }                WindowHandle = request.WindowHandle
+            }
             var element = _elementFinderService.FindElement(searchCriteria);
             
             if (element == null)

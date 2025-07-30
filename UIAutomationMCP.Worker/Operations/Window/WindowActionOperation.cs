@@ -29,8 +29,9 @@ namespace UIAutomationMCP.Worker.Operations.Window
             var searchCriteria = new ElementSearchCriteria
             {
                 WindowTitle = windowTitle,
-                ProcessId = processId
-            };
+                ProcessId = processId,
+            }                WindowHandle = request.WindowHandle
+            }
             var window = _elementFinderService.FindElement(searchCriteria);
             if (window == null)
             {

@@ -173,23 +173,6 @@ namespace UIAutomationMCP.Common.Services
                 return null;
             }
 
-            // Find process window if specified and UseProcessIdAsSearchRoot is true
-            if (criteria.ProcessId.HasValue && criteria.UseProcessIdAsSearchRoot)
-            {
-                _logger.LogDebug("Searching for process window with ProcessId: {ProcessId}", criteria.ProcessId.Value);
-                var processCondition = new PropertyCondition(AutomationElement.ProcessIdProperty, criteria.ProcessId.Value);
-                var processWindow = rootElement.FindFirst(TreeScope.Children, processCondition);
-                if (processWindow != null)
-                {
-                    _logger.LogDebug("Found process window for ProcessId: {ProcessId} -> Name: {WindowName} (used as search root)", criteria.ProcessId.Value, processWindow.Current.Name);
-                    return processWindow;
-                }
-                else
-                {
-                    _logger.LogDebug("Process window not found for ProcessId: {ProcessId}", criteria.ProcessId.Value);
-                    return null;
-                }
-            }
 
             // Find window by title if specified
             if (!string.IsNullOrEmpty(criteria.WindowTitle))
@@ -209,12 +192,6 @@ namespace UIAutomationMCP.Common.Services
                 }
             }
 
-            // If ProcessId is not specified but UseProcessIdAsSearchRoot is true, 
-            // still use root element (don't return null)
-            if (!criteria.ProcessId.HasValue && criteria.UseProcessIdAsSearchRoot)
-            {
-                _logger.LogDebug("ProcessId not specified but UseProcessIdAsSearchRoot is true, using RootElement");
-            }
 
             // Default case: use RootElement for global searches
             _logger.LogDebug("Using RootElement as search root for global search");
@@ -225,8 +202,8 @@ namespace UIAutomationMCP.Common.Services
         {
             var conditions = new List<Condition>();
             
-            _logger.LogDebug("Building search condition with criteria: AutomationId={AutomationId}, Name={Name}, ControlType={ControlType}, WindowTitle={WindowTitle}, ProcessId={ProcessId}, UseProcessIdAsSearchRoot={UseProcessIdAsSearchRoot}",
-                criteria.AutomationId, criteria.Name, criteria.ControlType, criteria.WindowTitle, criteria.ProcessId, criteria.UseProcessIdAsSearchRoot);
+            _logger.LogDebug("Building search condition with criteria: AutomationId={AutomationId}, Name={Name}, ControlType={ControlType}, WindowTitle={WindowTitle}, ProcessId={ProcessId}",
+                criteria.AutomationId, criteria.Name, criteria.ControlType, criteria.WindowTitle, criteria.ProcessId);
 
             // Primary identifiers
             if (!string.IsNullOrEmpty(criteria.AutomationId))
@@ -261,8 +238,8 @@ namespace UIAutomationMCP.Common.Services
                 }
             }
 
-            // ProcessId filter when UseProcessIdAsSearchRoot is false
-            if (criteria.ProcessId.HasValue && !criteria.UseProcessIdAsSearchRoot)
+            // ProcessId filter
+            if (criteria.ProcessId.HasValue)
             {
                 conditions.Add(new PropertyCondition(AutomationElement.ProcessIdProperty, criteria.ProcessId.Value));
                 _logger.LogDebug("Added ProcessId: {ProcessId} as filter condition", criteria.ProcessId.Value);
@@ -398,7 +375,6 @@ namespace UIAutomationMCP.Common.Services
         public bool VisibleOnly { get; set; } = false;
         public bool EnabledOnly { get; set; } = false;
         public string? RequiredPattern { get; set; }
-        public bool UseProcessIdAsSearchRoot { get; set; } = true;
         public long? WindowHandle { get; set; }
     }
 }

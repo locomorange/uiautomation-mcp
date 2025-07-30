@@ -22,7 +22,7 @@ namespace UIAutomationMCP.Worker.Operations.Value
 
         protected override Task<SetValueResult> ExecuteOperationAsync(SetElementValueRequest request)
         {
-            // パターン変換（リクエストから取得、デフォルトはValuePattern）
+            // パターン変換�E�リクエストから取得、デフォルト�EValuePattern�E�E
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? ValuePattern.Pattern;
             
             var searchCriteria = new ElementSearchCriteria
@@ -31,7 +31,8 @@ namespace UIAutomationMCP.Worker.Operations.Value
                 Name = request.Name,
                 ControlType = request.ControlType,
                 ProcessId = request.ProcessId,
-                RequiredPattern = requiredPattern?.ProgrammaticName
+                RequiredPattern = requiredPattern?.ProgrammaticName,
+                WindowHandle = request.WindowHandle
             };
             var element = _elementFinderService.FindElement(searchCriteria);
             

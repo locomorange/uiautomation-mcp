@@ -31,8 +31,9 @@ namespace UIAutomationMCP.Worker.Operations.Selection
                 ControlType = request.ControlType,
                 WindowTitle = request.WindowTitle,
                 ProcessId = request.ProcessId,
-                RequiredPattern = requiredPattern?.ProgrammaticName
-            };
+                RequiredPattern = requiredPattern?.ProgrammaticName,
+            }                WindowHandle = request.WindowHandle
+            }
             var element = _elementFinderService.FindElement(searchCriteria);
             
             if (element == null)

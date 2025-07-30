@@ -47,8 +47,9 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 Name = request.Name,
                 ControlType = request.ControlType,
                 WindowTitle = request.WindowTitle,
-                ProcessId = request.ProcessId
-            };
+                ProcessId = request.ProcessId,
+            }                WindowHandle = request.WindowHandle
+            }
             var element = _elementFinderService.FindElement(searchCriteria);
             
             if (element == null)
