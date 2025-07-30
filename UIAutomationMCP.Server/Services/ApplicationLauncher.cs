@@ -246,7 +246,7 @@ namespace UIAutomationMCP.Server.Services
                     await Task.Delay(1000, cancellationToken);
                     
                     var result = await WaitForElementsAndCreateResponse(beforeElements, application, "Win32", detectionStopwatch, cancellationToken);
-                    if (result != null) return result;
+                    if (result != null) return result; // Returns either success or detection failure error
                 }
 
                 // Step 2: Try UWP application launch
@@ -258,7 +258,7 @@ namespace UIAutomationMCP.Server.Services
                     await Task.Delay(1000, cancellationToken);
                     
                     var result = await WaitForElementsAndCreateResponse(beforeElements, application, "UWP", detectionStopwatch, cancellationToken);
-                    if (result != null) return result;
+                    if (result != null) return result; // Returns either success or detection failure error
                 }
 
                 // Step 3: Try Protocol URI launch (e.g., ms-settings:, mailto:, http:)
@@ -273,16 +273,16 @@ namespace UIAutomationMCP.Server.Services
                         await Task.Delay(2000, cancellationToken);
                         
                         var result = await WaitForElementsAndCreateResponse(beforeElements, application, "Protocol URI", detectionStopwatch, cancellationToken);
-                        if (result != null) return result;
+                        if (result != null) return result; // Returns either success or detection failure error
                     }
                 }
 
                 detectionStopwatch.Stop();
-                _logger.LogWarning("Failed to launch application: {Application}. Win32 success: {Win32Success}, UWP success: {UwpSuccess}, Protocol success: {ProtocolSuccess}", 
+                _logger.LogWarning("All launch methods failed for application: {Application}. Win32 success: {Win32Success}, UWP success: {UwpSuccess}, Protocol success: {ProtocolSuccess}", 
                     application, win32LaunchResult.LaunchSucceeded, uwpLaunchResult.LaunchSucceeded, protocolLaunchResult.LaunchSucceeded);
                 
                 var methods = IsProtocolUri(application) ? "Win32, UWP, and Protocol URI methods" : "Win32 and UWP methods";
-                return ProcessLaunchResponse.CreateError($"Failed to launch application: {application}. Tried {methods}.");
+                return ProcessLaunchResponse.CreateError($"Failed to launch application: {application}. All launch methods unsuccessful ({methods}).");
             }
             catch (Exception ex)
             {
@@ -337,7 +337,9 @@ namespace UIAutomationMCP.Server.Services
                 return CreateSuccessResponseFromElements(activatedElements, application, $"{launchType} (Activated)", detectionStopwatch.ElapsedMilliseconds);
             }
 
-            return null; // No new elements or focus changes found, caller should handle fallback
+            // Application launch succeeded but no windows were detected
+            _logger.LogInformation("Application launched successfully but window not detected for {Application}. Window may be minimized, not focused, or in taskbar notification state", application);
+            return ProcessLaunchResponse.CreateError($"Application launched successfully but window not detected: {application}. Window may be minimized, not focused, or in taskbar notification state.");
         }
 
         /// <summary>
