@@ -108,7 +108,8 @@ namespace UIAutomationMCP.Server.Services
             var request = new GetElementTreeRequest
             {
                 WindowHandle = windowHandle,
-                MaxDepth = maxDepth
+                MaxDepth = maxDepth,
+                BypassCache = true // Always get real-time UI tree state
             };
 
             return await ExecuteServiceOperationAsync<GetElementTreeRequest, ElementTreeResult>(

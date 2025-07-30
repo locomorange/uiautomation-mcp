@@ -31,6 +31,9 @@ namespace UIAutomationMCP.Models.Requests
 
         [JsonPropertyName("maxDepth")]
         public int MaxDepth { get; set; } = 3;
+
+        [JsonPropertyName("bypassCache")]
+        public bool BypassCache { get; set; } = false;
     }
 
     public class GetParentRequest : ElementTargetRequest

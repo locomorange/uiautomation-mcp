@@ -33,7 +33,7 @@ namespace UIAutomationMCP.Server.Services
             long? windowHandle = null, 
             int timeoutSeconds = 60)
         {
-            return await FindElementsAsync(windowTitle, searchText, controlType, windowHandle, "descendants", true, 100, true, timeoutSeconds);
+            return await FindElementsAsync(windowTitle, searchText, controlType, windowHandle, "descendants", true, 100, false, timeoutSeconds);
         }
 
         public async Task<ServerEnhancedResponse<ElementSearchResult>> FindElementsAsync(
@@ -55,7 +55,7 @@ namespace UIAutomationMCP.Server.Services
                 WindowHandle = windowHandle,
                 Scope = scope,
                 MaxResults = maxResults,
-                UseCache = useCache,
+                UseCache = false, // Always bypass cache for real-time UI state
                 ValidatePatterns = validatePatterns,
                 UseRegex = false,
                 UseWildcard = false

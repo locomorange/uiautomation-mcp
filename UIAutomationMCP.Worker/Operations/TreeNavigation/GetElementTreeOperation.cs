@@ -21,6 +21,21 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
         {
             var startTime = DateTime.UtcNow;
             
+            // Force UIAutomation cache refresh for real-time UI tree state
+            if (request.BypassCache)
+            {
+                try
+                {
+                    // Access root element to trigger cache refresh
+                    var refreshRoot = AutomationElement.RootElement;
+                    var refreshCheck = refreshRoot?.Current.Name; // Access property to trigger refresh
+                }
+                catch (Exception)
+                {
+                    // Continue if cache refresh fails
+                }
+            }
+            
             var windowTitle = request.WindowTitle ?? "";
             var windowHandle = request.WindowHandle;
             var maxDepth = request.MaxDepth;

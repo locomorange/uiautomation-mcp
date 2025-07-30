@@ -141,7 +141,6 @@ namespace UIAutomationMCP.Worker
 
             // Register helper services
             builder.Services.AddSingleton<UIAutomationMCP.Common.Services.ElementFinderService>();
-            builder.Services.AddSingleton<FindElementsCacheService>();
 
             // Register UI Automation operations using new extension methods
             // Element operations
