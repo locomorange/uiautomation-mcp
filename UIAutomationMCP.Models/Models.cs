@@ -87,11 +87,6 @@ namespace UIAutomationMCP.Models
         [JsonPropertyName("isOffscreen")]
         public bool IsOffscreen { get; set; }
         
-        /// <summary>
-        /// フレームワークID（Win32、XAML等）
-        /// </summary>
-        [JsonPropertyName("frameworkId")]
-        public string? FrameworkId { get; set; }
         
         /// <summary>
         /// サポートされているUI Automationパターンのリスト
@@ -158,6 +153,12 @@ namespace UIAutomationMCP.Models
         /// </summary>
         [JsonPropertyName("isPassword")]
         public bool IsPassword { get; set; }
+        
+        /// <summary>
+        /// フレームワークID（Win32、XAML等）
+        /// </summary>
+        [JsonPropertyName("frameworkId")]
+        public string? FrameworkId { get; set; }
         
         /// <summary>
         /// RuntimeId（UI Automation内部識別子）- デバッグ・診断用

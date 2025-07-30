@@ -27,7 +27,6 @@ namespace UIAutomationMCP.Common.Helpers
                 IsOffscreen = element.Current.IsOffscreen,
                 ProcessId = element.Current.ProcessId,
                 ClassName = element.Current.ClassName ?? "",
-                FrameworkId = string.IsNullOrEmpty(element.Current.FrameworkId) ? null : element.Current.FrameworkId,
                 BoundingRectangle = new BoundingRectangle
                 {
                     X = element.Current.BoundingRectangle.X,
@@ -68,7 +67,6 @@ namespace UIAutomationMCP.Common.Helpers
                 IsOffscreen = element.Cached.IsOffscreen,
                 ProcessId = element.Cached.ProcessId,
                 ClassName = element.Cached.ClassName ?? "",
-                FrameworkId = string.IsNullOrEmpty(element.Cached.FrameworkId) ? null : element.Cached.FrameworkId,
                 BoundingRectangle = new BoundingRectangle
                 {
                     X = element.Cached.BoundingRectangle.X,
@@ -149,6 +147,7 @@ namespace UIAutomationMCP.Common.Helpers
                 HasKeyboardFocus = element.Current.HasKeyboardFocus,
                 IsKeyboardFocusable = element.Current.IsKeyboardFocusable,
                 IsPassword = element.Current.IsPassword,
+                FrameworkId = string.IsNullOrEmpty(element.Current.FrameworkId) ? null : element.Current.FrameworkId,
                 RuntimeId = GetRuntimeIdString(element)
             };
 
@@ -166,6 +165,7 @@ namespace UIAutomationMCP.Common.Helpers
                 HasKeyboardFocus = element.Cached.HasKeyboardFocus,
                 IsKeyboardFocusable = element.Cached.IsKeyboardFocusable,
                 IsPassword = element.Cached.IsPassword,
+                FrameworkId = string.IsNullOrEmpty(element.Cached.FrameworkId) ? null : element.Cached.FrameworkId,
                 RuntimeId = GetRuntimeIdString(element)
             };
 
