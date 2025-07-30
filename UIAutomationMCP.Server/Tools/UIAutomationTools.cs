@@ -743,18 +743,6 @@ namespace UIAutomationMCP.Server.Tools
                 timeoutSeconds: timeoutSeconds));
 
         // Event Monitoring Operations
-        [McpServerTool, Description("Monitor UI events for a specified duration")]
-        public async Task<object> MonitorEvents(
-            [Description("Type of event to monitor (e.g., 'Focus', 'Invoke', 'Selection', 'Text')")] string eventType,
-            [Description("Duration to monitor in seconds")] int duration,
-            [Description("AutomationId of the element to monitor (optional, preferred identifier)")] string? automationId = null,
-            [Description("Name of the element to monitor (optional, fallback identifier)")] string? name = null,
-            [Description("ControlType to filter by (optional, Any, Button, Edit, etc.)")] string? controlType = null,
-            [Description("Process ID to limit search scope (optional)")] int? processId = null,
-            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _eventMonitorService.MonitorEventsAsync(
-                eventType, duration, automationId: elementId ?? automationId, name: name, controlType: controlType, processId: processId));
-
         [McpServerTool, Description("Start continuous event monitoring")]
         public async Task<object> StartEventMonitoring(
             [Description("Type of event to monitor (e.g., 'Focus', 'Invoke', 'Selection', 'Text')")] string eventType,

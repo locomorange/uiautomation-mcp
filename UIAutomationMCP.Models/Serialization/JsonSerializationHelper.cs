@@ -225,7 +225,6 @@ namespace UIAutomationMCP.Models.Serialization
                 Type t when t == typeof(ElementDetails) => (JsonTypeInfo<T>)(object)_context.ElementDetails,
                 
                 // EventMonitor Request types
-                Type t when t == typeof(MonitorEventsRequest) => (JsonTypeInfo<T>)(object)_context.MonitorEventsRequest,
                 Type t when t == typeof(StartEventMonitoringRequest) => (JsonTypeInfo<T>)(object)_context.StartEventMonitoringRequest,
                 Type t when t == typeof(StopEventMonitoringRequest) => (JsonTypeInfo<T>)(object)_context.StopEventMonitoringRequest,
                 Type t when t == typeof(GetEventLogRequest) => (JsonTypeInfo<T>)(object)_context.GetEventLogRequest,
@@ -388,7 +387,6 @@ namespace UIAutomationMCP.Models.Serialization
     [JsonSerializable(typeof(SelectItemRequest))]
     [JsonSerializable(typeof(SetFocusRequest))]
     // EventMonitor Request types
-    [JsonSerializable(typeof(MonitorEventsRequest))]
     [JsonSerializable(typeof(StartEventMonitoringRequest))]
     [JsonSerializable(typeof(StopEventMonitoringRequest))]
     [JsonSerializable(typeof(GetEventLogRequest))]

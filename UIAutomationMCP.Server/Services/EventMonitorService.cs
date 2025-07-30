@@ -18,36 +18,6 @@ namespace UIAutomationMCP.Server.Services
 
         protected override string GetOperationType() => "eventMonitor";
 
-        public async Task<ServerEnhancedResponse<EventMonitoringResult>> MonitorEventsAsync(
-            string eventType, 
-            int duration, 
-            string? automationId = null, 
-            string? name = null, 
-            string? controlType = null, 
-            int? processId = null)
-        {
-            // Ensure sufficient timeout for event monitoring operations
-            var timeoutSeconds = Math.Max(duration + 60, 90);
-
-            var request = new MonitorEventsRequest
-            {
-                EventTypes = new[] { eventType },
-                Duration = duration,
-                AutomationId = automationId,
-                Name = name,
-                ControlType = controlType,
-                WindowTitle = null,
-                ProcessId = processId
-            };
-
-            return await ExecuteServiceOperationAsync<MonitorEventsRequest, EventMonitoringResult>(
-                "MonitorEvents",
-                request,
-                nameof(MonitorEventsAsync),
-                timeoutSeconds,
-                ValidateMonitorEventsRequest
-            );
-        }
 
         public async Task<ServerEnhancedResponse<EventMonitoringStartResult>> StartEventMonitoringAsync(
             string eventType, 
@@ -114,23 +84,6 @@ namespace UIAutomationMCP.Server.Services
             );
         }
 
-        private static ValidationResult ValidateMonitorEventsRequest(MonitorEventsRequest request)
-        {
-            var errors = new List<string>();
-
-            if (request.EventTypes == null || request.EventTypes.Length == 0 || 
-                string.IsNullOrWhiteSpace(request.EventTypes[0]))
-            {
-                errors.Add("Event type is required and cannot be empty");
-            }
-
-            if (request.Duration <= 0)
-            {
-                errors.Add("Duration must be greater than 0");
-            }
-
-            return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;
-        }
 
         private static ValidationResult ValidateStartEventMonitoringRequest(StartEventMonitoringRequest request)
         {
@@ -174,15 +127,7 @@ namespace UIAutomationMCP.Server.Services
         {
             var metadata = base.CreateSuccessMetadata(data, context);
 
-            if (data is EventMonitoringResult monitorResult)
-            {
-                metadata.ActionPerformed = "eventsMonitored";
-                metadata.EventsCount = monitorResult.CapturedEvents?.Count ?? 0;
-                metadata.MonitoringDuration = monitorResult.Duration;
-                metadata.EventType = monitorResult.EventType;
-                metadata.OperationSuccessful = monitorResult.Success;
-            }
-            else if (data is EventMonitoringStartResult startResult)
+            if (data is EventMonitoringStartResult startResult)
             {
                 metadata.ActionPerformed = "monitoringStarted";
                 metadata.SessionId = startResult.SessionId;
