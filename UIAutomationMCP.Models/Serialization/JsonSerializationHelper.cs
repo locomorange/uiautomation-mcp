@@ -154,7 +154,7 @@ namespace UIAutomationMCP.Models.Serialization
                 Type t when t == typeof(ToggleElementRequest) => (JsonTypeInfo<T>)(object)_context.ToggleElementRequest,
                 Type t when t == typeof(GetToggleStateRequest) => (JsonTypeInfo<T>)(object)_context.GetToggleStateRequest,
                 Type t when t == typeof(SetToggleStateRequest) => (JsonTypeInfo<T>)(object)_context.SetToggleStateRequest,
-                Type t when t == typeof(SetValueRequest) => (JsonTypeInfo<T>)(object)_context.SetValueRequest,
+                Type t when t == typeof(SetElementValueRequest) => (JsonTypeInfo<T>)(object)_context.SetElementValueRequest,
                 Type t when t == typeof(FindElementsRequest) => (JsonTypeInfo<T>)(object)_context.FindElementsRequest,
                 Type t when t == typeof(WindowActionRequest) => (JsonTypeInfo<T>)(object)_context.WindowActionRequest,
                 Type t when t == typeof(GetWindowInfoRequest) => (JsonTypeInfo<T>)(object)_context.GetWindowInfoRequest,
@@ -335,7 +335,7 @@ namespace UIAutomationMCP.Models.Serialization
     [JsonSerializable(typeof(ToggleElementRequest))]
     [JsonSerializable(typeof(GetToggleStateRequest))]
     [JsonSerializable(typeof(SetToggleStateRequest))]
-    [JsonSerializable(typeof(SetValueRequest))]
+    [JsonSerializable(typeof(SetElementValueRequest))]
     [JsonSerializable(typeof(FindElementsRequest))]
     [JsonSerializable(typeof(WindowActionRequest))]
     [JsonSerializable(typeof(GetWindowInfoRequest))]

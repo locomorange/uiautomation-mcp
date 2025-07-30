@@ -27,7 +27,7 @@ namespace UIAutomationMCP.Models.Requests
         public string State { get; set; } = ""; // "on", "off", "indeterminate"
     }
 
-    public class SetValueRequest : ElementTargetRequest
+    public class SetElementValueRequest : ElementTargetRequest
     {
         public override string Operation => "SetElementValue";
 

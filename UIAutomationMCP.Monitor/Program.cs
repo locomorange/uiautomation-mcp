@@ -3,9 +3,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Monitor.Infrastructure;
 using UIAutomationMCP.Monitor.Operations;
+using UIAutomationMCP.Common.Extensions;
 using UIAutomationMCP.Common.Services;
 using UIAutomationMCP.Common.Abstractions;
 using UIAutomationMCP.Models.Logging;
+using UIAutomationMCP.Models.Requests;
 
 namespace UIAutomationMCP.Monitor
 {
@@ -32,10 +34,10 @@ namespace UIAutomationMCP.Monitor
                     provider.GetRequiredService<ILoggerFactory>(),
                     provider.GetRequiredService<ElementFinderService>()));
 
-            // Register monitor operations using keyed services
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, StartEventMonitoringOperation>("StartEventMonitoring");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, StopEventMonitoringOperation>("StopEventMonitoring");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetEventLogOperation>("GetEventLog");
+            // Register monitor operations using new extension methods
+            builder.Services.AddOperation<StartEventMonitoringOperation, StartEventMonitoringRequest>();
+            builder.Services.AddOperation<StopEventMonitoringOperation, StopEventMonitoringRequest>();
+            builder.Services.AddOperation<GetEventLogOperation, GetEventLogRequest>();
 
             // Register Monitor service
             builder.Services.AddSingleton<MonitorService>();

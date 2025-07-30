@@ -25,4 +25,8 @@
     <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\UIAutomationMCP.SourceGenerators\UIAutomationMCP.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
 </Project>

@@ -6,12 +6,14 @@ using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.Common.Services;
 using UIAutomationMCP.Monitor.Abstractions;
+using UIAutomationMCP.Core.Attributes;
 
 namespace UIAutomationMCP.Monitor.Operations
 {
     /// <summary>
     /// Start event monitoring operation for Monitor process
     /// </summary>
+    [AutoRegisterOperation]
     public class StartEventMonitoringOperation : BaseMonitorOperation<StartEventMonitoringRequest, EventMonitoringStartResult>
     {
         public StartEventMonitoringOperation(

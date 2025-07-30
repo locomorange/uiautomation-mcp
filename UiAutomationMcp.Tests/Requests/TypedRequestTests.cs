@@ -91,10 +91,10 @@ namespace UiAutomationMcp.Tests.Requests
         }
 
         [Fact]
-        public void SetValueRequest_ShouldSerializeCorrectly()
+        public void SetElementValueRequest_ShouldSerializeCorrectly()
         {
             // Arrange
-            var request = new SetValueRequest
+            var request = new SetElementValueRequest
             {
                 AutomationId = "input_field",
                 Value = "Test Value",
@@ -104,7 +104,7 @@ namespace UiAutomationMcp.Tests.Requests
 
             // Act
             var json = JsonSerializationHelper.Serialize(request);
-            var deserialized = JsonSerializationHelper.Deserialize<SetValueRequest>(json);
+            var deserialized = JsonSerializationHelper.Deserialize<SetElementValueRequest>(json);
 
             // Assert
             Assert.NotNull(deserialized);
@@ -245,7 +245,7 @@ namespace UiAutomationMcp.Tests.Requests
         public void JsonSerialization_ShouldHandleInheritance()
         {
             // Arrange
-            var request = new SetValueRequest
+            var request = new SetElementValueRequest
             {
                 AutomationId = "input1",
                 WindowTitle = "Test Window",
@@ -255,7 +255,7 @@ namespace UiAutomationMcp.Tests.Requests
 
             // Act
             var json = JsonSerializationHelper.Serialize(request);
-            var deserialized = JsonSerializationHelper.Deserialize<SetValueRequest>(json);
+            var deserialized = JsonSerializationHelper.Deserialize<SetElementValueRequest>(json);
 
             // Assert
             Assert.NotNull(deserialized);

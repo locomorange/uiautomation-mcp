@@ -26,7 +26,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             int? processId = null, 
             int timeoutSeconds = 30)
         {
-            var request = new SetValueRequest
+            var request = new SetElementValueRequest
             {
                 AutomationId = automationId,
                 Name = name,
@@ -35,12 +35,12 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 ProcessId = processId
             };
 
-            return await ExecuteServiceOperationAsync<SetValueRequest, ActionResult>(
+            return await ExecuteServiceOperationAsync<SetElementValueRequest, ActionResult>(
                 "SetElementValue",
                 request,
                 nameof(SetValueAsync),
                 timeoutSeconds,
-                ValidateSetValueRequest
+                ValidateSetElementValueRequest
             );
         }
 
@@ -68,7 +68,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             );
         }
 
-        private static ValidationResult ValidateSetValueRequest(SetValueRequest request)
+        private static ValidationResult ValidateSetElementValueRequest(SetElementValueRequest request)
         {
             var errors = new List<string>();
 

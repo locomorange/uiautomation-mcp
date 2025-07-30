@@ -11,7 +11,7 @@ using UIAutomationMCP.Common.Helpers;
 
 namespace UIAutomationMCP.Worker.Operations.Value
 {
-    public class SetElementValueOperation : BaseUIAutomationOperation<SetValueRequest, SetValueResult>
+    public class SetElementValueOperation : BaseUIAutomationOperation<SetElementValueRequest, SetValueResult>
     {
         public SetElementValueOperation(
             ElementFinderService elementFinderService, 
@@ -20,7 +20,7 @@ namespace UIAutomationMCP.Worker.Operations.Value
         {
         }
 
-        protected override Task<SetValueResult> ExecuteOperationAsync(SetValueRequest request)
+        protected override Task<SetValueResult> ExecuteOperationAsync(SetElementValueRequest request)
         {
             // パターン変換（リクエストから取得、デフォルトはValuePattern）
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? ValuePattern.Pattern;
@@ -59,7 +59,7 @@ namespace UIAutomationMCP.Worker.Operations.Value
             });
         }
 
-        protected override Core.Validation.ValidationResult ValidateRequest(SetValueRequest request)
+        protected override Core.Validation.ValidationResult ValidateRequest(SetElementValueRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.AutomationId))
             {

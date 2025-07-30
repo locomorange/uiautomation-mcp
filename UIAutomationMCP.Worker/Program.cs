@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Worker.Helpers;
 using UIAutomationMCP.Core.Configuration;
+using UIAutomationMCP.Common.Extensions;
 using UIAutomationMCP.Common.Infrastructure;
 using UIAutomationMCP.Common.Abstractions;
 using UIAutomationMCP.Worker.Operations.ElementSearch;
@@ -21,6 +22,7 @@ using UIAutomationMCP.Worker.Operations.TreeNavigation;
 using UIAutomationMCP.Worker.Operations.Focus;
 using UIAutomationMCP.Common.Helpers;
 using UIAutomationMCP.Models.Logging;
+using UIAutomationMCP.Models.Requests;
 
 namespace UIAutomationMCP.Worker
 {
@@ -141,58 +143,58 @@ namespace UIAutomationMCP.Worker
             builder.Services.AddSingleton<UIAutomationMCP.Common.Services.ElementFinderService>();
             builder.Services.AddSingleton<FindElementsCacheService>();
 
-            // Register UI Automation operations
+            // Register UI Automation operations using new extension methods
             // Element operations
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, InvokeElementOperation>("InvokeElement");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, ToggleElementOperation>("ToggleElement");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, SetToggleStateOperation>("SetToggleState");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, SetElementValueOperation>("SetElementValue");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, SetFocusOperation>("SetFocus");
+            builder.Services.AddOperation<InvokeElementOperation, InvokeElementRequest>();
+            builder.Services.AddOperation<ToggleElementOperation, ToggleElementRequest>();
+            builder.Services.AddOperation<SetToggleStateOperation, SetToggleStateRequest>();
+            builder.Services.AddOperation<SetElementValueOperation, SetElementValueRequest>();
+            builder.Services.AddOperation<SetFocusOperation, SetFocusRequest>();
             
             // Search and tree operations
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, SearchElementsOperation>("SearchElements");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetElementTreeOperation>("GetElementTree");
+            builder.Services.AddOperation<SearchElementsOperation, SearchElementsRequest>();
+            builder.Services.AddOperation<GetElementTreeOperation, GetElementTreeRequest>();
             
             // Grid operations
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetGridItemOperation>("GetGridItem");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetRowHeaderOperation>("GetRowHeader");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetColumnHeaderOperation>("GetColumnHeader");
+            builder.Services.AddOperation<GetGridItemOperation, GetGridItemRequest>();
+            builder.Services.AddOperation<GetRowHeaderOperation, GetRowHeaderRequest>();
+            builder.Services.AddOperation<GetColumnHeaderOperation, GetColumnHeaderRequest>();
             
             // Selection operations
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, SelectElementOperation>("SelectElement");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, AddToSelectionOperation>("AddToSelection");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, RemoveFromSelectionOperation>("RemoveFromSelection");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, ClearSelectionOperation>("ClearSelection");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, SelectItemOperation>("SelectItem");
+            builder.Services.AddOperation<SelectElementOperation, SelectElementRequest>();
+            builder.Services.AddOperation<AddToSelectionOperation, AddToSelectionRequest>();
+            builder.Services.AddOperation<RemoveFromSelectionOperation, RemoveFromSelectionRequest>();
+            builder.Services.AddOperation<ClearSelectionOperation, ClearSelectionRequest>();
+            builder.Services.AddOperation<SelectItemOperation, SelectItemRequest>();
             
             // Text operations
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, SelectTextOperation>("SelectText");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, SetTextOperation>("SetText");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, FindTextOperation>("FindText");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, GetTextAttributesOperation>("GetTextAttributes");
+            builder.Services.AddOperation<SelectTextOperation, SelectTextRequest>();
+            builder.Services.AddOperation<SetTextOperation, SetTextRequest>();
+            builder.Services.AddOperation<FindTextOperation, FindTextRequest>();
+            builder.Services.AddOperation<GetTextAttributesOperation, GetTextAttributesRequest>();
             
             // Layout operations
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, ScrollElementOperation>("ScrollElement");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, ExpandCollapseElementOperation>("ExpandCollapseElement");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, DockElementOperation>("DockElement");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, SetScrollPercentOperation>("SetScrollPercent");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, ScrollElementIntoViewOperation>("ScrollElementIntoView");
+            builder.Services.AddOperation<ScrollElementOperation, ScrollElementRequest>();
+            builder.Services.AddOperation<ExpandCollapseElementOperation, ExpandCollapseElementRequest>();
+            builder.Services.AddOperation<DockElementOperation, DockElementRequest>();
+            builder.Services.AddOperation<SetScrollPercentOperation, SetScrollPercentRequest>();
+            builder.Services.AddOperation<ScrollElementIntoViewOperation, ScrollElementIntoViewRequest>();
             
             // Transform operations
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, MoveElementOperation>("MoveElement");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, ResizeElementOperation>("ResizeElement");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, RotateElementOperation>("RotateElement");
+            builder.Services.AddOperation<MoveElementOperation, MoveElementRequest>();
+            builder.Services.AddOperation<ResizeElementOperation, ResizeElementRequest>();
+            builder.Services.AddOperation<RotateElementOperation, RotateElementRequest>();
             
             // Window operations
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, WindowActionOperation>("WindowAction");
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, WaitForInputIdleOperation>("WaitForInputIdle");
+            builder.Services.AddOperation<WindowActionOperation, WindowActionRequest>();
+            builder.Services.AddOperation<WaitForInputIdleOperation, WaitForInputIdleRequest>();
             
             // Range operations
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, SetRangeValueOperation>("SetRangeValue");
+            builder.Services.AddOperation<SetRangeValueOperation, SetRangeValueRequest>();
             
 
             // Utility operations
-            builder.Services.AddKeyedTransient<IUIAutomationOperation, ValidateControlTypePatternsOperation>("ValidateControlTypePatterns"); 
+            builder.Services.AddOperation<ValidateControlTypePatternsOperation, ValidateControlTypePatternsRequest>(); 
 
             // Register Worker service
             builder.Services.AddSingleton<WorkerService>();
