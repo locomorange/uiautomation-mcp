@@ -4,11 +4,12 @@ using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using Xunit.Abstractions;
 
+using UIAutomationMCP.Server.Abstractions;
 namespace UIAutomationMCP.Tests.Integration
 {
     /// <summary>
     /// Integration tests for VirtualizedItemPattern
-    /// Tests the complete Server→Worker→UI Automation pipeline using subprocess execution
+    /// Tests the complete Server  orker  I Automation pipeline using subprocess execution
     /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Integration")]
@@ -40,8 +41,8 @@ namespace UIAutomationMCP.Tests.Integration
             _workerPath = possiblePaths.FirstOrDefault(File.Exists) ??
                 throw new InvalidOperationException($"Worker executable not found. Searched paths: {string.Join(", ", possiblePaths)}");
 
-            _subprocessExecutor = new SubprocessExecutor(executorLogger, _workerPath);
-            _virtualizedItemService = new VirtualizedItemService(_logger, _subprocessExecutor);
+            _subprocessExecutor = new SubprocessExecutor(executorLogger, _workerPath, new CancellationTokenSource());
+            _virtualizedItemService = new VirtualizedItemService(Mock.Of<IProcessManager>(), _logger);
 
             _output.WriteLine($"Using Worker executable at: {_workerPath}");
         }

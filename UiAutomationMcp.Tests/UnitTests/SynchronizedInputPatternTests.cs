@@ -1,11 +1,11 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using UIAutomationMCP.Server.Services.ControlPatterns;
-using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
 using Xunit;
 using Xunit.Abstractions;
+using UIAutomationMCP.Models.Abstractions;
 
 namespace UIAutomationMCP.Tests.UnitTests
 {
@@ -19,14 +19,14 @@ namespace UIAutomationMCP.Tests.UnitTests
     {
         private readonly ITestOutputHelper _output;
         private readonly Mock<ILogger<SynchronizedInputService>> _mockLogger;
-        private readonly Mock<ISubprocessExecutor> _mockExecutor;
+        private readonly Mock<IOperationExecutor> _mockExecutor;
         private readonly SynchronizedInputService _service;
 
         public SynchronizedInputPatternTests(ITestOutputHelper output)
         {
             _output = output;
             _mockLogger = new Mock<ILogger<SynchronizedInputService>>();
-            _mockExecutor = new Mock<ISubprocessExecutor>();
+            _mockExecutor = new Mock<IOperationExecutor>();
             
             _service = new SynchronizedInputService(_mockLogger.Object, _mockExecutor.Object);
         }

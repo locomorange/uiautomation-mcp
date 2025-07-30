@@ -2,17 +2,17 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Helpers;
-using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
 using Xunit;
 using Xunit.Abstractions;
+using UIAutomationMCP.Models.Abstractions;
 
 namespace UIAutomationMCP.Tests.Services.ControlPatterns
 {
     /// <summary>
-    /// Tests for TableService - Microsoft TableItemPattern仕様準拠
-    /// 安全性ポリシー準拠: サブプロセス実行とモック使用でUIAutomation直接実行を回避
+    /// Tests for TableService - Microsoft TableItemPattern 
+    ///  :  UIAutomation 
     /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Unit")]
@@ -20,33 +20,30 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
     {
         private readonly ITestOutputHelper _output;
         private readonly Mock<ILogger<TableService>> _mockLogger;
-        private readonly Mock<ISubprocessExecutor> _mockExecutor;
+        private readonly Mock<IOperationExecutor> _mockExecutor;
         private readonly TableService _service;
 
         public TableServiceTests(ITestOutputHelper output)
         {
             _output = output;
             _mockLogger = new Mock<ILogger<TableService>>();
-            _mockExecutor = new Mock<ISubprocessExecutor>();
+            _mockExecutor = new Mock<IOperationExecutor>();
             _service = new TableService(_mockLogger.Object, _mockExecutor.Object);
         }
 
         public void Dispose()
         {
-            // Mockのクリーンアップ
+            // Mock 
         }
 
-        #region GetColumnHeaderItemsAsync Tests - Microsoft TableItemPattern仕様準拠
+        #region GetColumnHeaderItemsAsync Tests - Microsoft TableItemPattern 
 
         /// <summary>
-        /// GetColumnHeaderItemsAsync - 正常系：Microsoft TableItemPattern.GetColumnHeaderItems()仕様準拠テスト
-        /// Required Members: GetColumnHeaderItems() - テーブル項目の列ヘッダー要素を取得
-        /// </summary>
+        /// GetColumnHeaderItemsAsync -  icrosoft TableItemPattern.GetColumnHeaderItems()         /// Required Members: GetColumnHeaderItems() -          /// </summary>
         [Fact]
         public async Task GetColumnHeaderItemsAsync_ValidTableCell_ReturnsColumnHeaders()
         {
-            // Arrange - Microsoft TableItemPattern仕様のGetColumnHeaderItems()をテスト
-            var expectedColumnHeaders = new ElementSearchResult
+            // Arrange - Microsoft TableItemPattern GetColumnHeaderItems()             var expectedColumnHeaders = new ElementSearchResult
             {
                 Elements = new List<UIAutomationMCP.Shared.ElementInfo>
                 {
@@ -80,7 +77,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             Assert.True(result.Success);
             Assert.Equal(expectedColumnHeaders, result.Data);
 
-            // サブプロセス実行の検証
+            //  
             _mockExecutor.Verify(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", 
                 It.Is<GetColumnHeaderItemsRequest>(r => 
                     r.AutomationId == "tableCell1" &&
@@ -91,8 +88,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
         }
 
         /// <summary>
-        /// GetColumnHeaderItemsAsync - プロセスID指定とカスタムタイムアウトのテスト
-        /// </summary>
+        /// GetColumnHeaderItemsAsync -  ID         /// </summary>
         [Fact]
         public async Task GetColumnHeaderItemsAsync_WithProcessIdAndCustomTimeout_ExecutesCorrectly()
         {
@@ -116,7 +112,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             Assert.True(result.Success);
             Assert.Equal(expectedResult, result.Data);
 
-            // パラメータの検証
+            //  
             _mockExecutor.Verify(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", 
                 It.Is<GetColumnHeaderItemsRequest>(r => 
                     r.AutomationId == "cell2_3" &&
@@ -127,8 +123,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
         }
 
         /// <summary>
-        /// GetColumnHeaderItemsAsync - 例外処理テスト
-        /// </summary>
+        /// GetColumnHeaderItemsAsync -          /// </summary>
         [Fact]
         public async Task GetColumnHeaderItemsAsync_SubprocessException_ReturnsError()
         {
@@ -150,17 +145,14 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
 
         #endregion
 
-        #region GetRowHeaderItemsAsync Tests - Microsoft TableItemPattern仕様準拠
+        #region GetRowHeaderItemsAsync Tests - Microsoft TableItemPattern 
 
         /// <summary>
-        /// GetRowHeaderItemsAsync - 正常系：Microsoft TableItemPattern.GetRowHeaderItems()仕様準拠テスト
-        /// Required Members: GetRowHeaderItems() - テーブル項目の行ヘッダー要素を取得
-        /// </summary>
+        /// GetRowHeaderItemsAsync -  icrosoft TableItemPattern.GetRowHeaderItems()         /// Required Members: GetRowHeaderItems() -          /// </summary>
         [Fact]
         public async Task GetRowHeaderItemsAsync_ValidTableCell_ReturnsRowHeaders()
         {
-            // Arrange - Microsoft TableItemPattern仕様のGetRowHeaderItems()をテスト
-            var expectedRowHeaders = new ElementSearchResult
+            // Arrange - Microsoft TableItemPattern GetRowHeaderItems()             var expectedRowHeaders = new ElementSearchResult
             {
                 Elements = new List<UIAutomationMCP.Shared.ElementInfo>
                 {
@@ -194,7 +186,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             Assert.True(result.Success);
             Assert.Equal(expectedRowHeaders, result.Data);
 
-            // サブプロセス実行の検証
+            //  
             _mockExecutor.Verify(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", 
                 It.Is<GetRowHeaderItemsRequest>(r => 
                     r.AutomationId == "tableCell2" &&
@@ -205,8 +197,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
         }
 
         /// <summary>
-        /// GetRowHeaderItemsAsync - デフォルトパラメータでの動作テスト
-        /// </summary>
+        /// GetRowHeaderItemsAsync -          /// </summary>
         [Fact]
         public async Task GetRowHeaderItemsAsync_WithDefaultParameters_ExecutesCorrectly()
         {
@@ -230,7 +221,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             Assert.True(result.Success);
             Assert.Equal(expectedResult, result.Data);
 
-            // デフォルトパラメータの検証
+            //  
             _mockExecutor.Verify(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", 
                 It.Is<GetRowHeaderItemsRequest>(r => 
                     r.AutomationId == "defaultCell" &&
@@ -241,8 +232,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
         }
 
         /// <summary>
-        /// GetRowHeaderItemsAsync - 例外処理テスト
-        /// </summary>
+        /// GetRowHeaderItemsAsync -          /// </summary>
         [Fact]
         public async Task GetRowHeaderItemsAsync_SubprocessException_ReturnsError()
         {
@@ -267,17 +257,14 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
         #region TableItem Pattern Integration Tests
 
         /// <summary>
-        /// TableItem Pattern Integration - 両方のメソッドが協調動作することをテスト
-        /// Microsoft仕様: TableItemPatternは通常GridItemPatternと併用される
-        /// </summary>
+        /// TableItem Pattern Integration -          /// Microsoft  TableItemPattern GridItemPattern         /// </summary>
         [Theory]
         [InlineData("cell_1_1", "Cell at row 1, column 1")]
         [InlineData("cell_2_3", "Cell at row 2, column 3")]
         [InlineData("cell_0_0", "Top-left cell")]
         public async Task TableItem_Pattern_Methods_Should_Work_Together(string cellId, string description)
         {
-            // Arrange - 異なるタイプのテーブルセルでの動作確認
-            var columnHeadersResult = new ElementSearchResult
+            // Arrange -              var columnHeadersResult = new ElementSearchResult
             {
                 Elements = new List<UIAutomationMCP.Shared.ElementInfo>
                 {
@@ -309,7 +296,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             Assert.True(columnResult.Success);
             Assert.True(rowResult.Success);
 
-            // 両方のメソッドが正しく実行されたことを検証
+            //  
             _mockExecutor.Verify(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", 
                 It.Is<GetColumnHeaderItemsRequest>(r => r.AutomationId == cellId), 30), Times.Once);
             _mockExecutor.Verify(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", 
@@ -319,7 +306,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
         }
 
         /// <summary>
-        /// TableItem Pattern - ログ出力の検証
+        /// TableItem Pattern -  
         /// </summary>
         [Fact]
         public async Task TableItem_Pattern_Should_Log_Correctly()
@@ -335,7 +322,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             await _service.GetColumnHeaderItemsAsync("testCell", "TestApp", null, 30);
             await _service.GetRowHeaderItemsAsync("testCell", "TestApp", null, 30);
 
-            // Assert - ログ出力の検証
+            // Assert -  
             _mockLogger.Verify(
                 l => l.Log(
                     LogLevel.Information,
@@ -358,8 +345,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
         }
 
         /// <summary>
-        /// TableItem Pattern - タイムアウト処理テスト
-        /// </summary>
+        /// TableItem Pattern -          /// </summary>
         [Theory]
         [InlineData(15)]
         [InlineData(45)]
@@ -389,14 +375,12 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
         #region Existing Table Service Methods Tests
 
         /// <summary>
-        /// 既存のTableServiceメソッドとの統合確認テスト
-        /// Microsoft仕様: TablePatternとTableItemPatternの併用
+        ///  TableService         /// Microsoft  TablePattern TableItemPattern 
         /// </summary>
         [Fact]
         public async Task TableService_Should_Support_Both_Table_And_TableItem_Patterns()
         {
-            // Arrange - TablePatternとTableItemPatternの両方をサポートすることを確認
-            var rowHeadersResult = new ElementSearchResult
+            // Arrange - TablePattern TableItemPattern             var rowHeadersResult = new ElementSearchResult
             {
                 Elements = new List<UIAutomationMCP.Shared.ElementInfo>
                 {
@@ -424,7 +408,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             Assert.NotNull(rowHeadersResponse);
             Assert.NotNull(columnHeaderItemsResponse);
 
-            // 両方のパターンが正しく動作することを検証
+            //  
             _mockExecutor.Verify(e => e.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", It.IsAny<GetRowHeadersRequest>(), 30), Times.Once);
             _mockExecutor.Verify(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 30), Times.Once);
 

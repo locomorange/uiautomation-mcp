@@ -7,8 +7,7 @@ using Xunit.Abstractions;
 namespace UIAutomationMCP.Tests.E2E
 {
     /// <summary>
-    /// E2Eテストの基底クラス - 適切なリソース管理を提供
-    /// </summary>
+    /// E2E                -                           /// </summary>
     public abstract class BaseE2ETest : IDisposable
     {
         protected readonly ITestOutputHelper Output;
@@ -37,18 +36,17 @@ namespace UIAutomationMCP.Tests.E2E
             {
                 try
                 {
-                    // ServiceProviderのDisposeを確実に実行
-                    if (ServiceProvider is IDisposable disposable)
+                    // Dispose ServiceProvider if it implements IDisposable
+                    if (ServiceProvider is IDisposable serviceProviderDisposable)
                     {
-                        disposable.Dispose();
+                        serviceProviderDisposable.Dispose();
                     }
 
-                    // SubprocessExecutorが適切にDisposeされているか確認
-                    GC.Collect();
+                    // SubprocessExecutor      Dispose                                  GC.Collect();
                     GC.WaitForPendingFinalizers();
                     GC.Collect();
 
-                    // 念のため残っているWorkerプロセスをクリーンアップ
+                    //                Worker                     
                     CleanupRemainingWorkerProcesses();
                 }
                 catch (Exception ex)

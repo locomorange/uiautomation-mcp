@@ -4,9 +4,7 @@ using System.Text.Json;
 namespace UiAutomationMcp.Tests.Models
 {
     /// <summary>
-    /// SharedModelsのユニットテスト
-    /// シリアライゼーション、デシリアライゼーション、バリデーションをテスト
-    /// </summary>
+    /// SharedModels                  ///                                                                     /// </summary>
     [Collection("UIAutomationTestCollection")]
     public class SharedModelsTests
     {
@@ -150,8 +148,8 @@ namespace UiAutomationMcp.Tests.Models
             };
 
             // Act
-            var json = JsonSerializer.Serialize(request, JsonSerializationConfig.Options);
-            var deserialized = JsonSerializer.Deserialize<WorkerRequest>(json, JsonSerializationConfig.Options);
+            var json = JsonSerializer.Serialize(request);
+            var deserialized = JsonSerializer.Deserialize<WorkerRequest>(json);
 
             // Assert
             Assert.NotNull(deserialized);

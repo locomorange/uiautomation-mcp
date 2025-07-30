@@ -4,9 +4,9 @@ using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Server.Services.ControlPatterns;
-using UIAutomationMCP.Server.Interfaces;
 using Xunit;
 using Xunit.Abstractions;
+using UIAutomationMCP.Models.Abstractions;
 
 namespace UIAutomationMCP.Tests.UnitTests
 {
@@ -20,14 +20,14 @@ namespace UIAutomationMCP.Tests.UnitTests
     {
         private readonly ITestOutputHelper _output;
         private readonly Mock<ILogger<ItemContainerService>> _mockLogger;
-        private readonly Mock<ISubprocessExecutor> _mockExecutor;
+        private readonly Mock<IOperationExecutor> _mockExecutor;
         private readonly ItemContainerService _service;
 
         public ItemContainerPatternTests(ITestOutputHelper output)
         {
             _output = output;
             _mockLogger = new Mock<ILogger<ItemContainerService>>();
-            _mockExecutor = new Mock<ISubprocessExecutor>();
+            _mockExecutor = new Mock<IOperationExecutor>();
             
             _service = new ItemContainerService(_mockLogger.Object, _mockExecutor.Object);
         }

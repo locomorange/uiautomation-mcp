@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Moq;
 using Microsoft.Extensions.DependencyInjection;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Requests;
@@ -8,12 +9,11 @@ using UIAutomationMCP.Server.Services.ControlPatterns;
 using Xunit.Abstractions;
 using System.Diagnostics;
 
+using UIAutomationMCP.Server.Abstractions;
 namespace UiAutomationMcp.Tests.Integration
 {
     /// <summary>
-    /// Server-Worker統合テスト - 実際のプロセス間通信をテスト
-    /// 並行実行をサポート
-    /// </summary>
+    /// Server-Worker         -                              ///                     /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Integration")]
     public class ServerWorkerIntegrationTests : IDisposable
@@ -27,18 +27,17 @@ namespace UiAutomationMcp.Tests.Integration
         {
             _output = output;
             
-            // テスト用のサービスコンテナをセットアップ
+            //                                  
             var services = new ServiceCollection();
             
-            // ロガーを追加
+            //             
             services.AddLogging(builder => 
                 builder.AddConsole().SetMinimumLevel(LogLevel.Information));
             
             _serviceProvider = services.BuildServiceProvider();
             var logger = _serviceProvider.GetRequiredService<ILogger<SubprocessExecutor>>();
             
-            // Worker.exeのパスを取得
-            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            // Get base directory`nvar baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var possiblePaths = new[]
             {
                 Path.Combine(baseDir, "UIAutomationMCP.Worker.exe"),
@@ -62,7 +61,7 @@ namespace UiAutomationMcp.Tests.Integration
                 throw new InvalidOperationException($"Worker executable not found in any of these locations: {string.Join(", ", possiblePaths.Select(Path.GetFullPath))}");
             }
 
-            _subprocessExecutor = new SubprocessExecutor(logger, _workerPath);
+            _subprocessExecutor = new SubprocessExecutor(logger, _workerPath, new CancellationTokenSource());
             _output.WriteLine($"Worker path: {_workerPath}");
         }
 
@@ -119,7 +118,7 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task InvokeService_WhenCalledWithNonExistentElement_ShouldHandleTimeout()
         {
             // Given
-            var invokeService = new InvokeService(_serviceProvider.GetRequiredService<ILogger<InvokeService>>(), _subprocessExecutor);
+            var invokeService = new InvokeService(Mock.Of<IProcessManager>(), _serviceProvider.GetRequiredService<ILogger<InvokeService>>());
 
             // When
             var result = await invokeService.InvokeElementAsync("NonExistentElement", null, null, 5);
@@ -137,7 +136,7 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task ValueService_ShouldCommunicateWithWorker()
         {
             // Arrange
-            var valueService = new ValueService(_serviceProvider.GetRequiredService<ILogger<ValueService>>(), _subprocessExecutor);
+            var valueService = new ValueService(Mock.Of<IProcessManager>(), _serviceProvider.GetRequiredService<ILogger<ValueService>>());
 
             // Act
             var result = await valueService.SetValueAsync("NonExistentElement", "test value", null, null, 5);
@@ -155,7 +154,7 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task ToggleService_ShouldCommunicateWithWorker()
         {
             // Arrange
-            var toggleService = new ToggleService(_serviceProvider.GetRequiredService<ILogger<ToggleService>>(), _subprocessExecutor);
+            var toggleService = new ToggleService(Mock.Of<IProcessManager>(), _serviceProvider.GetRequiredService<ILogger<ToggleService>>());
 
             // Act
             var result = await toggleService.ToggleElementAsync("NonExistentElement", null, null, 5);
@@ -173,8 +172,8 @@ namespace UiAutomationMcp.Tests.Integration
         public async Task MultipleOperations_ShouldWorkSequentially()
         {
             // Arrange
-            var invokeService = new InvokeService(_serviceProvider.GetRequiredService<ILogger<InvokeService>>(), _subprocessExecutor);
-            var valueService = new ValueService(_serviceProvider.GetRequiredService<ILogger<ValueService>>(), _subprocessExecutor);
+            var invokeService = new InvokeService(Mock.Of<IProcessManager>(), _serviceProvider.GetRequiredService<ILogger<InvokeService>>());
+            var valueService = new ValueService(Mock.Of<IProcessManager>(), _serviceProvider.GetRequiredService<ILogger<ValueService>>());
 
             // Act
             var invokeResult = await invokeService.InvokeElementAsync("NonExistentElement1", null, null, 5);
@@ -205,8 +204,7 @@ namespace UiAutomationMcp.Tests.Integration
 
             // Act & Assert
             var exception = await Assert.ThrowsAsync<TimeoutException>(async () =>
-                await _subprocessExecutor.ExecuteAsync<InvokeElementRequest, ActionResult>("InvokeElement", request, 1)); // 1秒タイムアウト
-            
+                await _subprocessExecutor.ExecuteAsync<InvokeElementRequest, ActionResult>("InvokeElement", request, 1)); // 1                         
             // Worker searches for element and times out due to missing element
             Assert.Contains("timed out", exception.Message);
             _output.WriteLine($"Timeout handling test completed: {exception.Message}");

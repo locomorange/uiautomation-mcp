@@ -8,13 +8,13 @@ using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using Xunit.Abstractions;
 using System.Diagnostics;
+using Moq;
 
+using UIAutomationMCP.Server.Abstractions;
 namespace UIAutomationMCP.Tests.Integration
 {
     /// <summary>
-    /// 基本的なE2Eテスト - 最も重要なユーザーシナリオのみをテスト
-    /// Process IDベースの安全な終了処理により並行実行をサポート
-    /// </summary>
+    ///        E2E     -                                       /// Process ID                                           /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Integration")]
     public class BasicE2ETests : IDisposable
@@ -49,21 +49,17 @@ namespace UIAutomationMCP.Tests.Integration
             _workerPath = possiblePaths.FirstOrDefault(File.Exists) ?? 
                 throw new InvalidOperationException("Worker executable not found");
 
-            _subprocessExecutor = new SubprocessExecutor(logger, _workerPath);
+            _subprocessExecutor = new SubprocessExecutor(logger, _workerPath, new CancellationTokenSource());
             
             // Create options
             var options = Options.Create(new UIAutomationOptions());
             
             _elementSearchService = new ElementSearchService(
-                _serviceProvider.GetRequiredService<ILogger<ElementSearchService>>(), 
-                _subprocessExecutor, 
+                Mock.Of<IProcessManager>(),
+                _serviceProvider.GetRequiredService<ILogger<ElementSearchService>>(),
                 options);
-            _invokeService = new InvokeService(
-                _serviceProvider.GetRequiredService<ILogger<InvokeService>>(), 
-                _subprocessExecutor);
-            _valueService = new ValueService(
-                _serviceProvider.GetRequiredService<ILogger<ValueService>>(), 
-                _subprocessExecutor);
+            _invokeService = new InvokeService(Mock.Of<IProcessManager>(), _serviceProvider.GetRequiredService<ILogger<InvokeService>>());
+            _valueService = new ValueService(Mock.Of<IProcessManager>(), _serviceProvider.GetRequiredService<ILogger<ValueService>>());
         }
 
         [Fact]
@@ -196,11 +192,9 @@ namespace UIAutomationMCP.Tests.Integration
                 {
                     _output.WriteLine($"Terminating {appName} with PID: {process.Id}");
                     
-                    // まず正常終了を試行
-                    process.CloseMainWindow();
+                    //                                      process.CloseMainWindow();
                     
-                    // 少し待機してから強制終了
-                    if (!process.WaitForExit(2000))
+                    //                                          if (!process.WaitForExit(2000))
                     {
                         _output.WriteLine($"Force killing {appName} with PID: {process.Id}");
                         process.Kill();

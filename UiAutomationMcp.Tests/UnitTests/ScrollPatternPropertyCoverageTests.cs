@@ -4,8 +4,8 @@ using Xunit.Abstractions;
 namespace UIAutomationMCP.Tests.UnitTests
 {
     /// <summary>
-    /// ScrollPattern Required Membersのカバレッジテスト
-    /// Microsoft UIAutomation ScrollPattern仕様の完全実装を検証
+    /// ScrollPattern Required Members property coverage tests
+    /// Microsoft UIAutomation ScrollPattern implementation verification
     /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Unit")]
@@ -19,13 +19,13 @@ namespace UIAutomationMCP.Tests.UnitTests
         }
 
         /// <summary>
-        /// Microsoft ScrollPattern仕様の6つの必須プロパティがすべて定義されていることを検証
+        /// Microsoft ScrollPattern requires 6 properties to be implemented
         /// https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/implementing-the-ui-automation-scroll-control-pattern
         /// </summary>
         [Fact]
         public void ScrollPattern_Should_Cover_All_Required_Properties()
         {
-            // Arrange - Microsoft仕様の6つの必須プロパティ
+            // Arrange - Microsoft requires 6 properties
             var requiredProperties = new[]
             {
                 "HorizontalScrollPercent",
@@ -36,7 +36,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 "VerticallyScrollable"
             };
 
-            // Act - GetScrollInfoOperationが返すプロパティを模擬
+            // Act - GetScrollInfoOperation would return these properties
             var mockScrollInfo = new
             {
                 HorizontalScrollPercent = 25.0,
@@ -47,20 +47,20 @@ namespace UIAutomationMCP.Tests.UnitTests
                 VerticallyScrollable = true
             };
 
-            // シリアライゼーションしてプロパティ名を取得
+            // Serialize and parse to verify structure
             var json = JsonSerializer.Serialize(mockScrollInfo);
             var jsonDocument = JsonDocument.Parse(json);
 
-            // Assert - すべての必須プロパティが含まれていることを確認
+            // Assert - All required properties must be present
             foreach (var requiredProperty in requiredProperties)
             {
                 Assert.True(jsonDocument.RootElement.TryGetProperty(requiredProperty, out _), 
                     $"Required property '{requiredProperty}' is missing from ScrollPattern implementation");
                 
-                _output.WriteLine($"✓ Required property '{requiredProperty}' is implemented");
+                _output.WriteLine($"  Required property '{requiredProperty}' is implemented");
             }
 
-            // 追加の検証 - プロパティ数が期待通りであることを確認
+            // Ensure no extra properties
             var actualPropertyCount = jsonDocument.RootElement.EnumerateObject().Count();
             Assert.Equal(requiredProperties.Length, actualPropertyCount);
 
@@ -68,28 +68,28 @@ namespace UIAutomationMCP.Tests.UnitTests
         }
 
         /// <summary>
-        /// Microsoft ScrollPattern仕様の2つの必須メソッドが実装されていることを検証
+        /// Microsoft ScrollPattern requires 2 methods to be implemented
         /// </summary>
         [Theory]
         [InlineData("Scroll")]           // ScrollPattern.Scroll method (existing)
         [InlineData("SetScrollPercent")] // ScrollPattern.SetScrollPercent method (newly added)
         public void ScrollPattern_Should_Implement_Required_Methods(string methodName)
         {
-            // Arrange & Act - メソッド実装の存在確認
+            // Arrange & Act - Verify method implementations exist
             var isImplemented = methodName switch
             {
-                "Scroll" => true,           // ScrollElementOperation として実装済み
-                "SetScrollPercent" => true, // SetScrollPercentOperation として実装済み
+                "Scroll" => true,           // ScrollElementOperation
+                "SetScrollPercent" => true, // SetScrollPercentOperation
                 _ => false
             };
 
             // Assert
             Assert.True(isImplemented, $"Required method '{methodName}' is not implemented");
-            _output.WriteLine($"✓ Required method '{methodName}' is implemented");
+            _output.WriteLine($"  Required method '{methodName}' is implemented");
         }
 
         /// <summary>
-        /// ScrollPattern仕様で要求される例外処理が適切に定義されていることを検証
+        /// ScrollPattern must handle specific exceptions per Microsoft specification
         /// </summary>
         [Theory]
         [InlineData("ArgumentException", "Invalid scroll increment values")]
@@ -97,48 +97,48 @@ namespace UIAutomationMCP.Tests.UnitTests
         [InlineData("InvalidOperationException", "Scrolling in unsupported directions")]
         public void ScrollPattern_Should_Handle_Required_Exceptions(string exceptionType, string scenario)
         {
-            // Arrange - Microsoft仕様で要求される例外タイプ
+            // Arrange - Microsoft specification requires these exceptions
             var supportedExceptions = new[]
             {
                 "ArgumentException",
-                "ArgumentOutOfRangeException", 
+                "ArgumentOutOfRangeException",
                 "InvalidOperationException"
             };
 
-            // Act & Assert - 例外タイプがサポートされていることを確認
+            // Act & Assert - Verify exception type is supported
             Assert.Contains(exceptionType, supportedExceptions);
-            _output.WriteLine($"✓ Exception handling supported for {exceptionType}: {scenario}");
+            _output.WriteLine($"  Exception handling supported for {exceptionType}: {scenario}");
         }
 
         /// <summary>
-        /// ScrollPattern実装がMicrosoft仕様の制約を満たしていることを検証
+        /// ScrollPattern must meet Microsoft specification constraints
         /// </summary>
         [Fact]
         public void ScrollPattern_Should_Meet_Microsoft_Specification_Constraints()
         {
-            // Arrange - Microsoft仕様の制約事項
+            // Arrange - Microsoft specification constraints
             var specificationConstraints = new Dictionary<string, object>
             {
-                // 水平スクロール不可の場合、HorizontalViewSizeは100%であるべき
+                // When not scrollable, HorizontalViewSize must be 100%
                 { "HorizontalViewSize_WhenNotScrollable", 100.0 },
                 
-                // 垂直スクロール不可の場合、VerticalViewSizeは100%であるべき
+                // When not scrollable, VerticalViewSize must be 100%
                 { "VerticalViewSize_WhenNotScrollable", 100.0 },
                 
-                // ScrollPattern.NoScrollの値は-1
+                // ScrollPattern.NoScroll constant = -1
                 { "NoScroll_Constant", -1.0 },
                 
-                // スクロール値は0-100に正規化される
+                // Valid scroll percent range: 0-100
                 { "MinScrollPercent", 0.0 },
                 { "MaxScrollPercent", 100.0 }
             };
 
-            // Act & Assert - 各制約が理解され、実装に反映されていることを確認
+            // Act & Assert - Verify each constraint
             foreach (var constraint in specificationConstraints)
             {
                 Assert.NotNull(constraint.Value);
                 
-                // 特定の制約値が正しいことを確認
+                // Verify specific constraint values
                 switch (constraint.Key)
                 {
                     case "NoScroll_Constant":
@@ -156,19 +156,19 @@ namespace UIAutomationMCP.Tests.UnitTests
                         break;
                 }
                 
-                _output.WriteLine($"✓ Specification constraint verified: {constraint.Key} = {constraint.Value}");
+                _output.WriteLine($"  Specification constraint verified: {constraint.Key} = {constraint.Value}");
             }
 
             _output.WriteLine("All Microsoft ScrollPattern specification constraints verified");
         }
 
         /// <summary>
-        /// ScrollPatternとScrollItemPatternの関係が適切に理解されていることを検証
+        /// ScrollPattern and ScrollItemPattern relationship tests
         /// </summary>
         [Fact]
         public void ScrollPattern_Should_Understand_Relationship_With_ScrollItemPattern()
         {
-            // Arrange - ScrollPatternとScrollItemPatternの関係性
+            // Arrange - ScrollPattern vs ScrollItemPattern relationship
             var patternRelationships = new Dictionary<string, string>
             {
                 { "ScrollPattern", "Container elements that can scroll" },
@@ -177,19 +177,19 @@ namespace UIAutomationMCP.Tests.UnitTests
                 { "ScrollElementIntoView", "Uses ScrollItemPattern.ScrollIntoView method" }
             };
 
-            // Act & Assert - 両パターンが適切に実装されていることを確認
+            // Act & Assert - Verify relationships are understood
             foreach (var relationship in patternRelationships)
             {
                 Assert.NotNull(relationship.Value);
                 Assert.False(string.IsNullOrWhiteSpace(relationship.Value));
                 
-                _output.WriteLine($"✓ Pattern relationship understood: {relationship.Key} - {relationship.Value}");
+                _output.WriteLine($"  Pattern relationship understood: {relationship.Key} - {relationship.Value}");
             }
 
-            // ScrollbarはRangeValuePatternを使用すべきという仕様も確認
+            // Scrollbars should use RangeValuePattern
             var scrollbarPattern = "RangeValue";
             Assert.Equal("RangeValue", scrollbarPattern);
-            _output.WriteLine("✓ Scrollbar pattern specification understood: Scrollbars should use RangeValuePattern");
+            _output.WriteLine("  Scrollbar pattern specification understood: Scrollbars should use RangeValuePattern");
         }
     }
 }

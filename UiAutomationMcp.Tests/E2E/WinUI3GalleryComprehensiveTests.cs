@@ -303,15 +303,15 @@ namespace UIAutomationMCP.Tests.E2E
                 Assert.True(foundRichEditReference, "Should find RichEditBox reference after navigating to Fundamentals");
                 
                 // If we got here, the navigation actually worked!
-                Output.WriteLine("\n🎉 NAVIGATION VERIFICATION PASSED! 🎉");
-                Output.WriteLine("✅ SelectElement successfully performed navigation!");
-                Output.WriteLine("✅ Found Fundamentals-specific content (Iconography, RichEditBox)!");
-                Output.WriteLine("✅ MCP UI Automation tools are working correctly!");
+                Output.WriteLine("\n   NAVIGATION VERIFICATION PASSED!   ");
+                Output.WriteLine("  SelectElement successfully performed navigation!");
+                Output.WriteLine("  Found Fundamentals-specific content (Iconography, RichEditBox)!");
+                Output.WriteLine("  MCP UI Automation tools are working correctly!");
                 Output.WriteLine("Check screenshots C:\\temp\\before_actual_nav.png and C:\\temp\\after_actual_nav.png");
             }
             catch (Exception ex)
             {
-                Output.WriteLine($"\n❌ NAVIGATION TEST FAILED: {ex.Message}");
+                Output.WriteLine($"\n  NAVIGATION TEST FAILED: {ex.Message}");
                 Output.WriteLine($"Stack trace: {ex.StackTrace}");
                 throw; // Don't hide failures
             }
@@ -355,7 +355,7 @@ namespace UIAutomationMCP.Tests.E2E
                             // Test specifically the Minimize button for obvious visual change
                             if (automationId == "Minimize" && isVisible)
                             {
-                                Output.WriteLine($"🎯 Testing MINIMIZE button for obvious visual change!");
+                                Output.WriteLine($"   Testing MINIMIZE button for obvious visual change!");
                                 foundMinimizeButton = true;
                                 
                                 try
@@ -380,15 +380,15 @@ namespace UIAutomationMCP.Tests.E2E
                                     
                                     Assert.True(invokeSuccess, "Minimize button InvokeElement should succeed");
                                     
-                                    Output.WriteLine("✅ MINIMIZE BUTTON TEST PASSED!");
-                                    Output.WriteLine("📸 Compare screenshots: C:\\temp\\before_minimize.png vs C:\\temp\\after_minimize.png");
-                                    Output.WriteLine("📋 If window disappeared/minimized, the UI automation is working!");
+                                    Output.WriteLine("  MINIMIZE BUTTON TEST PASSED!");
+                                    Output.WriteLine("   Compare screenshots: C:\\temp\\before_minimize.png vs C:\\temp\\after_minimize.png");
+                                    Output.WriteLine("   If window disappeared/minimized, the UI automation is working!");
                                     
                                     break;
                                 }
                                 catch (Exception ex)
                                 {
-                                    Output.WriteLine($"❌ Minimize button test failed: {ex.Message}");
+                                    Output.WriteLine($"  Minimize button test failed: {ex.Message}");
                                     throw;
                                 }
                             }
@@ -397,7 +397,7 @@ namespace UIAutomationMCP.Tests.E2E
                     
                     if (!foundMinimizeButton)
                     {
-                        Output.WriteLine("⚠️ Minimize button not found or not visible");
+                        Output.WriteLine("    Minimize button not found or not visible");
                         // Fall back to testing any visible button
                         foreach (var button in buttonElements.Take(3))
                         {
@@ -421,11 +421,11 @@ namespace UIAutomationMCP.Tests.E2E
                     }
                 }
                 
-                Output.WriteLine("✅ InvokePattern testing completed");
+                Output.WriteLine("  InvokePattern testing completed");
             }
             catch (Exception ex)
             {
-                Output.WriteLine($"❌ InvokePattern test failed: {ex.Message}");
+                Output.WriteLine($"  InvokePattern test failed: {ex.Message}");
                 throw;
             }
         }
@@ -472,7 +472,7 @@ namespace UIAutomationMCP.Tests.E2E
                             if (isVisible && !string.IsNullOrEmpty(automationId) && 
                                 !automationId.StartsWith("__")) // Skip internal elements
                             {
-                                Output.WriteLine($"🎯 Testing VISIBLE element: {name} (ID: {automationId})");
+                                Output.WriteLine($"   Testing VISIBLE element: {name} (ID: {automationId})");
                                 
                                 try
                                 {
@@ -507,8 +507,8 @@ namespace UIAutomationMCP.Tests.E2E
                                     
                                     if (setSuccess)
                                     {
-                                        Output.WriteLine($"✅ ValuePattern succeeded on VISIBLE element {name}");
-                                        Output.WriteLine("📸 Check screenshots: C:\\temp\\before_value_test.png vs C:\\temp\\after_value_test.png");
+                                        Output.WriteLine($"  ValuePattern succeeded on VISIBLE element {name}");
+                                        Output.WriteLine("   Check screenshots: C:\\temp\\before_value_test.png vs C:\\temp\\after_value_test.png");
                                         foundVisibleElement = true;
                                         
                                         Assert.True(setSuccess, $"SetElementValue should succeed on visible element {name}");
@@ -517,19 +517,19 @@ namespace UIAutomationMCP.Tests.E2E
                                 }
                                 catch (Exception ex)
                                 {
-                                    Output.WriteLine($"❌ ValuePattern failed on visible element {name}: {ex.Message}");
+                                    Output.WriteLine($"  ValuePattern failed on visible element {name}: {ex.Message}");
                                 }
                             }
                             else
                             {
-                                Output.WriteLine($"⏭️ Skipping non-visible or internal element: {automationId}");
+                                Output.WriteLine($"    Skipping non-visible or internal element: {automationId}");
                             }
                         }
                     }
                     
                     if (!foundVisibleElement)
                     {
-                        Output.WriteLine("⚠️ No visible text input elements found for testing");
+                        Output.WriteLine("    No visible text input elements found for testing");
                         Output.WriteLine("This indicates WinUI 3 Gallery may not have visible text inputs on current page");
                         
                         // Try to navigate to a page with text inputs
@@ -551,11 +551,11 @@ namespace UIAutomationMCP.Tests.E2E
                     }
                 }
                 
-                Output.WriteLine("✅ ValuePattern visibility analysis completed");
+                Output.WriteLine("  ValuePattern visibility analysis completed");
             }
             catch (Exception ex)
             {
-                Output.WriteLine($"❌ ValuePattern test failed: {ex.Message}");
+                Output.WriteLine($"  ValuePattern test failed: {ex.Message}");
                 throw;
             }
         }
@@ -607,23 +607,23 @@ namespace UIAutomationMCP.Tests.E2E
                                     
                                     Assert.True(toggleSuccess, $"ToggleElement should succeed on {name}");
                                     
-                                    Output.WriteLine($"✅ TogglePattern succeeded on {name}");
+                                    Output.WriteLine($"  TogglePattern succeeded on {name}");
                                     break; // Test one successful checkbox
                                 }
                                 catch (Exception ex)
                                 {
-                                    Output.WriteLine($"❌ TogglePattern failed on {name}: {ex.Message}");
+                                    Output.WriteLine($"  TogglePattern failed on {name}: {ex.Message}");
                                 }
                             }
                         }
                     }
                 }
                 
-                Output.WriteLine("✅ TogglePattern testing completed");
+                Output.WriteLine("  TogglePattern testing completed");
             }
             catch (Exception ex)
             {
-                Output.WriteLine($"❌ TogglePattern test failed: {ex.Message}");
+                Output.WriteLine($"  TogglePattern test failed: {ex.Message}");
                 throw;
             }
         }
@@ -664,7 +664,7 @@ namespace UIAutomationMCP.Tests.E2E
                     var scrollUp = await Tools.ScrollElement(automationId: "NavigationViewContentGrid", direction: "up", amount: 1.0);
                     Output.WriteLine($"Scroll up result: {JsonSerializer.Serialize(scrollUp)}");
                     
-                    Output.WriteLine("✅ ScrollPattern testing completed");
+                    Output.WriteLine("  ScrollPattern testing completed");
                 }
                 catch (Exception ex)
                 {
@@ -674,7 +674,7 @@ namespace UIAutomationMCP.Tests.E2E
             }
             catch (Exception ex)
             {
-                Output.WriteLine($"❌ ScrollPattern test failed: {ex.Message}");
+                Output.WriteLine($"  ScrollPattern test failed: {ex.Message}");
                 // Don't throw - scroll might not be available
             }
         }
@@ -701,11 +701,11 @@ namespace UIAutomationMCP.Tests.E2E
                 
                 Assert.True(capSuccess, "SearchElements(Window) should succeed");
                 
-                Output.WriteLine("✅ WindowPattern testing completed");
+                Output.WriteLine("  WindowPattern testing completed");
             }
             catch (Exception ex)
             {
-                Output.WriteLine($"❌ WindowPattern test failed: {ex.Message}");
+                Output.WriteLine($"  WindowPattern test failed: {ex.Message}");
                 throw;
             }
         }
@@ -730,11 +730,11 @@ namespace UIAutomationMCP.Tests.E2E
                 
                 Assert.True(screenshotSuccess, "TakeScreenshot should succeed");
                 
-                Output.WriteLine("✅ Application launcher testing completed");
+                Output.WriteLine("  Application launcher testing completed");
             }
             catch (Exception ex)
             {
-                Output.WriteLine($"❌ Application launcher test failed: {ex.Message}");
+                Output.WriteLine($"  Application launcher test failed: {ex.Message}");
                 throw;
             }
         }

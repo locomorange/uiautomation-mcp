@@ -29,7 +29,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
         public void Constructor_WithValidParameters_ShouldCreateInstance()
         {
             // When
-            var executor = new SubprocessExecutor(_mockLogger.Object, _validWorkerPath);
+            var executor = new SubprocessExecutor(_mockLogger.Object, _validWorkerPath, new CancellationTokenSource());
 
             // Then
             Assert.NotNull(executor);
@@ -40,7 +40,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
         public void Constructor_WithNullLogger_ShouldThrowArgumentNullException()
         {
             // When & Then
-            var exception = Assert.Throws<ArgumentNullException>(() => new SubprocessExecutor(null!, _validWorkerPath));
+            var exception = Assert.Throws<ArgumentNullException>(() => new SubprocessExecutor(null!, _validWorkerPath, new CancellationTokenSource()));
             Assert.Contains("logger", exception.ParamName);
         }
 
@@ -51,7 +51,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
         public void Constructor_WithInvalidWorkerPath_ShouldThrowArgumentException(string? workerPath)
         {
             // When & Then
-            var exception = Assert.Throws<ArgumentException>(() => new SubprocessExecutor(_mockLogger.Object, workerPath!));
+            var exception = Assert.Throws<ArgumentException>(() => new SubprocessExecutor(_mockLogger.Object, workerPath!, new CancellationTokenSource()));
             Assert.Contains("workerPath", exception.ParamName);
         }
 
@@ -59,7 +59,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
         public async Task ExecuteAsync_WithNonExistentWorkerPath_ShouldThrowException()
         {
             // Given
-            using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath);
+            using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath, new CancellationTokenSource());
 
             // When & Then
             await Assert.ThrowsAsync<FileNotFoundException>(async () =>
@@ -70,7 +70,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
         public async Task ExecuteAsync_WithVeryShortTimeout_ShouldTimeoutQuickly()
         {
             // Given
-            using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath);
+            using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath, new CancellationTokenSource());
 
             // When & Then
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
@@ -89,7 +89,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
         public async Task ExecuteAsync_WithInvalidOperation_ShouldThrowException(string? operation)
         {
             // Given
-            using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath);
+            using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath, new CancellationTokenSource());
 
             // When & Then
             await Assert.ThrowsAsync<ArgumentException>(async () =>
@@ -100,7 +100,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
         public async Task ExecuteAsync_WithNullParameters_ShouldHandleGracefully()
         {
             // Given
-            using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath);
+            using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath, new CancellationTokenSource());
 
             // When & Then
             await Assert.ThrowsAsync<FileNotFoundException>(async () =>
@@ -111,7 +111,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
         public async Task ExecuteAsync_WithEmptyParameters_ShouldHandleGracefully()
         {
             // Given
-            using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath);
+            using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath, new CancellationTokenSource());
 
             // When & Then
             await Assert.ThrowsAsync<FileNotFoundException>(async () =>
@@ -125,7 +125,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
         public async Task ExecuteAsync_WithInvalidTimeout_ShouldThrowException(int timeout)
         {
             // Given
-            using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath);
+            using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath, new CancellationTokenSource());
 
             // When & Then
             await Assert.ThrowsAsync<FileNotFoundException>(async () =>
@@ -136,7 +136,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
         public void Dispose_ShouldNotThrow()
         {
             // Given
-            var executor = new SubprocessExecutor(_mockLogger.Object, _validWorkerPath);
+            var executor = new SubprocessExecutor(_mockLogger.Object, _validWorkerPath, new CancellationTokenSource());
 
             // When & Then
             var exception = Record.Exception(() => executor.Dispose());
@@ -147,7 +147,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
         public void Dispose_CalledMultipleTimes_ShouldNotThrow()
         {
             // Given
-            var executor = new SubprocessExecutor(_mockLogger.Object, _validWorkerPath);
+            var executor = new SubprocessExecutor(_mockLogger.Object, _validWorkerPath, new CancellationTokenSource());
 
             // When & Then
             var exception1 = Record.Exception(() => executor.Dispose());
@@ -163,7 +163,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
         public async Task ExecuteAsync_AfterDispose_ShouldThrowObjectDisposedException()
         {
             // Given
-            var executor = new SubprocessExecutor(_mockLogger.Object, _validWorkerPath);
+            var executor = new SubprocessExecutor(_mockLogger.Object, _validWorkerPath, new CancellationTokenSource());
             executor.Dispose();
 
             // When & Then
@@ -175,7 +175,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
         public async Task ExecuteAsync_ConcurrentCalls_ShouldBeThreadSafe()
         {
             // Given
-            using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath);
+            using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath, new CancellationTokenSource());
 
             // When
             var tasks = new List<Task>();

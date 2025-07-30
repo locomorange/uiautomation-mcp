@@ -3,10 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using UIAutomationMCP.Server.Services.ControlPatterns;
-using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Results;
 using Xunit;
+using UIAutomationMCP.Models.Abstractions;
 
 namespace UiAutomationMcp.Tests.Integration;
 
@@ -14,14 +14,14 @@ public class ItemContainerPatternIntegrationTests : IDisposable
 {
     private readonly ServiceProvider _serviceProvider;
     private readonly IItemContainerService _service;
-    private readonly Mock<ISubprocessExecutor> _mockSubprocessExecutor;
+    private readonly Mock<IOperationExecutor> _mockSubprocessExecutor;
     private readonly Mock<ILogger<ItemContainerService>> _mockLogger;
 
     public ItemContainerPatternIntegrationTests()
     {
         var services = new ServiceCollection();
 
-        _mockSubprocessExecutor = new Mock<ISubprocessExecutor>();
+        _mockSubprocessExecutor = new Mock<IOperationExecutor>();
         _mockLogger = new Mock<ILogger<ItemContainerService>>();
 
         services.AddSingleton(_mockSubprocessExecutor.Object);
@@ -70,9 +70,9 @@ public class ItemContainerPatternIntegrationTests : IDisposable
         var successResponse = new ElementSearchResult
         {
             Success = true,
-            Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+            Elements = new List<UIAutomationMCP.Models.ElementInfo>
             {
-                new UIAutomationMCP.Shared.ElementInfo
+                new UIAutomationMCP.Models.ElementInfo
                 {
                     AutomationId = "item_1",
                     Name = "Item1",
@@ -148,9 +148,9 @@ public class ItemContainerPatternIntegrationTests : IDisposable
         var response = new ElementSearchResult
         {
             Success = true,
-            Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+            Elements = new List<UIAutomationMCP.Models.ElementInfo>
             {
-                new UIAutomationMCP.Shared.ElementInfo
+                new UIAutomationMCP.Models.ElementInfo
                 {
                     AutomationId = "unnamed_node",
                     Name = null!,
@@ -192,9 +192,9 @@ public class ItemContainerPatternIntegrationTests : IDisposable
             .Returns(() => Task.FromResult(new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo { AutomationId = $"item_{++callCount}" }
+                    new UIAutomationMCP.Models.ElementInfo { AutomationId = $"item_{++callCount}" }
                 }
             }));
 

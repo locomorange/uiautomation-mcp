@@ -4,9 +4,9 @@ using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
 using UIAutomationMCP.Models;
-using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Models.Results;
 using Xunit.Abstractions;
+using UIAutomationMCP.Models.Abstractions;
 
 namespace UIAutomationMCP.Tests.UnitTests
 {
@@ -53,7 +53,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Mock.Of<ISynchronizedInputService>(),
                 Mock.Of<IEventMonitorService>(),
                 Mock.Of<IFocusService>(),
-                Mock.Of<ISubprocessExecutor>()
+                Mock.Of<IOperationExecutor>()
             );
         }
 

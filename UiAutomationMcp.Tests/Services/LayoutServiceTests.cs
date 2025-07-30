@@ -4,13 +4,13 @@ using Moq;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Models;
+using UIAutomationMCP.Server.Abstractions;
 using Xunit.Abstractions;
 
 namespace UiAutomationMcp.Tests.Services
 {
     /// <summary>
-    /// LayoutService単体テスト - ScrollElementIntoViewを含むLayoutService機能のテスト
-    /// Mock使用により安全にUIAutomation依存を回避
+    /// LayoutService単体テスチE- ScrollElementIntoViewを含むLayoutService機�EのチE��チE    /// Mock使用により安�EにUIAutomation依存を回避
     /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Unit")]
@@ -38,51 +38,41 @@ namespace UiAutomationMcp.Tests.Services
         #region ScrollElementIntoView Tests
 
         /// <summary>
-        /// ScrollElementIntoViewAsync - エラーハンドリング：ワーカープロセスが見つからない場合
-        /// SubprocessExecutorが適切にエラーを処理することをテスト
-        /// </summary>
+        /// ScrollElementIntoViewAsync - エラーハンドリング�E�ワーカープロセスが見つからなぁE��吁E        /// SubprocessExecutorが適刁E��エラーを�E琁E��ることをテスチE        /// </summary>
         [Fact]
         public async Task ScrollElementIntoViewAsync_Should_Handle_Worker_Not_Found_Error()
         {
             // Arrange
             var elementId = "test-scroll-element";
             var processId = 1234;
-            var timeoutSeconds = 1; // 短いタイムアウトで高速テスト
+            var timeoutSeconds = 1; // 短ぁE��イムアウトで高速テスチE
+            // Act - 存在しなぁE��ーカーパスでの実衁E            var result = await _layoutService.ScrollElementIntoViewAsync(automationId: elementId, processId: processId, timeoutSeconds: timeoutSeconds);
 
-            // Act - 存在しないワーカーパスでの実行
-            var result = await _layoutService.ScrollElementIntoViewAsync(automationId: elementId, processId: processId, timeoutSeconds: timeoutSeconds);
-
-            // Assert - エラーが適切に処理されることを確認
-            Assert.NotNull(result);
+            // Assert - エラーが適刁E��処琁E��れることを確誁E            Assert.NotNull(result);
             
             // JSON形式で結果を検証
             var jsonResult = System.Text.Json.JsonSerializer.Serialize(result);
             _output.WriteLine($"Result JSON: {jsonResult}");
             
-            // 結果の検証 - Worker executable not found エラーが含まれることを確認
-            var resultString = jsonResult.ToString();
+            // 結果の検証 - Worker executable not found エラーが含まれることを確誁E            var resultString = jsonResult.ToString();
             Assert.Contains("Worker executable not found", resultString);
             
             _output.WriteLine($"ScrollElementIntoView error handling test completed successfully");
         }
 
         /// <summary>
-        /// ScrollElementIntoViewAsync - デフォルトパラメータでの動作テスト
-        /// </summary>
+        /// ScrollElementIntoViewAsync - チE��ォルトパラメータでの動作テスチE        /// </summary>
         [Fact]
         public async Task ScrollElementIntoViewAsync_Should_Handle_Default_Parameters()
         {
             // Arrange
             var elementId = "test-element";
 
-            // Act - デフォルトパラメータでの実行
-            var result = await _layoutService.ScrollElementIntoViewAsync(elementId);
+            // Act - チE��ォルトパラメータでの実衁E            var result = await _layoutService.ScrollElementIntoViewAsync(elementId);
 
-            // Assert - デフォルトパラメータが適切に処理されることを確認
-            Assert.NotNull(result);
+            // Assert - チE��ォルトパラメータが適刁E��処琁E��れることを確誁E            Assert.NotNull(result);
             
-            // 結果の検証（型安全な方法）
-            if (result.GetType().GetProperty("Success") != null)
+            // 結果の検証�E�型安�Eな方法！E            if (result.GetType().GetProperty("Success") != null)
             {
                 var success = result.GetType().GetProperty("Success")?.GetValue(result);
                 Assert.False((bool?)success);
@@ -98,17 +88,14 @@ namespace UiAutomationMcp.Tests.Services
         }
 
         /// <summary>
-        /// ScrollElementIntoViewAsync - ログ記録の確認
-        /// エラー時にログが適切に記録されることをテスト
-        /// </summary>
+        /// ScrollElementIntoViewAsync - ログ記録の確誁E        /// エラー時にログが適刁E��記録されることをテスチE        /// </summary>
         [Fact]
         public async Task ScrollElementIntoViewAsync_Should_Log_Error_When_Operation_Fails()
         {
             // Arrange
             var elementId = "non-scrollable-element";
 
-            // Act - 失敗する操作を実行
-            var result = await _layoutService.ScrollElementIntoViewAsync(elementId);
+            // Act - 失敗する操作を実衁E            var result = await _layoutService.ScrollElementIntoViewAsync(elementId);
 
             // Assert
             Assert.NotNull(result);
@@ -123,8 +110,7 @@ namespace UiAutomationMcp.Tests.Services
                 _output.WriteLine($"Error logging test completed: {error}");
             }
 
-            // エラーログが記録されることを確認
-            _mockLogger.Verify(
+            // エラーログが記録されることを確誁E            _mockLogger.Verify(
                 x => x.Log(
                     LogLevel.Error,
                     It.IsAny<EventId>(),
@@ -135,29 +121,27 @@ namespace UiAutomationMcp.Tests.Services
         }
 
         /// <summary>
-        /// ScrollElementIntoViewAsync - 異なるパラメータでの動作確認
-        /// </summary>
+        /// ScrollElementIntoViewAsync - 異なるパラメータでの動作確誁E        /// </summary>
         [Theory]
         [InlineData("element1", "Window1", 1234)]
         [InlineData("element2", "", 0)]
         [InlineData("", "Window2", 5678)]
         public async Task ScrollElementIntoViewAsync_Should_Handle_Various_Parameters(string elementId, string windowTitle, int processId)
         {
-            // Act - 様々なパラメータでの実行  
+            // Act - 様、E��パラメータでの実衁E 
             // windowTitle parameter is used for test validation
             var result = await _layoutService.ScrollElementIntoViewAsync(automationId: elementId, processId: processId, timeoutSeconds: 1);
             
             // Validate windowTitle parameter usage
             Assert.True(string.IsNullOrEmpty(windowTitle) || !string.IsNullOrEmpty(windowTitle));
 
-            // Assert - パラメータが適切に処理されることを確認
-            Assert.NotNull(result);
+            // Assert - パラメータが適刁E��処琁E��れることを確誁E            Assert.NotNull(result);
             
             // 結果の検証
             if (result.GetType().GetProperty("Success") != null)
             {
                 var success = result.GetType().GetProperty("Success")?.GetValue(result);
-                Assert.False((bool?)success); // ワーカーが見つからないため失敗するが、パラメータ処理は正常
+                Assert.False((bool?)success); // ワーカーが見つからなぁE��め失敗するが、パラメータ処琁E�E正常
             }
             
             _output.WriteLine($"Parameter test completed for elementId:'{elementId}', processId:{processId}");
@@ -176,7 +160,7 @@ namespace UiAutomationMcp.Tests.Services
                 _output.WriteLine($"Disposal warning: {ex.Message}");
             }
             
-            // テストクリーンアップ
+            // チE��トクリーンアチE�E
             GC.Collect();
             GC.WaitForPendingFinalizers();
         }

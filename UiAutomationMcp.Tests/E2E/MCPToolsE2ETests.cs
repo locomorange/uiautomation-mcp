@@ -4,12 +4,12 @@ using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text.Json;
 using UIAutomationMCP.Server.Helpers;
-using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
 using Xunit;
 using Xunit.Abstractions;
+using UIAutomationMCP.Models.Abstractions;
 
 namespace UIAutomationMCP.Tests.E2E
 {
@@ -99,10 +99,11 @@ namespace UIAutomationMCP.Tests.E2E
                     throw new InvalidOperationException($"UIAutomationMCP.Worker not found. Searched paths: {string.Join(", ", possiblePaths.Select(Path.GetFullPath))}");
                 }
 
-                return new SubprocessExecutor(logger, workerPath);
+                var shutdownCts = new CancellationTokenSource();
+                return new SubprocessExecutor(logger, workerPath, shutdownCts);
             });
             
-            services.AddSingleton<ISubprocessExecutor>(provider => provider.GetRequiredService<SubprocessExecutor>());
+            services.AddSingleton<IOperationExecutor>(provider => provider.GetRequiredService<SubprocessExecutor>());
             
             // Register tools
             services.AddSingleton<UIAutomationTools>();
@@ -141,7 +142,9 @@ namespace UIAutomationMCP.Tests.E2E
 
             try
             {
-                var result = await _tools.LaunchApplicationByName("Notepad");
+                // Use IApplicationLauncher directly instead of non-existent LaunchApplicationByName
+                var appLauncher = _serviceProvider.GetRequiredService<IApplicationLauncher>();
+                var result = await appLauncher.LaunchApplicationAsync("notepad.exe");
                 Assert.NotNull(result);
                 
                 _output.WriteLine($"LaunchApplicationByName result: {JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}");
@@ -179,7 +182,9 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // First launch Notepad
-                await _tools.LaunchApplicationByName("Notepad");
+                // Use IApplicationLauncher directly
+                var appLauncher = _serviceProvider.GetRequiredService<IApplicationLauncher>();
+                await appLauncher.LaunchApplicationAsync("notepad.exe");
                 await Task.Delay(2000);
                 
                 // Track the launched Notepad process

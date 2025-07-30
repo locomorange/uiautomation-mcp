@@ -6,11 +6,11 @@ using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
 using UIAutomationMCP.Server.Helpers;
-using UIAutomationMCP.Server.Interfaces;
 using Xunit.Abstractions;
 using System.Threading;
 using System.Text.Json;
 using UIAutomationMCP.Models.Serialization;
+using UIAutomationMCP.Models.Abstractions;
 
 namespace UIAutomationMCP.Tests.Tools
 {
@@ -46,7 +46,7 @@ namespace UIAutomationMCP.Tests.Tools
         private readonly Mock<ISynchronizedInputService> _mockSynchronizedInputService;
         private readonly Mock<IEventMonitorService> _mockEventMonitorService;
         private readonly Mock<IFocusService> _mockFocusService;
-        private readonly Mock<ISubprocessExecutor> _mockSubprocessExecutor;
+        private readonly Mock<IOperationExecutor> _mockSubprocessExecutor;
 
         public UIAutomationToolsTests(ITestOutputHelper output)
         {
@@ -77,7 +77,7 @@ namespace UIAutomationMCP.Tests.Tools
             _mockSynchronizedInputService = new Mock<ISynchronizedInputService>();
             _mockEventMonitorService = new Mock<IEventMonitorService>();
             _mockFocusService = new Mock<IFocusService>();
-            _mockSubprocessExecutor = new Mock<ISubprocessExecutor>();
+            _mockSubprocessExecutor = new Mock<IOperationExecutor>();
             
             _tools = new UIAutomationTools(
                 _mockApplicationLauncher.Object,
@@ -1633,12 +1633,10 @@ namespace UIAutomationMCP.Tests.Tools
         [Trait("Category", "Unit")]
         public void GetScrollInfo_Should_Call_LayoutService_With_Correct_Parameters()
         {
-            // Arrange - Microsoft ScrollPattern仕様の6つの必須プロパティをテスト
-            var resultObject = new ScrollInfoResult
+            // Arrange - Microsoft ScrollPattern 6             var resultObject = new ScrollInfoResult
             {
                 Success = true,
-                // WindowTitle not available in ElementSearchResult,
-                // ProcessId not available in ElementSearchResult,
+                
                 HorizontalScrollPercent = 25.0,
                 VerticalScrollPercent = 50.0,
                 HorizontalViewSize = 80.0,
@@ -1673,8 +1671,7 @@ namespace UIAutomationMCP.Tests.Tools
         [Trait("Category", "Unit")]
         public async Task SetScrollPercent_Should_Call_LayoutService_With_Valid_Percentages()
         {
-            // Arrange - Microsoft ScrollPattern仕様のSetScrollPercentメソッドをテスト
-            var resultObject = new ActionResult
+            // Arrange - Microsoft ScrollPattern SetScrollPercent             var resultObject = new ActionResult
             {
                 Success = true,
                 ActionName = "SetScrollPercent",
@@ -1703,8 +1700,7 @@ namespace UIAutomationMCP.Tests.Tools
         [Trait("Category", "Unit")]
         public async Task SetScrollPercent_Should_Handle_NoScroll_Values()
         {
-            // Arrange - Microsoft仕様の-1値（NoScroll）をテスト
-            var resultObject = new ActionResult
+            // Arrange - Microsoft -1 oScroll             var resultObject = new ActionResult
             {
                 Success = true,
                 ActionName = "SetScrollPercent",
@@ -1720,8 +1716,7 @@ namespace UIAutomationMCP.Tests.Tools
             _mockLayoutService.Setup(s => s.SetScrollPercentAsync("scrollElement", null, -1.0, 50.0, null, null, 30))
                              .Returns(Task.FromResult(serverResponse));
 
-            // Act - 水平方向にNoScroll(-1)、垂直方向に50%を指定
-            var result = await _tools.SetScrollPercent(automationId: "scrollElement", horizontalPercent: -1.0, verticalPercent: 50.0);
+            // Act -  NoScroll(-1) 50%             var result = await _tools.SetScrollPercent(automationId: "scrollElement", horizontalPercent: -1.0, verticalPercent: 50.0);
 
             // Assert
             Assert.NotNull(result);
@@ -1737,8 +1732,7 @@ namespace UIAutomationMCP.Tests.Tools
         [InlineData(-1.0, -1.0)]   // NoScroll values
         public async Task SetScrollPercent_Should_Accept_Valid_Range_Values(double horizontal, double vertical)
         {
-            // Arrange - Microsoft仕様の有効範囲（0-100、-1）をテスト
-            var resultObject = new ActionResult
+            // Arrange - Microsoft -100 1             var resultObject = new ActionResult
             {
                 Success = true,
                 ActionName = "SetScrollPercent",
@@ -1768,14 +1762,12 @@ namespace UIAutomationMCP.Tests.Tools
         #region ScrollElementIntoView Integration Tests
 
         /// <summary>
-        /// ScrollElementIntoView - 正常系：Microsoft ScrollItemPattern仕様準拠テスト
-        /// </summary>
+        /// ScrollElementIntoView -  icrosoft ScrollItemPattern         /// </summary>
         [Fact]
         [Trait("Category", "Unit")]
         public async Task ScrollElementIntoView_Should_Call_LayoutService_With_Correct_Parameters()
         {
-            // Arrange - Microsoft ScrollItemPattern.ScrollIntoView()仕様をテスト
-            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            // Arrange - Microsoft ScrollItemPattern.ScrollIntoView()             var expectedResult = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
                 Data = new ActionResult
@@ -1800,8 +1792,7 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         /// <summary>
-        /// ScrollElementIntoView - デフォルトパラメータでの動作テスト
-        /// </summary>
+        /// ScrollElementIntoView -          /// </summary>
         [Fact]
         [Trait("Category", "Unit")]
         public async Task ScrollElementIntoView_Should_Use_Default_Parameters()
@@ -1835,8 +1826,7 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         /// <summary>
-        /// ScrollElementIntoView - エラーハンドリング：ScrollItemPatternが利用できない場合
-        /// Microsoft仕様: InvalidOperationException handling
+        /// ScrollElementIntoView -  crollItemPattern         /// Microsoft  InvalidOperationException handling
         /// </summary>
         [Fact]
         [Trait("Category", "Unit")]
@@ -1857,8 +1847,7 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         /// <summary>
-        /// ScrollElementIntoView - エラーハンドリング：要素が見つからない場合
-        /// </summary>
+        /// ScrollElementIntoView -          /// </summary>
         [Fact]
         [Trait("Category", "Unit")]
         public async Task ScrollElementIntoView_Should_Handle_Element_Not_Found_Exception()
@@ -1878,8 +1867,7 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         /// <summary>
-        /// ScrollElementIntoView - タイムアウト処理テスト
-        /// </summary>
+        /// ScrollElementIntoView -          /// </summary>
         [Fact]
         [Trait("Category", "Unit")]
         public async Task ScrollElementIntoView_Should_Handle_Custom_Timeout()
@@ -1914,8 +1902,7 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         /// <summary>
-        /// ScrollElementIntoView - Microsoft仕様準拠：ListItemとTreeItemコントロールタイプでの動作確認
-        /// </summary>
+        /// ScrollElementIntoView - Microsoft istItem TreeItem         /// </summary>
         [Theory]
         [Trait("Category", "Unit")]
         [InlineData("list-item-1")]
@@ -1923,8 +1910,7 @@ namespace UIAutomationMCP.Tests.Tools
         [InlineData("dataitem-3")]
         public async Task ScrollElementIntoView_Should_Work_With_Expected_Control_Types(string elementId)
         {
-            // Arrange - ListItem、TreeItem、DataItemでScrollItemPatternがサポートされることをテスト
-            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            // Arrange - ListItem reeItem ataItem ScrollItemPattern             var expectedResult = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
                 Data = new ActionResult
@@ -1949,8 +1935,7 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         /// <summary>
-        /// ScrollElementIntoView - 空文字列パラメータの処理
-        /// </summary>
+        /// ScrollElementIntoView -          /// </summary>
         [Theory]
         [Trait("Category", "Unit")]
         [InlineData("", "TestWindow")]
@@ -1986,18 +1971,15 @@ namespace UIAutomationMCP.Tests.Tools
 
         #endregion
 
-        #region TableItem Pattern Tests - Microsoft UI Automation仕様準拠
+        #region TableItem Pattern Tests - Microsoft UI Automation 
 
         /// <summary>
-        /// GetColumnHeader - 正常系：Microsoft TableItemPattern.GetColumnHeader()仕様準拠テスト
-        /// Required Members: GetColumnHeader() - テーブル項目の列ヘッダー要素を取得
-        /// </summary>
+        /// GetColumnHeader -  icrosoft TableItemPattern.GetColumnHeader()         /// Required Members: GetColumnHeader() -          /// </summary>
         [Fact]
         [Trait("Category", "Unit")]
         public async Task GetColumnHeader_Should_Call_TableService_With_Correct_Parameters()
         {
-            // Arrange - Microsoft TableItemPattern仕様のGetColumnHeader()をテスト
-            var resultObject = new ElementSearchResult
+            // Arrange - Microsoft TableItemPattern GetColumnHeader()             var resultObject = new ElementSearchResult
             {
                 Success = true,
                 Elements = new List<ElementInfo>
@@ -2042,8 +2024,7 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         /// <summary>
-        /// GetColumnHeader - プロセスIDとカスタムタイムアウト指定テスト
-        /// </summary>
+        /// GetColumnHeader -  ID         /// </summary>
         [Fact]
         [Trait("Category", "Unit")]
         public async Task GetColumnHeader_Should_Work_With_ProcessId_And_CustomTimeout()
@@ -2079,8 +2060,8 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         /// <summary>
-        /// GetColumnHeader - TableItemPatternがサポートされていない場合のエラーハンドリング
-        /// Microsoft仕様: InvalidOperationException when pattern not supported
+        /// GetColumnHeader - TableItemPattern 
+        /// Microsoft  InvalidOperationException when pattern not supported
         /// </summary>
         [Fact]
         [Trait("Category", "Unit")]
@@ -2101,8 +2082,7 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         /// <summary>
-        /// GetColumnHeader - 列ヘッダーが見つからない場合の処理
-        /// </summary>
+        /// GetColumnHeader -          /// </summary>
         [Fact]
         [Trait("Category", "Unit")]
         public async Task GetColumnHeader_Should_Handle_No_Column_Headers_Found()
@@ -2133,15 +2113,12 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         /// <summary>
-        /// GetRowHeader - 正常系：Microsoft TableItemPattern.GetRowHeader()仕様準拠テスト
-        /// Required Members: GetRowHeader() - テーブル項目の行ヘッダー要素を取得
-        /// </summary>
+        /// GetRowHeader -  icrosoft TableItemPattern.GetRowHeader()         /// Required Members: GetRowHeader() -          /// </summary>
         [Fact]
         [Trait("Category", "Unit")]
         public async Task GetRowHeader_Should_Call_TableService_With_Correct_Parameters()
         {
-            // Arrange - Microsoft TableItemPattern仕様のGetRowHeader()をテスト
-            var resultObject = new ElementSearchResult
+            // Arrange - Microsoft TableItemPattern GetRowHeader()             var resultObject = new ElementSearchResult
             {
                 Success = true,
                 Elements = new List<ElementInfo>
@@ -2186,8 +2163,7 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         /// <summary>
-        /// GetRowHeader - デフォルトパラメータでの動作テスト
-        /// </summary>
+        /// GetRowHeader -          /// </summary>
         [Fact]
         [Trait("Category", "Unit")]
         public async Task GetRowHeader_Should_Use_Default_Parameters()
@@ -2221,8 +2197,8 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         /// <summary>
-        /// GetRowHeader - TableItemPatternがサポートされていない場合のエラーハンドリング
-        /// Microsoft仕様: InvalidOperationException when pattern not supported
+        /// GetRowHeader - TableItemPattern 
+        /// Microsoft  InvalidOperationException when pattern not supported
         /// </summary>
         [Fact]
         [Trait("Category", "Unit")]
@@ -2243,8 +2219,7 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         /// <summary>
-        /// GetRowHeader - 行ヘッダーが見つからない場合の処理
-        /// </summary>
+        /// GetRowHeader -          /// </summary>
         [Fact]
         [Trait("Category", "Unit")]
         public async Task GetRowHeader_Should_Handle_No_Row_Headers_Found()
@@ -2278,8 +2253,7 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         /// <summary>
-        /// GetRowHeader - プロセスIDとカスタムタイムアウト指定での動作確認
-        /// </summary>
+        /// GetRowHeader -  ID         /// </summary>
         [Fact]
         [Trait("Category", "Unit")]
         public async Task GetRowHeader_Should_Work_With_ProcessId_And_CustomTimeout()
@@ -2320,9 +2294,7 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         /// <summary>
-        /// TableItem Pattern Integration - 両方のメソッドが協調動作することをテスト
-        /// Microsoft仕様: TableItemPatternは通常GridItemPatternと併用される
-        /// </summary>
+        /// TableItem Pattern Integration -          /// Microsoft  TableItemPattern GridItemPattern         /// </summary>
         [Theory]
         [Trait("Category", "Unit")]
         [InlineData("cell_1_1", "Cell at row 1, column 1")]
@@ -2330,8 +2302,7 @@ namespace UIAutomationMCP.Tests.Tools
         [InlineData("cell_0_0", "Top-left cell")]
         public async Task TableItem_Pattern_Methods_Should_Work_For_Different_Cell_Types(string cellId, string description)
         {
-            // Arrange - 異なるタイプのテーブルセルでの動作確認
-            var columnHeadersResult = new ElementSearchResult
+            // Arrange -              var columnHeadersResult = new ElementSearchResult
             {
                 Success = true,
                 Elements = new List<ElementInfo>
@@ -2385,8 +2356,7 @@ namespace UIAutomationMCP.Tests.Tools
         }
 
         /// <summary>
-        /// TableItem Pattern - 空文字列パラメータの処理
-        /// </summary>
+        /// TableItem Pattern -          /// </summary>
         [Theory]
         [Trait("Category", "Unit")]
         [InlineData("", "TestWindow")]

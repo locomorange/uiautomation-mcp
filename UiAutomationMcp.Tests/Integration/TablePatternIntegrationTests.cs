@@ -4,11 +4,13 @@ using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
 using Xunit.Abstractions;
 
+using UIAutomationMCP.Server.Abstractions;
+using Moq;
 namespace UIAutomationMCP.Tests.Integration
 {
     /// <summary>
     /// Integration tests for Table pattern operations
-    /// Tests the complete Server→Worker→UI Automation pipeline using subprocess execution
+    /// Tests the complete Server  orker  I Automation pipeline using subprocess execution
     /// Microsoft UI Automation TablePattern specification compliance verification
     /// </summary>
     [Collection("UIAutomationTestCollection")]
@@ -40,8 +42,8 @@ namespace UIAutomationMCP.Tests.Integration
             _workerPath = possiblePaths.FirstOrDefault(File.Exists) ??
                 throw new InvalidOperationException($"Worker executable not found. Searched paths: {string.Join(", ", possiblePaths)}");
 
-            _subprocessExecutor = new SubprocessExecutor(executorLogger, _workerPath);
-            _tableService = new TableService(_logger, _subprocessExecutor);
+            _subprocessExecutor = new SubprocessExecutor(executorLogger, _workerPath, new CancellationTokenSource());
+            _tableService = new TableService(Mock.Of<IProcessManager>(), _logger);
 
             _output.WriteLine($"Using Worker executable at: {_workerPath}");
         }
@@ -231,7 +233,7 @@ namespace UIAutomationMCP.Tests.Integration
         #region Microsoft Specification Compliance Integration Tests
 
         /// <summary>
-        /// Microsoft仕様準拠統合テスト：TablePattern specification compliance
+        /// Microsoft                  ablePattern specification compliance
         /// Tests that the full integration pipeline respects Microsoft UI Automation standards
         /// </summary>
         [Fact]
@@ -320,7 +322,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task TableService_SubprocessExecution_ShouldHandleWorkerCommunication()
         {
             // This test specifically validates that the subprocess execution pipeline works correctly
-            // for TablePattern operations, ensuring that Server↔Worker communication is robust
+            // for TablePattern operations, ensuring that Server  orker communication is robust
 
             // Arrange
             var elementId = "SubprocessTestTable";

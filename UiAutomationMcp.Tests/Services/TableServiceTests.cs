@@ -2,10 +2,11 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services.ControlPatterns;
-using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
 using Xunit.Abstractions;
+using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Server.Abstractions;
 
 namespace UIAutomationMCP.Tests.Services
 {
@@ -20,16 +21,16 @@ namespace UIAutomationMCP.Tests.Services
     {
         private readonly ITestOutputHelper _output;
         private readonly Mock<ILogger<TableService>> _mockLogger;
-        private readonly Mock<ISubprocessExecutor> _mockExecutor;
+        private readonly Mock<IOperationExecutor> _mockExecutor;
         private readonly TableService _tableService;
 
         public TableServiceTests(ITestOutputHelper output)
         {
             _output = output;
             _mockLogger = new Mock<ILogger<TableService>>();
-            _mockExecutor = new Mock<ISubprocessExecutor>();
+            _mockExecutor = new Mock<IOperationExecutor>();
             
-            _tableService = new TableService(_mockLogger.Object, _mockExecutor.Object);
+            _tableService = new TableService(Mock.Of<IProcessManager>(), _mockLogger.Object);
         }
 
         #region GetRowOrColumnMajorAsync Tests (COMMENTED OUT - Method doesn't exist in ITableService)
@@ -189,11 +190,11 @@ namespace UIAutomationMCP.Tests.Services
             var expectedResult = new ElementSearchResult 
             { 
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo { Name = "Row1" },
-                    new UIAutomationMCP.Shared.ElementInfo { Name = "Row2" },
-                    new UIAutomationMCP.Shared.ElementInfo { Name = "Row3" }
+                    new UIAutomationMCP.Models.ElementInfo { Name = "Row1" },
+                    new UIAutomationMCP.Models.ElementInfo { Name = "Row2" },
+                    new UIAutomationMCP.Models.ElementInfo { Name = "Row3" }
                 }
             };
 
@@ -224,11 +225,11 @@ namespace UIAutomationMCP.Tests.Services
             var expectedResult = new ElementSearchResult 
             { 
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo { Name = "Col1" },
-                    new UIAutomationMCP.Shared.ElementInfo { Name = "Col2" },
-                    new UIAutomationMCP.Shared.ElementInfo { Name = "Col3" }
+                    new UIAutomationMCP.Models.ElementInfo { Name = "Col1" },
+                    new UIAutomationMCP.Models.ElementInfo { Name = "Col2" },
+                    new UIAutomationMCP.Models.ElementInfo { Name = "Col3" }
                 }
             };
 
@@ -252,7 +253,7 @@ namespace UIAutomationMCP.Tests.Services
         #region Microsoft Specification Compliance Tests
 
         /// <summary>
-        /// Microsoft仕様準拠テスト：TablePattern Required Members
+        /// Microsoft              ablePattern Required Members
         /// - GetColumnHeaders() method
         /// - GetRowHeaders() method
         /// - GetColumnHeaderItems() method  
@@ -271,10 +272,10 @@ namespace UIAutomationMCP.Tests.Services
                 .Returns(Task.FromResult(new ElementSearchResult 
                 { 
                     Success = true,
-                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                    Elements = new List<UIAutomationMCP.Models.ElementInfo>
                     {
-                        new UIAutomationMCP.Shared.ElementInfo { Name = "Header1" },
-                        new UIAutomationMCP.Shared.ElementInfo { Name = "Header2" }
+                        new UIAutomationMCP.Models.ElementInfo { Name = "Header1" },
+                        new UIAutomationMCP.Models.ElementInfo { Name = "Header2" }
                     }
                 }));
             
@@ -282,10 +283,10 @@ namespace UIAutomationMCP.Tests.Services
                 .Returns(Task.FromResult(new ElementSearchResult 
                 { 
                     Success = true,
-                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                    Elements = new List<UIAutomationMCP.Models.ElementInfo>
                     {
-                        new UIAutomationMCP.Shared.ElementInfo { Name = "Row1" },
-                        new UIAutomationMCP.Shared.ElementInfo { Name = "Row2" }
+                        new UIAutomationMCP.Models.ElementInfo { Name = "Row1" },
+                        new UIAutomationMCP.Models.ElementInfo { Name = "Row2" }
                     }
                 }));
 

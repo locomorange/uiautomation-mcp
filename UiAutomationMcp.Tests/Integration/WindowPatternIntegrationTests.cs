@@ -10,8 +10,7 @@ using System.Diagnostics;
 namespace UiAutomationMcp.Tests.Integration
 {
     /// <summary>
-    /// Window Control Pattern統合テスト - Microsoft仕様準拠の実際のプロセス間通信テスト
-    /// Microsoft仕様: https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/implementing-the-ui-automation-window-control-pattern
+    /// Window Control Pattern         - Microsoft                                    /// Microsoft     https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/implementing-the-ui-automation-window-control-pattern
     /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Integration")]
@@ -26,17 +25,17 @@ namespace UiAutomationMcp.Tests.Integration
         {
             _output = output;
             
-            // テスト用のサービスコンテナをセットアップ
+            //                                  
             var services = new ServiceCollection();
             
-            // ロガーを追加
+            //             
             services.AddLogging(builder => 
                 builder.AddConsole().SetMinimumLevel(LogLevel.Information));
             
             _serviceProvider = services.BuildServiceProvider();
             var logger = _serviceProvider.GetRequiredService<ILogger<SubprocessExecutor>>();
             
-            // Worker.exeのパスを取得
+            // Find Worker.exe path
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var possiblePaths = new[]
             {
@@ -62,15 +61,14 @@ namespace UiAutomationMcp.Tests.Integration
                 throw new FileNotFoundException($"UIAutomationMCP.Worker.exe not found. Searched paths: {string.Join(", ", possiblePaths)}");
             }
 
-            _subprocessExecutor = new SubprocessExecutor(logger, _workerPath);
+            _subprocessExecutor = new SubprocessExecutor(logger, _workerPath, new CancellationTokenSource());
             _output.WriteLine($"Using worker path: {_workerPath}");
         }
 
         #region Microsoft WindowPattern Required Members Integration Tests
 
         /// <summary>
-        /// GetWindowInteractionState - 統合テスト：実際のサブプロセス通信でInteractionStateを取得
-        /// Microsoft仕様: WindowPattern.Current.WindowInteractionState property
+        /// GetWindowInteractionState -                                  InteractionState             /// Microsoft     WindowPattern.Current.WindowInteractionState property
         /// </summary>
         [Fact(Skip = "Requires actual window to test")]
         public async Task GetWindowInteractionState_Integration_Should_Execute_Successfully()
@@ -78,7 +76,7 @@ namespace UiAutomationMcp.Tests.Integration
             // Arrange
             var request = new GetWindowInteractionStateRequest
             {
-                WindowTitle = "Calculator", // Calculatorは一般的に利用可能
+                WindowTitle = "Calculator", // Calculator                 
                 ProcessId = 0
             };
 
@@ -91,20 +89,18 @@ namespace UiAutomationMcp.Tests.Integration
                 Assert.NotNull(result);
                 _output.WriteLine($"GetWindowInteractionState integration test result: {result}");
                 
-                // Note: 実際のウィンドウがない場合はエラーになることが予想される
-                // これは正常な動作
+                // Note: Integration test completed
             }
             catch (Exception ex)
             {
-                // ウィンドウが見つからない場合の例外は予想される動作
+                // Expected exception handled
                 _output.WriteLine($"Expected exception (no window found): {ex.Message}");
                 Assert.Contains("Window not found", ex.Message);
             }
         }
 
         /// <summary>
-        /// GetWindowCapabilities - 統合テスト：実際のサブプロセス通信でMaximizable/Minimizableを取得
-        /// Microsoft仕様: WindowPattern.Current.CanMaximize, CanMinimize properties
+        /// GetWindowCapabilities -                                  Maximizable/Minimizable             /// Microsoft     WindowPattern.Current.CanMaximize, CanMinimize properties
         /// </summary>
         [Fact(Skip = "Requires actual window to test")]
         public async Task GetWindowCapabilities_Integration_Should_Execute_Successfully()
@@ -125,8 +121,7 @@ namespace UiAutomationMcp.Tests.Integration
                 Assert.NotNull(result);
                 _output.WriteLine($"GetWindowCapabilities integration test result: {result}");
                 
-                // 結果にMicrosoft Required Membersが含まれていることを期待
-                // Maximizable, Minimizable, IsModal, IsTopmost, VisualState, InteractionState
+                //      Microsoft Required Members                                   // Maximizable, Minimizable, IsModal, IsTopmost, VisualState, InteractionState
             }
             catch (Exception ex)
             {
@@ -136,8 +131,7 @@ namespace UiAutomationMcp.Tests.Integration
         }
 
         /// <summary>
-        /// WaitForInputIdle - 統合テスト：実際のサブプロセス通信でWaitForInputIdleを実行
-        /// Microsoft仕様: WindowPattern.WaitForInputIdle(int milliseconds) method
+        /// WaitForInputIdle -                                  WaitForInputIdle              /// Microsoft     WindowPattern.WaitForInputIdle(int milliseconds) method
         /// </summary>
         [Fact(Skip = "Requires actual window to test")]
         public async Task WaitForInputIdle_Integration_Should_Execute_Successfully()
@@ -171,8 +165,7 @@ namespace UiAutomationMcp.Tests.Integration
         #region Worker Process Validation Tests
 
         /// <summary>
-        /// Worker登録確認 - 新しいWindow Patternオペレーションが正しく登録されているかテスト
-        /// </summary>
+        /// Worker        -      Window Pattern                                               /// </summary>
         [Theory]
         [InlineData("GetWindowInteractionState")]
         [InlineData("GetWindowCapabilities")]
@@ -181,7 +174,7 @@ namespace UiAutomationMcp.Tests.Integration
         {
             try
             {
-                // Act - 存在しないウィンドウに対して実行
+                // Act - Execute operation based on name
                 object result = operationName switch
                 {
                     "GetWindowInteractionState" => await _subprocessExecutor.ExecuteAsync<GetWindowInteractionStateRequest, object>(
@@ -199,16 +192,13 @@ namespace UiAutomationMcp.Tests.Integration
                     _ => throw new ArgumentException($"Unknown operation: {operationName}")
                 };
 
-                // この行に到達すべきではない（例外が発生するはず）
-                Assert.Fail($"Expected exception for operation {operationName}");
+                //                                                          Assert.Fail($"Expected exception for operation {operationName}");
             }
             catch (Exception ex)
             {
-                // Assert - 操作が登録されていればWindow not foundエラー、
-                // 未登録なら別のエラーが発生する
-                var errorMessage = ex.Message.ToLower();
+                // Assert -                    Window not found                        //                                            var errorMessage = ex.Message.ToLower();
                 
-                // 操作が正しく登録されている場合の期待されるエラーメッセージ
+                //                                                   
                 var expectedErrors = new[]
                 {
                     "window not found",
@@ -220,8 +210,7 @@ namespace UiAutomationMcp.Tests.Integration
                 
                 if (!isRegistered)
                 {
-                    // 未登録の場合は異なるエラーが発生
-                    Assert.Fail($"Operation {operationName} may not be registered. Error: {ex.Message}");
+                    //                                                  Assert.Fail($"Operation {operationName} may not be registered. Error: {ex.Message}");
                 }
 
                 _output.WriteLine($"Operation {operationName} is properly registered. Error (expected): {ex.Message}");
@@ -233,8 +222,7 @@ namespace UiAutomationMcp.Tests.Integration
         #region SubprocessExecutor Timeout Tests
 
         /// <summary>
-        /// タイムアウト動作テスト - 各Window Pattern操作のタイムアウト処理が正常に動作することを確認
-        /// </summary>
+        ///                     -   indow Pattern                                                   /// </summary>
         [Theory]
         [InlineData("GetWindowInteractionState", 1)]
         [InlineData("GetWindowCapabilities", 1)]
@@ -266,15 +254,13 @@ namespace UiAutomationMcp.Tests.Integration
             {
                 stopwatch.Stop();
                 
-                // タイムアウトまたは予想されるエラーが発生することを確認
-                var isTimeoutRelated = ex.Message.Contains("timeout") || 
+                //                                                               var isTimeoutRelated = ex.Message.Contains("timeout") || 
                                      ex.Message.Contains("Window not found") ||
                                      ex.Message.Contains("process");
                 
                 Assert.True(isTimeoutRelated, $"Unexpected error for {operationName}: {ex.Message}");
                 
-                // タイムアウト時間が適切に守られていることを確認（多少のマージンを考慮）
-                Assert.True(stopwatch.ElapsedMilliseconds < (timeoutSeconds + 5) * 1000, 
+            Assert.True(stopwatch.ElapsedMilliseconds < (timeoutSeconds + 5) * 1000,
                     $"Operation {operationName} took too long: {stopwatch.ElapsedMilliseconds}ms");
                 
                 _output.WriteLine($"Operation {operationName} properly handled timeout in {stopwatch.ElapsedMilliseconds}ms");
@@ -286,8 +272,7 @@ namespace UiAutomationMcp.Tests.Integration
         #region Microsoft Specification Compliance Tests
 
         /// <summary>
-        /// Microsoft WindowPattern仕様準拠テスト - Required Membersが適切に実装されているか確認
-        /// </summary>
+        /// Microsoft WindowPattern            - Required Members                               /// </summary>
         [Fact]
         public void WindowPattern_Required_Members_Should_Be_Implemented()
         {
@@ -303,15 +288,13 @@ namespace UiAutomationMcp.Tests.Integration
                 "WindowAction"                 // Close(), SetVisualState() methods
             };
 
-            // すべての必須操作が実装されていることを確認
-            foreach (var operation in implementedOperations)
+            //                                                foreach (var operation in implementedOperations)
             {
                 Assert.NotNull(operation);
                 _output.WriteLine($"Required operation implemented: {operation}");
             }
 
-            // Microsoft仕様で要求される最小限の操作数を確認
-            Assert.True(implementedOperations.Length >= 4, 
+            Assert.True(implementedOperations.Length >= 4,
                 "WindowPattern implementation should cover all required members");
 
             _output.WriteLine($"Microsoft WindowPattern specification compliance verified: {implementedOperations.Length} operations");

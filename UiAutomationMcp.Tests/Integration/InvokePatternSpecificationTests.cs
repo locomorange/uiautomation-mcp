@@ -1,16 +1,16 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services;
+using UIAutomationMCP.Server.Abstractions;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using Xunit.Abstractions;
 
 namespace UIAutomationMCP.Tests.Integration
 {
     /// <summary>
-    /// Microsoft Invoke Pattern仕様準拠テスト
-    /// UI Automation Invoke Control Pattern仕様に基づく詳細テスト
-    /// https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/implementing-the-ui-automation-invoke-control-pattern
+    /// Microsoft Invoke Pattern                   /// UI Automation Invoke Control Pattern                           /// https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/implementing-the-ui-automation-invoke-control-pattern
     /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Integration")]
@@ -44,16 +44,15 @@ namespace UIAutomationMCP.Tests.Integration
             _workerPath = possiblePaths.FirstOrDefault(File.Exists) ?? 
                 throw new InvalidOperationException("Worker executable not found");
 
-            _subprocessExecutor = new SubprocessExecutor(logger, _workerPath);
-            _invokeService = new InvokeService(
-                _serviceProvider.GetRequiredService<ILogger<InvokeService>>(), 
-                _subprocessExecutor);
+            _subprocessExecutor = new SubprocessExecutor(logger, _workerPath, new CancellationTokenSource());
+            _invokeService = new InvokeService(Mock.Of<IProcessManager>(), 
+                _serviceProvider.GetRequiredService<ILogger<InvokeService>>());
         }
 
         [Fact]
         public async Task InvokeElement_ShouldReturnImmediately_NonBlocking()
         {
-            // Microsoft仕様: "asynchronous call and must return immediately without blocking"
+            // Microsoft     "asynchronous call and must return immediately without blocking"
             
             // Given
             var elementId = "TestElement";
@@ -75,7 +74,7 @@ namespace UIAutomationMCP.Tests.Integration
         [Fact]
         public async Task InvokeElement_ShouldHandleSingleUnambiguousAction()
         {
-            // Microsoft仕様: "single, unambiguous action"
+            // Microsoft     "single, unambiguous action"
             
             // Given
             var elementId = "SingleActionButton";
@@ -92,7 +91,7 @@ namespace UIAutomationMCP.Tests.Integration
         [Fact]
         public async Task InvokeElement_ShouldNotMaintainState()
         {
-            // Microsoft仕様: Control should not maintain state after activation
+            // Microsoft     Control should not maintain state after activation
             
             // Given
             var elementId = "StatelessButton";
@@ -114,7 +113,7 @@ namespace UIAutomationMCP.Tests.Integration
         [Fact]
         public async Task InvokeElement_WithDisabledElement_ShouldHandleGracefully()
         {
-            // Microsoft仕様: ElementNotEnabledException for disabled controls
+            // Microsoft     ElementNotEnabledException for disabled controls
             
             // Given
             var disabledAutomationId = "DisabledButton";

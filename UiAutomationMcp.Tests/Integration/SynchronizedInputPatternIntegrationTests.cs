@@ -3,10 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using UIAutomationMCP.Server.Services.ControlPatterns;
-using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Results;
 using Xunit;
+using UIAutomationMCP.Models.Abstractions;
 
 namespace UiAutomationMcp.Tests.Integration;
 
@@ -14,14 +14,14 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
 {
     private readonly ServiceProvider _serviceProvider;
     private readonly ISynchronizedInputService _service;
-    private readonly Mock<ISubprocessExecutor> _mockSubprocessExecutor;
+    private readonly Mock<IOperationExecutor> _mockSubprocessExecutor;
     private readonly Mock<ILogger<SynchronizedInputService>> _mockLogger;
 
     public SynchronizedInputPatternIntegrationTests()
     {
         var services = new ServiceCollection();
 
-        _mockSubprocessExecutor = new Mock<ISubprocessExecutor>();
+        _mockSubprocessExecutor = new Mock<IOperationExecutor>();
         _mockLogger = new Mock<ILogger<SynchronizedInputService>>();
 
         services.AddSingleton(_mockSubprocessExecutor.Object);
@@ -66,7 +66,7 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
                 It.IsAny<string>(),
                 It.IsAny<StartSynchronizedInputRequest>(),
                 It.IsAny<int>()))
-            .Returns(Task.FromResult(new ElementSearchResult()));
+            .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.Success(new ElementSearchResult())));
 
         // Act
         var result = await _service.StartListeningAsync(
@@ -95,7 +95,7 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
                 It.IsAny<string>(),
                 It.IsAny<CancelSynchronizedInputRequest>(),
                 It.IsAny<int>()))
-            .Returns(Task.FromResult(new ElementSearchResult()));
+            .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.Success(new ElementSearchResult())));
 
         // Act
         var result = await _service.CancelAsync("testElement", timeoutSeconds: 10);
@@ -130,7 +130,7 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
                 It.IsAny<string>(),
                 It.IsAny<StartSynchronizedInputRequest>(),
                 It.IsAny<int>()))
-            .Returns(Task.FromResult(new ElementSearchResult()));
+            .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.Success(new ElementSearchResult())));
 
         // Act & Assert
         foreach (var inputType in inputTypes)
@@ -186,14 +186,14 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
                 "StartSynchronizedInput",
                 It.IsAny<StartSynchronizedInputRequest>(),
                 It.IsAny<int>()))
-            .Returns(Task.FromResult(new ElementSearchResult()));
+            .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.Success(new ElementSearchResult())));
 
         _mockSubprocessExecutor
             .Setup(x => x.ExecuteAsync<CancelSynchronizedInputRequest, ElementSearchResult>(
                 "CancelSynchronizedInput",
                 It.IsAny<CancelSynchronizedInputRequest>(),
                 It.IsAny<int>()))
-            .Returns(Task.FromResult(new ElementSearchResult()));
+            .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.Success(new ElementSearchResult())));
 
         // Act - Simulate multiple start/cancel cycles
         for (int i = 0; i < 3; i++)

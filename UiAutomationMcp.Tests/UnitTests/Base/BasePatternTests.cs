@@ -2,22 +2,22 @@ using Moq;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
-using UIAutomationMCP.Server.Interfaces;
 using Xunit.Abstractions;
+using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Models.Logging;
 
 namespace UIAutomationMCP.Tests.UnitTests.Base
 {
     /// <summary>
-    /// UIAutomationパターンテストの基底クラス
-    /// 共通のモックセットアップとヘルパーメソッドを提供
-    /// </summary>
+    /// UIAutomation                      
+    ///                                             /// </summary>
     public abstract class BasePatternTests<TService> : IDisposable where TService : class
     {
         protected readonly ITestOutputHelper _output;
         protected readonly UIAutomationTools _tools;
         protected readonly Mock<TService> _mockService;
 
-        // 共通のモックサービス
+        //                  
         protected readonly Mock<IApplicationLauncher> _mockAppLauncher;
         protected readonly Mock<IScreenshotService> _mockScreenshot;
         protected readonly Mock<IElementSearchService> _mockElementSearch;
@@ -42,14 +42,13 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
         protected readonly Mock<ISynchronizedInputService> _mockSynchronizedInput;
         protected readonly Mock<IEventMonitorService> _mockEventMonitor;
         protected readonly Mock<IFocusService> _mockFocus;
-        protected readonly Mock<ISubprocessExecutor> _mockSubprocessExecutor;
+        protected readonly Mock<IOperationExecutor> _mockSubprocessExecutor;
 
         protected BasePatternTests(ITestOutputHelper output)
         {
             _output = output;
             
-            // 共通モックの初期化
-            _mockAppLauncher = new Mock<IApplicationLauncher>();
+            //                            _mockAppLauncher = new Mock<IApplicationLauncher>();
             _mockScreenshot = new Mock<IScreenshotService>();
             _mockElementSearch = new Mock<IElementSearchService>();
             _mockTreeNavigation = new Mock<ITreeNavigationService>();
@@ -73,22 +72,22 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
             _mockSynchronizedInput = new Mock<ISynchronizedInputService>();
             _mockEventMonitor = new Mock<IEventMonitorService>();
             _mockFocus = new Mock<IFocusService>();
-            _mockSubprocessExecutor = new Mock<ISubprocessExecutor>();
+            _mockSubprocessExecutor = new Mock<IOperationExecutor>();
 
-            // テスト対象サービスのモック
+            //                        
             _mockService = CreateServiceMock();
 
-            // UIAutomationToolsの作成
+            // UIAutomationTools     
             _tools = CreateUIAutomationTools();
         }
 
         /// <summary>
-        /// 派生クラスでオーバーライドしてテスト対象サービスのモックを作成
+        ///                                                        
         /// </summary>
         protected abstract Mock<TService> CreateServiceMock();
 
         /// <summary>
-        /// UIAutomationToolsインスタンスを作成
+        /// UIAutomationTools                 
         /// </summary>
         protected virtual UIAutomationTools CreateUIAutomationTools()
         {
@@ -122,8 +121,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
         }
 
         /// <summary>
-        /// レイアウトサービスを取得（ILayoutServiceを対象とするテストの場合にオーバーライド）
-        /// </summary>
+        ///                        LayoutService                                             /// </summary>
         protected virtual ILayoutService GetLayoutService()
         {
             if (typeof(TService) == typeof(ILayoutService))
@@ -132,7 +130,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
         }
 
         /// <summary>
-        /// 共通のパラメータ検証テストヘルパー
+        ///                              
         /// </summary>
         protected void VerifyParameterValidation(string methodName, params object[] parameters)
         {
@@ -142,17 +140,17 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
                 if (method != null)
                 {
                     var result = method.Invoke(_mockService.Object, parameters);
-                    _output.WriteLine($"✓ {methodName} parameter validation test passed");
+                    _output.WriteLine($"  {methodName} parameter validation test passed");
                 }
             }
             catch (Exception ex)
             {
-                _output.WriteLine($"✓ {methodName} parameter validation test passed with expected error: {ex.Message}");
+                _output.WriteLine($"  {methodName} parameter validation test passed with expected error: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// 共通のタイムアウト検証テストヘルパー
+        ///                                 
         /// </summary>
         protected void VerifyTimeoutHandling(string methodName, int timeout, params object[] additionalParameters)
         {
@@ -161,11 +159,11 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
                 parameters.AddRange(additionalParameters);
 
             VerifyParameterValidation(methodName, parameters.ToArray());
-            _output.WriteLine($"✓ {methodName} timeout handling test completed for timeout: {timeout}ms");
+            _output.WriteLine($"  {methodName} timeout handling test completed for timeout: {timeout}ms");
         }
 
         /// <summary>
-        /// 共通のプロセスID検証テストヘルパー
+        ///             ID               
         /// </summary>
         protected void VerifyProcessIdHandling(string methodName, int processId, params object[] additionalParameters)
         {
@@ -174,13 +172,12 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
                 parameters.AddRange(additionalParameters);
 
             VerifyParameterValidation(methodName, parameters.ToArray());
-            _output.WriteLine($"✓ {methodName} process ID handling test completed for ID: {processId}");
+            _output.WriteLine($"  {methodName} process ID handling test completed for ID: {processId}");
         }
 
         public virtual void Dispose()
         {
-            // モックのクリーンアップは不要
-            _output?.WriteLine($"{GetType().Name} disposed");
+            //                                       _output?.WriteLine($"{GetType().Name} disposed");
         }
     }
 }

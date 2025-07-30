@@ -5,13 +5,12 @@ using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
 using Xunit.Abstractions;
+using UIAutomationMCP.Models.Abstractions;
 
 namespace UIAutomationMCP.Tests.UnitTests
 {
     /// <summary>
-    /// GridPatternの単体テスト
-    /// Microsoft仕様に基づいたGridPatternの機能をモックベースでテストします
-    /// </summary>
+    /// GridPatternの単体テスチE    /// Microsoft仕様に基づぁE��GridPatternの機�EをモチE��ベ�EスでチE��トしまぁE    /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Unit")]
     public class GridPatternTests : IDisposable
@@ -25,8 +24,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output = output;
             _mockGridService = new Mock<IGridService>();
             
-            // UIAutomationToolsの他のサービスもモック化（最小限の設定）
-            var mockAppLauncher = new Mock<IApplicationLauncher>();
+            // UIAutomationToolsの他�EサービスもモチE��化（最小限の設定！E            var mockAppLauncher = new Mock<IApplicationLauncher>();
             var mockScreenshot = new Mock<IScreenshotService>();
             var mockElementSearch = new Mock<IElementSearchService>();
             var mockTreeNavigation = new Mock<ITreeNavigationService>();
@@ -73,17 +71,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                 mockSynchronizedInput.Object,
                 Mock.Of<IEventMonitorService>(),
                 Mock.Of<IFocusService>(),
-                Mock.Of<UIAutomationMCP.Server.Interfaces.ISubprocessExecutor>()
+                Mock.Of<UIAutomationMCP.Server.Interfaces.IOperationExecutor>()
             );
         }
 
         public void Dispose()
         {
-            // モックのクリーンアップは不要
-        }
+            // モチE��のクリーンアチE�Eは不要E        }
 
-        #region Microsoft仕様準拠のGridPattern必須プロパティテスト
-
+        #region Microsoft仕様準拠のGridPattern忁E���EロパティチE��チE
         /* DISABLED - GetGridInfo method no longer exists
         [Fact]
         public async Task GetGridInfo_WithValidGrid_ShouldReturnRowAndColumnCount()
@@ -146,7 +142,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         [Fact]
         public async Task GetGridInfo_WithSingleItemGrid_ShouldStillBeValidGrid()
         {
-            // Arrange - Microsoft仕様: 単一アイテムでもグリッドとして有効
+            // Arrange - Microsoft仕槁E 単一アイチE��でもグリチE��として有効
             var expectedResult = new ServerEnhancedResponse<GridInfoResult>
             {
                 Success = true,
@@ -171,8 +167,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region Microsoft仕様準拠のGetItemメソッドテスト
-
+        #region Microsoft仕様準拠のGetItemメソチE��チE��チE
         [Theory]
         [InlineData(0, 0)]
         [InlineData(2, 1)]
@@ -219,7 +214,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         [Fact]
         public async Task GetGridItem_WithZeroBasedCoordinates_ShouldReturnFirstItem()
         {
-            // Arrange - Microsoft仕様: グリッド座標は0ベース
+            // Arrange - Microsoft仕槁E グリチE��座標�E0ベ�Eス
             var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
@@ -252,7 +247,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         [Fact]
         public async Task GetGridItem_WithEmptyCell_ShouldStillReturnElement()
         {
-            // Arrange - Microsoft仕様: 空のセルでもUI Automation要素を返す必要がある
+            // Arrange - Microsoft仕槁E 空のセルでもUI Automation要素を返す忁E��がある
             var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
@@ -291,15 +286,14 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region Microsoft仕様準拠のArgumentOutOfRangeException テスト
-
+        #region Microsoft仕様準拠のArgumentOutOfRangeException チE��チE
         [Theory]
         [InlineData(-1, 0)]
         [InlineData(0, -1)]
         [InlineData(-1, -1)]
         public async Task GetGridItem_WithNegativeCoordinates_ShouldThrowArgumentOutOfRangeException(int row, int column)
         {
-            // Arrange - Microsoft仕様: 負の座標でArgumentOutOfRangeExceptionをスロー
+            // Arrange - Microsoft仕槁E 負の座標でArgumentOutOfRangeExceptionをスロー
             _mockGridService.Setup(s => s.GetGridItemAsync("grid", null, row, column, "TestApp", null, 30))
                            .ThrowsAsync(new ArgumentOutOfRangeException(
                                row < 0 ? "row" : "column", 
@@ -320,7 +314,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridItem_WithCoordinatesExceedingBounds_ShouldThrowArgumentOutOfRangeException(
             int row, int column, int maxRow, int maxColumn)
         {
-            // Arrange - Microsoft仕様: RowCount/ColumnCountを超える座標でArgumentOutOfRangeExceptionをスロー
+            // Arrange - Microsoft仕槁E RowCount/ColumnCountを趁E��る座標でArgumentOutOfRangeExceptionをスロー
             _mockGridService.Setup(s => s.GetGridItemAsync("grid", null, row, column, "TestApp", null, 30))
                            .ThrowsAsync(new ArgumentOutOfRangeException(
                                row >= maxRow ? "row" : "column", 
@@ -336,8 +330,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region エラーハンドリングテスト
-
+        #region エラーハンドリングチE��チE
         /* DISABLED - GetGridInfo method no longer exists
         [Fact]
         public async Task GetGridInfo_WithNonExistentElement_ShouldHandleError()
@@ -389,8 +382,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region パラメータ検証テスト
-
+        #region パラメータ検証チE��チE
         /* DISABLED - GetGridInfo method no longer exists
         [Theory]
         [InlineData("", "TestWindow")]
@@ -519,8 +511,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region Grid操作シナリオテスト
-
+        #region Grid操作シナリオチE��チE
         /* DISABLED - GetGridInfo method no longer exists
         [Fact]
         public async Task GridOperations_FullWorkflow_ShouldExecuteCorrectly()
@@ -613,16 +604,14 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region 境界値テスト
-
+        #region 墁E��値チE��チE
         [Theory]
         [InlineData(0, 0, 1, 1)]
         [InlineData(0, 0, 5, 3)]
         [InlineData(4, 2, 5, 3)]
         public async Task GetGridItem_WithBoundaryCoordinates_ShouldSucceed(int row, int column, int maxRow, int maxColumn)
         {
-            // Arrange - 境界値での正常動作テスト
-            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
+            // Arrange - 墁E��値での正常動作テスチE            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
                 Data = new ElementSearchResult

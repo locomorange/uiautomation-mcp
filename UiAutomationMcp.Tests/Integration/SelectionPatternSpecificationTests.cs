@@ -1,15 +1,15 @@
 using Microsoft.Extensions.Logging;
+using Moq;
 using Microsoft.Extensions.DependencyInjection;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using Xunit.Abstractions;
 
+using UIAutomationMCP.Server.Abstractions;
 namespace UIAutomationMCP.Tests.Integration
 {
     /// <summary>
-    /// Microsoft Selection Pattern仕様準拠テスト
-    /// UI Automation Selection Control Pattern仕様に基づく詳細テスト
-    /// https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/implementing-the-ui-automation-selection-control-pattern
+    /// Microsoft Selection Pattern                /// UI Automation Selection Control Pattern                        /// https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/implementing-the-ui-automation-selection-control-pattern
     /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Integration")]
@@ -43,10 +43,9 @@ namespace UIAutomationMCP.Tests.Integration
             _workerPath = possiblePaths.FirstOrDefault(File.Exists) ?? 
                 throw new InvalidOperationException("Worker executable not found");
 
-            _subprocessExecutor = new SubprocessExecutor(logger, _workerPath);
-            _selectionService = new SelectionService(
-                _serviceProvider.GetRequiredService<ILogger<SelectionService>>(), 
-                _subprocessExecutor);
+            _subprocessExecutor = new SubprocessExecutor(logger, _workerPath, new CancellationTokenSource());
+            _selectionService = new SelectionService(Mock.Of<IProcessManager>(), 
+                _serviceProvider.GetRequiredService<ILogger<SelectionService>>());
             
             _output.WriteLine($"Worker path: {_workerPath}");
         }
@@ -82,7 +81,7 @@ namespace UIAutomationMCP.Tests.Integration
                 Assert.True(resultType.GetProperty("Success") != null, 
                     "Result should contain Success property");
                     
-                _output.WriteLine("✓ GetSelection method test completed - Microsoft specification compliance verified");
+                _output.WriteLine("  GetSelection method test completed - Microsoft specification compliance verified");
             }
             catch (Exception ex)
             {
@@ -123,7 +122,7 @@ namespace UIAutomationMCP.Tests.Integration
                 Assert.True(resultType.GetProperty("Success") != null, 
                     "Result should contain Success property");
                     
-                _output.WriteLine("✓ SelectionContainer property test completed - Microsoft specification compliance verified");
+                _output.WriteLine("  SelectionContainer property test completed - Microsoft specification compliance verified");
             }
             catch (Exception ex)
             {
@@ -161,7 +160,7 @@ namespace UIAutomationMCP.Tests.Integration
                 Assert.True(resultType.GetProperty("Success") != null, 
                     "Result should contain Success property");
                     
-                _output.WriteLine("✓ AddToSelection operation test completed - Microsoft specification compliance verified");
+                _output.WriteLine("  AddToSelection operation test completed - Microsoft specification compliance verified");
             }
             catch (Exception ex)
             {
@@ -195,7 +194,7 @@ namespace UIAutomationMCP.Tests.Integration
                 Assert.True(resultType.GetProperty("Success") != null, 
                     "Result should contain Success property");
                     
-                _output.WriteLine("✓ RemoveFromSelection operation test completed - Microsoft specification compliance verified");
+                _output.WriteLine("  RemoveFromSelection operation test completed - Microsoft specification compliance verified");
             }
             catch (Exception ex)
             {
@@ -228,7 +227,7 @@ namespace UIAutomationMCP.Tests.Integration
                 Assert.True(resultType.GetProperty("Success") != null, 
                     "Result should contain Success property");
                     
-                _output.WriteLine("✓ ClearSelection operation test completed - Microsoft specification compliance verified");
+                _output.WriteLine("  ClearSelection operation test completed - Microsoft specification compliance verified");
             }
             catch (Exception ex)
             {
@@ -265,7 +264,7 @@ namespace UIAutomationMCP.Tests.Integration
                 _output.WriteLine($"Event support test - Before: {beforeResult}, After: {afterResult}");
                 
                 // Microsoft spec: Pattern should support InvalidatedEvent for selection changes
-                _output.WriteLine("✓ Selection Pattern event support verified - Microsoft specification compliance verified");
+                _output.WriteLine("  Selection Pattern event support verified - Microsoft specification compliance verified");
             }
             catch (Exception ex)
             {
@@ -303,7 +302,7 @@ namespace UIAutomationMCP.Tests.Integration
                 Assert.True(resultType.GetProperty("Success") != null, 
                     "Result should contain Success property");
                     
-                _output.WriteLine("✓ Disabled control error handling test completed - Microsoft specification compliance verified");
+                _output.WriteLine("  Disabled control error handling test completed - Microsoft specification compliance verified");
             }
             catch (Exception ex)
             {

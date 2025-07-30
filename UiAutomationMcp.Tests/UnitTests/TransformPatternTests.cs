@@ -4,16 +4,14 @@ using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
 using UIAutomationMCP.Models;
-using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Models.Results;
 using Xunit.Abstractions;
+using UIAutomationMCP.Models.Abstractions;
 
 namespace UIAutomationMCP.Tests.UnitTests
 {
     /// <summary>
-    /// TransformPatternの単体テスト
-    /// Microsoft仕様に基づいたTransformPatternの機能をモックベースでテストします
-    /// https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/implementing-the-ui-automation-transform-control-pattern
+    /// TransformPattern     /// Microsoft TransformPattern     /// https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/implementing-the-ui-automation-transform-control-pattern
     /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Unit")]
@@ -28,8 +26,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output = output;
             _mockTransformService = new Mock<ITransformService>();
             
-            // UIAutomationToolsの他のサービスもモック化（最小限の設定）
-            var mockAppLauncher = new Mock<IApplicationLauncher>();
+            // UIAutomationTools             var mockAppLauncher = new Mock<IApplicationLauncher>();
             var mockScreenshot = new Mock<IScreenshotService>();
             var mockElementSearch = new Mock<IElementSearchService>();
             var mockTreeNavigation = new Mock<ITreeNavigationService>();
@@ -76,21 +73,20 @@ namespace UIAutomationMCP.Tests.UnitTests
                 mockSynchronizedInput.Object,
                 Mock.Of<IEventMonitorService>(),
                 Mock.Of<IFocusService>(),
-                Mock.Of<ISubprocessExecutor>()
+                Mock.Of<IOperationExecutor>()
             );
         }
 
         public void Dispose()
         {
-            // モックのクリーンアップは不要
+            // Cleanup if needed
         }
 
-        #region Microsoft仕様準拠の必須プロパティテスト
-
+        #region Microsoft 
         [Fact]
         public void GetTransformCapabilities_ShouldReturnAllRequiredProperties()
         {
-            // Arrange - Microsoft仕様の必須プロパティ
+            // Arrange - Microsoft 
             var expectedResult = new ServerEnhancedResponse<TransformCapabilitiesResult>
             {
                 Success = true,
@@ -118,11 +114,11 @@ namespace UIAutomationMCP.Tests.UnitTests
         }
 
         [Theory]
-        [InlineData(true, true, true)]   // すべて可能
-        [InlineData(true, false, false)] // 移動のみ可能
-        [InlineData(false, true, false)] // リサイズのみ可能
-        [InlineData(false, false, true)]  // 回転のみ可能
-        [InlineData(false, false, false)] // すべて不可
+        [InlineData(true, true, true)]   //  
+        [InlineData(true, false, false)] //  
+        [InlineData(false, true, false)] //  
+        [InlineData(false, false, true)]  //  
+        [InlineData(false, false, false)] //  
         public void GetTransformCapabilities_ShouldReturnCorrectCapabilities(bool canMove, bool canResize, bool canRotate)
         {
             // Arrange
@@ -154,14 +150,10 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region Microsoft仕様準拠のMoveメソッドテスト
-
+        #region Microsoft Move 
         [Theory]
-        [InlineData(100.0, 200.0)]  // 正の座標
-        [InlineData(-50.0, -100.0)] // 負の座標
-        [InlineData(0.0, 0.0)]      // 原点
-        [InlineData(1920.0, 1080.0)] // 大きな座標
-        public async Task MoveElement_WithValidCoordinates_ShouldSucceed(double x, double y)
+        [InlineData(100.0, 200.0)]  //          [InlineData(-50.0, -100.0)] //          [InlineData(0.0, 0.0)]      //  
+        [InlineData(1920.0, 1080.0)] //          public async Task MoveElement_WithValidCoordinates_ShouldSucceed(double x, double y)
         {
             // Arrange
             var expectedResult = new ServerEnhancedResponse<ActionResult>
@@ -190,7 +182,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         [Fact]
         public async Task MoveElement_OnNonMovableElement_ShouldThrowInvalidOperationException()
         {
-            // Arrange - Microsoft仕様：CanMove=falseの場合にInvalidOperationExceptionをスロー
+            // Arrange - Microsoft anMove=false InvalidOperationException 
             _mockTransformService.Setup(s => s.MoveElementAsync("fixedElement", null, 100.0, 200.0, "App", null, 30))
                                .Returns(Task.FromResult(new ServerEnhancedResponse<ActionResult>
                                {
@@ -209,13 +201,12 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region Microsoft仕様準拠のResizeメソッドテスト
-
+        #region Microsoft Resize 
         [Theory]
-        [InlineData(800.0, 600.0)]   // 標準的なサイズ
-        [InlineData(1920.0, 1080.0)] // 大きなサイズ
-        [InlineData(320.0, 240.0)]   // 小さなサイズ
-        [InlineData(100.5, 200.75)]  // 小数点サイズ
+        [InlineData(800.0, 600.0)]   //  
+        [InlineData(1920.0, 1080.0)] //  
+        [InlineData(320.0, 240.0)]   //  
+        [InlineData(100.5, 200.75)]  //  
         public async Task ResizeElement_WithValidDimensions_ShouldSucceed(double width, double height)
         {
             // Arrange
@@ -243,10 +234,9 @@ namespace UIAutomationMCP.Tests.UnitTests
         }
 
         [Theory]
-        [InlineData(0.0, 100.0)]   // 幅がゼロ
-        [InlineData(100.0, 0.0)]   // 高さがゼロ
-        [InlineData(-100.0, 200.0)] // 負の幅
-        [InlineData(200.0, -100.0)] // 負の高さ
+        [InlineData(0.0, 100.0)]   //  
+        [InlineData(100.0, 0.0)]   //  
+        [InlineData(-100.0, 200.0)] //          [InlineData(200.0, -100.0)] //  
         public async Task ResizeElement_WithInvalidDimensions_ShouldHandleError(double width, double height)
         {
             // Arrange
@@ -269,7 +259,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         [Fact]
         public async Task ResizeElement_OnNonResizableElement_ShouldThrowInvalidOperationException()
         {
-            // Arrange - Microsoft仕様：CanResize=falseの場合にInvalidOperationExceptionをスロー
+            // Arrange - Microsoft anResize=false InvalidOperationException 
             _mockTransformService.Setup(s => s.ResizeElementAsync("fixedSizeDialog", null, 800.0, 600.0, "App", null, 30))
                                .Returns(Task.FromResult(new ServerEnhancedResponse<ActionResult>
                                {
@@ -288,15 +278,14 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region Microsoft仕様準拠のRotateメソッドテスト
-
+        #region Microsoft Rotate 
         [Theory]
-        [InlineData(90.0)]    // 90度回転
-        [InlineData(180.0)]   // 180度回転
-        [InlineData(270.0)]   // 270度回転
-        [InlineData(360.0)]   // 360度回転
-        [InlineData(45.5)]    // 小数点角度
-        [InlineData(-90.0)]   // 負の角度
+        [InlineData(90.0)]    // 90 
+        [InlineData(180.0)]   // 180 
+        [InlineData(270.0)]   // 270 
+        [InlineData(360.0)]   // 360 
+        [InlineData(45.5)]    //  
+        [InlineData(-90.0)]   //  
         public async Task RotateElement_WithValidDegrees_ShouldSucceed(double degrees)
         {
             // Arrange
@@ -326,7 +315,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         [Fact]
         public async Task RotateElement_OnNonRotatableElement_ShouldThrowInvalidOperationException()
         {
-            // Arrange - Microsoft仕様：CanRotate=falseの場合にInvalidOperationExceptionをスロー
+            // Arrange - Microsoft anRotate=false InvalidOperationException 
             _mockTransformService.Setup(s => s.RotateElementAsync("textBox", null, 45.0, "Editor", null, 30))
                                .Returns(Task.FromResult(new ServerEnhancedResponse<ActionResult>
                                {
@@ -345,8 +334,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region エラーハンドリングテスト
-
+        #region  
         [Fact]
         public void GetTransformCapabilities_WithNonExistentElement_ShouldHandleError()
         {
@@ -391,8 +379,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region パラメータ検証テスト
-
+        #region  
         [Theory]
         [InlineData("", "TestWindow")]
         [InlineData("element1", "")]
@@ -488,8 +475,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region 変換シーケンステスト
-
+        #region  
         [Fact]
         public async Task TransformElement_MultipleTransformations_ShouldExecuteInSequence()
         {
@@ -554,8 +540,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region 境界値テスト
-
+        #region  
         [Theory]
         [InlineData(double.MinValue, double.MinValue)]
         [InlineData(double.MaxValue, double.MaxValue)]

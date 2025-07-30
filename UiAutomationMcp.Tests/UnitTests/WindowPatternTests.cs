@@ -1,14 +1,12 @@
 using UIAutomationMCP.Models;
-using UIAutomationMCP.Worker.Contracts;
+// using UIAutomationMCP.Worker.Contracts; // TODO: Fix namespace
 using UIAutomationMCP.Worker.Operations.Window;
 using Xunit.Abstractions;
 
 namespace UiAutomationMcp.Tests.UnitTests
 {
     /// <summary>
-    /// Window Control Pattern Required Members単体テスト - Microsoft WindowPattern仕様準拠テスト
-    /// パラメータ検証と安全なロジックテスト
-    /// Microsoft仕様: https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/implementing-the-ui-automation-window-control-pattern
+    /// Window Control Pattern Required Members - Microsoft WindowPattern     ///      /// Microsoft  https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/implementing-the-ui-automation-window-control-pattern
     /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Unit")]
@@ -24,8 +22,7 @@ namespace UiAutomationMcp.Tests.UnitTests
         #region Parameter Validation Tests
 
         /// <summary>
-        /// WorkerRequest パラメータ解析テスト
-        /// Microsoft仕様: WindowPattern parameter validation
+        /// WorkerRequest          /// Microsoft  WindowPattern parameter validation
         /// </summary>
         [Theory]
         [InlineData("", "0")]
@@ -33,7 +30,7 @@ namespace UiAutomationMcp.Tests.UnitTests
         [InlineData(null, "1234")]
         public void WindowPattern_Operations_Should_Handle_Parameter_Parsing(string windowTitle, string processId)
         {
-            // Arrange & Act - パラメータ解析ロジックのテスト
+            // Arrange & Act
             var parsedWindowTitle = windowTitle ?? "";
             var parsedProcessId = int.TryParse(processId, out var pid) ? pid : 0;
 
@@ -44,8 +41,7 @@ namespace UiAutomationMcp.Tests.UnitTests
         }
 
         /// <summary>
-        /// GetWindowInteractionState - 状態説明ロジックテスト
-        /// </summary>
+        /// GetWindowInteractionState -          /// </summary>
         [Theory]
         [InlineData(0, "Running", "The window is running and responding to user input")]
         [InlineData(1, "Closing", "The window is in the process of closing")]
@@ -56,7 +52,7 @@ namespace UiAutomationMcp.Tests.UnitTests
         public void GetWindowInteractionState_Should_Return_Correct_Description(
             int stateValue, string _, string expectedDescription)
         {
-            // Act - WindowInteractionStateの説明ロジックをテスト
+            // Act - WindowInteractionState
             var description = stateValue switch
             {
                 0 => "The window is running and responding to user input",
@@ -77,8 +73,7 @@ namespace UiAutomationMcp.Tests.UnitTests
         #region GetWindowCapabilitiesOperation Tests
 
         /// <summary>
-        /// GetWindowCapabilities - プロパティ名検証テスト
-        /// Microsoft仕様: WindowPattern Required Members property validation
+        /// GetWindowCapabilities -          /// Microsoft  WindowPattern Required Members property validation
         /// </summary>
         [Fact]
         public void GetWindowCapabilities_Should_Include_All_Required_Properties()
@@ -96,7 +91,7 @@ namespace UiAutomationMcp.Tests.UnitTests
                 "WindowInteractionState"  // Microsoft Required Member (InteractionState)
             };
 
-            // Act & Assert - すべてのプロパティが定義されていることを確認
+            // Act & Assert
             foreach (var property in requiredProperties)
             {
                 Assert.NotNull(property);
@@ -113,19 +108,18 @@ namespace UiAutomationMcp.Tests.UnitTests
         #region WaitForInputIdleOperation Tests
 
         /// <summary>
-        /// WaitForInputIdle - タイムアウトパラメータ解析テスト
-        /// Microsoft仕様: WindowPattern.WaitForInputIdle(int milliseconds) method
+        /// WaitForInputIdle -          /// Microsoft  WindowPattern.WaitForInputIdle(int milliseconds) method
         /// </summary>
         [Theory]
         [InlineData("1000", 1000)]
         [InlineData("5000", 5000)]
-        [InlineData("", 10000)] // デフォルト値
-        [InlineData("invalid", 10000)] // 無効値の場合デフォルト値
-        [InlineData("0", 0)] // 境界値
-        [InlineData("-1", 10000)] // 負の値は無効
+        [InlineData("", 10000)] //  
+        [InlineData("invalid", 10000)] //  
+        [InlineData("0", 0)] //  
+        [InlineData("-1", 10000)] //  
         public void WaitForInputIdle_Should_Parse_Timeout_Correctly(string timeoutInput, int expectedTimeout)
         {
-            // Arrange & Act - パラメータパースロジックのテスト
+            // Arrange & Act
             var timeoutMilliseconds = !string.IsNullOrEmpty(timeoutInput) && 
                 int.TryParse(timeoutInput, out var timeout) && timeout >= 0 ? timeout : 10000;
 
@@ -135,14 +129,13 @@ namespace UiAutomationMcp.Tests.UnitTests
         }
 
         /// <summary>
-        /// WaitForInputIdle - メッセージ生成ロジックテスト
-        /// </summary>
+        /// WaitForInputIdle -          /// </summary>
         [Theory]
         [InlineData(true, 5000, "Window became idle within the specified timeout")]
         [InlineData(false, 3000, "Window did not become idle within 3000ms timeout")]
         public void WaitForInputIdle_Should_Generate_Correct_Messages(bool success, int timeoutMs, string expectedMessage)
         {
-            // Act - メッセージ生成ロジックをテスト
+            // Act
             var message = success 
                 ? "Window became idle within the specified timeout"
                 : $"Window did not become idle within {timeoutMs}ms timeout";
@@ -157,9 +150,7 @@ namespace UiAutomationMcp.Tests.UnitTests
         #region Microsoft WindowPattern Specification Compliance Tests
 
         /// <summary>
-        /// Microsoft WindowPattern Required Members完全性テスト
-        /// 必須メンバーがすべて実装されていることを確認
-        /// </summary>
+        /// Microsoft WindowPattern Required Members         ///          /// </summary>
         [Fact]
         public void WindowPattern_Required_Members_Should_Be_Covered()
         {
@@ -180,7 +171,7 @@ namespace UiAutomationMcp.Tests.UnitTests
                 "WindowAction"               // Close(), SetVisualState()
             };
 
-            // すべての必須操作が定義されていることを確認
+            // Combine all operations
             var allOperations = requiredPropertyOperations.Concat(requiredMethodOperations);
             foreach (var operation in allOperations)
             {
@@ -194,15 +185,14 @@ namespace UiAutomationMcp.Tests.UnitTests
         }
 
         /// <summary>
-        /// WindowPattern Operations命名規則テスト
-        /// </summary>
+        /// WindowPattern Operations         /// </summary>
         [Theory]
         [InlineData("GetWindowInteractionState")]
         [InlineData("GetWindowCapabilities")]
         [InlineData("WaitForInputIdle")]
         public void WindowPattern_Operation_Names_Should_Follow_Convention(string operationName)
         {
-            // Assert - 操作名が適切な命名規則に従っていることを確認
+            // Assert
             Assert.NotNull(operationName);
             Assert.NotEmpty(operationName);
             Assert.DoesNotContain(" ", operationName);
@@ -214,7 +204,7 @@ namespace UiAutomationMcp.Tests.UnitTests
 
         public void Dispose()
         {
-            // テストリソースのクリーンアップ
+            //  
             _output.WriteLine("WindowPatternTests disposed");
         }
     }

@@ -9,9 +9,7 @@ using Xunit.Abstractions;
 namespace UIAutomationMCP.Tests.UnitTests
 {
     /// <summary>
-    /// ExpandCollapsePatternの単体テスト
-    /// Microsoft仕様に基づいたExpandCollapsePatternの機能をモックベースでテストします
-    /// </summary>
+    /// ExpandCollapsePattern               /// Microsoft            ExpandCollapsePattern                                /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Unit")]
     public class ExpandCollapsePatternTests : IDisposable
@@ -25,7 +23,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output = output;
             _mockLayoutService = new Mock<ILayoutService>();
             
-            // UIAutomationToolsの他のサービスもモック化（最小限の設定）
+            // Create mocks for UIAutomationTools
             var mockAppLauncher = new Mock<IApplicationLauncher>();
             var mockScreenshot = new Mock<IScreenshotService>();
             var mockElementSearch = new Mock<IElementSearchService>();
@@ -74,16 +72,16 @@ namespace UIAutomationMCP.Tests.UnitTests
                 mockSynchronizedInput.Object,
                 mockEventMonitor.Object,
                 Mock.Of<IFocusService>(),
-                Mock.Of<UIAutomationMCP.Server.Helpers.SubprocessExecutor>()
+                Mock.Of<UIAutomationMCP.Models.Logging.IMcpLogService>()
             );
         }
 
         public void Dispose()
         {
-            // モックのクリーンアップは不要
+            // No cleanup needed for mocks
         }
 
-        #region Microsoft仕様準拠のExpandCollapsePatternテスト
+        #region Microsoft ExpandCollapsePattern Tests
 
         [Theory]
         [InlineData("TreeItem")]
@@ -159,8 +157,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region ExpandCollapseState状態変更テスト
-
+        #region ExpandCollapseState            
         [Fact]
         public async Task ExpandCollapseElement_FromCollapsedToExpanded_ShouldReturnCorrectStates()
         {
@@ -243,8 +240,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region LeafNode状態のエラーハンドリングテスト
-
+        #region LeafNode                          
         [Fact]
         public async Task ExpandCollapseElement_WithLeafNodeExpand_ShouldThrowInvalidOperationException()
         {
@@ -292,8 +288,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region 一般的なエラーハンドリングテスト
-
+        #region                             
         [Fact]
         public async Task ExpandCollapseElement_WithNonExistentElement_ShouldHandleError()
         {
@@ -346,8 +341,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region パラメータ検証テスト
-
+        #region                   
         [Theory]
         [InlineData("", "expand", "TestWindow")]
         [InlineData("element1", "collapse", "")]
@@ -427,8 +421,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region 複雑なシナリオテスト
-
+        #region                  
         [Fact]
         public async Task ExpandCollapseElement_NestedTreeNodes_ShouldExecuteInHierarchicalOrder()
         {
@@ -517,8 +510,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region Microsoft仕様準拠のPropertyChangedEventテスト
-
+        #region Microsoft         PropertyChangedEvent     
         [Fact]
         public async Task ExpandCollapseElement_PropertyChange_ShouldTriggerEvent()
         {

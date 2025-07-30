@@ -5,6 +5,8 @@ using UIAutomationMCP.Server.Helpers;
 using Xunit;
 using Xunit.Abstractions;
 
+using UIAutomationMCP.Server.Abstractions;
+using Moq;
 namespace UIAutomationMCP.Tests.Integration
 {
     /// <summary>
@@ -46,10 +48,8 @@ namespace UIAutomationMCP.Tests.Integration
             var workerPath = possiblePaths.FirstOrDefault(File.Exists) ?? 
                 throw new InvalidOperationException("Worker executable not found");
 
-            var subprocessExecutor = new SubprocessExecutor(logger, workerPath);
-            _valueService = new ValueService(
-                _serviceProvider.GetRequiredService<ILogger<ValueService>>(), 
-                subprocessExecutor);
+            var subprocessExecutor = new SubprocessExecutor(logger, workerPath, new CancellationTokenSource());
+            _valueService = new ValueService(Mock.Of<IProcessManager>(), _serviceProvider.GetRequiredService<ILogger<ValueService>>());
         }
 
         // IsReadOnly method was removed from ValueService

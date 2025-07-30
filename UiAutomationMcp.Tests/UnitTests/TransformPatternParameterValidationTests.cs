@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Core.Options;
 using UIAutomationMCP.Models.Requests;
-using UIAutomationMCP.Worker.Contracts;
+// using UIAutomationMCP.Worker.Contracts; // TODO: Fix namespace
 using UIAutomationMCP.Worker.Operations.Transform;
 using UIAutomationMCP.Worker.Helpers;
 using Moq;
@@ -12,9 +12,7 @@ using Xunit.Abstractions;
 namespace UIAutomationMCP.Tests.UnitTests
 {
     /// <summary>
-    /// TransformPatternのパラメータ検証テスト
-    /// Microsoft仕様に基づいたパラメータ検証の安全なテスト
-    /// Worker Operations層でのパラメータ処理を検証
+    /// TransformPattern     /// Microsoft     /// Worker Operations 
     /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Unit")]
@@ -40,11 +38,10 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         public void Dispose()
         {
-            // モックのクリーンアップは不要
-        }
+            //          }
 
 
-        #region MoveElementOperation パラメータ検証
+        #region MoveElementOperation  
 
         [Theory]
         [InlineData("")]
@@ -84,7 +81,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.False(result.Success);
             Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
             
-            _output.WriteLine($"✓ MoveElementOperation correctly handled invalid elementId");
+            _output.WriteLine($" MoveElementOperation correctly handled invalid elementId");
             _output.WriteLine($"  Error: {result.Error}");
         }
 
@@ -125,9 +122,8 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.False(result.Success); // 要素が見つからないため
-            
-            _output.WriteLine($"✓ MoveElementOperation handled invalid coordinates gracefully");
+            Assert.False(result.Success); //              
+            _output.WriteLine($" MoveElementOperation handled invalid coordinates gracefully");
             _output.WriteLine($"  Error: {result.Error}");
         }
 
@@ -143,8 +139,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     { "elementId", "TestElement" },
                     { "windowTitle", "TestWindow" },
                     { "processId", "0" }
-                    // x, yパラメータなし
-                }
+                    // x, y                 }
             };
 
             _output.WriteLine("Testing MoveElementOperation with missing coordinate parameters");
@@ -162,22 +157,20 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.False(result.Success); // 要素が見つからないため
-            
-            _output.WriteLine($"✓ MoveElementOperation handled missing coordinate parameters");
+            Assert.False(result.Success); //              
+            _output.WriteLine($" MoveElementOperation handled missing coordinate parameters");
             _output.WriteLine($"  Error: {result.Error}");
         }
 
         #endregion
 
-        #region ResizeElementOperation パラメータ検証
+        #region ResizeElementOperation  
 
         [Theory]
-        [InlineData("0.0", "100.0")]   // 幅がゼロ
-        [InlineData("100.0", "0.0")]   // 高さがゼロ
-        [InlineData("-100.0", "200.0")] // 負の幅
-        [InlineData("200.0", "-100.0")] // 負の高さ
-        [InlineData("0.0", "0.0")]     // 両方ゼロ
+        [InlineData("0.0", "100.0")]   //  
+        [InlineData("100.0", "0.0")]   //  
+        [InlineData("-100.0", "200.0")] //          [InlineData("200.0", "-100.0")] //  
+        [InlineData("0.0", "0.0")]     //  
         public async Task ResizeElementOperation_WithInvalidDimensions_ShouldReturnError(string widthValue, string heightValue)
         {
             // Arrange
@@ -212,7 +205,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.False(result.Success);
             Assert.Contains("must be greater than 0", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
             
-            _output.WriteLine($"✓ ResizeElementOperation correctly rejected invalid dimensions");
+            _output.WriteLine($" ResizeElementOperation correctly rejected invalid dimensions");
             _output.WriteLine($"  Error: {result.Error}");
         }
 
@@ -254,10 +247,9 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             Assert.False(result.Success);
-            // デフォルト値(0)が使用されるため、"must be greater than 0" エラーになる
-            Assert.Contains("must be greater than 0", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
+            //  (0) must be greater than 0"              Assert.Contains("must be greater than 0", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
             
-            _output.WriteLine($"✓ ResizeElementOperation handled invalid dimension format with default values");
+            _output.WriteLine($" ResizeElementOperation handled invalid dimension format with default values");
             _output.WriteLine($"  Error: {result.Error}");
         }
 
@@ -297,23 +289,21 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.False(result.Success); // 要素が見つからないため
-            Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
+            Assert.False(result.Success); //              Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
             
-            _output.WriteLine($"✓ ResizeElementOperation processed valid dimensions correctly");
+            _output.WriteLine($" ResizeElementOperation processed valid dimensions correctly");
             _output.WriteLine($"  Error: {result.Error}");
         }
 
         #endregion
 
-        #region RotateElementOperation パラメータ検証
+        #region RotateElementOperation  
 
         [Theory]
         [InlineData("invalid_degrees")]
         [InlineData("")]
         [InlineData("abc")]
-        [InlineData("45.5.5")] // 無効な小数点形式
-        public async Task RotateElementOperation_WithInvalidDegreesFormat_ShouldUseDefaultValue(string degreesValue)
+        [InlineData("45.5.5")] //          public async Task RotateElementOperation_WithInvalidDegreesFormat_ShouldUseDefaultValue(string degreesValue)
         {
             // Arrange
             var operation = new RotateElementOperation(_mockElementFinder.Object, _mockRotateElementLogger);
@@ -342,10 +332,9 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.False(result.Success); // 要素が見つからないため
-            Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
+            Assert.False(result.Success); //              Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
             
-            _output.WriteLine($"✓ RotateElementOperation handled invalid degrees format with default value");
+            _output.WriteLine($" RotateElementOperation handled invalid degrees format with default value");
             _output.WriteLine($"  Error: {result.Error}");
         }
 
@@ -387,16 +376,15 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.False(result.Success); // 要素が見つからないため
-            Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
+            Assert.False(result.Success); //              Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
             
-            _output.WriteLine($"✓ RotateElementOperation processed valid degrees correctly");
+            _output.WriteLine($" RotateElementOperation processed valid degrees correctly");
             _output.WriteLine($"  Error: {result.Error}");
         }
 
         #endregion
 
-        #region ProcessId パラメータ検証
+        #region ProcessId  
 
         [Theory]
         [InlineData("1234")]
@@ -452,10 +440,9 @@ namespace UIAutomationMCP.Tests.UnitTests
                 var result = await execute();
                 
                 Assert.NotNull(result);
-                Assert.False(result.Success); // 要素が見つからないため
-                Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
+                Assert.False(result.Success); //                  Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
                 
-                _output.WriteLine($"✓ {name} processed processId {processIdValue} correctly");
+                _output.WriteLine($" {name} processed processId {processIdValue} correctly");
             }
         }
 
@@ -493,23 +480,22 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.False(result.Success); // 要素が見つからないため
-            Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
+            Assert.False(result.Success); //              Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
             
-            _output.WriteLine($"✓ Transform operation handled invalid processId with default value");
+            _output.WriteLine($" Transform operation handled invalid processId with default value");
             _output.WriteLine($"  Error: {result.Error}");
         }
 
         #endregion
 
-        #region WindowTitle パラメータ検証
+        #region WindowTitle  
 
         [Theory]
         [InlineData("")]
         [InlineData("   ")]
         [InlineData("ValidWindowTitle")]
         [InlineData("Window Title With Spaces")]
-        [InlineData("特殊文字@#$%^&*()")]
+        [InlineData(" #$%^&*()")]
         public async Task TransformOperations_WithVariousWindowTitles_ShouldHandleCorrectly(string windowTitle)
         {
             // Arrange
@@ -538,10 +524,9 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.False(result.Success); // 要素が見つからないため
-            Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
+            Assert.False(result.Success); //              Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
             
-            _output.WriteLine($"✓ Transform operation handled windowTitle correctly");
+            _output.WriteLine($" Transform operation handled windowTitle correctly");
             _output.WriteLine($"  Error: {result.Error}");
         }
 

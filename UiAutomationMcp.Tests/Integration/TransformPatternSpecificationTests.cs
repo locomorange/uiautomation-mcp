@@ -6,14 +6,14 @@ using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using Xunit.Abstractions;
 
+using UIAutomationMCP.Server.Abstractions;
+using Moq;
 namespace UIAutomationMCP.Tests.Integration
 {
     /// <summary>
-    /// Microsoft Transform Pattern仕様準拠テスト
-    /// https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/implementing-the-ui-automation-transform-control-pattern
+    /// Microsoft Transform Pattern                /// https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/implementing-the-ui-automation-transform-control-pattern
     /// 
-    /// Microsoft仕様で要求される以下の要素を検証：
-    /// 1. Required Properties: CanMove, CanResize, CanRotate
+    /// Microsoft                                  /// 1. Required Properties: CanMove, CanResize, CanRotate
     /// 2. Required Methods: Move, Resize, Rotate
     /// 3. Exception Handling: InvalidOperationException when capabilities are false
     /// 4. No Associated Events (Transform pattern has no events)
@@ -50,11 +50,11 @@ namespace UIAutomationMCP.Tests.Integration
             _workerPath = possiblePaths.FirstOrDefault(File.Exists) ?? 
                 throw new InvalidOperationException("Worker executable not found");
 
-            _subprocessExecutor = new SubprocessExecutor(logger, _workerPath);
+            _subprocessExecutor = new SubprocessExecutor(logger, _workerPath, new CancellationTokenSource());
             
             var transformLogger = _serviceProvider.GetRequiredService<ILoggerFactory>()
                 .CreateLogger<TransformService>();
-            _transformService = new TransformService(transformLogger, _subprocessExecutor);
+            _transformService = new TransformService(Mock.Of<IProcessManager>(), transformLogger);
             
             _output.WriteLine("Transform Pattern Specification Tests initialized");
             _output.WriteLine("Testing compliance with Microsoft UI Automation Transform Control Pattern specification");
@@ -81,7 +81,7 @@ namespace UIAutomationMCP.Tests.Integration
             }
         }
 
-        #region Microsoft仕様：Required Properties検証
+        #region Microsoft      equired Properties    
 
         [Fact]
         public async Task TransformPattern_ShouldImplementAllRequiredProperties()
@@ -106,33 +106,32 @@ namespace UIAutomationMCP.Tests.Integration
             var result = UIAutomationMCP.Models.Serialization.JsonSerializationHelper.Deserialize<ServerEnhancedResponse<TransformCapabilitiesResult>>(jsonResult.ToString()!);
             Assert.NotNull(result);
             
-            // 要素が存在しない場合でも、APIの構造は仕様に準拠している必要がある
+            //                        PI                              
             if (!result.Success)
             {
-                // エラーメッセージが適切であることを確認
-                Assert.NotNull(result.ErrorMessage);
+                //                                                  Assert.NotNull(result.ErrorMessage);
                 Assert.True(
                     result.ErrorMessage.Contains("not found", StringComparison.OrdinalIgnoreCase) ||
                     result.ErrorMessage.Contains("TransformPattern not supported", StringComparison.OrdinalIgnoreCase),
                     $"Error message should indicate element not found or pattern not supported. Actual: {result.ErrorMessage}");
                 
-                _output.WriteLine("✓ Required Properties API structure verified");
+                _output.WriteLine("  Required Properties API structure verified");
                 _output.WriteLine($"  Expected error for non-existent element: {result.ErrorMessage}");
             }
             else
             {
-                // 成功した場合は、データ構造を検証
+                //                             
                 Assert.NotNull(result.Data);
-                _output.WriteLine("✓ Required Properties successfully retrieved");
+                _output.WriteLine("  Required Properties successfully retrieved");
                 _output.WriteLine($"  Data: {result.Data}");
             }
 
-            _output.WriteLine("✓ Microsoft Specification: Required Properties - PASSED");
+            _output.WriteLine("  Microsoft Specification: Required Properties - PASSED");
         }
 
         #endregion
 
-        #region Microsoft仕様：Required Methods検証
+        #region Microsoft      equired Methods    
 
         [Fact]
         public async Task TransformPattern_ShouldImplementAllRequiredMethods()
@@ -153,28 +152,28 @@ namespace UIAutomationMCP.Tests.Integration
                 elementId, windowTitle, 100.0, 200.0, timeoutSeconds: timeout);
             
             Assert.NotNull(moveJsonResult);
-            _output.WriteLine("✓ Move method implemented and callable");
+            _output.WriteLine("  Move method implemented and callable");
 
             // Act & Assert - Resize Method
             var resizeJsonResult = await _transformService.ResizeElementAsync(
                 elementId, windowTitle, 800.0, 600.0, timeoutSeconds: timeout);
             
             Assert.NotNull(resizeJsonResult);
-            _output.WriteLine("✓ Resize method implemented and callable");
+            _output.WriteLine("  Resize method implemented and callable");
 
             // Act & Assert - Rotate Method
             var rotateJsonResult = await _transformService.RotateElementAsync(
                 elementId, windowTitle, 90.0, timeoutSeconds: timeout);
             
             Assert.NotNull(rotateJsonResult);
-            _output.WriteLine("✓ Rotate method implemented and callable");
+            _output.WriteLine("  Rotate method implemented and callable");
 
-            _output.WriteLine("✓ Microsoft Specification: Required Methods - PASSED");
+            _output.WriteLine("  Microsoft Specification: Required Methods - PASSED");
         }
 
         #endregion
 
-        #region Microsoft仕様：Exception Handling検証
+        #region Microsoft      xception Handling    
 
         [Fact]
         public async Task TransformPattern_ShouldHandleInvalidOperationExceptions()
@@ -196,8 +195,7 @@ namespace UIAutomationMCP.Tests.Integration
             
             Assert.NotNull(moveJsonResult);
             var moveResult = DeserializeResult<UIAutomationMCP.Models.Results.ServerEnhancedResponse<UIAutomationMCP.Models.Results.ActionResult>>(moveJsonResult);
-            Assert.False(moveResult.Success); // 要素が存在しないため失敗
-            _output.WriteLine("✓ Move operation handled appropriately");
+            Assert.False(moveResult.Success); //                                  _output.WriteLine("  Move operation handled appropriately");
 
             // Act & Assert - Resize with non-resizable element expectation
             var resizeJsonResult = await _transformService.ResizeElementAsync(
@@ -205,8 +203,7 @@ namespace UIAutomationMCP.Tests.Integration
             
             Assert.NotNull(resizeJsonResult);
             var resizeResult = DeserializeResult<UIAutomationMCP.Models.Results.ServerEnhancedResponse<UIAutomationMCP.Models.Results.ActionResult>>(resizeJsonResult);
-            Assert.False(resizeResult.Success); // 要素が存在しないため失敗
-            _output.WriteLine("✓ Resize operation handled appropriately");
+            Assert.False(resizeResult.Success); //                                  _output.WriteLine("  Resize operation handled appropriately");
 
             // Act & Assert - Rotate with non-rotatable element expectation
             var rotateJsonResult = await _transformService.RotateElementAsync(
@@ -214,21 +211,19 @@ namespace UIAutomationMCP.Tests.Integration
             
             Assert.NotNull(rotateJsonResult);
             var rotateResult = DeserializeResult<UIAutomationMCP.Models.Results.ServerEnhancedResponse<UIAutomationMCP.Models.Results.ActionResult>>(rotateJsonResult);
-            Assert.False(rotateResult.Success); // 要素が存在しないため失敗
-            _output.WriteLine("✓ Rotate operation handled appropriately");
+            Assert.False(rotateResult.Success); //                                  _output.WriteLine("  Rotate operation handled appropriately");
 
-            _output.WriteLine("✓ Microsoft Specification: Exception Handling - PASSED");
+            _output.WriteLine("  Microsoft Specification: Exception Handling - PASSED");
         }
 
         #endregion
 
-        #region Microsoft仕様：ArgumentOutOfRangeException検証
+        #region Microsoft      rgumentOutOfRangeException    
 
         [Theory]
-        [InlineData(0.0, 100.0)]   // 幅がゼロ
-        [InlineData(100.0, 0.0)]   // 高さがゼロ
-        [InlineData(-100.0, 200.0)] // 負の幅
-        [InlineData(200.0, -100.0)] // 負の高さ
+        [InlineData(0.0, 100.0)] //        
+        [InlineData(100.0, 0.0)] //         
+        [InlineData(-100.0, 200.0)] //               [InlineData(200.0, -100.0)] //        
         public async Task TransformPattern_ResizeWithInvalidDimensions_ShouldHandleAppropriately(double width, double height)
         {
             // Arrange
@@ -251,17 +246,16 @@ namespace UIAutomationMCP.Tests.Integration
             
             if (width <= 0 || height <= 0)
             {
-                // 0以下の値は適切に検証されるべき
-                Assert.NotNull(result.ErrorMessage);
-                _output.WriteLine($"✓ Invalid dimensions properly rejected: {result.ErrorMessage}");
+                // 0                                          Assert.NotNull(result.ErrorMessage);
+                _output.WriteLine($"  Invalid dimensions properly rejected: {result.ErrorMessage}");
             }
 
-            _output.WriteLine("✓ Microsoft Specification: Invalid Dimensions Handling - PASSED");
+            _output.WriteLine("  Microsoft Specification: Invalid Dimensions Handling - PASSED");
         }
 
         #endregion
 
-        #region Microsoft仕様：No Associated Events検証
+        #region Microsoft      o Associated Events    
 
         [Fact]
         public async Task TransformPattern_ShouldHaveNoAssociatedEvents()
@@ -276,13 +270,17 @@ namespace UIAutomationMCP.Tests.Integration
             const string windowTitle = "EventTestWindow";
             const int timeout = 5;
 
-            // Act - 複数の変換操作を実行
+            // Act - Transform operations
             var operations = new (string Name, Func<Task<object>> Operation)[]
             {
-                ("GetCapabilities", async () => await _transformService.GetTransformCapabilitiesAsync(elementId, windowTitle, timeoutSeconds: timeout)),
-                ("Move", async () => await _transformService.MoveElementAsync(automationId: elementId, x: 100.0, y: 200.0, timeoutSeconds: timeout)),
-                ("Resize", async () => await _transformService.ResizeElementAsync(automationId: elementId, width: 800.0, height: 600.0, timeoutSeconds: timeout)),
-                ("Rotate", async () => await _transformService.RotateElementAsync(automationId: elementId, degrees: 90.0, timeoutSeconds: timeout))
+                ("GetCapabilities", async () => await _transformService.GetTransformCapabilitiesAsync(
+                    elementId, windowTitle, timeoutSeconds: timeout)),
+                ("Move", async () => await _transformService.MoveElementAsync(
+                    automationId: elementId, x: 100.0, y: 200.0, timeoutSeconds: timeout)),
+                ("Resize", async () => await _transformService.ResizeElementAsync(
+                    automationId: elementId, width: 800.0, height: 600.0, timeoutSeconds: timeout)),
+                ("Rotate", async () => await _transformService.RotateElementAsync(
+                    automationId: elementId, degrees: 90.0, timeoutSeconds: timeout))
             };
 
             foreach (var (operationName, operation) in operations)
@@ -292,12 +290,11 @@ namespace UIAutomationMCP.Tests.Integration
                 
                 // Assert
                 Assert.NotNull(result);
-                // 要素が存在しないため操作は失敗するが、これは正常
-                // 重要なのは、操作中にイベント関連のエラーが発生しないこと
-                Assert.False(result.Success); // 要素が存在しないため
-                Assert.NotNull(result.ErrorMessage);
+                //                                        
+                //                                                  
+                Assert.False(result.Success); //                                  Assert.NotNull(result.ErrorMessage);
                 
-                // イベント関連のエラーがないことを確認（"event"という単語が操作説明に含まれる場合は除外）
+                // Check that operations do not trigger "event" related errors
                 var errorLower = result.ErrorMessage.ToLowerInvariant();
                 var hasEventError = errorLower.Contains("event handler") || 
                                    errorLower.Contains("event listener") || 
@@ -305,16 +302,16 @@ namespace UIAutomationMCP.Tests.Integration
                                    errorLower.Contains("event fire");
                 Assert.False(hasEventError, $"Operation should not have event-related errors: {result.ErrorMessage}");
                 
-                _output.WriteLine($"✓ {operationName} operation completed without event-related issues");
+                _output.WriteLine($"  {operationName} operation completed without event-related issues");
             }
 
-            _output.WriteLine("✓ Microsoft Specification: No Associated Events - PASSED");
+            _output.WriteLine("  Microsoft Specification: No Associated Events - PASSED");
             _output.WriteLine("  All Transform operations completed without generating or expecting events");
         }
 
         #endregion
 
-        #region Microsoft仕様：Pattern Support検証
+        #region Microsoft      attern Support    
 
         [Fact]
         public async Task TransformPattern_ShouldProvideProperPatternSupportIndication()
@@ -335,13 +332,11 @@ namespace UIAutomationMCP.Tests.Integration
             // Assert
             Assert.NotNull(jsonResult);
             var result = DeserializeResult<ServerEnhancedResponse<TransformCapabilitiesResult>>(jsonResult);
-            Assert.False(result.Success); // 要素が存在しないため
-            
-            // エラーメッセージが適切であることを確認
-            Assert.NotNull(result.ErrorMessage);
+            Assert.False(result.Success); //                              
+            //                                              Assert.NotNull(result.ErrorMessage);
             var errorMessage = result.ErrorMessage.ToLowerInvariant();
             
-            // 適切なエラーメッセージのパターンを確認
+            // Verify error indicates element not found or pattern not supported
             var validErrorPatterns = new[]
             {
                 "not found",
@@ -358,13 +353,13 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.True(hasValidErrorPattern, 
                 $"Error message should indicate element not found or pattern not supported. Actual: {result.ErrorMessage}");
 
-            _output.WriteLine($"✓ Proper error indication provided: {result.ErrorMessage}");
-            _output.WriteLine("✓ Microsoft Specification: Pattern Support Indication - PASSED");
+            _output.WriteLine($"  Proper error indication provided: {result.ErrorMessage}");
+            _output.WriteLine("  Microsoft Specification: Pattern Support Indication - PASSED");
         }
 
         #endregion
 
-        #region Microsoft仕様：Parameter Validation検証
+        #region Microsoft      arameter Validation    
 
         [Theory]
         [InlineData(double.MinValue, double.MinValue)]
@@ -389,24 +384,22 @@ namespace UIAutomationMCP.Tests.Integration
             // Assert
             Assert.NotNull(jsonResult);
             var result = DeserializeResult<ServerEnhancedResponse<ActionResult>>(jsonResult);
-            Assert.False(result.Success); // 要素が存在しないため
-            
-            // 座標値自体が原因でクラッシュしないことを確認
-            Assert.NotNull(result.ErrorMessage);
+            Assert.False(result.Success); //                              
+            //                                                    Assert.NotNull(result.ErrorMessage);
             Assert.DoesNotContain("crash", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("exception", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
             
-            _output.WriteLine($"✓ Extreme coordinates handled gracefully: {result.ErrorMessage}");
-            _output.WriteLine("✓ Microsoft Specification: Extreme Coordinate Handling - PASSED");
+            _output.WriteLine($"  Extreme coordinates handled gracefully: {result.ErrorMessage}");
+            _output.WriteLine("  Microsoft Specification: Extreme Coordinate Handling - PASSED");
         }
 
         [Theory]
-        [InlineData(360.0)]    // 1回転
-        [InlineData(720.0)]    // 2回転
-        [InlineData(1080.0)]   // 3回転
-        [InlineData(-360.0)]   // 逆1回転
-        [InlineData(0.1)]      // 極小角度
-        [InlineData(359.9)]    // ほぼ1回転
+        [InlineData(360.0)] // 1    
+        [InlineData(720.0)] // 2    
+        [InlineData(1080.0)] // 3    
+        [InlineData(-360.0)] //       
+        [InlineData(0.1)] //         
+        [InlineData(359.9)] //     1    
         public async Task TransformPattern_RotateWithVariousAngles_ShouldHandleGracefully(double degrees)
         {
             // Arrange
@@ -424,20 +417,18 @@ namespace UIAutomationMCP.Tests.Integration
             // Assert
             Assert.NotNull(jsonResult);
             var result = DeserializeResult<ServerEnhancedResponse<ActionResult>>(jsonResult);
-            Assert.False(result.Success); // 要素が存在しないため
-            
-            // 角度値自体が原因でエラーにならないことを確認
-            Assert.NotNull(result.ErrorMessage);
+            Assert.False(result.Success); //                              
+            //                                                     Assert.NotNull(result.ErrorMessage);
             Assert.DoesNotContain("invalid angle", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("angle out of range", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
             
-            _output.WriteLine($"✓ Various angles handled gracefully: {result.ErrorMessage}");
-            _output.WriteLine("✓ Microsoft Specification: Various Angle Handling - PASSED");
+            _output.WriteLine($"  Various angles handled gracefully: {result.ErrorMessage}");
+            _output.WriteLine("  Microsoft Specification: Various Angle Handling - PASSED");
         }
 
         #endregion
 
-        #region Microsoft仕様：Comprehensive Specification Compliance Test
+        #region Microsoft      omprehensive Specification Compliance Test
 
         [Fact]
         public async Task TransformPattern_ComprehensiveSpecificationCompliance()
@@ -482,19 +473,19 @@ namespace UIAutomationMCP.Tests.Integration
                     if (allResultsValid)
                     {
                         testResults.Add((scenario.Name, true, "All operations returned valid results"));
-                        _output.WriteLine($"✓ {scenario.Name} - PASSED");
+                        _output.WriteLine($"  {scenario.Name} - PASSED");
                     }
                     else
                     {
                         testResults.Add((scenario.Name, false, "Some operations returned invalid results"));
-                        _output.WriteLine($"✗ {scenario.Name} - FAILED");
+                        _output.WriteLine($"  {scenario.Name} - FAILED");
                         allTestsPassed = false;
                     }
                 }
                 catch (Exception ex)
                 {
                     testResults.Add((scenario.Name, false, $"Exception: {ex.Message}"));
-                    _output.WriteLine($"✗ {scenario.Name} - FAILED with exception: {ex.Message}");
+                    _output.WriteLine($"  {scenario.Name} - FAILED with exception: {ex.Message}");
                     allTestsPassed = false;
                 }
             }
@@ -503,13 +494,13 @@ namespace UIAutomationMCP.Tests.Integration
             _output.WriteLine("\n=== Final Specification Compliance Assessment ===");
             foreach (var (testName, passed, details) in testResults)
             {
-                var status = passed ? "✓ PASSED" : "✗ FAILED";
+                var status = passed ? "  PASSED" : "  FAILED";
                 _output.WriteLine($"{status}: {testName} - {details}");
             }
 
             Assert.True(allTestsPassed, "All Microsoft Transform Pattern specification requirements must be met");
             
-            _output.WriteLine("\n✓ Microsoft Transform Pattern Specification - FULLY COMPLIANT");
+            _output.WriteLine("\n  Microsoft Transform Pattern Specification - FULLY COMPLIANT");
             _output.WriteLine("  All required properties, methods, and behaviors are properly implemented");
             _output.WriteLine("  Exception handling follows Microsoft guidelines");
             _output.WriteLine("  Parameter validation is comprehensive");

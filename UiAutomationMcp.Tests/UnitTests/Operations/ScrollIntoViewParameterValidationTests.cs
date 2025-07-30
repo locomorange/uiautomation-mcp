@@ -66,7 +66,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Operations
         [Theory]
         [InlineData(-1)]
         [InlineData(0)]
-        [InlineData(601)] // 10分を超える
+        [InlineData(601)] // 10 minutes is too much
         public void ValidateTimeoutSeconds_WhenInvalidTimeout_ShouldBeInvalid(int timeoutSeconds)
         {
             // Arrange & Act
@@ -102,7 +102,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Operations
 
         public void Dispose()
         {
-            // リソースクリーンアップ（必要に応じて）
+            // No cleanup needed
         }
     }
 }

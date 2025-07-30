@@ -3,9 +3,7 @@ using UIAutomationMCP.Models;
 namespace UiAutomationMcp.Tests.UnitTests
 {
     /// <summary>
-    /// ScrollElementIntoView操作の安全なパラメータ検証テスト
-    /// UIAutomationに依存しない純粋なロジックをテストします
-    /// </summary>
+    /// ScrollElementIntoView                                /// UIAutomation                                       /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Unit")]
     public class ScrollElementParameterValidationTests : IDisposable
@@ -66,7 +64,7 @@ namespace UiAutomationMcp.Tests.UnitTests
         [Theory]
         [InlineData(-1)]
         [InlineData(0)]
-        [InlineData(601)] // 10分を超える
+        [InlineData(601)] // 10 minutes is too much
         public void ValidateTimeoutSeconds_WhenInvalidTimeout_ShouldBeInvalid(int timeoutSeconds)
         {
             // Arrange & Act
@@ -113,7 +111,7 @@ namespace UiAutomationMcp.Tests.UnitTests
 
         public void Dispose()
         {
-            // リソースクリーンアップ（必要に応じて）
+            // No cleanup needed
         }
     }
 }

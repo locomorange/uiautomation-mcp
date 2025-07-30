@@ -3,9 +3,7 @@ using UIAutomationMCP.Models;
 namespace UiAutomationMcp.Tests.UnitTests
 {
     /// <summary>
-    /// パラメータ検証の単体テスト
-    /// UI Automationに依存しない純粋なロジックをテストします
-    /// </summary>
+    ///                             /// UI Automation                                       /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Unit")]
     public class ParameterValidationTests

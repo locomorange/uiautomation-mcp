@@ -9,12 +9,12 @@ using UIAutomationMCP.Server.Services.ControlPatterns;
 using Xunit.Abstractions;
 using System.Diagnostics;
 
+using UIAutomationMCP.Server.Abstractions;
+using Moq;
 namespace UIAutomationMCP.Tests.Integration
 {
     /// <summary>
-    /// TogglePatternの統合テスト
-    /// SubprocessExecutorを使用してWorkerを安全に実行し、実際のTogglePatternをテストします
-    /// </summary>
+    /// TogglePattern               /// SubprocessExecutor         Worker                   TogglePattern                /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Integration")]
     public class TogglePatternIntegrationTests : IDisposable
@@ -48,22 +48,19 @@ namespace UIAutomationMCP.Tests.Integration
             _workerPath = possiblePaths.FirstOrDefault(File.Exists) ?? 
                 throw new InvalidOperationException("Worker executable not found");
 
-            _subprocessExecutor = new SubprocessExecutor(logger, _workerPath);
+            _subprocessExecutor = new SubprocessExecutor(logger, _workerPath, new CancellationTokenSource());
             
             // Create options
             var options = Options.Create(new UIAutomationOptions());
             
-            _toggleService = new ToggleService(
-                _serviceProvider.GetRequiredService<ILogger<ToggleService>>(), 
-                _subprocessExecutor);
+            _toggleService = new ToggleService(Mock.Of<IProcessManager>(), _serviceProvider.GetRequiredService<ILogger<ToggleService>>());
             _elementSearchService = new ElementSearchService(
                 _serviceProvider.GetRequiredService<ILogger<ElementSearchService>>(), 
                 _subprocessExecutor, 
                 options);
         }
 
-        #region 基本的なTogglePattern統合テスト
-
+        #region        TogglePattern         
         [Fact]
         public async Task ToggleElement_WithNonExistentElement_ShouldReturnFailureResult()
         {
@@ -154,8 +151,7 @@ namespace UIAutomationMCP.Tests.Integration
 
         #endregion
 
-        #region タイムアウト処理テスト
-
+        #region                     
         [Fact]
         public async Task ToggleElement_TimeoutHandling_ShouldWork()
         {
@@ -200,8 +196,7 @@ namespace UIAutomationMCP.Tests.Integration
 
         #endregion
 
-        #region 実際のアプリケーションとの統合テスト（安全な実装）
-
+        #region                                               
         [Fact]
         public async Task ToggleElement_WithCalculator_ShouldHandleGracefully()
         {
@@ -252,12 +247,11 @@ namespace UIAutomationMCP.Tests.Integration
 
         #endregion
 
-        #region Microsoft仕様準拠の統合テスト
-
+        #region Microsoft                  
         [Fact]
         public async Task ToggleElement_SpecificationCompliance_ShouldReturnConsistentResults()
         {
-            // Given - Microsoft仕様に準拠したパラメータでテスト
+            // Given - Microsoft specification test cases
             var testCases = new[]
             {
                 new { AutomationId = "CheckBox1", WindowTitle = "TestForm", ProcessId = (int?)null },
@@ -313,8 +307,7 @@ namespace UIAutomationMCP.Tests.Integration
 
         #endregion
 
-        #region ストレステスト
-
+        #region             
         [Fact]
         public async Task ToggleElement_HighVolumeRequests_ShouldHandleGracefully()
         {
@@ -343,8 +336,7 @@ namespace UIAutomationMCP.Tests.Integration
 
         #endregion
 
-        #region リソース管理テスト
-
+        #region                  
         [Fact]
         public async Task ToggleElement_ResourceManagement_ShouldNotLeak()
         {
@@ -382,11 +374,9 @@ namespace UIAutomationMCP.Tests.Integration
                 {
                     _output.WriteLine($"Terminating {appName} with PID: {process.Id}");
                     
-                    // まず正常終了を試行
-                    process.CloseMainWindow();
+                    //                                      process.CloseMainWindow();
                     
-                    // 少し待機してから強制終了
-                    if (!process.WaitForExit(2000))
+                    //                                          if (!process.WaitForExit(2000))
                     {
                         _output.WriteLine($"Force killing {appName} with PID: {process.Id}");
                         process.Kill();

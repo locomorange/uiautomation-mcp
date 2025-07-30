@@ -1,83 +1,78 @@
 namespace UIAutomationMCP.Tests.UnitTests.Base
 {
     /// <summary>
-    /// テスト間で共通して使用されるテストデータ
+    ///                                   
     /// </summary>
     public static class CommonTestData
     {
         /// <summary>
-        /// 有効なタイムアウト値
+        ///                    
         /// </summary>
         public static readonly int[] ValidTimeouts = { 0, 1000, 5000, 10000, 30000 };
 
         /// <summary>
-        /// 無効なタイムアウト値
+        ///                     
         /// </summary>
         public static readonly int[] InvalidTimeouts = { -1, -100, -5000 };
 
         /// <summary>
-        /// 有効なプロセスID
+        ///             ID
         /// </summary>
         public static readonly int[] ValidProcessIds = { 0, 1234, 5678, 9999 };
 
         /// <summary>
-        /// 無効なプロセスID
+        ///              ID
         /// </summary>
         public static readonly int[] InvalidProcessIds = { -1, -100 };
 
         /// <summary>
-        /// 空または無効な文字列パラメータ
+        ///                            
         /// </summary>
         public static readonly string?[] EmptyOrInvalidStrings = { "", "   ", "\t", "\n", null };
 
         /// <summary>
-        /// 有効な要素ID
+        ///          ID
         /// </summary>
         public static readonly string[] ValidElementIds = { "button1", "textBox1", "listItem1", "menuItem1" };
 
         /// <summary>
-        /// 有効なウィンドウタイトル
+        ///                      
         /// </summary>
         public static readonly string[] ValidWindowTitles = { "Test Window", "Application", "Dialog", "" };
 
         /// <summary>
-        /// ドックポジション値（DockPattern用）
-        /// </summary>
+        ///                   ockPattern            /// </summary>
         public static readonly string[] DockPositions = { "top", "bottom", "left", "right", "fill", "none" };
 
         /// <summary>
-        /// トグル状態値（TogglePattern用）
-        /// </summary>
+        ///              ogglePattern            /// </summary>
         public static readonly string[] ToggleStates = { "on", "off", "indeterminate" };
 
         /// <summary>
-        /// 展開/折りたたみ状態値（ExpandCollapsePattern用）
-        /// </summary>
+        ///    /                xpandCollapsePattern            /// </summary>
         public static readonly string[] ExpandCollapseStates = { "expanded", "collapsed", "partiallyexpanded", "leafnode" };
 
         /// <summary>
-        /// 座標値（Transform/Grid Pattern用）
-        /// </summary>
+        ///         ransform/Grid Pattern            /// </summary>
         public static readonly double[] ValidCoordinates = { 0.0, 100.0, 500.0, 1920.0 };
 
         /// <summary>
-        /// 無効な座標値
+        ///             
         /// </summary>
         public static readonly double[] InvalidCoordinates = { -1.0, -100.0, double.NaN, double.PositiveInfinity };
 
         /// <summary>
-        /// グリッド行/列インデックス
+        ///                      
         /// </summary>
         public static readonly int[] ValidGridIndices = { 0, 1, 5, 10 };
 
         /// <summary>
-        /// 無効なグリッド行/列インデックス
+        ///                            
         /// </summary>
         public static readonly int[] InvalidGridIndices = { -1, -5, int.MaxValue };
 
         /// <summary>
-        /// コントロールタイプ
-        /// </summary>
+        ///                          /// </summary>
         public static readonly string[] ControlTypes = 
         {
             "Button", "CheckBox", "ComboBox", "DataGrid", "Document", "Edit",
@@ -88,7 +83,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
         };
 
         /// <summary>
-        /// 共通のエラーメッセージパターン
+        ///                            
         /// </summary>
         public static class ErrorMessages
         {
@@ -101,7 +96,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
         }
 
         /// <summary>
-        /// 成功メッセージパターン
+        ///                    
         /// </summary>
         public static class SuccessMessages
         {

@@ -8,9 +8,7 @@ using Xunit.Abstractions;
 namespace UIAutomationMCP.Tests.UnitTests
 {
     /// <summary>
-    /// DockPatternの単体テスト
-    /// Microsoft仕様に基づいたDockPatternの機能をモックベースでテストします
-    /// </summary>
+    /// DockPattern               /// Microsoft            DockPattern                                /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Unit")]
     public class DockPatternTests : BasePatternTests<ILayoutService>
@@ -24,8 +22,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             return new Mock<ILayoutService>();
         }
 
-        #region Microsoft仕様準拠のDockPositionテスト
-
+        #region Microsoft         DockPosition     
         [Theory]
         [MemberData(nameof(GetValidDockPositions))]
         public async Task DockElement_WithValidDockPositions_ShouldSucceed(string dockPosition)
@@ -44,7 +41,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             _mockService.Verify(s => s.DockElementAsync("dockablePane", null, dockPosition, "TestWindow", null, 30), Times.Once);
-            _output.WriteLine($"✓ DockElement test passed for position: {dockPosition}");
+            _output.WriteLine($"  DockElement test passed for position: {dockPosition}");
         }
 
         [Theory]
@@ -63,7 +60,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 () => _tools.DockElement("dockablePane", invalidPosition, "TestWindow"));
 
             _mockService.Verify(s => s.DockElementAsync("dockablePane", null, invalidPosition, "TestWindow", null, 30), Times.Once);
-            _output.WriteLine($"✓ DockElement correctly rejected invalid position: {invalidPosition}");
+            _output.WriteLine($"  DockElement correctly rejected invalid position: {invalidPosition}");
         }
 
         public static IEnumerable<object[]> GetValidDockPositions()
@@ -73,8 +70,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region DockPattern状態変更テスト
-
+        #region DockPattern            
         [Fact]
         public async Task DockElement_ChangingFromNoneToTop_ShouldReturnCorrectPositions()
         {
@@ -137,8 +133,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region エラーハンドリングテスト
-
+        #region                      
         [Fact]
         public async Task DockElement_WithNonExistentElement_ShouldHandleError()
         {
@@ -151,7 +146,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 () => _tools.DockElement("nonExistentElement", "top", "TestWindow"));
 
             _mockService.Verify(s => s.DockElementAsync("nonExistentElement", null, "top", "TestWindow", null, 30), Times.Once);
-            _output.WriteLine("✓ Non-existent element error handling test passed");
+            _output.WriteLine("  Non-existent element error handling test passed");
         }
 
         [Fact]
@@ -166,38 +161,37 @@ namespace UIAutomationMCP.Tests.UnitTests
                 () => _tools.DockElement("staticText", "top", "TestWindow"));
 
             _mockService.Verify(s => s.DockElementAsync("staticText", null, "top", "TestWindow", null, 30), Times.Once);
-            _output.WriteLine("✓ Unsupported element error handling test passed");
+            _output.WriteLine("  Unsupported element error handling test passed");
         }
 
         #endregion
 
-        #region パラメータ検証テスト
-
+        #region                   
         [Fact]
         public void DockElement_ParameterValidation_ShouldHandleAllScenarios()
         {
-            // Microsoft仕様準拠テスト
+            // Microsoft specification compliance test
             PatternTestHelpers.VerifyMicrosoftSpecCompliance(
                 _mockService, 
                 "DockPattern", 
                 new[] { "DockElementAsync" }, 
                 _output);
 
-            // 標準パラメータ検証
+            //                  
             PatternTestHelpers.VerifyStandardParameterValidation(
                 _mockService, 
                 "DockElementAsync", 
                 _output, 
                 "top");
 
-            // タイムアウト処理検証
+            //                    
             PatternTestHelpers.VerifyTimeoutHandling(
                 _mockService, 
                 "DockElementAsync", 
                 _output, 
                 "top");
 
-            _output.WriteLine("✓ All DockElement parameter validation tests completed");
+            _output.WriteLine("  All DockElement parameter validation tests completed");
         }
 
         [Theory]
@@ -218,7 +212,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             _mockService.Verify(s => s.DockElementAsync("element1", null, "top", "TestWindow", processId, 30), Times.Once);
-            _output.WriteLine($"✓ ProcessId parameter test passed: processId={processId}");
+            _output.WriteLine($"  ProcessId parameter test passed: processId={processId}");
         }
 
         [Theory]
@@ -239,7 +233,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             _mockService.Verify(s => s.DockElementAsync("element1", null, "bottom", "TestWindow", null, timeoutSeconds), Times.Once);
-            _output.WriteLine($"✓ Custom timeout test passed: timeout={timeoutSeconds}s");
+            _output.WriteLine($"  Custom timeout test passed: timeout={timeoutSeconds}s");
         }
 
         public static IEnumerable<object[]> GetProcessIdTestData()

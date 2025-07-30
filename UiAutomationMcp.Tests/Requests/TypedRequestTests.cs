@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace UiAutomationMcp.Tests.Requests
 {
     /// <summary>
-    /// 型安全なリクエストシステムのテスト (新しいTools Level Serializationパターン)
+    ///                               (     Tools Level Serialization       )
     /// </summary>
     [Collection("UIAutomationTestCollection")]
     public class TypedRequestTests

@@ -142,7 +142,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Operations
 
         public void Dispose()
         {
-            // リソースクリーンアップ（必要に応じて）
+            // No cleanup needed
         }
     }
 }

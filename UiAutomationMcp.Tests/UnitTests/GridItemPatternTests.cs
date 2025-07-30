@@ -3,17 +3,14 @@ using UIAutomationMCP.Models;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
-using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Models.Results;
 using Xunit.Abstractions;
+using UIAutomationMCP.Models.Abstractions;
 
 namespace UIAutomationMCP.Tests.UnitTests
 {
     /// <summary>
-    /// GridItemPatternの単体テスト
-    /// Microsoft仕様に基づいたGridItemPatternの機能をモックベースでテストします
-    /// GridItemプロバイダーの必須プロパティ（Row, Column, RowSpan, ColumnSpan, ContainingGrid）をテスト
-    /// </summary>
+    /// GridItemPatternの単体テスチE    /// Microsoft仕様に基づぁE��GridItemPatternの機�EをモチE��ベ�EスでチE��トしまぁE    /// GridItemプロバイダーの忁E���Eロパティ�E�Eow, Column, RowSpan, ColumnSpan, ContainingGrid�E�をチE��チE    /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Unit")]
     public class GridItemPatternTests : IDisposable
@@ -27,8 +24,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output = output;
             _mockGridService = new Mock<IGridService>();
             
-            // UIAutomationToolsの他のサービスもモック化（最小限の設定）
-            var mockAppLauncher = new Mock<IApplicationLauncher>();
+            // UIAutomationToolsの他�EサービスもモチE��化（最小限の設定！E            var mockAppLauncher = new Mock<IApplicationLauncher>();
             var mockScreenshot = new Mock<IScreenshotService>();
             var mockElementSearch = new Mock<IElementSearchService>();
             var mockTreeNavigation = new Mock<ITreeNavigationService>();
@@ -75,24 +71,22 @@ namespace UIAutomationMCP.Tests.UnitTests
                 mockSynchronizedInput.Object,
                 Mock.Of<IEventMonitorService>(),
                 Mock.Of<IFocusService>(),
-                Mock.Of<ISubprocessExecutor>()
+                Mock.Of<IOperationExecutor>()
             );
         }
 
         public void Dispose()
         {
-            // モックのクリーンアップは不要
-        }
+            // モチE��のクリーンアチE�Eは不要E        }
 
-        #region Microsoft仕様準拠のGridItem必須プロパティテスト
-
+        #region Microsoft仕様準拠のGridItem忁E���EロパティチE��チE
         [Theory]
         [InlineData(0, 0)]
         [InlineData(1, 2)]
         [InlineData(4, 5)]
         public async Task GetGridItem_WithValidCoordinates_ShouldReturnRowAndColumnProperties(int expectedRow, int expectedColumn)
         {
-            // Arrange - Microsoft仕様: Row, Columnプロパティは0ベースの座標を返す
+            // Arrange - Microsoft仕槁E Row, Columnプロパティは0ベ�Eスの座標を返す
             var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
@@ -137,7 +131,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         [InlineData(3, 2)]
         public async Task GetGridItem_WithSpannedCells_ShouldReturnRowSpanAndColumnSpanProperties(int rowSpan, int columnSpan)
         {
-            // Arrange - Microsoft仕様: RowSpan, ColumnSpanプロパティはセルが跨ぐ行数/列数を返す
+            // Arrange - Microsoft仕槁E RowSpan, ColumnSpanプロパティはセルが跨ぐ行数/列数を返す
             var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
@@ -179,7 +173,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         [Fact]
         public async Task GetGridItem_WithSingleCell_ShouldReturnSpanOfOne()
         {
-            // Arrange - Microsoft仕様: 単一セルのRowSpan, ColumnSpanは1
+            // Arrange - Microsoft仕槁E 単一セルのRowSpan, ColumnSpanは1
             var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
@@ -221,7 +215,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         [Fact]
         public async Task GetGridItem_WithContainingGridReference_ShouldReturnValidReference()
         {
-            // Arrange - Microsoft仕様: ContainingGridプロパティは親グリッドへの参照を返す
+            // Arrange - Microsoft仕槁E ContainingGridプロパティは親グリチE��への参�Eを返す
             var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
@@ -262,16 +256,14 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region Microsoft仕様準拠のマージされたセルテスト
-
+        #region Microsoft仕様準拠のマ�EジされたセルチE��チE
         [Theory]
-        [InlineData(0, 0, 2, 3)] // アンカーセル(0,0)から2行3列のマージ
-        [InlineData(1, 1, 1, 2)] // アンカーセル(1,1)から1行2列のマージ
-        [InlineData(3, 2, 3, 1)] // アンカーセル(3,2)から3行1列のマージ
+        [InlineData(0, 0, 2, 3)] // アンカーセル(0,0)から2衁E列�Eマ�Eジ
+        [InlineData(1, 1, 1, 2)] // アンカーセル(1,1)から1衁E列�Eマ�Eジ
+        [InlineData(3, 2, 3, 1)] // アンカーセル(3,2)から3衁E列�Eマ�Eジ
         public async Task GetGridItem_WithMergedCells_ShouldReportAnchorCellCoordinates(int anchorRow, int anchorColumn, int rowSpan, int columnSpan)
         {
-            // Arrange - Microsoft仕様: マージされたセルはアンカーセルの座標を報告する
-            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
+            // Arrange - Microsoft仕槁E マ�Eジされたセルはアンカーセルの座標を報告すめE            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
                 Data = new ElementSearchResult
@@ -310,12 +302,9 @@ namespace UIAutomationMCP.Tests.UnitTests
         }
 
         [Theory]
-        [InlineData(0, 1, 0, 0)] // マージ範囲内の(0,1)は実際には(0,0)のアンカーセルを指す
-        [InlineData(1, 0, 0, 0)] // マージ範囲内の(1,0)は実際には(0,0)のアンカーセルを指す
-        [InlineData(1, 1, 0, 0)] // マージ範囲内の(1,1)は実際には(0,0)のアンカーセルを指す
-        public async Task GetGridItem_WithCellsInMergeRange_ShouldReturnAnchorCellProperties(int requestRow, int requestColumn, int anchorRow, int anchorColumn)
+        [InlineData(0, 1, 0, 0)] // マ�Eジ篁E��冁E�E(0,1)は実際には(0,0)のアンカーセルを指ぁE        [InlineData(1, 0, 0, 0)] // マ�Eジ篁E��冁E�E(1,0)は実際には(0,0)のアンカーセルを指ぁE        [InlineData(1, 1, 0, 0)] // マ�Eジ篁E��冁E�E(1,1)は実際には(0,0)のアンカーセルを指ぁE        public async Task GetGridItem_WithCellsInMergeRange_ShouldReturnAnchorCellProperties(int requestRow, int requestColumn, int anchorRow, int anchorColumn)
         {
-            // Arrange - Microsoft仕様: マージ範囲内のどの座標でも同じアンカーセルのプロパティを返す
+            // Arrange - Microsoft仕槁E マ�Eジ篁E��冁E�Eどの座標でも同じアンカーセルのプロパティを返す
             var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
@@ -356,12 +345,11 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region Microsoft仕様準拠の座標系テスト
-
+        #region Microsoft仕様準拠の座標系チE��チE
         [Fact]
         public async Task GetGridItem_WithZeroBasedCoordinates_ShouldReturnCorrectItem()
         {
-            // Arrange - Microsoft仕様: 座標系は0ベース、左上が(0,0)
+            // Arrange - Microsoft仕槁E 座標系は0ベ�Eス、左上が(0,0)
             var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
@@ -406,7 +394,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         [InlineData(9, 9)]
         public async Task GetGridItem_WithVariousCoordinates_ShouldMaintainCoordinateConsistency(int row, int column)
         {
-            // Arrange - Microsoft仕様: 返されるRow/Columnプロパティは要求された座標と一致する必要がある
+            // Arrange - Microsoft仕槁E 返されるRow/Columnプロパティは要求された座標と一致する忁E��がある
             var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
@@ -447,15 +435,14 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region Microsoft仕様準拠の例外処理テスト
-
+        #region Microsoft仕様準拠の例外�E琁E��スチE
         [Theory]
         [InlineData(-1, 0)]
         [InlineData(0, -1)]
         [InlineData(-1, -1)]
         public async Task GetGridItem_WithNegativeCoordinates_ShouldThrowArgumentOutOfRangeException(int row, int column)
         {
-            // Arrange - Microsoft仕様: 負の座標でArgumentOutOfRangeExceptionをスロー
+            // Arrange - Microsoft仕槁E 負の座標でArgumentOutOfRangeExceptionをスロー
             _mockGridService.Setup(s => s.GetGridItemAsync("errorGrid", null, row, column, "TestWindow", null, 30))
                            .ThrowsAsync(new ArgumentOutOfRangeException(
                                row < 0 ? "row" : "column", 
@@ -476,7 +463,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridItem_WithCoordinatesExceedingBounds_ShouldThrowArgumentOutOfRangeException(
             int row, int column, int maxRow, int maxColumn)
         {
-            // Arrange - Microsoft仕様: RowCount/ColumnCountを超える座標でArgumentOutOfRangeExceptionをスロー
+            // Arrange - Microsoft仕槁E RowCount/ColumnCountを趁E��る座標でArgumentOutOfRangeExceptionをスロー
             _mockGridService.Setup(s => s.GetGridItemAsync("boundGrid", null, row, column, "TestWindow", null, 30))
                            .ThrowsAsync(new ArgumentOutOfRangeException(
                                row >= maxRow ? "row" : "column", 
@@ -492,13 +479,11 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region GridItemプロパティの整合性テスト
-
+        #region GridItemプロパティの整合性チE��チE
         [Fact]
         public async Task GetGridItem_WithValidItem_ShouldHaveConsistentProperties()
         {
-            // Arrange - すべてのGridItem必須プロパティが適切に設定されていることを確認
-            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
+            // Arrange - すべてのGridItem忁E���Eロパティが適刁E��設定されてぁE��ことを確誁E            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
                 Data = new ElementSearchResult
@@ -542,8 +527,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         [InlineData(3, 1, 3, 2)]
         public async Task GetGridItem_WithSpannedItems_ShouldHaveValidSpanValues(int row, int column, int rowSpan, int columnSpan)
         {
-            // Arrange - RowSpan/ColumnSpanが1以上の有効な値であることを確認
-            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
+            // Arrange - RowSpan/ColumnSpanぁE以上�E有効な値であることを確誁E            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
                 Data = new ElementSearchResult
@@ -583,8 +567,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region 境界値とエラーハンドリングテスト
-
+        #region 墁E��値とエラーハンドリングチE��チE
         [Fact]
         public async Task GetGridItem_WithNonExistentGrid_ShouldHandleError()
         {
@@ -617,8 +600,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region パラメータ検証テスト
-
+        #region パラメータ検証チE��チE
         [Theory]
         [InlineData("", 0, 0, "TestWindow")]
         [InlineData("grid1", 0, 0, "")]

@@ -4,15 +4,13 @@ using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
-using UIAutomationMCP.Server.Interfaces;
 using Xunit.Abstractions;
+using UIAutomationMCP.Models.Abstractions;
 
 namespace UIAutomationMCP.Tests.UnitTests
 {
     /// <summary>
-    /// TogglePatternの単体テスト
-    /// Microsoft仕様に基づいたTogglePatternの機能をモックベースでテストします
-    /// </summary>
+    /// TogglePatternの単体テスチE    /// Microsoft仕様に基づぁE��TogglePatternの機�EをモチE��ベ�EスでチE��トしまぁE    /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Unit")]
     public class TogglePatternTests : IDisposable
@@ -26,8 +24,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output = output;
             _mockToggleService = new Mock<IToggleService>();
             
-            // UIAutomationToolsの他のサービスもモック化（最小限の設定）
-            var mockAppLauncher = new Mock<IApplicationLauncher>();
+            // UIAutomationToolsの他�EサービスもモチE��化（最小限の設定！E            var mockAppLauncher = new Mock<IApplicationLauncher>();
             var mockScreenshot = new Mock<IScreenshotService>();
             var mockElementSearch = new Mock<IElementSearchService>();
             var mockTreeNavigation = new Mock<ITreeNavigationService>();
@@ -49,7 +46,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             var mockItemContainer = new Mock<IItemContainerService>();
             var mockSynchronizedInput = new Mock<ISynchronizedInputService>();
             var mockEventMonitor = new Mock<IEventMonitorService>();
-            var mockSubprocessExecutor = new Mock<ISubprocessExecutor>();
+            var mockSubprocessExecutor = new Mock<IOperationExecutor>();
 
             _tools = new UIAutomationTools(
                 mockAppLauncher.Object,
@@ -82,11 +79,9 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         public void Dispose()
         {
-            // モックのクリーンアップは不要
-        }
+            // モチE��のクリーンアチE�Eは不要E        }
 
-        #region Microsoft仕様準拠のToggleStateテスト
-
+        #region Microsoft仕様準拠のToggleStateチE��チE
         [Theory]
         [InlineData("CheckBox")]
         [InlineData("RadioButton")]
@@ -151,8 +146,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region Microsoft仕様準拠のToggleStatePropertyテスト
-
+        #region Microsoft仕様準拠のToggleStatePropertyチE��チE
         [Fact]
         public async Task ToggleElement_OffToOn_ShouldReturnCorrectStates()
         {
@@ -236,8 +230,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region Microsoft仕様準拠のToggle()メソッドテスト
-
+        #region Microsoft仕様準拠のToggle()メソチE��チE��チE
         [Fact]
         public async Task ToggleElement_CompleteToggleCycle_ShouldFollowSpecifiedOrder()
         {
@@ -271,7 +264,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result3);
 
             _mockToggleService.Verify(s => s.ToggleElementAsync("triStateControl", null, null, null, 30), Times.Exactly(3));
-            _output.WriteLine("Complete toggle cycle (Off → On → Indeterminate → Off) test passed");
+            _output.WriteLine("Complete toggle cycle (Off ↁEOn ↁEIndeterminate ↁEOff) test passed");
         }
 
         [Fact]
@@ -307,13 +300,12 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result3);
 
             _mockToggleService.Verify(s => s.ToggleElementAsync("binaryToggle", null, null, null, 30), Times.Exactly(3));
-            _output.WriteLine("Two-state toggle cycle (Off → On → Off → On) test passed");
+            _output.WriteLine("Two-state toggle cycle (Off ↁEOn ↁEOff ↁEOn) test passed");
         }
 
         #endregion
 
-        #region エラーハンドリングテスト
-
+        #region エラーハンドリングチE��チE
         [Fact]
         public async Task ToggleElement_WithNonExistentElement_ShouldHandleError()
         {
@@ -364,8 +356,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region パラメータ検証テスト
-
+        #region パラメータ検証チE��チE
         [Theory]
         [InlineData("", "TestWindow")]
         [InlineData("element1", "")]
@@ -437,8 +428,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region Microsoft仕様準拠のPropertyChangedEventテスト
-
+        #region Microsoft仕様準拠のPropertyChangedEventチE��チE
         [Fact]
         public async Task ToggleElement_PropertyChange_ShouldTriggerToggleStatePropertyChangedEvent()
         {
@@ -472,8 +462,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region 複雑なシナリオテスト
-
+        #region 褁E��なシナリオチE��チE
         [Fact]
         public async Task ToggleElement_MultipleToggleControls_ShouldExecuteIndependently()
         {
@@ -573,13 +562,11 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region Microsoft仕様の制限事項テスト
-
+        #region Microsoft仕様�E制限事頁E��スチE
         [Fact]
         public async Task ToggleElement_SetStateMethodNotAvailable_ShouldOnlyProvideToggleMethod()
         {
-            // Arrange - Microsoft仕様では SetState(newState) メソッドは提供されない
-            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+            // Arrange - Microsoft仕様では SetState(newState) メソチE��は提供されなぁE            var expectedResult = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
                 Data = new ActionResult { 
                     Success = true, 
@@ -609,8 +596,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         [InlineData("On", "Off")]
         public async Task ToggleElement_TwoStateControl_ShouldNotUseIndeterminateState(string fromState, string toState)
         {
-            // Arrange - 2状態コントロールはIndeterminateを使用しない
-            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+            // Arrange - 2状態コントロールはIndeterminateを使用しなぁE            var expectedResult = new ServerEnhancedResponse<ActionResult> {
                 Success = true,
                 Data = new ActionResult { 
                     Success = true, 
@@ -632,7 +618,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             _mockToggleService.Verify(s => s.ToggleElementAsync("simpleCheckBox", null, null, null, 30), Times.Once);
-            _output.WriteLine($"Two-state control test passed: {fromState} → {toState}");
+            _output.WriteLine($"Two-state control test passed: {fromState} ↁE{toState}");
         }
 
         #endregion

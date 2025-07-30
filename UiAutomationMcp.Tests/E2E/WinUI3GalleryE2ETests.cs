@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 using UIAutomationMCP.Server.Helpers;
-using UIAutomationMCP.Server.Interfaces;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;

@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using UIAutomationMCP.Worker.Helpers;
+using UIAutomationMCP.Common.Helpers;
 using Xunit;
 
 namespace UiAutomationMcp.Tests.UnitTests.Helpers

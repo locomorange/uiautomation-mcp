@@ -7,12 +7,12 @@ using UIAutomationMCP.Server.Services.ControlPatterns;
 using Xunit.Abstractions;
 using System.Diagnostics;
 
+using UIAutomationMCP.Server.Abstractions;
+using Moq;
 namespace UIAutomationMCP.Tests.Integration
 {
     /// <summary>
-    /// TransformPatternの統合テスト
-    /// SubprocessExecutorを使用した安全なWorker実行によるTransform操作テスト
-    /// Microsoft仕様に基づいたTransformPatternの検証
+    /// TransformPattern               /// SubprocessExecutor              Worker        Transform             /// Microsoft            TransformPattern      
     /// https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/implementing-the-ui-automation-transform-control-pattern
     /// </summary>
     [Collection("UIAutomationTestCollection")]
@@ -47,11 +47,11 @@ namespace UIAutomationMCP.Tests.Integration
             _workerPath = possiblePaths.FirstOrDefault(File.Exists) ?? 
                 throw new InvalidOperationException("Worker executable not found");
 
-            _subprocessExecutor = new SubprocessExecutor(logger, _workerPath);
+            _subprocessExecutor = new SubprocessExecutor(logger, _workerPath, new CancellationTokenSource());
             
             var transformLogger = _serviceProvider.GetRequiredService<ILoggerFactory>()
                 .CreateLogger<TransformService>();
-            _transformService = new TransformService(transformLogger, _subprocessExecutor);
+            _transformService = new TransformService(Mock.Of<IProcessManager>(), transformLogger);
             
             _output.WriteLine($"TransformPattern Integration Tests initialized with worker: {_workerPath}");
         }
@@ -77,16 +77,14 @@ namespace UIAutomationMCP.Tests.Integration
             }
         }
 
-        #region Microsoft仕様準拠の能力確認テスト
-
+        #region Microsoft                      
         [Fact]
         public async Task GetTransformCapabilities_WithNonExistentElement_ShouldReturnError()
         {
             // Arrange
             const string nonExistentAutomationId = "NonExistentTransformElement_12345";
             const string windowTitle = "NonExistentWindow";
-            const int timeout = 5; // 短いタイムアウト
-
+            const int timeout = 5; //                
             _output.WriteLine($"Testing GetTransformCapabilities with non-existent element: {nonExistentAutomationId}");
 
             // Act
@@ -99,7 +97,7 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.False(result.Success);
             Assert.Contains("not found", result.ErrorMessage ?? "", StringComparison.OrdinalIgnoreCase);
             
-            _output.WriteLine($"✓ GetTransformCapabilities correctly handled non-existent element");
+            _output.WriteLine($"  GetTransformCapabilities correctly handled non-existent element");
             _output.WriteLine($"  Error: {result.ErrorMessage}");
         }
 
@@ -121,14 +119,13 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.False(result.Success);
             Assert.NotNull(result.ErrorMessage);
             
-            _output.WriteLine($"✓ GetTransformCapabilities correctly handled invalid element ID");
+            _output.WriteLine($"  GetTransformCapabilities correctly handled invalid element ID");
             _output.WriteLine($"  Error: {result.ErrorMessage}");
         }
 
         #endregion
 
-        #region Microsoft仕様準拠のMove操作テスト
-
+        #region Microsoft         Move         
         [Fact]
         public async Task MoveElement_WithNonExistentElement_ShouldReturnError()
         {
@@ -151,15 +148,15 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.False(result.Success);
             Assert.Contains("not found", result.ErrorMessage ?? "", StringComparison.OrdinalIgnoreCase);
             
-            _output.WriteLine($"✓ MoveElement correctly handled non-existent element");
+            _output.WriteLine($"  MoveElement correctly handled non-existent element");
             _output.WriteLine($"  Error: {result.ErrorMessage}");
         }
 
         [Theory]
-        [InlineData(0.0, 0.0)]      // 原点
-        [InlineData(-100.0, -200.0)] // 負の座標
-        [InlineData(1920.0, 1080.0)] // 大きな座標
-        [InlineData(123.45, 678.90)] // 小数点座標
+        [InlineData(0.0, 0.0)]      // Origin
+        [InlineData(-100.0, -200.0)] // Negative coordinates
+        [InlineData(1920.0, 1080.0)] // Screen edge
+        [InlineData(123.45, 678.90)] // Decimal values
         public async Task MoveElement_WithValidCoordinates_ShouldAttemptMove(double x, double y)
         {
             // Arrange
@@ -175,17 +172,16 @@ namespace UIAutomationMCP.Tests.Integration
             // Assert
             Assert.NotNull(jsonResult);
             var result = DeserializeResult<ServerEnhancedResponse<ActionResult>>(jsonResult);
-            // 要素が存在しないため失敗するが、座標は正しく処理される
+            //                                              
             Assert.False(result.Success);
             
-            _output.WriteLine($"✓ MoveElement processed coordinates correctly");
+            _output.WriteLine($"  MoveElement processed coordinates correctly");
             _output.WriteLine($"  Result: {result.ErrorMessage}");
         }
 
         #endregion
 
-        #region Microsoft仕様準拠のResize操作テスト
-
+        #region Microsoft         Resize         
         [Fact]
         public async Task ResizeElement_WithNonExistentElement_ShouldReturnError()
         {
@@ -208,16 +204,15 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.False(result.Success);
             Assert.Contains("not found", result.ErrorMessage ?? "", StringComparison.OrdinalIgnoreCase);
             
-            _output.WriteLine($"✓ ResizeElement correctly handled non-existent element");
+            _output.WriteLine($"  ResizeElement correctly handled non-existent element");
             _output.WriteLine($"  Error: {result.ErrorMessage}");
         }
 
         [Theory]
-        [InlineData(0.0, 100.0)]   // 幅がゼロ
-        [InlineData(100.0, 0.0)]   // 高さがゼロ
-        [InlineData(-100.0, 200.0)] // 負の幅
-        [InlineData(200.0, -100.0)] // 負の高さ
-        [InlineData(0.0, 0.0)]     // 両方ゼロ
+        [InlineData(0.0, 100.0)]   //        
+        [InlineData(100.0, 0.0)]   //         
+        [InlineData(-100.0, 200.0)] //               [InlineData(200.0, -100.0)] //        
+        [InlineData(0.0, 0.0)]     //         
         public async Task ResizeElement_WithInvalidDimensions_ShouldReturnError(double width, double height)
         {
             // Arrange
@@ -235,15 +230,15 @@ namespace UIAutomationMCP.Tests.Integration
             var result = DeserializeResult<ServerEnhancedResponse<ActionResult>>(jsonResult);
             Assert.False(result.Success);
             
-            _output.WriteLine($"✓ ResizeElement correctly handled invalid dimensions");
+            _output.WriteLine($"  ResizeElement correctly handled invalid dimensions");
             _output.WriteLine($"  Error: {result.ErrorMessage}");
         }
 
         [Theory]
-        [InlineData(800.0, 600.0)]    // 標準的なサイズ
-        [InlineData(1920.0, 1080.0)]  // 大きなサイズ
-        [InlineData(320.0, 240.0)]    // 小さなサイズ
-        [InlineData(100.5, 200.75)]   // 小数点サイズ
+        [InlineData(800.0, 600.0)]    //              
+        [InlineData(1920.0, 1080.0)]  //            
+        [InlineData(320.0, 240.0)]    //            
+        [InlineData(100.5, 200.75)]   //            
         public async Task ResizeElement_WithValidDimensions_ShouldAttemptResize(double width, double height)
         {
             // Arrange
@@ -259,17 +254,16 @@ namespace UIAutomationMCP.Tests.Integration
             // Assert
             Assert.NotNull(jsonResult);
             var result = DeserializeResult<ServerEnhancedResponse<ActionResult>>(jsonResult);
-            // 要素が存在しないため失敗するが、サイズは正しく処理される
+            //                                                
             Assert.False(result.Success);
             
-            _output.WriteLine($"✓ ResizeElement processed dimensions correctly");
+            _output.WriteLine($"  ResizeElement processed dimensions correctly");
             _output.WriteLine($"  Result: {result.ErrorMessage}");
         }
 
         #endregion
 
-        #region Microsoft仕様準拠のRotate操作テスト
-
+        #region Microsoft         Rotate         
         [Fact]
         public async Task RotateElement_WithNonExistentElement_ShouldReturnError()
         {
@@ -291,19 +285,19 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.False(result.Success);
             Assert.Contains("not found", result.ErrorMessage ?? "", StringComparison.OrdinalIgnoreCase);
             
-            _output.WriteLine($"✓ RotateElement correctly handled non-existent element");
+            _output.WriteLine($"  RotateElement correctly handled non-existent element");
             _output.WriteLine($"  Error: {result.ErrorMessage}");
         }
 
         [Theory]
-        [InlineData(90.0)]     // 90度回転
-        [InlineData(180.0)]    // 180度回転
-        [InlineData(270.0)]    // 270度回転
-        [InlineData(360.0)]    // 360度回転
-        [InlineData(45.5)]     // 小数点角度
-        [InlineData(-90.0)]    // 負の角度
-        [InlineData(0.0)]      // 0度（回転なし）
-        [InlineData(720.0)]    // 720度（2回転）
+        [InlineData(90.0)]     // 90      
+        [InlineData(180.0)]    // 180      
+        [InlineData(270.0)]    // 270      
+        [InlineData(360.0)]    // 360      
+        [InlineData(45.5)]     //          
+        [InlineData(-90.0)]    //         
+        [InlineData(0.0)]      // 0 degrees
+        [InlineData(720.0)]    // 720 degrees
         public async Task RotateElement_WithValidDegrees_ShouldAttemptRotate(double degrees)
         {
             // Arrange
@@ -319,17 +313,16 @@ namespace UIAutomationMCP.Tests.Integration
             // Assert
             Assert.NotNull(jsonResult);
             var result = DeserializeResult<ServerEnhancedResponse<ActionResult>>(jsonResult);
-            // 要素が存在しないため失敗するが、角度は正しく処理される
+            //                                               
             Assert.False(result.Success);
             
-            _output.WriteLine($"✓ RotateElement processed degrees correctly");
+            _output.WriteLine($"  RotateElement processed degrees correctly");
             _output.WriteLine($"  Result: {result.ErrorMessage}");
         }
 
         #endregion
 
-        #region タイムアウト処理テスト
-
+        #region                     
         [Theory]
         [InlineData(1)]
         [InlineData(5)]
@@ -352,10 +345,10 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.NotNull(capabilitiesResult);
             var capabilitiesDeserialized = DeserializeResult<ServerEnhancedResponse<TransformCapabilitiesResult>>(capabilitiesResult);
             Assert.False(capabilitiesDeserialized.Success);
-            Assert.True(elapsed <= timeoutSeconds + 2, // 2秒のバッファ
+            Assert.True(elapsed <= timeoutSeconds + 2, // 2         
                 $"Operation took {elapsed:F1}s, expected <= {timeoutSeconds + 2}s");
 
-            _output.WriteLine($"✓ GetTransformCapabilities respected timeout: {elapsed:F1}s");
+            _output.WriteLine($"  GetTransformCapabilities respected timeout: {elapsed:F1}s");
 
             // Act & Assert - MoveElement
             stopwatch.Restart();
@@ -371,7 +364,7 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.True(elapsed <= timeoutSeconds + 2,
                 $"Move operation took {elapsed:F1}s, expected <= {timeoutSeconds + 2}s");
 
-            _output.WriteLine($"✓ MoveElement respected timeout: {elapsed:F1}s");
+            _output.WriteLine($"  MoveElement respected timeout: {elapsed:F1}s");
 
             // Act & Assert - ResizeElement
             stopwatch.Restart();
@@ -387,7 +380,7 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.True(elapsed <= timeoutSeconds + 2,
                 $"Resize operation took {elapsed:F1}s, expected <= {timeoutSeconds + 2}s");
 
-            _output.WriteLine($"✓ ResizeElement respected timeout: {elapsed:F1}s");
+            _output.WriteLine($"  ResizeElement respected timeout: {elapsed:F1}s");
 
             // Act & Assert - RotateElement
             stopwatch.Restart();
@@ -403,13 +396,12 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.True(elapsed <= timeoutSeconds + 2,
                 $"Rotate operation took {elapsed:F1}s, expected <= {timeoutSeconds + 2}s");
 
-            _output.WriteLine($"✓ RotateElement respected timeout: {elapsed:F1}s");
+            _output.WriteLine($"  RotateElement respected timeout: {elapsed:F1}s");
         }
 
         #endregion
 
-        #region プロセスID指定テスト
-
+        #region        ID         
         [Theory]
         [InlineData(1234)]
         [InlineData(5678)]
@@ -428,9 +420,8 @@ namespace UIAutomationMCP.Tests.Integration
 
             Assert.NotNull(capabilitiesResult);
             var capabilitiesDeserialized2 = DeserializeResult<ServerEnhancedResponse<TransformCapabilitiesResult>>(capabilitiesResult);
-            Assert.False(capabilitiesDeserialized2.Success); // 要素が存在しないため
-            
-            _output.WriteLine($"✓ GetTransformCapabilities processed processId: {processId}");
+            Assert.False(capabilitiesDeserialized2.Success); //                              
+            _output.WriteLine($"  GetTransformCapabilities processed processId: {processId}");
 
             // Act & Assert - MoveElement
             var moveResult = await _transformService.MoveElementAsync(
@@ -440,7 +431,7 @@ namespace UIAutomationMCP.Tests.Integration
             var moveDeserialized2 = DeserializeResult<ServerEnhancedResponse<ActionResult>>(moveResult);
             Assert.False(moveDeserialized2.Success);
             
-            _output.WriteLine($"✓ MoveElement processed processId: {processId}");
+            _output.WriteLine($"  MoveElement processed processId: {processId}");
 
             // Act & Assert - ResizeElement
             var resizeResult = await _transformService.ResizeElementAsync(
@@ -450,7 +441,7 @@ namespace UIAutomationMCP.Tests.Integration
             var resizeDeserialized2 = DeserializeResult<ServerEnhancedResponse<ActionResult>>(resizeResult);
             Assert.False(resizeDeserialized2.Success);
             
-            _output.WriteLine($"✓ ResizeElement processed processId: {processId}");
+            _output.WriteLine($"  ResizeElement processed processId: {processId}");
 
             // Act & Assert - RotateElement
             var rotateResult = await _transformService.RotateElementAsync(
@@ -460,13 +451,12 @@ namespace UIAutomationMCP.Tests.Integration
             var rotateDeserialized2 = DeserializeResult<ServerEnhancedResponse<ActionResult>>(rotateResult);
             Assert.False(rotateDeserialized2.Success);
             
-            _output.WriteLine($"✓ RotateElement processed processId: {processId}");
+            _output.WriteLine($"  RotateElement processed processId: {processId}");
         }
 
         #endregion
 
-        #region Worker プロセス安定性テスト
-
+        #region Worker                   
         [Fact]
         public async Task TransformOperations_ConcurrentExecution_ShouldHandleCorrectly()
         {
@@ -476,7 +466,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             _output.WriteLine($"Testing {concurrentOperations} concurrent Transform operations");
 
-            // Act - 複数の変換操作を並行実行
+            // Act - Start concurrent operations
             for (int i = 0; i < concurrentOperations; i++)
             {
                 var elementId = $"ConcurrentElement_{i}";
@@ -497,14 +487,14 @@ namespace UIAutomationMCP.Tests.Integration
             foreach (var result in results)
             {
                 Assert.NotNull(result);
-                // 要素が存在しないため全て失敗するはずだが、エラーハンドリングは正常
+                //                                                         
                 var deserializedResult = DeserializeResult<ServerEnhancedResponse<ActionResult>>(result);
                 Assert.False(deserializedResult.Success);
                 Assert.NotNull(deserializedResult.ErrorMessage);
             }
 
-            _output.WriteLine($"✓ All {results.Length} concurrent operations completed correctly");
-            _output.WriteLine("✓ Worker process remained stable under concurrent load");
+            _output.WriteLine($"  All {results.Length} concurrent operations completed correctly");
+            _output.WriteLine("  Worker process remained stable under concurrent load");
         }
 
         [Fact]
@@ -551,11 +541,11 @@ namespace UIAutomationMCP.Tests.Integration
                 var rotateSeq = DeserializeResult<ServerEnhancedResponse<ActionResult>>(rotateResult);
                 Assert.False(rotateSeq.Success);
 
-                _output.WriteLine($"✓ Operation set {i + 1}/{sequentialOperations} completed");
+                _output.WriteLine($"  Operation set {i + 1}/{sequentialOperations} completed");
             }
 
-            _output.WriteLine($"✓ All {sequentialOperations * 4} sequential operations completed successfully");
-            _output.WriteLine("✓ Worker process maintained stability throughout sequential execution");
+            _output.WriteLine($"  All {sequentialOperations * 4} sequential operations completed successfully");
+            _output.WriteLine("  Worker process maintained stability throughout sequential execution");
         }
 
         #endregion

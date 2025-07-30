@@ -6,34 +6,33 @@ using Xunit.Abstractions;
 namespace UIAutomationMCP.Tests.UnitTests.Base
 {
     /// <summary>
-    /// パターンテスト用の共通ヘルパーメソッド
+    ///                                 
     /// </summary>
     public static class PatternTestHelpers
     {
         /// <summary>
-        /// 標準的なパラメータ検証テストを実行
-        /// </summary>
+        ///                                       /// </summary>
         public static void VerifyStandardParameterValidation<TService>(
             Mock<TService> mockService,
             string methodName,
             ITestOutputHelper output,
             params object[] parameters) where TService : class
         {
-            // 空文字列パラメータのテスト
+            // Test with empty or invalid strings
             foreach (var emptyString in CommonTestData.EmptyOrInvalidStrings.Where(s => s != null))
             {
                 var testParams = new object[] { emptyString!, "TestWindow", 0 }.Concat(parameters).ToArray();
                 ExecuteParameterTest(mockService, methodName, testParams, output, $"empty elementId '{emptyString}'");
             }
 
-            // 無効なプロセスIDのテスト
+            // Test with invalid process IDs
             foreach (var invalidProcessId in CommonTestData.InvalidProcessIds)
             {
                 var testParams = new object[] { "testElement", "TestWindow", invalidProcessId }.Concat(parameters).ToArray();
                 ExecuteParameterTest(mockService, methodName, testParams, output, $"invalid processId {invalidProcessId}");
             }
 
-            // 無効なタイムアウトのテスト（メソッドがタイムアウトパラメータを持つ場合）
+            // Test with invalid timeouts
             foreach (var invalidTimeout in CommonTestData.InvalidTimeouts)
             {
                 var testParams = new object[] { "testElement", "TestWindow", 0, invalidTimeout }.Concat(parameters).ToArray();
@@ -42,26 +41,22 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
         }
 
         /// <summary>
-        /// エラーハンドリングテストを実行
-        /// </summary>
+        ///                                   /// </summary>
         public static void VerifyErrorHandling<TService>(
             Mock<TService> mockService,
             string methodName,
             string expectedErrorType,
             ITestOutputHelper output) where TService : class
         {
-            // 要素が見つからない場合のテスト
-            VerifyErrorScenario(mockService, methodName, "nonExistentElement", CommonTestData.ErrorMessages.ElementNotFound, output);
+            //                                       VerifyErrorScenario(mockService, methodName, "nonExistentElement", CommonTestData.ErrorMessages.ElementNotFound, output);
 
-            // パターンがサポートされていない場合のテスト
-            VerifyErrorScenario(mockService, methodName, "unsupportedElement", CommonTestData.ErrorMessages.PatternNotSupported, output);
+            //                                               VerifyErrorScenario(mockService, methodName, "unsupportedElement", CommonTestData.ErrorMessages.PatternNotSupported, output);
 
-            output.WriteLine($"✓ {methodName} error handling tests completed for {expectedErrorType}");
+            output.WriteLine($"  {methodName} error handling tests completed for {expectedErrorType}");
         }
 
         /// <summary>
-        /// 成功シナリオの標準テストを実行
-        /// </summary>
+        ///                                   /// </summary>
         public static void VerifySuccessScenario<TService>(
             Mock<TService> mockService,
             string methodName,
@@ -77,27 +72,27 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
                 {
                     var result = method.Invoke(mockService.Object, testParams);
                     
-                    // 結果がOperationResultの場合、基本的な検証を実行
+                    // Check if result is OperationResult
                     if (result is OperationResult operationResult)
                     {
                         Assert.NotNull(operationResult);
-                        output.WriteLine($"✓ {methodName} success scenario test passed - Response received");
+                        output.WriteLine($"  {methodName} success scenario test passed - Response received");
                     }
                     else
                     {
                         Assert.NotNull(result);
-                        output.WriteLine($"✓ {methodName} success scenario test passed - Result: {result}");
+                        output.WriteLine($"  {methodName} success scenario test passed - Result: {result}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                output.WriteLine($"⚠ {methodName} success scenario test: {ex.Message}");
+                output.WriteLine($"   {methodName} success scenario test: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// Microsoft仕様準拠テストの共通パターン
+        /// Microsoft                        
         /// </summary>
         public static void VerifyMicrosoftSpecCompliance<TService>(
             Mock<TService> mockService,
@@ -105,27 +100,26 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
             string[] requiredMethods,
             ITestOutputHelper output) where TService : class
         {
-            output.WriteLine($"=== Microsoft仕様準拠テスト: {patternName} ===");
+            output.WriteLine($"=== Microsoft             {patternName} ===");
 
             foreach (var methodName in requiredMethods)
             {
                 var method = typeof(TService).GetMethod(methodName);
                 if (method != null)
                 {
-                    output.WriteLine($"✓ Required method '{methodName}' is implemented");
+                    output.WriteLine($"  Required method '{methodName}' is implemented");
                 }
                 else
                 {
-                    output.WriteLine($"⚠ Required method '{methodName}' is NOT implemented");
+                    output.WriteLine($"   Required method '{methodName}' is NOT implemented");
                 }
             }
 
-            output.WriteLine($"=== {patternName} 仕様準拠テスト完了 ===");
+            output.WriteLine($"=== {patternName}                 ===");
         }
 
         /// <summary>
-        /// タイムアウト処理の標準テスト
-        /// </summary>
+        ///                                  /// </summary>
         public static void VerifyTimeoutHandling<TService>(
             Mock<TService> mockService,
             string methodName,
@@ -140,22 +134,21 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
         }
 
         /// <summary>
-        /// コントロールタイプ互換性テスト
-        /// </summary>
+        ///                                    /// </summary>
         public static void VerifyControlTypeCompatibility<TService>(
             Mock<TService> mockService,
             string methodName,
             string[] supportedControlTypes,
             ITestOutputHelper output) where TService : class
         {
-            output.WriteLine($"=== コントロールタイプ互換性テスト: {methodName} ===");
+            output.WriteLine($"===                             {methodName} ===");
 
             foreach (var controlType in supportedControlTypes)
             {
-                output.WriteLine($"✓ Supported control type: {controlType}");
+                output.WriteLine($"  Supported control type: {controlType}");
             }
 
-            output.WriteLine($"=== {methodName} コントロールタイプテスト完了 ===");
+            output.WriteLine($"=== {methodName}                           ===");
         }
 
         #region Private Helper Methods
@@ -173,12 +166,12 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
                 if (method != null)
                 {
                     var result = method.Invoke(mockService.Object, parameters);
-                    output.WriteLine($"✓ {methodName} parameter test passed with {testDescription}");
+                    output.WriteLine($"  {methodName} parameter test passed with {testDescription}");
                 }
             }
             catch (Exception ex)
             {
-                output.WriteLine($"✓ {methodName} parameter test passed with expected error for {testDescription}: {ex.Message}");
+                output.WriteLine($"  {methodName} parameter test passed with expected error for {testDescription}: {ex.Message}");
             }
         }
 
@@ -199,14 +192,13 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
                     
                     if (result is OperationResult operationResult)
                     {
-                        // エラーレスポンスかどうかを確認
-                        output.WriteLine($"✓ {methodName} error scenario test completed for {elementId}");
+                        //                                                    output.WriteLine($"  {methodName} error scenario test completed for {elementId}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                output.WriteLine($"✓ {methodName} error scenario test passed with expected error: {ex.Message}");
+                output.WriteLine($"  {methodName} error scenario test passed with expected error: {ex.Message}");
             }
         }
 
