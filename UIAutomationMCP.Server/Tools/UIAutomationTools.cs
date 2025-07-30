@@ -95,7 +95,7 @@ namespace UIAutomationMCP.Server.Tools
 
         // Window and Element Discovery
 
-        [McpServerTool, Description("Search for UI elements with optional detailed information. Returns basic ElementInfo by default, or comprehensive details when includeDetails=true. Replaces the need for separate GetElementDetails calls. For window listing, use scope='children'.")]
+        [McpServerTool, Description("Search for UI elements with optional detailed information. Returns basic ElementInfo by default, or comprehensive details when includeDetails=true. Replaces the need for separate GetElementDetails calls. For window listing, use scope='children' with requiredPattern='Window' (not controlType='Window') to detect window-like elements.")]
         public async Task<object> SearchElements(
             [Description("Cross-property search text (searches Name, AutomationId, ClassName)")] string? searchText = null,
             [Description("Specific AutomationId to search for")] string? automationId = null, 
