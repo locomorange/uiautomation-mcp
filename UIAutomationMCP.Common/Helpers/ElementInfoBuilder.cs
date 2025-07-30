@@ -36,9 +36,13 @@ namespace UIAutomationMCP.Common.Helpers
                     Width = element.Current.BoundingRectangle.Width,
                     Height = element.Current.BoundingRectangle.Height
                 },
-                SupportedPatterns = GetSupportedPatternsArray(element, false),
-                WindowHandle = GetSafeWindowHandle(element, false)
+                SupportedPatterns = GetSupportedPatternsArray(element, false)
             };
+
+            // 階層的HWND検索
+            var (windowHandle, rootWindowHandle) = GetHierarchicalWindowHandles(element, false);
+            elementInfo.WindowHandle = windowHandle;
+            elementInfo.RootWindowHandle = rootWindowHandle;
 
             // Include details if requested
             if (includeDetails)
@@ -74,9 +78,13 @@ namespace UIAutomationMCP.Common.Helpers
                     Width = element.Cached.BoundingRectangle.Width,
                     Height = element.Cached.BoundingRectangle.Height
                 },
-                SupportedPatterns = GetSupportedPatternsArray(element, true),
-                WindowHandle = GetSafeWindowHandle(element, true)
+                SupportedPatterns = GetSupportedPatternsArray(element, true)
             };
+
+            // 階層的HWND検索
+            var (windowHandle, rootWindowHandle) = GetHierarchicalWindowHandles(element, true);
+            elementInfo.WindowHandle = windowHandle;
+            elementInfo.RootWindowHandle = rootWindowHandle;
 
             // Include details if requested
             if (includeDetails)
@@ -314,18 +322,87 @@ namespace UIAutomationMCP.Common.Helpers
             return details;
         }
 
-        private static long? GetSafeWindowHandle(AutomationElement element, bool useCached = false)
+        /// <summary>
+        /// 階層的HWND検索: 要素から親方向に辿って適切なHWND構造を取得
+        /// </summary>
+        /// <param name="element">開始要素</param>
+        /// <param name="useCached">Cachedプロパティを使用するか</param>
+        /// <returns>(WindowHandle: 最も近いHWND, RootWindowHandle: RootElement直下のHWND)</returns>
+        private static (long? WindowHandle, long? RootWindowHandle) GetHierarchicalWindowHandles(AutomationElement element, bool useCached = false)
         {
             try
             {
-                // NativeWindowHandleはCachedでは利用できないため、常にCurrentを使用
-                var handle = element.Current.NativeWindowHandle;
-                return handle == 0 ? null : (long)handle;
+                var current = element;
+                var visited = new HashSet<IntPtr>();
+                long? nearestHwnd = null;
+                long? rootHwnd = null;
+                AutomationElement? previousElement = null;
+
+                // 要素から親階層を辿る
+                while (current != null)
+                {
+                    // 循環参照チェック
+                    var elementPtr = new IntPtr(current.GetHashCode());
+                    if (visited.Contains(elementPtr))
+                        break;
+                    visited.Add(elementPtr);
+
+                    try
+                    {
+                        // NativeWindowHandleは常にCurrentを使用（Cachedでは利用不可）
+                        var hwnd = current.Current.NativeWindowHandle;
+                        
+                        if (hwnd != 0 && nearestHwnd == null)
+                        {
+                            nearestHwnd = (long)hwnd;
+                        }
+
+                        // 親要素を取得
+                        var parent = TreeWalker.ControlViewWalker.GetParent(current);
+                        
+                        // 親がRootElementかチェック
+                        if (parent != null && IsRootElement(parent))
+                        {
+                            // 現在の要素がRootElementの直下なので、これをrootHwndとする
+                            var currentHwnd = current.Current.NativeWindowHandle;
+                            if (currentHwnd != 0)
+                            {
+                                rootHwnd = (long)currentHwnd;
+                            }
+                            break;
+                        }
+
+                        previousElement = current;
+                        current = parent;
+                    }
+                    catch (Exception)
+                    {
+                        // アクセスエラーが発生した場合は親要素に移動
+                        current = TreeWalker.ControlViewWalker.GetParent(current);
+                    }
+                }
+
+                return (nearestHwnd, rootHwnd);
             }
             catch (Exception)
             {
-                // HWNDを持たない要素（一部のコントロール）では例外が発生する可能性
-                return null;
+                return (null, null);
+            }
+        }
+
+        /// <summary>
+        /// 要素がRootElementかどうかを判定
+        /// </summary>
+        private static bool IsRootElement(AutomationElement element)
+        {
+            try
+            {
+                return element.Equals(AutomationElement.RootElement) || 
+                       TreeWalker.ControlViewWalker.GetParent(element) == null;
+            }
+            catch
+            {
+                return false;
             }
         }
 

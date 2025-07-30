@@ -56,6 +56,13 @@ namespace UIAutomationMCP.Models.Requests
         [JsonPropertyName("requiredPattern")]
         public string? RequiredPattern { get; set; }
 
+        /// <summary>
+        /// ネイティブウィンドウハンドル（HWND）による直接要素指定
+        /// 指定された場合、他の検索条件より優先される
+        /// </summary>
+        [JsonPropertyName("windowHandle")]
+        public long? WindowHandle { get; set; }
+
     }
 
 }

@@ -140,6 +140,30 @@ namespace UIAutomationMCP.Common.Services
 
         private AutomationElement? GetSearchRoot(ElementSearchCriteria criteria)
         {
+            // Priority 1: Use WindowHandle if specified
+            if (criteria.WindowHandle.HasValue)
+            {
+                try
+                {
+                    _logger.LogDebug("Creating AutomationElement from WindowHandle: {WindowHandle}", criteria.WindowHandle.Value);
+                    var element = AutomationElement.FromHandle(new IntPtr(criteria.WindowHandle.Value));
+                    if (element != null)
+                    {
+                        _logger.LogDebug("Successfully created AutomationElement from HWND: {WindowHandle} -> Name: {ElementName}", 
+                            criteria.WindowHandle.Value, GetSafeProperty(element, e => e.Current.Name));
+                        return element;
+                    }
+                    else
+                    {
+                        _logger.LogWarning("AutomationElement.FromHandle returned null for HWND: {WindowHandle}", criteria.WindowHandle.Value);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to create AutomationElement from WindowHandle: {WindowHandle}", criteria.WindowHandle.Value);
+                }
+            }
+
             AutomationElement? rootElement = AutomationElement.RootElement;
             _logger.LogDebug("Starting with AutomationElement.RootElement: {RootName}", rootElement?.Current.Name ?? "null");
 
@@ -370,10 +394,11 @@ namespace UIAutomationMCP.Common.Services
         public string? ControlType { get; set; }
         public string? WindowTitle { get; set; }
         public int? ProcessId { get; set; }
-        public string? Scope { get; set; } = "Children"; // Safe default
+        public string? Scope { get; set; } = "Descendants"; // Changed default for better coverage
         public bool VisibleOnly { get; set; } = false;
         public bool EnabledOnly { get; set; } = false;
         public string? RequiredPattern { get; set; }
         public bool UseProcessIdAsSearchRoot { get; set; } = true;
+        public long? WindowHandle { get; set; }
     }
 }

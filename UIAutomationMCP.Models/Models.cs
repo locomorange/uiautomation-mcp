@@ -105,10 +105,16 @@ namespace UIAutomationMCP.Models
         public string[] SupportedPatterns { get; set; } = [];
         
         /// <summary>
-        /// ネイティブウィンドウハンドル（要素に関連するウィンドウのHWND）
+        /// ネイティブウィンドウハンドル（階層で最も近くで見つかったHWND）
         /// </summary>
         [JsonPropertyName("windowHandle")]
         public long? WindowHandle { get; set; }
+
+        /// <summary>
+        /// ルートウィンドウハンドル（RootElementの直下レベルのHWND、検索ルート用）
+        /// </summary>
+        [JsonPropertyName("rootWindowHandle")]
+        public long? RootWindowHandle { get; set; }
         
         // === オプショナル詳細情報 ===
         

@@ -30,7 +30,8 @@ namespace UIAutomationMCP.Worker.Operations.Invoke
                 Name = request.Name,
                 ControlType = request.ControlType,
                 ProcessId = request.ProcessId,
-                RequiredPattern = requiredPattern?.ProgrammaticName
+                RequiredPattern = requiredPattern?.ProgrammaticName,
+                WindowHandle = request.WindowHandle
             };
             var element = _elementFinderService.FindElement(searchCriteria);
             
