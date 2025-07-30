@@ -24,7 +24,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string? name = null, 
             double value = 0, 
             string? controlType = null, 
-            int? processId = null, 
+            long? windowHandle = null, 
             int timeoutSeconds = 30)
         {
             var request = new SetRangeValueRequest
@@ -33,7 +33,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Name = name,
                 ControlType = controlType,
                 Value = value,
-                ProcessId = processId ?? 0
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<SetRangeValueRequest, ActionResult>(
@@ -49,7 +49,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string? automationId = null, 
             string? name = null, 
             string? controlType = null, 
-            int? processId = null, 
+            long? windowHandle = null, 
             int timeoutSeconds = 30)
         {
             var request = new GetRangeValueRequest
@@ -57,7 +57,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                ProcessId = processId ?? 0
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<GetRangeValueRequest, RangeValueResult>(

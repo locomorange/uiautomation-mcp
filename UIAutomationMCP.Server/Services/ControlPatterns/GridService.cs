@@ -25,7 +25,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             int row = 0, 
             int column = 0, 
             string? controlType = null, 
-            int? processId = null, 
+            long? windowHandle = null, 
             int timeoutSeconds = 30)
         {
             var request = new GetGridItemRequest
@@ -35,7 +35,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Row = row,
                 Column = column,
                 ControlType = controlType,
-                ProcessId = processId ?? 0
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<GetGridItemRequest, ElementSearchResult>(
@@ -52,7 +52,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string? name = null, 
             int row = 0, 
             string? controlType = null, 
-            int? processId = null, 
+            long? windowHandle = null, 
             int timeoutSeconds = 30)
         {
             var request = new GetRowHeaderRequest
@@ -61,7 +61,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Name = name,
                 Row = row,
                 ControlType = controlType,
-                ProcessId = processId ?? 0
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<GetRowHeaderRequest, ElementSearchResult>(
@@ -78,7 +78,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string? name = null, 
             int column = 0, 
             string? controlType = null, 
-            int? processId = null, 
+            long? windowHandle = null, 
             int timeoutSeconds = 30)
         {
             var request = new GetColumnHeaderRequest
@@ -87,7 +87,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Name = name,
                 Column = column,
                 ControlType = controlType,
-                ProcessId = processId ?? 0
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<GetColumnHeaderRequest, ElementSearchResult>(
@@ -103,7 +103,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string? automationId = null, 
             string? name = null, 
             string? controlType = null, 
-            int? processId = null, 
+            long? windowHandle = null, 
             int timeoutSeconds = 30)
         {
             var request = new GetGridInfoRequest
@@ -111,7 +111,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                ProcessId = processId ?? 0
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<GetGridInfoRequest, GridInfoResult>(

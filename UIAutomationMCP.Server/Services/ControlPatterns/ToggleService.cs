@@ -22,7 +22,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string? automationId = null, 
             string? name = null, 
             string? controlType = null, 
-            int? processId = null, 
+            long? windowHandle = null, 
             int timeoutSeconds = 30)
         {
             var request = new ToggleElementRequest
@@ -30,7 +30,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                ProcessId = processId
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<ToggleElementRequest, ActionResult>(
@@ -47,7 +47,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string? automationId = null,
             string? name = null,
             string? controlType = null,
-            int? processId = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new SetToggleStateRequest
@@ -56,7 +56,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                ProcessId = processId
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<SetToggleStateRequest, ActionResult>(

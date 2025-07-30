@@ -19,14 +19,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
         protected override string GetOperationType() => "virtualizedItem";
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> RealizeItemAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> RealizeItemAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
         {
             var request = new RealizeVirtualizedItemRequest
             {
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                ProcessId = processId ?? 0
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<RealizeVirtualizedItemRequest, ElementSearchResult>(

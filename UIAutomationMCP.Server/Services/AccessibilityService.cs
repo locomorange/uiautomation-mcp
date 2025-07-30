@@ -19,14 +19,14 @@ namespace UIAutomationMCP.Server.Services
 
         protected override string GetOperationType() => "accessibility";
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> VerifyAccessibilityAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 60)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> VerifyAccessibilityAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 60)
         {
             var request = new VerifyAccessibilityRequest
             {
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                ProcessId = processId
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<VerifyAccessibilityRequest, ElementSearchResult>(
@@ -37,14 +37,14 @@ namespace UIAutomationMCP.Server.Services
             );
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetLabeledByAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetLabeledByAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
         {
             var request = new GetLabeledByRequest
             {
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                ProcessId = processId
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<GetLabeledByRequest, ElementSearchResult>(
@@ -56,14 +56,14 @@ namespace UIAutomationMCP.Server.Services
             );
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetDescribedByAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetDescribedByAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
         {
             var request = new GetDescribedByRequest
             {
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                ProcessId = processId
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<GetDescribedByRequest, ElementSearchResult>(
@@ -75,7 +75,7 @@ namespace UIAutomationMCP.Server.Services
             );
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetAccessibilityInfoAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetAccessibilityInfoAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
         {
             var request = new GetAccessibilityInfoRequest
             {
@@ -83,7 +83,7 @@ namespace UIAutomationMCP.Server.Services
                 Name = name,
                 ControlType = controlType,
                 WindowTitle = "",
-                ProcessId = processId ?? 0
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<GetAccessibilityInfoRequest, ElementSearchResult>(

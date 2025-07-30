@@ -47,10 +47,10 @@ namespace UIAutomationMCP.Models.Results
         public string? WindowTitle { get; set; }
 
         /// <summary>
-        /// プロセスID
+        /// ウィンドウハンドル (HWND)
         /// </summary>
-        [JsonPropertyName("processId")]
-        public int ProcessId { get; set; }
+        [JsonPropertyName("windowHandle")]
+        public long? WindowHandle { get; set; }
 
         /// <summary>
         /// ツリー構築にかかった時間

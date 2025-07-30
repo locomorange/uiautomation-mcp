@@ -19,14 +19,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
         protected override string GetOperationType() => "multipleView";
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetAvailableViewsAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetAvailableViewsAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
         {
             var request = new GetAvailableViewsRequest
             {
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                ProcessId = processId ?? 0
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<GetAvailableViewsRequest, ElementSearchResult>(
@@ -38,7 +38,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             );
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> SetViewAsync(string? automationId = null, string? name = null, int viewId = 0, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> SetViewAsync(string? automationId = null, string? name = null, int viewId = 0, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
         {
             var request = new SetViewRequest
             {
@@ -46,7 +46,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Name = name,
                 ViewId = viewId,
                 ControlType = controlType,
-                ProcessId = processId ?? 0
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<SetViewRequest, ElementSearchResult>(
@@ -58,14 +58,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             );
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetCurrentViewAsync(string? automationId = null, string? name = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetCurrentViewAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
         {
             var request = new GetCurrentViewRequest
             {
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                ProcessId = processId ?? 0
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<GetCurrentViewRequest, ElementSearchResult>(
@@ -77,7 +77,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             );
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetViewNameAsync(string? automationId = null, string? name = null, int viewId = 0, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetViewNameAsync(string? automationId = null, string? name = null, int viewId = 0, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
         {
             var request = new GetViewNameRequest
             {
@@ -85,7 +85,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Name = name,
                 ViewId = viewId,
                 ControlType = controlType,
-                ProcessId = processId ?? 0
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<GetViewNameRequest, ElementSearchResult>(

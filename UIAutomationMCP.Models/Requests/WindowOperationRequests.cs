@@ -12,8 +12,8 @@ namespace UIAutomationMCP.Models.Requests
         [JsonPropertyName("windowTitle")]
         public string? WindowTitle { get; set; }
 
-        [JsonPropertyName("processId")]
-        public int? ProcessId { get; set; }
+        [JsonPropertyName("windowHandle")]
+        public long? WindowHandle { get; set; }
 
         [JsonPropertyName("action")]
         public string Action { get; set; } = ""; // "close", "minimize", "maximize", "restore", "setfocus"
@@ -32,8 +32,8 @@ namespace UIAutomationMCP.Models.Requests
         [JsonPropertyName("windowTitle")]
         public string? WindowTitle { get; set; }
 
-        [JsonPropertyName("processId")]
-        public int? ProcessId { get; set; }
+        [JsonPropertyName("windowHandle")]
+        public long? WindowHandle { get; set; }
 
         /// <summary>
         /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）
@@ -49,8 +49,8 @@ namespace UIAutomationMCP.Models.Requests
         [JsonPropertyName("windowTitle")]
         public string? WindowTitle { get; set; }
 
-        [JsonPropertyName("processId")]
-        public int? ProcessId { get; set; }
+        [JsonPropertyName("windowHandle")]
+        public long? WindowHandle { get; set; }
 
         /// <summary>
         /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）
@@ -66,8 +66,8 @@ namespace UIAutomationMCP.Models.Requests
         [JsonPropertyName("windowTitle")]
         public string? WindowTitle { get; set; }
 
-        [JsonPropertyName("processId")]
-        public int? ProcessId { get; set; }
+        [JsonPropertyName("windowHandle")]
+        public long? WindowHandle { get; set; }
 
         /// <summary>
         /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）
@@ -83,8 +83,8 @@ namespace UIAutomationMCP.Models.Requests
         [JsonPropertyName("windowTitle")]
         public string? WindowTitle { get; set; }
 
-        [JsonPropertyName("processId")]
-        public int? ProcessId { get; set; }
+        [JsonPropertyName("windowHandle")]
+        public long? WindowHandle { get; set; }
 
         [JsonPropertyName("windowState")]
         public string WindowState { get; set; } = ""; // "normal", "minimized", "maximized"
@@ -103,8 +103,8 @@ namespace UIAutomationMCP.Models.Requests
         [JsonPropertyName("windowTitle")]
         public string? WindowTitle { get; set; }
 
-        [JsonPropertyName("processId")]
-        public int? ProcessId { get; set; }
+        [JsonPropertyName("windowHandle")]
+        public long? WindowHandle { get; set; }
 
         [JsonPropertyName("x")]
         public int X { get; set; }
@@ -126,8 +126,8 @@ namespace UIAutomationMCP.Models.Requests
         [JsonPropertyName("windowTitle")]
         public string? WindowTitle { get; set; }
 
-        [JsonPropertyName("processId")]
-        public int? ProcessId { get; set; }
+        [JsonPropertyName("windowHandle")]
+        public long? WindowHandle { get; set; }
 
         [JsonPropertyName("width")]
         public int Width { get; set; }

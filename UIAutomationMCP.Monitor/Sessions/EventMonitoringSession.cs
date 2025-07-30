@@ -17,7 +17,7 @@ namespace UIAutomationMCP.Monitor.Sessions
         private readonly string? _name;
         private readonly string? _controlType;
         private readonly string? _windowTitle;
-        private readonly int? _processId;
+        private readonly long? _windowHandle;
         private readonly ElementFinderService _elementFinderService;
         private readonly ILogger<EventMonitoringSession> _logger;
 
@@ -39,7 +39,7 @@ namespace UIAutomationMCP.Monitor.Sessions
             string? name,
             string? controlType,
             string? windowTitle,
-            int? processId,
+            long? windowHandle,
             ElementFinderService elementFinderService,
             ILogger<EventMonitoringSession> logger)
         {
@@ -49,7 +49,7 @@ namespace UIAutomationMCP.Monitor.Sessions
             _name = name;
             _controlType = controlType;
             _windowTitle = windowTitle;
-            _processId = processId;
+            _windowHandle = windowHandle;
             _elementFinderService = elementFinderService;
             _logger = logger;
         }
@@ -157,7 +157,7 @@ namespace UIAutomationMCP.Monitor.Sessions
                     Name = _name,
                     ControlType = _controlType,
                     WindowTitle = _windowTitle,
-                    ProcessId = _processId
+                    WindowHandle = _windowHandle
                 };
                 return _elementFinderService.FindElement(searchCriteria);
             }

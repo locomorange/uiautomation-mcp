@@ -36,7 +36,7 @@ namespace UIAutomationMCP.Monitor.Operations
                     Name = request.Name,
                     ControlType = request.ControlType,
                     WindowTitle = request.WindowTitle,
-                    ProcessId = request.ProcessId
+                    WindowHandle = request.WindowHandle
                 };
                 var targetElement = _elementFinderService.FindElement(searchCriteria);
                 
@@ -60,7 +60,7 @@ namespace UIAutomationMCP.Monitor.Operations
                 request.Name,
                 request.ControlType,
                 request.WindowTitle,
-                request.ProcessId);
+                request.WindowHandle);
 
             await session.StartAsync();
 
@@ -70,7 +70,7 @@ namespace UIAutomationMCP.Monitor.Operations
                 EventType = string.Join(", ", request.EventTypes),
                 ElementId = request.AutomationId ?? string.Empty,
                 WindowTitle = request.WindowTitle ?? string.Empty,
-                ProcessId = request.ProcessId,
+                WindowHandle = request.WindowHandle,
                 SessionId = sessionId,
                 MonitoringStatus = "Started"
             };

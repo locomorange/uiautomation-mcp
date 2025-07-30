@@ -22,10 +22,15 @@ namespace UIAutomationMCP.Worker.Operations.Window
         protected override Task<WaitForInputIdleResult> ExecuteOperationAsync(WaitForInputIdleRequest request)
         {
             var windowTitle = request.WindowTitle ?? "";
-            var processId = request.ProcessId ?? 0;
+            var windowHandle = request.WindowHandle;
             var timeoutMilliseconds = request.TimeoutMilliseconds;
 
-            var window = _elementFinderService.GetSearchRoot(processId, windowTitle);
+            var searchCriteria = new ElementSearchCriteria
+            {
+                WindowHandle = windowHandle,
+                WindowTitle = windowTitle
+            };
+            var window = _elementFinderService.FindElement(searchCriteria);
             if (window == null)
             {
                 throw new UIAutomationElementNotFoundException("Window", windowTitle);
@@ -61,9 +66,9 @@ namespace UIAutomationMCP.Worker.Operations.Window
                 return Core.Validation.ValidationResult.Failure("TimeoutMilliseconds must be greater than 0");
             }
 
-            if (request.ProcessId.HasValue && request.ProcessId <= 0)
+            if (request.WindowHandle.HasValue && request.WindowHandle <= 0)
             {
-                return Core.Validation.ValidationResult.Failure("ProcessId must be greater than 0 when specified");
+                return Core.Validation.ValidationResult.Failure("WindowHandle must be greater than 0 when specified");
             }
 
             return Core.Validation.ValidationResult.Success;

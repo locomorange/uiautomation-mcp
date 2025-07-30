@@ -24,8 +24,8 @@ namespace UIAutomationMCP.Models.Requests
         [JsonPropertyName("windowTitle")]
         public string? WindowTitle { get; set; }
 
-        [JsonPropertyName("processId")]
-        public int? ProcessId { get; set; }
+        [JsonPropertyName("windowHandle")]
+        public long? WindowHandle { get; set; }
 
         /// <summary>
         /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）

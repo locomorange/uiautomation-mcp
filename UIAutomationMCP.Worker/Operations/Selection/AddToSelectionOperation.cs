@@ -22,7 +22,8 @@ namespace UIAutomationMCP.Worker.Operations.Selection
 
         protected override Task<SelectionActionResult> ExecuteOperationAsync(AddToSelectionRequest request)
         {
-            // パターン変換�E�リクエストから取得、デフォルト�ESelectionItemPattern�E�E            var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? SelectionItemPattern.Pattern;
+            // パターン変換（リクエストから取得、デフォルトはSelectionItemPattern）
+            var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? SelectionItemPattern.Pattern;
             
             var searchCriteria = new ElementSearchCriteria
             {
@@ -31,7 +32,8 @@ namespace UIAutomationMCP.Worker.Operations.Selection
                 ControlType = request.ControlType,
                 WindowTitle = request.WindowTitle,
                 RequiredPattern = requiredPattern?.ProgrammaticName,
-            , WindowHandle = request.WindowHandle };
+                WindowHandle = request.WindowHandle
+            };
             var element = _elementFinderService.FindElement(searchCriteria);
             
             if (element == null)

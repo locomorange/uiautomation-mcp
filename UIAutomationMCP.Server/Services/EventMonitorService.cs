@@ -24,7 +24,7 @@ namespace UIAutomationMCP.Server.Services
             string? automationId = null, 
             string? name = null, 
             string? controlType = null, 
-            int? processId = null, 
+            long? windowHandle = null, 
             int timeoutSeconds = 60)
         {
             var request = new StartEventMonitoringRequest
@@ -34,7 +34,7 @@ namespace UIAutomationMCP.Server.Services
                 Name = name,
                 ControlType = controlType,
                 WindowTitle = null,
-                ProcessId = processId
+                WindowHandle = windowHandle
             };
 
             return await ExecuteMonitorServiceOperationAsync<StartEventMonitoringRequest, EventMonitoringStartResult>(

@@ -24,7 +24,7 @@ namespace UIAutomationMCP.Server.Services
             string? name = null, 
             string[]? propertyIds = null, 
             string? controlType = null, 
-            int? processId = null, 
+            long? windowHandle = null, 
             int timeoutSeconds = 30)
         {
             var request = new GetCustomPropertiesRequest
@@ -33,7 +33,7 @@ namespace UIAutomationMCP.Server.Services
                 Name = name,
                 PropertyIds = propertyIds ?? Array.Empty<string>(),
                 ControlType = controlType,
-                ProcessId = processId
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<GetCustomPropertiesRequest, ElementSearchResult>(
@@ -51,7 +51,7 @@ namespace UIAutomationMCP.Server.Services
             string propertyId = "", 
             object? value = null, 
             string? controlType = null, 
-            int? processId = null, 
+            long? windowHandle = null, 
             int timeoutSeconds = 30)
         {
             var request = new SetCustomPropertyRequest
@@ -61,7 +61,7 @@ namespace UIAutomationMCP.Server.Services
                 PropertyId = propertyId,
                 Value = value?.ToString() ?? "",
                 ControlType = controlType,
-                ProcessId = processId
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<SetCustomPropertyRequest, ElementSearchResult>(

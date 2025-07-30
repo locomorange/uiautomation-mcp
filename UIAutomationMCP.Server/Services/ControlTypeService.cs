@@ -22,7 +22,7 @@ namespace UIAutomationMCP.Server.Services
             string? automationId = null, 
             string? name = null,
             string? controlType = null,
-            int? processId = null, 
+            long? windowHandle = null, 
             int timeoutSeconds = 30)
         {
             var request = new ValidateControlTypePatternsRequest
@@ -30,7 +30,7 @@ namespace UIAutomationMCP.Server.Services
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                ProcessId = processId
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<ValidateControlTypePatternsRequest, ElementSearchResult>(

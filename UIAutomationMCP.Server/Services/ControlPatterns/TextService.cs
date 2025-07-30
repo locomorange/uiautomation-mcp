@@ -24,7 +24,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             int startIndex = 0, 
             int length = 1, 
             string? controlType = null, 
-            int? processId = null, 
+            long? windowHandle = null, 
             int timeoutSeconds = 30)
         {
             var request = new SelectTextRequest
@@ -34,7 +34,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 StartIndex = startIndex,
                 Length = length,
                 ControlType = controlType,
-                ProcessId = processId ?? 0
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<SelectTextRequest, ActionResult>(
@@ -51,7 +51,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string? name = null, 
             string text = "", 
             string? controlType = null, 
-            int? processId = null, 
+            long? windowHandle = null, 
             int timeoutSeconds = 30)
         {
             var request = new SetTextRequest
@@ -60,7 +60,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Name = name,
                 Text = text ?? "",
                 ControlType = controlType,
-                ProcessId = processId ?? 0
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<SetTextRequest, ActionResult>(
@@ -77,7 +77,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string? name = null, 
             string text = "", 
             string? controlType = null, 
-            int? processId = null, 
+            long? windowHandle = null, 
             int timeoutSeconds = 30)
         {
             var request = new SetTextRequest
@@ -86,7 +86,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Name = name,
                 Text = text ?? "",
                 ControlType = controlType,
-                ProcessId = processId ?? 0
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<SetTextRequest, ActionResult>(
@@ -105,7 +105,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             int length = -1, 
             string? attributeName = null, 
             string? controlType = null, 
-            int? processId = null, 
+            long? windowHandle = null, 
             int timeoutSeconds = 30)
         {
             var request = new UIAutomationMCP.Models.Requests.GetTextAttributesRequest
@@ -113,7 +113,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                ProcessId = processId,
+                WindowHandle = windowHandle,
                 StartIndex = startIndex,
                 Length = length,
                 AttributeName = attributeName
@@ -135,7 +135,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             bool backward = false, 
             bool ignoreCase = true, 
             string? controlType = null, 
-            int? processId = null, 
+            long? windowHandle = null, 
             int timeoutSeconds = 30)
         {
             var request = new UIAutomationMCP.Models.Requests.FindTextRequest
@@ -143,7 +143,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                ProcessId = processId,
+                WindowHandle = windowHandle,
                 SearchText = searchText,
                 Backward = backward,
                 IgnoreCase = ignoreCase

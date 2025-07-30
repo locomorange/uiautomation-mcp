@@ -41,7 +41,7 @@ namespace UIAutomationMCP.Server.Services
             if (operationName.Contains("element", StringComparison.OrdinalIgnoreCase) ||
                 operationName.Contains("find", StringComparison.OrdinalIgnoreCase))
             {
-                suggestions.Add("use more specific search criteria (AutomationId, ControlType, ProcessId)");
+                suggestions.Add("use more specific search criteria (AutomationId, ControlType, WindowHandle)");
                 suggestions.Add("ensure the target window is active and visible");
             }
 

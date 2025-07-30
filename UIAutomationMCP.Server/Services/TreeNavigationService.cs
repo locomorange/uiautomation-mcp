@@ -18,12 +18,12 @@ namespace UIAutomationMCP.Server.Services
 
         protected override string GetOperationType() => "treeNavigation";
 
-        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetChildrenAsync(string elementId, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetChildrenAsync(string elementId, long? windowHandle = null, int timeoutSeconds = 30)
         {
             var request = new GetChildrenRequest
             {
                 AutomationId = elementId,
-                ProcessId = processId
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<GetChildrenRequest, TreeNavigationResult>(
@@ -35,12 +35,12 @@ namespace UIAutomationMCP.Server.Services
             );
         }
 
-        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetParentAsync(string elementId, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetParentAsync(string elementId, long? windowHandle = null, int timeoutSeconds = 30)
         {
             var request = new GetParentRequest
             {
                 AutomationId = elementId,
-                ProcessId = processId
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<GetParentRequest, TreeNavigationResult>(
@@ -52,12 +52,12 @@ namespace UIAutomationMCP.Server.Services
             );
         }
 
-        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetSiblingsAsync(string elementId, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetSiblingsAsync(string elementId, long? windowHandle = null, int timeoutSeconds = 30)
         {
             var request = new GetSiblingsRequest
             {
                 AutomationId = elementId,
-                ProcessId = processId
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<GetSiblingsRequest, TreeNavigationResult>(
@@ -69,12 +69,12 @@ namespace UIAutomationMCP.Server.Services
             );
         }
 
-        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetDescendantsAsync(string elementId, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetDescendantsAsync(string elementId, long? windowHandle = null, int timeoutSeconds = 30)
         {
             var request = new GetDescendantsRequest
             {
                 AutomationId = elementId,
-                ProcessId = processId
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<GetDescendantsRequest, TreeNavigationResult>(
@@ -86,12 +86,12 @@ namespace UIAutomationMCP.Server.Services
             );
         }
 
-        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetAncestorsAsync(string elementId, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<TreeNavigationResult>> GetAncestorsAsync(string elementId, long? windowHandle = null, int timeoutSeconds = 30)
         {
             var request = new GetAncestorsRequest
             {
                 AutomationId = elementId,
-                ProcessId = processId
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<GetAncestorsRequest, TreeNavigationResult>(
@@ -103,11 +103,11 @@ namespace UIAutomationMCP.Server.Services
             );
         }
 
-        public async Task<ServerEnhancedResponse<ElementTreeResult>> GetElementTreeAsync(int? processId = null, int maxDepth = 3, int timeoutSeconds = 60)
+        public async Task<ServerEnhancedResponse<ElementTreeResult>> GetElementTreeAsync(long? windowHandle = null, int maxDepth = 3, int timeoutSeconds = 60)
         {
             var request = new GetElementTreeRequest
             {
-                ProcessId = processId,
+                WindowHandle = windowHandle,
                 MaxDepth = maxDepth
             };
 

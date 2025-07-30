@@ -7,11 +7,11 @@ namespace UIAutomationMCP.Server.Services
 {
     public interface ITreeNavigationService
     {
-        Task<ServerEnhancedResponse<TreeNavigationResult>> GetChildrenAsync(string elementId, int? processId = null, int timeoutSeconds = 30);
-        Task<ServerEnhancedResponse<TreeNavigationResult>> GetParentAsync(string elementId, int? processId = null, int timeoutSeconds = 30);
-        Task<ServerEnhancedResponse<TreeNavigationResult>> GetSiblingsAsync(string elementId, int? processId = null, int timeoutSeconds = 30);
-        Task<ServerEnhancedResponse<TreeNavigationResult>> GetDescendantsAsync(string elementId, int? processId = null, int timeoutSeconds = 30);
-        Task<ServerEnhancedResponse<TreeNavigationResult>> GetAncestorsAsync(string elementId, int? processId = null, int timeoutSeconds = 30);
-        Task<ServerEnhancedResponse<ElementTreeResult>> GetElementTreeAsync(int? processId = null, int maxDepth = 3, int timeoutSeconds = 60);
+        Task<ServerEnhancedResponse<TreeNavigationResult>> GetChildrenAsync(string elementId, long? windowHandle = null, int timeoutSeconds = 30);
+        Task<ServerEnhancedResponse<TreeNavigationResult>> GetParentAsync(string elementId, long? windowHandle = null, int timeoutSeconds = 30);
+        Task<ServerEnhancedResponse<TreeNavigationResult>> GetSiblingsAsync(string elementId, long? windowHandle = null, int timeoutSeconds = 30);
+        Task<ServerEnhancedResponse<TreeNavigationResult>> GetDescendantsAsync(string elementId, long? windowHandle = null, int timeoutSeconds = 30);
+        Task<ServerEnhancedResponse<TreeNavigationResult>> GetAncestorsAsync(string elementId, long? windowHandle = null, int timeoutSeconds = 30);
+        Task<ServerEnhancedResponse<ElementTreeResult>> GetElementTreeAsync(long? windowHandle = null, int maxDepth = 3, int timeoutSeconds = 60);
     }
 }

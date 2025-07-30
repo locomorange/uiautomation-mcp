@@ -37,7 +37,7 @@ namespace UIAutomationMCP.Server.Services
             string? windowTitle = null, 
             string? outputPath = null, 
             int maxTokens = 0, 
-            int? processId = null, 
+            long? windowHandle = null, 
             int timeoutSeconds = 60, 
             CancellationToken cancellationToken = default)
         {
@@ -46,7 +46,7 @@ namespace UIAutomationMCP.Server.Services
                 WindowTitle = windowTitle,
                 OutputPath = outputPath,
                 MaxTokens = maxTokens,
-                ProcessId = processId
+                WindowHandle = windowHandle
             };
 
             // Use reflection to call the internal execution method
@@ -59,7 +59,7 @@ namespace UIAutomationMCP.Server.Services
 
                 var metadata = CreateSuccessMetadata(screenshotResult, context);
                 metadata.TargetWindowTitle = windowTitle ?? string.Empty;
-                metadata.TargetProcessId = processId;
+                metadata.TargetWindowHandle = windowHandle;
                 metadata.MaxTokensRequested = maxTokens > 0 ? maxTokens : null;
 
                 return new ServerEnhancedResponse<ScreenshotResult>
@@ -141,15 +141,15 @@ namespace UIAutomationMCP.Server.Services
                 System.Drawing.Rectangle captureArea;
 
                 // Determine capture area
-                if (!string.IsNullOrEmpty(request.WindowTitle) || request.ProcessId.HasValue)
+                if (!string.IsNullOrEmpty(request.WindowTitle) || request.WindowHandle.HasValue)
                 {
-                    _logger.LogInformation("Attempting to get window info for title: {WindowTitle}, processId: {ProcessId}", request.WindowTitle, request.ProcessId);
+                    _logger.LogInformation("Attempting to get window info for title: {WindowTitle}, windowHandle: {WindowHandle}", request.WindowTitle, request.WindowHandle);
                     
                     // Use Worker to get window information via UIAutomation
-                    var windowInfo = await GetWindowInfoFromWorker(request.WindowTitle, request.ProcessId);
+                    var windowInfo = await GetWindowInfoFromWorker(request.WindowTitle, request.WindowHandle);
                     if (windowInfo == null)
                     {
-                        _logger.LogWarning("Window not found: {WindowTitle}, ProcessId: {ProcessId}", request.WindowTitle, request.ProcessId);
+                        _logger.LogWarning("Window not found: {WindowTitle}, WindowHandle: {WindowHandle}", request.WindowTitle, request.WindowHandle);
                         return new ScreenshotResult { Success = false, Error = "Window not found" };
                     }
 
@@ -195,7 +195,7 @@ namespace UIAutomationMCP.Server.Services
                     }
 
                     // Try to activate window using Worker's WindowAction for better reliability
-                    await ActivateWindowViaWorker(request.WindowTitle, request.ProcessId);
+                    await ActivateWindowViaWorker(request.WindowTitle, request.WindowHandle);
                     
                     // Wait a bit for window to come to foreground
                     Thread.Sleep(500);
@@ -364,18 +364,18 @@ namespace UIAutomationMCP.Server.Services
             });
         }
 
-        private async Task<Dictionary<string, object>?> GetWindowInfoFromWorker(string? windowTitle, int? processId)
+        private async Task<Dictionary<string, object>?> GetWindowInfoFromWorker(string? windowTitle, long? windowHandle)
         {
             try
             {
-                _logger.LogInformation("Searching for window using SearchElements: WindowTitle={WindowTitle}, ProcessId={ProcessId}", windowTitle, processId);
+                _logger.LogInformation("Searching for window using SearchElements: WindowTitle={WindowTitle}, WindowHandle={WindowHandle}", windowTitle, windowHandle);
                 
                 var searchRequest = new SearchElementsRequest
                 {
                     ControlType = "Window",
                     Scope = "children",
                     WindowTitle = windowTitle,
-                    ProcessId = processId,
+                    WindowHandle = windowHandle,
                     MaxResults = 1,
                     VisibleOnly = true
                 };
@@ -410,18 +410,18 @@ namespace UIAutomationMCP.Server.Services
             }
         }
 
-        private async Task ActivateWindowViaWorker(string? windowTitle, int? processId)
+        private async Task ActivateWindowViaWorker(string? windowTitle, long? windowHandle)
         {
             try
             {
-                _logger.LogInformation("Attempting to activate window via Worker: {WindowTitle}, ProcessId: {ProcessId}", windowTitle, processId);
+                _logger.LogInformation("Attempting to activate window via Worker: {WindowTitle}, WindowHandle: {WindowHandle}", windowTitle, windowHandle);
 
                 // Use Worker's WindowAction operation to activate window
                 var request = new WindowActionRequest
                 {
                     Action = "normal",
                     WindowTitle = windowTitle ?? "",
-                    ProcessId = processId ?? 0
+                    WindowHandle = windowHandle
                 };
 
                 var result = await _processManager.ExecuteWorkerOperationAsync<WindowActionRequest, WindowActionResult>("WindowAction", request, 5);
@@ -470,6 +470,6 @@ namespace UIAutomationMCP.Server.Services
         public string? WindowTitle { get; set; }
         public string? OutputPath { get; set; }
         public int MaxTokens { get; set; }
-        public int? ProcessId { get; set; }
+        public long? WindowHandle { get; set; }
     }
 }

@@ -30,17 +30,17 @@ namespace UIAutomationMCP.Server.Services
             string? windowTitle = null, 
             string? searchText = null, 
             string? controlType = null, 
-            int? processId = null, 
+            long? windowHandle = null, 
             int timeoutSeconds = 60)
         {
-            return await FindElementsAsync(windowTitle, searchText, controlType, processId, "descendants", true, 100, true, timeoutSeconds);
+            return await FindElementsAsync(windowTitle, searchText, controlType, windowHandle, "descendants", true, 100, true, timeoutSeconds);
         }
 
         public async Task<ServerEnhancedResponse<ElementSearchResult>> FindElementsAsync(
             string? windowTitle = null, 
             string? searchText = null, 
             string? controlType = null, 
-            int? processId = null, 
+            long? windowHandle = null, 
             string scope = "descendants", 
             bool validatePatterns = true, 
             int maxResults = 100, 
@@ -52,7 +52,7 @@ namespace UIAutomationMCP.Server.Services
                 WindowTitle = windowTitle ?? "",
                 SearchText = searchText ?? "",
                 ControlType = controlType ?? "",
-                ProcessId = processId ?? 0,
+                WindowHandle = windowHandle,
                 Scope = scope,
                 MaxResults = maxResults,
                 UseCache = useCache,

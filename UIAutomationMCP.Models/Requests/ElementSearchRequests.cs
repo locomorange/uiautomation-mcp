@@ -11,8 +11,8 @@ namespace UIAutomationMCP.Models.Requests
         [JsonPropertyName("windowTitle")]
         public string? WindowTitle { get; set; }
 
-        [JsonPropertyName("processId")]
-        public int? ProcessId { get; set; }
+        [JsonPropertyName("windowHandle")]
+        public long? WindowHandle { get; set; }
 
         [JsonPropertyName("searchText")]
         public string? SearchText { get; set; }

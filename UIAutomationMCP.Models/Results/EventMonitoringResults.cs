@@ -8,7 +8,7 @@ namespace UIAutomationMCP.Models.Results
         public string EventType { get; set; } = string.Empty;
         public string ElementId { get; set; } = string.Empty;
         public string WindowTitle { get; set; } = string.Empty;
-        public int? ProcessId { get; set; }
+        public long? WindowHandle { get; set; }
         public string SessionId { get; set; } = string.Empty;
         public string MonitoringStatus { get; set; } = string.Empty;
     }

@@ -40,8 +40,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
                 AutomationId = request.AutomationId,
                 Name = request.Name,
                 ControlType = request.ControlType,
-                WindowTitle = request.WindowTitle,
-                , WindowHandle = request.WindowHandle };
+                WindowTitle = request.WindowTitle, WindowHandle = request.WindowHandle };
             var element = _elementFinderService.FindElement(searchCriteria);
             
             if (element == null)
@@ -104,7 +103,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
                         // Additional context
                         AutomationId = request.AutomationId ?? "",
                         Name = request.Name ?? "",
-                        ControlType = request.ControlType ?? "" ?? 0
+                        ControlType = request.ControlType ?? ""
                     });
                 }
                 else
@@ -122,7 +121,7 @@ namespace UIAutomationMCP.Worker.Operations.Text
                         // Additional context
                         AutomationId = request.AutomationId ?? "",
                         Name = request.Name ?? "",
-                        ControlType = request.ControlType ?? "" ?? 0
+                        ControlType = request.ControlType ?? ""
                     });
                 }
             }

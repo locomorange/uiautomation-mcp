@@ -10,7 +10,7 @@ namespace UIAutomationMCP.Server.Services
             string? automationId = null, 
             string? name = null,
             string? controlType = null,
-            int? processId = null, 
+            long? windowHandle = null, 
             int timeoutSeconds = 30);
     }
 }

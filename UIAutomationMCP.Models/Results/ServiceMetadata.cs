@@ -294,7 +294,7 @@ namespace UIAutomationMCP.Models.Results
         public bool HasBase64Data { get; set; }
         public string ScreenshotTimestamp { get; set; } = string.Empty;
         public string TargetWindowTitle { get; set; } = string.Empty;
-        public int? TargetProcessId { get; set; }
+        public long? TargetWindowHandle { get; set; }
         public int? MaxTokensRequested { get; set; }
     }
 

@@ -19,7 +19,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
         protected override string GetOperationType() => "itemContainer";
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> FindItemByPropertyAsync(string? automationId = null, string? name = null, string? propertyName = null, string? value = null, string? startAfterId = null, string? controlType = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> FindItemByPropertyAsync(string? automationId = null, string? name = null, string? propertyName = null, string? value = null, string? startAfterId = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
         {
             var request = new FindItemByPropertyRequest
             {
@@ -29,7 +29,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 PropertyName = propertyName ?? "",
                 Value = value ?? "",
                 StartAfterId = startAfterId ?? "",
-                ProcessId = processId ?? 0
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<FindItemByPropertyRequest, ElementSearchResult>(

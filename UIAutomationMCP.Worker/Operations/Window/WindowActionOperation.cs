@@ -24,13 +24,12 @@ namespace UIAutomationMCP.Worker.Operations.Window
         {
             var action = request.Action;
             var windowTitle = request.WindowTitle ?? "";
-            var ;
 
             var searchCriteria = new ElementSearchCriteria
             {
                 WindowTitle = windowTitle,
-                ProcessId = processId,
-            , WindowHandle = request.WindowHandle };
+                WindowHandle = request.WindowHandle
+            };
             var window = _elementFinderService.FindElement(searchCriteria);
             if (window == null)
             {
@@ -99,9 +98,9 @@ namespace UIAutomationMCP.Worker.Operations.Window
                 return Core.Validation.ValidationResult.Failure($"Invalid action '{request.Action}'. Valid actions are: {string.Join(", ", validActions)}");
             }
 
-            if (request.ProcessId.HasValue && request.ProcessId <= 0)
+            if (request.WindowHandle.HasValue && request.WindowHandle <= 0)
             {
-                return Core.Validation.ValidationResult.Failure("ProcessId must be greater than 0 when specified");
+                return Core.Validation.ValidationResult.Failure("WindowHandle must be greater than 0 when specified");
             }
 
             return Core.Validation.ValidationResult.Success;

@@ -22,11 +22,16 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
             var startTime = DateTime.UtcNow;
             
             var windowTitle = request.WindowTitle ?? "";
-            var processId = request.ProcessId ?? 0;
+            var windowHandle = request.WindowHandle;
             var maxDepth = request.MaxDepth;
 
             // Get search root
-            var searchRoot = _elementFinderService.GetSearchRoot(processId, windowTitle);
+            var searchCriteria = new ElementSearchCriteria
+            {
+                WindowHandle = windowHandle,
+                WindowTitle = windowTitle
+            };
+            var searchRoot = _elementFinderService.FindElement(searchCriteria) ?? AutomationElement.RootElement;
             if (searchRoot == null)
             {
                 // If no specific window found, use desktop root
@@ -45,7 +50,7 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
                 TotalElements = CountElements(rootNode),
                 MaxDepth = GetMaxDepth(rootNode),
                 WindowTitle = windowTitle,
-                ProcessId = processId,
+                WindowHandle = windowHandle,
                 BuildDuration = buildDuration,
                 TreeScope = "Subtree"
             };

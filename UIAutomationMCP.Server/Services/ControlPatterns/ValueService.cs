@@ -23,7 +23,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string? automationId = null, 
             string? name = null, 
             string? controlType = null, 
-            int? processId = null, 
+            long? windowHandle = null, 
             int timeoutSeconds = 30)
         {
             var request = new SetElementValueRequest
@@ -32,7 +32,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Name = name,
                 ControlType = controlType,
                 Value = value,
-                ProcessId = processId
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<SetElementValueRequest, ActionResult>(
@@ -48,7 +48,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string? automationId = null, 
             string? name = null, 
             string? controlType = null, 
-            int? processId = null, 
+            long? windowHandle = null, 
             int timeoutSeconds = 30)
         {
             var request = new GetValueRequest
@@ -56,7 +56,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                ProcessId = processId
+                WindowHandle = windowHandle
             };
 
             return await ExecuteServiceOperationAsync<GetValueRequest, TextInfoResult>(

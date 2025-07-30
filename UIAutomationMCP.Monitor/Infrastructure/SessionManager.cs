@@ -32,7 +32,7 @@ namespace UIAutomationMCP.Monitor.Infrastructure
             string? name = null,
             string? controlType = null,
             string? windowTitle = null,
-            int? processId = null)
+            long? windowHandle = null)
         {
             if (_activeSessions.ContainsKey(sessionId))
             {
@@ -46,7 +46,7 @@ namespace UIAutomationMCP.Monitor.Infrastructure
                 name,
                 controlType,
                 windowTitle,
-                processId,
+                windowHandle,
                 _elementFinderService,
                 _loggerFactory.CreateLogger<EventMonitoringSession>());
 
