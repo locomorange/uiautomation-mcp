@@ -100,12 +100,10 @@ namespace UIAutomationMCP.Models.Results
             LocalizedControlType = elementInfo.LocalizedControlType;
             ClassName = elementInfo.ClassName;
             ProcessId = elementInfo.ProcessId;
-            MainProcessId = elementInfo.MainProcessId;
             BoundingRectangle = elementInfo.BoundingRectangle;
             IsEnabled = elementInfo.IsEnabled;
             IsVisible = elementInfo.IsVisible;
             IsOffscreen = elementInfo.IsOffscreen;
-            FrameworkId = elementInfo.FrameworkId;
             SupportedPatterns = elementInfo.SupportedPatterns;
             Details = elementInfo.Details;
         }

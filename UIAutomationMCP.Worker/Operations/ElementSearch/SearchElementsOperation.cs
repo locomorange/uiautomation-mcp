@@ -35,7 +35,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             
             try
             {
-                // タイムアウト�E琁E�E�ESubprocessExecutorで行うため、直接実衁E
+                // タイムアウト�E琁E�E�ESubprocessExecutorで行うため、直接実衁E
                 SearchElementsResult result = await PerformSearchAsync(request);
 
                 stopwatch.Stop();
@@ -103,7 +103,10 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     ControlType = request.ControlType,
                     WindowTitle = request.WindowTitle,
                     Scope = request.Scope,
-                    WindowHandle = request.WindowHandle
+                    WindowHandle = request.WindowHandle,
+                    // Use WindowHandle as filter when searching for Window controls or when WindowHandle is specified
+                    UseWindowHandleAsFilter = request.WindowHandle.HasValue && 
+                        (string.Equals(request.ControlType, "Window", StringComparison.OrdinalIgnoreCase) || !string.IsNullOrEmpty(request.WindowTitle))
                 };
                 var foundElementsCollection = _elementFinderService.FindElements(searchCriteria);
                 _logger?.LogDebug("FindElements completed, found {Count} elements", foundElementsCollection?.Count ?? 0);

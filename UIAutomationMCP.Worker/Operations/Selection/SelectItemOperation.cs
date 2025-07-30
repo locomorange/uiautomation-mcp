@@ -63,14 +63,14 @@ namespace UIAutomationMCP.Worker.Operations.Selection
                 },
                 IsVisible = !element.Current.IsOffscreen,
                 IsOffscreen = element.Current.IsOffscreen,
-                FrameworkId = element.Current.FrameworkId,
                 SupportedPatterns = new string[0], // Basic info only
                 Details = new ElementDetails
                 {
                     HelpText = element.Current.HelpText ?? "",
                     HasKeyboardFocus = element.Current.HasKeyboardFocus,
                     IsKeyboardFocusable = element.Current.IsKeyboardFocusable,
-                    IsPassword = element.Current.IsPassword
+                    IsPassword = element.Current.IsPassword,
+                    FrameworkId = element.Current.FrameworkId
                 }
             };
             

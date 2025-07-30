@@ -140,8 +140,8 @@ namespace UIAutomationMCP.Common.Services
 
         private AutomationElement? GetSearchRoot(ElementSearchCriteria criteria)
         {
-            // Priority 1: Use WindowHandle if specified
-            if (criteria.WindowHandle.HasValue)
+            // Priority 1: Use WindowHandle if specified and not using it as filter
+            if (criteria.WindowHandle.HasValue && !criteria.UseWindowHandleAsFilter)
             {
                 try
                 {
@@ -173,6 +173,12 @@ namespace UIAutomationMCP.Common.Services
                 return null;
             }
 
+            // When using WindowHandle as filter, always start from RootElement
+            if (criteria.UseWindowHandleAsFilter)
+            {
+                _logger.LogDebug("Using WindowHandle as filter, starting from RootElement");
+                return rootElement;
+            }
 
             // Find window by title if specified
             if (!string.IsNullOrEmpty(criteria.WindowTitle))
@@ -238,6 +244,12 @@ namespace UIAutomationMCP.Common.Services
                 }
             }
 
+            // WindowHandle filter (when used as filter)
+            if (criteria.UseWindowHandleAsFilter && criteria.WindowHandle.HasValue)
+            {
+                conditions.Add(new PropertyCondition(AutomationElement.NativeWindowHandleProperty, criteria.WindowHandle.Value));
+                _logger.LogDebug("Added WindowHandle filter condition: {WindowHandle}", criteria.WindowHandle.Value);
+            }
 
             // Visibility filter
             if (criteria.VisibleOnly)
@@ -369,5 +381,6 @@ namespace UIAutomationMCP.Common.Services
         public bool EnabledOnly { get; set; } = false;
         public string? RequiredPattern { get; set; }
         public long? WindowHandle { get; set; }
+        public bool UseWindowHandleAsFilter { get; set; } = false;
     }
 }

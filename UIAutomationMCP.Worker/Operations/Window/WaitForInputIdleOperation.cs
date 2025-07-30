@@ -28,17 +28,25 @@ namespace UIAutomationMCP.Worker.Operations.Window
             var searchCriteria = new ElementSearchCriteria
             {
                 WindowHandle = windowHandle,
-                WindowTitle = windowTitle
+                WindowTitle = windowTitle,
+                UseWindowHandleAsFilter = true,
+                RequiredPattern = "Window"
             };
             var window = _elementFinderService.FindElement(searchCriteria);
             if (window == null)
             {
-                throw new UIAutomationElementNotFoundException("Window", windowTitle);
+                var elementIdentifier = request.WindowHandle.HasValue 
+                    ? $"WindowHandle={request.WindowHandle.Value}" 
+                    : !string.IsNullOrEmpty(windowTitle) ? $"WindowTitle='{windowTitle}'" : "unknown";
+                throw new UIAutomationElementNotFoundException("WaitForInputIdle", elementIdentifier);
             }
 
             if (!window.TryGetCurrentPattern(WindowPattern.Pattern, out var pattern) || pattern is not WindowPattern windowPattern)
             {
-                throw new UIAutomationInvalidOperationException("WaitForInputIdle", windowTitle, "WindowPattern not supported");
+                var elementIdentifier = request.WindowHandle.HasValue 
+                    ? $"WindowHandle={request.WindowHandle.Value}" 
+                    : !string.IsNullOrEmpty(windowTitle) ? $"WindowTitle='{windowTitle}'" : "unknown";
+                throw new UIAutomationInvalidOperationException("WaitForInputIdle", elementIdentifier, "WindowPattern not supported");
             }
 
             var startTime = DateTime.Now;
