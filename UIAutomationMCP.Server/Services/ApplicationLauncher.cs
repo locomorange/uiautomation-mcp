@@ -28,17 +28,17 @@ namespace UIAutomationMCP.Server.Services
         /// <summary>
         /// Capture all UI elements using SearchElements
         /// </summary>
-        private async Task<List<ElementInfo>> CaptureAllElements(int timeoutSeconds, CancellationToken cancellationToken)
+        private async Task<List<ElementInfo>> CaptureAllElements(int timeoutSeconds, CancellationToken cancellationToken, bool includeDetails = false)
         {
             try
             {
-                _logger.LogDebug("Capturing all UI elements with scope 'children'");
+                _logger.LogDebug("Capturing all UI elements with scope 'children', includeDetails: {IncludeDetails}", includeDetails);
                 
                 var request = new SearchElementsRequest 
                 { 
                     Scope = "children", // Search only direct children of desktop (windows)
                     MaxResults = 1000, 
-                    IncludeDetails = false, 
+                    IncludeDetails = includeDetails, // Now configurable for focus detection
                     BypassCache = true // Force fresh data - essential for detecting new elements
                 };
                 
@@ -101,6 +101,74 @@ namespace UIAutomationMCP.Server.Services
         }
 
         /// <summary>
+        /// Find elements that gained keyboard focus by comparing before and after states
+        /// </summary>
+        private List<ElementInfo> FindActivatedElements(List<ElementInfo> beforeElements, List<ElementInfo> afterElements)
+        {
+            try
+            {
+                // Only elements with details (HasKeyboardFocus) can be compared
+                var beforeFocusElements = beforeElements
+                    .Where(e => e.Details != null && e.WindowHandle.HasValue)
+                    .ToList();
+                    
+                var afterFocusElements = afterElements
+                    .Where(e => e.Details != null && e.WindowHandle.HasValue)
+                    .ToList();
+
+                _logger.LogDebug("Checking focus changes: Before={BeforeCount} elements with details, After={AfterCount} elements with details", 
+                    beforeFocusElements.Count, afterFocusElements.Count);
+
+                // Find elements that gained focus (HasKeyboardFocus changed from false to true)
+                var activatedWindowHandles = new HashSet<long>();
+                
+                foreach (var afterElement in afterFocusElements)
+                {
+                    if (afterElement.Details!.HasKeyboardFocus)
+                    {
+                        // Find corresponding element in before state
+                        var beforeElement = beforeFocusElements.FirstOrDefault(e => 
+                            e.WindowHandle == afterElement.WindowHandle && 
+                            e.AutomationId == afterElement.AutomationId &&
+                            e.Name == afterElement.Name &&
+                            e.ControlType == afterElement.ControlType);
+
+                        // If element didn't have focus before, or didn't exist before, it's activated
+                        if (beforeElement == null || !beforeElement.Details!.HasKeyboardFocus)
+                        {
+                            activatedWindowHandles.Add(afterElement.WindowHandle!.Value);
+                            _logger.LogInformation("HWND 0x{Handle:X} gained focus - element: {Name} ({ControlType})", 
+                                afterElement.WindowHandle.Value, afterElement.Name, afterElement.ControlType);
+                        }
+                    }
+                }
+
+                if (activatedWindowHandles.Any())
+                {
+                    // Return all elements from windows that gained focus
+                    var activatedElements = afterElements
+                        .Where(e => e.WindowHandle.HasValue && activatedWindowHandles.Contains(e.WindowHandle.Value))
+                        .ToList();
+                    
+                    _logger.LogInformation("Found {Count} activated windows: [{Handles}], returning {ElementCount} elements", 
+                        activatedWindowHandles.Count,
+                        string.Join(", ", activatedWindowHandles.Select(h => $"0x{h:X}")),
+                        activatedElements.Count);
+                    
+                    return activatedElements;
+                }
+
+                _logger.LogDebug("No focus changes detected");
+                return new List<ElementInfo>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error detecting focus changes");
+                return new List<ElementInfo>();
+            }
+        }
+
+        /// <summary>
         /// Wait for new elements to appear after application launch
         /// </summary>
         private async Task<List<ElementInfo>> WaitForNewElements(
@@ -116,7 +184,7 @@ namespace UIAutomationMCP.Server.Services
 
             while (stopwatch.ElapsedMilliseconds < maxWaitMs && !cancellationToken.IsCancellationRequested)
             {
-                var currentElements = await CaptureAllElements(10, cancellationToken);
+                var currentElements = await CaptureAllElements(10, cancellationToken, includeDetails: true);
                 var newElements = FindNewElements(beforeElements, currentElements);
 
                 if (newElements.Any())
@@ -165,16 +233,10 @@ namespace UIAutomationMCP.Server.Services
             try
             {
                 // Capture baseline UI elements before launching (needed for all launch types)
-                var beforeElements = await CaptureAllElements(timeoutSeconds, cancellationToken);
+                // Include details for focus change detection
+                var beforeElements = await CaptureAllElements(timeoutSeconds, cancellationToken, includeDetails: true);
                 _logger.LogInformation("Baseline elements for {Application}: {Count} elements", application, beforeElements.Count);
 
-                // Check if this is a protocol URI (e.g., ms-settings:, mailto:, http:)
-                if (IsProtocolUri(application))
-                {
-                    _logger.LogInformation("Detected protocol URI: {Application}, launching directly", application);
-                    return await LaunchProtocolUri(application, beforeElements, timeoutSeconds, cancellationToken);
-                }
-                
                 // Step 1: Try Win32 application launch
                 var win32LaunchResult = await TryLaunchWin32(application, arguments, workingDirectory, cancellationToken);
                 if (win32LaunchResult.LaunchSucceeded)
@@ -199,10 +261,28 @@ namespace UIAutomationMCP.Server.Services
                     if (result != null) return result;
                 }
 
+                // Step 3: Try Protocol URI launch (e.g., ms-settings:, mailto:, http:)
+                LaunchResult protocolLaunchResult = LaunchResult.Failure("Not attempted");
+                if (IsProtocolUri(application))
+                {
+                    protocolLaunchResult = await TryLaunchProtocolUri(application, cancellationToken);
+                    if (protocolLaunchResult.LaunchSucceeded)
+                    {
+                        _logger.LogInformation("Protocol URI launch succeeded for {Application}, now detecting new elements", application);
+                        // Protocol URIs may take longer to show UI elements
+                        await Task.Delay(2000, cancellationToken);
+                        
+                        var result = await WaitForElementsAndCreateResponse(beforeElements, application, "Protocol URI", detectionStopwatch, cancellationToken);
+                        if (result != null) return result;
+                    }
+                }
+
                 detectionStopwatch.Stop();
-                _logger.LogWarning("Failed to launch application: {Application}. Win32 success: {Win32Success}, UWP success: {UwpSuccess}", 
-                    application, win32LaunchResult.LaunchSucceeded, uwpLaunchResult.LaunchSucceeded);
-                return ProcessLaunchResponse.CreateError($"Failed to launch application: {application}. Tried Win32 and UWP methods.");
+                _logger.LogWarning("Failed to launch application: {Application}. Win32 success: {Win32Success}, UWP success: {UwpSuccess}, Protocol success: {ProtocolSuccess}", 
+                    application, win32LaunchResult.LaunchSucceeded, uwpLaunchResult.LaunchSucceeded, protocolLaunchResult.LaunchSucceeded);
+                
+                var methods = IsProtocolUri(application) ? "Win32, UWP, and Protocol URI methods" : "Win32 and UWP methods";
+                return ProcessLaunchResponse.CreateError($"Failed to launch application: {application}. Tried {methods}.");
             }
             catch (Exception ex)
             {
@@ -225,49 +305,6 @@ namespace UIAutomationMCP.Server.Services
         }
 
         /// <summary>
-        /// Launch a protocol URI directly using Process.Start
-        /// </summary>
-        private async Task<ProcessLaunchResponse> LaunchProtocolUri(string protocolUri, List<ElementInfo> beforeElements, int timeoutSeconds, CancellationToken cancellationToken)
-        {
-            var detectionStopwatch = Stopwatch.StartNew();
-            
-            try
-            {
-
-                // Launch the protocol URI directly
-                var processInfo = new ProcessStartInfo
-                {
-                    FileName = protocolUri,
-                    UseShellExecute = true, // Required for protocol URIs
-                    CreateNoWindow = false
-                };
-
-                var process = Process.Start(processInfo);
-                _logger.LogInformation("Started protocol URI {ProtocolUri}", protocolUri);
-
-                // Wait for the application to create its UI elements
-                await Task.Delay(2000, cancellationToken);
-                
-                var result = await WaitForElementsAndCreateResponse(beforeElements, protocolUri, "Protocol URI", detectionStopwatch, cancellationToken);
-                if (result != null) return result;
-
-                // Even if no new elements are detected, the protocol launch might have succeeded
-                // (e.g., it opened an existing window or a system dialog)
-                detectionStopwatch.Stop();
-                _logger.LogInformation("Protocol URI {ProtocolUri} launched successfully, but no new UI elements detected in {ElapsedMs}ms", 
-                    protocolUri, detectionStopwatch.ElapsedMilliseconds);
-                return ProcessLaunchResponse.CreateSuccess(process?.Id ?? 0, protocolUri, false, "Protocol launched", null);
-            }
-            catch (Exception ex)
-            {
-                detectionStopwatch.Stop();
-                _logger.LogError(ex, "Error launching protocol URI: {ProtocolUri}", protocolUri);
-                return ProcessLaunchResponse.CreateError($"Failed to launch protocol URI: {protocolUri}. Error: {ex.Message}");
-            }
-        }
-
-
-        /// <summary>
         /// Wait for new UI elements and create success response after launch
         /// </summary>
         private async Task<ProcessLaunchResponse> WaitForElementsAndCreateResponse(
@@ -288,7 +325,19 @@ namespace UIAutomationMCP.Server.Services
                 return CreateSuccessResponseFromElements(newElements, application, launchType, detectionStopwatch.ElapsedMilliseconds);
             }
 
-            return null; // No new elements found, caller should handle fallback
+            // Fallback: Check for focus changes (existing window activation)
+            _logger.LogInformation("No new windows detected for {LaunchType} launch, checking for focus changes", launchType);
+            var currentElements = await CaptureAllElements(10, cancellationToken, includeDetails: true);
+            var activatedElements = FindActivatedElements(beforeElements, currentElements);
+            
+            if (activatedElements.Any())
+            {
+                detectionStopwatch.Stop();
+                _logger.LogInformation("Detected window activation via focus change for {LaunchType} launch", launchType);
+                return CreateSuccessResponseFromElements(activatedElements, application, $"{launchType} (Activated)", detectionStopwatch.ElapsedMilliseconds);
+            }
+
+            return null; // No new elements or focus changes found, caller should handle fallback
         }
 
         /// <summary>
@@ -510,6 +559,38 @@ namespace UIAutomationMCP.Server.Services
             }
         }
 
+        /// <summary>
+        /// Try to launch a protocol URI (e.g., ms-settings:, mailto:, http:)
+        /// </summary>
+        private async Task<LaunchResult> TryLaunchProtocolUri(string protocolUri, CancellationToken cancellationToken)
+        {
+            try
+            {
+                _logger.LogInformation("Attempting Protocol URI launch for {ProtocolUri}", protocolUri);
+                
+                var processInfo = new ProcessStartInfo
+                {
+                    FileName = protocolUri,
+                    UseShellExecute = true, // Required for protocol URIs
+                    CreateNoWindow = false
+                };
+
+                var process = Process.Start(processInfo);
+                _logger.LogInformation("Started protocol URI {ProtocolUri}", protocolUri);
+                
+                // Return success with process info (process may be null for protocol URIs)
+                return LaunchResult.Success(process?.Id ?? 0, protocolUri);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Protocol URI launch failed for {ProtocolUri}", protocolUri);
+                return LaunchResult.Failure($"Protocol URI launch failed: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Try to launch application as UWP app
+        /// </summary>
         private async Task<LaunchResult> TryLaunchUWP(string application, CancellationToken cancellationToken)
         {
             try
