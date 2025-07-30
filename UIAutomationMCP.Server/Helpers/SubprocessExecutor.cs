@@ -107,7 +107,7 @@ namespace UIAutomationMCP.Server.Helpers
                             throw new OperationCanceledException("Operation cancelled due to server shutdown");
                         }
                         
-                        _logger.LogWarning("Worker operation timed out after {TimeoutSeconds}s: {Operation}", timeoutSeconds, operation);
+                        _logger.LogWarning("Worker operation could not complete within {TimeoutSeconds}s: {Operation}", timeoutSeconds, operation);
                         cts.Cancel();
                         
                         // Wait for the responseTask to complete or be cancelled to avoid stream conflicts
@@ -132,7 +132,7 @@ namespace UIAutomationMCP.Server.Helpers
                             await RestartWorkerProcessAsync();
                         }
                         
-                        throw new TimeoutException($"Worker operation '{operation}' timed out after {timeoutSeconds} seconds");
+                        throw new TimeoutException($"Worker operation '{operation}' could not complete within {timeoutSeconds} seconds. Consider increasing the timeout duration.");
                     }
 
                     string responseJson;

@@ -52,7 +52,7 @@ namespace UIAutomationMCP.Core.Exceptions
         public int TimeoutSeconds { get; }
 
         public UIAutomationTimeoutException(string operation, string? elementId, int timeoutSeconds, string? details = null)
-            : base(operation, elementId, $"{operation} timed out after {timeoutSeconds} seconds. The element '{elementId}' may not be responding or accessible. {details}".Trim())
+            : base(operation, elementId, $"{operation} could not complete within {timeoutSeconds} seconds for element '{elementId}'. Consider increasing the timeout duration. {details}".Trim())
         {
             TimeoutSeconds = timeoutSeconds;
             Suggestions = new[]

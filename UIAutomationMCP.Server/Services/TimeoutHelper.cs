@@ -56,7 +56,7 @@ namespace UIAutomationMCP.Server.Services
                 ? " Consider: " + string.Join(", ", suggestions) + "."
                 : "";
 
-            return $"{operationName} timeout after {timeoutSeconds} seconds (executed for {executionSeconds:F1}s).{suggestionText}";
+            return $"{operationName} could not complete within {timeoutSeconds} seconds (executed for {executionSeconds:F1}s). Consider increasing the timeout duration.{suggestionText}";
         }
 
         /// <summary>

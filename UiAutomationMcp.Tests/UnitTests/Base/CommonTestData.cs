@@ -90,7 +90,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
             public const string ElementNotFound = "Element not found";
             public const string PatternNotSupported = "Pattern not supported";
             public const string InvalidOperation = "Invalid operation";
-            public const string TimeoutError = "Operation timed out";
+            public const string TimeoutError = "Operation could not complete within timeout";
             public const string InvalidParameter = "Invalid parameter";
             public const string AccessDenied = "Access denied";
         }

@@ -90,8 +90,8 @@ namespace UIAutomationMCP.Worker.Operations.Text
             }
             catch (TimeoutException ex)
             {
-                _logger.LogError(ex, "Timeout during text attributes operation: {AutomationId}", request?.AutomationId);
-                throw new UIAutomationElementNotFoundException("Operation", null, "Operation timed out - target application may be unresponsive");
+                _logger.LogError(ex, "Text attributes operation could not complete within timeout: {AutomationId}", request?.AutomationId);
+                throw new UIAutomationElementNotFoundException("Operation", null, "Operation could not complete within timeout - consider increasing timeout duration or check if target application is responsive");
             }
             catch (UnauthorizedAccessException ex)
             {

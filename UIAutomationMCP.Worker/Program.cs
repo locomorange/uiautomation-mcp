@@ -80,7 +80,7 @@ namespace UIAutomationMCP.Worker
                 }
                 else
                 {
-                    errorReason = "UI Automation initialization timed out after 5 seconds";
+                    errorReason = "UI Automation initialization could not complete within 5 seconds. Consider increasing the initialization timeout if system is slow.";
                     return false;
                 }
             }

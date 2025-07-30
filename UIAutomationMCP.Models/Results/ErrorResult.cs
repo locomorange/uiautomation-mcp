@@ -41,7 +41,7 @@ namespace UIAutomationMCP.Models.Results
         {
             return new ErrorResult
             {
-                Error = $"{operation} timed out after {timeoutSeconds} seconds. The element '{automationId}' may not be responding or accessible.",
+                Error = $"{operation} could not complete within {timeoutSeconds} seconds for element '{automationId}'. Consider increasing the timeout duration to allow more time for the operation to complete.",
                 AutomationId = automationId,
                 Operation = operation,
                 TimeoutSeconds = timeoutSeconds,
@@ -49,9 +49,9 @@ namespace UIAutomationMCP.Models.Results
                 Details = details,
                 Suggestions = new[]
                 {
+                    "Increase the timeout value to allow more time for completion",
                     "Verify the element exists and is accessible",
                     "Check if the target application is responding",
-                    "Consider increasing the timeout value",
                     "Ensure the element ID is correct"
                 }
             };
