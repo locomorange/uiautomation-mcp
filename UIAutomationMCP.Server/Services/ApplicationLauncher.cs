@@ -129,8 +129,8 @@ namespace UIAutomationMCP.Server.Services
                     _logger.LogDebug("Found {NewCount} new unique elements, total: {TotalCount}", 
                         uniqueNewElements.Count, allNewElements.Count);
 
-                    // If we found elements related to the app, wait a bit more for additional elements
-                    if (allNewElements.Any(e => IsRelatedToApp(e, appName)) && stopwatch.ElapsedMilliseconds < maxWaitMs - 1000)
+                    // If we found elements, wait a bit more for additional elements to appear
+                    if (allNewElements.Any() && stopwatch.ElapsedMilliseconds < maxWaitMs - 1000)
                     {
                         await Task.Delay(500, cancellationToken);
                         continue;
@@ -151,21 +151,6 @@ namespace UIAutomationMCP.Server.Services
             return allNewElements;
         }
 
-        /// <summary>
-        /// Check if an element is related to the launched application
-        /// </summary>
-        private bool IsRelatedToApp(ElementInfo element, string appName)
-        {
-            var name = element.Name ?? "";
-            var className = element.ClassName ?? "";
-            var cleanAppName = Path.GetFileNameWithoutExtension(appName).ToLowerInvariant();
-            
-            return name.ToLowerInvariant().Contains(cleanAppName) ||
-                   className.ToLowerInvariant().Contains(cleanAppName) ||
-                   (cleanAppName == "calc" && (name.ToLowerInvariant().Contains("calculator") || 
-                                               name.ToLowerInvariant().Contains("計算") ||
-                                               name.ToLowerInvariant().Contains("電卓")));
-        }
 
 
         #endregion
@@ -179,9 +164,16 @@ namespace UIAutomationMCP.Server.Services
             
             try
             {
-                // Capture baseline UI elements before launching
+                // Capture baseline UI elements before launching (needed for all launch types)
                 var beforeElements = await CaptureAllElements(timeoutSeconds, cancellationToken);
                 _logger.LogInformation("Baseline elements for {Application}: {Count} elements", application, beforeElements.Count);
+
+                // Check if this is a protocol URI (e.g., ms-settings:, mailto:, http:)
+                if (IsProtocolUri(application))
+                {
+                    _logger.LogInformation("Detected protocol URI: {Application}, launching directly", application);
+                    return await LaunchProtocolUri(application, beforeElements, timeoutSeconds, cancellationToken);
+                }
                 
                 // Step 1: Try Win32 application launch
                 var win32LaunchResult = await TryLaunchWin32(application, arguments, workingDirectory, cancellationToken);
@@ -190,27 +182,9 @@ namespace UIAutomationMCP.Server.Services
                     _logger.LogInformation("Win32 launch succeeded for {Application}, now detecting new elements", application);
                     // Wait a moment for the application to create its UI elements
                     await Task.Delay(1000, cancellationToken);
-                    var newElements = await WaitForNewElements(beforeElements, application, 8000, cancellationToken);
-                    _logger.LogInformation("Found {Count} new elements after Win32 launch", newElements.Count);
-                    if (newElements.Any())
-                    {
-                        detectionStopwatch.Stop();
-                        
-                        // Group elements by WindowHandle and find the most relevant window
-                        var elementsByWindow = newElements.Where(e => e.WindowHandle.HasValue).GroupBy(e => e.WindowHandle!.Value).ToList();
-                        var mostRelevantGroup = elementsByWindow
-                            .OrderByDescending(g => g.Any(e => IsRelatedToApp(e, application)) ? 1 : 0)
-                            .ThenByDescending(g => g.Count())
-                            .First();
-                        
-                        var windowHandle = mostRelevantGroup.Key;
-                        var relevantElements = mostRelevantGroup.ToList();
-                        var processId = relevantElements.FirstOrDefault()?.ProcessId ?? 0;
-                        
-                        _logger.LogInformation("Successfully launched Win32 application: {Application}, HWND: 0x{WindowHandle:X}, PID: {ProcessId}, found {Count} elements for this window (total new: {TotalCount}) in {ElapsedMs}ms", 
-                            application, windowHandle, processId, relevantElements.Count, newElements.Count, detectionStopwatch.ElapsedMilliseconds);
-                        return ProcessLaunchResponse.CreateSuccess(processId, application, false, relevantElements.FirstOrDefault()?.Name, windowHandle);
-                    }
+                    
+                    var result = await WaitForElementsAndCreateResponse(beforeElements, application, "Win32", detectionStopwatch, cancellationToken);
+                    if (result != null) return result;
                 }
 
                 // Step 2: Try UWP application launch
@@ -220,27 +194,9 @@ namespace UIAutomationMCP.Server.Services
                     _logger.LogInformation("UWP launch succeeded for {Application}, now detecting new elements", application);
                     // Wait a moment for the application to create its UI elements
                     await Task.Delay(1000, cancellationToken);
-                    var newElements = await WaitForNewElements(beforeElements, application, 8000, cancellationToken);
-                    _logger.LogInformation("Found {Count} new elements after UWP launch", newElements.Count);
-                    if (newElements.Any())
-                    {
-                        detectionStopwatch.Stop();
-                        
-                        // Group elements by WindowHandle and find the most relevant window
-                        var elementsByWindow = newElements.Where(e => e.WindowHandle.HasValue).GroupBy(e => e.WindowHandle!.Value).ToList();
-                        var mostRelevantGroup = elementsByWindow
-                            .OrderByDescending(g => g.Any(e => IsRelatedToApp(e, application)) ? 1 : 0)
-                            .ThenByDescending(g => g.Count())
-                            .First();
-                        
-                        var windowHandle = mostRelevantGroup.Key;
-                        var relevantElements = mostRelevantGroup.ToList();
-                        var processId = relevantElements.FirstOrDefault()?.ProcessId ?? 0;
-                        
-                        _logger.LogInformation("Successfully launched UWP application: {Application}, HWND: 0x{WindowHandle:X}, PID: {ProcessId}, found {Count} elements for this window (total new: {TotalCount}) in {ElapsedMs}ms", 
-                            application, windowHandle, processId, relevantElements.Count, newElements.Count, detectionStopwatch.ElapsedMilliseconds);
-                        return ProcessLaunchResponse.CreateSuccess(processId, application, false, relevantElements.FirstOrDefault()?.Name, windowHandle);
-                    }
+                    
+                    var result = await WaitForElementsAndCreateResponse(beforeElements, application, "UWP", detectionStopwatch, cancellationToken);
+                    if (result != null) return result;
                 }
 
                 detectionStopwatch.Stop();
@@ -254,6 +210,123 @@ namespace UIAutomationMCP.Server.Services
                 _logger.LogError(ex, "Error launching application: {Application}", application);
                 return ProcessLaunchResponse.CreateError($"Exception during launch: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Check if the application string is a protocol URI
+        /// </summary>
+        private bool IsProtocolUri(string application)
+        {
+            // Protocol URIs typically have the format "protocol:" 
+            // Common examples: ms-settings:, mailto:, http:, https:, tel:, etc.
+            return application.Contains(':') && 
+                   !Path.IsPathFullyQualified(application) && // Not a file path like C:\Program Files\...
+                   !application.StartsWith("\\\\"); // Not a UNC path
+        }
+
+        /// <summary>
+        /// Launch a protocol URI directly using Process.Start
+        /// </summary>
+        private async Task<ProcessLaunchResponse> LaunchProtocolUri(string protocolUri, List<ElementInfo> beforeElements, int timeoutSeconds, CancellationToken cancellationToken)
+        {
+            var detectionStopwatch = Stopwatch.StartNew();
+            
+            try
+            {
+
+                // Launch the protocol URI directly
+                var processInfo = new ProcessStartInfo
+                {
+                    FileName = protocolUri,
+                    UseShellExecute = true, // Required for protocol URIs
+                    CreateNoWindow = false
+                };
+
+                var process = Process.Start(processInfo);
+                _logger.LogInformation("Started protocol URI {ProtocolUri}", protocolUri);
+
+                // Wait for the application to create its UI elements
+                await Task.Delay(2000, cancellationToken);
+                
+                var result = await WaitForElementsAndCreateResponse(beforeElements, protocolUri, "Protocol URI", detectionStopwatch, cancellationToken);
+                if (result != null) return result;
+
+                // Even if no new elements are detected, the protocol launch might have succeeded
+                // (e.g., it opened an existing window or a system dialog)
+                detectionStopwatch.Stop();
+                _logger.LogInformation("Protocol URI {ProtocolUri} launched successfully, but no new UI elements detected in {ElapsedMs}ms", 
+                    protocolUri, detectionStopwatch.ElapsedMilliseconds);
+                return ProcessLaunchResponse.CreateSuccess(process?.Id ?? 0, protocolUri, false, "Protocol launched", null);
+            }
+            catch (Exception ex)
+            {
+                detectionStopwatch.Stop();
+                _logger.LogError(ex, "Error launching protocol URI: {ProtocolUri}", protocolUri);
+                return ProcessLaunchResponse.CreateError($"Failed to launch protocol URI: {protocolUri}. Error: {ex.Message}");
+            }
+        }
+
+
+        /// <summary>
+        /// Wait for new UI elements and create success response after launch
+        /// </summary>
+        private async Task<ProcessLaunchResponse> WaitForElementsAndCreateResponse(
+            List<ElementInfo> beforeElements,
+            string application,
+            string launchType,
+            Stopwatch detectionStopwatch,
+            CancellationToken cancellationToken)
+        {
+            // Wait for new elements to appear - protocol URIs might need slightly longer
+            var waitTimeMs = launchType == "Protocol URI" ? 10000 : 8000;
+            var newElements = await WaitForNewElements(beforeElements, application, waitTimeMs, cancellationToken);
+            _logger.LogInformation("Found {Count} new elements after {LaunchType} launch", newElements.Count, launchType);
+
+            if (newElements.Any())
+            {
+                detectionStopwatch.Stop();
+                return CreateSuccessResponseFromElements(newElements, application, launchType, detectionStopwatch.ElapsedMilliseconds);
+            }
+
+            return null; // No new elements found, caller should handle fallback
+        }
+
+        /// <summary>
+        /// Process new elements and create success response with most relevant window
+        /// </summary>
+        private ProcessLaunchResponse CreateSuccessResponseFromElements(
+            List<ElementInfo> newElements, 
+            string application, 
+            string launchType,
+            long elapsedMs)
+        {
+            if (!newElements.Any())
+            {
+                return ProcessLaunchResponse.CreateSuccess(0, application, false, "Application launched", null);
+            }
+
+            // Group elements by WindowHandle and find the most relevant window
+            var elementsByWindow = newElements.Where(e => e.WindowHandle.HasValue).GroupBy(e => e.WindowHandle!.Value).ToList();
+            
+            if (elementsByWindow.Any())
+            {
+                // Simply select the window with the most elements
+                var mostRelevantGroup = elementsByWindow
+                    .OrderByDescending(g => g.Count())
+                    .First();
+                
+                var windowHandle = mostRelevantGroup.Key;
+                var relevantElements = mostRelevantGroup.ToList();
+                var processId = relevantElements.FirstOrDefault()?.ProcessId ?? 0;
+                
+                _logger.LogInformation("Successfully launched {LaunchType} application: {Application}, HWND: 0x{WindowHandle:X}, PID: {ProcessId}, found {Count} elements for this window (total new: {TotalCount}) in {ElapsedMs}ms", 
+                    launchType, application, windowHandle, processId, relevantElements.Count, newElements.Count, elapsedMs);
+                return ProcessLaunchResponse.CreateSuccess(processId, application, false, relevantElements.FirstOrDefault()?.Name, windowHandle);
+            }
+
+            // Fallback if no windows found (shouldn't happen if newElements is not empty)
+            var firstElement = newElements.First();
+            return ProcessLaunchResponse.CreateSuccess(firstElement.ProcessId, application, false, firstElement.Name, firstElement.WindowHandle);
         }
 
         private HashSet<int> GetRelevantProcesses(string appName)
