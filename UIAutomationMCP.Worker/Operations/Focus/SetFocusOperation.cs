@@ -69,9 +69,11 @@ namespace UIAutomationMCP.Worker.Operations.Focus
 
         protected override Core.Validation.ValidationResult ValidateRequest(SetFocusRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.AutomationId))
+            if (string.IsNullOrWhiteSpace(request.AutomationId) && 
+                string.IsNullOrWhiteSpace(request.Name) && 
+                string.IsNullOrWhiteSpace(request.ControlType))
             {
-                return Core.Validation.ValidationResult.Failure("Element ID is required");
+                return Core.Validation.ValidationResult.Failure("At least one element identifier (AutomationId, Name, or ControlType) is required");
             }
 
             return Core.Validation.ValidationResult.Success;
