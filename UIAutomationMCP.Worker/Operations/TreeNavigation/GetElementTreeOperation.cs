@@ -90,10 +90,6 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
             var node = new TreeNode(elementInfo)
             {
                 // TreeNode specific properties  
-                RuntimeId = element.GetRuntimeId()?.ToString() ?? "",
-                IsKeyboardFocusable = element.Current.IsKeyboardFocusable,
-                HasKeyboardFocus = element.Current.HasKeyboardFocus,
-                IsPassword = element.Current.IsPassword,
                 Depth = currentDepth,
                 HasChildren = false
             };
@@ -114,7 +110,6 @@ namespace UIAutomationMCP.Worker.Operations.TreeNavigation
                             {
                                 var childNode = BuildElementTree(child, maxDepth, currentDepth + 1);
                                 childNode.ParentAutomationId = node.AutomationId;
-                                childNode.ParentName = node.Name;
                                 node.Children.Add(childNode);
                             }
                             catch (ElementNotAvailableException)

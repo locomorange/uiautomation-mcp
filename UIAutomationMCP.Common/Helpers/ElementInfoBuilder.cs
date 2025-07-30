@@ -297,7 +297,8 @@ namespace UIAutomationMCP.Common.Helpers
                 HelpText = string.IsNullOrEmpty(element.Current.HelpText) ? null : element.Current.HelpText,
                 HasKeyboardFocus = element.Current.HasKeyboardFocus,
                 IsKeyboardFocusable = element.Current.IsKeyboardFocusable,
-                IsPassword = element.Current.IsPassword
+                IsPassword = element.Current.IsPassword,
+                RuntimeId = GetRuntimeIdString(element)
             };
 
             // Set pattern information safely
@@ -313,7 +314,8 @@ namespace UIAutomationMCP.Common.Helpers
                 HelpText = string.IsNullOrEmpty(element.Cached.HelpText) ? null : element.Cached.HelpText,
                 HasKeyboardFocus = element.Cached.HasKeyboardFocus,
                 IsKeyboardFocusable = element.Cached.IsKeyboardFocusable,
-                IsPassword = element.Cached.IsPassword
+                IsPassword = element.Cached.IsPassword,
+                RuntimeId = GetRuntimeIdString(element)
             };
 
             // Set pattern information safely
@@ -430,6 +432,26 @@ namespace UIAutomationMCP.Common.Helpers
             catch (Exception ex)
             {
                 logger?.LogWarning(ex, "Failed to retrieve pattern information for element");
+            }
+        }
+
+        /// <summary>
+        /// Gets the RuntimeId as a string representation for debugging purposes
+        /// </summary>
+        private static string? GetRuntimeIdString(AutomationElement element)
+        {
+            try
+            {
+                var runtimeId = element.GetRuntimeId();
+                if (runtimeId == null || runtimeId.Length == 0)
+                    return null;
+                
+                return string.Join(",", runtimeId);
+            }
+            catch (Exception)
+            {
+                // RuntimeId access failed, return null
+                return null;
             }
         }
     }

@@ -122,12 +122,6 @@ namespace UIAutomationMCP.Models.Results
         public int Depth { get; set; }
 
         /// <summary>
-        /// ノードが展開されているかどうか
-        /// </summary>
-        [JsonPropertyName("isExpanded")]
-        public bool IsExpanded { get; set; }
-
-        /// <summary>
         /// 子要素を持っているかどうか
         /// </summary>
         [JsonPropertyName("hasChildren")]
@@ -138,35 +132,5 @@ namespace UIAutomationMCP.Models.Results
         /// </summary>
         [JsonPropertyName("parentAutomationId")]
         public string? ParentAutomationId { get; set; }
-
-        /// <summary>
-        /// 親要素のName
-        /// </summary>
-        [JsonPropertyName("parentName")]
-        public string? ParentName { get; set; }
-
-        /// <summary>
-        /// RuntimeId（UI Automation内部識別子）
-        /// </summary>
-        [JsonPropertyName("runtimeId")]
-        public string? RuntimeId { get; set; }
-
-        /// <summary>
-        /// キーボードフォーカス可能かどうか
-        /// </summary>
-        [JsonPropertyName("isKeyboardFocusable")]
-        public bool IsKeyboardFocusable { get; set; }
-
-        /// <summary>
-        /// キーボードフォーカスを持っているかどうか
-        /// </summary>
-        [JsonPropertyName("hasKeyboardFocus")]
-        public bool HasKeyboardFocus { get; set; }
-
-        /// <summary>
-        /// パスワードフィールドかどうか
-        /// </summary>
-        [JsonPropertyName("isPassword")]
-        public bool IsPassword { get; set; }
     }
 }

@@ -164,6 +164,12 @@ namespace UIAutomationMCP.Models
         [JsonPropertyName("isPassword")]
         public bool IsPassword { get; set; }
         
+        /// <summary>
+        /// RuntimeId（UI Automation内部識別子）- デバッグ・診断用
+        /// </summary>
+        [JsonPropertyName("runtimeId")]
+        public string? RuntimeId { get; set; }
+        
         // === 型安全なパターン情報プロパティ ===
         
         [JsonPropertyName("toggle")]
