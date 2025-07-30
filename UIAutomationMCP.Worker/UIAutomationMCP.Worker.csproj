@@ -34,8 +34,4 @@
     <ProjectReference Include="..\UIAutomationMCP.Models\UIAutomationMCP.Models.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\UIAutomationMCP.SourceGenerators\UIAutomationMCP.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-  </ItemGroup>
-
 </Project>

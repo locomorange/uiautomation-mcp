@@ -4,7 +4,6 @@ using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.Core.Exceptions;
-using UIAutomationMCP.Core.Attributes;
 using UIAutomationMCP.Common.Abstractions;
 using UIAutomationMCP.Common.Services;
 using UIAutomationMCP.Common.Helpers;
@@ -13,7 +12,6 @@ using Microsoft.Extensions.Logging;
 
 namespace UIAutomationMCP.Worker.Operations.Invoke
 {
-    [AutoRegisterOperation]
     public class InvokeElementOperation : BaseUIAutomationOperation<InvokeElementRequest, ActionResult>
     {
         public InvokeElementOperation(ElementFinderService elementFinderService, ILogger<InvokeElementOperation> logger)
