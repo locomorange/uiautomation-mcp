@@ -104,6 +104,12 @@ namespace UIAutomationMCP.Models
         [JsonPropertyName("supportedPatterns")]
         public string[] SupportedPatterns { get; set; } = [];
         
+        /// <summary>
+        /// ネイティブウィンドウハンドル（要素に関連するウィンドウのHWND）
+        /// </summary>
+        [JsonPropertyName("windowHandle")]
+        public long? WindowHandle { get; set; }
+        
         // === オプショナル詳細情報 ===
         
         /// <summary>

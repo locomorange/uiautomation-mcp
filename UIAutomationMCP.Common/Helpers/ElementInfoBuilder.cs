@@ -36,7 +36,8 @@ namespace UIAutomationMCP.Common.Helpers
                     Width = element.Current.BoundingRectangle.Width,
                     Height = element.Current.BoundingRectangle.Height
                 },
-                SupportedPatterns = GetSupportedPatternsArray(element, false)
+                SupportedPatterns = GetSupportedPatternsArray(element, false),
+                WindowHandle = GetSafeWindowHandle(element, false)
             };
 
             // Include details if requested
@@ -73,7 +74,8 @@ namespace UIAutomationMCP.Common.Helpers
                     Width = element.Cached.BoundingRectangle.Width,
                     Height = element.Cached.BoundingRectangle.Height
                 },
-                SupportedPatterns = GetSupportedPatternsArray(element, true)
+                SupportedPatterns = GetSupportedPatternsArray(element, true),
+                WindowHandle = GetSafeWindowHandle(element, true)
             };
 
             // Include details if requested
@@ -310,6 +312,21 @@ namespace UIAutomationMCP.Common.Helpers
             SetPatternInfo(element, details, logger, useCached: true);
             
             return details;
+        }
+
+        private static long? GetSafeWindowHandle(AutomationElement element, bool useCached = false)
+        {
+            try
+            {
+                // NativeWindowHandleはCachedでは利用できないため、常にCurrentを使用
+                var handle = element.Current.NativeWindowHandle;
+                return handle == 0 ? null : (long)handle;
+            }
+            catch (Exception)
+            {
+                // HWNDを持たない要素（一部のコントロール）では例外が発生する可能性
+                return null;
+            }
         }
 
         private static void SetPatternInfo(AutomationElement element, ElementDetails details, ILogger? logger, bool useCached = false)
