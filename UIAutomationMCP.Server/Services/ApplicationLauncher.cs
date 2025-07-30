@@ -62,40 +62,40 @@ namespace UIAutomationMCP.Server.Services
         }
 
         /// <summary>
-        /// Find new process IDs by comparing PID lists
+        /// Find new window handles by comparing HWND lists
         /// </summary>
         private List<ElementInfo> FindNewElements(List<ElementInfo> beforeElements, List<ElementInfo> afterElements)
         {
-            // Get PID lists
-            var beforePids = beforeElements.Select(e => e.ProcessId).ToList();
-            var afterPids = afterElements.Select(e => e.ProcessId).ToList();
+            // Get WindowHandle lists (filter out null handles)
+            var beforeHandles = beforeElements.Where(e => e.WindowHandle.HasValue).Select(e => e.WindowHandle!.Value).ToList();
+            var afterHandles = afterElements.Where(e => e.WindowHandle.HasValue).Select(e => e.WindowHandle!.Value).ToList();
             
-            _logger.LogDebug("Before PIDs: [{BeforePids}]", string.Join(", ", beforePids.Take(10)));
-            _logger.LogDebug("After PIDs: [{AfterPids}]", string.Join(", ", afterPids.Take(10)));
+            _logger.LogDebug("Before HWNDs: [{BeforeHandles}]", string.Join(", ", beforeHandles.Take(10).Select(h => $"0x{h:X}")));
+            _logger.LogDebug("After HWNDs: [{AfterHandles}]", string.Join(", ", afterHandles.Take(10).Select(h => $"0x{h:X}")));
             
-            // Find new PIDs that appeared after launch
-            var newPids = new HashSet<int>();
+            // Find new WindowHandles that appeared after launch
+            var newHandles = new HashSet<long>();
             
-            // Simple approach: if a PID appears more times in after than before, it's new
-            var beforePidCounts = beforePids.GroupBy(p => p).ToDictionary(g => g.Key, g => g.Count());
-            var afterPidCounts = afterPids.GroupBy(p => p).ToDictionary(g => g.Key, g => g.Count());
+            // Simple approach: if a WindowHandle appears more times in after than before, it's new
+            var beforeHandleCounts = beforeHandles.GroupBy(h => h).ToDictionary(g => g.Key, g => g.Count());
+            var afterHandleCounts = afterHandles.GroupBy(h => h).ToDictionary(g => g.Key, g => g.Count());
             
-            foreach (var (pid, afterCount) in afterPidCounts)
+            foreach (var (handle, afterCount) in afterHandleCounts)
             {
-                var beforeCount = beforePidCounts.GetValueOrDefault(pid, 0);
+                var beforeCount = beforeHandleCounts.GetValueOrDefault(handle, 0);
                 if (afterCount > beforeCount)
                 {
-                    newPids.Add(pid);
-                    _logger.LogInformation("PID {Pid} increased from {Before} to {After} windows - marking as new", 
-                        pid, beforeCount, afterCount);
+                    newHandles.Add(handle);
+                    _logger.LogInformation("HWND 0x{Handle:X} increased from {Before} to {After} windows - marking as new", 
+                        handle, beforeCount, afterCount);
                 }
             }
             
-            // Return all elements with new PIDs
-            var newElements = afterElements.Where(e => newPids.Contains(e.ProcessId)).ToList();
+            // Return all elements with new WindowHandles
+            var newElements = afterElements.Where(e => e.WindowHandle.HasValue && newHandles.Contains(e.WindowHandle.Value)).ToList();
             
-            _logger.LogInformation("Before: {BeforeCount} windows, After: {AfterCount} windows, New PIDs: [{NewPids}], New elements: {NewCount}", 
-                beforeElements.Count, afterElements.Count, string.Join(", ", newPids), newElements.Count);
+            _logger.LogInformation("Before: {BeforeCount} windows, After: {AfterCount} windows, New HWNDs: [{NewHandles}], New elements: {NewCount}", 
+                beforeElements.Count, afterElements.Count, string.Join(", ", newHandles.Select(h => $"0x{h:X}")), newElements.Count);
             
             return newElements;
         }
@@ -121,9 +121,9 @@ namespace UIAutomationMCP.Server.Services
 
                 if (newElements.Any())
                 {
-                    // Merge new elements, avoiding duplicates by ProcessId
-                    var existingProcessIds = new HashSet<int>(allNewElements.Select(e => e.ProcessId));
-                    var uniqueNewElements = newElements.Where(e => !existingProcessIds.Contains(e.ProcessId)).ToList();
+                    // Merge new elements, avoiding duplicates by WindowHandle
+                    var existingWindowHandles = new HashSet<long>(allNewElements.Where(e => e.WindowHandle.HasValue).Select(e => e.WindowHandle!.Value));
+                    var uniqueNewElements = newElements.Where(e => e.WindowHandle.HasValue && !existingWindowHandles.Contains(e.WindowHandle.Value)).ToList();
                     
                     allNewElements.AddRange(uniqueNewElements);
                     _logger.LogDebug("Found {NewCount} new unique elements, total: {TotalCount}", 
@@ -196,19 +196,20 @@ namespace UIAutomationMCP.Server.Services
                     {
                         detectionStopwatch.Stop();
                         
-                        // Group elements by ProcessId and find the most relevant process
-                        var elementsByProcess = newElements.GroupBy(e => e.ProcessId).ToList();
-                        var mostRelevantGroup = elementsByProcess
+                        // Group elements by WindowHandle and find the most relevant window
+                        var elementsByWindow = newElements.Where(e => e.WindowHandle.HasValue).GroupBy(e => e.WindowHandle!.Value).ToList();
+                        var mostRelevantGroup = elementsByWindow
                             .OrderByDescending(g => g.Any(e => IsRelatedToApp(e, application)) ? 1 : 0)
                             .ThenByDescending(g => g.Count())
                             .First();
                         
-                        var processId = mostRelevantGroup.Key;
+                        var windowHandle = mostRelevantGroup.Key;
                         var relevantElements = mostRelevantGroup.ToList();
+                        var processId = relevantElements.FirstOrDefault()?.ProcessId ?? 0;
                         
-                        _logger.LogInformation("Successfully launched Win32 application: {Application}, PID: {ProcessId}, found {Count} elements for this process (total new: {TotalCount}) in {ElapsedMs}ms", 
-                            application, processId, relevantElements.Count, newElements.Count, detectionStopwatch.ElapsedMilliseconds);
-                        return ProcessLaunchResponse.CreateSuccess(processId, application, false);
+                        _logger.LogInformation("Successfully launched Win32 application: {Application}, HWND: 0x{WindowHandle:X}, PID: {ProcessId}, found {Count} elements for this window (total new: {TotalCount}) in {ElapsedMs}ms", 
+                            application, windowHandle, processId, relevantElements.Count, newElements.Count, detectionStopwatch.ElapsedMilliseconds);
+                        return ProcessLaunchResponse.CreateSuccess(processId, application, false, relevantElements.FirstOrDefault()?.Name, windowHandle);
                     }
                 }
 
@@ -225,19 +226,20 @@ namespace UIAutomationMCP.Server.Services
                     {
                         detectionStopwatch.Stop();
                         
-                        // Group elements by ProcessId and find the most relevant process
-                        var elementsByProcess = newElements.GroupBy(e => e.ProcessId).ToList();
-                        var mostRelevantGroup = elementsByProcess
+                        // Group elements by WindowHandle and find the most relevant window
+                        var elementsByWindow = newElements.Where(e => e.WindowHandle.HasValue).GroupBy(e => e.WindowHandle!.Value).ToList();
+                        var mostRelevantGroup = elementsByWindow
                             .OrderByDescending(g => g.Any(e => IsRelatedToApp(e, application)) ? 1 : 0)
                             .ThenByDescending(g => g.Count())
                             .First();
                         
-                        var processId = mostRelevantGroup.Key;
+                        var windowHandle = mostRelevantGroup.Key;
                         var relevantElements = mostRelevantGroup.ToList();
+                        var processId = relevantElements.FirstOrDefault()?.ProcessId ?? 0;
                         
-                        _logger.LogInformation("Successfully launched UWP application: {Application}, PID: {ProcessId}, found {Count} elements for this process (total new: {TotalCount}) in {ElapsedMs}ms", 
-                            application, processId, relevantElements.Count, newElements.Count, detectionStopwatch.ElapsedMilliseconds);
-                        return ProcessLaunchResponse.CreateSuccess(processId, application, false);
+                        _logger.LogInformation("Successfully launched UWP application: {Application}, HWND: 0x{WindowHandle:X}, PID: {ProcessId}, found {Count} elements for this window (total new: {TotalCount}) in {ElapsedMs}ms", 
+                            application, windowHandle, processId, relevantElements.Count, newElements.Count, detectionStopwatch.ElapsedMilliseconds);
+                        return ProcessLaunchResponse.CreateSuccess(processId, application, false, relevantElements.FirstOrDefault()?.Name, windowHandle);
                     }
                 }
 

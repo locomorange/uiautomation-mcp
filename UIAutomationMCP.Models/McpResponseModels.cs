@@ -34,10 +34,13 @@ namespace UIAutomationMCP.Models
         [JsonPropertyName("windowTitle")]
         public string? WindowTitle { get; set; }
         
+        [JsonPropertyName("windowHandle")]
+        public long? WindowHandle { get; set; }
+        
         /// <summary>
         /// Create a success response
         /// </summary>
-        public static ProcessLaunchResponse CreateSuccess(int processId, string processName, bool hasExited, string? windowTitle = null)
+        public static ProcessLaunchResponse CreateSuccess(int processId, string processName, bool hasExited, string? windowTitle = null, long? windowHandle = null)
         {
             return new ProcessLaunchResponse
             {
@@ -45,7 +48,8 @@ namespace UIAutomationMCP.Models
                 ProcessId = processId,
                 ProcessName = processName,
                 HasExited = hasExited,
-                WindowTitle = windowTitle
+                WindowTitle = windowTitle,
+                WindowHandle = windowHandle
             };
         }
         
