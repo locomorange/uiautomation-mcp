@@ -36,17 +36,17 @@ namespace UIAutomationMCP.Worker.Helpers
                 // Framework-specific optimization
                 if (IsWpfFramework(frameworkId))
                 {
-                    // WPFはFindAllが効率的
+                    // FindAll is efficient for WPF
                     return scope == TreeScope.Children ? SearchMethod.FindAll : SearchMethod.TreeWalker;
                 }
 
                 if (IsWin32Framework(frameworkId))
                 {
-                    // Win32はTreeWalkerが効率的
+                    // TreeWalker is efficient for Win32
                     return SearchMethod.TreeWalker;
                 }
 
-                // コントロールタイプ別の最適化
+                // Optimization by control type
                 if (IsListContainer(controlType))
                 {
                     return ListSearchOptimizer.GetOptimalMethod(searchRoot) == ListSearchMethod.FindAll 
@@ -54,7 +54,7 @@ namespace UIAutomationMCP.Worker.Helpers
                         : SearchMethod.TreeWalker;
                 }
 
-                // 検索範囲による最適化
+                // Optimization based on search scope
                 return scope switch
                 {
                     TreeScope.Children => SearchMethod.FindAll,
@@ -65,7 +65,7 @@ namespace UIAutomationMCP.Worker.Helpers
             }
             catch
             {
-                // エラー時はFindAllをデフォルト
+                // Default to FindAll in case of error
                 return SearchMethod.FindAll;
             }
         }
@@ -111,12 +111,12 @@ namespace UIAutomationMCP.Worker.Helpers
             // 特別な警告
             if (searchRoot == AutomationElement.RootElement)
             {
-                recommendation.Warnings.Add("Root要素からの検索は非効率的です。スコープを限定することを推奨します。");
+                recommendation.Warnings.Add("Searching from the Root element is inefficient. It is recommended to limit the search scope.");
             }
 
             if (scope == TreeScope.Subtree && complexity == SearchComplexity.Complex)
             {
-                recommendation.Warnings.Add("複雑な条件でのSubtree検索は時間がかかる可能性があります。");
+                recommendation.Warnings.Add("Searching with complex conditions and Subtree scope may take a long time.");
             }
 
             return recommendation;
@@ -170,52 +170,75 @@ namespace UIAutomationMCP.Worker.Helpers
     }
 
     /// <summary>
-    /// 検索方法の種類
+    /// Types of search methods
     /// </summary>
     public enum SearchMethod
     {
         /// <summary>
-        /// FindAll方式（一括検索）
+        /// FindAll method (batch search)
         /// </summary>
         FindAll,
         
         /// <summary>
-        /// TreeWalker方式（段階的ナビゲーション）
+        /// TreeWalker method (step-by-step navigation)
         /// </summary>
         TreeWalker
     }
 
     /// <summary>
-    /// 検索条件の複雑さ
+    /// Complexity of the search condition
     /// </summary>
     public enum SearchComplexity
     {
         /// <summary>
-        /// シンプルな条件（単一プロパティ）
+        /// Simple condition (single property)
         /// </summary>
         Simple,
         
         /// <summary>
-        /// 中程度の複雑さ（2-3個の条件）
+        /// Medium complexity (2-3 conditions)
         /// </summary>
         Medium,
         
         /// <summary>
-        /// 複雑な条件（4個以上の条件、複雑なOR/NOT）
+        /// Complex condition (4 or more conditions, complex OR/NOT)
         /// </summary>
         Complex
     }
 
     /// <summary>
-    /// 検索推奨設定
+    /// Search recommendation settings
     /// </summary>
     public class SearchRecommendation
     {
+        /// <summary>
+        /// Recommended search method
+        /// </summary>
         public SearchMethod Method { get; set; }
+
+        /// <summary>
+        /// Complexity of the search condition
+        /// </summary>
         public SearchComplexity Complexity { get; set; }
+
+        /// <summary>
+        /// Whether to use cache for the search
+        /// </summary>
         public bool UseCache { get; set; }
+
+        /// <summary>
+        /// Recommended timeout in seconds
+        /// </summary>
         public int TimeoutSeconds { get; set; }
+
+        /// <summary>
+        /// Maximum number of results to return
+        /// </summary>
         public int MaxResults { get; set; }
+
+        /// <summary>
+        /// List of warnings or cautions for the search
+        /// </summary>
         public List<string> Warnings { get; set; } = new List<string>();
     }
 }
