@@ -104,9 +104,9 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
                     WindowTitle = request.WindowTitle,
                     Scope = request.Scope,
                     WindowHandle = request.WindowHandle,
-                    // Use WindowHandle as filter when WindowTitle is specified (window-level search)
-                    // Otherwise use WindowHandle as search root (search within window)
-                    UseWindowHandleAsFilter = request.WindowHandle.HasValue && !string.IsNullOrEmpty(request.WindowTitle)
+                    // Use the explicit parameter from request, with fallback logic for backward compatibility
+                    UseWindowHandleAsFilter = request.UseWindowHandleAsFilter || 
+                        (request.WindowHandle.HasValue && !string.IsNullOrEmpty(request.WindowTitle))
                 };
                 var foundElementsCollection = _elementFinderService.FindElements(searchCriteria);
                 _logger?.LogDebug("FindElements completed, found {Count} elements", foundElementsCollection?.Count ?? 0);

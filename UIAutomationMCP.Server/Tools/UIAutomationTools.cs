@@ -112,6 +112,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Maximum number of results to return (default: 50)")] int maxResults = 50,
             [Description("Sort results by: Name, ControlType, Position (optional)")] string? sortBy = null,
             [Description("Include comprehensive details: all UI patterns (Toggle, Range, Window, Selection, Grid, Scroll, Text, Transform, Value, ExpandCollapse, Dock, MultipleView, Table, etc.), accessibility info (labels, help text, keyboard shortcuts), and element hierarchy (default: false)")] bool includeDetails = false,
+            [Description("Use WindowHandle as filter instead of search root (default: false). true=window-level search, false=search within window")] bool useWindowHandleAsFilter = false,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _elementSearchService.SearchElementsAsync(
                 new UIAutomationMCP.Models.Requests.SearchElementsRequest
@@ -131,7 +132,8 @@ namespace UIAutomationMCP.Server.Tools
                     EnabledOnly = enabledOnly,
                     MaxResults = maxResults,
                     SortBy = sortBy,
-                    IncludeDetails = includeDetails
+                    IncludeDetails = includeDetails,
+                    UseWindowHandleAsFilter = useWindowHandleAsFilter
                 }, timeoutSeconds));
 
 

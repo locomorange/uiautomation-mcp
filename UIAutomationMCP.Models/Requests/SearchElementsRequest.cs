@@ -120,6 +120,14 @@ namespace UIAutomationMCP.Models.Requests
         [JsonPropertyName("windowHandle")]
         public long? WindowHandle { get; set; }
 
+        /// <summary>
+        /// WindowHandleをフィルターとして使用するかどうか（デフォルト: false）
+        /// true: WindowHandleをフィルター条件として使用（ウィンドウレベル検索）
+        /// false: WindowHandleを検索ルートとして使用（ウィンドウ内検索）
+        /// </summary>
+        [JsonPropertyName("useWindowHandleAsFilter")]
+        public bool UseWindowHandleAsFilter { get; set; } = false;
+
     }
 
     /// <summary>
