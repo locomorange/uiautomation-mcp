@@ -91,27 +91,28 @@ namespace UIAutomationMCP.Server
                     {
                         var config = baseDir.Contains("Debug") ? "Debug" : "Release";
                         
-                        // Worker path
-                        workerPath = Path.Combine(solutionDir, "UIAutomationMCP.Worker");
-                        if (!Directory.Exists(workerPath))
+                        // Worker path - prioritize built executable
+                        workerPath = Path.Combine(solutionDir, "UIAutomationMCP.Subprocess.Worker", "bin", config, "net9.0-windows", "win-x64", "UIAutomationMCP.Subprocess.Worker.exe");
+                        if (!File.Exists(workerPath))
                         {
-                            workerPath = Path.Combine(solutionDir, "UIAutomationMCP.Worker", "bin", config, "net9.0-windows", "UIAutomationMCP-Worker.exe");
+                            // Fallback to project directory for 'dotnet run'
+                            workerPath = Path.Combine(solutionDir, "UIAutomationMCP.Subprocess.Worker");
                         }
                         
-                        // Monitor path
-                        monitorPath = Path.Combine(solutionDir, "UIAutomationMCP.Monitor", "bin", config, "net9.0-windows", "UIAutomationMCP.Monitor.exe");
+                        // Monitor path - prioritize built executable  
+                        monitorPath = Path.Combine(solutionDir, "UIAutomationMCP.Subprocess.Monitor", "bin", config, "net9.0-windows", "win-x64", "UIAutomationMCP.Subprocess.Monitor.exe");
                         if (!File.Exists(monitorPath))
                         {
                             // Fallback to directory if exe not found
-                            monitorPath = Path.Combine(solutionDir, "UIAutomationMCP.Monitor");
+                            monitorPath = Path.Combine(solutionDir, "UIAutomationMCP.Subprocess.Monitor");
                         }
                     }
                 }
                 else
                 {
                     // In production/tool deployment, executables should be in same directory
-                    workerPath = Path.Combine(baseDir, "UIAutomationMCP-Worker.exe");
-                    monitorPath = Path.Combine(baseDir, "UIAutomationMCP.Monitor.exe");
+                    workerPath = Path.Combine(baseDir, "UIAutomationMCP.Subprocess.Worker.exe");
+                    monitorPath = Path.Combine(baseDir, "UIAutomationMCP.Subprocess.Monitor.exe");
                 }
 
                 // Validate worker path (required)
@@ -124,11 +125,11 @@ namespace UIAutomationMCP.Server
                     var solutionDir = Directory.GetParent(baseDir)?.Parent?.Parent?.Parent?.Parent?.FullName;
                     if (solutionDir != null)
                     {
-                        searchedPaths.Add(Path.Combine(solutionDir, "UIAutomationMCP.Worker"));
+                        searchedPaths.Add(Path.Combine(solutionDir, "UIAutomationMCP.Subprocess.Worker"));
                         var config = baseDir.Contains("Debug") ? "Debug" : "Release";
-                        searchedPaths.Add(Path.Combine(solutionDir, "UIAutomationMCP.Worker", "bin", config, "net9.0-windows", "UIAutomationMCP-Worker.exe"));
+                        searchedPaths.Add(Path.Combine(solutionDir, "UIAutomationMCP.Subprocess.Worker", "bin", config, "net9.0-windows", "UIAutomationMCP.Subprocess.Worker.exe"));
                     }
-                    searchedPaths.Add(Path.Combine(baseDir, "UIAutomationMCP-Worker.exe"));
+                    searchedPaths.Add(Path.Combine(baseDir, "UIAutomationMCP.Subprocess.Worker.exe"));
 
                     logger.LogError("Worker not found. Base directory: {BaseDir}. Searched paths: {SearchedPaths}", 
                         baseDir, string.Join(", ", searchedPaths));

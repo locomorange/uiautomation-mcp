@@ -10,11 +10,11 @@
     <Version>0.1.0</Version>
     <Authors>Locomorange</Authors>
     <Description>Windows UI Automation Model Context Protocol (MCP) server</Description>
-    <PublishAot>true</PublishAot>
+    <PublishAot>false</PublishAot>
     <RuntimeIdentifiers>win-x64;win-x86;win-arm64</RuntimeIdentifiers>
     <InvariantGlobalization>false</InvariantGlobalization>
     <StripSymbols>true</StripSymbols>
-    <PublishTrimmed>true</PublishTrimmed>
+    <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,6 +30,7 @@
     <ProjectReference Include="..\UIAutomationMCP.Core\UIAutomationMCP.Core.csproj" />
     <ProjectReference Include="..\UIAutomationMCP.Models\UIAutomationMCP.Models.csproj" />
     <ProjectReference Include="..\UIAutomationMCP.Subprocess.Worker\UIAutomationMCP.Subprocess.Worker.csproj" />
+    <ProjectReference Include="..\UIAutomationMCP.Subprocess.Monitor\UIAutomationMCP.Subprocess.Monitor.csproj" />
   </ItemGroup>
 
 </Project>
