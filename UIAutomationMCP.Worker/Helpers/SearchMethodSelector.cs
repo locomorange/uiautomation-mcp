@@ -71,7 +71,7 @@ namespace UIAutomationMCP.Worker.Helpers
         }
 
         /// <summary>
-        /// 検索条件の複雑さを評価
+        /// Evaluates the complexity of the search condition
         /// </summary>
         public static SearchComplexity EvaluateComplexity(Condition condition)
         {
@@ -89,7 +89,7 @@ namespace UIAutomationMCP.Worker.Helpers
         }
 
         /// <summary>
-        /// パフォーマンス予測に基づく推奨設定
+        /// Recommendation settings based on performance prediction
         /// </summary>
         public static SearchRecommendation GetRecommendation(
             AutomationElement searchRoot,
