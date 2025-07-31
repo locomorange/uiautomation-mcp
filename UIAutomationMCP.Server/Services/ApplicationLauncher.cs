@@ -564,7 +564,7 @@ namespace UIAutomationMCP.Server.Services
         /// <summary>
         /// Try to launch a protocol URI (e.g., ms-settings:, mailto:, http:)
         /// </summary>
-        private async Task<LaunchResult> TryLaunchProtocolUri(string protocolUri, CancellationToken cancellationToken)
+        private Task<LaunchResult> TryLaunchProtocolUri(string protocolUri, CancellationToken cancellationToken)
         {
             try
             {
@@ -581,12 +581,12 @@ namespace UIAutomationMCP.Server.Services
                 _logger.LogInformation("Started protocol URI {ProtocolUri}", protocolUri);
                 
                 // Return success with process info (process may be null for protocol URIs)
-                return LaunchResult.Success(process?.Id ?? 0, protocolUri);
+                return Task.FromResult(LaunchResult.Success(process?.Id ?? 0, protocolUri));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Protocol URI launch failed for {ProtocolUri}", protocolUri);
-                return LaunchResult.Failure($"Protocol URI launch failed: {ex.Message}");
+                return Task.FromResult(LaunchResult.Failure($"Protocol URI launch failed: {ex.Message}"));
             }
         }
 
