@@ -95,17 +95,17 @@ namespace UIAutomationMCP.Server.Tools
 
         // Window and Element Discovery
 
-        [McpServerTool, Description("Search for UI elements with flexible filtering options. Returns basic element properties by default. When includeDetails=true, returns comprehensive data including: • All supported UI patterns (Toggle state, Range values, Window state, Selection info, Grid/Table structure, Scroll position, Text content, Transform capabilities, etc.) • Accessibility information (labeledBy, helpText, accessKey, acceleratorKey) • Advanced properties (frameworkId, runtimeId, isPassword) • Element hierarchy (parent and children relationships). For window detection, use scope='children' with requiredPattern='Window'.")]
+        [McpServerTool, Description("Search for UI elements with flexible filtering options. Returns basic element properties by default. When includeDetails=true, returns comprehensive data including: • All supported UI patterns (Toggle state, Range values, Window state, Selection info, Grid/Table structure, Scroll position, Text content, Transform capabilities, etc.) • Accessibility information (labeledBy, helpText, accessKey, acceleratorKey) • Advanced properties (frameworkId, runtimeId, isPassword) • Element hierarchy (parent and children relationships). For window detection, use scope='children' with requiredPattern='Window' (finds all elements with WindowPattern including Panes). Avoid controlType='Window' as it excludes WindowPattern-supporting Panes and other window-like elements.")]
         public async Task<object> SearchElements(
             [Description("Cross-property search text (searches Name, AutomationId, ClassName)")] string? searchText = null,
             [Description("Specific AutomationId to search for")] string? automationId = null, 
             [Description("Specific Name (display name) to search for")] string? name = null,
-            [Description("Control type filter (Button, Slider, TextBox, etc.)")] string? controlType = null,
+            [Description("Control type filter (Button, Slider, TextBox, etc.). For windows, use requiredPattern='Window' instead")] string? controlType = null,
             [Description("Class name filter")] string? className = null,
             [Description("Window title filter")] string? windowTitle = null,
             [Description("Native window handle (HWND) for direct element targeting")] long? windowHandle = null,
             [Description("Search scope: children, descendants, subtree (default: descendants)")] string scope = "descendants",
-            [Description("Required UI Automation pattern (only one supported for now)")] string? requiredPattern = null,
+            [Description("Required UI Automation pattern. Use 'Window' to find all window-like elements including Panes")] string? requiredPattern = null,
             [Description("Only return visible elements (default: true)")] bool visibleOnly = true,
             [Description("Enable fuzzy matching for text searches (default: false)")] bool fuzzyMatch = false,
             [Description("Only return enabled elements (default: false)")] bool enabledOnly = false,
