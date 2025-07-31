@@ -4,9 +4,9 @@
     <TargetFramework>net9.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>UIAutomationMCP.Subprocess.Core</AssemblyName>
     <RootNamespace>UIAutomationMCP.Subprocess.Core</RootNamespace>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>

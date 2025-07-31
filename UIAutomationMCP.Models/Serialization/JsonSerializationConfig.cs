@@ -19,8 +19,7 @@ namespace UIAutomationMCP.Models.Serialization
             PropertyNameCaseInsensitive = true,
             AllowTrailingCommas = true,
             ReadCommentHandling = JsonCommentHandling.Skip,
-            NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
-            Converters = { new JsonStringEnumConverter() }
+            NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals
         };
     }
 }
