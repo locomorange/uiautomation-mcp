@@ -12,7 +12,6 @@ using UIAutomationMCP.Worker.Operations.Toggle;
 using UIAutomationMCP.Worker.Operations.Value;
 using UIAutomationMCP.Worker.Operations.Grid;
 using UIAutomationMCP.Worker.Operations.Selection;
-using UIAutomationMCP.Worker.Operations.ControlTypeInfo;
 using UIAutomationMCP.Worker.Operations.Text;
 using UIAutomationMCP.Worker.Operations.Layout;
 using UIAutomationMCP.Worker.Operations.Transform;
@@ -195,10 +194,6 @@ namespace UIAutomationMCP.Worker
             // Range operations
             builder.Services.AddOperation<SetRangeValueOperation, SetRangeValueRequest>();
             
-
-            // Utility operations
-            builder.Services.AddOperation<ValidateControlTypePatternsOperation, ValidateControlTypePatternsRequest>(); 
-
             // Register Worker service
             builder.Services.AddSingleton<WorkerService>();
 

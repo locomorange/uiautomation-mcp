@@ -43,11 +43,6 @@ namespace UIAutomationMCP.Models.Requests
         public string Value { get; set; } = "";
     }
 
-    public class ValidateControlTypePatternsRequest : ElementTargetRequest
-    {
-        public override string Operation => "ValidateControlTypePatterns";
-    }
-
     public class GetAccessibilityInfoRequest : ElementTargetRequest
     {
         public override string Operation => "GetAccessibilityInfo";

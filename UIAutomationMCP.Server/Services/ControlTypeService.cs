@@ -18,58 +18,10 @@ namespace UIAutomationMCP.Server.Services
 
         protected override string GetOperationType() => "controlType";
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> ValidateControlTypePatternsAsync(
-            string? automationId = null, 
-            string? name = null,
-            string? controlType = null,
-            long? windowHandle = null, 
-            int timeoutSeconds = 30)
-        {
-            var request = new ValidateControlTypePatternsRequest
-            {
-                AutomationId = automationId,
-                Name = name,
-                ControlType = controlType,
-                WindowHandle = windowHandle
-            };
-
-            return await ExecuteServiceOperationAsync<ValidateControlTypePatternsRequest, ElementSearchResult>(
-                "ValidateControlTypePatterns",
-                request,
-                nameof(ValidateControlTypePatternsAsync),
-                timeoutSeconds,
-                ValidateControlTypePatternsRequest
-            );
-        }
-
-        private static ValidationResult ValidateControlTypePatternsRequest(ValidateControlTypePatternsRequest request)
-        {
-            if (string.IsNullOrWhiteSpace(request.AutomationId) && string.IsNullOrWhiteSpace(request.Name))
-            {
-                return ValidationResult.Failure("Either AutomationId or Name is required for element identification");
-            }
-
-            return ValidationResult.Success;
-        }
-
         protected override ControlTypeServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
         {
             var metadata = base.CreateSuccessMetadata(data, context);
-
-            if (data is ElementSearchResult searchResult)
-            {
-                metadata.ElementsFound = searchResult.Count;
-                metadata.ValidationSuccessful = searchResult.Count > 0;
-                
-                // Extract control type from the first result if available
-                if (searchResult.Items?.Count > 0)
-                {
-                    var firstItem = searchResult.Items[0];
-                    metadata.ControlType = firstItem.ControlType;
-                    metadata.SupportedPatternsCount = firstItem.SupportedPatterns?.Length ?? 0;
-                }
-            }
-
+            // Service kept for potential future control type operations
             return metadata;
         }
     }

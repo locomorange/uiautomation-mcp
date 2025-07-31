@@ -277,8 +277,9 @@ namespace UIAutomationMCP.Tests.E2E
                     // Control type info is already included in SearchElements response
                     LogResult("Button elements (with control type info)", buttons);
                     
-                    var patternValidation = await _tools.ValidateControlTypePatterns(buttonId!);
-                    LogResult("Button pattern validation", patternValidation);
+                    // ValidateControlTypePatterns was removed - pattern info is available in SearchElements with includeDetails=true
+                    var detailedButtons = await _tools.SearchElements(automationId: buttonId!, includeDetails: true, maxResults: 1);
+                    LogResult("Button detailed pattern info", detailedButtons);
                 }
 
                 // Step 3: Check for labeled elements

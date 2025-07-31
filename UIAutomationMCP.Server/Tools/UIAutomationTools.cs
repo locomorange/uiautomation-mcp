@@ -641,23 +641,6 @@ namespace UIAutomationMCP.Server.Tools
 
         // Custom Properties and Events
 
-        // Control Type Operations
-
-        [McpServerTool, Description("Validate if element supports expected patterns for its control type (quality assurance and debugging tool)")]
-        public async Task<object> ValidateControlTypePatterns(
-            [Description("AutomationId of the element to validate (preferred, stable identifier)")] string? automationId = null,
-            [Description("Name of the element to validate (fallback, display name)")] string? name = null,
-            [Description("ControlType to filter by (Any, Button, Edit, etc.)")] string? controlType = null,
-            [Description("Native window handle (HWND) for direct element targeting")] long? windowHandle = null,
-            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
-            [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
-            => JsonSerializationHelper.Serialize(await _controlTypeService.ValidateControlTypePatternsAsync(
-                automationId: automationId,
-                name: name,
-                controlType: controlType,
-                windowHandle: windowHandle,
-                timeoutSeconds: timeoutSeconds));
-
         // VirtualizedItem Pattern
         [McpServerTool, Description("Realize a virtualized item to make it fully available in the UI Automation tree")]
         public async Task<object> RealizeVirtualizedItem(

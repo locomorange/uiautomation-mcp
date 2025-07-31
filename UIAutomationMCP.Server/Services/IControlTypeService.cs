@@ -6,11 +6,6 @@ namespace UIAutomationMCP.Server.Services
 {
     public interface IControlTypeService
     {
-        Task<ServerEnhancedResponse<ElementSearchResult>> ValidateControlTypePatternsAsync(
-            string? automationId = null, 
-            string? name = null,
-            string? controlType = null,
-            long? windowHandle = null, 
-            int timeoutSeconds = 30);
+        // Interface kept for potential future control type operations
     }
 }
