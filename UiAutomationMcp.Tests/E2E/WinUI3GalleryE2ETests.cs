@@ -130,8 +130,12 @@ namespace UIAutomationMCP.Tests.E2E
 
             try
             {
-                // Get accessibility info for the main window
-                var accessibilityInfo = await _tools.VerifyAccessibility("WinUI 3 Gallery");
+                // Get accessibility info for the main window using SearchElements with includeDetails
+                var accessibilityInfo = await _tools.SearchElements(
+                    name: "WinUI 3 Gallery",
+                    includeDetails: true,
+                    maxResults: 1
+                );
                 _output.WriteLine($"Accessibility info: {JsonSerializer.Serialize(accessibilityInfo, new JsonSerializerOptions { WriteIndented = true })}");
 
                 Assert.True(true, "Accessibility test executed successfully");

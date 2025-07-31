@@ -1487,45 +1487,7 @@ namespace UIAutomationMCP.Tests.Tools
             _output.WriteLine("SetView with negative viewId test passed");
         }
 
-        [Fact]
-        public async Task GetAccessibilityInfo_WithValidParameters_CallsCorrectService()
-        {
-            // Arrange
-            var resultObject = new ElementSearchResult
-            {
-                Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
-                {
-                    new UIAutomationMCP.Shared.ElementInfo
-                    {
-                        Name = "Submit",
-                        AutomationId = "button1",
-                        ControlType = "Button",
-                        IsEnabled = true,
-                        IsVisible = true,
-                        BoundingRectangle = new UIAutomationMCP.Shared.BoundingRectangle { X = 100, Y = 200, Width = 80, Height = 30 }
-                    }
-                },
-                SearchCriteria = "Accessibility info for button1"
-            };
-            var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
-            {
-                Success = true,
-                Data = resultObject,
-                ExecutionInfo = new ServerExecutionInfo(),
-                RequestMetadata = new RequestMetadata()
-            };
-            _mockAccessibilityService.Setup(s => s.VerifyAccessibilityAsync("button1", null, null, null, 30))
-                                   .Returns(Task.FromResult(serverResponse));
-
-            // Act
-            var result = await _tools.VerifyAccessibility("button1");
-
-            // Assert
-            Assert.NotNull(result);
-            _mockAccessibilityService.Verify(s => s.VerifyAccessibilityAsync("button1", null, null, null, 30), Times.Once);
-            _output.WriteLine("GetAccessibilityInfo test passed");
-        }
+        // VerifyAccessibility test removed - functionality moved to SearchElements with includeDetails=true
 
         // GetCustomProperties method was removed from CustomPropertyService
         // This test method is no longer applicable

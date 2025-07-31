@@ -639,16 +639,6 @@ namespace UIAutomationMCP.Server.Tools
                 timeoutSeconds: timeoutSeconds));
 
 
-        // Accessibility Information
-
-        [McpServerTool, Description("Verify accessibility compliance for a window or element")]
-        public async Task<object> VerifyAccessibility(
-            [Description("Automation ID or name of the element (optional, checks entire window if not specified)")] string? elementId = null,
-            [Description("Native window handle (HWND) for direct window targeting")] long? windowHandle = null,
-            [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
-            => JsonSerializationHelper.Serialize(await _accessibilityService.VerifyAccessibilityAsync(automationId: elementId, windowHandle: windowHandle, timeoutSeconds: timeoutSeconds));
-
-
         // Custom Properties and Events
 
         // Control Type Operations

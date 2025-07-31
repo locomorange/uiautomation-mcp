@@ -907,8 +907,12 @@ namespace UIAutomationMCP.Tests.E2E
             
             try
             {
-                var accessibilityInfo = await Tools.VerifyAccessibility("WinUI 3 Gallery");
-                LogResult("VerifyAccessibility", accessibilityInfo);
+                var accessibilityInfo = await Tools.SearchElements(
+                    name: "WinUI 3 Gallery",
+                    includeDetails: true,
+                    maxResults: 1
+                );
+                LogResult("SearchElements with includeDetails", accessibilityInfo);
                 
                 Assert.NotNull(accessibilityInfo);
             }

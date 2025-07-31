@@ -19,24 +19,6 @@ namespace UIAutomationMCP.Server.Services
 
         protected override string GetOperationType() => "accessibility";
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> VerifyAccessibilityAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 60)
-        {
-            var request = new VerifyAccessibilityRequest
-            {
-                AutomationId = automationId,
-                Name = name,
-                ControlType = controlType,
-                WindowHandle = windowHandle
-            };
-
-            return await ExecuteServiceOperationAsync<VerifyAccessibilityRequest, ElementSearchResult>(
-                "VerifyAccessibility",
-                request,
-                nameof(VerifyAccessibilityAsync),
-                timeoutSeconds
-            );
-        }
-
         public async Task<ServerEnhancedResponse<ElementSearchResult>> GetLabeledByAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
         {
             var request = new GetLabeledByRequest
@@ -118,13 +100,7 @@ namespace UIAutomationMCP.Server.Services
 
             if (data is ElementSearchResult searchResult)
             {
-                if (context.MethodName.Contains("VerifyAccessibility"))
-                {
-                    metadata.ActionPerformed = "accessibilityVerified";
-                    metadata.ElementsFound = searchResult.Count;
-                    metadata.VerificationSuccessful = searchResult.Count > 0;
-                }
-                else if (context.MethodName.Contains("GetLabeledBy"))
+                if (context.MethodName.Contains("GetLabeledBy"))
                 {
                     metadata.ActionPerformed = "labeledByRetrieved";
                     metadata.ElementsFound = searchResult.Count;

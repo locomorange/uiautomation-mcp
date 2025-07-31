@@ -14,11 +14,6 @@ namespace UIAutomationMCP.Models.Requests
         public override string Operation => "GetElementPatterns";
     }
 
-    public class VerifyAccessibilityRequest : ElementTargetRequest
-    {
-        public override string Operation => "VerifyAccessibility";
-    }
-
     public class GetLabeledByRequest : ElementTargetRequest
     {
         public override string Operation => "GetLabeledBy";

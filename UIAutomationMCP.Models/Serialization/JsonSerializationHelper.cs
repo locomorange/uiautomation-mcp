@@ -208,7 +208,6 @@ namespace UIAutomationMCP.Models.Serialization
                 Type t when t == typeof(GetElementPropertiesRequest) => (JsonTypeInfo<T>)(object)_context.GetElementPropertiesRequest,
                 Type t when t == typeof(GetElementPatternsRequest) => (JsonTypeInfo<T>)(object)_context.GetElementPatternsRequest,
                 Type t when t == typeof(ValidateControlTypePatternsRequest) => (JsonTypeInfo<T>)(object)_context.ValidateControlTypePatternsRequest,
-                Type t when t == typeof(VerifyAccessibilityRequest) => (JsonTypeInfo<T>)(object)_context.VerifyAccessibilityRequest,
                 Type t when t == typeof(GetLabeledByRequest) => (JsonTypeInfo<T>)(object)_context.GetLabeledByRequest,
                 Type t when t == typeof(GetDescribedByRequest) => (JsonTypeInfo<T>)(object)_context.GetDescribedByRequest,
                 Type t when t == typeof(GetCustomPropertiesRequest) => (JsonTypeInfo<T>)(object)_context.GetCustomPropertiesRequest,
@@ -396,7 +395,6 @@ namespace UIAutomationMCP.Models.Serialization
     [JsonSerializable(typeof(GetElementPropertiesRequest))]
     [JsonSerializable(typeof(GetElementPatternsRequest))]
     [JsonSerializable(typeof(ValidateControlTypePatternsRequest))]
-    [JsonSerializable(typeof(VerifyAccessibilityRequest))]
     [JsonSerializable(typeof(GetLabeledByRequest))]
     [JsonSerializable(typeof(GetDescribedByRequest))]
     [JsonSerializable(typeof(GetCustomPropertiesRequest))]

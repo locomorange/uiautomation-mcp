@@ -262,8 +262,12 @@ namespace UIAutomationMCP.Tests.E2E
             
             try
             {
-                // Step 1: Validate main window accessibility
-                var mainWindowAccessibility = await _tools.VerifyAccessibility("WinUI 3 Gallery");
+                // Step 1: Validate main window accessibility using SearchElements with includeDetails
+                var mainWindowAccessibility = await _tools.SearchElements(
+                    name: "WinUI 3 Gallery",
+                    includeDetails: true,
+                    maxResults: 1
+                );
                 LogResult("Main window accessibility", mainWindowAccessibility);
 
                 // Step 2: Get control type info for various elements
