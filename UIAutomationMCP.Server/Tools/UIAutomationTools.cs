@@ -95,7 +95,7 @@ namespace UIAutomationMCP.Server.Tools
 
         // Window and Element Discovery
 
-        [McpServerTool, Description("Search for UI elements with optional detailed information. Returns basic ElementInfo by default, or comprehensive details when includeDetails=true. Replaces the need for separate GetElementDetails calls. For window listing, use scope='children' with requiredPattern='Window' (not controlType='Window') to detect window-like elements.")]
+        [McpServerTool, Description("Search for UI elements with flexible filtering options. Returns basic element properties by default. When includeDetails=true, returns comprehensive data including: • All supported UI patterns (Toggle state, Range values, Window state, Selection info, Grid/Table structure, Scroll position, Text content, Transform capabilities, etc.) • Accessibility information (labeledBy, helpText, accessKey, acceleratorKey) • Advanced properties (frameworkId, runtimeId, isPassword) • Element hierarchy (parent and children relationships). For window detection, use scope='children' with requiredPattern='Window'.")]
         public async Task<object> SearchElements(
             [Description("Cross-property search text (searches Name, AutomationId, ClassName)")] string? searchText = null,
             [Description("Specific AutomationId to search for")] string? automationId = null, 
@@ -111,7 +111,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Only return enabled elements (default: false)")] bool enabledOnly = false,
             [Description("Maximum number of results to return (default: 50)")] int maxResults = 50,
             [Description("Sort results by: Name, ControlType, Position (optional)")] string? sortBy = null,
-            [Description("Include detailed pattern information, accessibility data, and hierarchy (default: false)")] bool includeDetails = false,
+            [Description("Include comprehensive details: all UI patterns (Toggle, Range, Window, Selection, Grid, Scroll, Text, Transform, Value, ExpandCollapse, Dock, MultipleView, Table, etc.), accessibility info (labels, help text, keyboard shortcuts), and element hierarchy (default: false)")] bool includeDetails = false,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _elementSearchService.SearchElementsAsync(
                 new UIAutomationMCP.Models.Requests.SearchElementsRequest
