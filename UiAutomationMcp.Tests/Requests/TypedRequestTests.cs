@@ -267,3 +267,4 @@ namespace UiAutomationMcp.Tests.Requests
         }
     }
 }
+

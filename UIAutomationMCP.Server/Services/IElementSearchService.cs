@@ -15,3 +15,4 @@ namespace UIAutomationMCP.Server.Services
         Task<ServerEnhancedResponse<SearchElementsResult>> SearchElementsAsync(SearchElementsRequest request, int timeoutSeconds = 30);
     }
 }
+

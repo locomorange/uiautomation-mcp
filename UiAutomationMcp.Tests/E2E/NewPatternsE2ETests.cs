@@ -313,3 +313,4 @@ public class NewPatternsE2ETests : BaseE2ETest
 
     #endregion
 }
+

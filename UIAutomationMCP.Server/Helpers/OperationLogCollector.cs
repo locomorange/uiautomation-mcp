@@ -4,8 +4,8 @@ using System.Collections.Concurrent;
 namespace UIAutomationMCP.Server.Helpers
 {
     /// <summary>
-    /// 操作に関連するログを収集するヘルパークラス
-    /// 特定の操作IDに関連するログエントリを追跡し、レスポンスに含めるために使用
+    /// 操作に関連するログを収雁E��る�Eルパ�Eクラス
+    /// 特定�E操作IDに関連するログエントリを追跡し、レスポンスに含めるために使用
     /// </summary>
     public class OperationLogCollector
     {
@@ -15,8 +15,8 @@ namespace UIAutomationMCP.Server.Helpers
         /// <summary>
         /// 操作に関連するログエントリを追加
         /// </summary>
-        /// <param name="operationId">操作の一意識別子</param>
-        /// <param name="logMessage">ログメッセージ</param>
+        /// <param name="operationId">操作�E一意識別孁E/param>
+        /// <param name="logMessage">ログメチE��ージ</param>
         public void AddLog(string operationId, string logMessage)
         {
             if (string.IsNullOrEmpty(operationId) || string.IsNullOrEmpty(logMessage))
@@ -32,8 +32,7 @@ namespace UIAutomationMCP.Server.Helpers
                 var timestamp = DateTime.UtcNow.ToString("HH:mm:ss.fff");
                 _operationLogs[operationId].Add($"[{timestamp}] {logMessage}");
                 
-                // メモリリーク防止のため、古いログエントリを制限
-                if (_operationLogs[operationId].Count > 100)
+                // メモリリーク防止のため、古ぁE��グエントリを制陁E                if (_operationLogs[operationId].Count > 100)
                 {
                     _operationLogs[operationId] = _operationLogs[operationId].TakeLast(50).ToList();
                 }
@@ -41,10 +40,9 @@ namespace UIAutomationMCP.Server.Helpers
         }
         
         /// <summary>
-        /// 操作に関連するログエントリを取得
-        /// </summary>
-        /// <param name="operationId">操作の一意識別子</param>
-        /// <returns>ログエントリのリスト</returns>
+        /// 操作に関連するログエントリを取征E        /// </summary>
+        /// <param name="operationId">操作�E一意識別孁E/param>
+        /// <returns>ログエントリのリスチE/returns>
         public List<string> GetLogs(string operationId)
         {
             if (string.IsNullOrEmpty(operationId))
@@ -62,9 +60,9 @@ namespace UIAutomationMCP.Server.Helpers
         }
         
         /// <summary>
-        /// 操作のログエントリをクリアして、メモリを解放
+        /// 操作�Eログエントリをクリアして、メモリを解放
         /// </summary>
-        /// <param name="operationId">操作の一意識別子</param>
+        /// <param name="operationId">操作�E一意識別孁E/param>
         public void ClearLogs(string operationId)
         {
             if (string.IsNullOrEmpty(operationId))
@@ -77,16 +75,14 @@ namespace UIAutomationMCP.Server.Helpers
         }
         
         /// <summary>
-        /// 古い操作のログをクリーンアップ（定期実行推奨）
-        /// </summary>
-        /// <param name="maxAgeMinutes">保持する最大時間（分）</param>
+        /// 古ぁE��作�EログをクリーンアチE�E�E�定期実行推奨�E�E        /// </summary>
+        /// <param name="maxAgeMinutes">保持する最大時間�E��E�E�E/param>
         public void CleanupOldLogs(int maxAgeMinutes = 30)
         {
             lock (_lockObject)
             {
-                // 実装を簡素化するため、すべてのログをクリア
-                // 実際の運用では、タイムスタンプベースのクリーンアップが必要
-                if (_operationLogs.Count > 1000)
+                // 実裁E��簡素化するため、すべてのログをクリア
+                // 実際の運用では、タイムスタンプ�EースのクリーンアチE�Eが忁E��E                if (_operationLogs.Count > 1000)
                 {
                     _operationLogs.Clear();
                 }
@@ -95,7 +91,7 @@ namespace UIAutomationMCP.Server.Helpers
     }
     
     /// <summary>
-    /// OperationLogCollectorを使用するためのヘルパーメソッド
+    /// OperationLogCollectorを使用するためのヘルパ�EメソチE��
     /// </summary>
     public static class LogCollectorExtensions
     {
@@ -112,7 +108,7 @@ namespace UIAutomationMCP.Server.Helpers
         /// <param name="logger">ロガーインスタンス</param>
         /// <param name="operationId">操作ID</param>
         /// <param name="logLevel">ログレベル</param>
-        /// <param name="message">ログメッセージ</param>
+        /// <param name="message">ログメチE��ージ</param>
         public static void LogWithOperation(this ILogger logger, string operationId, LogLevel logLevel, string message)
         {
             logger.Log(logLevel, message);
@@ -120,7 +116,7 @@ namespace UIAutomationMCP.Server.Helpers
         }
         
         /// <summary>
-        /// 情報ログを操作IDと共に記録
+        /// 惁E��ログを操作IDと共に記録
         /// </summary>
         public static void LogInformationWithOperation(this ILogger logger, string operationId, string message)
         {

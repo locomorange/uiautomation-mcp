@@ -129,3 +129,4 @@ namespace UiAutomationMcp.Tests.Infrastructure
         }
     }
 }
+

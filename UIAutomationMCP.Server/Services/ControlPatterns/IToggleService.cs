@@ -11,3 +11,4 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         Task<ServerEnhancedResponse<ActionResult>> SetToggleStateAsync(string toggleState, string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30);
     }
 }
+

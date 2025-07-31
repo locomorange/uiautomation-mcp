@@ -5,3 +5,4 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
 {
     // Placeholder to prevent compilation errors
 }
+

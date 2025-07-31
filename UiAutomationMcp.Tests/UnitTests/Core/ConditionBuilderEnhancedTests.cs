@@ -10,3 +10,4 @@ namespace UiAutomationMcp.Tests.UnitTests.Core
 {
     // Placeholder to prevent compilation errors
 }
+

@@ -1,4 +1,4 @@
-using UIAutomationMCP.Core.Abstractions;
+using UIAutomationMCP.Models.Results;
 
 namespace UIAutomationMCP.Models.Abstractions
 {

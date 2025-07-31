@@ -205,3 +205,4 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
         #endregion
     }
 }
+

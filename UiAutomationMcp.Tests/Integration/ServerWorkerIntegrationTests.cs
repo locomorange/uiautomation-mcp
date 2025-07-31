@@ -217,3 +217,4 @@ namespace UiAutomationMcp.Tests.Integration
         }
     }
 }
+

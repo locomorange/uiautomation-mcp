@@ -1,6 +1,6 @@
 using System;
 using System.Windows.Automation;
-using UIAutomationMCP.Worker.Helpers;
+using UIAutomationMCP.Subprocess.Worker.Helpers;
 using Xunit;
 
 namespace UiAutomationMcp.Tests.UnitTests.Helpers
@@ -207,3 +207,4 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
         }
     }
 }
+

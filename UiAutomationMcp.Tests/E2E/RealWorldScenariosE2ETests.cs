@@ -330,3 +330,4 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
         }, _output, "Database Application", 12000);
     }
 }
+

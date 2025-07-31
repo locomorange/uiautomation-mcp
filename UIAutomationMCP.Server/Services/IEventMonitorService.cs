@@ -11,3 +11,4 @@ namespace UIAutomationMCP.Server.Services
         Task<ServerEnhancedResponse<EventLogResult>> GetEventLogAsync(string? sessionId = null, int maxCount = 100, int timeoutSeconds = 60);
     }
 }
+

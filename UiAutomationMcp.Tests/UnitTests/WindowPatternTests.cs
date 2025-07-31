@@ -1,6 +1,6 @@
 using UIAutomationMCP.Models;
-// using UIAutomationMCP.Worker.Contracts; // TODO: Fix namespace
-using UIAutomationMCP.Worker.Operations.Window;
+// using UIAutomationMCP.Subprocess.Worker.Contracts; // TODO: Fix namespace
+using UIAutomationMCP.Subprocess.Worker.Operations.Window;
 using Xunit.Abstractions;
 
 namespace UiAutomationMcp.Tests.UnitTests
@@ -209,3 +209,4 @@ namespace UiAutomationMcp.Tests.UnitTests
         }
     }
 }
+

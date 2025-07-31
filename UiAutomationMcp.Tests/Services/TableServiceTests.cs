@@ -425,3 +425,4 @@ namespace UIAutomationMCP.Tests.Services
         }
     }
 }
+

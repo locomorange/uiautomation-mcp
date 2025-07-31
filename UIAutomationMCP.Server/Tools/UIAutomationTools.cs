@@ -767,3 +767,4 @@ namespace UIAutomationMCP.Server.Tools
 
     }
 }
+

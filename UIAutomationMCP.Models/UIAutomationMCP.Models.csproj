@@ -13,10 +13,7 @@
   <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="9.0.0" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\UIAutomationMCP.Core\UIAutomationMCP.Core.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
   </ItemGroup>
 
 </Project>

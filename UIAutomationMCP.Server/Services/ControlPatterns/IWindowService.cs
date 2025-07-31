@@ -15,3 +15,4 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         Task<ServerEnhancedResponse<WindowCapabilitiesResult>> GetWindowCapabilitiesAsync(string? windowTitle = null, long? windowHandle = null, int timeoutSeconds = 30);
     }
 }
+

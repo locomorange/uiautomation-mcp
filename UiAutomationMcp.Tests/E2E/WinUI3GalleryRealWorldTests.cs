@@ -386,3 +386,4 @@ public class WinUI3GalleryRealWorldTests : BaseE2ETest
         }
     }
 }
+

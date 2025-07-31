@@ -13,3 +13,4 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         Task<ServerEnhancedResponse<TextSearchResult>> FindTextAsync(string? automationId = null, string? name = null, string searchText = "", bool backward = false, bool ignoreCase = true, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30);
     }
 }
+

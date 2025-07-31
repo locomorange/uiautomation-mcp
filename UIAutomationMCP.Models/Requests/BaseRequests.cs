@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using UIAutomationMCP.Core.Serialization;
+using UIAutomationMCP.Models.Serialization;
 
 namespace UIAutomationMCP.Models.Requests
 {

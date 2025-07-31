@@ -370,3 +370,4 @@ namespace UiAutomationMcp.Tests.UnitTests
         }
     }
 }
+

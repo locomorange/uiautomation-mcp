@@ -99,3 +99,4 @@ namespace UIAutomationMCP.Tests.E2E
         }
     }
 }
+

@@ -231,3 +231,4 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
         _serviceProvider?.Dispose();
     }
 }
+

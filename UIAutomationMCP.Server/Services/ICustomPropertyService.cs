@@ -9,3 +9,4 @@ namespace UIAutomationMCP.Server.Services
         Task<ServerEnhancedResponse<ElementSearchResult>> SetCustomPropertyAsync(string? automationId = null, string? name = null, string propertyId = "", object? value = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30);
     }
 }
+

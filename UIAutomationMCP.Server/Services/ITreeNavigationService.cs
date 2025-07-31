@@ -15,3 +15,4 @@ namespace UIAutomationMCP.Server.Services
         Task<ServerEnhancedResponse<ElementTreeResult>> GetElementTreeAsync(long? windowHandle = null, int maxDepth = 3, int timeoutSeconds = 60);
     }
 }
+

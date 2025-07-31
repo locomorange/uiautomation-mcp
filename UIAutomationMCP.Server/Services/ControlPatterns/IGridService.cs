@@ -11,3 +11,4 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         Task<ServerEnhancedResponse<ElementSearchResult>> GetColumnHeaderAsync(string? automationId = null, string? name = null, int column = 0, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30);
     }
 }
+

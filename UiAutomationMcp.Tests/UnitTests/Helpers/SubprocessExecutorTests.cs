@@ -195,3 +195,4 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
         }
     }
 }
+

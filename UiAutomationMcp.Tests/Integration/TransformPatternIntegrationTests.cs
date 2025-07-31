@@ -551,3 +551,4 @@ namespace UIAutomationMCP.Tests.Integration
         #endregion
     }
 }
+

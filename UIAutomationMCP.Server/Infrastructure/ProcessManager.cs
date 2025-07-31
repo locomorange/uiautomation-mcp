@@ -3,6 +3,7 @@ using UIAutomationMCP.Server.Abstractions;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Logging;
 
 namespace UIAutomationMCP.Server.Infrastructure

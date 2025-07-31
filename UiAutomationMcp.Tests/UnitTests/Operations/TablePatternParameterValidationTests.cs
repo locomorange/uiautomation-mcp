@@ -146,3 +146,4 @@ namespace UIAutomationMCP.Tests.UnitTests.Operations
         }
     }
 }
+

@@ -3,9 +3,9 @@ using Microsoft.Extensions.Options;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Core.Options;
 using UIAutomationMCP.Models.Requests;
-// using UIAutomationMCP.Worker.Contracts; // TODO: Fix namespace
-using UIAutomationMCP.Worker.Operations.Transform;
-using UIAutomationMCP.Worker.Helpers;
+// using UIAutomationMCP.Subprocess.Worker.Contracts; // TODO: Fix namespace
+using UIAutomationMCP.Subprocess.Worker.Operations.Transform;
+using UIAutomationMCP.Subprocess.Worker.Helpers;
 using Moq;
 using Xunit.Abstractions;
 

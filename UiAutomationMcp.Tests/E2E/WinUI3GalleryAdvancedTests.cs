@@ -305,3 +305,4 @@ public class WinUI3GalleryAdvancedTests : BaseE2ETest
         }
     }
 }
+

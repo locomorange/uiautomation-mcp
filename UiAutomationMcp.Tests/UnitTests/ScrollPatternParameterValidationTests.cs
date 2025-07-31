@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using UIAutomationMCP.Models;
-using UIAutomationMCP.Worker.Operations.Layout;
-using UIAutomationMCP.Worker.Helpers;
+using UIAutomationMCP.Subprocess.Worker.Operations.Layout;
+using UIAutomationMCP.Subprocess.Worker.Helpers;
 using Moq;
 using Xunit.Abstractions;
 namespace UIAutomationMCP.Tests.UnitTests

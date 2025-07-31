@@ -195,3 +195,4 @@ namespace UIAutomationMCP.Server.Services
         }
     }
 }
+

@@ -223,3 +223,4 @@ public class ItemContainerPatternIntegrationTests : IDisposable
         _serviceProvider?.Dispose();
     }
 }
+

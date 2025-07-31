@@ -337,3 +337,4 @@ public class WinUI3GalleryUITests : BaseE2ETest
         }
     }
 }
+
