@@ -30,7 +30,9 @@ namespace UIAutomationMCP.Worker.Operations.Selection
                 Name = request.Name,
                 ControlType = request.ControlType,
                 WindowTitle = request.WindowTitle,
-                RequiredPattern = requiredPattern?.ProgrammaticName, WindowHandle = request.WindowHandle };
+                    RequiredPattern = requiredPattern?.ProgrammaticName,
+                    WindowHandle = request.WindowHandle
+                };
             var element = _elementFinderService.FindElement(searchCriteria);
             
             if (element == null)
