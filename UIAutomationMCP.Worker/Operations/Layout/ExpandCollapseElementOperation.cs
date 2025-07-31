@@ -17,7 +17,7 @@ namespace UIAutomationMCP.Worker.Operations.Layout
         {
         }
 
-        protected override Task<ExpandCollapseResult> ExecuteOperationAsync(ExpandCollapseElementRequest request)
+        protected override async Task<ExpandCollapseResult> ExecuteOperationAsync(ExpandCollapseElementRequest request)
         {
             var searchCriteria = new ElementSearchCriteria
             {
@@ -61,7 +61,7 @@ namespace UIAutomationMCP.Worker.Operations.Layout
             }
 
             // Small delay to allow UI to update
-            System.Threading.Thread.Sleep(100);
+            await Task.Delay(100);
 
             var newState = expandCollapsePattern.Current.ExpandCollapseState;
             
@@ -75,7 +75,7 @@ namespace UIAutomationMCP.Worker.Operations.Layout
                 Details = $"Expand/Collapse action: {action}"
             };
 
-            return Task.FromResult(result);
+            return result;
         }
     }
 }

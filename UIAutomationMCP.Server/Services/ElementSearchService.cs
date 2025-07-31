@@ -102,7 +102,7 @@ namespace UIAutomationMCP.Server.Services
 
         private static ValidationResult ValidateSearchElementsRequest(SearchElementsRequest request)
         {
-            // 検索条件が1つもなくても許可する（全要素取得を許可）
+            // Allow even when no search criteria are specified (allow retrieval of all elements)
             return ValidationResult.Success;
         }
 

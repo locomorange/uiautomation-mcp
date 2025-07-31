@@ -6,12 +6,12 @@ using UIAutomationMCP.Common.Helpers;
 namespace UIAutomationMCP.Worker.Helpers
 {
     /// <summary>
-    /// UI Automation検索方法の自動選択ロジック
+    /// Automatic selection logic for UI Automation search methods
     /// </summary>
     public static class SearchMethodSelector
     {
         /// <summary>
-        /// 検索条件と対象要素に基づいて最適な検索方法を選択
+        /// Select optimal search method based on search criteria and target elements
         /// </summary>
         public static SearchMethod SelectOptimalMethod(
             AutomationElement searchRoot,
@@ -24,7 +24,7 @@ namespace UIAutomationMCP.Worker.Helpers
 
             try
             {
-                // ルート要素からの検索は危険なのでTreeWalkerを推奨
+                // Searching from root element is risky, so TreeWalker is recommended
                 if (searchRoot == AutomationElement.RootElement)
                 {
                     return SearchMethod.TreeWalker;
@@ -33,7 +33,7 @@ namespace UIAutomationMCP.Worker.Helpers
                 var frameworkId = searchRoot.Current.FrameworkId;
                 var controlType = searchRoot.Current.ControlType;
 
-                // フレームワーク別の最適化
+                // Framework-specific optimization
                 if (IsWpfFramework(frameworkId))
                 {
                     // WPFはFindAllが効率的

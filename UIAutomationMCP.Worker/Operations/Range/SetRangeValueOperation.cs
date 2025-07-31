@@ -22,7 +22,7 @@ namespace UIAutomationMCP.Worker.Operations.Range
 
         protected override Task<SetRangeValueResult> ExecuteOperationAsync(SetRangeValueRequest request)
         {
-            // パターン変換（リクエストから取得、デフォルトはRangeValuePattern）
+            // Pattern conversion (get from request, default to RangeValuePattern)
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? RangeValuePattern.Pattern;
             
             var searchCriteria = new ElementSearchCriteria

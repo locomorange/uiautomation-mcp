@@ -21,7 +21,7 @@ namespace UIAutomationMCP.Worker.Operations.Invoke
 
         protected override Task<ActionResult> ExecuteOperationAsync(InvokeElementRequest request)
         {
-            // 繝代ち繝ｼ繝ｳ螟画鋤・医Μ繧ｯ繧ｨ繧ｹ繝医°繧牙叙蠕励√ョ繝輔か繝ｫ繝医・InvokePattern・・
+            // Pattern conversion (get from request, default to InvokePattern)
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? InvokePattern.Pattern;
             
             var searchCriteria = new ElementSearchCriteria

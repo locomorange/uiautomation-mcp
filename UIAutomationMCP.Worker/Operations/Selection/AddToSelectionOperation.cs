@@ -22,7 +22,7 @@ namespace UIAutomationMCP.Worker.Operations.Selection
 
         protected override Task<SelectionActionResult> ExecuteOperationAsync(AddToSelectionRequest request)
         {
-            // パターン変換（リクエストから取得、デフォルトはSelectionItemPattern）
+            // Pattern conversion (get from request, default to SelectionItemPattern)
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? SelectionItemPattern.Pattern;
             
             var searchCriteria = new ElementSearchCriteria
