@@ -35,7 +35,7 @@ namespace UIAutomationMCP.Worker.Operations.ElementSearch
             
             try
             {
-                // タイムアウト�E琁E�E�ESubprocessExecutorで行うため、直接実衁E
+                // Timeout handling is performed by SubprocessExecutor, so it is not handled directly here.
                 SearchElementsResult result = await PerformSearchAsync(request);
 
                 stopwatch.Stop();

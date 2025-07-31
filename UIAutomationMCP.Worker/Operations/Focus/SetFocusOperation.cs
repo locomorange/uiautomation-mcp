@@ -21,7 +21,7 @@ namespace UIAutomationMCP.Worker.Operations.Focus
 
         protected override async Task<ActionResult> ExecuteOperationAsync(SetFocusRequest request)
         {
-            // パターン変換�E�リクエストから取得！E
+            // パターン変換�E�リクエストから取得！E
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern);
             
             var searchCriteria = new ElementSearchCriteria
@@ -41,13 +41,13 @@ namespace UIAutomationMCP.Worker.Operations.Focus
 
             var elementInfo = _elementFinderService.GetElementBasicInfo(element);
             
-            // フォーカス前�E状態を取征E
+            // フォーカス前�E状態を取征E
             var beforeFocused = element.Current.HasKeyboardFocus;
             
             // SetFocusを実衁E
             element.SetFocus();
             
-            // 少し征E��してフォーカス状態を確誁E
+            // Wait a short time and then check the focus state
             await Task.Delay(100);
             var afterFocused = element.Current.HasKeyboardFocus;
             
