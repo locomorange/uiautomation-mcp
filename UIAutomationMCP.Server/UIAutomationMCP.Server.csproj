@@ -42,8 +42,7 @@
   <ItemGroup>
     <ProjectReference Include="..\UIAutomationMCP.Core\UIAutomationMCP.Core.csproj" />
     <ProjectReference Include="..\UIAutomationMCP.Models\UIAutomationMCP.Models.csproj" />
-    <ProjectReference Include="..\UIAutomationMCP.Subprocess.Worker\UIAutomationMCP.Subprocess.Worker.csproj" />
-    <ProjectReference Include="..\UIAutomationMCP.Subprocess.Monitor\UIAutomationMCP.Subprocess.Monitor.csproj" />
+    <!-- Worker/Monitor are separate processes, no code reference needed -->
   </ItemGroup>
 
 </Project>

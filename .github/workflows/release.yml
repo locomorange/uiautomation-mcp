@@ -79,10 +79,19 @@ jobs:
     - name: Run tests
       run: dotnet test --configuration Release --logger trx --results-directory TestResults
       
-    - name: Build with Hybrid Native AOT
+    - name: Build with Framework-Dependent AOT
       run: |
         $runtime = "${{ matrix.architecture }}"
+        # Use existing publish-aot.ps1 and remove Runtime folder afterwards
         powershell -ExecutionPolicy Bypass -File publish-aot.ps1 -CleanFirst -Runtime $runtime
+        
+        # Remove Runtime folder for framework-dependent distribution
+        $publishPath = "publish/aot-$runtime"
+        $runtimePath = "$publishPath/Runtime"
+        if (Test-Path $runtimePath) {
+          Remove-Item -Path $runtimePath -Recurse -Force
+          Write-Host "Removed Runtime folder for framework-dependent distribution"
+        }
       shell: pwsh
       
     - name: Create release archive
