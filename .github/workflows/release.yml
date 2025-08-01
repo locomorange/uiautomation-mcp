@@ -13,17 +13,16 @@ on:
 
 env:
   DOTNET_VERSION: '9.0.x'
-  
+
 jobs:
-  build-and-release:
+  # ===== Stage 1: 並列ビルド =====
+  build:
+    name: Build ${{ matrix.architecture }}
     runs-on: windows-latest
-    permissions:
-      contents: write
-      actions: read
     strategy:
       matrix:
         architecture: [win-x64, win-arm64]
-      
+    
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -62,7 +61,11 @@ jobs:
         $files = @(
           "UIAutomationMCP.Server/UIAutomationMCP.Server.csproj",
           "UIAutomationMCP.Core/UIAutomationMCP.Core.csproj", 
-          "UIAutomationMCP.Models/UIAutomationMCP.Models.csproj"
+          "UIAutomationMCP.Models/UIAutomationMCP.Models.csproj",
+          "UIAutomationMCP.Core.Abstractions/UIAutomationMCP.Core.Abstractions.csproj",
+          "UIAutomationMCP.Subprocess.Core/UIAutomationMCP.Subprocess.Core.csproj",
+          "UIAutomationMCP.Subprocess.Worker/UIAutomationMCP.Subprocess.Worker.csproj",
+          "UIAutomationMCP.Subprocess.Monitor/UIAutomationMCP.Subprocess.Monitor.csproj"
         )
         foreach ($file in $files) {
           if (Test-Path $file) {
@@ -89,119 +92,236 @@ jobs:
         $archiveName = "UIAutomationMCP-v$version-$runtime.zip"
         $publishPath = "publish/aot-$runtime"
         Compress-Archive -Path "$publishPath/*" -DestinationPath $archiveName
-        echo "ARCHIVE_NAME=$archiveName" >> $env:GITHUB_OUTPUT
-        echo "ARCHIVE_PATH=$(Get-Location)/$archiveName" >> $env:GITHUB_OUTPUT
-        echo "RUNTIME=$runtime" >> $env:GITHUB_OUTPUT
-      id: archive
+        
+        # Calculate hash
+        $sha256 = (Get-FileHash -Path $archiveName -Algorithm SHA256).Hash
+        $fileSize = (Get-Item $archiveName).Length
+        
+        # Save metadata
+        @{
+          FileName = $archiveName
+          SHA256 = $sha256
+          Size = $fileSize
+          Architecture = $runtime
+          Version = $version
+        } | ConvertTo-Json | Out-File "$archiveName.meta.json"
+        
+        Write-Host "Archive created: $archiveName"
+        Write-Host "SHA256: $sha256"
+        Write-Host "Size: $fileSize bytes"
       shell: pwsh
       
-    - name: Calculate file hashes
-      id: hashes
+    # Upload artifacts for later use
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-${{ matrix.architecture }}
+        path: |
+          UIAutomationMCP-v*.zip
+          UIAutomationMCP-v*.zip.meta.json
+        retention-days: 1
+
+  # ===== Stage 2: 統合リリース =====
+  release:
+    name: Create Release
+    needs: build  # 全ビルド完了を待つ
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        sparse-checkout: |
+          .github
+      
+    # Download all artifacts
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+        
+    - name: List artifacts
       run: |
-        $archivePath = "${{ steps.archive.outputs.ARCHIVE_PATH }}"
-        $sha256 = (Get-FileHash -Path $archivePath -Algorithm SHA256).Hash
-        $fileSize = (Get-Item $archivePath).Length
-        echo "SHA256=$sha256" >> $env:GITHUB_OUTPUT
-        echo "SIZE=$fileSize" >> $env:GITHUB_OUTPUT
-        echo "SHA256: $sha256"
-        echo "Size: $fileSize bytes"
-      shell: pwsh
-      
-    - name: Generate release notes
+        echo "Downloaded artifacts:"
+        find artifacts -type f -name "*.zip" -o -name "*.json"
+        
+    - name: Get version from tag
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          VERSION="${{ github.event.inputs.version }}"
+        else
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+        fi
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        echo "Version: $VERSION"
+        
+    - name: Generate consolidated release notes
       id: release_notes
       run: |
-        $version = "${{ steps.version.outputs.VERSION }}"
-        $size = [math]::Round(${{ steps.hashes.outputs.SIZE }} / 1MB, 2)
+        VERSION="${{ steps.version.outputs.VERSION }}"
         
-        $notes = @"
-        ## UIAutomationMCP v$version
+        # Get file sizes from metadata
+        X64_SIZE=$(jq -r '.Size' artifacts/build-win-x64/*.meta.json | head -1)
+        ARM64_SIZE=$(jq -r '.Size' artifacts/build-win-arm64/*.meta.json | head -1)
+        
+        # Convert to MB with awk (more portable than bc)
+        X64_SIZE_MB=$(awk "BEGIN {printf \"%.2f\", $X64_SIZE / 1048576}")
+        ARM64_SIZE_MB=$(awk "BEGIN {printf \"%.2f\", $ARM64_SIZE / 1048576}")
+        
+        # Get SHA256 hashes
+        X64_SHA256=$(jq -r '.SHA256' artifacts/build-win-x64/*.meta.json | head -1 | cut -c1-8)
+        ARM64_SHA256=$(jq -r '.SHA256' artifacts/build-win-arm64/*.meta.json | head -1 | cut -c1-8)
+        
+        # Create release notes using heredoc
+        cat > release_notes.md << 'RELEASE_NOTES_END'
+        ## UIAutomationMCP v${VERSION}
         
         ### 🚀 Features
         - Native AOT optimized MCP Server (ultra-fast startup)
         - Shared runtime architecture for efficient deployment
         - Full UI Automation support for Windows applications
+        - Multi-architecture support (x64 and ARM64)
         
         ### 📊 Performance
         - **Startup Time**: ~400ms (90%+ faster than traditional .NET)
-        - **Package Size**: ${size}MB
         - **Memory Usage**: Optimized for minimal footprint
+        - **Package Size**: x64: ${X64_SIZE_MB}MB | ARM64: ${ARM64_SIZE_MB}MB
+        
+        ### 📦 Downloads
+        | Architecture | Size | SHA256 (first 8 chars) | Download |
+        |-------------|------|--------|----------|
+        | Windows x64 | ${X64_SIZE_MB}MB | \`${X64_SHA256}\` | [UIAutomationMCP-v${VERSION}-win-x64.zip](https://github.com/locomorange/uiautomation-mcp/releases/download/v${VERSION}/UIAutomationMCP-v${VERSION}-win-x64.zip) |
+        | Windows ARM64 | ${ARM64_SIZE_MB}MB | \`${ARM64_SHA256}\` | [UIAutomationMCP-v${VERSION}-win-arm64.zip](https://github.com/locomorange/uiautomation-mcp/releases/download/v${VERSION}/UIAutomationMCP-v${VERSION}-win-arm64.zip) |
         
         ### 🛠️ Installation
         
         #### Via Winget (Recommended)
-        ``````
+        \`\`\`bash
         winget install Locomorange.UIAutomationMCP
-        ``````
+        \`\`\`
         
         #### Manual Installation
-        1. Download and extract the ZIP file
-        2. Ensure .NET 9.0 Desktop Runtime is installed
-        3. Run UIAutomationMCP.exe from the Server folder
+        1. Download the appropriate ZIP file for your architecture
+        2. Extract to your desired location
+        3. Ensure .NET 9.0 Desktop Runtime is installed
+        4. Run \`uiautomation-mcp.exe\` from the Server folder
         
         ### 📋 Requirements
-        - Windows 10/11 (x64)
+        - Windows 10/11 (x64 or ARM64)
         - .NET 9.0 Desktop Runtime (automatically installed via winget)
         
-        ### 🔧 Architecture
-        - **Server**: Native AOT compiled (15.96MB)
-        - **Worker**: Framework-dependent (4.67MB) 
-        - **Monitor**: Framework-dependent (4.6MB)
-        - **Runtime**: Shared .NET runtime (169.86MB)
+        ### 🔧 Architecture Details
+        - **Server**: Native AOT compiled (~16MB)
+        - **Worker**: Framework-dependent (~5MB) 
+        - **Monitor**: Framework-dependent (~5MB)
+        - **Runtime**: Shared .NET runtime (~170MB)
         
         ### 📁 Package Contents
-        ``````
+        \`\`\`
         UIAutomationMCP/
         ├── Server/           # Native AOT MCP Server
         ├── Worker/           # UI Automation Worker Process  
         ├── Monitor/          # Event Monitoring Process
         └── Runtime/          # Shared .NET 9.0 Runtime
-        ``````
-        "@
+        \`\`\`
+        RELEASE_NOTES_END
         
-        echo "NOTES<<EOF" >> $env:GITHUB_OUTPUT
-        echo $notes >> $env:GITHUB_OUTPUT
-        echo "EOF" >> $env:GITHUB_OUTPUT
+        # Substitute variables
+        NOTES=$(cat release_notes.md | \
+          sed "s/\${VERSION}/$VERSION/g" | \
+          sed "s/\${X64_SIZE_MB}/$X64_SIZE_MB/g" | \
+          sed "s/\${ARM64_SIZE_MB}/$ARM64_SIZE_MB/g" | \
+          sed "s/\${X64_SHA256}/$X64_SHA256/g" | \
+          sed "s/\${ARM64_SHA256}/$ARM64_SHA256/g")
+        
+        # GitHub Actions で改行を保持
+        echo "NOTES<<EOF" >> $GITHUB_OUTPUT
+        echo "$NOTES" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        
+    # GitHub CLI is pre-installed on GitHub-hosted runners, no need to install
+      
+    - name: Check and create/update release
+      id: manage_release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        TAG_NAME="v${{ steps.version.outputs.VERSION }}"
+        RELEASE_NAME="UIAutomationMCP v${{ steps.version.outputs.VERSION }}"
+        
+        # Check if release exists
+        if gh release view "$TAG_NAME" --repo ${{ github.repository }} > /dev/null 2>&1; then
+          echo "Release $TAG_NAME exists, will update it"
+          RELEASE_EXISTS="true"
+          
+          # Update release notes if needed
+          gh release edit "$TAG_NAME" \
+            --repo ${{ github.repository }} \
+            --notes "${{ steps.release_notes.outputs.NOTES }}"
+        else
+          echo "Creating new release $TAG_NAME"
+          RELEASE_EXISTS="false"
+          
+          # Create new release
+          gh release create "$TAG_NAME" \
+            --repo ${{ github.repository }} \
+            --title "$RELEASE_NAME" \
+            --notes "${{ steps.release_notes.outputs.NOTES }}" \
+            --draft=false \
+            --prerelease=false
+        fi
+        
+        echo "RELEASE_EXISTS=$RELEASE_EXISTS" >> $GITHUB_OUTPUT
+        echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
+        
+    - name: Upload release assets
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        TAG_NAME="${{ steps.manage_release.outputs.TAG_NAME }}"
+        
+        # Upload all ZIP files
+        for file in artifacts/build-*/*.zip; do
+          if [ -f "$file" ]; then
+            filename=$(basename "$file")
+            echo "Uploading $filename"
+            
+            # Upload with clobber to overwrite if exists
+            gh release upload "$TAG_NAME" "$file" \
+              --clobber \
+              --repo ${{ github.repository }}
+          fi
+        done
+        
+        echo "All assets uploaded successfully"
+
+  # ===== Stage 3: Winget 投稿 =====
+  winget:
+    name: Submit to Winget
+    needs: release  # リリース完了を待つ
+    runs-on: windows-latest
+    if: startsWith(github.ref, 'refs/tags/')  # タグプッシュ時のみ実行
+    
+    steps:
+    - name: Get version
+      id: version
+      run: |
+        if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+          $version = "${{ github.event.inputs.version }}"
+        } else {
+          $version = "${{ github.ref_name }}" -replace '^v', ''
+        }
+        echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+        Write-Host "Submitting version $version to Winget"
       shell: pwsh
       
-    - name: Create GitHub Release (x64 only)
-      id: create_release
-      if: matrix.architecture == 'win-x64'
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: v${{ steps.version.outputs.VERSION }}
-        release_name: UIAutomationMCP v${{ steps.version.outputs.VERSION }}
-        body: ${{ steps.release_notes.outputs.NOTES }}
-        draft: false
-        prerelease: false
-        
-    - name: Get existing release (ARM64)
-      id: get_release
-      if: matrix.architecture == 'win-arm64'
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const { data: release } = await github.rest.repos.getReleaseByTag({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            tag: 'v${{ steps.version.outputs.VERSION }}'
-          });
-          return release.upload_url;
-        result-encoding: string
-        
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ matrix.architecture == 'win-x64' && steps.create_release.outputs.upload_url || steps.get_release.outputs.result }}
-        asset_path: ${{ steps.archive.outputs.ARCHIVE_PATH }}
-        asset_name: ${{ steps.archive.outputs.ARCHIVE_NAME }}
-        asset_content_type: application/zip
-        
-    - name: Submit to Winget Community Repository (x64 only)
-      if: matrix.architecture == 'win-x64'
+    - name: Submit to Winget Community Repository
       uses: vedantmgoyal2009/winget-releaser@v2
       with:
         identifier: Locomorange.UIAutomationMCP
