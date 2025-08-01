@@ -5,6 +5,7 @@ using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Core.Validation;
 using UIAutomationMCP.Models.Abstractions;
 using UIAutomationMCP.Server.Abstractions;
+using System.Reflection;
 
 namespace UIAutomationMCP.Server.Infrastructure
 {
@@ -156,7 +157,7 @@ namespace UIAutomationMCP.Server.Infrastructure
                     ExecutionId = context.OperationId,
                     StartTime = context.StartedAt,
                     EndTime = context.StartedAt.Add(context.Stopwatch.Elapsed),
-                    ServerVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0",
+                    ServerVersion = GetServerVersion(),
                     ServerProcessingTime = context.Stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                     OperationId = context.OperationId,
                     ServerExecutedAt = context.StartedAt,
@@ -187,7 +188,7 @@ namespace UIAutomationMCP.Server.Infrastructure
                     ExecutionId = context.OperationId,
                     StartTime = context.StartedAt,
                     EndTime = context.StartedAt.Add(context.Stopwatch.Elapsed),
-                    ServerVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0",
+                    ServerVersion = GetServerVersion(),
                     ServerProcessingTime = context.Stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                     OperationId = context.OperationId,
                     ServerExecutedAt = context.StartedAt,
@@ -218,7 +219,7 @@ namespace UIAutomationMCP.Server.Infrastructure
                     ExecutionId = context.OperationId,
                     StartTime = context.StartedAt,
                     EndTime = context.StartedAt.Add(context.Stopwatch.Elapsed),
-                    ServerVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0",
+                    ServerVersion = GetServerVersion(),
                     ServerProcessingTime = context.Stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                     OperationId = context.OperationId,
                     ServerExecutedAt = context.StartedAt,
@@ -249,7 +250,7 @@ namespace UIAutomationMCP.Server.Infrastructure
                     ExecutionId = context.OperationId,
                     StartTime = context.StartedAt,
                     EndTime = context.StartedAt.Add(context.Stopwatch.Elapsed),
-                    ServerVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0",
+                    ServerVersion = GetServerVersion(),
                     ServerProcessingTime = context.Stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fff"),
                     OperationId = context.OperationId,
                     ServerExecutedAt = context.StartedAt,
@@ -295,6 +296,20 @@ namespace UIAutomationMCP.Server.Infrastructure
                 ExecutionTimeMs = context.Stopwatch.Elapsed.TotalMilliseconds,
                 MethodName = context.MethodName
             };
+        }
+        
+        /// <summary>
+        /// Get server version in a Native AOT compatible way
+        /// </summary>
+        private static string GetServerVersion()
+        {
+            // Native AOT compatible version retrieval
+            // Uses compile-time constant from project file
+            return typeof(BaseUIAutomationService<>).Assembly
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion 
+                ?? typeof(BaseUIAutomationService<>).Assembly
+                .GetCustomAttribute<AssemblyVersionAttribute>()?.Version 
+                ?? "1.0.0";
         }
         
         /// <summary>

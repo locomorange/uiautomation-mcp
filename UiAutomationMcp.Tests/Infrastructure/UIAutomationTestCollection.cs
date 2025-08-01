@@ -111,19 +111,21 @@ namespace UiAutomationMcp.Tests.Infrastructure
         {
             try
             {
-                // Windows Management Instrumentation query
-                using (var searcher = new System.Management.ManagementObjectSearcher(
-                    $"SELECT CommandLine FROM Win32_Process WHERE ProcessId = {process.Id}"))
+                // Native AOT compatible approach - use Process.StartInfo or fallback
+                if (!string.IsNullOrEmpty(process.StartInfo?.FileName))
                 {
-                    foreach (var obj in searcher.Get())
-                    {
-                        return obj["CommandLine"]?.ToString();
-                    }
+                    var args = process.StartInfo.Arguments;
+                    return string.IsNullOrEmpty(args) 
+                        ? process.StartInfo.FileName 
+                        : $"{process.StartInfo.FileName} {args}";
                 }
+                
+                // Fallback: Try to get from MainModule (limited info but AOT compatible)
+                return process.MainModule?.FileName;
             }
             catch
             {
-                // WMI query failed
+                // Process info access failed
             }
             return null;
         }
