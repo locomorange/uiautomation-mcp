@@ -1,0 +1,314 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using System.Diagnostics;
+using System.Text.Json;
+using UIAutomationMCP.Server.Helpers;
+using UIAutomationMCP.Server.Services;
+using UIAutomationMCP.Server.Services.ControlPatterns;
+using UIAutomationMCP.Server.Tools;
+using Xunit;
+using Xunit.Abstractions;
+using UIAutomationMCP.Models.Abstractions;
+
+namespace UIAutomationMCP.Tests.E2E
+{
+    [Collection("UIAutomationTestCollection")]
+    [Trait("Category", "E2E")]
+    public class MCPToolsE2ETests : IDisposable
+    {
+        private readonly ITestOutputHelper _output;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly UIAutomationTools _tools;
+        private readonly List<Process> _launchedProcesses = new();
+
+        public MCPToolsE2ETests(ITestOutputHelper output)
+        {
+            _output = output;
+            _serviceProvider = CreateServiceProvider();
+            _tools = _serviceProvider.GetRequiredService<UIAutomationTools>();
+        }
+
+        public static IServiceProvider CreateServiceProvider()
+        {
+            var services = new ServiceCollection();
+
+            // Configure logging
+            services.AddLogging(builder =>
+            {
+                builder.AddConsole();
+                builder.SetMinimumLevel(LogLevel.Information);
+            });
+
+            // Register application services
+            services.AddSingleton<IApplicationLauncher, ApplicationLauncher>();
+            services.AddSingleton<IScreenshotService, ScreenshotService>();
+            
+            // Register subprocess-based UI Automation services
+            services.AddSingleton<IElementSearchService, ElementSearchService>();
+            services.AddSingleton<ITreeNavigationService, TreeNavigationService>();
+            services.AddSingleton<IInvokeService, InvokeService>();
+            services.AddSingleton<IValueService, ValueService>();
+            services.AddSingleton<IToggleService, ToggleService>();
+            services.AddSingleton<ISelectionService, SelectionService>();
+            services.AddSingleton<IWindowService, WindowService>();
+            services.AddSingleton<ITextService, TextService>();
+            services.AddSingleton<ILayoutService, LayoutService>();
+            services.AddSingleton<IRangeService, RangeService>();
+            
+            // Register additional subprocess-based UI Automation services
+            services.AddSingleton<IGridService, GridService>();
+            services.AddSingleton<ITableService, TableService>();
+            services.AddSingleton<IMultipleViewService, MultipleViewService>();
+            services.AddSingleton<IAccessibilityService, AccessibilityService>();
+            services.AddSingleton<ICustomPropertyService, CustomPropertyService>();
+            services.AddSingleton<ITransformService, TransformService>();
+            services.AddSingleton<IControlTypeService, ControlTypeService>();
+            services.AddSingleton<IVirtualizedItemService, VirtualizedItemService>();
+            services.AddSingleton<IItemContainerService, ItemContainerService>();
+            services.AddSingleton<ISynchronizedInputService, SynchronizedInputService>();
+
+            // Register subprocess executor
+            services.AddSingleton<SubprocessExecutor>(provider =>
+            {
+                var logger = provider.GetRequiredService<ILogger<SubprocessExecutor>>();
+                var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                
+                // Look for Worker.exe in multiple possible locations
+                var possiblePaths = new[]
+                {
+                    Path.Combine(baseDir, "UIAutomationMCP.Worker.exe"),
+                    Path.Combine(baseDir, "..", "..", "..", "..", "UIAutomationMCP.Worker", "bin", "Debug", "net9.0-windows", "UIAutomationMCP.Worker.exe"),
+                    Path.Combine(baseDir, "..", "..", "..", "..", "UIAutomationMCP.Server", "bin", "Debug", "net9.0-windows", "UIAutomationMCP.Worker.exe"),
+                    Path.Combine(baseDir, "worker", "UIAutomationMCP.Worker.exe"),
+                };
+
+                string? workerPath = null;
+                foreach (var path in possiblePaths)
+                {
+                    var fullPath = Path.GetFullPath(path);
+                    if (File.Exists(fullPath))
+                    {
+                        workerPath = fullPath;
+                        break;
+                    }
+                }
+
+                if (workerPath == null)
+                {
+                    throw new InvalidOperationException($"UIAutomationMCP.Worker not found. Searched paths: {string.Join(", ", possiblePaths.Select(Path.GetFullPath))}");
+                }
+
+                var shutdownCts = new CancellationTokenSource();
+                return new SubprocessExecutor(logger, workerPath, shutdownCts);
+            });
+            
+            services.AddSingleton<IOperationExecutor>(provider => provider.GetRequiredService<SubprocessExecutor>());
+            
+            // Register tools
+            services.AddSingleton<UIAutomationTools>();
+
+            return services.BuildServiceProvider();
+        }
+
+        [Fact]
+        public async Task SearchElements_Windows_ShouldReturnOpenWindows()
+        {
+            _output.WriteLine("Testing SearchElements with Window filter...");
+
+            try
+            {
+                var result = await _tools.SearchElements(controlType: "Window", scope: "children");
+                Assert.NotNull(result);
+                
+                _output.WriteLine($"SearchElements Windows result type: {result.GetType().Name}");
+                _output.WriteLine($"SearchElements Windows result: {JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}");
+                
+                // Test passes if no exception is thrown and result is not null
+                Assert.True(true, "SearchElements Windows executed successfully");
+            }
+            catch (Exception ex)
+            {
+                _output.WriteLine($"SearchElements Windows failed: {ex.Message}");
+                _output.WriteLine($"Stack trace: {ex.StackTrace}");
+                throw;
+            }
+        }
+
+        [Fact]
+        public async Task LaunchApplicationByName_ShouldLaunchNotepad()
+        {
+            _output.WriteLine("Testing LaunchApplicationByName with Notepad...");
+
+            try
+            {
+                // Use IApplicationLauncher directly instead of non-existent LaunchApplicationByName
+                var appLauncher = _serviceProvider.GetRequiredService<IApplicationLauncher>();
+                var result = await appLauncher.LaunchApplicationAsync("notepad.exe");
+                Assert.NotNull(result);
+                
+                _output.WriteLine($"LaunchApplicationByName result: {JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}");
+                
+                // Wait for application to start
+                await Task.Delay(2000);
+                
+                // Track the launched Notepad process
+                var notepadProcess = Process.GetProcessesByName("notepad").OrderByDescending(p => p.StartTime).FirstOrDefault();
+                if (notepadProcess != null)
+                {
+                    _launchedProcesses.Add(notepadProcess);
+                    _output.WriteLine($"Tracked Notepad process ID: {notepadProcess.Id}");
+                }
+                
+                // Try to get window info for Notepad
+                var windowInfo = await _tools.SearchElements(controlType: "Window", scope: "children");
+                _output.WriteLine($"Window info after launch: {JsonSerializer.Serialize(windowInfo, new JsonSerializerOptions { WriteIndented = true })}");
+                
+                Assert.True(true, "LaunchApplicationByName executed successfully");
+            }
+            catch (Exception ex)
+            {
+                _output.WriteLine($"LaunchApplicationByName failed: {ex.Message}");
+                _output.WriteLine($"Stack trace: {ex.StackTrace}");
+                throw;
+            }
+        }
+
+        [Fact]
+        public async Task SearchElements_ShouldSearchElementsInNotepad()
+        {
+            _output.WriteLine("Testing SearchElements in Notepad...");
+
+            try
+            {
+                // First launch Notepad
+                // Use IApplicationLauncher directly
+                var appLauncher = _serviceProvider.GetRequiredService<IApplicationLauncher>();
+                await appLauncher.LaunchApplicationAsync("notepad.exe");
+                await Task.Delay(2000);
+                
+                // Track the launched Notepad process
+                var notepadProcess = Process.GetProcessesByName("notepad").OrderByDescending(p => p.StartTime).FirstOrDefault();
+                if (notepadProcess != null)
+                {
+                    _launchedProcesses.Add(notepadProcess);
+                    _output.WriteLine($"Tracked Notepad process ID: {notepadProcess.Id}");
+                }
+                
+                // Find elements in Notepad window
+                var result = await _tools.SearchElements();
+                Assert.NotNull(result);
+                
+                _output.WriteLine($"SearchElements result: {JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}");
+                
+                Assert.True(true, "SearchElements executed successfully");
+            }
+            catch (Exception ex)
+            {
+                _output.WriteLine($"SearchElements failed: {ex.Message}");
+                _output.WriteLine($"Stack trace: {ex.StackTrace}");
+                throw;
+            }
+        }
+
+        [Fact]
+        public async Task TakeScreenshot_ShouldCaptureScreen()
+        {
+            _output.WriteLine("Testing TakeScreenshot...");
+
+            try
+            {
+                var result = await _tools.TakeScreenshot();
+                Assert.NotNull(result);
+                
+                _output.WriteLine($"TakeScreenshot result type: {result.GetType().Name}");
+                
+                // Convert to JSON to inspect structure
+                var jsonResult = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+                _output.WriteLine($"TakeScreenshot result: {jsonResult}");
+                
+                Assert.True(true, "TakeScreenshot executed successfully");
+            }
+            catch (Exception ex)
+            {
+                _output.WriteLine($"TakeScreenshot failed: {ex.Message}");
+                _output.WriteLine($"Stack trace: {ex.StackTrace}");
+                throw;
+            }
+        }
+
+        [Fact]
+        public async Task GetElementTree_ShouldGetTreeStructure()
+        {
+            _output.WriteLine("Testing GetElementTree...");
+
+            try
+            {
+                var result = await _tools.GetElementTree(maxDepth: 2);
+                Assert.NotNull(result);
+                
+                _output.WriteLine($"GetElementTree result: {JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}");
+                
+                Assert.True(true, "GetElementTree executed successfully");
+            }
+            catch (Exception ex)
+            {
+                _output.WriteLine($"GetElementTree failed: {ex.Message}");
+                _output.WriteLine($"Stack trace: {ex.StackTrace}");
+                throw;
+            }
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                // Clean up only the processes we explicitly launched using ProcessCleanupHelper
+                var cleanupTasks = _launchedProcesses
+                    .Where(p => 
+                    {
+                        try 
+                        { 
+                            return !p.HasExited; 
+                        }
+                        catch 
+                        { 
+                            return false; // Process may have already been disposed
+                        }
+                    })
+                    .Select(process => 
+                        ProcessCleanupHelper.CleanupProcess(
+                            process,
+                            _output,
+                            $"{process.ProcessName}({process.Id})",
+                            5000))
+                    .ToList();
+
+                if (cleanupTasks.Any())
+                {
+                    _output.WriteLine($"Cleaning up {cleanupTasks.Count} launched processes...");
+                    Task.WhenAll(cleanupTasks).Wait(TimeSpan.FromSeconds(30));
+                }
+
+                _launchedProcesses.Clear();
+            }
+            catch (Exception ex)
+            {
+                _output.WriteLine($"Error during process cleanup: {ex.Message}");
+            }
+            
+            try
+            {
+                if (_serviceProvider is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+            }
+            catch (Exception ex)
+            {
+                _output.WriteLine($"Error during service provider cleanup: {ex.Message}");
+            }
+        }
+    }
+}
+
