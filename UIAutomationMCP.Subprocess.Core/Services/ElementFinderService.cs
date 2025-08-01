@@ -234,14 +234,15 @@ namespace UIAutomationMCP.Subprocess.Core.Services
             // Control type filter
             if (!string.IsNullOrEmpty(criteria.ControlType))
             {
-                if (TryGetControlType(criteria.ControlType, out var controlType))
+                _logger.LogDebug("Trying to resolve ControlType: {ControlTypeName}", criteria.ControlType);
+                if (ControlTypeHelper.TryGetControlType(criteria.ControlType, out var controlType))
                 {
                     conditions.Add(new PropertyCondition(AutomationElement.ControlTypeProperty, controlType));
-                    _logger.LogDebug("Added ControlType condition: {ControlType} -> {ProgrammaticName}", criteria.ControlType, controlType?.ProgrammaticName);
+                    _logger.LogDebug("✁EResolved {ControlTypeName} -> {ProgrammaticName}", criteria.ControlType, controlType.ProgrammaticName);
                 }
                 else
                 {
-                    _logger.LogWarning("Failed to add ControlType condition for: {ControlType}", criteria.ControlType);
+                    _logger.LogWarning("✁EFailed to resolve ControlType: {ControlTypeName}", criteria.ControlType);
                 }
             }
 
@@ -297,40 +298,6 @@ namespace UIAutomationMCP.Subprocess.Core.Services
             };
         }
 
-        private bool TryGetControlType(string controlTypeName, out ControlType? controlType)
-        {
-            controlType = null;
-
-            try
-            {
-                _logger.LogDebug("Trying to resolve ControlType: {ControlTypeName}", controlTypeName);
-                
-                var field = typeof(ControlType).GetField(controlTypeName);
-                if (field?.GetValue(null) is ControlType ct)
-                {
-                    controlType = ct;
-                    _logger.LogDebug("✁EResolved {ControlTypeName} -> {ProgrammaticName}", controlTypeName, ct.ProgrammaticName);
-                    return true;
-                }
-
-                // Try with "ControlType" suffix
-                field = typeof(ControlType).GetField(controlTypeName + "ControlType");
-                if (field?.GetValue(null) is ControlType ct2)
-                {
-                    controlType = ct2;
-                    _logger.LogDebug("✁EResolved {ControlTypeName} -> {ProgrammaticName} (with suffix)", controlTypeName, ct2.ProgrammaticName);
-                    return true;
-                }
-
-                _logger.LogWarning("✁EFailed to resolve ControlType: {ControlTypeName}", controlTypeName);
-                return false;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to resolve ControlType: {ControlTypeName}", controlTypeName);
-                return false;
-            }
-        }
 
         private bool SupportsPattern(AutomationElement element, string patternName)
         {

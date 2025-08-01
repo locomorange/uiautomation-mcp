@@ -73,6 +73,7 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
 
         /// <summary>
         /// Get ControlType from string (out parameter version for existing code compatibility)
+        /// Supports both direct names ("Button") and with "ControlType" suffix ("ButtonControlType")
         /// </summary>
         public static bool TryGetControlType(string? controlTypeName, out ControlType controlType)
         {
@@ -81,10 +82,22 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
             if (string.IsNullOrEmpty(controlTypeName))
                 return false;
 
+            // Try direct lookup first
             if (ControlTypeMappings.TryGetValue(controlTypeName, out var foundType))
             {
                 controlType = foundType;
                 return true;
+            }
+
+            // Try removing "ControlType" suffix if present
+            if (controlTypeName.EndsWith("ControlType", StringComparison.OrdinalIgnoreCase))
+            {
+                var withoutSuffix = controlTypeName.Substring(0, controlTypeName.Length - "ControlType".Length);
+                if (ControlTypeMappings.TryGetValue(withoutSuffix, out foundType))
+                {
+                    controlType = foundType;
+                    return true;
+                }
             }
 
             return false;
