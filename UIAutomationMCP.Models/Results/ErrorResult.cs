@@ -1,36 +1,47 @@
 using System.Text.Json.Serialization;
+using MessagePack;
 
 namespace UIAutomationMCP.Models.Results
 {
     /// <summary>
     /// Standard error response for UI Automation operations
     /// </summary>
+    [MessagePackObject]
     public class ErrorResult
     {
+        [Key(0)]
         [JsonPropertyName("success")]
         public bool Success { get; set; } = false;
 
+        [Key(1)]
         [JsonPropertyName("error")]
         public string Error { get; set; } = string.Empty;
 
+        [Key(2)]
         [JsonPropertyName("automationId")]
         public string? AutomationId { get; set; }
 
+        [Key(3)]
         [JsonPropertyName("operation")]
         public string? Operation { get; set; }
 
+        [Key(4)]
         [JsonPropertyName("timeoutSeconds")]
         public int? TimeoutSeconds { get; set; }
 
+        [Key(5)]
         [JsonPropertyName("errorCategory")]
         public string? ErrorCategory { get; set; }
 
+        [Key(6)]
         [JsonPropertyName("exceptionType")]
         public string? ExceptionType { get; set; }
 
+        [Key(7)]
         [JsonPropertyName("details")]
         public string? Details { get; set; }
 
+        [Key(8)]
         [JsonPropertyName("suggestions")]
         public string[]? Suggestions { get; set; }
 

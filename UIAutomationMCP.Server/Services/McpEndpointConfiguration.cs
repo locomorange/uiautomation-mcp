@@ -19,8 +19,19 @@ namespace UIAutomationMCP.Server.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            // Check for cancellation before starting
+            if (stoppingToken.IsCancellationRequested)
+                return;
+                
             // Wait longer for MCP server to fully initialize
-            await Task.Delay(1000, stoppingToken);
+            try
+            {
+                await Task.Delay(1000, stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                return; // Exit gracefully if cancelled during delay
+            }
 
             // Try multiple times with retries
             for (int i = 0; i < 10 && !stoppingToken.IsCancellationRequested; i++)
@@ -42,7 +53,14 @@ namespace UIAutomationMCP.Server.Services
                 }
 
                 // Wait before retry
-                await Task.Delay(500, stoppingToken);
+                try
+                {
+                    await Task.Delay(500, stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    return; // Exit gracefully if cancelled during delay
+                }
             }
         }
     }

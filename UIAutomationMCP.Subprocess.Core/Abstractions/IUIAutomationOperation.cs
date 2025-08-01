@@ -20,16 +20,16 @@ namespace UIAutomationMCP.Subprocess.Core.Abstractions
     }
 
     /// <summary>
-    /// Legacy string-based operation interface for backward compatibility
+    /// Type-safe operation interface for UI automation operations
     /// </summary>
     public interface IUIAutomationOperation
     {
         /// <summary>
-        /// Execute UI automation operation
+        /// Execute UI automation operation with typed parameters
         /// </summary>
-        /// <param name="parametersJson">Operation parameters as JSON string</param>
+        /// <param name="parameters">Operation parameters as object</param>
         /// <returns>Operation result</returns>
-        Task<OperationResult> ExecuteAsync(string parametersJson);
+        Task<OperationResult> ExecuteAsync(object? parameters);
     }
 }
 

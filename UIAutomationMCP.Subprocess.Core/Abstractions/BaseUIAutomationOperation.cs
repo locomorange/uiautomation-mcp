@@ -62,16 +62,31 @@ namespace UIAutomationMCP.Subprocess.Core.Abstractions
         }
 
         /// <summary>
-        /// Legacy string-based interface implementation
+        /// Type-safe object-based interface implementation
         /// </summary>
-        public async Task<OperationResult> ExecuteAsync(string parametersJson)
+        public async Task<OperationResult> ExecuteAsync(object? parameters)
         {
             try
             {
-                var request = JsonSerializationHelper.Deserialize<TRequest>(parametersJson);
+                TRequest? request;
+                if (parameters == null)
+                {
+                    request = default(TRequest);
+                }
+                else if (parameters is TRequest directRequest)
+                {
+                    request = directRequest;
+                }
+                else
+                {
+                    // Convert object to TRequest via MessagePack serialization/deserialization
+                    var bytes = MessagePackSerializationHelper.Serialize(parameters);
+                    request = MessagePackSerializationHelper.Deserialize<TRequest>(bytes);
+                }
+                
                 if (request == null)
                 {
-                    return OperationResult.FromError("Failed to deserialize request");
+                    return OperationResult.FromError("Failed to convert parameters to request type");
                 }
 
                 var typedResult = await ExecuteAsync(request);
@@ -85,10 +100,11 @@ namespace UIAutomationMCP.Subprocess.Core.Abstractions
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deserializing request for {OperationType}", GetType().Name);
-                return OperationResult.FromError($"Request processing failed: {ex.Message}");
+                _logger.LogError(ex, "Error in ExecuteAsync (object parameters) for {OperationType}", GetType().Name);
+                return OperationResult.FromError($"Operation failed: {ex.Message}");
             }
         }
+
 
         /// <summary>
         /// Validate the request parameters

@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using System.Text.Json;
 using System.Collections.Concurrent;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Serialization;
@@ -27,7 +26,7 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
         }
 
         /// <summary>
-        /// Main process loop for handling stdin/stdout communication
+        /// Main process loop for handling stdin/stdout communication with MessagePack
         /// </summary>
         public async Task RunAsync()
         {
@@ -37,14 +36,12 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
             {
                 while (true)
                 {
-                    string? input = null;
+                    byte[]? requestData = null;
                     try
                     {
-                        input = await Console.In.ReadLineAsync();
-                        _logger.LogDebug("Received input: {Input}", input ?? "null");
-                        
-                        // Check if stdin is closed or we received EOF
-                        if (input == null)
+                        // Read length-prefixed MessagePack data
+                        requestData = await ReadMessagePackRequestAsync(Console.OpenStandardInput());
+                        if (requestData == null)
                         {
                             _logger.LogInformation("Standard input closed, waiting for running operations to complete in {ProcessType} process", GetProcessType());
                             _shutdownRequested = true;
@@ -53,9 +50,11 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
                             break;
                         }
                         
-                        if (string.IsNullOrEmpty(input))
+                        _logger.LogDebug("Received MessagePack data: {Length} bytes", requestData.Length);
+                        
+                        if (requestData.Length == 0)
                         {
-                            _logger.LogDebug("Empty input received, continuing");
+                            _logger.LogDebug("Empty MessagePack data received, continuing");
                             continue;
                         }
 
@@ -72,15 +71,20 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
                             continue;
                         }
 
-                        // Extract operation name from JSON
-                        var operation = ExtractOperationName(input);
-                        if (string.IsNullOrEmpty(operation))
+                        // Deserialize MessagePack WorkerRequest
+                        var workerRequest = MessagePackSerializationHelper.Deserialize<WorkerRequest>(requestData);
+                        if (workerRequest == null || string.IsNullOrEmpty(workerRequest.Operation))
                         {
-                            continue; // Error already logged and response sent
+                            _logger.LogWarning("Invalid WorkerRequest received");
+                            WriteResponse(WorkerResponse<object>.CreateError("Invalid request format"));
+                            continue;
                         }
                         
-                        _logger.LogDebug("Successfully extracted operation: {Operation}", operation);
-                        var response = await ProcessRequestAsync(operation, input);
+                        _logger.LogDebug("Successfully extracted operation: {Operation}", workerRequest.Operation);
+                        
+                        // Use type-safe ProcessRequestAsync with direct object parameters
+                        _logger.LogDebug("Using MessagePack parameters for operation: {Operation}", workerRequest.Operation);
+                        var response = await ProcessRequestAsync(workerRequest.Operation, workerRequest.Parameters);
                         _logger.LogDebug("Processing completed, writing response: {Success}", response.Success);
                         WriteResponse(response);
                         _logger.LogDebug("Response written to stdout");
@@ -92,7 +96,7 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error processing request. Input: {Input}", input ?? "null");
+                        _logger.LogError(ex, "Error processing request. Data length: {Length}", requestData?.Length ?? 0);
                         WriteResponse(new WorkerResponse<object> 
                         { 
                             Success = false, 
@@ -113,12 +117,12 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
         }
 
         /// <summary>
-        /// Process a request with the given operation name and parameters
+        /// Process a request with the given operation name and parameters (type-safe)
         /// </summary>
         /// <param name="operationName">Name of the operation to execute</param>
-        /// <param name="parametersJson">JSON parameters for the operation</param>
+        /// <param name="parameters">Direct object parameters</param>
         /// <returns>Response object</returns>
-        protected virtual async Task<WorkerResponse<object>> ProcessRequestAsync(string operationName, string parametersJson)
+        protected virtual async Task<WorkerResponse<object>> ProcessRequestAsync(string operationName, object? parameters)
         {
             var operationId = Guid.NewGuid().ToString();
             
@@ -126,11 +130,11 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
             {
                 _logger.LogInformation("[{ProcessType}] Starting operation: {Operation} (ID: {OperationId}) at {Time}", 
                     GetProcessType(), operationName, operationId, DateTime.UtcNow);
-                _logger.LogDebug("[{ProcessType}] Parameters: {Parameters}", GetProcessType(), 
-                    parametersJson.Length > 200 ? parametersJson.Substring(0, 200) + "..." : parametersJson);
+                _logger.LogDebug("[{ProcessType}] Parameters type: {ParameterType}", GetProcessType(), 
+                    parameters?.GetType().Name ?? "null");
 
                 // Create operation task for tracking
-                var operationTask = ExecuteOperationInternalAsync(operationName, parametersJson);
+                var operationTask = ExecuteOperationInternalAsync(operationName, parameters);
                 
                 // Track the operation
                 _runningOperations.TryAdd(operationId, operationTask);
@@ -160,19 +164,22 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
             }
         }
 
-        private async Task<WorkerResponse<object>> ExecuteOperationInternalAsync(string operationName, string parametersJson)
+
+        private async Task<WorkerResponse<object>> ExecuteOperationInternalAsync(string operationName, object? parameters)
         {
             // Try to get the operation for this request
             var operation = _serviceProvider.GetKeyedService<IUIAutomationOperation>(operationName);
             if (operation != null)
             {
                 _logger.LogDebug("[{ProcessType}] Operation handler found: {OperationType}", GetProcessType(), operation.GetType().Name);
-                var operationResult = await operation.ExecuteAsync(parametersJson);
+                
+                // Use type-safe ExecuteAsync with direct object parameters
+                var operationResult = await operation.ExecuteAsync(parameters);
                 return ConvertOperationResult(operationResult, operationName);
             }
 
-            // Allow derived classes to handle specific operations
-            var customResult = await HandleCustomOperationAsync(operationName, parametersJson);
+            // Allow derived classes to handle specific operations with object parameters
+            var customResult = await HandleCustomOperationAsync(operationName, parameters);
             if (customResult != null)
             {
                 return customResult;
@@ -181,17 +188,19 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
             return WorkerResponse<object>.CreateError($"No operation found for: {operationName}");
         }
 
+
         /// <summary>
-        /// Handle custom operations that are not registered as services
+        /// Handle custom operations that are not registered as services (type-safe)
         /// Override in derived classes to provide specific functionality
         /// </summary>
         /// <param name="operationName">Operation name</param>
-        /// <param name="parametersJson">JSON parameters</param>
+        /// <param name="parameters">Direct object parameters</param>
         /// <returns>Response or null if operation is not handled</returns>
-        protected virtual Task<WorkerResponse<object>?> HandleCustomOperationAsync(string operationName, string parametersJson)
+        protected virtual Task<WorkerResponse<object>?> HandleCustomOperationAsync(string operationName, object? parameters)
         {
             return Task.FromResult<WorkerResponse<object>?>(null);
         }
+
 
         /// <summary>
         /// Convert OperationResult to WorkerResponse
@@ -222,50 +231,78 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
         }
 
         /// <summary>
-        /// Extract operation name from JSON input
+        /// Read length-prefixed MessagePack data from stream
         /// </summary>
-        /// <param name="input">JSON string containing the operation property</param>
-        /// <returns>Operation name, or null if extraction fails</returns>
-        private string? ExtractOperationName(string input)
+        private async Task<byte[]?> ReadMessagePackRequestAsync(Stream stream)
         {
             try
             {
-                var jsonDoc = JsonDocument.Parse(input);
-                var root = jsonDoc.RootElement;
-                
-                if (!root.TryGetProperty("operation", out var opElement) && !root.TryGetProperty("Operation", out opElement))
+                // Read 4-byte length prefix
+                byte[] lengthBytes = new byte[4];
+                int totalRead = 0;
+                while (totalRead < 4)
                 {
-                    _logger.LogWarning("Missing operation property in request: {Input}", input);
-                    WriteResponse(WorkerResponse<object>.CreateError("Missing operation property"));
+                    int bytesRead = await stream.ReadAsync(lengthBytes.AsMemory(totalRead, 4 - totalRead));
+                    if (bytesRead == 0)
+                        return null; // End of stream
+                    totalRead += bytesRead;
+                }
+
+                int dataLength = BitConverter.ToInt32(lengthBytes, 0);
+                if (dataLength <= 0 || dataLength > 10 * 1024 * 1024) // 10MB limit
+                {
+                    _logger.LogError("Invalid data length: {Length}", dataLength);
                     return null;
                 }
-                
-                var operation = opElement.GetString();
-                if (string.IsNullOrEmpty(operation))
+
+                // Read the actual MessagePack data
+                byte[] data = new byte[dataLength];
+                totalRead = 0;
+                while (totalRead < dataLength)
                 {
-                    _logger.LogWarning("Empty operation property in request: {Input}", input);
-                    WriteResponse(WorkerResponse<object>.CreateError("Empty operation property"));
-                    return null;
+                    int bytesRead = await stream.ReadAsync(data.AsMemory(totalRead, dataLength - totalRead));
+                    if (bytesRead == 0)
+                    {
+                        _logger.LogError("Unexpected end of stream while reading MessagePack data");
+                        return null;
+                    }
+                    totalRead += bytesRead;
                 }
-                
-                return operation;
+
+                return data;
             }
-            catch (JsonException ex)
+            catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to parse JSON input: {Input}", input);
-                WriteResponse(WorkerResponse<object>.CreateError($"Invalid JSON: {ex.Message}"));
+                _logger.LogError(ex, "Error reading MessagePack request");
                 return null;
             }
         }
 
         /// <summary>
-        /// Write response to stdout as JSON
+        /// Write response to stdout as MessagePack
         /// </summary>
         private void WriteResponse(WorkerResponse<object> response)
         {
-            var json = JsonSerializationHelper.Serialize(response);
-            Console.WriteLine(json);
-            Console.Out.Flush(); // Ensure immediate output
+            try
+            {
+                // Serialize to MessagePack binary format
+                byte[] responseData = MessagePackSerializationHelper.Serialize(response);
+                
+                // Write length prefix
+                byte[] lengthBytes = BitConverter.GetBytes(responseData.Length);
+                Console.OpenStandardOutput().Write(lengthBytes, 0, 4);
+                
+                // Write MessagePack data
+                Console.OpenStandardOutput().Write(responseData, 0, responseData.Length);
+                Console.OpenStandardOutput().Flush();
+                
+                _logger.LogDebug("MessagePack response written successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "MessagePack serialization failed");
+                throw new InvalidOperationException($"Failed to serialize response to MessagePack: {ex.Message}", ex);
+            }
         }
 
         /// <summary>
