@@ -1,4 +1,5 @@
 using System.Text.Json;
+using UIAutomationMCP.Models.Serialization;
 
 namespace UIAutomationMCP.Models.Logging
 {
@@ -72,7 +73,7 @@ namespace UIAutomationMCP.Models.Logging
         /// </summary>
         public string ToJson()
         {
-            return JsonSerializer.Serialize(this, McpLogSerializationContext.Default.McpLogMessage);
+            return JsonSerializationHelper.Serialize(this);
         }
 
         /// <summary>
@@ -82,7 +83,7 @@ namespace UIAutomationMCP.Models.Logging
         {
             try
             {
-                return JsonSerializer.Deserialize(json, McpLogSerializationContext.Default.McpLogMessage);
+                return JsonSerializationHelper.Deserialize<McpLogMessage>(json);
             }
             catch
             {

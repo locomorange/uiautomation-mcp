@@ -4,6 +4,7 @@ using System.Text.Json.Serialization.Metadata;
 using System.Text.Encodings.Web;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Results;
+using UIAutomationMCP.Models.Logging;
 
 namespace UIAutomationMCP.Models.Serialization
 {
@@ -255,6 +256,9 @@ namespace UIAutomationMCP.Models.Serialization
                 Type t when t == typeof(List<Dictionary<string, object>>) => (JsonTypeInfo<T>)(object)_context.ListDictionaryStringObject,
                 Type t when t == typeof(WorkerRequest) => (JsonTypeInfo<T>)(object)_context.WorkerRequest,
 
+                // Logging types
+                Type t when t == typeof(McpLogMessage) => (JsonTypeInfo<T>)(object)_context.McpLogMessage,
+
                 // Unsupported type
                 _ => null
             };
@@ -485,6 +489,8 @@ namespace UIAutomationMCP.Models.Serialization
     [JsonSerializable(typeof(AccessibilityServiceMetadata))]
     [JsonSerializable(typeof(SearchServiceMetadata))]
     [JsonSerializable(typeof(CustomPropertyServiceMetadata))]
+    // Logging types
+    [JsonSerializable(typeof(McpLogMessage))]
     [JsonSerializable(typeof(ControlTypeServiceMetadata))]
     [JsonSerializable(typeof(GridServiceMetadata))]
     [JsonSerializable(typeof(InvokeServiceMetadata))]

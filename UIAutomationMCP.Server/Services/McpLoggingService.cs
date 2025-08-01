@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol;
 using UIAutomationMCP.Models.Logging;
+using UIAutomationMCP.Models.Serialization;
 
 namespace UIAutomationMCP.Server.Services
 {
@@ -183,7 +184,7 @@ namespace UIAutomationMCP.Server.Services
 
             try
             {
-                var dataStr = message.Data.Count > 0 ? System.Text.Json.JsonSerializer.Serialize(message.Data, McpLogSerializationContext.Default.DictionaryStringObject) : "";
+                var dataStr = message.Data.Count > 0 ? JsonSerializationHelper.Serialize(message.Data) : "";
                 _fallbackLogger.Log(netLogLevel, "[{Source}] [{Logger}] {Message} {Data}",
                     message.Source, message.Logger, message.Message, dataStr);
             }
