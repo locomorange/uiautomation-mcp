@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Text.Json;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.Core.Abstractions;
@@ -86,17 +87,10 @@ namespace UIAutomationMCP.Server.Helpers
                     await EnsureWorkerProcessAsync();
                 
                     var operationStartTime = DateTime.UtcNow;
-                    // Create WorkerRequest with direct MessagePack serialization
-                    var workerRequest = new WorkerRequest
-                    {
-                        Operation = operation,
-                        Parameters = request  // Direct object serialization via MessagePack
-                    };
+                    // Serialize to UTF-8 JSON byte array
+                    byte[] requestData = JsonUtf8SerializationHelper.SerializeToUtf8Bytes(request);
                     
-                    // Serialize to MessagePack binary format
-                    byte[] requestData = MessagePackSerializationHelper.Serialize(workerRequest);
-                    
-                    // Write length-prefixed binary data
+                    // Write length-prefixed UTF-8 JSON data
                     byte[] lengthBytes = BitConverter.GetBytes(requestData.Length);
                     
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
@@ -106,8 +100,8 @@ namespace UIAutomationMCP.Server.Helpers
                     await _workerProcess.StandardInput.BaseStream.WriteAsync(requestData, combinedCts.Token);
                     await _workerProcess.StandardInput.BaseStream.FlushAsync(combinedCts.Token);
 
-                    // Read length-prefixed binary MessagePack response
-                    var responseTask = ReadMessagePackResponseAsync(_workerProcess.StandardOutput.BaseStream, combinedCts.Token);
+                    // Read length-prefixed UTF-8 JSON response
+                    var responseTask = ReadUtf8JsonResponseAsync(_workerProcess.StandardOutput.BaseStream, combinedCts.Token);
                     var timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeoutSeconds), combinedCts.Token);
                     var completedTask = await Task.WhenAny(responseTask, timeoutTask);
 
@@ -175,20 +169,20 @@ namespace UIAutomationMCP.Server.Helpers
                     WorkerResponse<TResult>? response;
                     try
                     {
-                        // Deserialize MessagePack response
-                        response = MessagePackSerializationHelper.Deserialize<WorkerResponse<TResult>>(responseData);
-                        _logger.LogDebug("Successfully deserialized MessagePack response for operation: {Operation}", operation);
+                        response = JsonUtf8SerializationHelper.DeserializeFromUtf8Bytes<WorkerResponse<TResult>>(responseData);
                     }
-                    catch (Exception ex)
+                    catch (JsonException ex)
                     {
-                        var errorMessage = $"Failed to deserialize worker MessagePack response for operation '{operation}'. Response length: {responseData.Length} bytes";
-                        _logger.LogError(ex, "MessagePack deserialization failed: {ErrorMessage}", errorMessage);
+                        var responseString = System.Text.Encoding.UTF8.GetString(responseData);
+                        var errorMessage = $"Failed to deserialize worker response for operation '{operation}'. Response: {responseString}";
+                        _logger.LogError(ex, "UTF-8 JSON deserialization failed: {ErrorMessage}", errorMessage);
                         throw new InvalidOperationException(errorMessage, ex);
                     }
                     
                     if (response == null)
                     {
-                        var errorMessage = $"Deserialized response is null for operation '{operation}'. Response length: {responseData.Length} bytes";
+                        var responseString = System.Text.Encoding.UTF8.GetString(responseData);
+                        var errorMessage = $"Deserialized response is null for operation '{operation}'. Raw response: {responseString}";
                         _logger.LogError("Null response after deserialization: {ErrorMessage}", errorMessage);
                         throw new InvalidOperationException(errorMessage);
                     }
@@ -232,21 +226,15 @@ namespace UIAutomationMCP.Server.Helpers
 
                     try
                     {
-                        // Response.Data should already be of type TResult from MessagePack deserialization
-                        if (response.Data is TResult directResult)
-                        {
-                            return directResult;
-                        }
-                        
-                        // Fallback: serialize/deserialize through MessagePack for complex type conversion
-                        var dataBytes = MessagePackSerializationHelper.Serialize(response.Data!);
-                        var result = MessagePackSerializationHelper.Deserialize<TResult>(dataBytes)!;
+                        var dataBytes = JsonUtf8SerializationHelper.SerializeToUtf8Bytes(response.Data!);
+                        var result = JsonUtf8SerializationHelper.DeserializeFromUtf8Bytes<TResult>(dataBytes)!;
                         return result;
                     }
-                    catch (Exception ex)
+                    catch (JsonException ex)
                     {
-                        _logger.LogError(ex, "Failed to convert response data to type {ResultType}", typeof(TResult).Name);
-                        throw new InvalidOperationException($"Failed to convert response data to {typeof(TResult).Name}: {ex.Message}", ex);
+                        _logger.LogError(ex, "Failed to deserialize response data to type {ResultType}. Data: {Data}", 
+                            typeof(TResult).Name, JsonUtf8SerializationHelper.SerializeToString(response.Data!));
+                        throw new InvalidOperationException($"Failed to deserialize response data to {typeof(TResult).Name}: {ex.Message}", ex);
                     }
                 }
                 finally
@@ -275,9 +263,9 @@ namespace UIAutomationMCP.Server.Helpers
         }
 
         /// <summary>
-        /// Read length-prefixed MessagePack data from stream
+        /// Reads length-prefixed UTF-8 JSON data from stream
         /// </summary>
-        private async Task<byte[]> ReadMessagePackResponseAsync(Stream stream, CancellationToken cancellationToken)
+        private async Task<byte[]> ReadUtf8JsonResponseAsync(Stream stream, CancellationToken cancellationToken)
         {
             // Read 4-byte length prefix
             byte[] lengthBytes = new byte[4];
@@ -294,14 +282,14 @@ namespace UIAutomationMCP.Server.Helpers
             if (dataLength <= 0 || dataLength > 10 * 1024 * 1024) // 10MB limit
                 throw new InvalidDataException($"Invalid data length: {dataLength}");
 
-            // Read the actual MessagePack data
+            // Read the actual UTF-8 JSON data
             byte[] data = new byte[dataLength];
             totalRead = 0;
             while (totalRead < dataLength)
             {
                 int bytesRead = await stream.ReadAsync(data.AsMemory(totalRead, dataLength - totalRead), cancellationToken);
                 if (bytesRead == 0)
-                    throw new EndOfStreamException("Unexpected end of stream while reading MessagePack data");
+                    throw new EndOfStreamException("Unexpected end of stream while reading UTF-8 JSON data");
                 totalRead += bytesRead;
             }
 

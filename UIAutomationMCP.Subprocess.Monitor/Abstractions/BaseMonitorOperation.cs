@@ -68,31 +68,26 @@ namespace UIAutomationMCP.Subprocess.Monitor.Abstractions
         }
 
         /// <summary>
-        /// Type-safe object-based interface implementation
+        /// JSON string-based interface implementation
         /// </summary>
-        public async Task<OperationResult> ExecuteAsync(object? parameters)
+        public async Task<OperationResult> ExecuteAsync(string parametersJson)
         {
             try
             {
                 TRequest? request;
-                if (parameters == null)
+                if (string.IsNullOrEmpty(parametersJson))
                 {
                     request = default(TRequest);
                 }
-                else if (parameters is TRequest directRequest)
-                {
-                    request = directRequest;
-                }
                 else
                 {
-                    // Convert object to TRequest via MessagePack serialization/deserialization
-                    var bytes = MessagePackSerializationHelper.Serialize(parameters);
-                    request = MessagePackSerializationHelper.Deserialize<TRequest>(bytes);
+                    // Deserialize JSON string to TRequest
+                    request = JsonSerializationHelper.Deserialize<TRequest>(parametersJson);
                 }
                 
                 if (request == null)
                 {
-                    return OperationResult.FromError("Failed to convert parameters to request type");
+                    return OperationResult.FromError("Failed to deserialize JSON parameters to request type");
                 }
 
                 var typedResult = await ExecuteAsync(request);
@@ -106,7 +101,7 @@ namespace UIAutomationMCP.Subprocess.Monitor.Abstractions
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in ExecuteAsync (object parameters) for {OperationType}", GetType().Name);
+                _logger.LogError(ex, "Error in ExecuteAsync (JSON parameters) for {OperationType}", GetType().Name);
                 return OperationResult.FromError($"Operation failed: {ex.Message}");
             }
         }

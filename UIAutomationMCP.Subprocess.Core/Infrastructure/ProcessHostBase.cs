@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.Json;
 using System.Collections.Concurrent;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Serialization;
@@ -26,7 +27,7 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
         }
 
         /// <summary>
-        /// Main process loop for handling stdin/stdout communication with MessagePack
+        /// Main process loop for handling stdin/stdout communication with UTF-8 JSON
         /// </summary>
         public async Task RunAsync()
         {
@@ -39,8 +40,8 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
                     byte[]? requestData = null;
                     try
                     {
-                        // Read length-prefixed MessagePack data
-                        requestData = await ReadMessagePackRequestAsync(Console.OpenStandardInput());
+                        // Read length-prefixed UTF-8 JSON data
+                        requestData = await ReadUtf8JsonRequestAsync(Console.OpenStandardInput());
                         if (requestData == null)
                         {
                             _logger.LogInformation("Standard input closed, waiting for running operations to complete in {ProcessType} process", GetProcessType());
@@ -50,11 +51,11 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
                             break;
                         }
                         
-                        _logger.LogDebug("Received MessagePack data: {Length} bytes", requestData.Length);
+                        _logger.LogDebug("Received UTF-8 JSON data: {Length} bytes", requestData.Length);
                         
                         if (requestData.Length == 0)
                         {
-                            _logger.LogDebug("Empty MessagePack data received, continuing");
+                            _logger.LogDebug("Empty UTF-8 JSON data received, continuing");
                             continue;
                         }
 
@@ -62,7 +63,7 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
                         if (_shutdownRequested)
                         {
                             _logger.LogWarning("Shutdown requested, rejecting new operation");
-                            WriteResponse(new WorkerResponse<object> 
+                            await WriteUtf8JsonResponseAsync(new WorkerResponse<object> 
                             { 
                                 Success = false, 
                                 Error = "Server is shutting down, operation rejected",
@@ -71,22 +72,17 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
                             continue;
                         }
 
-                        // Deserialize MessagePack WorkerRequest
-                        var workerRequest = MessagePackSerializationHelper.Deserialize<WorkerRequest>(requestData);
-                        if (workerRequest == null || string.IsNullOrEmpty(workerRequest.Operation))
+                        // Extract operation name from UTF-8 JSON data
+                        var operation = await ExtractOperationNameFromUtf8JsonAsync(requestData);
+                        if (string.IsNullOrEmpty(operation))
                         {
-                            _logger.LogWarning("Invalid WorkerRequest received");
-                            WriteResponse(WorkerResponse<object>.CreateError("Invalid request format"));
-                            continue;
+                            continue; // Error already logged and response sent
                         }
                         
-                        _logger.LogDebug("Successfully extracted operation: {Operation}", workerRequest.Operation);
-                        
-                        // Use type-safe ProcessRequestAsync with direct object parameters
-                        _logger.LogDebug("Using MessagePack parameters for operation: {Operation}", workerRequest.Operation);
-                        var response = await ProcessRequestAsync(workerRequest.Operation, workerRequest.Parameters);
+                        _logger.LogDebug("Successfully extracted operation: {Operation}", operation);
+                        var response = await ProcessRequestAsync(operation, requestData);
                         _logger.LogDebug("Processing completed, writing response: {Success}", response.Success);
-                        WriteResponse(response);
+                        await WriteUtf8JsonResponseAsync(response);
                         _logger.LogDebug("Response written to stdout");
                     }
                     catch (EndOfStreamException)
@@ -97,7 +93,7 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Error processing request. Data length: {Length}", requestData?.Length ?? 0);
-                        WriteResponse(new WorkerResponse<object> 
+                        await WriteUtf8JsonResponseAsync(new WorkerResponse<object> 
                         { 
                             Success = false, 
                             Error = $"Request processing failed: {ex.Message}",
@@ -117,12 +113,12 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
         }
 
         /// <summary>
-        /// Process a request with the given operation name and parameters (type-safe)
+        /// Process a request with the given operation name and UTF-8 JSON parameters
         /// </summary>
         /// <param name="operationName">Name of the operation to execute</param>
-        /// <param name="parameters">Direct object parameters</param>
+        /// <param name="utf8JsonData">UTF-8 encoded JSON parameters for the operation</param>
         /// <returns>Response object</returns>
-        protected virtual async Task<WorkerResponse<object>> ProcessRequestAsync(string operationName, object? parameters)
+        protected virtual async Task<WorkerResponse<object>> ProcessRequestAsync(string operationName, byte[] utf8JsonData)
         {
             var operationId = Guid.NewGuid().ToString();
             
@@ -130,11 +126,10 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
             {
                 _logger.LogInformation("[{ProcessType}] Starting operation: {Operation} (ID: {OperationId}) at {Time}", 
                     GetProcessType(), operationName, operationId, DateTime.UtcNow);
-                _logger.LogDebug("[{ProcessType}] Parameters type: {ParameterType}", GetProcessType(), 
-                    parameters?.GetType().Name ?? "null");
+                _logger.LogDebug("[{ProcessType}] UTF-8 JSON data length: {Length} bytes", GetProcessType(), utf8JsonData.Length);
 
                 // Create operation task for tracking
-                var operationTask = ExecuteOperationInternalAsync(operationName, parameters);
+                var operationTask = ExecuteOperationInternalAsync(operationName, utf8JsonData);
                 
                 // Track the operation
                 _runningOperations.TryAdd(operationId, operationTask);
@@ -165,21 +160,22 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
         }
 
 
-        private async Task<WorkerResponse<object>> ExecuteOperationInternalAsync(string operationName, object? parameters)
+        private async Task<WorkerResponse<object>> ExecuteOperationInternalAsync(string operationName, byte[] utf8JsonData)
         {
+            // Convert UTF-8 JSON data to string for existing operation interfaces
+            var parametersJson = System.Text.Encoding.UTF8.GetString(utf8JsonData);
+            
             // Try to get the operation for this request
             var operation = _serviceProvider.GetKeyedService<IUIAutomationOperation>(operationName);
             if (operation != null)
             {
                 _logger.LogDebug("[{ProcessType}] Operation handler found: {OperationType}", GetProcessType(), operation.GetType().Name);
-                
-                // Use type-safe ExecuteAsync with direct object parameters
-                var operationResult = await operation.ExecuteAsync(parameters);
+                var operationResult = await operation.ExecuteAsync(parametersJson);
                 return ConvertOperationResult(operationResult, operationName);
             }
 
-            // Allow derived classes to handle specific operations with object parameters
-            var customResult = await HandleCustomOperationAsync(operationName, parameters);
+            // Allow derived classes to handle specific operations with UTF-8 data
+            var customResult = await HandleCustomOperationAsync(operationName, utf8JsonData);
             if (customResult != null)
             {
                 return customResult;
@@ -190,13 +186,13 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
 
 
         /// <summary>
-        /// Handle custom operations that are not registered as services (type-safe)
+        /// Handle custom operations that are not registered as services
         /// Override in derived classes to provide specific functionality
         /// </summary>
         /// <param name="operationName">Operation name</param>
-        /// <param name="parameters">Direct object parameters</param>
+        /// <param name="utf8JsonData">UTF-8 encoded JSON parameters</param>
         /// <returns>Response or null if operation is not handled</returns>
-        protected virtual Task<WorkerResponse<object>?> HandleCustomOperationAsync(string operationName, object? parameters)
+        protected virtual Task<WorkerResponse<object>?> HandleCustomOperationAsync(string operationName, byte[] utf8JsonData)
         {
             return Task.FromResult<WorkerResponse<object>?>(null);
         }
@@ -231,9 +227,46 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
         }
 
         /// <summary>
-        /// Read length-prefixed MessagePack data from stream
+        /// Extract operation name from UTF-8 JSON data
         /// </summary>
-        private async Task<byte[]?> ReadMessagePackRequestAsync(Stream stream)
+        /// <param name="utf8JsonData">UTF-8 encoded JSON data containing the operation property</param>
+        /// <returns>Operation name, or null if extraction fails</returns>
+        private async Task<string?> ExtractOperationNameFromUtf8JsonAsync(byte[] utf8JsonData)
+        {
+            try
+            {
+                var jsonDoc = JsonDocument.Parse(utf8JsonData);
+                var root = jsonDoc.RootElement;
+                
+                if (!root.TryGetProperty("operation", out var opElement) && !root.TryGetProperty("Operation", out opElement))
+                {
+                    _logger.LogWarning("Missing operation property in request. Data length: {Length}", utf8JsonData.Length);
+                    await WriteUtf8JsonResponseAsync(WorkerResponse<object>.CreateError("Missing operation property"));
+                    return null;
+                }
+                
+                var operation = opElement.GetString();
+                if (string.IsNullOrEmpty(operation))
+                {
+                    _logger.LogWarning("Empty operation property in request. Data length: {Length}", utf8JsonData.Length);
+                    await WriteUtf8JsonResponseAsync(WorkerResponse<object>.CreateError("Empty operation property"));
+                    return null;
+                }
+                
+                return operation;
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogWarning(ex, "Failed to parse UTF-8 JSON data. Data length: {Length}", utf8JsonData.Length);
+                await WriteUtf8JsonResponseAsync(WorkerResponse<object>.CreateError($"Invalid JSON: {ex.Message}"));
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Read length-prefixed UTF-8 JSON data from stream
+        /// </summary>
+        private async Task<byte[]?> ReadUtf8JsonRequestAsync(Stream stream)
         {
             try
             {
@@ -255,7 +288,7 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
                     return null;
                 }
 
-                // Read the actual MessagePack data
+                // Read the actual UTF-8 JSON data
                 byte[] data = new byte[dataLength];
                 totalRead = 0;
                 while (totalRead < dataLength)
@@ -263,7 +296,7 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
                     int bytesRead = await stream.ReadAsync(data.AsMemory(totalRead, dataLength - totalRead));
                     if (bytesRead == 0)
                     {
-                        _logger.LogError("Unexpected end of stream while reading MessagePack data");
+                        _logger.LogError("Unexpected end of stream while reading UTF-8 JSON data");
                         return null;
                     }
                     totalRead += bytesRead;
@@ -273,35 +306,35 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error reading MessagePack request");
+                _logger.LogError(ex, "Error reading UTF-8 JSON request");
                 return null;
             }
         }
 
         /// <summary>
-        /// Write response to stdout as MessagePack
+        /// Write response to stdout as length-prefixed UTF-8 JSON
         /// </summary>
-        private void WriteResponse(WorkerResponse<object> response)
+        private async Task WriteUtf8JsonResponseAsync(WorkerResponse<object> response)
         {
             try
             {
-                // Serialize to MessagePack binary format
-                byte[] responseData = MessagePackSerializationHelper.Serialize(response);
+                // Serialize to UTF-8 JSON byte array
+                byte[] responseData = JsonUtf8SerializationHelper.SerializeToUtf8Bytes(response);
                 
                 // Write length prefix
                 byte[] lengthBytes = BitConverter.GetBytes(responseData.Length);
-                Console.OpenStandardOutput().Write(lengthBytes, 0, 4);
+                await Console.OpenStandardOutput().WriteAsync(lengthBytes, 0, 4);
                 
-                // Write MessagePack data
-                Console.OpenStandardOutput().Write(responseData, 0, responseData.Length);
-                Console.OpenStandardOutput().Flush();
+                // Write UTF-8 JSON data
+                await Console.OpenStandardOutput().WriteAsync(responseData, 0, responseData.Length);
+                await Console.OpenStandardOutput().FlushAsync();
                 
-                _logger.LogDebug("MessagePack response written successfully");
+                _logger.LogDebug("UTF-8 JSON response written successfully. Length: {Length} bytes", responseData.Length);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "MessagePack serialization failed");
-                throw new InvalidOperationException($"Failed to serialize response to MessagePack: {ex.Message}", ex);
+                _logger.LogError(ex, "UTF-8 JSON serialization failed");
+                throw new InvalidOperationException($"Failed to serialize response to UTF-8 JSON: {ex.Message}", ex);
             }
         }
 

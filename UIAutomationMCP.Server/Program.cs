@@ -110,17 +110,49 @@ namespace UIAutomationMCP.Server
                 }
                 else
                 {
-                    // In production/tool deployment, executables should be in same directory
-                    workerPath = Path.Combine(baseDir, "UIAutomationMCP.Subprocess.Worker.exe");
-                    monitorPath = Path.Combine(baseDir, "UIAutomationMCP.Subprocess.Monitor.exe");
+                    // In production/tool deployment, try multiple possible locations
+                    var parentDir = Directory.GetParent(baseDir);
+                    var searchPaths = new[]
+                    {
+                        // Same directory as server
+                        Path.Combine(baseDir, "UIAutomationMCP.Subprocess.Worker.exe"),
+                        // Worker subdirectory under current directory
+                        Path.Combine(baseDir, "Worker", "UIAutomationMCP.Subprocess.Worker.exe"),
+                        // Parent Worker directory (for publish structure like publish/aot-win-x64/Server -> publish/aot-win-x64/Worker)
+                        Path.Combine(parentDir?.FullName ?? baseDir, "Worker", "UIAutomationMCP.Subprocess.Worker.exe"),
+                        // Grandparent Worker directory (for nested publish structure)
+                        Path.Combine(parentDir?.Parent?.FullName ?? baseDir, "Worker", "UIAutomationMCP.Subprocess.Worker.exe")
+                    };
+
+                    workerPath = searchPaths.FirstOrDefault(File.Exists);
+                    
+                    // Monitor search paths
+                    var monitorSearchPaths = new[]
+                    {
+                        // Same directory as server
+                        Path.Combine(baseDir, "UIAutomationMCP.Subprocess.Monitor.exe"),
+                        // Monitor subdirectory under current directory
+                        Path.Combine(baseDir, "Monitor", "UIAutomationMCP.Subprocess.Monitor.exe"),
+                        // Parent Monitor directory (for publish structure like publish/aot-win-x64/Server -> publish/aot-win-x64/Monitor)
+                        Path.Combine(parentDir?.FullName ?? baseDir, "Monitor", "UIAutomationMCP.Subprocess.Monitor.exe"),
+                        // Grandparent Monitor directory (for nested publish structure)
+                        Path.Combine(parentDir?.Parent?.FullName ?? baseDir, "Monitor", "UIAutomationMCP.Subprocess.Monitor.exe")
+                    };
+
+                    monitorPath = monitorSearchPaths.FirstOrDefault(File.Exists);
                 }
 
                 // Validate worker path (required)
                 if (workerPath == null || (!File.Exists(workerPath) && !Directory.Exists(workerPath)))
                 {
                     var searchedPaths = new List<string>();
-                    if (!string.IsNullOrEmpty(workerPath))
-                        searchedPaths.Add(workerPath);
+                    
+                    // Add all the paths we searched
+                    var parentDir = Directory.GetParent(baseDir);
+                    searchedPaths.Add(Path.Combine(baseDir, "UIAutomationMCP.Subprocess.Worker.exe"));
+                    searchedPaths.Add(Path.Combine(baseDir, "Worker", "UIAutomationMCP.Subprocess.Worker.exe"));
+                    searchedPaths.Add(Path.Combine(parentDir?.FullName ?? baseDir, "Worker", "UIAutomationMCP.Subprocess.Worker.exe"));
+                    searchedPaths.Add(Path.Combine(parentDir?.Parent?.FullName ?? baseDir, "Worker", "UIAutomationMCP.Subprocess.Worker.exe"));
                     
                     var solutionDir = Directory.GetParent(baseDir)?.Parent?.Parent?.Parent?.Parent?.FullName;
                     if (solutionDir != null)
@@ -129,7 +161,6 @@ namespace UIAutomationMCP.Server
                         var config = baseDir.Contains("Debug") ? "Debug" : "Release";
                         searchedPaths.Add(Path.Combine(solutionDir, "UIAutomationMCP.Subprocess.Worker", "bin", config, "net9.0-windows", "UIAutomationMCP.Subprocess.Worker.exe"));
                     }
-                    searchedPaths.Add(Path.Combine(baseDir, "UIAutomationMCP.Subprocess.Worker.exe"));
 
                     logger.LogError("Worker not found. Base directory: {BaseDir}. Searched paths: {SearchedPaths}", 
                         baseDir, string.Join(", ", searchedPaths));

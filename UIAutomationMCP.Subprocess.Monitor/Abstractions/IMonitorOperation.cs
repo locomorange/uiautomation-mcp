@@ -25,11 +25,11 @@ namespace UIAutomationMCP.Subprocess.Monitor.Abstractions
     public interface IMonitorOperation
     {
         /// <summary>
-        /// Execute Monitor operation with typed parameters
+        /// Execute Monitor operation with JSON string parameters
         /// </summary>
-        /// <param name="parameters">Operation parameters as object</param>
+        /// <param name="parametersJson">Operation parameters as JSON string</param>
         /// <returns>Operation result</returns>
-        Task<OperationResult> ExecuteAsync(object? parameters);
+        Task<OperationResult> ExecuteAsync(string parametersJson);
     }
 }
 
