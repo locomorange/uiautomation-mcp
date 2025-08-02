@@ -20,7 +20,7 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
             {
                 AutomationId = element.Current.AutomationId ?? "",
                 Name = element.Current.Name ?? "",
-                ControlType = element.Current.ControlType.LocalizedControlType ?? "",
+                ControlType = element.Current.ControlType.ProgrammaticName ?? "",
                 LocalizedControlType = string.IsNullOrEmpty(element.Current.ControlType.LocalizedControlType) ? null : element.Current.ControlType.LocalizedControlType,
                 IsEnabled = element.Current.IsEnabled,
                 IsVisible = !element.Current.IsOffscreen,
@@ -60,7 +60,7 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
             {
                 AutomationId = element.Cached.AutomationId ?? "",
                 Name = element.Cached.Name ?? "",
-                ControlType = element.Cached.ControlType.LocalizedControlType ?? "",
+                ControlType = element.Cached.ControlType.ProgrammaticName ?? "",
                 LocalizedControlType = string.IsNullOrEmpty(element.Cached.ControlType.LocalizedControlType) ? null : element.Cached.ControlType.LocalizedControlType,
                 IsEnabled = element.Cached.IsEnabled,
                 IsVisible = !element.Cached.IsOffscreen,
