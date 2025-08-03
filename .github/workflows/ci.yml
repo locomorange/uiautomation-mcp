@@ -21,8 +21,8 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
 
 jobs:
-  build-and-test:
-    name: Build and Test
+  build:
+    name: Build ${{ matrix.architecture }}
     runs-on: windows-latest
     
     strategy:
@@ -55,19 +55,50 @@ jobs:
       run: |
         dotnet build --configuration Release --no-restore --verbosity normal
     
-    - name: Run tests (x64 only)
-      if: matrix.architecture == 'win-x64'
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-${{ matrix.architecture }}
+        path: |
+          **/bin/Release/**
+          **/obj/Release/**
+        retention-days: 1
+
+  test:
+    name: Run Tests
+    runs-on: windows-latest
+    needs: build
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build-win-x64
+        path: .
+    
+    - name: Run tests
       run: |
-        dotnet test --configuration Release --no-build --verbosity normal `
-          --logger "trx;LogFileName=test-results-Release.trx" `
+        dotnet test --configuration Release --no-build --verbosity detailed `
+          --logger "trx;LogFileName=test-results.trx" `
+          --logger "console;verbosity=detailed" `
           --collect:"XPlat Code Coverage" `
           --results-directory TestResults
     
     - name: Upload test results
-      if: matrix.architecture == 'win-x64' && always()
+      if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: test-results-Release
+        name: test-results
         path: TestResults/
         retention-days: 7
     
@@ -76,6 +107,7 @@ jobs:
   code-quality:
     name: Code Quality Checks
     runs-on: windows-latest
+    needs: build
     
     steps:
     - name: Checkout repository
