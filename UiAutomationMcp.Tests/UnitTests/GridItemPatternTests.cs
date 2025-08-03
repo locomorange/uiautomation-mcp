@@ -10,7 +10,10 @@ using UIAutomationMCP.Models.Abstractions;
 namespace UIAutomationMCP.Tests.UnitTests
 {
     /// <summary>
-    /// GridItemPatternの単体テスチE    /// Microsoft仕様に基づぁE��GridItemPatternの機�EをモチE��ベ�EスでチE��トしまぁE    /// GridItemプロバイダーの忁E���Eロパティ�E�Eow, Column, RowSpan, ColumnSpan, ContainingGrid�E�をチE��チE    /// </summary>
+    /// GridItemPattern unit tests
+    /// Test GridItemPattern functionality based on Microsoft specification using mocks
+    /// Tests GridItem provider properties: Row, Column, RowSpan, ColumnSpan, ContainingGrid
+    /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Unit")]
     public class GridItemPatternTests : IDisposable
@@ -24,7 +27,8 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output = output;
             _mockGridService = new Mock<IGridService>();
             
-            // UIAutomationToolsの他�EサービスもモチE��化（最小限の設定！E            var mockAppLauncher = new Mock<IApplicationLauncher>();
+            // Mock other UIAutomationTools services (minimal setup)
+            var mockAppLauncher = new Mock<IApplicationLauncher>();
             var mockScreenshot = new Mock<IScreenshotService>();
             var mockElementSearch = new Mock<IElementSearchService>();
             var mockTreeNavigation = new Mock<ITreeNavigationService>();
@@ -77,16 +81,17 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         public void Dispose()
         {
-            // モチE��のクリーンアチE�Eは不要E        }
+            // Mock cleanup is not required
+        }
 
-        #region Microsoft仕様準拠のGridItem忁E���EロパティチE��チE
+        #region Microsoft spec compliant GridItem property tests
         [Theory]
         [InlineData(0, 0)]
         [InlineData(1, 2)]
         [InlineData(4, 5)]
         public async Task GetGridItem_WithValidCoordinates_ShouldReturnRowAndColumnProperties(int expectedRow, int expectedColumn)
         {
-            // Arrange - Microsoft仕槁E Row, Columnプロパティは0ベ�Eスの座標を返す
+            // Arrange - Microsoft spec: Row, Column properties return 0-based coordinates
             var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
@@ -131,7 +136,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         [InlineData(3, 2)]
         public async Task GetGridItem_WithSpannedCells_ShouldReturnRowSpanAndColumnSpanProperties(int rowSpan, int columnSpan)
         {
-            // Arrange - Microsoft仕槁E RowSpan, ColumnSpanプロパティはセルが跨ぐ行数/列数を返す
+            // Arrange - Microsoft spec: RowSpan, ColumnSpan properties return number of rows/columns the cell spans
             var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
@@ -173,7 +178,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         [Fact]
         public async Task GetGridItem_WithSingleCell_ShouldReturnSpanOfOne()
         {
-            // Arrange - Microsoft仕槁E 単一セルのRowSpan, ColumnSpanは1
+            // Arrange - Microsoft spec: Single cell RowSpan, ColumnSpan should be 1
             var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
@@ -215,7 +220,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         [Fact]
         public async Task GetGridItem_WithContainingGridReference_ShouldReturnValidReference()
         {
-            // Arrange - Microsoft仕槁E ContainingGridプロパティは親グリチE��への参�Eを返す
+            // Arrange - Microsoft spec: ContainingGrid property returns reference to parent grid
             var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
@@ -256,14 +261,15 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region Microsoft仕様準拠のマ�EジされたセルチE��チE
+        #region Microsoft spec compliant merged cell tests
         [Theory]
-        [InlineData(0, 0, 2, 3)] // アンカーセル(0,0)から2衁E列�Eマ�Eジ
-        [InlineData(1, 1, 1, 2)] // アンカーセル(1,1)から1衁E列�Eマ�Eジ
-        [InlineData(3, 2, 3, 1)] // アンカーセル(3,2)から3衁E列�Eマ�Eジ
+        [InlineData(0, 0, 2, 3)] // Anchor cell (0,0) with 2 rows, 3 columns merged
+        [InlineData(1, 1, 1, 2)] // Anchor cell (1,1) with 1 row, 2 columns merged
+        [InlineData(3, 2, 3, 1)] // Anchor cell (3,2) with 3 rows, 1 column merged
         public async Task GetGridItem_WithMergedCells_ShouldReportAnchorCellCoordinates(int anchorRow, int anchorColumn, int rowSpan, int columnSpan)
         {
-            // Arrange - Microsoft仕槁E マ�Eジされたセルはアンカーセルの座標を報告すめE            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
+            // Arrange - Microsoft spec: Merged cells should report anchor cell coordinates
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
                 Data = new ElementSearchResult
@@ -302,9 +308,12 @@ namespace UIAutomationMCP.Tests.UnitTests
         }
 
         [Theory]
-        [InlineData(0, 1, 0, 0)] // マ�Eジ篁E��冁E�E(0,1)は実際には(0,0)のアンカーセルを指ぁE        [InlineData(1, 0, 0, 0)] // マ�Eジ篁E��冁E�E(1,0)は実際には(0,0)のアンカーセルを指ぁE        [InlineData(1, 1, 0, 0)] // マ�Eジ篁E��冁E�E(1,1)は実際には(0,0)のアンカーセルを指ぁE        public async Task GetGridItem_WithCellsInMergeRange_ShouldReturnAnchorCellProperties(int requestRow, int requestColumn, int anchorRow, int anchorColumn)
+        [InlineData(0, 1, 0, 0)] // Merged cell at (0,1) actually points to anchor cell (0,0)
+        [InlineData(1, 0, 0, 0)] // Merged cell at (1,0) actually points to anchor cell (0,0)
+        [InlineData(1, 1, 0, 0)] // Merged cell at (1,1) actually points to anchor cell (0,0)
+        public async Task GetGridItem_WithCellsInMergeRange_ShouldReturnAnchorCellProperties(int requestRow, int requestColumn, int anchorRow, int anchorColumn)
         {
-            // Arrange - Microsoft仕槁E マ�Eジ篁E��冁E�Eどの座標でも同じアンカーセルのプロパティを返す
+            // Arrange - Microsoft spec: Merged cells at any coordinate return same anchor cell properties
             var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
@@ -345,11 +354,11 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region Microsoft仕様準拠の座標系チE��チE
+        #region Microsoft spec compliant coordinate system tests
         [Fact]
         public async Task GetGridItem_WithZeroBasedCoordinates_ShouldReturnCorrectItem()
         {
-            // Arrange - Microsoft仕槁E 座標系は0ベ�Eス、左上が(0,0)
+            // Arrange - Microsoft spec: Coordinate system is 0-based, top-left is (0,0)
             var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
@@ -394,7 +403,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         [InlineData(9, 9)]
         public async Task GetGridItem_WithVariousCoordinates_ShouldMaintainCoordinateConsistency(int row, int column)
         {
-            // Arrange - Microsoft仕槁E 返されるRow/Columnプロパティは要求された座標と一致する忁E��がある
+            // Arrange - Microsoft仕槁E 返されるRow/Columnプロパティは要求された座標と一致する忁E��がある
             var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
@@ -435,7 +444,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region Microsoft仕様準拠の例外�E琁E��スチE
+        #region Microsoft仕様準拠の例外琁E��スチE
         [Theory]
         [InlineData(-1, 0)]
         [InlineData(0, -1)]
@@ -463,7 +472,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridItem_WithCoordinatesExceedingBounds_ShouldThrowArgumentOutOfRangeException(
             int row, int column, int maxRow, int maxColumn)
         {
-            // Arrange - Microsoft仕槁E RowCount/ColumnCountを趁E��る座標でArgumentOutOfRangeExceptionをスロー
+            // Arrange - Microsoft仕槁E RowCount/ColumnCountを趁E��る座標でArgumentOutOfRangeExceptionをスロー
             _mockGridService.Setup(s => s.GetGridItemAsync("boundGrid", null, row, column, "TestWindow", null, 30))
                            .ThrowsAsync(new ArgumentOutOfRangeException(
                                row >= maxRow ? "row" : "column", 
@@ -479,11 +488,12 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region GridItemプロパティの整合性チE��チE
+        #region GridItem property consistency tests
         [Fact]
         public async Task GetGridItem_WithValidItem_ShouldHaveConsistentProperties()
         {
-            // Arrange - すべてのGridItem忁E���Eロパティが適刁E��設定されてぁE��ことを確誁E            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
+            // Arrange - All GridItem properties should be properly set and verified
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
                 Data = new ElementSearchResult
@@ -527,7 +537,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         [InlineData(3, 1, 3, 2)]
         public async Task GetGridItem_WithSpannedItems_ShouldHaveValidSpanValues(int row, int column, int rowSpan, int columnSpan)
         {
-            // Arrange - RowSpan/ColumnSpanぁE以上�E有効な値であることを確誁E            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
+            // Arrange - RowSpan/ColumnSpan should be valid values greater than or equal to 1
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
                 Data = new ElementSearchResult
@@ -567,7 +578,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region 墁E��値とエラーハンドリングチE��チE
+        #region 墁E��値とエラーハンドリングテスチE
         [Fact]
         public async Task GetGridItem_WithNonExistentGrid_ShouldHandleError()
         {
@@ -600,7 +611,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region パラメータ検証チE��チE
+        #region パラメータ検証テスチE
         [Theory]
         [InlineData("", 0, 0, "TestWindow")]
         [InlineData("grid1", 0, 0, "")]

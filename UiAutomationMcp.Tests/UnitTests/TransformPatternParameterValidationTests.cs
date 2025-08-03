@@ -6,6 +6,7 @@ using UIAutomationMCP.Models.Requests;
 // using UIAutomationMCP.Subprocess.Worker.Contracts; // TODO: Fix namespace
 using UIAutomationMCP.Subprocess.Worker.Operations.Transform;
 using UIAutomationMCP.Subprocess.Worker.Helpers;
+using UIAutomationMCP.Subprocess.Core.Services;
 using Moq;
 using Xunit.Abstractions;
 
@@ -38,7 +39,8 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         public void Dispose()
         {
-            //          }
+            // Cleanup resources if needed
+        }
 
 
         #region MoveElementOperation  
@@ -122,7 +124,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.False(result.Success); //              
+            Assert.False(result.Success); // Expected failure due to missing element
             _output.WriteLine($" MoveElementOperation handled invalid coordinates gracefully");
             _output.WriteLine($"  Error: {result.Error}");
         }
@@ -139,7 +141,8 @@ namespace UIAutomationMCP.Tests.UnitTests
                     { "elementId", "TestElement" },
                     { "windowTitle", "TestWindow" },
                     { "processId", "0" }
-                    // x, y                 }
+                    // x, y missing
+                }
             };
 
             _output.WriteLine("Testing MoveElementOperation with missing coordinate parameters");
@@ -157,7 +160,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.False(result.Success); //              
+            Assert.False(result.Success); // Expected failure due to missing element
             _output.WriteLine($" MoveElementOperation handled missing coordinate parameters");
             _output.WriteLine($"  Error: {result.Error}");
         }
@@ -169,8 +172,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         [Theory]
         [InlineData("0.0", "100.0")]   //  
         [InlineData("100.0", "0.0")]   //  
-        [InlineData("-100.0", "200.0")] //          [InlineData("200.0", "-100.0")] //  
-        [InlineData("0.0", "0.0")]     //  
+        [InlineData("-100.0", "200.0")] //          [InlineData("200.0", "-100.0")] // Negative height
+        [InlineData("0.0", "0.0")]     // Zero dimensions
         public async Task ResizeElementOperation_WithInvalidDimensions_ShouldReturnError(string widthValue, string heightValue)
         {
             // Arrange
@@ -247,7 +250,8 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             Assert.False(result.Success);
-            //  (0) must be greater than 0"              Assert.Contains("must be greater than 0", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
+            // Default value (0) should trigger error
+            Assert.Contains("must be greater than 0", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
             
             _output.WriteLine($" ResizeElementOperation handled invalid dimension format with default values");
             _output.WriteLine($"  Error: {result.Error}");
@@ -289,7 +293,8 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.False(result.Success); //              Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
+            Assert.False(result.Success); // Expected failure due to missing element
+            Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
             
             _output.WriteLine($" ResizeElementOperation processed valid dimensions correctly");
             _output.WriteLine($"  Error: {result.Error}");
@@ -303,7 +308,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         [InlineData("invalid_degrees")]
         [InlineData("")]
         [InlineData("abc")]
-        [InlineData("45.5.5")] //          public async Task RotateElementOperation_WithInvalidDegreesFormat_ShouldUseDefaultValue(string degreesValue)
+        [InlineData("45.5.5")] // Invalid decimal format
+        public async Task RotateElementOperation_WithInvalidDegreesFormat_ShouldUseDefaultValue(string degreesValue)
         {
             // Arrange
             var operation = new RotateElementOperation(_mockElementFinder.Object, _mockRotateElementLogger);
@@ -332,7 +338,8 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.False(result.Success); //              Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
+            Assert.False(result.Success); // Expected failure due to missing element
+            Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
             
             _output.WriteLine($" RotateElementOperation handled invalid degrees format with default value");
             _output.WriteLine($"  Error: {result.Error}");
@@ -376,7 +383,8 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.False(result.Success); //              Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
+            Assert.False(result.Success); // Expected failure due to missing element
+            Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
             
             _output.WriteLine($" RotateElementOperation processed valid degrees correctly");
             _output.WriteLine($"  Error: {result.Error}");
@@ -440,7 +448,8 @@ namespace UIAutomationMCP.Tests.UnitTests
                 var result = await execute();
                 
                 Assert.NotNull(result);
-                Assert.False(result.Success); //                  Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
+                Assert.False(result.Success); // Expected failure due to missing element
+                Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
                 
                 _output.WriteLine($" {name} processed processId {processIdValue} correctly");
             }
@@ -480,7 +489,8 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.False(result.Success); //              Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
+            Assert.False(result.Success); // Expected failure due to missing element
+            Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
             
             _output.WriteLine($" Transform operation handled invalid processId with default value");
             _output.WriteLine($"  Error: {result.Error}");
@@ -510,7 +520,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 }
             };
 
-            _output.WriteLine($"Testing Transform operation");
+            _output.WriteLine($"Testing Transform operation with windowTitle: '{windowTitle}'");
 
             // Act
             var typedRequest = new RotateElementRequest 
@@ -524,7 +534,8 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.False(result.Success); //              Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
+            Assert.False(result.Success); // Expected failure due to missing element
+            Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
             
             _output.WriteLine($" Transform operation handled windowTitle correctly");
             _output.WriteLine($"  Error: {result.Error}");

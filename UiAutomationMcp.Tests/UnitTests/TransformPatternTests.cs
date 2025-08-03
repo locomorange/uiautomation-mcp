@@ -3,7 +3,6 @@ using UIAutomationMCP.Models;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
-using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using Xunit.Abstractions;
 using UIAutomationMCP.Models.Abstractions;
@@ -152,8 +151,11 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #region Microsoft Move 
         [Theory]
-        [InlineData(100.0, 200.0)]  //          [InlineData(-50.0, -100.0)] //          [InlineData(0.0, 0.0)]      //  
-        [InlineData(1920.0, 1080.0)] //          public async Task MoveElement_WithValidCoordinates_ShouldSucceed(double x, double y)
+        [InlineData(100.0, 200.0)]  // Basic coordinates
+        [InlineData(-50.0, -100.0)] // Negative coordinates
+        [InlineData(0.0, 0.0)]      // Origin
+        [InlineData(1920.0, 1080.0)] // Large screen coordinates
+        public async Task MoveElement_WithValidCoordinates_ShouldSucceed(double x, double y)
         {
             // Arrange
             var expectedResult = new ServerEnhancedResponse<ActionResult>
@@ -234,9 +236,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         }
 
         [Theory]
-        [InlineData(0.0, 100.0)]   //  
-        [InlineData(100.0, 0.0)]   //  
-        [InlineData(-100.0, 200.0)] //          [InlineData(200.0, -100.0)] //  
+        [InlineData(0.0, 100.0)]   // Zero width
+        [InlineData(100.0, 0.0)]   // Zero height
+        [InlineData(-100.0, 200.0)] // Negative width
+        [InlineData(200.0, -100.0)] // Negative height
         public async Task ResizeElement_WithInvalidDimensions_ShouldHandleError(double width, double height)
         {
             // Arrange

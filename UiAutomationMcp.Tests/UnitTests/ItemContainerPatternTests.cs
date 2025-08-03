@@ -20,16 +20,16 @@ namespace UIAutomationMCP.Tests.UnitTests
     {
         private readonly ITestOutputHelper _output;
         private readonly Mock<ILogger<ItemContainerService>> _mockLogger;
-        private readonly Mock<IOperationExecutor> _mockExecutor;
+        private readonly Mock<IOperationExecutor> _mockProcessManager;
         private readonly ItemContainerService _service;
 
         public ItemContainerPatternTests(ITestOutputHelper output)
         {
             _output = output;
             _mockLogger = new Mock<ILogger<ItemContainerService>>();
-            _mockExecutor = new Mock<IOperationExecutor>();
+            _mockProcessManager = new Mock<IOperationExecutor>();
             
-            _service = new ItemContainerService(_mockLogger.Object, _mockExecutor.Object);
+            _service = new ItemContainerService(_mockLogger.Object, _mockProcessManager.Object);
         }
 
         [Fact]
@@ -48,7 +48,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Metadata = new Dictionary<string, object> { { "AutomationId", "item1" }, { "Name", "TestItem" } }
             };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>("FindItemByProperty", It.IsAny<FindItemByPropertyRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>("FindItemByProperty", It.IsAny<FindItemByPropertyRequest>(), 30))
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -56,7 +56,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>("FindItemByProperty", 
+            _mockProcessManager.Verify(e => e.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>("FindItemByProperty", 
                 It.Is<FindItemByPropertyRequest>(p => 
                     p.ContainerId == containerId &&
                     p.PropertyName == propertyName &&
@@ -79,7 +79,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Metadata = new Dictionary<string, object> { { "AutomationId", "anyItem" } }
             };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>("FindItemByProperty", It.IsAny<FindItemByPropertyRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>("FindItemByProperty", It.IsAny<FindItemByPropertyRequest>(), 30))
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -87,7 +87,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>("FindItemByProperty", 
+            _mockProcessManager.Verify(e => e.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>("FindItemByProperty", 
                 It.Is<FindItemByPropertyRequest>(p => 
                     p.ContainerId == containerId &&
                     p.PropertyName == "" &&
@@ -104,7 +104,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             var containerId = "container1";
             var exceptionMessage = "Failed to find item";
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>("FindItemByProperty", It.IsAny<FindItemByPropertyRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>("FindItemByProperty", It.IsAny<FindItemByPropertyRequest>(), 30))
                 .ThrowsAsync(new Exception(exceptionMessage));
 
             // Act
@@ -136,7 +136,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Metadata = new Dictionary<string, object> { { "Found", true } }
             };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>("FindItemByProperty", It.IsAny<FindItemByPropertyRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>("FindItemByProperty", It.IsAny<FindItemByPropertyRequest>(), 30))
                 .Returns(Task.FromResult(expectedResult));
 
             // Act

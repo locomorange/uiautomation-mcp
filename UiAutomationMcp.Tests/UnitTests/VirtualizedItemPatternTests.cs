@@ -6,6 +6,7 @@ using UIAutomationMCP.Models.Requests;
 using Xunit;
 using Xunit.Abstractions;
 using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Server.Abstractions;
 
 namespace UIAutomationMCP.Tests.UnitTests
 {
@@ -19,16 +20,16 @@ namespace UIAutomationMCP.Tests.UnitTests
     {
         private readonly ITestOutputHelper _output;
         private readonly Mock<ILogger<VirtualizedItemService>> _mockLogger;
-        private readonly Mock<IOperationExecutor> _mockExecutor;
+        private readonly Mock<IProcessManager> _mockProcessManager;
         private readonly VirtualizedItemService _service;
 
         public VirtualizedItemPatternTests(ITestOutputHelper output)
         {
             _output = output;
             _mockLogger = new Mock<ILogger<VirtualizedItemService>>();
-            _mockExecutor = new Mock<IOperationExecutor>();
+            _mockProcessManager = new Mock<IProcessManager>();
             
-            _service = new VirtualizedItemService(_mockLogger.Object, _mockExecutor.Object);
+            _service = new VirtualizedItemService(_mockProcessManager.Object, _mockLogger.Object);
         }
 
         [Fact]
@@ -41,9 +42,9 @@ namespace UIAutomationMCP.Tests.UnitTests
             var expectedResult = new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo
+                    new UIAutomationMCP.Models.ElementInfo
                     {
                         AutomationId = elementId,
                         Name = "Realized Item"
@@ -51,19 +52,17 @@ namespace UIAutomationMCP.Tests.UnitTests
                 }
             };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", It.IsAny<RealizeVirtualizedItemRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", It.IsAny<RealizeVirtualizedItemRequest>(), 30))
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _service.RealizeItemAsync(elementId, windowTitle, processId.ToString(), 30);
+            var result = await _service.RealizeItemAsync(automationId: elementId, timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", 
+            _mockProcessManager.Verify(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", 
                 It.Is<RealizeVirtualizedItemRequest>(r => 
-                    r.AutomationId == elementId &&
-                    r.WindowTitle == windowTitle &&
-                    r.ProcessId == processId), 30), Times.Once);
+                    r.AutomationId == elementId), 30), Times.Once);
             
             _output.WriteLine("RealizeItemAsync service test passed - Correct subprocess execution verified");
         }
@@ -76,9 +75,9 @@ namespace UIAutomationMCP.Tests.UnitTests
             var expectedResult = new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo
+                    new UIAutomationMCP.Models.ElementInfo
                     {
                         AutomationId = elementId,
                         Name = "Realized Item"
@@ -86,7 +85,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 }
             };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", It.IsAny<RealizeVirtualizedItemRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", It.IsAny<RealizeVirtualizedItemRequest>(), 30))
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -94,7 +93,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", 
+            _mockProcessManager.Verify(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", 
                 It.Is<RealizeVirtualizedItemRequest>(r => 
                     r.AutomationId == elementId &&
                     r.WindowTitle == "" &&
@@ -108,7 +107,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             var elementId = "item1";
             var exceptionMessage = "Failed to realize item";
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", It.IsAny<RealizeVirtualizedItemRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", It.IsAny<RealizeVirtualizedItemRequest>(), 30))
                 .ThrowsAsync(new Exception(exceptionMessage));
 
             // Act

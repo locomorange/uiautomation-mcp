@@ -3,7 +3,6 @@ using UIAutomationMCP.Models;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
-using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using Xunit.Abstractions;
 using UIAutomationMCP.Models.Abstractions;
@@ -11,7 +10,9 @@ using UIAutomationMCP.Models.Abstractions;
 namespace UIAutomationMCP.Tests.UnitTests
 {
     /// <summary>
-    /// RangeValuePatternの単体テスチE    /// Microsoft仕様に基づぁE��RangeValuePatternの機�EをモチE��ベ�EスでチE��トしまぁE    /// https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/implementing-the-ui-automation-rangevalue-control-pattern
+    /// RangeValuePatternの単体テスト
+    /// Microsoft仕様に基づいたRangeValuePatternの機能をモックベースでテストします
+    /// https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/implementing-the-ui-automation-rangevalue-control-pattern
     /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Unit")]
@@ -26,7 +27,8 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output = output;
             _mockRangeService = new Mock<IRangeService>();
             
-            // UIAutomationToolsの他�EサービスもモチE��化（最小限の設定！E            var mockAppLauncher = new Mock<IApplicationLauncher>();
+            // UIAutomationToolsの他のサービスもモック化（最小限の設定）
+            var mockAppLauncher = new Mock<IApplicationLauncher>();
             var mockScreenshot = new Mock<IScreenshotService>();
             var mockElementSearch = new Mock<IElementSearchService>();
             var mockTreeNavigation = new Mock<ITreeNavigationService>();
@@ -79,13 +81,14 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         public void Dispose()
         {
-            // モチE��のクリーンアチE�Eは不要E        }
+            // モックのクリーンアップは不要
+        }
 
-        #region Microsoft仕様準拠の忁E���EロパティチE��チE
+        #region Microsoft仕様準拠の必須プロパティテスト
         [Fact]
         public void GetRangeValue_ShouldReturnAllRequiredProperties()
         {
-            // Arrange - Microsoft仕様�E忁E���Eロパティ
+            // Arrange - Microsoft仕様の必須プロパティ
             var expectedResult = new ServerEnhancedResponse<RangeValueResult>
             {
                 Success = true,
@@ -148,7 +151,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region Microsoft仕様準拠のSetValueメソチE��チE��チE
+        #region Microsoft仕様準拠のSetValueメソッドテスト
         [Theory]
         [InlineData(0.0)]    // Minimum値
         [InlineData(50.0)]   // 中間値
@@ -182,9 +185,9 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         [Theory]
         [InlineData(-1.0)]   // Minimum未満
-        [InlineData(101.0)]  // Maximum趁E��
-        [InlineData(-50.0)]  // 大幁E��Minimum未満
-        [InlineData(200.0)]  // 大幁E��Maximum趁E��
+        [InlineData(101.0)]  // Maximum超過
+        [InlineData(-50.0)]  // 大幅にMinimum未満
+        [InlineData(200.0)]  // 大幅にMaximum超過
         public async Task SetRangeValue_WithOutOfRangeValues_ShouldThrowArgumentOutOfRangeException(double invalidValue)
         {
             // Arrange - Microsoft仕様：ArgumentOutOfRangeExceptionをスロー
@@ -202,7 +205,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region Microsoft仕様準拠のIsReadOnlyプロパティチE��チE
+        #region Microsoft仕様準拠のIsReadOnlyプロパティテスト
         [Fact]
         public async Task SetRangeValue_OnReadOnlyElement_ShouldThrowInvalidOperationException()
         {
@@ -252,7 +255,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region 篁E��墁E��値チE��チE
+        #region 境界値テスト
         [Fact]
         public async Task SetRangeValue_AtMinimumBoundary_ShouldSucceed()
         {
@@ -309,11 +312,11 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region カスタム篁E��チE��チE
+        #region カスタム範囲テスト
         [Theory]
-        [InlineData(-50.0, 50.0, 0.0)]    // 負の篁E��を含む
-        [InlineData(1000.0, 2000.0, 1500.0)]  // 大きな値の篁E��
-        [InlineData(0.1, 0.9, 0.5)]      // 小数点篁E��
+        [InlineData(-50.0, 50.0, 0.0)]    // 負の範囲を含む
+        [InlineData(1000.0, 2000.0, 1500.0)]  // 大きな値の範囲
+        [InlineData(0.1, 0.9, 0.5)]      // 小数点範囲
         public async Task SetRangeValue_WithCustomRanges_ShouldSucceed(double min, double max, double value)
         {
             // Arrange
@@ -342,7 +345,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region エラーハンドリングチE��チE
+        #region エラーハンドリングテスト
         [Fact]
         public async Task GetRangeValue_WithNonExistentElement_ShouldHandleError()
         {
@@ -378,7 +381,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region パラメータ検証チE��チE
+        #region パラメータ検証テスト
         [Theory]
         [InlineData("", 50.0, "TestWindow")]
         [InlineData("slider1", 50.0, "")]
@@ -443,7 +446,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region 値変更シーケンスチE��チE
+        #region 値変更シーケンステスト
         [Fact]
         public async Task SetRangeValue_MultipleValueChanges_ShouldExecuteInSequence()
         {

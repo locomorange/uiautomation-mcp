@@ -11,6 +11,7 @@ using System.Threading;
 using System.Text.Json;
 using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Models.Logging;
 
 namespace UIAutomationMCP.Tests.Tools
 {
@@ -46,7 +47,7 @@ namespace UIAutomationMCP.Tests.Tools
         private readonly Mock<ISynchronizedInputService> _mockSynchronizedInputService;
         private readonly Mock<IEventMonitorService> _mockEventMonitorService;
         private readonly Mock<IFocusService> _mockFocusService;
-        private readonly Mock<IOperationExecutor> _mockSubprocessExecutor;
+        private readonly Mock<IMcpLogService> _mockMcpLogService;
 
         public UIAutomationToolsTests(ITestOutputHelper output)
         {
@@ -77,7 +78,7 @@ namespace UIAutomationMCP.Tests.Tools
             _mockSynchronizedInputService = new Mock<ISynchronizedInputService>();
             _mockEventMonitorService = new Mock<IEventMonitorService>();
             _mockFocusService = new Mock<IFocusService>();
-            _mockSubprocessExecutor = new Mock<IOperationExecutor>();
+            _mockMcpLogService = new Mock<IMcpLogService>();
             
             _tools = new UIAutomationTools(
                 _mockApplicationLauncher.Object,
@@ -104,7 +105,7 @@ namespace UIAutomationMCP.Tests.Tools
                 _mockSynchronizedInputService.Object,
                 _mockEventMonitorService.Object,
                 _mockFocusService.Object,
-                _mockSubprocessExecutor.Object
+                _mockMcpLogService.Object
             );
         }
 
@@ -935,9 +936,9 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo
+                    new UIAutomationMCP.Models.ElementInfo
                     {
                         AutomationId = "cell_1_2",
                         Name = "Cell Content",
@@ -1015,9 +1016,9 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo
+                    new UIAutomationMCP.Models.ElementInfo
                     {
                         AutomationId = "viewContainer1",
                         Name = "View Container",
@@ -1055,9 +1056,9 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo
+                    new UIAutomationMCP.Models.ElementInfo
                     {
                         AutomationId = "viewContainer1",
                         Name = "View Container",
@@ -1095,9 +1096,9 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo
+                    new UIAutomationMCP.Models.ElementInfo
                     {
                         AutomationId = "viewContainer1",
                         Name = "View Container",
@@ -1135,7 +1136,7 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>(),
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>(),
                 SearchCriteria = "Available views for empty element ID"
             };
             var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
@@ -1186,9 +1187,9 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo
+                    new UIAutomationMCP.Models.ElementInfo
                     {
                         AutomationId = "viewContainer1",
                         Name = "View Container",
@@ -1226,9 +1227,9 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo
+                    new UIAutomationMCP.Models.ElementInfo
                     {
                         AutomationId = "viewContainer1",
                         Name = "View Container",
@@ -1266,9 +1267,9 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo
+                    new UIAutomationMCP.Models.ElementInfo
                     {
                         AutomationId = "viewContainer1",
                         Name = "View Container",
@@ -1325,9 +1326,9 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo
+                    new UIAutomationMCP.Models.ElementInfo
                     {
                         AutomationId = "viewContainer1",
                         Name = "View Container",
@@ -1363,9 +1364,9 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo
+                    new UIAutomationMCP.Models.ElementInfo
                     {
                         AutomationId = "viewContainer1",
                         ProcessId = 1234,
@@ -1373,7 +1374,7 @@ namespace UIAutomationMCP.Tests.Tools
                         Name = "List View",
                         IsEnabled = true,
                         IsVisible = true,
-                        BoundingRectangle = new UIAutomationMCP.Shared.BoundingRectangle()
+                        BoundingRectangle = new UIAutomationMCP.Models.BoundingRectangle()
                     }
                 },
                 SearchCriteria = "View set to List View"
@@ -1408,7 +1409,7 @@ namespace UIAutomationMCP.Tests.Tools
                 Data = new ElementSearchResult
                 {
                     Success = true,
-                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>(),
+                    Elements = new List<UIAutomationMCP.Models.ElementInfo>(),
                     SearchCriteria = "View set successfully"
                 },
                 ExecutionInfo = new ServerExecutionInfo(),
@@ -1453,7 +1454,7 @@ namespace UIAutomationMCP.Tests.Tools
                 Data = new ElementSearchResult
                 {
                     Success = true,
-                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>(),
+                    Elements = new List<UIAutomationMCP.Models.ElementInfo>(),
                     SearchCriteria = "View set to default"
                 },
                 ExecutionInfo = new ServerExecutionInfo(),
@@ -1595,7 +1596,8 @@ namespace UIAutomationMCP.Tests.Tools
         [Trait("Category", "Unit")]
         public void GetScrollInfo_Should_Call_LayoutService_With_Correct_Parameters()
         {
-            // Arrange - Microsoft ScrollPattern 6             var resultObject = new ScrollInfoResult
+            // Arrange - Microsoft ScrollPattern 6つの必須プロパティをテスト
+            var resultObject = new ScrollInfoResult
             {
                 Success = true,
                 
@@ -1604,9 +1606,7 @@ namespace UIAutomationMCP.Tests.Tools
                 HorizontalViewSize = 80.0,
                 VerticalViewSize = 60.0,
                 HorizontallyScrollable = true,
-                VerticallyScrollable = true,
-                CanScrollHorizontally = true,
-                CanScrollVertically = true
+                VerticallyScrollable = true
             };
             var serverResponse = new ServerEnhancedResponse<ScrollInfoResult>
             {
@@ -1633,7 +1633,8 @@ namespace UIAutomationMCP.Tests.Tools
         [Trait("Category", "Unit")]
         public async Task SetScrollPercent_Should_Call_LayoutService_With_Valid_Percentages()
         {
-            // Arrange - Microsoft ScrollPattern SetScrollPercent             var resultObject = new ActionResult
+            // Arrange - Microsoft ScrollPattern SetScrollPercent
+            var resultObject = new ActionResult
             {
                 Success = true,
                 ActionName = "SetScrollPercent",
@@ -1650,7 +1651,7 @@ namespace UIAutomationMCP.Tests.Tools
                              .Returns(Task.FromResult(serverResponse));
 
             // Act
-            var result = await _tools.SetScrollPercent(automationId: "scrollContainer", horizontalPercent: 75.0, verticalPercent: 25.0, processId: 1234, timeoutSeconds: 30);
+            var result = await _tools.SetScrollPercent(automationId: "scrollContainer", horizontalPercent: 75.0, verticalPercent: 25.0, timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
@@ -1662,7 +1663,8 @@ namespace UIAutomationMCP.Tests.Tools
         [Trait("Category", "Unit")]
         public async Task SetScrollPercent_Should_Handle_NoScroll_Values()
         {
-            // Arrange - Microsoft -1 oScroll             var resultObject = new ActionResult
+            // Arrange - Microsoft -1 NoScroll values
+            var resultObject = new ActionResult
             {
                 Success = true,
                 ActionName = "SetScrollPercent",
@@ -1678,7 +1680,8 @@ namespace UIAutomationMCP.Tests.Tools
             _mockLayoutService.Setup(s => s.SetScrollPercentAsync("scrollElement", null, -1.0, 50.0, null, null, 30))
                              .Returns(Task.FromResult(serverResponse));
 
-            // Act -  NoScroll(-1) 50%             var result = await _tools.SetScrollPercent(automationId: "scrollElement", horizontalPercent: -1.0, verticalPercent: 50.0);
+            // Act - NoScroll(-1) for horizontal, 50% for vertical
+            var result = await _tools.SetScrollPercent(automationId: "scrollElement", horizontalPercent: -1.0, verticalPercent: 50.0);
 
             // Assert
             Assert.NotNull(result);
@@ -1694,7 +1697,8 @@ namespace UIAutomationMCP.Tests.Tools
         [InlineData(-1.0, -1.0)]   // NoScroll values
         public async Task SetScrollPercent_Should_Accept_Valid_Range_Values(double horizontal, double vertical)
         {
-            // Arrange - Microsoft -100 1             var resultObject = new ActionResult
+            // Arrange - Microsoft valid range values -100 to 100
+            var resultObject = new ActionResult
             {
                 Success = true,
                 ActionName = "SetScrollPercent",
@@ -1729,7 +1733,8 @@ namespace UIAutomationMCP.Tests.Tools
         [Trait("Category", "Unit")]
         public async Task ScrollElementIntoView_Should_Call_LayoutService_With_Correct_Parameters()
         {
-            // Arrange - Microsoft ScrollItemPattern.ScrollIntoView()             var expectedResult = new ServerEnhancedResponse<ActionResult>
+            // Arrange - Microsoft ScrollItemPattern.ScrollIntoView()
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
                 Data = new ActionResult
@@ -1872,7 +1877,8 @@ namespace UIAutomationMCP.Tests.Tools
         [InlineData("dataitem-3")]
         public async Task ScrollElementIntoView_Should_Work_With_Expected_Control_Types(string elementId)
         {
-            // Arrange - ListItem reeItem ataItem ScrollItemPattern             var expectedResult = new ServerEnhancedResponse<ActionResult>
+            // Arrange - ListItem TreeItem DataItem ScrollItemPattern
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
                 Data = new ActionResult
@@ -1941,7 +1947,8 @@ namespace UIAutomationMCP.Tests.Tools
         [Trait("Category", "Unit")]
         public async Task GetColumnHeader_Should_Call_TableService_With_Correct_Parameters()
         {
-            // Arrange - Microsoft TableItemPattern GetColumnHeader()             var resultObject = new ElementSearchResult
+            // Arrange - Microsoft TableItemPattern GetColumnHeader()
+            var resultObject = new ElementSearchResult
             {
                 Success = true,
                 Elements = new List<ElementInfo>
@@ -2080,7 +2087,8 @@ namespace UIAutomationMCP.Tests.Tools
         [Trait("Category", "Unit")]
         public async Task GetRowHeader_Should_Call_TableService_With_Correct_Parameters()
         {
-            // Arrange - Microsoft TableItemPattern GetRowHeader()             var resultObject = new ElementSearchResult
+            // Arrange - Microsoft TableItemPattern GetRowHeader()
+            var resultObject = new ElementSearchResult
             {
                 Success = true,
                 Elements = new List<ElementInfo>
@@ -2264,7 +2272,8 @@ namespace UIAutomationMCP.Tests.Tools
         [InlineData("cell_0_0", "Top-left cell")]
         public async Task TableItem_Pattern_Methods_Should_Work_For_Different_Cell_Types(string cellId, string description)
         {
-            // Arrange -              var columnHeadersResult = new ElementSearchResult
+            // Arrange
+            var columnHeadersResult = new ElementSearchResult
             {
                 Success = true,
                 Elements = new List<ElementInfo>

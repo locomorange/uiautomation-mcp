@@ -3,7 +3,6 @@ using UIAutomationMCP.Models;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
-using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using Xunit.Abstractions;
 using UIAutomationMCP.Models.Abstractions;

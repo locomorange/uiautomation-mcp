@@ -17,8 +17,7 @@ namespace UiAutomationMcp.Tests.Requests
             var typedRequest = new InvokeElementRequest
             {
                 AutomationId = "btn_test",
-                WindowTitle = "Test Window",
-                ProcessId = 1234
+                WindowTitle = "Test Window"
             };
 
             // Act
@@ -29,7 +28,6 @@ namespace UiAutomationMcp.Tests.Requests
             Assert.NotNull(deserialized);
             Assert.Equal("btn_test", deserialized.AutomationId);
             Assert.Equal("Test Window", deserialized.WindowTitle);
-            Assert.Equal(1234, deserialized.ProcessId);
         }
 
         [Fact]
@@ -39,7 +37,6 @@ namespace UiAutomationMcp.Tests.Requests
             var typedRequest = new SearchElementsRequest
             {
                 WindowTitle = "Test Window",
-                ProcessId = 1234,
                 SearchText = "Button",
                 AutomationId = "btn_test",
                 ControlType = "Button",
@@ -53,7 +50,6 @@ namespace UiAutomationMcp.Tests.Requests
             // Assert
             Assert.NotNull(deserialized);
             Assert.Equal("Test Window", deserialized.WindowTitle);
-            Assert.Equal(1234, deserialized.ProcessId);
             Assert.Equal("Button", deserialized.SearchText);
             Assert.Equal("btn_test", deserialized.AutomationId);
             Assert.Equal("Button", deserialized.ControlType);
@@ -69,7 +65,6 @@ namespace UiAutomationMcp.Tests.Requests
                 WindowTitle = "Test Window",
                 SearchText = "Button",
                 UseRegex = true,
-                ProcessId = 1234,
                 AutomationId = "btn_search",
                 ControlType = "Button",
                 ClassName = "WinButton"
@@ -84,7 +79,6 @@ namespace UiAutomationMcp.Tests.Requests
             Assert.Equal("Test Window", deserialized.WindowTitle);
             Assert.Equal("Button", deserialized.SearchText);
             Assert.True(deserialized.UseRegex);
-            Assert.Equal(1234, deserialized.ProcessId);
             Assert.Equal("btn_search", deserialized.AutomationId);
             Assert.Equal("Button", deserialized.ControlType);
             Assert.Equal("WinButton", deserialized.ClassName);
@@ -98,8 +92,7 @@ namespace UiAutomationMcp.Tests.Requests
             {
                 AutomationId = "input_field",
                 Value = "Test Value",
-                WindowTitle = "Test Application",
-                ProcessId = 5678
+                WindowTitle = "Test Application"
             };
 
             // Act
@@ -111,7 +104,6 @@ namespace UiAutomationMcp.Tests.Requests
             Assert.Equal("input_field", deserialized.AutomationId);
             Assert.Equal("Test Value", deserialized.Value);
             Assert.Equal("Test Application", deserialized.WindowTitle);
-            Assert.Equal(5678, deserialized.ProcessId);
         }
 
         [Fact]
@@ -121,7 +113,6 @@ namespace UiAutomationMcp.Tests.Requests
             var complexRequest = new SearchElementsRequest
             {
                 WindowTitle = "Complex App",
-                ProcessId = 9999,
                 SearchText = "Submit.*Button",
                 AutomationId = "btn_submit",
                 ControlType = "Button",
@@ -139,7 +130,6 @@ namespace UiAutomationMcp.Tests.Requests
             // Assert
             Assert.NotNull(roundTrip);
             Assert.Equal(complexRequest.WindowTitle, roundTrip.WindowTitle);
-            Assert.Equal(complexRequest.ProcessId, roundTrip.ProcessId);
             Assert.Equal(complexRequest.SearchText, roundTrip.SearchText);
             Assert.Equal(complexRequest.AutomationId, roundTrip.AutomationId);
             Assert.Equal(complexRequest.ControlType, roundTrip.ControlType);
@@ -225,8 +215,7 @@ namespace UiAutomationMcp.Tests.Requests
             {
                 AutomationId = "slider1",
                 Value = 50,
-                WindowTitle = "", // Empty string instead of null
-                ProcessId = 0
+                WindowTitle = "" // Empty string instead of null
             };
 
             // Act
@@ -238,7 +227,6 @@ namespace UiAutomationMcp.Tests.Requests
             Assert.Equal("slider1", deserialized.AutomationId);
             Assert.Equal(50, deserialized.Value);
             Assert.Equal("", deserialized.WindowTitle);
-            Assert.Equal(0, deserialized.ProcessId);
         }
 
         [Fact]
@@ -249,7 +237,6 @@ namespace UiAutomationMcp.Tests.Requests
             {
                 AutomationId = "input1",
                 WindowTitle = "Test Window",
-                ProcessId = 1234,
                 Value = "Test Value"
             };
 
@@ -262,7 +249,6 @@ namespace UiAutomationMcp.Tests.Requests
             Assert.IsAssignableFrom<ElementTargetRequest>(deserialized);
             Assert.Equal("input1", deserialized.AutomationId);
             Assert.Equal("Test Window", deserialized.WindowTitle);
-            Assert.Equal(1234, deserialized.ProcessId);
             Assert.Equal("Test Value", deserialized.Value);
         }
     }
