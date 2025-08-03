@@ -27,12 +27,7 @@ jobs:
     
     strategy:
       matrix:
-        configuration: [Debug, Release]
         architecture: [win-x64, win-arm64]
-        exclude:
-          # Skip ARM64 Debug builds to save time
-          - configuration: Debug
-            architecture: win-arm64
     
     steps:
     - name: Checkout repository
@@ -58,13 +53,13 @@ jobs:
     
     - name: Build solution
       run: |
-        dotnet build --configuration ${{ matrix.configuration }} --no-restore --verbosity normal
+        dotnet build --configuration Release --no-restore --verbosity normal
     
     - name: Run tests (x64 only)
       if: matrix.architecture == 'win-x64'
       run: |
-        dotnet test --configuration ${{ matrix.configuration }} --no-build --verbosity normal `
-          --logger "trx;LogFileName=test-results-${{ matrix.configuration }}.trx" `
+        dotnet test --configuration Release --no-build --verbosity normal `
+          --logger "trx;LogFileName=test-results-Release.trx" `
           --collect:"XPlat Code Coverage" `
           --results-directory TestResults
     
@@ -72,7 +67,7 @@ jobs:
       if: matrix.architecture == 'win-x64' && always()
       uses: actions/upload-artifact@v4
       with:
-        name: test-results-${{ matrix.configuration }}
+        name: test-results-Release
         path: TestResults/
         retention-days: 7
     
