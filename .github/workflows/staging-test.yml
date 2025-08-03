@@ -157,25 +157,23 @@ jobs:
         $installerPath = "$manifestDir/UIAutomationMCP.installer.yaml"
         $installerContent = Get-Content $installerPath -Raw
         
-        # For schema validation, use dummy HTTPS URLs that match the pattern
-        $installerContent = $installerContent -replace 'InstallerUrl: https://.*\.zip', "InstallerUrl: https://github.com/locomorange/uiautomation-mcp/releases/download/vSTAGING/UIAutomationMCP-staging-win-x64.zip"
+        # For local installation, use the local ZIP file directly
+        $localZipPath = (Resolve-Path $zipName).Path
+        $installerContent = $installerContent -replace 'InstallerUrl: https://.*\.zip', "InstallerUrl: file:///$($localZipPath -replace '\\', '/')"
         
         # Calculate SHA256
         $sha256 = (Get-FileHash -Path $zipName -Algorithm SHA256).Hash
         $installerContent = $installerContent -replace 'InstallerSha256: .*', "InstallerSha256: $sha256"
         
-        # Also remove Scope property for portable installers (causes warnings)
+        # Remove Scope property for portable installers (causes warnings)
         $installerContent = $installerContent -replace 'Scope: user\r?\n', ""
         
         Set-Content $installerPath $installerContent
         
-        # Store the real local file info for later use
-        $localZipPath = (Resolve-Path $zipName).Path
-        $fileUrl = "file:///$($localZipPath -replace '\\', '/')"
-        
         Write-Host "Local manifest prepared with 3 separate files:"
         Write-Host "  ZIP: $zipName"
         Write-Host "  Local file: $localZipPath"
+        Write-Host "  File URL: file:///$($localZipPath -replace '\\', '/')"
         Write-Host "  SHA256: $($sha256.Substring(0,16))..."
         Write-Host "  Files: $($manifestFiles -join ', ')"
       shell: pwsh
@@ -189,47 +187,18 @@ jobs:
           Write-Host "Enabling local manifest support..."
           winget settings --enable LocalManifestFiles
           
-          # Validate manifest before installation
-          Write-Host "Validating manifest..."
-          winget validate --manifest "local-manifest"
+          # Skip validation for local file:// URLs (known schema limitation)
+          Write-Host "Skipping manifest validation for local file:// URLs..."
+          Write-Host "Note: Schema validation doesn't support file:// URLs, but installation does"
           
-          # Test installation using local file directly
+          # Install package using local manifest directory
           Write-Host "Installing package via Winget local manifest..."
-          # Since we can't use file:// URLs, we'll install manually and then verify
-          Write-Host "Note: Using direct file installation due to Winget file:// URL limitations"
+          Write-Host "Using manifest directory: local-manifest"
           
-          # Extract the local ZIP to a temp install location for testing
-          $tempInstall = "temp-install"
-          if (Test-Path $tempInstall) {
-            Remove-Item $tempInstall -Recurse -Force
-          }
-          New-Item -ItemType Directory -Path $tempInstall | Out-Null
+          # Install using the manifest directory (required for multi-file manifests)
+          winget install --manifest "local-manifest" --accept-package-agreements --accept-source-agreements --silent
           
-          # Determine ZIP name based on event type
-          if ("${{ github.event_name }}" -eq "workflow_run") {
-            $version = "${{ steps.version.outputs.VERSION }}"
-            $zipName = "UIAutomationMCP-v$version-win-x64.zip"
-          } else {
-            $zipName = "UIAutomationMCP-staging-win-x64.zip"
-          }
-          
-          Expand-Archive -Path $zipName -DestinationPath $tempInstall
-          Write-Host "Extracted package to temp install location for testing"
-          
-          # Test the extracted executable directly 
-          Write-Host "Testing extracted executable..."
-          $exePath = "$tempInstall/Server/uiautomation-mcp.exe"
-          if (Test-Path $exePath) {
-            Write-Host "✅ Found executable at: $exePath"
-            try {
-              & $exePath --version 2>&1 | Write-Host
-              Write-Host "✅ Executable responds to --version"
-            } catch {
-              Write-Warning "⚠️ Executable found but may not be working: $_"
-            }
-          } else {
-            Write-Warning "⚠️ Executable not found at expected location"
-          }
+          Write-Host "✅ Winget installation command completed"
           
         } catch {
           Write-Warning "⚠️ Winget installation test failed: $_"
@@ -261,34 +230,94 @@ jobs:
         }
       shell: pwsh
     
-    - name: Set up command for MCP testing
+    - name: Verify Winget installation and command availability
       id: verify_command
       run: |
-        Write-Host "Setting up command for MCP testing..."
+        Write-Host "Verifying Winget installation and command availability..."
         
-        # Use the extracted executable from the temp install
-        $useCommand = "temp-install/Server/uiautomation-mcp.exe"
+        # First, check if package was installed via Winget
+        Write-Host "Checking Winget package list..."
+        try {
+          $installed = winget list --id "Locomorange.UIAutomationMCP" --exact 2>&1
+          Write-Host "Winget list result:"
+          Write-Host $installed
+          
+          if ($installed -match "Locomorange.UIAutomationMCP") {
+            Write-Host "✅ Package found in Winget registry"
+          } else {
+            Write-Warning "⚠️ Package not found in Winget registry"
+          }
+        } catch {
+          Write-Warning "⚠️ Failed to check Winget package list: $_"
+        }
         
-        if (Test-Path $useCommand) {
-          Write-Host "✅ Using extracted executable: $useCommand"
+        # Try to find the command in various locations
+        $useCommand = $null
+        $searchPaths = @(
+          "uiautomation-mcp",  # Command in PATH
+          "$env:LOCALAPPDATA\Microsoft\WinGet\Links\uiautomation-mcp.exe",  # Winget links
+          "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\Locomorange.UIAutomationMCP*\Server\uiautomation-mcp.exe"  # Package installation
+        )
+        
+        foreach ($path in $searchPaths) {
+          Write-Host "Checking path: $path"
+          
+          if ($path -eq "uiautomation-mcp") {
+            # Check if command is in PATH
+            try {
+              $command = Get-Command uiautomation-mcp -ErrorAction Stop
+              Write-Host "✅ Found command in PATH: $($command.Source)"
+              $useCommand = "uiautomation-mcp"
+              break
+            } catch {
+              Write-Host "Command not found in PATH"
+            }
+          } elseif ($path -like "*`**") {
+            # Handle wildcard paths
+            $found = Get-ChildItem $path -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($found) {
+              Write-Host "✅ Found via wildcard: $($found.FullName)"
+              $useCommand = $found.FullName
+              break
+            }
+          } else {
+            # Direct path check
+            if (Test-Path $path) {
+              Write-Host "✅ Found at: $path"
+              $useCommand = $path
+              break
+            }
+          }
+        }
+        
+        # Test the command if found
+        if ($useCommand) {
+          Write-Host "Testing command: $useCommand"
           try {
             & $useCommand --help 2>&1 | Write-Host
             Write-Host "✅ Command responds to --help"
+            echo "USE_COMMAND=$useCommand" >> $env:GITHUB_OUTPUT
           } catch {
             Write-Warning "⚠️ Command found but may not be working: $_"
+            echo "USE_COMMAND=$useCommand" >> $env:GITHUB_OUTPUT
           }
-          # Set output for next steps
-          echo "USE_COMMAND=$useCommand" >> $env:GITHUB_OUTPUT
         } else {
-          # Fallback to staging-test directory
-          $fallbackCommand = "staging-test/Server/uiautomation-mcp.exe"
-          if (Test-Path $fallbackCommand) {
-            Write-Host "✅ Using fallback command: $fallbackCommand"
-            echo "USE_COMMAND=$fallbackCommand" >> $env:GITHUB_OUTPUT
-          } else {
-            Write-Error "❌ uiautomation-mcp executable not found"
-            exit 1
+          Write-Error "❌ uiautomation-mcp command not found in any expected location"
+          
+          # List common Winget directories for debugging
+          Write-Host "Debugging: Listing Winget directories..."
+          $debugPaths = @(
+            "$env:LOCALAPPDATA\Microsoft\WinGet\Links",
+            "$env:LOCALAPPDATA\Microsoft\WinGet\Packages"
+          )
+          foreach ($debugPath in $debugPaths) {
+            if (Test-Path $debugPath) {
+              Write-Host "Contents of ${debugPath}:"
+              Get-ChildItem $debugPath -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "  $($_.Name)" }
+            }
           }
+          
+          exit 1
         }
       shell: pwsh
     
