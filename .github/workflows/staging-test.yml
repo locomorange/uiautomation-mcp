@@ -133,28 +133,46 @@ jobs:
         }
         New-Item -ItemType Directory -Path $manifestDir | Out-Null
         
-        # Copy and update manifest files
-        Copy-Item ".github/winget/UIAutomationMCP.yaml" $manifestDir
+        # Copy all 3 manifest files
+        $manifestFiles = @(
+          "UIAutomationMCP.yaml",
+          "UIAutomationMCP.locale.en-US.yaml", 
+          "UIAutomationMCP.installer.yaml"
+        )
         
-        # Update version in manifest
-        $manifestContent = Get-Content "$manifestDir/UIAutomationMCP.yaml" -Raw
-        $manifestContent = $manifestContent -replace 'PackageVersion: .*', "PackageVersion: $version"
+        foreach ($file in $manifestFiles) {
+          Copy-Item ".github/winget/$file" $manifestDir
+          Write-Host "Copied $file"
+        }
+        
+        # Update version in all manifest files
+        foreach ($file in $manifestFiles) {
+          $filePath = "$manifestDir/$file"
+          $content = Get-Content $filePath -Raw
+          $content = $content -replace 'PackageVersion: .*', "PackageVersion: $version"
+          Set-Content $filePath $content
+        }
+        
+        # Update installer-specific settings (only in installer manifest)
+        $installerPath = "$manifestDir/UIAutomationMCP.installer.yaml"
+        $installerContent = Get-Content $installerPath -Raw
         
         # Update installer URL to use local file
         $localZipPath = (Resolve-Path $zipName).Path
         $fileUrl = "file:///$($localZipPath -replace '\\', '/')"
-        $manifestContent = $manifestContent -replace 'InstallerUrl: https://.*\.zip', "InstallerUrl: $fileUrl"
+        $installerContent = $installerContent -replace 'InstallerUrl: https://.*\.zip', "InstallerUrl: $fileUrl"
         
         # Calculate SHA256
         $sha256 = (Get-FileHash -Path $zipName -Algorithm SHA256).Hash
-        $manifestContent = $manifestContent -replace 'InstallerSha256: .*', "InstallerSha256: $sha256"
+        $installerContent = $installerContent -replace 'InstallerSha256: .*', "InstallerSha256: $sha256"
         
-        Set-Content "$manifestDir/UIAutomationMCP.yaml" $manifestContent
+        Set-Content $installerPath $installerContent
         
-        Write-Host "Manifest prepared for local installation:"
+        Write-Host "Local manifest prepared with 3 separate files:"
         Write-Host "  ZIP: $zipName"
         Write-Host "  File URL: $fileUrl"
         Write-Host "  SHA256: $($sha256.Substring(0,16))..."
+        Write-Host "  Files: $($manifestFiles -join ', ')"
       shell: pwsh
     
     - name: Test Winget local installation
