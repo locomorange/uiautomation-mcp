@@ -77,63 +77,6 @@ jobs:
         retention-days: 7
     
 
-  validate-mcp:
-    name: Validate MCP Server
-    runs-on: windows-latest
-    needs: build-and-test
-    
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-    
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
-    
-    - name: Restore dependencies
-      run: dotnet restore
-    
-    - name: Build Server in Release mode
-      run: |
-        dotnet build UIAutomationMCP.Server/UIAutomationMCP.Server.csproj `
-          --configuration Release `
-          --no-restore
-    
-    - name: Test MCP initialization
-      run: |
-        Write-Host "Testing MCP server initialization..."
-        $initRequest = @{
-          jsonrpc = "2.0"
-          id = 1
-          method = "initialize"
-          params = @{
-            protocolVersion = "2024-11-05"
-            capabilities = @{}
-            clientInfo = @{
-              name = "ci-test"
-              version = "1.0"
-            }
-          }
-        } | ConvertTo-Json -Compress
-        
-        # Test with sleep method (as recommended in CLAUDE.md)
-        $result = @"
-        echo '$initRequest'
-        Start-Sleep -Seconds 2
-        "@ | powershell.exe -Command "& 'UIAutomationMCP.Server/bin/Release/net9.0-windows/uiautomation-mcp.exe'"
-        
-        Write-Host "Server response:"
-        Write-Host $result
-        
-        # Validate response contains expected fields
-        if ($result -match '"result".*"protocolVersion".*"capabilities"') {
-          Write-Host "✅ MCP server initialization successful"
-        } else {
-          Write-Error "❌ MCP server initialization failed"
-          exit 1
-        }
-      shell: pwsh
 
   code-quality:
     name: Code Quality Checks

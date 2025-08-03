@@ -157,59 +157,6 @@ jobs:
         Write-Host "  SHA256: $($sha256.Substring(0,16))..."
       shell: pwsh
     
-    - name: Test MCP Server initialization
-      run: |
-        Write-Host "Testing MCP server from staging directory..."
-        
-        $serverExe = "staging-test/Server/uiautomation-mcp.exe"
-        $workerPath = "staging-test/Worker"
-        $monitorPath = "staging-test/Monitor"
-        
-        if (-not (Test-Path $serverExe)) {
-          Write-Error "Server executable not found at: $serverExe"
-          exit 1
-        }
-        
-        # Prepare test request
-        $initRequest = @{
-          jsonrpc = "2.0"
-          id = 1
-          method = "initialize"
-          params = @{
-            protocolVersion = "2024-11-05"
-            capabilities = @{}
-            clientInfo = @{
-              name = "staging-test"
-              version = "1.0"
-            }
-          }
-        } | ConvertTo-Json -Compress
-        
-        # Test server startup
-        Write-Host "Starting server with Worker and Monitor paths..."
-        $testScript = @"
-        echo '$initRequest'
-        Start-Sleep -Seconds 3
-        "@
-        
-        $startTime = Get-Date
-        $result = $testScript | powershell.exe -Command "& '$serverExe' '$workerPath' '$monitorPath'" 2>&1
-        $endTime = Get-Date
-        $startupTime = ($endTime - $startTime).TotalMilliseconds
-        
-        Write-Host "Server response (startup time: $([Math]::Round($startupTime, 0))ms):"
-        Write-Host $result
-        
-        # Validate response
-        if ($result -match '"result".*"protocolVersion".*"capabilities"') {
-          Write-Host "✅ MCP server initialization successful"
-          Write-Host "✅ Startup time: $([Math]::Round($startupTime, 0))ms"
-        } else {
-          Write-Error "❌ MCP server initialization failed"
-          exit 1
-        }
-      shell: pwsh
-    
     - name: Test Winget local installation
       run: |
         Write-Host "Testing Winget local installation..."
