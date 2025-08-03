@@ -23,7 +23,7 @@ env:
 jobs:
   build:
     name: Build ${{ matrix.architecture }}
-    runs-on: windows-latest
+    runs-on: windows-2025
     
     strategy:
       matrix:
@@ -66,7 +66,7 @@ jobs:
 
   test:
     name: Run Tests
-    runs-on: windows-latest
+    runs-on: windows-2025
     needs: build
     
     steps:
@@ -106,7 +106,7 @@ jobs:
 
   code-quality:
     name: Code Quality Checks
-    runs-on: windows-latest
+    runs-on: windows-2025
     needs: build
     
     steps:

@@ -26,7 +26,7 @@ env:
 jobs:
   staging-test:
     name: Staging Environment Test
-    runs-on: windows-latest
+    runs-on: windows-2025
     if: ${{ github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     
     steps:
