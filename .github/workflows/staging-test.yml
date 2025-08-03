@@ -291,14 +291,17 @@ jobs:
       shell: pwsh
     
     - name: Verify command availability
+      id: verify_command
       run: |
         Write-Host "Verifying uiautomation-mcp command availability..."
         
+        $useCommand = $null
+
         # Method 1: Try to find command in PATH
         try {
           $command = Get-Command uiautomation-mcp -ErrorAction Stop
           Write-Host "✅ uiautomation-mcp found at: $($command.Source)"
-          $global:useCommand = "uiautomation-mcp"
+          $useCommand = "uiautomation-mcp"
         } catch {
           Write-Warning "⚠️ Command not found in PATH"
           
@@ -306,7 +309,7 @@ jobs:
           $fallbackPath = "$env:LOCALAPPDATA\Microsoft\WinGet\Links\uiautomation-mcp.exe"
           if (Test-Path $fallbackPath) {
             Write-Host "✅ Found at fallback path: $fallbackPath"
-            $global:useCommand = $fallbackPath
+            $useCommand = $fallbackPath
           } else {
             Write-Warning "⚠️ Command not found at fallback path either"
             
@@ -320,7 +323,7 @@ jobs:
               $found = Get-ChildItem $searchPath -ErrorAction SilentlyContinue | Select-Object -First 1
               if ($found) {
                 Write-Host "✅ Found via search: $($found.FullName)"
-                $global:useCommand = $found.FullName
+                $useCommand = $found.FullName
                 break
               }
             }
@@ -328,13 +331,15 @@ jobs:
         }
         
         # Test the command we found
-        if ($global:useCommand) {
+        if ($useCommand) {
           try {
-            & $global:useCommand --help 2>&1 | Write-Host
+            & $useCommand --help 2>&1 | Write-Host
             Write-Host "✅ Command responds to --help"
           } catch {
             Write-Warning "⚠️ Command found but may not be working: $_"
           }
+          # Set output for next steps
+          echo "USE_COMMAND=$useCommand" >> $env:GITHUB_OUTPUT
         } else {
           Write-Error "❌ uiautomation-mcp command not found anywhere"
         }
@@ -366,8 +371,8 @@ jobs:
       run: |
         Write-Host "Testing UIAutomation MCP tools with Inspector..."
         
-        # Use the command path we determined earlier
-        $useCommand = $global:useCommand
+        # Use the command path from previous step output
+        $useCommand = "${{ steps.verify_command.outputs.USE_COMMAND }}"
         if (-not $useCommand) {
           $useCommand = "uiautomation-mcp"
         }

@@ -114,7 +114,6 @@ if (-not $TestOnly) {
             "/p:PublishAot=true"
             "/p:StripSymbols=true"
             "/p:OptimizationPreference=Size"
-            "/p:Configuration=Release"  # Ensure Release configuration for conditional references
         )
         Write-Status "Building Server with Native AOT (this may take several minutes)..."
     }
