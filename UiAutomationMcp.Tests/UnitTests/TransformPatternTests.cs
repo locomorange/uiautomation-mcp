@@ -166,7 +166,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Success = true,
                     AutomationId = "movableWindow",
                     Action = "Move",
-                    ActionParameters = new Dictionary<string, object> { { "X", x }, { "Y", y } }
+                    ActionParameters = new ActionParameters { Position = new Point { X = (int)x, Y = (int)y } }
                 }
             };
             _mockTransformService.Setup(s => s.MoveElementAsync("movableWindow", null, x, y, "MainApp", null, 30))
@@ -220,7 +220,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Success = true,
                     AutomationId = "resizableWindow",
                     Action = "Resize",
-                    ActionParameters = new Dictionary<string, object> { { "Width", width }, { "Height", height } }
+                    ActionParameters = new ActionParameters { Bounds = new BoundingRectangle { Width = width, Height = height } }
                 }
             };
             _mockTransformService.Setup(s => s.ResizeElementAsync("resizableWindow", null, width, height, "Designer", null, 30))
@@ -300,7 +300,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Success = true,
                     AutomationId = "rotatableImage",
                     Action = "Rotate",
-                    ActionParameters = new Dictionary<string, object> { { "Degrees", degrees } }
+                    ActionParameters = new ActionParameters { AdditionalProperties = new Dictionary<string, object> { { "Degrees", degrees } } }
                 }
             };
             _mockTransformService.Setup(s => s.RotateElementAsync("rotatableImage", null, degrees, "GraphicsApp", null, 30))
@@ -431,7 +431,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Success = true, 
                     AutomationId = "window1", 
                     Action = "Move", 
-                    ActionParameters = new Dictionary<string, object> { { "X", 100.0 }, { "Y", 200.0 } } 
+                    ActionParameters = new ActionParameters { Position = new Point { X = 100, Y = 200 } } 
                 } 
             };
             _mockTransformService.Setup(s => s.MoveElementAsync("window1", null, 100.0, 200.0, "App", processId, 30))
@@ -461,7 +461,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Success = true, 
                     AutomationId = "window1", 
                     Action = "Resize", 
-                    ActionParameters = new Dictionary<string, object> { { "Width", 800.0 }, { "Height", 600.0 } } 
+                    ActionParameters = new ActionParameters { Bounds = new BoundingRectangle { Width = 800.0, Height = 600.0 } } 
                 } 
             };
             _mockTransformService.Setup(s => s.ResizeElementAsync("window1", null, 800.0, 600.0, "App", null, timeoutSeconds))
@@ -491,7 +491,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Success = true, 
                     AutomationId = "transformableWindow", 
                     Action = "Move", 
-                    ActionParameters = new Dictionary<string, object> { { "X", 200.0 }, { "Y", 300.0 } } 
+                    ActionParameters = new ActionParameters { Position = new Point { X = 200, Y = 300 } } 
                 } 
             };
             var resizeResult = new ServerEnhancedResponse<ActionResult> 
@@ -502,7 +502,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Success = true, 
                     AutomationId = "transformableWindow", 
                     Action = "Resize", 
-                    ActionParameters = new Dictionary<string, object> { { "Width", 1024.0 }, { "Height", 768.0 } } 
+                    ActionParameters = new ActionParameters { Bounds = new BoundingRectangle { Width = 1024.0, Height = 768.0 } } 
                 } 
             };
             var rotateResult = new ServerEnhancedResponse<ActionResult> 
@@ -513,7 +513,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Success = true, 
                     AutomationId = "transformableWindow", 
                     Action = "Rotate", 
-                    ActionParameters = new Dictionary<string, object> { { "Degrees", 45.0 } } 
+                    ActionParameters = new ActionParameters { AdditionalProperties = new Dictionary<string, object> { { "Degrees", 45.0 } } } 
                 } 
             };
 
@@ -559,7 +559,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Success = true,
                     AutomationId = "element1",
                     Action = "Move",
-                    ActionParameters = new Dictionary<string, object> { { "X", x }, { "Y", y } }
+                    ActionParameters = new ActionParameters { Position = new Point { X = (int)x, Y = (int)y } }
                 }
             };
             _mockTransformService.Setup(s => s.MoveElementAsync("element1", null, x, y, "TestApp", null, 30))

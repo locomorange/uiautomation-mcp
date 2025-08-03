@@ -399,7 +399,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.ToggleElement(automationId: "element1", controlType: "TestWindow", processId: processId);
+            var result = await _tools.ToggleElement(automationId: "element1", controlType: "TestWindow");
 
             // Assert
             Assert.NotNull(result);

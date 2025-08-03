@@ -85,8 +85,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             _mockProcessManager.Verify(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", 
                 It.Is<GetColumnHeaderItemsRequest>(r => 
                     r.AutomationId == "tableCell1" &&
-                    r.WindowTitle == "TestWindow" &&
-                    r.ProcessId == 0), 30), Times.Once);
+                    r.WindowTitle == "TestWindow"), 30), Times.Once);
 
             _output.WriteLine("GetColumnHeaderItemsAsync test passed - TableItemPattern.GetColumnHeaderItems() verified");
         }

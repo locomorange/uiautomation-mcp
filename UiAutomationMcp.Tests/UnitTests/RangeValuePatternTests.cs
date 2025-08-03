@@ -414,7 +414,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                            .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.SetRangeValue(automationId: "volumeSlider", name: "AudioApp", value: 75.0, processId: processId);
+            var result = await _tools.SetRangeValue(automationId: "volumeSlider", name: "AudioApp", value: 75.0);
 
             // Assert
             Assert.NotNull(result);

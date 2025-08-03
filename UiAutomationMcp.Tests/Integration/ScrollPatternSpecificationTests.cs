@@ -77,8 +77,7 @@ namespace UiAutomationMcp.Tests.Integration
             var request = new GetScrollInfoRequest
             {
                 AutomationId = "test-scroll-element",
-                WindowTitle = "Test Window",
-                ProcessId = 0
+                WindowTitle = "Test Window"
             };
 
             // Act - サブプロセスでGetScrollInfo操作を実行
@@ -117,7 +116,6 @@ namespace UiAutomationMcp.Tests.Integration
                 HorizontalPercent = 50.0,
                 VerticalPercent = 75.0,
                 WindowTitle = "Test Window",
-                ProcessId = 0
             };
 
             // Act & Assert
@@ -151,7 +149,6 @@ namespace UiAutomationMcp.Tests.Integration
                 HorizontalPercent = -1.0, // NoScroll
                 VerticalPercent = 25.0,
                 WindowTitle = "Test Window",
-                ProcessId = 0
             };
 
             // Act & Assert

@@ -76,8 +76,7 @@ namespace UiAutomationMcp.Tests.Integration
             // Arrange
             var request = new GetWindowInteractionStateRequest
             {
-                WindowTitle = "Calculator", // Calculator                 
-                ProcessId = 0
+                WindowTitle = "Calculator" // Calculator                 
             };
 
             try
@@ -108,8 +107,7 @@ namespace UiAutomationMcp.Tests.Integration
             // Arrange
             var request = new GetWindowCapabilitiesRequest
             {
-                WindowTitle = "Calculator",
-                ProcessId = 0
+                WindowTitle = "Calculator"
             };
 
             try
@@ -141,7 +139,6 @@ namespace UiAutomationMcp.Tests.Integration
             {
                 TimeoutMilliseconds = 5000,
                 WindowTitle = "Calculator",
-                ProcessId = 0
             };
 
             try
@@ -179,15 +176,15 @@ namespace UiAutomationMcp.Tests.Integration
                 {
                     "GetWindowInteractionState" => await _subprocessExecutor.ExecuteAsync<GetWindowInteractionStateRequest, object>(
                         operationName, 
-                        new GetWindowInteractionStateRequest { WindowTitle = "NonExistentWindow", ProcessId = 99999 }, 
+                        new GetWindowInteractionStateRequest { WindowTitle = "NonExistentWindow" }, 
                         10),
                     "GetWindowCapabilities" => await _subprocessExecutor.ExecuteAsync<GetWindowCapabilitiesRequest, object>(
                         operationName, 
-                        new GetWindowCapabilitiesRequest { WindowTitle = "NonExistentWindow", ProcessId = 99999 }, 
+                        new GetWindowCapabilitiesRequest { WindowTitle = "NonExistentWindow" }, 
                         10),
                     "WaitForInputIdle" => await _subprocessExecutor.ExecuteAsync<WaitForInputIdleRequest, object>(
                         operationName, 
-                        new WaitForInputIdleRequest { WindowTitle = "NonExistentWindow", ProcessId = 99999, TimeoutMilliseconds = 1000 }, 
+                        new WaitForInputIdleRequest { WindowTitle = "NonExistentWindow", TimeoutMilliseconds = 1000 }, 
                         10),
                     _ => throw new ArgumentException($"Unknown operation: {operationName}")
                 };
@@ -237,15 +234,15 @@ namespace UiAutomationMcp.Tests.Integration
                 {
                     "GetWindowInteractionState" => _subprocessExecutor.ExecuteAsync<GetWindowInteractionStateRequest, object>(
                         operationName, 
-                        new GetWindowInteractionStateRequest { WindowTitle = "NonExistentWindow", ProcessId = 99999 }, 
+                        new GetWindowInteractionStateRequest { WindowTitle = "NonExistentWindow" }, 
                         timeoutSeconds),
                     "GetWindowCapabilities" => _subprocessExecutor.ExecuteAsync<GetWindowCapabilitiesRequest, object>(
                         operationName, 
-                        new GetWindowCapabilitiesRequest { WindowTitle = "NonExistentWindow", ProcessId = 99999 }, 
+                        new GetWindowCapabilitiesRequest { WindowTitle = "NonExistentWindow" }, 
                         timeoutSeconds),
                     "WaitForInputIdle" => _subprocessExecutor.ExecuteAsync<WaitForInputIdleRequest, object>(
                         operationName, 
-                        new WaitForInputIdleRequest { WindowTitle = "NonExistentWindow", ProcessId = 99999, TimeoutMilliseconds = 1000 }, 
+                        new WaitForInputIdleRequest { WindowTitle = "NonExistentWindow", TimeoutMilliseconds = 1000 }, 
                         timeoutSeconds),
                     _ => throw new ArgumentException($"Unknown operation: {operationName}")
                 });

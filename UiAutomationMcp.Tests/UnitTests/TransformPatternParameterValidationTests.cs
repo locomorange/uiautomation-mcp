@@ -70,11 +70,10 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new MoveElementRequest 
             { 
-                AutomationId = (string)request.Parameters!["elementId"], 
-                WindowTitle = (string)request.Parameters["windowTitle"], 
-                ProcessId = int.Parse((string)request.Parameters["processId"]),
-                X = double.TryParse((string)request.Parameters["x"], out var x) ? x : 0.0,
-                Y = double.TryParse((string)request.Parameters["y"], out var y) ? y : 0.0
+                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"], 
+                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"], 
+                X = double.TryParse((string)((Dictionary<string, object>)request.Parameters)["x"], out var x) ? x : 0.0,
+                Y = double.TryParse((string)((Dictionary<string, object>)request.Parameters)["y"], out var y) ? y : 0.0
             };
             var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 
@@ -114,11 +113,10 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new MoveElementRequest 
             { 
-                AutomationId = (string)request.Parameters!["elementId"], 
-                WindowTitle = (string)request.Parameters["windowTitle"], 
-                ProcessId = int.Parse((string)request.Parameters["processId"]),
-                X = double.TryParse((string)request.Parameters["x"], out var x) ? x : 0.0,
-                Y = double.TryParse((string)request.Parameters["y"], out var y) ? y : 0.0
+                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"], 
+                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"], 
+                X = double.TryParse((string)((Dictionary<string, object>)request.Parameters)["x"], out var x) ? x : 0.0,
+                Y = double.TryParse((string)((Dictionary<string, object>)request.Parameters)["y"], out var y) ? y : 0.0
             };
             var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 
@@ -150,9 +148,8 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new MoveElementRequest 
             { 
-                AutomationId = (string)request.Parameters!["elementId"], 
-                WindowTitle = (string)request.Parameters["windowTitle"], 
-                ProcessId = int.Parse((string)request.Parameters["processId"]),
+                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"], 
+                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"], 
                 X = 0.0,  // Default values for missing coordinates
                 Y = 0.0
             };
@@ -195,11 +192,10 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new ResizeElementRequest 
             { 
-                AutomationId = (string)request.Parameters!["elementId"], 
-                WindowTitle = (string)request.Parameters["windowTitle"], 
-                ProcessId = int.Parse((string)request.Parameters["processId"]),
-                Width = double.TryParse((string)request.Parameters["width"], out var w) ? w : 0.0,
-                Height = double.TryParse((string)request.Parameters["height"], out var h) ? h : 0.0
+                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"], 
+                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"], 
+                Width = double.TryParse((string)((Dictionary<string, object>)request.Parameters)["width"], out var w) ? w : 0.0,
+                Height = double.TryParse((string)((Dictionary<string, object>)request.Parameters)["height"], out var h) ? h : 0.0
             };
             var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 
@@ -239,11 +235,10 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new ResizeElementRequest 
             { 
-                AutomationId = (string)request.Parameters!["elementId"], 
-                WindowTitle = (string)request.Parameters["windowTitle"], 
-                ProcessId = int.Parse((string)request.Parameters["processId"]),
-                Width = double.TryParse((string)request.Parameters["width"], out var w) ? w : 0.0,
-                Height = double.TryParse((string)request.Parameters["height"], out var h) ? h : 0.0
+                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"], 
+                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"], 
+                Width = double.TryParse((string)((Dictionary<string, object>)request.Parameters)["width"], out var w) ? w : 0.0,
+                Height = double.TryParse((string)((Dictionary<string, object>)request.Parameters)["height"], out var h) ? h : 0.0
             };
             var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 
@@ -283,9 +278,8 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new ResizeElementRequest 
             { 
-                AutomationId = (string)request.Parameters!["elementId"], 
-                WindowTitle = (string)request.Parameters["windowTitle"], 
-                ProcessId = int.Parse((string)request.Parameters["processId"]),
+                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"], 
+                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"], 
                 Width = width,
                 Height = height
             };
@@ -329,10 +323,9 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new RotateElementRequest 
             { 
-                AutomationId = (string)request.Parameters!["elementId"], 
-                WindowTitle = (string)request.Parameters["windowTitle"], 
-                ProcessId = int.Parse((string)request.Parameters["processId"]),
-                Degrees = double.TryParse((string)request.Parameters["degrees"], out var deg) ? deg : 0.0
+                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"], 
+                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"], 
+                Degrees = double.TryParse((string)((Dictionary<string, object>)request.Parameters)["degrees"], out var deg) ? deg : 0.0
             };
             var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 
@@ -374,9 +367,8 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new RotateElementRequest 
             { 
-                AutomationId = (string)request.Parameters!["elementId"], 
-                WindowTitle = (string)request.Parameters["windowTitle"], 
-                ProcessId = int.Parse((string)request.Parameters["processId"]),
+                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"], 
+                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"], 
                 Degrees = degrees
             };
             var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
@@ -409,7 +401,6 @@ namespace UIAutomationMCP.Tests.UnitTests
                     { 
                         AutomationId = "TestElement", 
                         WindowTitle = "TestWindow", 
-                        ProcessId = int.Parse(processIdValue),
                         X = 100.0,
                         Y = 200.0
                     };
@@ -421,7 +412,6 @@ namespace UIAutomationMCP.Tests.UnitTests
                     { 
                         AutomationId = "TestElement", 
                         WindowTitle = "TestWindow", 
-                        ProcessId = int.Parse(processIdValue),
                         Width = 800.0,
                         Height = 600.0
                     };
@@ -433,7 +423,6 @@ namespace UIAutomationMCP.Tests.UnitTests
                     { 
                         AutomationId = "TestElement", 
                         WindowTitle = "TestWindow", 
-                        ProcessId = int.Parse(processIdValue),
                         Degrees = 90.0
                     };
                     return await op.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
@@ -479,9 +468,8 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new MoveElementRequest 
             { 
-                AutomationId = (string)request.Parameters!["elementId"], 
-                WindowTitle = (string)request.Parameters["windowTitle"], 
-                ProcessId = int.Parse((string)request.Parameters["processId"]),
+                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"], 
+                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"], 
                 X = 100.0,
                 Y = 200.0
             };
@@ -525,9 +513,8 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Act
             var typedRequest = new RotateElementRequest 
             { 
-                AutomationId = (string)request.Parameters!["elementId"], 
-                WindowTitle = (string)request.Parameters["windowTitle"], 
-                ProcessId = int.Parse((string)request.Parameters["processId"]),
+                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"], 
+                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"], 
                 Degrees = 90.0
             };
             var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));

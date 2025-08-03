@@ -51,10 +51,9 @@ public class ItemContainerPatternIntegrationTests : IDisposable
 
         // Act
         var result = await _service.FindItemByPropertyAsync(
-            "NonExistentContainer",
-            "Name",
-            "TestItem",
-            processId: 1234,
+            automationId: "NonExistentContainer",
+            propertyName: "Name",
+            value: "TestItem",
             timeoutSeconds: 1);
 
         // Assert

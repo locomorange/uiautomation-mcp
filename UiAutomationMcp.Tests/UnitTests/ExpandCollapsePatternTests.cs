@@ -388,7 +388,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.ExpandCollapseElement(automationId: "element1", action: "collapse", controlType: "TestWindow", processId: processId);
+            var result = await _tools.ExpandCollapseElement(automationId: "element1", action: "collapse", controlType: "TestWindow");
 
             // Assert
             Assert.NotNull(result);

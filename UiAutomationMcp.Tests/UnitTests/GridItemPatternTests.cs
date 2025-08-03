@@ -696,7 +696,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                            .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.GetGridItem(row: 1, column: 1, automationId: "processGrid", name: "TestWindow", processId: processId);
+            var result = await _tools.GetGridItem(row: 1, column: 1, automationId: "processGrid", name: "TestWindow");
 
             // Assert
             Assert.NotNull(result);

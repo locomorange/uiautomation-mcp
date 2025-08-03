@@ -39,8 +39,7 @@ public class NewPatternsE2ETests : BaseE2ETest
 
             // Act
             var result = await Tools.RealizeVirtualizedItem(
-                "VirtualizedListItem",
-                processId: explorerProcess.Id,
+                automationId: "VirtualizedListItem",
                 timeoutSeconds: 10);
 
             // Assert

@@ -94,8 +94,8 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 1;
 
             // When
-            var invokeResult = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, processId: null, timeoutSeconds: timeout);
-            var valueResult = await _valueService.GetValueAsync(automationId: nonExistentAutomationId, processId: null, timeoutSeconds: timeout);
+            var invokeResult = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, timeoutSeconds: timeout);
+            var valueResult = await _valueService.GetValueAsync(automationId: nonExistentAutomationId, timeoutSeconds: timeout);
 
             // Then
             Assert.NotNull(invokeResult);
@@ -121,9 +121,9 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 5;
 
             // When - Test different parameter combinations
-            var resultByAutomationId = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, processId: null, timeoutSeconds: timeout);
-            var resultByWindowTitle = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, processId: null, timeoutSeconds: timeout);
-            var resultByProcessId = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, processId: 99999, timeoutSeconds: timeout);
+            var resultByAutomationId = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, timeoutSeconds: timeout);
+            var resultByWindowTitle = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, timeoutSeconds: timeout);
+            var resultByProcessId = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, timeoutSeconds: timeout);
 
             // Then
             Assert.NotNull(resultByAutomationId);
@@ -145,7 +145,7 @@ namespace UIAutomationMCP.Tests.Integration
             // When - Execute concurrent invoke operations
             var startTime = DateTime.UtcNow;
             var tasks = elementIds.Select(id => 
-                _invokeService.InvokeElementAsync(automationId: id, processId: null, timeoutSeconds: timeout)).ToArray();
+                _invokeService.InvokeElementAsync(automationId: id, timeoutSeconds: timeout)).ToArray();
             
             var results = await Task.WhenAll(tasks);
             var endTime = DateTime.UtcNow;
@@ -171,7 +171,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // When
             var startTime = DateTime.UtcNow;
-            var result = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, processId: null, timeoutSeconds: shortTimeout);
+            var result = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, timeoutSeconds: shortTimeout);
             var endTime = DateTime.UtcNow;
             var actualTime = (endTime - startTime).TotalSeconds;
 
@@ -272,8 +272,8 @@ namespace UIAutomationMCP.Tests.Integration
             var nonExistentAutomationId = "NonExistentElement12345";
 
             // When & Then
-            var invokeTask = _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, processId: null, timeoutSeconds: veryShortTimeout);
-            var valueTask = _valueService.GetValueAsync(automationId: nonExistentAutomationId, processId: null, timeoutSeconds: veryShortTimeout);
+            var invokeTask = _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, timeoutSeconds: veryShortTimeout);
+            var valueTask = _valueService.GetValueAsync(automationId: nonExistentAutomationId, timeoutSeconds: veryShortTimeout);
 
             var invokeResult = await invokeTask;
             var valueResult = await valueTask;

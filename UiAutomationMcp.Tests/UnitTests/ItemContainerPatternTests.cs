@@ -49,10 +49,10 @@ namespace UIAutomationMCP.Tests.UnitTests
             };
 
             _mockProcessManager.Setup(e => e.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>("FindItemByProperty", It.IsAny<FindItemByPropertyRequest>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+                .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
 
             // Act
-            var result = await _service.FindItemByPropertyAsync(automationId: containerId, propertyName: propertyName, value: value, startAfterId: startAfterId, controlType: windowTitle, processId: processId, timeoutSeconds: 30);
+            var result = await _service.FindItemByPropertyAsync(automationId: containerId, propertyName: propertyName, value: value, startAfterId: startAfterId, controlType: windowTitle, timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
@@ -80,10 +80,10 @@ namespace UIAutomationMCP.Tests.UnitTests
             };
 
             _mockProcessManager.Setup(e => e.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>("FindItemByProperty", It.IsAny<FindItemByPropertyRequest>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+                .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
 
             // Act
-            var result = await _service.FindItemByPropertyAsync(containerId, null, null, null, null, null, 30);
+            var result = await _service.FindItemByPropertyAsync(automationId: containerId, timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
@@ -108,7 +108,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 .ThrowsAsync(new Exception(exceptionMessage));
 
             // Act
-            var result = await _service.FindItemByPropertyAsync(containerId);
+            var result = await _service.FindItemByPropertyAsync(automationId: containerId);
 
             // Assert
             Assert.NotNull(result);
@@ -137,10 +137,10 @@ namespace UIAutomationMCP.Tests.UnitTests
             };
 
             _mockProcessManager.Setup(e => e.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>("FindItemByProperty", It.IsAny<FindItemByPropertyRequest>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+                .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
 
             // Act
-            await _service.FindItemByPropertyAsync(containerId, propertyName, value);
+            await _service.FindItemByPropertyAsync(automationId: containerId, propertyName: propertyName, value: value);
 
             // Assert
             _mockLogger.Verify(l => l.Log(

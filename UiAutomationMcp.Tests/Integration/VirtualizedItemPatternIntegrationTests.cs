@@ -55,7 +55,7 @@ namespace UIAutomationMCP.Tests.Integration
             var processId = 99999; // Non-existent process ID
 
             // Act
-            var result = await _virtualizedItemService.RealizeItemAsync(automationId: elementId, processId: processId, timeoutSeconds: 5);
+            var result = await _virtualizedItemService.RealizeItemAsync(automationId: elementId, timeoutSeconds: 5);
 
             // Assert
             Assert.NotNull(result);
@@ -84,9 +84,8 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Act - This tests the full Server->Worker communication pipeline
             var result = await _virtualizedItemService.RealizeItemAsync(
-                elementId, 
-                windowTitle, 
-                processId: null, 
+                automationId: elementId, 
+                name: windowTitle, 
                 timeoutSeconds: 10);
 
             // Assert
@@ -110,7 +109,6 @@ namespace UIAutomationMCP.Tests.Integration
             // Act
             var result = await _virtualizedItemService.RealizeItemAsync(
                 automationId: elementId, 
-                processId: null, 
                 timeoutSeconds: timeoutSeconds);
 
             // Assert
@@ -135,7 +133,6 @@ namespace UIAutomationMCP.Tests.Integration
             {
                 var result = await _virtualizedItemService.RealizeItemAsync(
                     automationId: $"{elementId}_{i}", 
-                    processId: null, 
                     timeoutSeconds: 5);
 
                 Assert.NotNull(result);

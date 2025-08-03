@@ -973,18 +973,10 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new TableInfoResult
             {
                 Success = true,
-                AutomationId = "table1",
-                // WindowTitle not available in ElementSearchResult,
                 RowCount = 5,
                 ColumnCount = 3,
                 HasRowHeaders = true,
                 HasColumnHeaders = true,
-                IsScrollable = true,
-                IsSelectable = true,
-                CanSelectMultiple = false,
-                SelectionMode = "Single",
-                TotalCellCount = 15,
-                VisibleCellCount = 15,
                 RowOrColumnMajor = "RowMajor"
             };
             var serverResponse = new ServerEnhancedResponse<TableInfoResult>

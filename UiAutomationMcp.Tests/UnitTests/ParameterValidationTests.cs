@@ -286,8 +286,8 @@ namespace UiAutomationMcp.Tests.UnitTests
             // Assert
             Assert.NotNull(request);
             Assert.Equal("invoke", request.Operation);
-            Assert.True(request.Parameters.ContainsKey("elementId"));
-            Assert.Equal("btn1", request.Parameters["elementId"]);
+            Assert.True(((Dictionary<string, object>)request.Parameters).ContainsKey("elementId"));
+            Assert.Equal("btn1", ((Dictionary<string, object>)request.Parameters)["elementId"]);
         }
 
         [Theory]

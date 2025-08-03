@@ -61,7 +61,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _service.StartListeningAsync(automationId: elementId, inputType: inputType, name: windowTitle, processId: processId, timeoutSeconds: 30);
+            var result = await _service.StartListeningAsync(automationId: elementId, inputType: inputType, name: windowTitle, timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
@@ -131,8 +131,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 It.Is<StartSynchronizedInputRequest>(r => 
                     r.AutomationId == elementId &&
                     r.InputType == inputType &&
-                    r.WindowTitle == "" &&
-                    r.ProcessId == 0), 30), Times.Once);
+                    r.WindowTitle == ""), 30), Times.Once);
         }
 
         [Fact]

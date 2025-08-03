@@ -232,15 +232,12 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true, 
                 Data = new SelectionInfoResult
                 {
-                    ContainerAutomationId = "multiSelectList",
-                    WindowTitle = "Test Window",
-                    ProcessId = 1357,
-                    SelectedItems = new List<SelectionItem>
+                    SelectedItems = new List<ElementInfo>
                     {
-                        new SelectionItem { AutomationId = "item1", Name = "Item One", ControlType = "ControlType.ListItem" },
-                        new SelectionItem { AutomationId = "item3", Name = "Item Three", ControlType = "ControlType.ListItem" }
+                        new ElementInfo { AutomationId = "item1", Name = "Item One", ControlType = "ControlType.ListItem" },
+                        new ElementInfo { AutomationId = "item3", Name = "Item Three", ControlType = "ControlType.ListItem" }
                     },
-                    SelectedCount = 2
+                    SelectionCount = 2
                 }
             };
             _mockSelectionService.Setup(s => s.GetSelectionAsync("multiSelectList", null, null, 1357, 30))
