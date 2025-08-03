@@ -41,7 +41,12 @@
   <ItemGroup>
     <ProjectReference Include="..\UIAutomationMCP.Core\UIAutomationMCP.Core.csproj" />
     <ProjectReference Include="..\UIAutomationMCP.Models\UIAutomationMCP.Models.csproj" />
-    <!-- Worker/Monitor are separate processes, no code reference needed -->
+  </ItemGroup>
+
+  <!-- Conditional references for Debug builds only (for easier debugging) -->
+  <ItemGroup Condition="'$(Configuration)' == 'Debug' AND '$(PublishAot)' != 'true'">
+    <ProjectReference Include="..\UIAutomationMCP.Subprocess.Worker\UIAutomationMCP.Subprocess.Worker.csproj" />
+    <ProjectReference Include="..\UIAutomationMCP.Subprocess.Monitor\UIAutomationMCP.Subprocess.Monitor.csproj" />
   </ItemGroup>
 
 </Project>

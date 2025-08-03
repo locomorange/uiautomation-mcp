@@ -1,0 +1,173 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, dev ]
+    paths-ignore:
+      - '**.md'
+      - '.github/workflows/release.yml'
+      - '.github/winget/**'
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - '.github/workflows/release.yml'
+      - '.github/winget/**'
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: windows-latest
+    
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+        architecture: [win-x64, win-arm64]
+        exclude:
+          # Skip ARM64 Debug builds to save time
+          - configuration: Debug
+            architecture: win-arm64
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build solution
+      run: |
+        dotnet build --configuration ${{ matrix.configuration }} --no-restore --verbosity normal
+    
+    - name: Run tests (x64 only)
+      if: matrix.architecture == 'win-x64'
+      run: |
+        dotnet test --configuration ${{ matrix.configuration }} --no-build --verbosity normal `
+          --logger "trx;LogFileName=test-results-${{ matrix.configuration }}.trx" `
+          --collect:"XPlat Code Coverage" `
+          --results-directory TestResults
+    
+    - name: Upload test results
+      if: matrix.architecture == 'win-x64' && always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-${{ matrix.configuration }}
+        path: TestResults/
+        retention-days: 7
+    
+
+  validate-mcp:
+    name: Validate MCP Server
+    runs-on: windows-latest
+    needs: build-and-test
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build Server in Release mode
+      run: |
+        dotnet build UIAutomationMCP.Server/UIAutomationMCP.Server.csproj `
+          --configuration Release `
+          --no-restore
+    
+    - name: Test MCP initialization
+      run: |
+        Write-Host "Testing MCP server initialization..."
+        $initRequest = @{
+          jsonrpc = "2.0"
+          id = 1
+          method = "initialize"
+          params = @{
+            protocolVersion = "2024-11-05"
+            capabilities = @{}
+            clientInfo = @{
+              name = "ci-test"
+              version = "1.0"
+            }
+          }
+        } | ConvertTo-Json -Compress
+        
+        # Test with sleep method (as recommended in CLAUDE.md)
+        $result = @"
+        echo '$initRequest'
+        Start-Sleep -Seconds 2
+        "@ | powershell.exe -Command "& 'UIAutomationMCP.Server/bin/Release/net9.0-windows/uiautomation-mcp.exe'"
+        
+        Write-Host "Server response:"
+        Write-Host $result
+        
+        # Validate response contains expected fields
+        if ($result -match '"result".*"protocolVersion".*"capabilities"') {
+          Write-Host "✅ MCP server initialization successful"
+        } else {
+          Write-Error "❌ MCP server initialization failed"
+          exit 1
+        }
+      shell: pwsh
+
+  code-quality:
+    name: Code Quality Checks
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Check code formatting
+      run: |
+        dotnet format --verify-no-changes --verbosity diagnostic
+      continue-on-error: true  # Don't fail the build for formatting issues
+    
+    - name: Build with warnings as errors
+      run: |
+        dotnet build --configuration Release --no-restore /warnaserror
+      continue-on-error: true  # Report but don't fail
+    
+    - name: Check for vulnerable packages
+      run: |
+        dotnet list package --vulnerable --include-transitive
+        $output = dotnet list package --vulnerable --include-transitive
+        if ($output -match "has the following vulnerable packages") {
+          Write-Warning "⚠️ Vulnerable packages detected. Please review and update."
+        } else {
+          Write-Host "✅ No vulnerable packages detected"
+        }
+      shell: pwsh
