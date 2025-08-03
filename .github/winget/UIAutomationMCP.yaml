@@ -24,11 +24,12 @@ Description: |-
   UIAutomationMCP is a high-performance MCP server that provides Windows UI Automation capabilities.
   Features include:
   - Native AOT compilation for ultra-fast startup (~400ms)
-  - Shared runtime architecture for efficient deployment
+  - Hybrid architecture: AOT server with framework-dependent workers
   - Full Windows UI Automation API support
   - Element search, interaction, and monitoring capabilities
   - Process isolation for stability and security
-  - MessagePack-based IPC for optimal performance
+  - JSON-UTF8 based IPC for optimal performance and internationalization
+  Note: Requires .NET 9 Desktop Runtime for worker processes
 Moniker: uiautomation-mcp
 Tags:
 - mcp
@@ -60,10 +61,6 @@ Dependencies:
   PackageDependencies:
   - PackageIdentifier: Microsoft.DotNet.DesktopRuntime.9
     MinimumVersion: 9.0.0
-  WindowsFeatures:
-  - Microsoft-Windows-Subsystem-Linux
-  WindowsLibraries:
-  - Microsoft.VCRedist.2015+.x64
 Installers:
 - Architecture: x64
   InstallerUrl: https://github.com/locomorange/uiautomation-mcp/releases/download/v0.1.0/UIAutomationMCP-v0.1.0-win-x64.zip
