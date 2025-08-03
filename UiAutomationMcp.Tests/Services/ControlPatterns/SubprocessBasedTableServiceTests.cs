@@ -71,7 +71,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             };
 
             _mockProcessManager.Setup(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 30))
-                        .Returns(Task.FromResult(expectedColumnHeaders));
+                        .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedColumnHeaders)));
 
             // Act
             var result = await _service.GetColumnHeaderItemsAsync("tableCell1", "TestWindow", null, 30);
@@ -105,7 +105,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             };
 
             _mockProcessManager.Setup(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 60))
-                        .Returns(Task.FromResult(expectedResult));
+                        .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
 
             // Act
             var result = await _service.GetColumnHeaderItemsAsync("cell2_3", null, null, 1234, 60);
@@ -119,8 +119,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             _mockProcessManager.Verify(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", 
                 It.Is<GetColumnHeaderItemsRequest>(r => 
                     r.AutomationId == "cell2_3" &&
-                    r.WindowTitle == "" &&
-                    r.ProcessId == 1234), 60), Times.Once);
+                    r.WindowTitle == ""), 60), Times.Once);
 
             _output.WriteLine("GetColumnHeaderItemsAsync with ProcessId and custom timeout test passed");
         }

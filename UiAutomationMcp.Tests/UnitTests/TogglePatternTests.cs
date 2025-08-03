@@ -6,6 +6,7 @@ using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
 using Xunit.Abstractions;
 using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Models.Logging;
 
 namespace UIAutomationMCP.Tests.UnitTests
 {
@@ -76,7 +77,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 mockSynchronizedInput.Object,
                 mockEventMonitor.Object,
                 Mock.Of<IFocusService>(),
-                mockSubprocessExecutor.Object
+                Mock.Of<IMcpLogService>()
             );
         }
 

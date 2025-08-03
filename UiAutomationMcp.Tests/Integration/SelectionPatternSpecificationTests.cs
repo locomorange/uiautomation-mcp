@@ -216,7 +216,7 @@ namespace UIAutomationMCP.Tests.Integration
             try
             {
                 // Act
-                var result = await _selectionService.ClearSelectionAsync(automationId: containerId, processId: null, timeoutSeconds: 30);
+                var result = await _selectionService.ClearSelectionAsync(automationId: containerId, timeoutSeconds: 30);
 
                 // Assert
                 Assert.NotNull(result);

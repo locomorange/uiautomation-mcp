@@ -6,6 +6,7 @@ using UIAutomationMCP.Models.Requests;
 using Xunit;
 using Xunit.Abstractions;
 using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Server.Abstractions;
 
 namespace UIAutomationMCP.Tests.UnitTests
 {
@@ -19,16 +20,16 @@ namespace UIAutomationMCP.Tests.UnitTests
     {
         private readonly ITestOutputHelper _output;
         private readonly Mock<ILogger<SynchronizedInputService>> _mockLogger;
-        private readonly Mock<IOperationExecutor> _mockProcessManager;
+        private readonly Mock<IProcessManager> _mockProcessManager;
         private readonly SynchronizedInputService _service;
 
         public SynchronizedInputPatternTests(ITestOutputHelper output)
         {
             _output = output;
             _mockLogger = new Mock<ILogger<SynchronizedInputService>>();
-            _mockProcessManager = new Mock<IOperationExecutor>();
+            _mockProcessManager = new Mock<IProcessManager>();
             
-            _service = new SynchronizedInputService(_mockLogger.Object, _mockProcessManager.Object);
+            _service = new SynchronizedInputService(_mockProcessManager.Object, _mockLogger.Object);
         }
 
         [Theory]
@@ -58,7 +59,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             };
 
             _mockProcessManager.Setup(e => e.ExecuteAsync<StartSynchronizedInputRequest, ElementSearchResult>("StartSynchronizedInput", It.IsAny<StartSynchronizedInputRequest>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+                .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
 
             // Act
             var result = await _service.StartListeningAsync(automationId: elementId, inputType: inputType, name: windowTitle, timeoutSeconds: 30);
@@ -69,8 +70,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 It.Is<StartSynchronizedInputRequest>(r => 
                     r.AutomationId == elementId &&
                     r.InputType == inputType &&
-                    r.WindowTitle == windowTitle &&
-                    r.ProcessId == processId), 30), Times.Once);
+                    r.WindowTitle == windowTitle), 30), Times.Once);
             
             _output.WriteLine($"StartListeningAsync service test passed for {inputType}");
         }
@@ -96,18 +96,17 @@ namespace UIAutomationMCP.Tests.UnitTests
             };
 
             _mockProcessManager.Setup(e => e.ExecuteAsync<CancelSynchronizedInputRequest, ElementSearchResult>("CancelSynchronizedInput", It.IsAny<CancelSynchronizedInputRequest>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+                .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
 
             // Act
-            var result = await _service.CancelAsync(automationId: elementId, name: windowTitle, processId: processId, timeoutSeconds: 30);
+            var result = await _service.CancelAsync(automationId: elementId, name: windowTitle, timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
             _mockProcessManager.Verify(e => e.ExecuteAsync<CancelSynchronizedInputRequest, ElementSearchResult>("CancelSynchronizedInput",
                 It.Is<CancelSynchronizedInputRequest>(r => 
                     r.AutomationId == elementId &&
-                    r.WindowTitle == windowTitle &&
-                    r.ProcessId == processId), 30), Times.Once);
+                    r.WindowTitle == windowTitle), 30), Times.Once);
             
             _output.WriteLine("CancelAsync service test passed");
         }
@@ -120,7 +119,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             var inputType = "KeyUp";
 
             _mockProcessManager.Setup(e => e.ExecuteAsync<StartSynchronizedInputRequest, ElementSearchResult>("StartSynchronizedInput", It.IsAny<StartSynchronizedInputRequest>(), 30))
-                .Returns(Task.FromResult(new ElementSearchResult { Success = true }));
+                .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(new ElementSearchResult { Success = true })));
 
             // Act
             var result = await _service.StartListeningAsync(elementId, null, inputType, null, null, 30);

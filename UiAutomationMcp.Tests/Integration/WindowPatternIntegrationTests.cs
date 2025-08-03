@@ -193,7 +193,8 @@ namespace UiAutomationMcp.Tests.Integration
             }
             catch (Exception ex)
             {
-                // Assert -                    Window not found                        //                                            var errorMessage = ex.Message.ToLower();
+                // Assert - Window not found
+                var errorMessage = ex.Message.ToLower();
                 
                 //                                                   
                 var expectedErrors = new[]
@@ -251,7 +252,7 @@ namespace UiAutomationMcp.Tests.Integration
             {
                 stopwatch.Stop();
                 
-                //                                                               var isTimeoutRelated = ex.Message.Contains("timeout") || 
+                var isTimeoutRelated = ex.Message.Contains("timeout") || 
                                      ex.Message.Contains("Window not found") ||
                                      ex.Message.Contains("process");
                 
@@ -285,7 +286,7 @@ namespace UiAutomationMcp.Tests.Integration
                 "WindowAction"                 // Close(), SetVisualState() methods
             };
 
-            //                                                foreach (var operation in implementedOperations)
+            foreach (var operation in implementedOperations)
             {
                 Assert.NotNull(operation);
                 _output.WriteLine($"Required operation implemented: {operation}");

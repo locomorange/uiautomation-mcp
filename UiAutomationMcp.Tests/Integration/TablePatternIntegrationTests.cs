@@ -137,7 +137,7 @@ namespace UIAutomationMCP.Tests.Integration
             var startTime = DateTime.UtcNow;
 
             // Act
-            var result = await _tableService.GetRowOrColumnMajorAsync(automationId: elementId, name: windowTitle, processId: 12345, timeoutSeconds: timeoutSeconds);
+            var result = await _tableService.GetRowOrColumnMajorAsync(automationId: elementId, name: windowTitle, timeoutSeconds: timeoutSeconds);
 
             // Assert
             var elapsed = DateTime.UtcNow - startTime;
@@ -166,19 +166,19 @@ namespace UIAutomationMCP.Tests.Integration
             // Act & Assert - Test all required TablePattern members
             
             // 1. RowOrColumnMajor property
-            var rowOrColumnResult = await _tableService.GetRowOrColumnMajorAsync(automationId: elementId, name: windowTitle, processId: processId, timeoutSeconds: timeoutSeconds);
+            var rowOrColumnResult = await _tableService.GetRowOrColumnMajorAsync(automationId: elementId, name: windowTitle, timeoutSeconds: timeoutSeconds);
             Assert.NotNull(rowOrColumnResult);
 
             // 2. GetColumnHeaders() method
-            var columnHeadersResult = await _tableService.GetColumnHeadersAsync(automationId: elementId, name: windowTitle, processId: processId, timeoutSeconds: timeoutSeconds);
+            var columnHeadersResult = await _tableService.GetColumnHeadersAsync(automationId: elementId, name: windowTitle, timeoutSeconds: timeoutSeconds);
             Assert.NotNull(columnHeadersResult);
 
             // 3. GetRowHeaders() method  
-            var rowHeadersResult = await _tableService.GetRowHeadersAsync(automationId: elementId, name: windowTitle, processId: processId, timeoutSeconds: timeoutSeconds);
+            var rowHeadersResult = await _tableService.GetRowHeadersAsync(automationId: elementId, name: windowTitle, timeoutSeconds: timeoutSeconds);
             Assert.NotNull(rowHeadersResult);
 
             // 4. Table info (combines row/column count with RowOrColumnMajor)
-            var tableInfoResult = await _tableService.GetTableInfoAsync(automationId: elementId, name: windowTitle, processId: processId, timeoutSeconds: timeoutSeconds);
+            var tableInfoResult = await _tableService.GetTableInfoAsync(automationId: elementId, name: windowTitle, timeoutSeconds: timeoutSeconds);
             Assert.NotNull(tableInfoResult);
 
             _output.WriteLine("TablePattern required members integration test completed - All members accessible through service layer");
@@ -194,10 +194,10 @@ namespace UIAutomationMCP.Tests.Integration
             var timeoutSeconds = 3;
 
             // Act - Test error handling for all table methods
-            var rowOrColumnResult = await _tableService.GetRowOrColumnMajorAsync(automationId: elementId, name: windowTitle, processId: processId, timeoutSeconds: timeoutSeconds);
-            var columnHeadersResult = await _tableService.GetColumnHeadersAsync(automationId: elementId, name: windowTitle, processId: processId, timeoutSeconds: timeoutSeconds);
-            var rowHeadersResult = await _tableService.GetRowHeadersAsync(automationId: elementId, name: windowTitle, processId: processId, timeoutSeconds: timeoutSeconds);
-            var tableInfoResult = await _tableService.GetTableInfoAsync(automationId: elementId, name: windowTitle, processId: processId, timeoutSeconds: timeoutSeconds);
+            var rowOrColumnResult = await _tableService.GetRowOrColumnMajorAsync(automationId: elementId, name: windowTitle, timeoutSeconds: timeoutSeconds);
+            var columnHeadersResult = await _tableService.GetColumnHeadersAsync(automationId: elementId, name: windowTitle, timeoutSeconds: timeoutSeconds);
+            var rowHeadersResult = await _tableService.GetRowHeadersAsync(automationId: elementId, name: windowTitle, timeoutSeconds: timeoutSeconds);
+            var tableInfoResult = await _tableService.GetTableInfoAsync(automationId: elementId, name: windowTitle, timeoutSeconds: timeoutSeconds);
 
             // Assert - All should handle errors consistently
             Assert.NotNull(rowOrColumnResult);
@@ -259,7 +259,7 @@ namespace UIAutomationMCP.Tests.Integration
             {
                 // Act
                 var result = await _tableService.GetRowOrColumnMajorAsync(
-                    automationId: testCase.AutomationId, name: testCase.WindowTitle, processId: 12345, timeoutSeconds: 3);
+                    automationId: testCase.AutomationId, name: testCase.WindowTitle, timeoutSeconds: 3);
 
                 // Assert
                 Assert.NotNull(result);
@@ -301,7 +301,7 @@ namespace UIAutomationMCP.Tests.Integration
             var startTime = DateTime.UtcNow;
 
             // Act
-            var result = await _tableService.GetRowOrColumnMajorAsync(automationId: elementId, name: windowTitle, processId: 11111, timeoutSeconds: maxAcceptableTimeSeconds);
+            var result = await _tableService.GetRowOrColumnMajorAsync(automationId: elementId, name: windowTitle, timeoutSeconds: maxAcceptableTimeSeconds);
 
             // Assert
             var elapsed = DateTime.UtcNow - startTime;
@@ -329,7 +329,7 @@ namespace UIAutomationMCP.Tests.Integration
             var windowTitle = "Subprocess Test Window";
 
             // Act
-            var result = await _tableService.GetRowOrColumnMajorAsync(automationId: elementId, name: windowTitle, processId: 33333, timeoutSeconds: 5);
+            var result = await _tableService.GetRowOrColumnMajorAsync(automationId: elementId, name: windowTitle, timeoutSeconds: 5);
 
             // Assert
             Assert.NotNull(result);

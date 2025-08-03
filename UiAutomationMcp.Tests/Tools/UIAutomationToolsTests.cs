@@ -691,26 +691,18 @@ namespace UIAutomationMCP.Tests.Tools
         {
             // Arrange
             var expectedResult = ProcessLaunchResponse.CreateSuccess(1234, "notepad", false);
-            var serverResponse = new ServerEnhancedResponse<ProcessLaunchResponse>
-            {
-                Success = true,
-                Data = expectedResult,
-                ExecutionInfo = new ServerExecutionInfo(),
-                RequestMetadata = new RequestMetadata()
-            };
-            
-            _mockApplicationLauncher.Setup(s => s.LaunchWin32ApplicationAsync("notepad.exe", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                                  .Returns(Task.FromResult(serverResponse));
+            _mockApplicationLauncher.Setup(s => s.LaunchApplicationAsync("notepad.exe", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                                  .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.LaunchWin32Application("notepad.exe");
+            var result = await _tools.LaunchApplication("notepad.exe");
 
             // Assert
             Assert.NotNull(result);
             // The result is now a JSON string, so we just verify it's not null
             // and the service was called correctly
-            _mockApplicationLauncher.Verify(s => s.LaunchWin32ApplicationAsync("notepad.exe", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Once);
-            _output.WriteLine("LaunchWin32Application test passed");
+            _mockApplicationLauncher.Verify(s => s.LaunchApplicationAsync("notepad.exe", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Once);
+            _output.WriteLine("LaunchApplication test passed");
         }
 
         [Fact]
@@ -718,25 +710,17 @@ namespace UIAutomationMCP.Tests.Tools
         {
             // Arrange
             var expectedResult = ProcessLaunchResponse.CreateSuccess(5678, "Calculator", false);
-            var serverResponse = new ServerEnhancedResponse<ProcessLaunchResponse>
-            {
-                Success = true,
-                Data = expectedResult,
-                ExecutionInfo = new ServerExecutionInfo(),
-                RequestMetadata = new RequestMetadata()
-            };
-            
-            _mockApplicationLauncher.Setup(s => s.LaunchApplicationByNameAsync("Calculator", It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                                  .Returns(Task.FromResult(serverResponse));
+            _mockApplicationLauncher.Setup(s => s.LaunchApplicationAsync("Calculator", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                                  .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.LaunchApplicationByName("Calculator");
+            var result = await _tools.LaunchApplication("Calculator");
 
             // Assert
             Assert.NotNull(result);
             // The result is now a JSON string, so we just verify it's not null
             // and the service was called correctly
-            _mockApplicationLauncher.Verify(s => s.LaunchApplicationByNameAsync("Calculator", It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mockApplicationLauncher.Verify(s => s.LaunchApplicationAsync("Calculator", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Once);
             _output.WriteLine("LaunchApplicationByName test passed");
         }
 

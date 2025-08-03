@@ -55,8 +55,8 @@ namespace UIAutomationMCP.Tests.Integration
             
             _toggleService = new ToggleService(Mock.Of<IProcessManager>(), _serviceProvider.GetRequiredService<ILogger<ToggleService>>());
             _elementSearchService = new ElementSearchService(
+                Mock.Of<IProcessManager>(), 
                 _serviceProvider.GetRequiredService<ILogger<ElementSearchService>>(), 
-                _subprocessExecutor, 
                 options);
         }
 

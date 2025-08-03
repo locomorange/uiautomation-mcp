@@ -46,6 +46,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             var mockVirtualizedItem = new Mock<IVirtualizedItemService>();
             var mockItemContainer = new Mock<IItemContainerService>();
             var mockSynchronizedInput = new Mock<ISynchronizedInputService>();
+            var mockAppLauncher = new Mock<IApplicationLauncher>();
 
             _tools = new UIAutomationTools(
                 mockAppLauncher.Object,
@@ -72,7 +73,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 mockSynchronizedInput.Object,
                 Mock.Of<IEventMonitorService>(),
                 Mock.Of<IFocusService>(),
-                Mock.Of<IOperationExecutor>()
+                Mock.Of<IMcpLogService>()
             );
         }
 
@@ -395,7 +396,6 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Data = new TransformCapabilitiesResult 
                 { 
                     Success = true, 
-                    AutomationId = elementId, 
                     CanMove = true, 
                     CanResize = true, 
                     CanRotate = false 
@@ -434,15 +434,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                     ActionParameters = new ActionParameters { Position = new Point { X = 100, Y = 200 } } 
                 } 
             };
-            _mockTransformService.Setup(s => s.MoveElementAsync("window1", null, 100.0, 200.0, "App", processId, 30))
+            _mockTransformService.Setup(s => s.MoveElementAsync("window1", null, 100.0, 200.0, "App", null, 30))
                                .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.MoveElement(automationId: "window1", x: 100.0, y: 200.0, controlType: "App", processId: processId);
+            var result = await _tools.MoveElement(automationId: "window1", x: 100.0, y: 200.0, controlType: "App");
 
             // Assert
             Assert.NotNull(result);
-            _mockTransformService.Verify(s => s.MoveElementAsync("window1", null, 100.0, 200.0, "App", processId, 30), Times.Once);
+            _mockTransformService.Verify(s => s.MoveElementAsync("window1", null, 100.0, 200.0, "App", null, 30), Times.Once);
             _output.WriteLine($"ProcessId parameter test passed: processId={processId}");
         }
 
