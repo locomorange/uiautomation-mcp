@@ -7,6 +7,7 @@ METHOD="$1"
 TOOL_NAME="$2"
 ARGS_JSON="$3"
 PID_FILE="mcp-server.pid"
+PROJECT_PATH=${MCP_PROJECT_PATH:-"UIAutomationMCP.Server"}
 
 if [ -z "$METHOD" ]; then
     echo "Usage: $0 <method> [tool-name] [arguments-json]"
@@ -65,21 +66,22 @@ if (\$processes.Count -eq 0) {
     exit 1
 }
 
-# Try to connect to the server's stdin using named pipes or direct process communication
-# Since we can't easily access the original process stdin, we'll use a file-based approach
-
-# Create a temporary request file
+# Create a temporary request file for safer variable handling
 \$requestFile = 'temp-request.json'
 \$responseFile = 'temp-response.json'
 
-'$JSON_REQUEST' | Out-File -FilePath \$requestFile -Encoding UTF8
+# Write JSON request to file to avoid variable interpolation issues
+@'
+$JSON_REQUEST
+'@ | Out-File -FilePath \$requestFile -Encoding UTF8
 
 # Use a new dotnet process to send the request
 Write-Host '📡 Connecting to server...'
+\$tempProcess = \$null
 try {
     \$psi = New-Object System.Diagnostics.ProcessStartInfo
     \$psi.FileName = 'dotnet'
-    \$psi.Arguments = 'run --project UIAutomationMCP.Server'
+    \$psi.Arguments = 'run --project $PROJECT_PATH'
     \$psi.RedirectStandardInput = \$true
     \$psi.RedirectStandardOutput = \$true
     \$psi.RedirectStandardError = \$true
@@ -87,9 +89,19 @@ try {
     \$psi.CreateNoWindow = \$true
     
     \$tempProcess = [System.Diagnostics.Process]::Start(\$psi)
+    
+    # Register cleanup handler for process termination
+    Register-EngineEvent PowerShell.Exiting -Action { 
+        if (\$tempProcess -and !\$tempProcess.HasExited) { 
+            \$tempProcess.Kill() 
+        } 
+    } | Out-Null
+    
     Start-Sleep -Seconds 2
     
-    \$tempProcess.StandardInput.WriteLine('$JSON_REQUEST')
+    # Read request from file and send
+    \$jsonRequest = Get-Content \$requestFile -Raw
+    \$tempProcess.StandardInput.WriteLine(\$jsonRequest)
     \$tempProcess.StandardInput.Flush()
     
     \$responseTask = \$tempProcess.StandardOutput.ReadLineAsync()
@@ -114,16 +126,15 @@ try {
         Write-Host '⚠️ Request timed out after 10 seconds'
     }
     
+} catch {
+    Write-Host \"❌ Request failed: \$_\"
+} finally {
+    # Cleanup
     \$tempProcess.StandardInput.Close()
     \$tempProcess.WaitForExit(2000)
     if (!\$tempProcess.HasExited) {
         \$tempProcess.Kill()
     }
-    
-} catch {
-    Write-Host \"❌ Request failed: \$_\"
-} finally {
-    # Cleanup
     Remove-Item \$requestFile -ErrorAction SilentlyContinue
     Remove-Item \$responseFile -ErrorAction SilentlyContinue
 }

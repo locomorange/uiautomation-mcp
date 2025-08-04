@@ -3,6 +3,7 @@
 # Show MCP Server logs
 PID_FILE="mcp-server.pid"
 LOG_FILE="mcp-server.log"
+PROJECT_PATH=${MCP_PROJECT_PATH:-"UIAutomationMCP.Server"}
 
 echo "=== MCP Server Logs ==="
 
@@ -52,14 +53,14 @@ if (Test-Path '$LOG_FILE') {
 }
 
 # Check the dev-error.log and dev-response.log files
-\$devErrorLog = 'UIAutomationMCP.Server/dev-error.log'
-\$devResponseLog = 'UIAutomationMCP.Server/dev-response.log'
+\$devErrorLog = '$PROJECT_PATH/dev-error.log'
+\$devResponseLog = '$PROJECT_PATH/dev-response.log'
 
 if (Test-Path \$devErrorLog) {
     Write-Host ''
     Write-Host '📄 Development Error Log:'
     Write-Host '--- \$devErrorLog ---'
-    Get-Content \$devErrorLog -Tail 20 | ForEach-Object { Write-Host \$_ }
+    Get-Content \$devErrorLog -Tail 20 -Encoding UTF8 | ForEach-Object { Write-Host \$_ }
     Write-Host '--- End of Error Log ---'
 }
 
@@ -67,7 +68,7 @@ if (Test-Path \$devResponseLog) {
     Write-Host ''
     Write-Host '📄 Development Response Log:'
     Write-Host '--- \$devResponseLog ---'
-    Get-Content \$devResponseLog -Tail 10 | ForEach-Object { Write-Host \$_ }
+    Get-Content \$devResponseLog -Tail 10 -Encoding UTF8 | ForEach-Object { Write-Host \$_ }
     Write-Host '--- End of Response Log ---'
 }
 "

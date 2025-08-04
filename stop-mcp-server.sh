@@ -3,6 +3,7 @@
 # Stop the background MCP server
 PID_FILE="mcp-server.pid"
 POWERSHELL_PID_FILE="powershell.pid"
+PROJECT_PATH=${MCP_PROJECT_PATH:-"UIAutomationMCP.Server"}
 
 echo "=== MCP Server Stopper ==="
 
@@ -43,9 +44,21 @@ fi
 # Clean up any remaining dotnet processes related to our project
 echo "Cleaning up any remaining dotnet processes..."
 powershell -Command "
-Get-Process | Where-Object { \$_.ProcessName -like '*dotnet*' -and \$_.CommandLine -like '*UIAutomationMCP*' } | ForEach-Object {
-    Write-Host \"Stopping dotnet process: \$(\$_.Id)\"
-    Stop-Process -Id \$_.Id -Force -ErrorAction SilentlyContinue
+try {
+    Get-Process | Where-Object { 
+        \$_.ProcessName -like '*dotnet*' -and 
+        (\$_.CommandLine -like '*$PROJECT_PATH*' -or \$_.CommandLine -like '*UIAutomationMCP*')
+    } | ForEach-Object {
+        Write-Host \"Stopping dotnet process: \$(\$_.Id) - \$(\$_.ProcessName)\"
+        try {
+            Stop-Process -Id \$_.Id -Force -ErrorAction Stop
+            Write-Host \"✅ Successfully stopped process \$(\$_.Id)\"
+        } catch {
+            Write-Host \"⚠️ Could not stop process \$(\$_.Id): \$_\"
+        }
+    }
+} catch {
+    Write-Host \"⚠️ Error during process cleanup: \$_\"
 }
 " 2>/dev/null || true
 
@@ -54,19 +67,27 @@ echo ""
 echo "📋 Final server logs:"
 powershell -Command "
 # Check development log files
-\$devErrorLog = 'UIAutomationMCP.Server/dev-error.log'
-\$devResponseLog = 'UIAutomationMCP.Server/dev-response.log'
+\$devErrorLog = '$PROJECT_PATH/dev-error.log'
+\$devResponseLog = '$PROJECT_PATH/dev-response.log'
 
-if (Test-Path \$devErrorLog) {
-    Write-Host ''
-    Write-Host '=== Recent Error Log (last 10 lines) ==='
-    Get-Content \$devErrorLog -Tail 10 | ForEach-Object { Write-Host \$_ }
-}
+try {
+    if (Test-Path \$devErrorLog) {
+        Write-Host ''
+        Write-Host '=== Recent Error Log (last 10 lines) ==='
+        Get-Content \$devErrorLog -Tail 10 -ErrorAction SilentlyContinue | ForEach-Object { Write-Host \$_ }
+    } else {
+        Write-Host 'No error log file found at \$devErrorLog'
+    }
 
-if (Test-Path \$devResponseLog -and (Get-Item \$devResponseLog).Length -gt 0) {
-    Write-Host ''
-    Write-Host '=== Recent Response Log (last 5 lines) ==='
-    Get-Content \$devResponseLog -Tail 5 | ForEach-Object { Write-Host \$_ }
+    if ((Test-Path \$devResponseLog) -and ((Get-Item \$devResponseLog -ErrorAction SilentlyContinue).Length -gt 0)) {
+        Write-Host ''
+        Write-Host '=== Recent Response Log (last 5 lines) ==='
+        Get-Content \$devResponseLog -Tail 5 -ErrorAction SilentlyContinue | ForEach-Object { Write-Host \$_ }
+    } else {
+        Write-Host 'No response log file found or file is empty at \$devResponseLog'
+    }
+} catch {
+    Write-Host \"⚠️ Error reading log files: \$_\"
 }
 "
 

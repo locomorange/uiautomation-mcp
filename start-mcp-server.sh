@@ -2,8 +2,9 @@
 
 # MCP Server Background Starter for Git Bash
 # Usage: ./start-mcp-server.sh [project-path]
+# Environment: Set MCP_PROJECT_PATH to override default path
 
-PROJECT_PATH=${1:-"UIAutomationMCP.Server"}
+PROJECT_PATH=${1:-${MCP_PROJECT_PATH:-"UIAutomationMCP.Server"}}
 PID_FILE="mcp-server.pid"
 LOG_FILE="mcp-server.log"
 
@@ -29,28 +30,34 @@ echo "Log file: $LOG_FILE"
 
 # Use PowerShell to start the server and capture PID with logging
 powershell -Command "
-\$psi = New-Object System.Diagnostics.ProcessStartInfo
-\$psi.FileName = 'dotnet'
-\$psi.Arguments = 'run --project $PROJECT_PATH'
-\$psi.RedirectStandardInput = \$true
-\$psi.RedirectStandardOutput = \$true
-\$psi.RedirectStandardError = \$true
-\$psi.UseShellExecute = \$false
-\$psi.CreateNoWindow = \$true
+\$ErrorActionPreference = 'Stop'
+try {
+    \$psi = New-Object System.Diagnostics.ProcessStartInfo
+    \$psi.FileName = 'dotnet'
+    \$psi.Arguments = 'run --project $PROJECT_PATH'
+    \$psi.RedirectStandardInput = \$true
+    \$psi.RedirectStandardOutput = \$true
+    \$psi.RedirectStandardError = \$true
+    \$psi.UseShellExecute = \$false
+    \$psi.CreateNoWindow = \$true
 
-\$process = [System.Diagnostics.Process]::Start(\$psi)
-Write-Host \"Server started with PID: \$(\$process.Id)\"
-\$process.Id | Out-File -FilePath '$PID_FILE' -Encoding ASCII
+    \$process = [System.Diagnostics.Process]::Start(\$psi)
+    if (-not \$process) {
+        throw 'Failed to start dotnet process'
+    }
+    
+    Write-Host \"Server started with PID: \$(\$process.Id)\"
+    \$process.Id | Out-File -FilePath '$PID_FILE' -Encoding ASCII
 
-# Store process handle for later use
-\$global:mcpServerProcess = \$process
+    # Store process handle for later use
+    \$global:mcpServerProcess = \$process
 
-# Start logging stderr in background
-\$stderrTask = \$process.StandardError.ReadToEndAsync()
-\$global:stderrTask = \$stderrTask
+    # Start logging stderr in background
+    \$stderrTask = \$process.StandardError.ReadToEndAsync()
+    \$global:stderrTask = \$stderrTask
 
-# Test initial connection
-Start-Sleep -Seconds 3
+    # Test initial connection
+    Start-Sleep -Seconds 3
 \$initRequest = '{\"jsonrpc\": \"2.0\", \"id\": 1, \"method\": \"initialize\", \"params\": {\"protocolVersion\": \"2024-11-05\", \"capabilities\": {}, \"clientInfo\": {\"name\": \"bash-client\", \"version\": \"1.0\"}}}'
 \$process.StandardInput.WriteLine(\$initRequest)
 \$process.StandardInput.Flush()
@@ -73,7 +80,7 @@ if (\$completedTask -eq \$responseTask) {
 Write-Host \"Server is running in background. Use Ctrl+C to stop or run stop-mcp-server.sh\"
 Write-Host \"Process will remain active even if this PowerShell session ends.\"
 
-# Create a simple keep-alive loop
+# Simple keep-alive loop
 while (\$true) {
     if (\$process.HasExited) {
         Write-Host \"Server process has exited\"
@@ -81,6 +88,15 @@ while (\$true) {
         break
     }
     Start-Sleep -Seconds 5
+}
+
+} catch {
+    Write-Host \"❌ Failed to start server: \$_\"
+    if (\$process -and -not \$process.HasExited) {
+        \$process.Kill()
+    }
+    Remove-Item '$PID_FILE' -ErrorAction SilentlyContinue
+    exit 1
 }
 " &
 
