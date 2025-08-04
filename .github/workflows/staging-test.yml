@@ -159,7 +159,7 @@ jobs:
           } catch {
             $retryCount++
             if ($retryCount -lt $maxRetries) {
-              Write-Host "Retry $retryCount/$maxRetries: Waiting for HTTP server to start..."
+              Write-Host "Retry $retryCount of ${maxRetries}: Waiting for HTTP server to start..."
             } else {
               Write-Host "Error details: $_"
             }
