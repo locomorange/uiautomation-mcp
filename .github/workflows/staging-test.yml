@@ -520,7 +520,58 @@ jobs:
             Write-Warning "⚠️ Server initialization failed: $_"
           }
           
-          # Test 2: Open Calculator for testing
+          # Test 2: Get tools list
+          Write-Host "📋 Testing: Get available tools"
+          try {
+            $toolsRequest = @{
+              jsonrpc = "2.0"
+              id = 2
+              method = "tools/list"
+              params = @{}
+            } | ConvertTo-Json -Compress
+            
+            Write-Host "Sending tools/list request..."
+            $serverProcess.StandardInput.WriteLine($toolsRequest)
+            $serverProcess.StandardInput.Flush()
+            
+            # Read response with timeout
+            $responseTask = $serverProcess.StandardOutput.ReadLineAsync()
+            $timeout = [System.Threading.Tasks.Task]::Delay(5000)
+            $completedTask = [System.Threading.Tasks.Task]::WhenAny($responseTask, $timeout).Result
+            
+            if ($completedTask -eq $responseTask) {
+              $toolsResponse = $responseTask.Result
+              Write-Host "Tools list response received"
+              
+              # Parse and verify tools
+              $toolsObj = $toolsResponse | ConvertFrom-Json -ErrorAction SilentlyContinue
+              if ($toolsObj.result.tools) {
+                Write-Host "✅ Found $($toolsObj.result.tools.Count) tools:"
+                foreach ($tool in $toolsObj.result.tools) {
+                  Write-Host "  - $($tool.name)"
+                }
+                
+                # Check for expected UI Automation tools
+                $expectedTools = @("SearchElements", "GetElementTree", "TakeScreenshot")
+                $foundTools = $toolsObj.result.tools | Where-Object { $expectedTools -contains $_.name }
+                if ($foundTools.Count -gt 0) {
+                  Write-Host "✅ Core UI Automation tools verified"
+                } else {
+                  Write-Warning "⚠️ Expected UI Automation tools not found"
+                }
+              } else {
+                Write-Warning "⚠️ No tools found in response"
+                Write-Host "Raw response: $toolsResponse"
+              }
+            } else {
+              Write-Warning "⚠️ Tools list request timed out"
+            }
+            
+          } catch {
+            Write-Warning "⚠️ Tools list failed: $_"
+          }
+          
+          # Test 3: Open Calculator for testing
           Write-Host "🧮 Opening Calculator for UI testing..."
           try {
             Start-Process calc.exe
@@ -530,10 +581,133 @@ jobs:
             Write-Warning "⚠️ Could not open Calculator: $_"
           }
           
-          # Test 3: Test UI Automation capabilities (simplified test)
+          # Test 4: Test UI Automation capabilities (simplified test)
           Write-Host "🔍 Testing: UI Automation capabilities"
           Write-Host "Note: Detailed UI testing may fail in CI environment due to lack of interactive desktop"
           Write-Host "The main goal is to verify server starts correctly and responds to requests"
+          
+          # Test 5: SearchElements tool
+          Write-Host ""
+          Write-Host "🔍 Testing: SearchElements tool"
+          try {
+            $searchRequest = @{
+              jsonrpc = "2.0"
+              id = 3
+              method = "tools/call"
+              params = @{
+                name = "SearchElements"
+                arguments = @{
+                  searchText = "Calculator"
+                  requiredPattern = "Window"
+                }
+              }
+            } | ConvertTo-Json -Compress -Depth 10
+            
+            Write-Host "Sending SearchElements request..."
+            $serverProcess.StandardInput.WriteLine($searchRequest)
+            $serverProcess.StandardInput.Flush()
+            
+            # Read response with timeout
+            $responseTask = $serverProcess.StandardOutput.ReadLineAsync()
+            $timeout = [System.Threading.Tasks.Task]::Delay(5000)
+            $completedTask = [System.Threading.Tasks.Task]::WhenAny($responseTask, $timeout).Result
+            
+            if ($completedTask -eq $responseTask) {
+              $searchResponse = $responseTask.Result
+              $searchObj = $searchResponse | ConvertFrom-Json -ErrorAction SilentlyContinue
+              
+              if ($searchObj.error) {
+                Write-Warning "⚠️ SearchElements returned error (expected in CI): $($searchObj.error.message)"
+              } elseif ($searchObj.result) {
+                Write-Host "✅ SearchElements executed successfully"
+              }
+            } else {
+              Write-Warning "⚠️ SearchElements request timed out"
+            }
+          } catch {
+            Write-Warning "⚠️ SearchElements test failed: $_"
+          }
+          
+          # Test 6: GetElementTree tool
+          Write-Host "🌳 Testing: GetElementTree tool"
+          try {
+            $treeRequest = @{
+              jsonrpc = "2.0"
+              id = 4
+              method = "tools/call"
+              params = @{
+                name = "GetElementTree"
+                arguments = @{
+                  maxDepth = 2
+                }
+              }
+            } | ConvertTo-Json -Compress -Depth 10
+            
+            Write-Host "Sending GetElementTree request..."
+            $serverProcess.StandardInput.WriteLine($treeRequest)
+            $serverProcess.StandardInput.Flush()
+            
+            # Read response with timeout
+            $responseTask = $serverProcess.StandardOutput.ReadLineAsync()
+            $timeout = [System.Threading.Tasks.Task]::Delay(5000)
+            $completedTask = [System.Threading.Tasks.Task]::WhenAny($responseTask, $timeout).Result
+            
+            if ($completedTask -eq $responseTask) {
+              $treeResponse = $responseTask.Result
+              $treeObj = $treeResponse | ConvertFrom-Json -ErrorAction SilentlyContinue
+              
+              if ($treeObj.error) {
+                Write-Warning "⚠️ GetElementTree returned error (expected in CI): $($treeObj.error.message)"
+              } elseif ($treeObj.result) {
+                Write-Host "✅ GetElementTree executed successfully"
+              }
+            } else {
+              Write-Warning "⚠️ GetElementTree request timed out"
+            }
+          } catch {
+            Write-Warning "⚠️ GetElementTree test failed: $_"
+          }
+          
+          # Test 7: TakeScreenshot tool
+          Write-Host "📷 Testing: TakeScreenshot tool"
+          try {
+            $screenshotRequest = @{
+              jsonrpc = "2.0"
+              id = 5
+              method = "tools/call"
+              params = @{
+                name = "TakeScreenshot"
+                arguments = @{
+                  windowTitle = "Calculator"
+                  maxTokens = 1000
+                }
+              }
+            } | ConvertTo-Json -Compress -Depth 10
+            
+            Write-Host "Sending TakeScreenshot request..."
+            $serverProcess.StandardInput.WriteLine($screenshotRequest)
+            $serverProcess.StandardInput.Flush()
+            
+            # Read response with timeout
+            $responseTask = $serverProcess.StandardOutput.ReadLineAsync()
+            $timeout = [System.Threading.Tasks.Task]::Delay(5000)
+            $completedTask = [System.Threading.Tasks.Task]::WhenAny($responseTask, $timeout).Result
+            
+            if ($completedTask -eq $responseTask) {
+              $screenshotResponse = $responseTask.Result
+              $screenshotObj = $screenshotResponse | ConvertFrom-Json -ErrorAction SilentlyContinue
+              
+              if ($screenshotObj.error) {
+                Write-Warning "⚠️ TakeScreenshot returned error (expected in CI): $($screenshotObj.error.message)"
+              } elseif ($screenshotObj.result) {
+                Write-Host "✅ TakeScreenshot executed successfully"
+              }
+            } else {
+              Write-Warning "⚠️ TakeScreenshot request timed out"
+            }
+          } catch {
+            Write-Warning "⚠️ TakeScreenshot test failed: $_"
+          }
           
           Write-Host ""
           Write-Host "📋 MCP Inspector Test Summary:"
