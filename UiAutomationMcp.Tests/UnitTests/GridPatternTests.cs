@@ -11,7 +11,9 @@ using UIAutomationMCP.Models.Logging;
 namespace UIAutomationMCP.Tests.UnitTests
 {
     /// <summary>
-    /// GridPatternの単体テスチE    /// Microsoft仕様に基づいGridPatternの機をモテスベスでテストしまぁE    /// </summary>
+    /// GridPatternの単体テスト
+    /// Microsoft仕様に基づいたGridPatternの機能をモックベースでテストします
+    /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Unit")]
     public class GridPatternTests : IDisposable
