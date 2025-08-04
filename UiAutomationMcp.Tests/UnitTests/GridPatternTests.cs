@@ -6,11 +6,14 @@ using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
 using Xunit.Abstractions;
 using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Models.Logging;
 
 namespace UIAutomationMCP.Tests.UnitTests
 {
     /// <summary>
-    /// GridPatternの単体テスチE    /// Microsoft仕様に基づぁE��GridPatternの機�EをモチE��ベ�EスでチE��トしまぁE    /// </summary>
+    /// GridPatternの単体テスト
+    /// Microsoft仕様に基づいたGridPatternの機能をモックベースでテストします
+    /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Unit")]
     public class GridPatternTests : IDisposable
@@ -23,8 +26,9 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             _output = output;
             _mockGridService = new Mock<IGridService>();
-            
-            // UIAutomationToolsの他�EサービスもモチE��化（最小限の設定！E            var mockAppLauncher = new Mock<IApplicationLauncher>();
+
+            // UIAutomationToolsの他サービスもモック化（最小限の設定）
+            var mockAppLauncher = new Mock<IApplicationLauncher>();
             var mockScreenshot = new Mock<IScreenshotService>();
             var mockElementSearch = new Mock<IElementSearchService>();
             var mockTreeNavigation = new Mock<ITreeNavigationService>();
@@ -71,15 +75,16 @@ namespace UIAutomationMCP.Tests.UnitTests
                 mockSynchronizedInput.Object,
                 Mock.Of<IEventMonitorService>(),
                 Mock.Of<IFocusService>(),
-                Mock.Of<UIAutomationMCP.Server.Interfaces.IOperationExecutor>()
+                Mock.Of<IMcpLogService>()
             );
         }
 
         public void Dispose()
         {
-            // モチE��のクリーンアチE�Eは不要E        }
+            // Mock cleanup is not required
+        }
 
-        #region Microsoft仕様準拠のGridPattern忁E���EロパティチE��チE
+        #region Microsoft spec compliant GridPattern property tests
         /* DISABLED - GetGridInfo method no longer exists
         [Fact]
         public async Task GetGridInfo_WithValidGrid_ShouldReturnRowAndColumnCount()
@@ -142,7 +147,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         [Fact]
         public async Task GetGridInfo_WithSingleItemGrid_ShouldStillBeValidGrid()
         {
-            // Arrange - Microsoft仕槁E 単一アイチE��でもグリチE��として有効
+            // Arrange - Microsoft spec: Single item should still be valid as a grid
             var expectedResult = new ServerEnhancedResponse<GridInfoResult>
             {
                 Success = true,
@@ -167,7 +172,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region Microsoft仕様準拠のGetItemメソチE��チE��チE
+        #region Microsoft spec compliant GetItem method tests
         [Theory]
         [InlineData(0, 0)]
         [InlineData(2, 1)]
@@ -180,15 +185,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ElementSearchResult
                 {
-                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                    Elements = new List<UIAutomationMCP.Models.ElementInfo>
                     {
-                        new UIAutomationMCP.Shared.ElementInfo
+                        new UIAutomationMCP.Models.ElementInfo
                         {
                             AutomationId = $"cell_{row}_{column}",
                             Name = $"Cell({row},{column})",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            BoundingRectangle = new UIAutomationMCP.Shared.BoundingRectangle
+                            BoundingRectangle = new UIAutomationMCP.Models.BoundingRectangle
                             {
                                 X = 100 + column * 80,
                                 Y = 50 + row * 25,
@@ -214,15 +219,15 @@ namespace UIAutomationMCP.Tests.UnitTests
         [Fact]
         public async Task GetGridItem_WithZeroBasedCoordinates_ShouldReturnFirstItem()
         {
-            // Arrange - Microsoft仕槁E グリチE��座標�E0ベ�Eス
+            // Arrange - Microsoft仕槁E グリテス座標0ベス
             var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
                 Data = new ElementSearchResult
                 {
-                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                    Elements = new List<UIAutomationMCP.Models.ElementInfo>
                     {
-                        new UIAutomationMCP.Shared.ElementInfo
+                        new UIAutomationMCP.Models.ElementInfo
                         {
                             AutomationId = "cell_0_0",
                             Name = "First Cell",
@@ -247,21 +252,21 @@ namespace UIAutomationMCP.Tests.UnitTests
         [Fact]
         public async Task GetGridItem_WithEmptyCell_ShouldStillReturnElement()
         {
-            // Arrange - Microsoft仕槁E 空のセルでもUI Automation要素を返す忁E��がある
+            // Arrange - Microsoft仕槁E 空のセルでもUI Automation要素を返す忁E��がある
             var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
                 Data = new ElementSearchResult
                 {
-                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                    Elements = new List<UIAutomationMCP.Models.ElementInfo>
                     {
-                        new UIAutomationMCP.Shared.ElementInfo
+                        new UIAutomationMCP.Models.ElementInfo
                         {
                             AutomationId = "empty_cell_1_2",
                             Name = "",
                             ControlType = "DataItem",
                             IsEnabled = true,
-                            BoundingRectangle = new UIAutomationMCP.Shared.BoundingRectangle
+                            BoundingRectangle = new UIAutomationMCP.Models.BoundingRectangle
                             {
                                 X = 260,
                                 Y = 75,
@@ -286,7 +291,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region Microsoft仕様準拠のArgumentOutOfRangeException チE��チE
+        #region Microsoft仕様準拠のArgumentOutOfRangeException テスチE
         [Theory]
         [InlineData(-1, 0)]
         [InlineData(0, -1)]
@@ -296,7 +301,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Arrange - Microsoft仕槁E 負の座標でArgumentOutOfRangeExceptionをスロー
             _mockGridService.Setup(s => s.GetGridItemAsync("grid", null, row, column, "TestApp", null, 30))
                            .ThrowsAsync(new ArgumentOutOfRangeException(
-                               row < 0 ? "row" : "column", 
+                               row < 0 ? "row" : "column",
                                $"Row/column coordinates must be greater than or equal to zero"));
 
             // Act & Assert
@@ -314,10 +319,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task GetGridItem_WithCoordinatesExceedingBounds_ShouldThrowArgumentOutOfRangeException(
             int row, int column, int maxRow, int maxColumn)
         {
-            // Arrange - Microsoft仕槁E RowCount/ColumnCountを趁E��る座標でArgumentOutOfRangeExceptionをスロー
+            // Arrange - Microsoft仕槁E RowCount/ColumnCountを趁E��る座標でArgumentOutOfRangeExceptionをスロー
             _mockGridService.Setup(s => s.GetGridItemAsync("grid", null, row, column, "TestApp", null, 30))
                            .ThrowsAsync(new ArgumentOutOfRangeException(
-                               row >= maxRow ? "row" : "column", 
+                               row >= maxRow ? "row" : "column",
                                $"Row/column coordinates must be less than RowCount/ColumnCount"));
 
             // Act & Assert
@@ -330,7 +335,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region エラーハンドリングチE��チE
+        #region エラーハンドリングテスチE
         /* DISABLED - GetGridInfo method no longer exists
         [Fact]
         public async Task GetGridInfo_WithNonExistentElement_ShouldHandleError()
@@ -382,7 +387,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region パラメータ検証チE��チE
+        #region パラメータ検証テスチE
         /* DISABLED - GetGridInfo method no longer exists
         [Theory]
         [InlineData("", "TestWindow")]
@@ -474,9 +479,9 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ElementSearchResult
                 {
-                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                    Elements = new List<UIAutomationMCP.Models.ElementInfo>
                     {
-                        new UIAutomationMCP.Shared.ElementInfo { AutomationId = "cell", Name = "Test Cell" }
+                        new UIAutomationMCP.Models.ElementInfo { AutomationId = "cell", Name = "Test Cell" }
                     }
                 }
             };
@@ -511,7 +516,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region Grid操作シナリオチE��チE
+        #region Grid操作シナリオテスチE
         /* DISABLED - GetGridInfo method no longer exists
         [Fact]
         public async Task GridOperations_FullWorkflow_ShouldExecuteCorrectly()
@@ -527,9 +532,9 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ElementSearchResult
                 {
-                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                    Elements = new List<UIAutomationMCP.Models.ElementInfo>
                     {
-                        new UIAutomationMCP.Shared.ElementInfo { AutomationId = "cell_0_0", Name = "Header 1" }
+                        new UIAutomationMCP.Models.ElementInfo { AutomationId = "cell_0_0", Name = "Header 1" }
                     }
                 }
             };
@@ -538,9 +543,9 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ElementSearchResult
                 {
-                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                    Elements = new List<UIAutomationMCP.Models.ElementInfo>
                     {
-                        new UIAutomationMCP.Shared.ElementInfo { AutomationId = "cell_0_1", Name = "Header 2" }
+                        new UIAutomationMCP.Models.ElementInfo { AutomationId = "cell_0_1", Name = "Header 2" }
                     }
                 }
             };
@@ -549,9 +554,9 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ElementSearchResult
                 {
-                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                    Elements = new List<UIAutomationMCP.Models.ElementInfo>
                     {
-                        new UIAutomationMCP.Shared.ElementInfo { AutomationId = "cell_1_0", Name = "Data 1" }
+                        new UIAutomationMCP.Models.ElementInfo { AutomationId = "cell_1_0", Name = "Data 1" }
                     }
                 }
             };
@@ -560,9 +565,9 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ElementSearchResult
                 {
-                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                    Elements = new List<UIAutomationMCP.Models.ElementInfo>
                     {
-                        new UIAutomationMCP.Shared.ElementInfo { AutomationId = "cell_1_1", Name = "Data 2" }
+                        new UIAutomationMCP.Models.ElementInfo { AutomationId = "cell_1_1", Name = "Data 2" }
                     }
                 }
             };
@@ -604,21 +609,22 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #endregion
 
-        #region 墁E��値チE��チE
+        #region 墁E��値テスチE
         [Theory]
         [InlineData(0, 0, 1, 1)]
         [InlineData(0, 0, 5, 3)]
         [InlineData(4, 2, 5, 3)]
         public async Task GetGridItem_WithBoundaryCoordinates_ShouldSucceed(int row, int column, int maxRow, int maxColumn)
         {
-            // Arrange - 墁E��値での正常動作テスチE            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
+            // Arrange - Test normal operation with boundary values
+            var expectedResult = new ServerEnhancedResponse<ElementSearchResult>
             {
                 Success = true,
                 Data = new ElementSearchResult
                 {
-                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                    Elements = new List<UIAutomationMCP.Models.ElementInfo>
                     {
-                        new UIAutomationMCP.Shared.ElementInfo
+                        new UIAutomationMCP.Models.ElementInfo
                         {
                             AutomationId = $"boundary_cell_{row}_{column}",
                             Name = $"Boundary Cell ({row},{column})",

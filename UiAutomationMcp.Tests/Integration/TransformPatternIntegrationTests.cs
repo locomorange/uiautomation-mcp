@@ -28,14 +28,14 @@ namespace UIAutomationMCP.Tests.Integration
         public TransformPatternIntegrationTests(ITestOutputHelper output)
         {
             _output = output;
-            
+
             var services = new ServiceCollection();
-            services.AddLogging(builder => 
+            services.AddLogging(builder =>
                 builder.AddConsole().SetMinimumLevel(LogLevel.Information));
-            
+
             _serviceProvider = services.BuildServiceProvider();
             var logger = _serviceProvider.GetRequiredService<ILogger<SubprocessExecutor>>();
-            
+
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var possiblePaths = new[]
             {
@@ -44,15 +44,15 @@ namespace UIAutomationMCP.Tests.Integration
                 Path.Combine(baseDir, "worker", "UIAutomationMCP.Worker.exe"),
             };
 
-            _workerPath = possiblePaths.FirstOrDefault(File.Exists) ?? 
+            _workerPath = possiblePaths.FirstOrDefault(File.Exists) ??
                 throw new InvalidOperationException("Worker executable not found");
 
             _subprocessExecutor = new SubprocessExecutor(logger, _workerPath, new CancellationTokenSource());
-            
+
             var transformLogger = _serviceProvider.GetRequiredService<ILoggerFactory>()
                 .CreateLogger<TransformService>();
             _transformService = new TransformService(Mock.Of<IProcessManager>(), transformLogger);
-            
+
             _output.WriteLine($"TransformPattern Integration Tests initialized with worker: {_workerPath}");
         }
 
@@ -96,7 +96,7 @@ namespace UIAutomationMCP.Tests.Integration
             var result = DeserializeResult<ServerEnhancedResponse<TransformCapabilitiesResult>>(jsonResult);
             Assert.False(result.Success);
             Assert.Contains("not found", result.ErrorMessage ?? "", StringComparison.OrdinalIgnoreCase);
-            
+
             _output.WriteLine($"  GetTransformCapabilities correctly handled non-existent element");
             _output.WriteLine($"  Error: {result.ErrorMessage}");
         }
@@ -118,7 +118,7 @@ namespace UIAutomationMCP.Tests.Integration
             var result = DeserializeResult<ServerEnhancedResponse<ActionResult>>(jsonResult);
             Assert.False(result.Success);
             Assert.NotNull(result.ErrorMessage);
-            
+
             _output.WriteLine($"  GetTransformCapabilities correctly handled invalid element ID");
             _output.WriteLine($"  Error: {result.ErrorMessage}");
         }
@@ -147,7 +147,7 @@ namespace UIAutomationMCP.Tests.Integration
             var result = DeserializeResult<ServerEnhancedResponse<ActionResult>>(jsonResult);
             Assert.False(result.Success);
             Assert.Contains("not found", result.ErrorMessage ?? "", StringComparison.OrdinalIgnoreCase);
-            
+
             _output.WriteLine($"  MoveElement correctly handled non-existent element");
             _output.WriteLine($"  Error: {result.ErrorMessage}");
         }
@@ -174,7 +174,7 @@ namespace UIAutomationMCP.Tests.Integration
             var result = DeserializeResult<ServerEnhancedResponse<ActionResult>>(jsonResult);
             //                                              
             Assert.False(result.Success);
-            
+
             _output.WriteLine($"  MoveElement processed coordinates correctly");
             _output.WriteLine($"  Result: {result.ErrorMessage}");
         }
@@ -203,7 +203,7 @@ namespace UIAutomationMCP.Tests.Integration
             var result = DeserializeResult<ServerEnhancedResponse<ActionResult>>(jsonResult);
             Assert.False(result.Success);
             Assert.Contains("not found", result.ErrorMessage ?? "", StringComparison.OrdinalIgnoreCase);
-            
+
             _output.WriteLine($"  ResizeElement correctly handled non-existent element");
             _output.WriteLine($"  Error: {result.ErrorMessage}");
         }
@@ -229,7 +229,7 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.NotNull(jsonResult);
             var result = DeserializeResult<ServerEnhancedResponse<ActionResult>>(jsonResult);
             Assert.False(result.Success);
-            
+
             _output.WriteLine($"  ResizeElement correctly handled invalid dimensions");
             _output.WriteLine($"  Error: {result.ErrorMessage}");
         }
@@ -256,7 +256,7 @@ namespace UIAutomationMCP.Tests.Integration
             var result = DeserializeResult<ServerEnhancedResponse<ActionResult>>(jsonResult);
             //                                                
             Assert.False(result.Success);
-            
+
             _output.WriteLine($"  ResizeElement processed dimensions correctly");
             _output.WriteLine($"  Result: {result.ErrorMessage}");
         }
@@ -284,7 +284,7 @@ namespace UIAutomationMCP.Tests.Integration
             var result = DeserializeResult<ServerEnhancedResponse<ActionResult>>(jsonResult);
             Assert.False(result.Success);
             Assert.Contains("not found", result.ErrorMessage ?? "", StringComparison.OrdinalIgnoreCase);
-            
+
             _output.WriteLine($"  RotateElement correctly handled non-existent element");
             _output.WriteLine($"  Error: {result.ErrorMessage}");
         }
@@ -315,7 +315,7 @@ namespace UIAutomationMCP.Tests.Integration
             var result = DeserializeResult<ServerEnhancedResponse<ActionResult>>(jsonResult);
             //                                               
             Assert.False(result.Success);
-            
+
             _output.WriteLine($"  RotateElement processed degrees correctly");
             _output.WriteLine($"  Result: {result.ErrorMessage}");
         }
@@ -338,7 +338,7 @@ namespace UIAutomationMCP.Tests.Integration
             // Act & Assert - GetTransformCapabilities
             var capabilitiesResult = await _transformService.GetTransformCapabilitiesAsync(
                 elementId, "TestWindow", timeoutSeconds: timeoutSeconds);
-            
+
             stopwatch.Stop();
             var elapsed = stopwatch.Elapsed.TotalSeconds;
 
@@ -354,7 +354,7 @@ namespace UIAutomationMCP.Tests.Integration
             stopwatch.Restart();
             var moveResult = await _transformService.MoveElementAsync(
                 elementId, "TestWindow", 100.0, 200.0, null, null, timeoutSeconds);
-            
+
             stopwatch.Stop();
             elapsed = stopwatch.Elapsed.TotalSeconds;
 
@@ -370,7 +370,7 @@ namespace UIAutomationMCP.Tests.Integration
             stopwatch.Restart();
             var resizeResult = await _transformService.ResizeElementAsync(
                 elementId, "TestWindow", 800.0, 600.0, null, null, timeoutSeconds);
-            
+
             stopwatch.Stop();
             elapsed = stopwatch.Elapsed.TotalSeconds;
 
@@ -386,7 +386,7 @@ namespace UIAutomationMCP.Tests.Integration
             stopwatch.Restart();
             var rotateResult = await _transformService.RotateElementAsync(
                 elementId, "TestWindow", 90.0, null, null, timeoutSeconds);
-            
+
             stopwatch.Stop();
             elapsed = stopwatch.Elapsed.TotalSeconds;
 
@@ -430,7 +430,7 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.NotNull(moveResult);
             var moveDeserialized2 = DeserializeResult<ServerEnhancedResponse<ActionResult>>(moveResult);
             Assert.False(moveDeserialized2.Success);
-            
+
             _output.WriteLine($"  MoveElement processed processId: {processId}");
 
             // Act & Assert - ResizeElement
@@ -440,7 +440,7 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.NotNull(resizeResult);
             var resizeDeserialized2 = DeserializeResult<ServerEnhancedResponse<ActionResult>>(resizeResult);
             Assert.False(resizeDeserialized2.Success);
-            
+
             _output.WriteLine($"  ResizeElement processed processId: {processId}");
 
             // Act & Assert - RotateElement
@@ -450,7 +450,7 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.NotNull(rotateResult);
             var rotateDeserialized2 = DeserializeResult<ServerEnhancedResponse<ActionResult>>(rotateResult);
             Assert.False(rotateDeserialized2.Success);
-            
+
             _output.WriteLine($"  RotateElement processed processId: {processId}");
         }
 
@@ -473,7 +473,7 @@ namespace UIAutomationMCP.Tests.Integration
                 var moveTask = _transformService.MoveElementAsync(elementId, null, i * 100.0, i * 100.0, null, null, 10).ContinueWith(t => t.Result as object);
                 var resizeTask = _transformService.ResizeElementAsync(automationId: elementId, width: 800.0 + i * 100, height: 600.0 + i * 100, timeoutSeconds: 10).ContinueWith(t => t.Result as object);
                 var rotateTask = _transformService.RotateElementAsync(automationId: elementId, degrees: i * 45.0, timeoutSeconds: 10).ContinueWith(t => t.Result as object);
-                
+
                 tasks.Add(moveTask);
                 tasks.Add(resizeTask);
                 tasks.Add(rotateTask);
@@ -483,7 +483,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Assert
             Assert.Equal(concurrentOperations * 3, results.Length);
-            
+
             foreach (var result in results)
             {
                 Assert.NotNull(result);
@@ -512,7 +512,7 @@ namespace UIAutomationMCP.Tests.Integration
             for (int i = 0; i < sequentialOperations; i++)
             {
                 var elementId = elementIds[i];
-                
+
                 // GetTransformCapabilities
                 var capabilitiesResult = await _transformService.GetTransformCapabilitiesAsync(
                     elementId, "TestWindow", timeoutSeconds: 5);

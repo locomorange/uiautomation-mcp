@@ -30,14 +30,14 @@ namespace UIAutomationMCP.Tests.Integration
         public BasicE2ETests(ITestOutputHelper output)
         {
             _output = output;
-            
+
             var services = new ServiceCollection();
-            services.AddLogging(builder => 
+            services.AddLogging(builder =>
                 builder.AddConsole().SetMinimumLevel(LogLevel.Information));
-            
+
             _serviceProvider = services.BuildServiceProvider();
             var logger = _serviceProvider.GetRequiredService<ILogger<SubprocessExecutor>>();
-            
+
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var possiblePaths = new[]
             {
@@ -46,14 +46,14 @@ namespace UIAutomationMCP.Tests.Integration
                 Path.Combine(baseDir, "worker", "UIAutomationMCP.Worker.exe"),
             };
 
-            _workerPath = possiblePaths.FirstOrDefault(File.Exists) ?? 
+            _workerPath = possiblePaths.FirstOrDefault(File.Exists) ??
                 throw new InvalidOperationException("Worker executable not found");
 
             _subprocessExecutor = new SubprocessExecutor(logger, _workerPath, new CancellationTokenSource());
-            
+
             // Create options
             var options = Options.Create(new UIAutomationOptions());
-            
+
             _elementSearchService = new ElementSearchService(
                 Mock.Of<IProcessManager>(),
                 _serviceProvider.GetRequiredService<ILogger<ElementSearchService>>(),
@@ -94,21 +94,21 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 1;
 
             // When
-            var invokeResult = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, processId: null, timeoutSeconds: timeout);
-            var valueResult = await _valueService.GetValueAsync(automationId: nonExistentAutomationId, processId: null, timeoutSeconds: timeout);
+            var invokeResult = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, timeoutSeconds: timeout);
+            var valueResult = await _valueService.GetValueAsync(automationId: nonExistentAutomationId, timeoutSeconds: timeout);
 
             // Then
             Assert.NotNull(invokeResult);
             Assert.NotNull(valueResult);
-            
+
             var invokeJson = System.Text.Json.JsonSerializer.Serialize(invokeResult);
             var valueJson = System.Text.Json.JsonSerializer.Serialize(valueResult);
-            
+
             Assert.Contains("Success", invokeJson);
             Assert.Contains("false", invokeJson);
             Assert.Contains("Success", valueJson);
             Assert.Contains("false", valueJson);
-            
+
             _output.WriteLine($"Invoke result: {invokeJson}");
             _output.WriteLine($"Value result: {valueJson}");
         }
@@ -121,15 +121,15 @@ namespace UIAutomationMCP.Tests.Integration
             var timeout = 5;
 
             // When - Test different parameter combinations
-            var resultByAutomationId = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, processId: null, timeoutSeconds: timeout);
-            var resultByWindowTitle = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, processId: null, timeoutSeconds: timeout);
-            var resultByProcessId = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, processId: 99999, timeoutSeconds: timeout);
+            var resultByAutomationId = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, timeoutSeconds: timeout);
+            var resultByWindowTitle = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, timeoutSeconds: timeout);
+            var resultByProcessId = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, timeoutSeconds: timeout);
 
             // Then
             Assert.NotNull(resultByAutomationId);
             Assert.NotNull(resultByWindowTitle);
             Assert.NotNull(resultByProcessId);
-            
+
             _output.WriteLine($"Result by AutomationId: {resultByAutomationId}");
             _output.WriteLine($"Result by WindowTitle: {resultByWindowTitle}");
             _output.WriteLine($"Result by ProcessId: {resultByProcessId}");
@@ -144,9 +144,9 @@ namespace UIAutomationMCP.Tests.Integration
 
             // When - Execute concurrent invoke operations
             var startTime = DateTime.UtcNow;
-            var tasks = elementIds.Select(id => 
-                _invokeService.InvokeElementAsync(automationId: id, processId: null, timeoutSeconds: timeout)).ToArray();
-            
+            var tasks = elementIds.Select(id =>
+                _invokeService.InvokeElementAsync(automationId: id, timeoutSeconds: timeout)).ToArray();
+
             var results = await Task.WhenAll(tasks);
             var endTime = DateTime.UtcNow;
             var totalTime = (endTime - startTime).TotalMilliseconds;
@@ -154,7 +154,7 @@ namespace UIAutomationMCP.Tests.Integration
             // Then - Should complete in reasonable time (non-blocking behavior)
             Assert.All(results, result => Assert.NotNull(result));
             Assert.True(totalTime < 10000, $"Concurrent calls took too long: {totalTime}ms");
-            
+
             _output.WriteLine($"Concurrent invoke operations completed in {totalTime}ms");
             for (int i = 0; i < results.Length; i++)
             {
@@ -171,14 +171,14 @@ namespace UIAutomationMCP.Tests.Integration
 
             // When
             var startTime = DateTime.UtcNow;
-            var result = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, processId: null, timeoutSeconds: shortTimeout);
+            var result = await _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, timeoutSeconds: shortTimeout);
             var endTime = DateTime.UtcNow;
             var actualTime = (endTime - startTime).TotalSeconds;
 
             // Then - Should respect timeout and return quickly
             Assert.NotNull(result);
             Assert.True(actualTime <= shortTimeout + 2, $"Operation took {actualTime}s, expected <= {shortTimeout + 2}s");
-            
+
             _output.WriteLine($"Short timeout test completed in {actualTime}s with result: {result}");
         }
 
@@ -191,16 +191,16 @@ namespace UIAutomationMCP.Tests.Integration
                 if (!process.HasExited)
                 {
                     _output.WriteLine($"Terminating {appName} with PID: {process.Id}");
-                    
+
                     //                                      process.CloseMainWindow();
-                    
+
                     //                                          if (!process.WaitForExit(2000))
                     {
                         _output.WriteLine($"Force killing {appName} with PID: {process.Id}");
                         process.Kill();
                         await process.WaitForExitAsync();
                     }
-                    
+
                     _output.WriteLine($"{appName} with PID: {process.Id} terminated successfully");
                 }
             }
@@ -239,14 +239,14 @@ namespace UIAutomationMCP.Tests.Integration
 
                 // When
                 var elementsResult = await _elementSearchService.SearchElementsAsync(new UIAutomationMCP.Models.Requests.SearchElementsRequest
-            {
-                ControlType = "Button",
-            });
+                {
+                    ControlType = "Button",
+                });
                 var windowsResult = await _elementSearchService.SearchElementsAsync(new UIAutomationMCP.Models.Requests.SearchElementsRequest
-            {
-                ControlType = "Window",
-                Scope = "children"
-            }, timeout);
+                {
+                    ControlType = "Window",
+                    Scope = "children"
+                }, timeout);
 
                 // Then
                 Assert.NotNull(elementsResult);
@@ -272,8 +272,8 @@ namespace UIAutomationMCP.Tests.Integration
             var nonExistentAutomationId = "NonExistentElement12345";
 
             // When & Then
-            var invokeTask = _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, processId: null, timeoutSeconds: veryShortTimeout);
-            var valueTask = _valueService.GetValueAsync(automationId: nonExistentAutomationId, processId: null, timeoutSeconds: veryShortTimeout);
+            var invokeTask = _invokeService.InvokeElementAsync(automationId: nonExistentAutomationId, timeoutSeconds: veryShortTimeout);
+            var valueTask = _valueService.GetValueAsync(automationId: nonExistentAutomationId, timeoutSeconds: veryShortTimeout);
 
             var invokeResult = await invokeTask;
             var valueResult = await valueTask;

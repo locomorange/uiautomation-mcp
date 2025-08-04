@@ -46,8 +46,8 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
         // Act
         var result = await _service.StartListeningAsync(
             "NonExistentElement",
+            null,
             "MouseLeftButtonDown",
-            processId: 1234,
             timeoutSeconds: 1);
 
         // Assert
@@ -66,13 +66,12 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
                 It.IsAny<string>(),
                 It.IsAny<StartSynchronizedInputRequest>(),
                 It.IsAny<int>()))
-            .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.Success(new ElementSearchResult())));
+            .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(new ElementSearchResult())));
 
         // Act
         var result = await _service.StartListeningAsync(
             "button1",
             "MouseLeftButtonDown",
-            processId: 5678,
             timeoutSeconds: 30);
 
         // Assert
@@ -95,7 +94,7 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
                 It.IsAny<string>(),
                 It.IsAny<CancelSynchronizedInputRequest>(),
                 It.IsAny<int>()))
-            .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.Success(new ElementSearchResult())));
+            .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(new ElementSearchResult())));
 
         // Act
         var result = await _service.CancelAsync("testElement", timeoutSeconds: 10);
@@ -130,7 +129,7 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
                 It.IsAny<string>(),
                 It.IsAny<StartSynchronizedInputRequest>(),
                 It.IsAny<int>()))
-            .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.Success(new ElementSearchResult())));
+            .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(new ElementSearchResult())));
 
         // Act & Assert
         foreach (var inputType in inputTypes)
@@ -186,14 +185,14 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
                 "StartSynchronizedInput",
                 It.IsAny<StartSynchronizedInputRequest>(),
                 It.IsAny<int>()))
-            .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.Success(new ElementSearchResult())));
+            .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(new ElementSearchResult())));
 
         _mockSubprocessExecutor
             .Setup(x => x.ExecuteAsync<CancelSynchronizedInputRequest, ElementSearchResult>(
                 "CancelSynchronizedInput",
                 It.IsAny<CancelSynchronizedInputRequest>(),
                 It.IsAny<int>()))
-            .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.Success(new ElementSearchResult())));
+            .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(new ElementSearchResult())));
 
         // Act - Simulate multiple start/cancel cycles
         for (int i = 0; i < 3; i++)
@@ -202,7 +201,7 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
                 $"element_{i}",
                 "KeyDown",
                 timeoutSeconds: 5);
-            
+
             Assert.NotNull(startResult);
             dynamic startObj = startResult;
             Assert.True(startObj.Success);

@@ -47,14 +47,13 @@ public class ItemContainerPatternIntegrationTests : IDisposable
                 It.IsAny<string>(),
                 It.IsAny<FindItemByPropertyRequest>(),
                 It.IsAny<int>()))
-            .Returns(Task.FromResult(errorResponse));
+            .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(errorResponse)));
 
         // Act
         var result = await _service.FindItemByPropertyAsync(
-            "NonExistentContainer",
-            "Name",
-            "TestItem",
-            processId: 1234,
+            automationId: "NonExistentContainer",
+            propertyName: "Name",
+            value: "TestItem",
             timeoutSeconds: 1);
 
         // Assert
@@ -87,14 +86,13 @@ public class ItemContainerPatternIntegrationTests : IDisposable
                 It.IsAny<string>(),
                 It.IsAny<FindItemByPropertyRequest>(),
                 It.IsAny<int>()))
-            .Returns(Task.FromResult(successResponse));
+            .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(successResponse)));
 
         // Act
         var result = await _service.FindItemByPropertyAsync(
             "ListContainer",
             "Name",
             "Item1",
-            processId: 5678,
             timeoutSeconds: 30);
 
         // Assert
@@ -120,7 +118,7 @@ public class ItemContainerPatternIntegrationTests : IDisposable
                 It.IsAny<string>(),
                 It.IsAny<FindItemByPropertyRequest>(),
                 It.IsAny<int>()))
-            .Returns(Task.FromResult(new ElementSearchResult { Success = true }));
+            .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(new ElementSearchResult { Success = true })));
 
         // Act & Assert
         foreach (var (propertyName, value) in propertyTypes)
@@ -165,7 +163,7 @@ public class ItemContainerPatternIntegrationTests : IDisposable
                 It.IsAny<string>(),
                 It.IsAny<FindItemByPropertyRequest>(),
                 It.IsAny<int>()))
-            .Returns(Task.FromResult(response));
+            .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(response)));
 
         // Act
         var result = await _service.FindItemByPropertyAsync(

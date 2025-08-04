@@ -3,10 +3,10 @@ using UIAutomationMCP.Models;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
-using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using Xunit.Abstractions;
 using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Models.Logging;
 
 namespace UIAutomationMCP.Tests.UnitTests
 {
@@ -53,7 +53,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Mock.Of<ISynchronizedInputService>(),
                 Mock.Of<IEventMonitorService>(),
                 Mock.Of<IFocusService>(),
-                Mock.Of<IOperationExecutor>()
+                Mock.Of<IMcpLogService>()
             );
         }
 
@@ -86,10 +86,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var expectedResult = new ServerEnhancedResponse<ActionResult>
-            { 
-                Success = true, 
+            {
+                Success = true,
                 Data = new ActionResult
-                { 
+                {
                     Action = "GetSelectionContainer",
                     ActionName = "Container information retrieved",
                     AutomationId = "listItem1",
@@ -114,11 +114,11 @@ namespace UIAutomationMCP.Tests.UnitTests
         public void GetSelectionContainer_WhenNoContainer_ShouldReturnNull()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> 
-            { 
-                Success = true, 
-                Data = new ActionResult 
-                { 
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
+                Success = true,
+                Data = new ActionResult
+                {
                     Action = "GetSelectionContainer",
                     ActionName = "Container not found",
                     AutomationId = "orphanedItem",
@@ -147,10 +147,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task AddToSelection_WhenCalled_ShouldAddItemToSelection()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> 
-            { 
-                Success = true, 
-                Data = new ActionResult 
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
+                Success = true,
+                Data = new ActionResult
                 {
                     Action = "AddToSelection",
                     ActionName = "Element added to selection successfully",
@@ -174,10 +174,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task RemoveFromSelection_WhenCalled_ShouldRemoveItemFromSelection()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> 
-            { 
-                Success = true, 
-                Data = new ActionResult 
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
+                Success = true,
+                Data = new ActionResult
                 {
                     Action = "RemoveFromSelection",
                     ActionName = "Element removed from selection successfully",
@@ -185,15 +185,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Completed = true
                 }
             };
-            _mockSelectionService.Setup(s => s.RemoveFromSelectionAsync("item1", null, null, 2468, 30))
+            _mockSelectionService.Setup(s => s.RemoveFromSelectionAsync("item1", "App Window", null, null, 30))
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.RemoveFromSelection(automationId: "item1", name: "App Window", processId: 2468);
+            var result = await _tools.RemoveFromSelection(automationId: "item1", name: "App Window");
 
             // Assert
             Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.RemoveFromSelectionAsync("item1", null, null, 2468, 30), Times.Once);
+            _mockSelectionService.Verify(s => s.RemoveFromSelectionAsync("item1", "App Window", null, null, 30), Times.Once);
             _output.WriteLine("RemoveFromSelection test passed - Item removed from selection");
         }
 
@@ -201,10 +201,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ClearSelection_WhenCalled_ShouldClearAllSelections()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> 
-            { 
-                Success = true, 
-                Data = new ActionResult 
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
+                Success = true,
+                Data = new ActionResult
                 {
                     Action = "ClearSelection",
                     ActionName = "Selection cleared successfully",
@@ -229,19 +229,16 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var expectedResult = new ServerEnhancedResponse<SelectionInfoResult>
-            { 
-                Success = true, 
+            {
+                Success = true,
                 Data = new SelectionInfoResult
                 {
-                    ContainerAutomationId = "multiSelectList",
-                    WindowTitle = "Test Window",
-                    ProcessId = 1357,
-                    SelectedItems = new List<SelectionItem>
+                    SelectedItems = new List<ElementInfo>
                     {
-                        new SelectionItem { AutomationId = "item1", Name = "Item One", ControlType = "ControlType.ListItem" },
-                        new SelectionItem { AutomationId = "item3", Name = "Item Three", ControlType = "ControlType.ListItem" }
+                        new ElementInfo { AutomationId = "item1", Name = "Item One", ControlType = "ControlType.ListItem" },
+                        new ElementInfo { AutomationId = "item3", Name = "Item Three", ControlType = "ControlType.ListItem" }
                     },
-                    SelectedCount = 2
+                    SelectionCount = 2
                 }
             };
             _mockSelectionService.Setup(s => s.GetSelectionAsync("multiSelectList", null, null, 1357, 30))

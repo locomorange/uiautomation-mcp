@@ -24,17 +24,17 @@ namespace UiAutomationMcp.Tests.Integration
         public WindowPatternIntegrationTests(ITestOutputHelper output)
         {
             _output = output;
-            
+
             //                                  
             var services = new ServiceCollection();
-            
+
             //             
-            services.AddLogging(builder => 
+            services.AddLogging(builder =>
                 builder.AddConsole().SetMinimumLevel(LogLevel.Information));
-            
+
             _serviceProvider = services.BuildServiceProvider();
             var logger = _serviceProvider.GetRequiredService<ILogger<SubprocessExecutor>>();
-            
+
             // Find Worker.exe path
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var possiblePaths = new[]
@@ -76,8 +76,7 @@ namespace UiAutomationMcp.Tests.Integration
             // Arrange
             var request = new GetWindowInteractionStateRequest
             {
-                WindowTitle = "Calculator", // Calculator                 
-                ProcessId = 0
+                WindowTitle = "Calculator" // Calculator                 
             };
 
             try
@@ -88,7 +87,7 @@ namespace UiAutomationMcp.Tests.Integration
                 // Assert
                 Assert.NotNull(result);
                 _output.WriteLine($"GetWindowInteractionState integration test result: {result}");
-                
+
                 // Note: Integration test completed
             }
             catch (Exception ex)
@@ -108,8 +107,7 @@ namespace UiAutomationMcp.Tests.Integration
             // Arrange
             var request = new GetWindowCapabilitiesRequest
             {
-                WindowTitle = "Calculator",
-                ProcessId = 0
+                WindowTitle = "Calculator"
             };
 
             try
@@ -120,7 +118,7 @@ namespace UiAutomationMcp.Tests.Integration
                 // Assert
                 Assert.NotNull(result);
                 _output.WriteLine($"GetWindowCapabilities integration test result: {result}");
-                
+
                 //      Microsoft Required Members                                   // Maximizable, Minimizable, IsModal, IsTopmost, VisualState, InteractionState
             }
             catch (Exception ex)
@@ -141,7 +139,6 @@ namespace UiAutomationMcp.Tests.Integration
             {
                 TimeoutMilliseconds = 5000,
                 WindowTitle = "Calculator",
-                ProcessId = 0
             };
 
             try
@@ -178,16 +175,16 @@ namespace UiAutomationMcp.Tests.Integration
                 object result = operationName switch
                 {
                     "GetWindowInteractionState" => await _subprocessExecutor.ExecuteAsync<GetWindowInteractionStateRequest, object>(
-                        operationName, 
-                        new GetWindowInteractionStateRequest { WindowTitle = "NonExistentWindow", ProcessId = 99999 }, 
+                        operationName,
+                        new GetWindowInteractionStateRequest { WindowTitle = "NonExistentWindow" },
                         10),
                     "GetWindowCapabilities" => await _subprocessExecutor.ExecuteAsync<GetWindowCapabilitiesRequest, object>(
-                        operationName, 
-                        new GetWindowCapabilitiesRequest { WindowTitle = "NonExistentWindow", ProcessId = 99999 }, 
+                        operationName,
+                        new GetWindowCapabilitiesRequest { WindowTitle = "NonExistentWindow" },
                         10),
                     "WaitForInputIdle" => await _subprocessExecutor.ExecuteAsync<WaitForInputIdleRequest, object>(
-                        operationName, 
-                        new WaitForInputIdleRequest { WindowTitle = "NonExistentWindow", ProcessId = 99999, TimeoutMilliseconds = 1000 }, 
+                        operationName,
+                        new WaitForInputIdleRequest { WindowTitle = "NonExistentWindow", TimeoutMilliseconds = 1000 },
                         10),
                     _ => throw new ArgumentException($"Unknown operation: {operationName}")
                 };
@@ -196,8 +193,9 @@ namespace UiAutomationMcp.Tests.Integration
             }
             catch (Exception ex)
             {
-                // Assert -                    Window not found                        //                                            var errorMessage = ex.Message.ToLower();
-                
+                // Assert - Window not found
+                var errorMessage = ex.Message.ToLower();
+
                 //                                                   
                 var expectedErrors = new[]
                 {
@@ -207,7 +205,7 @@ namespace UiAutomationMcp.Tests.Integration
                 };
 
                 var isRegistered = expectedErrors.Any(expected => errorMessage.Contains(expected));
-                
+
                 if (!isRegistered)
                 {
                     //                                                  Assert.Fail($"Operation {operationName} may not be registered. Error: {ex.Message}");
@@ -236,16 +234,16 @@ namespace UiAutomationMcp.Tests.Integration
                 await (operationName switch
                 {
                     "GetWindowInteractionState" => _subprocessExecutor.ExecuteAsync<GetWindowInteractionStateRequest, object>(
-                        operationName, 
-                        new GetWindowInteractionStateRequest { WindowTitle = "NonExistentWindow", ProcessId = 99999 }, 
+                        operationName,
+                        new GetWindowInteractionStateRequest { WindowTitle = "NonExistentWindow" },
                         timeoutSeconds),
                     "GetWindowCapabilities" => _subprocessExecutor.ExecuteAsync<GetWindowCapabilitiesRequest, object>(
-                        operationName, 
-                        new GetWindowCapabilitiesRequest { WindowTitle = "NonExistentWindow", ProcessId = 99999 }, 
+                        operationName,
+                        new GetWindowCapabilitiesRequest { WindowTitle = "NonExistentWindow" },
                         timeoutSeconds),
                     "WaitForInputIdle" => _subprocessExecutor.ExecuteAsync<WaitForInputIdleRequest, object>(
-                        operationName, 
-                        new WaitForInputIdleRequest { WindowTitle = "NonExistentWindow", ProcessId = 99999, TimeoutMilliseconds = 1000 }, 
+                        operationName,
+                        new WaitForInputIdleRequest { WindowTitle = "NonExistentWindow", TimeoutMilliseconds = 1000 },
                         timeoutSeconds),
                     _ => throw new ArgumentException($"Unknown operation: {operationName}")
                 });
@@ -253,16 +251,16 @@ namespace UiAutomationMcp.Tests.Integration
             catch (Exception ex)
             {
                 stopwatch.Stop();
-                
-                //                                                               var isTimeoutRelated = ex.Message.Contains("timeout") || 
+
+                var isTimeoutRelated = ex.Message.Contains("timeout") ||
                                      ex.Message.Contains("Window not found") ||
                                      ex.Message.Contains("process");
-                
+
                 Assert.True(isTimeoutRelated, $"Unexpected error for {operationName}: {ex.Message}");
-                
-            Assert.True(stopwatch.ElapsedMilliseconds < (timeoutSeconds + 5) * 1000,
-                    $"Operation {operationName} took too long: {stopwatch.ElapsedMilliseconds}ms");
-                
+
+                Assert.True(stopwatch.ElapsedMilliseconds < (timeoutSeconds + 5) * 1000,
+                        $"Operation {operationName} took too long: {stopwatch.ElapsedMilliseconds}ms");
+
                 _output.WriteLine($"Operation {operationName} properly handled timeout in {stopwatch.ElapsedMilliseconds}ms");
             }
         }
@@ -279,7 +277,7 @@ namespace UiAutomationMcp.Tests.Integration
             // Microsoft WindowPattern Required Members:
             // Properties: InteractionState, IsModal, IsTopmost, Maximizable, Minimizable, VisualState  
             // Methods: Close(), SetVisualState(), WaitForInputIdle()
-            
+
             var implementedOperations = new[]
             {
                 "GetWindowInteractionState",    // InteractionState property
@@ -288,7 +286,7 @@ namespace UiAutomationMcp.Tests.Integration
                 "WindowAction"                 // Close(), SetVisualState() methods
             };
 
-            //                                                foreach (var operation in implementedOperations)
+            foreach (var operation in implementedOperations)
             {
                 Assert.NotNull(operation);
                 _output.WriteLine($"Required operation implemented: {operation}");

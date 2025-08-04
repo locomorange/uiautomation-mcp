@@ -21,15 +21,15 @@ namespace UIAutomationMCP.Tests.Services
     {
         private readonly ITestOutputHelper _output;
         private readonly Mock<ILogger<TableService>> _mockLogger;
-        private readonly Mock<IOperationExecutor> _mockExecutor;
+        private readonly Mock<IOperationExecutor> _mockProcessManager;
         private readonly TableService _tableService;
 
         public TableServiceTests(ITestOutputHelper output)
         {
             _output = output;
             _mockLogger = new Mock<ILogger<TableService>>();
-            _mockExecutor = new Mock<IOperationExecutor>();
-            
+            _mockProcessManager = new Mock<IOperationExecutor>();
+
             _tableService = new TableService(Mock.Of<IProcessManager>(), _mockLogger.Object);
         }
 
@@ -44,23 +44,19 @@ namespace UIAutomationMCP.Tests.Services
         {
             // Arrange
             var elementId = "dataGrid1";
-            var windowTitle = "Test Window";
-            var processId = 1234;
-            var expectedResult = new PropertyResult { Success = true };
+            var expectedResult = new ActionResult { Success = true };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<GetRowOrColumnMajorRequest, PropertyResult>("GetRowOrColumnMajor", It.IsAny<GetRowOrColumnMajorRequest>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+            _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowOrColumnMajorRequest, ActionResult>("GetRowOrColumnMajor", It.IsAny<GetRowOrColumnMajorRequest>(), 30))
+                .Returns(Task.FromResult(ServiceOperationResult<ActionResult>.FromSuccess(expectedResult)));
 
             // Act
-            var result = await _tableService.GetRowOrColumnMajorAsync(elementId, windowTitle, processId, 30);
+            var result = await _tableService.GetRowOrColumnMajorAsync(automationId: elementId, timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<GetRowOrColumnMajorRequest, PropertyResult>("GetRowOrColumnMajor", 
+            _mockProcessManager.Verify(e => e.ExecuteAsync<GetRowOrColumnMajorRequest, ActionResult>("GetRowOrColumnMajor", 
                 It.Is<GetRowOrColumnMajorRequest>(p => 
-                    p.AutomationId == elementId &&
-                    p.WindowTitle == windowTitle &&
-                    p.ProcessId == processId), 30), Times.Once);
+                    p.AutomationId == elementId), 30), Times.Once);
             
             _output.WriteLine("GetRowOrColumnMajorAsync service test passed - Correct subprocess execution verified");
         }
@@ -70,17 +66,17 @@ namespace UIAutomationMCP.Tests.Services
         {
             // Arrange
             var elementId = "table1";
-            var expectedResult = new PropertyResult { Success = true };
+            var expectedResult = new ActionResult { Success = true };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<GetRowOrColumnMajorRequest, PropertyResult>("GetRowOrColumnMajor", It.IsAny<GetRowOrColumnMajorRequest>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+            _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowOrColumnMajorRequest, ActionResult>("GetRowOrColumnMajor", It.IsAny<GetRowOrColumnMajorRequest>(), 30))
+                .Returns(Task.FromResult(ServiceOperationResult<ActionResult>.FromSuccess(expectedResult)));
 
             // Act
-            var result = await _tableService.GetRowOrColumnMajorAsync(elementId, null, null, 30);
+            var result = await _tableService.GetRowOrColumnMajorAsync(automationId: elementId, timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<GetRowOrColumnMajorRequest, PropertyResult>("GetRowOrColumnMajor", 
+            _mockProcessManager.Verify(e => e.ExecuteAsync<GetRowOrColumnMajorRequest, ActionResult>("GetRowOrColumnMajor", 
                 It.Is<GetRowOrColumnMajorRequest>(p => 
                     p.AutomationId == elementId &&
                     p.WindowTitle == "" &&
@@ -97,11 +93,11 @@ namespace UIAutomationMCP.Tests.Services
             var windowTitle = "Test Window";
             var expectedError = "TablePattern not supported";
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<GetRowOrColumnMajorRequest, PropertyResult>("GetRowOrColumnMajor", It.IsAny<GetRowOrColumnMajorRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowOrColumnMajorRequest, ActionResult>("GetRowOrColumnMajor", It.IsAny<GetRowOrColumnMajorRequest>(), 30))
                 .ThrowsAsync(new InvalidOperationException(expectedError));
 
             // Act
-            var result = await _tableService.GetRowOrColumnMajorAsync(elementId, windowTitle, null, 30);
+            var result = await _tableService.GetRowOrColumnMajorAsync(automationId: elementId, name: windowTitle, timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
@@ -119,13 +115,13 @@ namespace UIAutomationMCP.Tests.Services
         {
             // Arrange
             var elementId = "testTable";
-            var expectedResult = new PropertyResult { Success = true };
+            var expectedResult = new ActionResult { Success = true };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<GetRowOrColumnMajorRequest, PropertyResult>("GetRowOrColumnMajor", It.IsAny<GetRowOrColumnMajorRequest>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+            _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowOrColumnMajorRequest, ActionResult>("GetRowOrColumnMajor", It.IsAny<GetRowOrColumnMajorRequest>(), 30))
+                .Returns(Task.FromResult(ServiceOperationResult<ActionResult>.FromSuccess(expectedResult)));
 
             // Act
-            var result = await _tableService.GetRowOrColumnMajorAsync(elementId, "Test Window", 1234, 30);
+            var result = await _tableService.GetRowOrColumnMajorAsync(automationId: elementId, name: "Test Window", timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
@@ -160,15 +156,15 @@ namespace UIAutomationMCP.Tests.Services
                 RowOrColumnMajor = "RowMajor" 
             };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<GetTableInfoRequest, TableInfoResult>("GetTableInfo", It.IsAny<GetTableInfoRequest>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+            _mockProcessManager.Setup(e => e.ExecuteAsync<GetTableInfoRequest, TableInfoResult>("GetTableInfo", It.IsAny<GetTableInfoRequest>(), 30))
+                .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
 
             // Act
             var result = await _tableService.GetTableInfoAsync(elementId, windowTitle, processId, 30);
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<GetTableInfoRequest, TableInfoResult>("GetTableInfo", 
+            _mockProcessManager.Verify(e => e.ExecuteAsync<GetTableInfoRequest, TableInfoResult>("GetTableInfo", 
                 It.Is<GetTableInfoRequest>(p => 
                     p.AutomationId == elementId &&
                     p.WindowTitle == windowTitle &&
@@ -187,8 +183,8 @@ namespace UIAutomationMCP.Tests.Services
         {
             // Arrange
             var elementId = "table1";
-            var expectedResult = new ElementSearchResult 
-            { 
+            var expectedResult = new ElementSearchResult
+            {
                 Success = true,
                 Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
@@ -198,18 +194,18 @@ namespace UIAutomationMCP.Tests.Services
                 }
             };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", It.IsAny<GetRowHeadersRequest>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+            _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", It.IsAny<GetRowHeadersRequest>(), 30))
+                .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
 
             // Act
-            var result = await _tableService.GetRowHeadersAsync(automationId: elementId, processId: 1234, timeoutSeconds: 30);
+            var result = await _tableService.GetRowHeadersAsync(automationId: elementId, timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", 
-                It.Is<GetRowHeadersRequest>(p => 
+            _mockProcessManager.Verify(e => e.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders",
+                It.Is<GetRowHeadersRequest>(p =>
                     p.AutomationId == elementId), 30), Times.Once);
-            
+
             _output.WriteLine("GetRowHeadersAsync service test passed");
         }
 
@@ -222,8 +218,8 @@ namespace UIAutomationMCP.Tests.Services
         {
             // Arrange
             var elementId = "table1";
-            var expectedResult = new ElementSearchResult 
-            { 
+            var expectedResult = new ElementSearchResult
+            {
                 Success = true,
                 Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
@@ -233,18 +229,18 @@ namespace UIAutomationMCP.Tests.Services
                 }
             };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<GetColumnHeadersRequest, ElementSearchResult>("GetColumnHeaders", It.IsAny<GetColumnHeadersRequest>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+            _mockProcessManager.Setup(e => e.ExecuteAsync<GetColumnHeadersRequest, ElementSearchResult>("GetColumnHeaders", It.IsAny<GetColumnHeadersRequest>(), 30))
+                .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
 
             // Act
-            var result = await _tableService.GetColumnHeadersAsync(automationId: elementId, processId: 1234, timeoutSeconds: 30);
+            var result = await _tableService.GetColumnHeadersAsync(automationId: elementId, timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<GetColumnHeadersRequest, ElementSearchResult>("GetColumnHeaders", 
-                It.Is<GetColumnHeadersRequest>(p => 
+            _mockProcessManager.Verify(e => e.ExecuteAsync<GetColumnHeadersRequest, ElementSearchResult>("GetColumnHeaders",
+                It.Is<GetColumnHeadersRequest>(p =>
                     p.AutomationId == elementId), 30), Times.Once);
-            
+
             _output.WriteLine("GetColumnHeadersAsync service test passed");
         }
 
@@ -265,42 +261,41 @@ namespace UIAutomationMCP.Tests.Services
         {
             // Arrange
             var elementId = "compliantTable";
-            var processId = 1234;
 
             // Setup mock responses for all available members
-            _mockExecutor.Setup(e => e.ExecuteAsync<GetColumnHeadersRequest, ElementSearchResult>("GetColumnHeaders", It.IsAny<GetColumnHeadersRequest>(), 30))
-                .Returns(Task.FromResult(new ElementSearchResult 
-                { 
+            _mockProcessManager.Setup(e => e.ExecuteAsync<GetColumnHeadersRequest, ElementSearchResult>("GetColumnHeaders", It.IsAny<GetColumnHeadersRequest>(), 30))
+                .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(new ElementSearchResult
+                {
                     Success = true,
                     Elements = new List<UIAutomationMCP.Models.ElementInfo>
                     {
                         new UIAutomationMCP.Models.ElementInfo { Name = "Header1" },
                         new UIAutomationMCP.Models.ElementInfo { Name = "Header2" }
                     }
-                }));
-            
-            _mockExecutor.Setup(e => e.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", It.IsAny<GetRowHeadersRequest>(), 30))
-                .Returns(Task.FromResult(new ElementSearchResult 
-                { 
+                })));
+
+            _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", It.IsAny<GetRowHeadersRequest>(), 30))
+                .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(new ElementSearchResult
+                {
                     Success = true,
                     Elements = new List<UIAutomationMCP.Models.ElementInfo>
                     {
                         new UIAutomationMCP.Models.ElementInfo { Name = "Row1" },
                         new UIAutomationMCP.Models.ElementInfo { Name = "Row2" }
                     }
-                }));
+                })));
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 30))
-                .Returns(Task.FromResult(new ElementSearchResult { Success = true }));
+            _mockProcessManager.Setup(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 30))
+                .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(new ElementSearchResult { Success = true })));
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), 30))
-                .Returns(Task.FromResult(new ElementSearchResult { Success = true }));
+            _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), 30))
+                .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(new ElementSearchResult { Success = true })));
 
             // Act & Assert - Test all implemented members
-            var columnHeadersResult = await _tableService.GetColumnHeadersAsync(automationId: elementId, processId: processId, timeoutSeconds: 30);
-            var rowHeadersResult = await _tableService.GetRowHeadersAsync(automationId: elementId, processId: processId, timeoutSeconds: 30);
-            var columnHeaderItemsResult = await _tableService.GetColumnHeaderItemsAsync(automationId: elementId, processId: processId, timeoutSeconds: 30);
-            var rowHeaderItemsResult = await _tableService.GetRowHeaderItemsAsync(automationId: elementId, processId: processId, timeoutSeconds: 30);
+            var columnHeadersResult = await _tableService.GetColumnHeadersAsync(automationId: elementId, timeoutSeconds: 30);
+            var rowHeadersResult = await _tableService.GetRowHeadersAsync(automationId: elementId, timeoutSeconds: 30);
+            var columnHeaderItemsResult = await _tableService.GetColumnHeaderItemsAsync(automationId: elementId, timeoutSeconds: 30);
+            var rowHeaderItemsResult = await _tableService.GetRowHeaderItemsAsync(automationId: elementId, timeoutSeconds: 30);
 
             Assert.NotNull(columnHeadersResult);
             Assert.NotNull(rowHeadersResult);
@@ -308,10 +303,10 @@ namespace UIAutomationMCP.Tests.Services
             Assert.NotNull(rowHeaderItemsResult);
 
             // Verify all operations were called
-            _mockExecutor.Verify(e => e.ExecuteAsync<GetColumnHeadersRequest, ElementSearchResult>("GetColumnHeaders", It.IsAny<GetColumnHeadersRequest>(), 30), Times.Once);
-            _mockExecutor.Verify(e => e.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", It.IsAny<GetRowHeadersRequest>(), 30), Times.Once);
-            _mockExecutor.Verify(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 30), Times.Once);
-            _mockExecutor.Verify(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), 30), Times.Once);
+            _mockProcessManager.Verify(e => e.ExecuteAsync<GetColumnHeadersRequest, ElementSearchResult>("GetColumnHeaders", It.IsAny<GetColumnHeadersRequest>(), 30), Times.Once);
+            _mockProcessManager.Verify(e => e.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", It.IsAny<GetRowHeadersRequest>(), 30), Times.Once);
+            _mockProcessManager.Verify(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 30), Times.Once);
+            _mockProcessManager.Verify(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), 30), Times.Once);
 
             _output.WriteLine("Microsoft specification compliance test passed - All implemented TablePattern members working");
         }
@@ -327,16 +322,16 @@ namespace UIAutomationMCP.Tests.Services
             var elementId = "timeoutTest";
             var expectedResult = new ElementSearchResult { Success = true };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", It.IsAny<GetRowHeadersRequest>(), timeout))
-                .Returns(Task.FromResult(expectedResult));
+            _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", It.IsAny<GetRowHeadersRequest>(), timeout))
+                .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
 
             // Act
-            var result = await _tableService.GetRowHeadersAsync(automationId: elementId, processId: 1234, timeoutSeconds: timeout);
+            var result = await _tableService.GetRowHeadersAsync(automationId: elementId, timeoutSeconds: timeout);
 
             // Assert
             Assert.NotNull(result);
-            _mockExecutor.Verify(e => e.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", It.IsAny<GetRowHeadersRequest>(), timeout), Times.Once);
-            
+            _mockProcessManager.Verify(e => e.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", It.IsAny<GetRowHeadersRequest>(), timeout), Times.Once);
+
             _output.WriteLine($"Timeout parameter test passed for {timeout} seconds");
         }
 
@@ -353,13 +348,13 @@ namespace UIAutomationMCP.Tests.Services
         {
             // Arrange
             var elementId = "logTest";
-            var expectedResult = new PropertyResult { Success = true };
+            var expectedResult = new ActionResult { Success = true };
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<GetRowOrColumnMajorRequest, PropertyResult>("GetRowOrColumnMajor", It.IsAny<GetRowOrColumnMajorRequest>(), 30))
-                .Returns(Task.FromResult(expectedResult));
+            _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowOrColumnMajorRequest, ActionResult>("GetRowOrColumnMajor", It.IsAny<GetRowOrColumnMajorRequest>(), 30))
+                .Returns(Task.FromResult(ServiceOperationResult<ActionResult>.FromSuccess(expectedResult)));
 
             // Act
-            var result = await _tableService.GetRowOrColumnMajorAsync(elementId, "Test", 1234, 30);
+            var result = await _tableService.GetRowOrColumnMajorAsync(automationId: elementId, name: "Test", timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
@@ -393,11 +388,11 @@ namespace UIAutomationMCP.Tests.Services
             var elementId = "errorTest";
             var error = new InvalidOperationException("Test error");
 
-            _mockExecutor.Setup(e => e.ExecuteAsync<GetRowOrColumnMajorRequest, PropertyResult>("GetRowOrColumnMajor", It.IsAny<GetRowOrColumnMajorRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowOrColumnMajorRequest, ActionResult>("GetRowOrColumnMajor", It.IsAny<GetRowOrColumnMajorRequest>(), 30))
                 .ThrowsAsync(error);
 
             // Act
-            var result = await _tableService.GetRowOrColumnMajorAsync(elementId, "Test", 1234, 30);
+            var result = await _tableService.GetRowOrColumnMajorAsync(automationId: elementId, name: "Test", timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);

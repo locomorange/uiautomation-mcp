@@ -26,18 +26,19 @@ namespace UiAutomationMcp.Tests.Integration
         public ServerWorkerIntegrationTests(ITestOutputHelper output)
         {
             _output = output;
-            
+
             //                                  
             var services = new ServiceCollection();
-            
+
             //             
-            services.AddLogging(builder => 
+            services.AddLogging(builder =>
                 builder.AddConsole().SetMinimumLevel(LogLevel.Information));
-            
+
             _serviceProvider = services.BuildServiceProvider();
             var logger = _serviceProvider.GetRequiredService<ILogger<SubprocessExecutor>>();
-            
-            // Get base directory`nvar baseDir = AppDomain.CurrentDomain.BaseDirectory;
+
+            // Get base directory
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var possiblePaths = new[]
             {
                 Path.Combine(baseDir, "UIAutomationMCP.Worker.exe"),
@@ -81,7 +82,6 @@ namespace UiAutomationMcp.Tests.Integration
             {
                 AutomationId = "test",
                 WindowTitle = "",
-                ProcessId = 0
             };
 
             // When & Then
@@ -101,7 +101,6 @@ namespace UiAutomationMcp.Tests.Integration
             {
                 AutomationId = "NonExistentElement",
                 WindowTitle = "Desktop", // Use Desktop window for faster search
-                ProcessId = 0
             };
 
             // When & Then - Use short timeout to verify timeout behavior
@@ -199,7 +198,6 @@ namespace UiAutomationMcp.Tests.Integration
             {
                 AutomationId = "test",
                 WindowTitle = "",
-                ProcessId = 0
             };
 
             // Act & Assert

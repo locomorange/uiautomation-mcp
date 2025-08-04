@@ -32,11 +32,11 @@ namespace UIAutomationMCP.Tests.Integration
 
             var services = new ServiceCollection();
             services.AddLogging(builder => builder.AddConsole());
-            
+
             // Add required services similar to BasicE2ETests pattern
             _serviceProvider = services.BuildServiceProvider();
             var logger = _serviceProvider.GetRequiredService<ILogger<SubprocessExecutor>>();
-            
+
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var possiblePaths = new[]
             {
@@ -45,7 +45,7 @@ namespace UIAutomationMCP.Tests.Integration
                 Path.Combine(baseDir, "worker", "UIAutomationMCP.Worker.exe"),
             };
 
-            var workerPath = possiblePaths.FirstOrDefault(File.Exists) ?? 
+            var workerPath = possiblePaths.FirstOrDefault(File.Exists) ??
                 throw new InvalidOperationException("Worker executable not found");
 
             var subprocessExecutor = new SubprocessExecutor(logger, workerPath, new CancellationTokenSource());
@@ -73,7 +73,7 @@ namespace UIAutomationMCP.Tests.Integration
             // Assert
             Assert.NotNull(result);
             _output.WriteLine($"SetValue result: {result}");
-            
+
             // Microsoft spec: Should throw ElementNotEnabledException if control is disabled
             // Should throw ArgumentException if value cannot be converted to recognized format
             // Should throw InvalidOperationException for incorrectly formatted locale-specific information
@@ -96,7 +96,7 @@ namespace UIAutomationMCP.Tests.Integration
             // Assert
             Assert.NotNull(result);
             _output.WriteLine($"GetValue result: {result}");
-            
+
             // Microsoft spec: Should return current value of the control
             // For elements that don't support ValuePattern, should return appropriate error
         }
@@ -122,7 +122,7 @@ namespace UIAutomationMCP.Tests.Integration
             // Assert
             Assert.NotNull(result);
             _output.WriteLine($"SetValue on read-only element result: {result}");
-            
+
             // Microsoft spec: Attempting to set value on read-only control should fail appropriately
         }
 
@@ -145,11 +145,11 @@ namespace UIAutomationMCP.Tests.Integration
             // Assert
             Assert.NotNull(getValueResult);
             Assert.NotNull(setValueResult);
-            
+
             _output.WriteLine($"GetValue on disabled element: {getValueResult}");
             _output.WriteLine($"SetValue on disabled element: {setValueResult}");
             _output.WriteLine("IsReadOnly test skipped (method removed)");
-            
+
             // Microsoft spec: Controls must be enabled for Value Pattern to work properly
         }
 
@@ -179,7 +179,7 @@ namespace UIAutomationMCP.Tests.Integration
             _output.WriteLine($"GetValue: {getValueResult}");
             _output.WriteLine($"SetValue: {setValueResult}");
             _output.WriteLine("IsReadOnly test skipped (method removed)");
-            
+
             // Microsoft spec exceptions that should be handled:
             // - InvalidOperationException: incorrectly formatted locale-specific information
             // - ArgumentException: value cannot be converted to recognized format

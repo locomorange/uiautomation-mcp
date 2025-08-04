@@ -39,8 +39,7 @@ public class NewPatternsE2ETests : BaseE2ETest
 
             // Act
             var result = await Tools.RealizeVirtualizedItem(
-                "VirtualizedListItem",
-                processId: explorerProcess.Id,
+                automationId: "VirtualizedListItem",
                 timeoutSeconds: 10);
 
             // Assert
@@ -110,7 +109,7 @@ public class NewPatternsE2ETests : BaseE2ETest
             var resultDict = result as Dictionary<string, object>;
             Assert.NotNull(resultDict);
             Assert.True((bool)resultDict["Success"]);
-            
+
             var elementInfo = resultDict["ElementInfo"] as Dictionary<string, object>;
             Assert.NotNull(elementInfo);
             Assert.Equal("System", elementInfo["Name"]);
@@ -179,7 +178,7 @@ public class NewPatternsE2ETests : BaseE2ETest
             var cancelResult = await Tools.CancelSynchronizedInput(
                 "SyncButton",
                 timeoutSeconds: 5);
-            
+
             var cancelDict = cancelResult as Dictionary<string, object>;
             Assert.NotNull(cancelDict);
             Assert.True((bool)cancelDict["Success"]);
@@ -288,7 +287,7 @@ public class NewPatternsE2ETests : BaseE2ETest
             await Task.Delay(3000);
 
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            
+
             // Realize multiple items in sequence
             for (int i = 0; i < 10; i++)
             {
@@ -303,7 +302,7 @@ public class NewPatternsE2ETests : BaseE2ETest
 
             stopwatch.Stop();
             _output.WriteLine($"Realized 10 items in {stopwatch.ElapsedMilliseconds}ms");
-            
+
             // Performance should be reasonable even with virtualization
             Assert.True(stopwatch.ElapsedMilliseconds < 10000, "Realization took too long");
 

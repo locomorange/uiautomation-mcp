@@ -29,14 +29,14 @@ namespace UIAutomationMCP.Tests.Integration
         public TogglePatternIntegrationTests(ITestOutputHelper output)
         {
             _output = output;
-            
+
             var services = new ServiceCollection();
-            services.AddLogging(builder => 
+            services.AddLogging(builder =>
                 builder.AddConsole().SetMinimumLevel(LogLevel.Information));
-            
+
             _serviceProvider = services.BuildServiceProvider();
             var logger = _serviceProvider.GetRequiredService<ILogger<SubprocessExecutor>>();
-            
+
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var possiblePaths = new[]
             {
@@ -45,18 +45,18 @@ namespace UIAutomationMCP.Tests.Integration
                 Path.Combine(baseDir, "worker", "UIAutomationMCP.Worker.exe"),
             };
 
-            _workerPath = possiblePaths.FirstOrDefault(File.Exists) ?? 
+            _workerPath = possiblePaths.FirstOrDefault(File.Exists) ??
                 throw new InvalidOperationException("Worker executable not found");
 
             _subprocessExecutor = new SubprocessExecutor(logger, _workerPath, new CancellationTokenSource());
-            
+
             // Create options
             var options = Options.Create(new UIAutomationOptions());
-            
+
             _toggleService = new ToggleService(Mock.Of<IProcessManager>(), _serviceProvider.GetRequiredService<ILogger<ToggleService>>());
             _elementSearchService = new ElementSearchService(
-                _serviceProvider.GetRequiredService<ILogger<ElementSearchService>>(), 
-                _subprocessExecutor, 
+                Mock.Of<IProcessManager>(),
+                _serviceProvider.GetRequiredService<ILogger<ElementSearchService>>(),
                 options);
         }
 
@@ -76,7 +76,7 @@ namespace UIAutomationMCP.Tests.Integration
             var resultJson = System.Text.Json.JsonSerializer.Serialize(result);
             Assert.Contains("Success", resultJson);
             Assert.Contains("false", resultJson);
-            
+
             _output.WriteLine($"Non-existent element toggle result: {resultJson}");
         }
 
@@ -96,7 +96,7 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.NotNull(resultByAutomationId);
             Assert.NotNull(resultByWindowTitle);
             Assert.NotNull(resultByProcessId);
-            
+
             _output.WriteLine($"Result by AutomationId: {resultByAutomationId}");
             _output.WriteLine($"Result by WindowTitle: {resultByWindowTitle}");
             _output.WriteLine($"Result by ProcessId: {resultByProcessId}");
@@ -111,9 +111,9 @@ namespace UIAutomationMCP.Tests.Integration
 
             // When - Execute concurrent toggle operations
             var startTime = DateTime.UtcNow;
-            var tasks = elementIds.Select(id => 
+            var tasks = elementIds.Select(id =>
                 _toggleService.ToggleElementAsync(id, null, null, null, timeout)).ToArray();
-            
+
             var results = await Task.WhenAll(tasks);
             var endTime = DateTime.UtcNow;
             var totalTime = (endTime - startTime).TotalMilliseconds;
@@ -121,7 +121,7 @@ namespace UIAutomationMCP.Tests.Integration
             // Then - Should complete in reasonable time (non-blocking behavior)
             Assert.All(results, result => Assert.NotNull(result));
             Assert.True(totalTime < 10000, $"Concurrent toggle calls took too long: {totalTime}ms");
-            
+
             _output.WriteLine($"Concurrent toggle operations completed in {totalTime}ms");
             for (int i = 0; i < results.Length; i++)
             {
@@ -145,7 +145,7 @@ namespace UIAutomationMCP.Tests.Integration
             // Then - Should respect timeout and return quickly
             Assert.NotNull(result);
             Assert.True(actualTime <= shortTimeout + 2, $"Toggle operation took {actualTime}s, expected <= {shortTimeout + 2}s");
-            
+
             _output.WriteLine($"Short timeout toggle test completed in {actualTime}s with result: {result}");
         }
 
@@ -266,10 +266,10 @@ namespace UIAutomationMCP.Tests.Integration
             foreach (var testCase in testCases)
             {
                 var result = await _toggleService.ToggleElementAsync(
-                    testCase.AutomationId, 
-                    testCase.WindowTitle, 
+                    testCase.AutomationId,
+                    testCase.WindowTitle,
                     null,
-                    testCase.ProcessId, 
+                    testCase.ProcessId,
                     timeout);
                 results.Add(result);
             }
@@ -321,7 +321,7 @@ namespace UIAutomationMCP.Tests.Integration
             var tasks = Enumerable.Range(0, requestCount)
                 .Select(i => _toggleService.ToggleElementAsync($"{elementIdPrefix}{i}", null, null, null, timeout))
                 .ToArray();
-            
+
             var results = await Task.WhenAll(tasks);
             var endTime = DateTime.UtcNow;
             var totalTime = (endTime - startTime).TotalMilliseconds;
@@ -329,7 +329,7 @@ namespace UIAutomationMCP.Tests.Integration
             // Then
             Assert.All(results, result => Assert.NotNull(result));
             Assert.True(totalTime < 30000, $"High volume requests took too long: {totalTime}ms");
-            
+
             _output.WriteLine($"High volume toggle test: {requestCount} requests completed in {totalTime}ms");
             _output.WriteLine($"Average time per request: {totalTime / requestCount:F2}ms");
         }
@@ -350,7 +350,7 @@ namespace UIAutomationMCP.Tests.Integration
             {
                 var result = await _toggleService.ToggleElementAsync($"{elementId}{i}", null, null, null, timeout);
                 Assert.NotNull(result);
-                
+
                 // Small delay to observe resource behavior
                 if (i % 3 == 0)
                 {
@@ -373,16 +373,16 @@ namespace UIAutomationMCP.Tests.Integration
                 if (!process.HasExited)
                 {
                     _output.WriteLine($"Terminating {appName} with PID: {process.Id}");
-                    
+
                     //                                      process.CloseMainWindow();
-                    
+
                     //                                          if (!process.WaitForExit(2000))
                     {
                         _output.WriteLine($"Force killing {appName} with PID: {process.Id}");
                         process.Kill();
                         await process.WaitForExitAsync();
                     }
-                    
+
                     _output.WriteLine($"{appName} with PID: {process.Id} terminated successfully");
                 }
             }

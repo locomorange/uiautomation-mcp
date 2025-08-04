@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text.Json;
 using Xunit.Abstractions;
 
@@ -29,7 +30,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             var requiredProperties = new[]
             {
                 "HorizontalScrollPercent",
-                "VerticalScrollPercent", 
+                "VerticalScrollPercent",
                 "HorizontalViewSize",
                 "VerticalViewSize",
                 "HorizontallyScrollable",
@@ -54,9 +55,9 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert - All required properties must be present
             foreach (var requiredProperty in requiredProperties)
             {
-                Assert.True(jsonDocument.RootElement.TryGetProperty(requiredProperty, out _), 
+                Assert.True(jsonDocument.RootElement.TryGetProperty(requiredProperty, out _),
                     $"Required property '{requiredProperty}' is missing from ScrollPattern implementation");
-                
+
                 _output.WriteLine($"  Required property '{requiredProperty}' is implemented");
             }
 
@@ -137,7 +138,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             foreach (var constraint in specificationConstraints)
             {
                 Assert.NotNull(constraint.Value);
-                
+
                 // Verify specific constraint values
                 switch (constraint.Key)
                 {
@@ -155,7 +156,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                         Assert.Equal(100.0, constraint.Value);
                         break;
                 }
-                
+
                 _output.WriteLine($"  Specification constraint verified: {constraint.Key} = {constraint.Value}");
             }
 
@@ -182,7 +183,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             {
                 Assert.NotNull(relationship.Value);
                 Assert.False(string.IsNullOrWhiteSpace(relationship.Value));
-                
+
                 _output.WriteLine($"  Pattern relationship understood: {relationship.Key} - {relationship.Value}");
             }
 

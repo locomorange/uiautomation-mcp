@@ -28,7 +28,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task DockElement_WithValidDockPositions_ShouldSucceed(string dockPosition)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Dock", Details = $"Docked to {dockPosition}", Metadata = new Dictionary<string, object> { { "PreviousPosition", "None" }, { "NewPosition", dockPosition } } }
             };
@@ -75,7 +76,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task DockElement_ChangingFromNoneToTop_ShouldReturnCorrectPositions()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Dock", Details = "Docked to Top", Metadata = new Dictionary<string, object> { { "PreviousPosition", "None" }, { "NewPosition", "Top" } } }
             };
@@ -95,7 +97,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task DockElement_ChangingFromLeftToRight_ShouldReturnCorrectPositions()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Dock", Details = "Docked to Right", Metadata = new Dictionary<string, object> { { "PreviousPosition", "Left" }, { "NewPosition", "Right" } } }
             };
@@ -115,7 +118,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task DockElement_SettingToFill_ShouldExpandElement()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Dock", Details = "Docked to Fill", Metadata = new Dictionary<string, object> { { "PreviousPosition", "None" }, { "NewPosition", "Fill" } } }
             };
@@ -172,23 +176,23 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Microsoft specification compliance test
             PatternTestHelpers.VerifyMicrosoftSpecCompliance(
-                _mockService, 
-                "DockPattern", 
-                new[] { "DockElementAsync" }, 
+                _mockService,
+                "DockPattern",
+                new[] { "DockElementAsync" },
                 _output);
 
             //                  
             PatternTestHelpers.VerifyStandardParameterValidation(
-                _mockService, 
-                "DockElementAsync", 
-                _output, 
+                _mockService,
+                "DockElementAsync",
+                _output,
                 "top");
 
             //                    
             PatternTestHelpers.VerifyTimeoutHandling(
-                _mockService, 
-                "DockElementAsync", 
-                _output, 
+                _mockService,
+                "DockElementAsync",
+                _output,
                 "top");
 
             _output.WriteLine("  All DockElement parameter validation tests completed");
@@ -199,7 +203,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task DockElement_WithProcessId_ShouldCallServiceCorrectly(int processId)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Dock", Details = "Docked to Top", Metadata = new Dictionary<string, object> { { "PreviousPosition", "None" }, { "NewPosition", "Top" } } }
             };
@@ -207,7 +212,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                        .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.DockElement(automationId: "element1", dockPosition: "top", controlType: "TestWindow", processId: processId);
+            var result = await _tools.DockElement(automationId: "element1", dockPosition: "top", controlType: "TestWindow");
 
             // Assert
             Assert.NotNull(result);
@@ -220,7 +225,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task DockElement_WithCustomTimeout_ShouldCallServiceCorrectly(int timeoutSeconds)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Dock", Details = "Docked to Bottom", Metadata = new Dictionary<string, object> { { "PreviousPosition", "None" }, { "NewPosition", "Bottom" } } }
             };

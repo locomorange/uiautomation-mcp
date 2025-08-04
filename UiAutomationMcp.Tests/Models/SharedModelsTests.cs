@@ -1,4 +1,6 @@
 using UIAutomationMCP.Models;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 
 namespace UiAutomationMcp.Tests.Models
@@ -42,7 +44,7 @@ namespace UiAutomationMcp.Tests.Models
             Assert.Equal(original.IsEnabled, deserialized.IsEnabled);
             Assert.Equal(original.IsVisible, deserialized.IsVisible);
             Assert.Equal(original.Details?.HelpText, deserialized.Details?.HelpText);
-            
+
             Assert.Equal(original.BoundingRectangle.X, deserialized.BoundingRectangle.X);
             Assert.Equal(original.BoundingRectangle.Y, deserialized.BoundingRectangle.Y);
             Assert.Equal(original.BoundingRectangle.Width, deserialized.BoundingRectangle.Width);
@@ -123,7 +125,7 @@ namespace UiAutomationMcp.Tests.Models
             Assert.Equal(operationParams.WindowTitle, deserialized.WindowTitle);
             Assert.Equal(operationParams.ProcessId, deserialized.ProcessId);
             Assert.Equal(operationParams.TimeoutSeconds, deserialized.TimeoutSeconds);
-            
+
             Assert.NotNull(deserialized.Parameters);
             Assert.Equal(3, deserialized.Parameters.Count);
             Assert.True(deserialized.Parameters.ContainsKey("Value"));
@@ -155,7 +157,7 @@ namespace UiAutomationMcp.Tests.Models
             Assert.NotNull(deserialized);
             Assert.Equal(request.Operation, deserialized.Operation);
             Assert.NotNull(deserialized.Parameters);
-            Assert.Equal(2, deserialized.Parameters.Count);
+            Assert.Equal(2, ((Dictionary<string, object>)deserialized.Parameters).Count);
         }
 
         [Fact]

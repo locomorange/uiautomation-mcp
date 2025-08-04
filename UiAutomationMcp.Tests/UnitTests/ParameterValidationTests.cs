@@ -79,9 +79,9 @@ namespace UiAutomationMcp.Tests.UnitTests
             int startIndex, int length, int totalLength, bool expectedValid)
         {
             // Act
-            var isValid = startIndex >= 0 && 
-                         length >= 0 && 
-                         startIndex < totalLength && 
+            var isValid = startIndex >= 0 &&
+                         length >= 0 &&
+                         startIndex < totalLength &&
                          startIndex + length <= totalLength;
 
             // Assert
@@ -116,9 +116,9 @@ namespace UiAutomationMcp.Tests.UnitTests
             string? containerId, string? windowTitle, int? processId, bool expectedValid)
         {
             // Act
-            var isValid = !string.IsNullOrWhiteSpace(containerId) && 
+            var isValid = !string.IsNullOrWhiteSpace(containerId) &&
                          (processId == null || processId >= 0);
-            
+
             // Use windowTitle in validation to avoid warning
             var hasValidWindow = string.IsNullOrEmpty(windowTitle) || !string.IsNullOrWhiteSpace(windowTitle);
             isValid = isValid && hasValidWindow;
@@ -137,9 +137,9 @@ namespace UiAutomationMcp.Tests.UnitTests
             string? elementId, string? windowTitle, int? processId, bool expectedValid)
         {
             // Act
-            var isValid = !string.IsNullOrWhiteSpace(elementId) && 
+            var isValid = !string.IsNullOrWhiteSpace(elementId) &&
                          (processId == null || processId >= 0);
-            
+
             // Use windowTitle in validation to avoid warning
             var hasValidWindow = string.IsNullOrEmpty(windowTitle) || !string.IsNullOrWhiteSpace(windowTitle);
             isValid = isValid && hasValidWindow;
@@ -156,12 +156,12 @@ namespace UiAutomationMcp.Tests.UnitTests
         public void ValidateSelectionPatternOperations_WithValidOperations_ShouldReturnTrue(string operation)
         {
             // Arrange
-            var validSelectionPatternOperations = new[] 
-            { 
-                "CanSelectMultiple", 
-                "IsSelectionRequired", 
-                "GetSelection", 
-                "ClearSelection" 
+            var validSelectionPatternOperations = new[]
+            {
+                "CanSelectMultiple",
+                "IsSelectionRequired",
+                "GetSelection",
+                "ClearSelection"
             };
 
             // Act
@@ -180,13 +180,13 @@ namespace UiAutomationMcp.Tests.UnitTests
         public void ValidateSelectionItemPatternOperations_WithValidOperations_ShouldReturnTrue(string operation)
         {
             // Arrange
-            var validSelectionItemPatternOperations = new[] 
-            { 
-                "Select", 
-                "IsSelected", 
-                "GetSelectionContainer", 
-                "AddToSelection", 
-                "RemoveFromSelection" 
+            var validSelectionItemPatternOperations = new[]
+            {
+                "Select",
+                "IsSelected",
+                "GetSelectionContainer",
+                "AddToSelection",
+                "RemoveFromSelection"
             };
 
             // Act
@@ -204,8 +204,8 @@ namespace UiAutomationMcp.Tests.UnitTests
         public void ValidateSelectionOperations_WithInvalidOperations_ShouldReturnFalse(string? operation)
         {
             // Arrange
-            var validOperations = new[] 
-            { 
+            var validOperations = new[]
+            {
                 "CanSelectMultiple", "IsSelectionRequired", "GetSelection", "ClearSelection",
                 "Select", "IsSelected", "GetSelectionContainer", "AddToSelection", "RemoveFromSelection"
             };
@@ -230,9 +230,9 @@ namespace UiAutomationMcp.Tests.UnitTests
             string controlType, bool expectedSupported)
         {
             // Arrange
-            var selectionPatternSupportedControls = new[] 
-            { 
-                "list", "multilist", "tree", "tab", "menu", "listview", "datagrid", "calendar" 
+            var selectionPatternSupportedControls = new[]
+            {
+                "list", "multilist", "tree", "tab", "menu", "listview", "datagrid", "calendar"
             };
 
             // Act
@@ -255,9 +255,9 @@ namespace UiAutomationMcp.Tests.UnitTests
             string controlType, bool expectedSupported)
         {
             // Arrange
-            var selectionItemPatternSupportedControls = new[] 
-            { 
-                "listitem", "treeitem", "tabitem", "menuitem", "radiobutton", "dataitem", "calendaritem" 
+            var selectionItemPatternSupportedControls = new[]
+            {
+                "listitem", "treeitem", "tabitem", "menuitem", "radiobutton", "dataitem", "calendaritem"
             };
 
             // Act
@@ -286,8 +286,8 @@ namespace UiAutomationMcp.Tests.UnitTests
             // Assert
             Assert.NotNull(request);
             Assert.Equal("invoke", request.Operation);
-            Assert.True(request.Parameters.ContainsKey("elementId"));
-            Assert.Equal("btn1", request.Parameters["elementId"]);
+            Assert.True(((Dictionary<string, object>)request.Parameters).ContainsKey("elementId"));
+            Assert.Equal("btn1", ((Dictionary<string, object>)request.Parameters)["elementId"]);
         }
 
         [Theory]
@@ -318,7 +318,7 @@ namespace UiAutomationMcp.Tests.UnitTests
             };
 
             // Act & Assert
-            Assert.True(parameterRequirements.ContainsKey(operation), 
+            Assert.True(parameterRequirements.ContainsKey(operation),
                 $"Operation '{operation}' should be documented");
             Assert.Contains(requiredParameter, parameterRequirements[operation]);
         }

@@ -3,10 +3,10 @@ using UIAutomationMCP.Models;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
-using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using Xunit.Abstractions;
 using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Models.Logging;
 
 namespace UIAutomationMCP.Tests.UnitTests
 {
@@ -25,7 +25,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             _output = output;
             _mockTransformService = new Mock<ITransformService>();
-            
+
             // UIAutomationTools             var mockAppLauncher = new Mock<IApplicationLauncher>();
             var mockScreenshot = new Mock<IScreenshotService>();
             var mockElementSearch = new Mock<IElementSearchService>();
@@ -47,6 +47,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             var mockVirtualizedItem = new Mock<IVirtualizedItemService>();
             var mockItemContainer = new Mock<IItemContainerService>();
             var mockSynchronizedInput = new Mock<ISynchronizedInputService>();
+            var mockAppLauncher = new Mock<IApplicationLauncher>();
 
             _tools = new UIAutomationTools(
                 mockAppLauncher.Object,
@@ -73,7 +74,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 mockSynchronizedInput.Object,
                 Mock.Of<IEventMonitorService>(),
                 Mock.Of<IFocusService>(),
-                Mock.Of<IOperationExecutor>()
+                Mock.Of<IMcpLogService>()
             );
         }
 
@@ -93,7 +94,6 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Data = new TransformCapabilitiesResult
                 {
                     Success = true,
-                    AutomationId = "window1",
                     CanMove = true,
                     CanResize = true,
                     CanRotate = false
@@ -128,7 +128,6 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Data = new TransformCapabilitiesResult
                 {
                     Success = true,
-                    AutomationId = "element1",
                     CanMove = canMove,
                     CanResize = canResize,
                     CanRotate = canRotate
@@ -152,8 +151,11 @@ namespace UIAutomationMCP.Tests.UnitTests
 
         #region Microsoft Move 
         [Theory]
-        [InlineData(100.0, 200.0)]  //          [InlineData(-50.0, -100.0)] //          [InlineData(0.0, 0.0)]      //  
-        [InlineData(1920.0, 1080.0)] //          public async Task MoveElement_WithValidCoordinates_ShouldSucceed(double x, double y)
+        [InlineData(100.0, 200.0)]  // Basic coordinates
+        [InlineData(-50.0, -100.0)] // Negative coordinates
+        [InlineData(0.0, 0.0)]      // Origin
+        [InlineData(1920.0, 1080.0)] // Large screen coordinates
+        public async Task MoveElement_WithValidCoordinates_ShouldSucceed(double x, double y)
         {
             // Arrange
             var expectedResult = new ServerEnhancedResponse<ActionResult>
@@ -164,7 +166,8 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Success = true,
                     AutomationId = "movableWindow",
                     Action = "Move",
-                    ActionParameters = new Dictionary<string, object> { { "X", x }, { "Y", y } }
+                    // Intentionally rounding double coordinates to int for Point; precision loss is documented.
+                    ActionParameters = new ActionParameters { Position = new Point { X = (int)Math.Round(x), Y = (int)Math.Round(y) } }
                 }
             };
             _mockTransformService.Setup(s => s.MoveElementAsync("movableWindow", null, x, y, "MainApp", null, 30))
@@ -218,7 +221,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Success = true,
                     AutomationId = "resizableWindow",
                     Action = "Resize",
-                    ActionParameters = new Dictionary<string, object> { { "Width", width }, { "Height", height } }
+                    ActionParameters = new ActionParameters { Bounds = new BoundingRectangle { Width = width, Height = height } }
                 }
             };
             _mockTransformService.Setup(s => s.ResizeElementAsync("resizableWindow", null, width, height, "Designer", null, 30))
@@ -234,9 +237,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         }
 
         [Theory]
-        [InlineData(0.0, 100.0)]   //  
-        [InlineData(100.0, 0.0)]   //  
-        [InlineData(-100.0, 200.0)] //          [InlineData(200.0, -100.0)] //  
+        [InlineData(0.0, 100.0)]   // Zero width
+        [InlineData(100.0, 0.0)]   // Zero height
+        [InlineData(-100.0, 200.0)] // Negative width
+        [InlineData(200.0, -100.0)] // Negative height
         public async Task ResizeElement_WithInvalidDimensions_ShouldHandleError(double width, double height)
         {
             // Arrange
@@ -297,7 +301,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Success = true,
                     AutomationId = "rotatableImage",
                     Action = "Rotate",
-                    ActionParameters = new Dictionary<string, object> { { "Degrees", degrees } }
+                    ActionParameters = new ActionParameters { AdditionalProperties = new Dictionary<string, object> { { "Degrees", degrees } } }
                 }
             };
             _mockTransformService.Setup(s => s.RotateElementAsync("rotatableImage", null, degrees, "GraphicsApp", null, 30))
@@ -386,17 +390,16 @@ namespace UIAutomationMCP.Tests.UnitTests
         public void GetTransformCapabilities_WithEmptyParameters_ShouldCallService(string elementId, string windowTitle)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<TransformCapabilitiesResult> 
-            { 
-                Success = true, 
-                Data = new TransformCapabilitiesResult 
-                { 
-                    Success = true, 
-                    AutomationId = elementId, 
-                    CanMove = true, 
-                    CanResize = true, 
-                    CanRotate = false 
-                } 
+            var expectedResult = new ServerEnhancedResponse<TransformCapabilitiesResult>
+            {
+                Success = true,
+                Data = new TransformCapabilitiesResult
+                {
+                    Success = true,
+                    CanMove = true,
+                    CanResize = true,
+                    CanRotate = false
+                }
             };
             _mockTransformService.Setup(s => s.GetTransformCapabilitiesAsync(elementId, null, null, null, 30))
                                .Returns(Task.FromResult(expectedResult));
@@ -420,26 +423,26 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task MoveElement_WithProcessId_ShouldCallServiceCorrectly(int processId)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> 
-            { 
-                Success = true, 
-                Data = new ActionResult 
-                { 
-                    Success = true, 
-                    AutomationId = "window1", 
-                    Action = "Move", 
-                    ActionParameters = new Dictionary<string, object> { { "X", 100.0 }, { "Y", 200.0 } } 
-                } 
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
+                Success = true,
+                Data = new ActionResult
+                {
+                    Success = true,
+                    AutomationId = "window1",
+                    Action = "Move",
+                    ActionParameters = new ActionParameters { Position = new Point { X = 100, Y = 200 } }
+                }
             };
-            _mockTransformService.Setup(s => s.MoveElementAsync("window1", null, 100.0, 200.0, "App", processId, 30))
+            _mockTransformService.Setup(s => s.MoveElementAsync("window1", null, 100.0, 200.0, "App", null, 30))
                                .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.MoveElement(automationId: "window1", x: 100.0, y: 200.0, controlType: "App", processId: processId);
+            var result = await _tools.MoveElement(automationId: "window1", x: 100.0, y: 200.0, controlType: "App");
 
             // Assert
             Assert.NotNull(result);
-            _mockTransformService.Verify(s => s.MoveElementAsync("window1", null, 100.0, 200.0, "App", processId, 30), Times.Once);
+            _mockTransformService.Verify(s => s.MoveElementAsync("window1", null, 100.0, 200.0, "App", null, 30), Times.Once);
             _output.WriteLine($"ProcessId parameter test passed: processId={processId}");
         }
 
@@ -450,16 +453,16 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ResizeElement_WithCustomTimeout_ShouldCallServiceCorrectly(int timeoutSeconds)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> 
-            { 
-                Success = true, 
-                Data = new ActionResult 
-                { 
-                    Success = true, 
-                    AutomationId = "window1", 
-                    Action = "Resize", 
-                    ActionParameters = new Dictionary<string, object> { { "Width", 800.0 }, { "Height", 600.0 } } 
-                } 
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
+                Success = true,
+                Data = new ActionResult
+                {
+                    Success = true,
+                    AutomationId = "window1",
+                    Action = "Resize",
+                    ActionParameters = new ActionParameters { Bounds = new BoundingRectangle { Width = 800.0, Height = 600.0 } }
+                }
             };
             _mockTransformService.Setup(s => s.ResizeElementAsync("window1", null, 800.0, 600.0, "App", null, timeoutSeconds))
                                .Returns(Task.FromResult(expectedResult));
@@ -480,38 +483,38 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task TransformElement_MultipleTransformations_ShouldExecuteInSequence()
         {
             // Arrange
-            var moveResult = new ServerEnhancedResponse<ActionResult> 
-            { 
-                Success = true, 
-                Data = new ActionResult 
-                { 
-                    Success = true, 
-                    AutomationId = "transformableWindow", 
-                    Action = "Move", 
-                    ActionParameters = new Dictionary<string, object> { { "X", 200.0 }, { "Y", 300.0 } } 
-                } 
+            var moveResult = new ServerEnhancedResponse<ActionResult>
+            {
+                Success = true,
+                Data = new ActionResult
+                {
+                    Success = true,
+                    AutomationId = "transformableWindow",
+                    Action = "Move",
+                    ActionParameters = new ActionParameters { Position = new Point { X = 200, Y = 300 } }
+                }
             };
-            var resizeResult = new ServerEnhancedResponse<ActionResult> 
-            { 
-                Success = true, 
-                Data = new ActionResult 
-                { 
-                    Success = true, 
-                    AutomationId = "transformableWindow", 
-                    Action = "Resize", 
-                    ActionParameters = new Dictionary<string, object> { { "Width", 1024.0 }, { "Height", 768.0 } } 
-                } 
+            var resizeResult = new ServerEnhancedResponse<ActionResult>
+            {
+                Success = true,
+                Data = new ActionResult
+                {
+                    Success = true,
+                    AutomationId = "transformableWindow",
+                    Action = "Resize",
+                    ActionParameters = new ActionParameters { Bounds = new BoundingRectangle { Width = 1024.0, Height = 768.0 } }
+                }
             };
-            var rotateResult = new ServerEnhancedResponse<ActionResult> 
-            { 
-                Success = true, 
-                Data = new ActionResult 
-                { 
-                    Success = true, 
-                    AutomationId = "transformableWindow", 
-                    Action = "Rotate", 
-                    ActionParameters = new Dictionary<string, object> { { "Degrees", 45.0 } } 
-                } 
+            var rotateResult = new ServerEnhancedResponse<ActionResult>
+            {
+                Success = true,
+                Data = new ActionResult
+                {
+                    Success = true,
+                    AutomationId = "transformableWindow",
+                    Action = "Rotate",
+                    ActionParameters = new ActionParameters { AdditionalProperties = new Dictionary<string, object> { { "Degrees", 45.0 } } }
+                }
             };
 
             _mockTransformService.Setup(s => s.MoveElementAsync("transformableWindow", null, 200.0, 300.0, "CADApp", null, 30))
@@ -556,7 +559,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Success = true,
                     AutomationId = "element1",
                     Action = "Move",
-                    ActionParameters = new Dictionary<string, object> { { "X", x }, { "Y", y } }
+                    ActionParameters = new ActionParameters { Position = new Point { X = (int)x, Y = (int)y } }
                 }
             };
             _mockTransformService.Setup(s => s.MoveElementAsync("element1", null, x, y, "TestApp", null, 30))

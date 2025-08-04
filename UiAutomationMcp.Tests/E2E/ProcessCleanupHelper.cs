@@ -27,7 +27,7 @@ namespace UIAutomationMCP.Tests.E2E
             {
                 output.WriteLine($"Starting {processName}...");
                 process = await processAction();
-                
+
                 if (process != null)
                 {
                     output.WriteLine($"{processName} started successfully (PID: {process.Id})");
@@ -60,7 +60,7 @@ namespace UIAutomationMCP.Tests.E2E
             {
                 output.WriteLine($"Starting {processName}...");
                 process = processAction();
-                
+
                 if (process != null)
                 {
                     output.WriteLine($"{processName} started successfully (PID: {process.Id})");
@@ -111,7 +111,7 @@ namespace UIAutomationMCP.Tests.E2E
                 {
                     output.WriteLine($"Attempting graceful termination of {processName}...");
                     process.CloseMainWindow();
-                    
+
                     // Wait for graceful shutdown
                     if (await WaitForExitAsync(process, timeoutMs / 2))
                     {
@@ -135,7 +135,7 @@ namespace UIAutomationMCP.Tests.E2E
                     {
                         output.WriteLine($"Force killing {processName}...");
                         process.Kill(entireProcessTree: true);
-                        
+
                         // Wait for force termination
                         if (await WaitForExitAsync(process, timeoutMs / 2))
                         {
@@ -182,21 +182,21 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 var tcs = new TaskCompletionSource<bool>();
-                
+
                 // Set up event handler for process exit
                 process.EnableRaisingEvents = true;
                 process.Exited += (sender, e) => tcs.TrySetResult(true);
-                
+
                 // If process has already exited, return true immediately
                 if (process.HasExited)
                 {
                     return true;
                 }
-                
+
                 // Wait for either exit or timeout
                 var timeoutTask = Task.Delay(timeoutMs);
                 var completedTask = await Task.WhenAny(tcs.Task, timeoutTask);
-                
+
                 return completedTask == tcs.Task;
             }
             catch (Exception)
@@ -229,7 +229,7 @@ namespace UIAutomationMCP.Tests.E2E
             {
                 output.WriteLine($"Searching for orphaned {processName} processes...");
                 var processes = Process.GetProcessesByName(processName);
-                
+
                 if (processes.Length == 0)
                 {
                     output.WriteLine($"No {processName} processes found");
@@ -237,10 +237,10 @@ namespace UIAutomationMCP.Tests.E2E
                 }
 
                 output.WriteLine($"Found {processes.Length} {processName} process(es) to cleanup");
-                
+
                 var cleanupTasks = processes.Select(process =>
                     CleanupProcess(process, output, $"{processName}({process.Id})", timeoutMs));
-                
+
                 await Task.WhenAll(cleanupTasks);
                 output.WriteLine($"Cleanup of all {processName} processes completed");
             }

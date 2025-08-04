@@ -42,10 +42,10 @@ public class WinUI3GalleryRealWorldTests : BaseE2ETest
             _output.WriteLine($"Complete element tree (depth 6): {JsonSerializer.Serialize(completeTree, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 4: Find all unique control types in the application
-            var allControlTypes = new[] { 
-                "Window", "NavigationView", "NavigationViewItem", "ScrollViewer", "Grid", "StackPanel", 
-                "Button", "TextBox", "TextBlock", "Image", "CheckBox", "RadioButton", "ComboBox", 
-                "Slider", "ProgressBar", "ListView", "TreeView", "TabView", "TabItem", "Canvas", 
+            var allControlTypes = new[] {
+                "Window", "NavigationView", "NavigationViewItem", "ScrollViewer", "Grid", "StackPanel",
+                "Button", "TextBox", "TextBlock", "Image", "CheckBox", "RadioButton", "ComboBox",
+                "Slider", "ProgressBar", "ListView", "TreeView", "TabView", "TabItem", "Canvas",
                 "Border", "ContentPresenter", "ItemsPresenter", "ScrollBar", "Thumb", "RepeatButton",
                 "Hyperlink", "RichTextBlock", "MediaElement", "WebView", "DatePicker", "TimePicker",
                 "CalendarView", "AutoSuggestBox", "SearchBox", "MenuBar", "MenuItem", "Flyout",
@@ -104,8 +104,8 @@ public class WinUI3GalleryRealWorldTests : BaseE2ETest
             _output.WriteLine($"NavigationViewItem elements found: {JsonSerializer.Serialize(navigationItems, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 4: Try to find specific navigation categories
-            var knownSections = new[] { 
-                "Basic Input", "Collections", "Date & Time", "Dialogs & Flyouts", 
+            var knownSections = new[] {
+                "Basic Input", "Collections", "Date & Time", "Dialogs & Flyouts",
                 "Layout", "Media", "Navigation", "Status & Info", "Text", "Motion"
             };
 
@@ -150,7 +150,7 @@ public class WinUI3GalleryRealWorldTests : BaseE2ETest
 
             // Step 2: Look for search-related controls
             var searchControls = new[] { "SearchBox", "AutoSuggestBox", "TextBox" };
-            
+
             foreach (var controlType in searchControls)
             {
                 try
@@ -167,7 +167,7 @@ public class WinUI3GalleryRealWorldTests : BaseE2ETest
 
             // Step 3: Look for search-related elements by name
             var searchNames = new[] { "Search", "search", "Find", "Filter" };
-            
+
             foreach (var searchName in searchNames)
             {
                 try
@@ -294,9 +294,9 @@ public class WinUI3GalleryRealWorldTests : BaseE2ETest
             await Task.Delay(2000);
 
             // Step 2: Find all elements that users can interact with
-            var interactableControlTypes = new[] { 
-                "Button", "TextBox", "CheckBox", "RadioButton", "ComboBox", "Slider", 
-                "ToggleButton", "Hyperlink", "MenuItem", "TreeItem", "ListItem", 
+            var interactableControlTypes = new[] {
+                "Button", "TextBox", "CheckBox", "RadioButton", "ComboBox", "Slider",
+                "ToggleButton", "Hyperlink", "MenuItem", "TreeItem", "ListItem",
                 "TabItem", "ScrollBar", "Thumb", "RepeatButton", "SplitButton"
             };
 

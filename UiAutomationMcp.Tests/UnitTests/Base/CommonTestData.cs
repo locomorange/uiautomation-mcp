@@ -73,7 +73,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
 
         /// <summary>
         ///                          /// </summary>
-        public static readonly string[] ControlTypes = 
+        public static readonly string[] ControlTypes =
         {
             "Button", "CheckBox", "ComboBox", "DataGrid", "Document", "Edit",
             "Group", "Header", "HeaderItem", "Hyperlink", "Image", "List",

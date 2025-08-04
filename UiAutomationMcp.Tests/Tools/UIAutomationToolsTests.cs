@@ -11,6 +11,7 @@ using System.Threading;
 using System.Text.Json;
 using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Models.Logging;
 
 namespace UIAutomationMCP.Tests.Tools
 {
@@ -46,12 +47,12 @@ namespace UIAutomationMCP.Tests.Tools
         private readonly Mock<ISynchronizedInputService> _mockSynchronizedInputService;
         private readonly Mock<IEventMonitorService> _mockEventMonitorService;
         private readonly Mock<IFocusService> _mockFocusService;
-        private readonly Mock<IOperationExecutor> _mockSubprocessExecutor;
+        private readonly Mock<IMcpLogService> _mockMcpLogService;
 
         public UIAutomationToolsTests(ITestOutputHelper output)
         {
             _output = output;
-            
+
             // Create all service mocks
             _mockApplicationLauncher = new Mock<IApplicationLauncher>();
             _mockScreenshotService = new Mock<IScreenshotService>();
@@ -77,8 +78,8 @@ namespace UIAutomationMCP.Tests.Tools
             _mockSynchronizedInputService = new Mock<ISynchronizedInputService>();
             _mockEventMonitorService = new Mock<IEventMonitorService>();
             _mockFocusService = new Mock<IFocusService>();
-            _mockSubprocessExecutor = new Mock<IOperationExecutor>();
-            
+            _mockMcpLogService = new Mock<IMcpLogService>();
+
             _tools = new UIAutomationTools(
                 _mockApplicationLauncher.Object,
                 _mockScreenshotService.Object,
@@ -104,7 +105,7 @@ namespace UIAutomationMCP.Tests.Tools
                 _mockSynchronizedInputService.Object,
                 _mockEventMonitorService.Object,
                 _mockFocusService.Object,
-                _mockSubprocessExecutor.Object
+                _mockMcpLogService.Object
             );
         }
 
@@ -124,7 +125,7 @@ namespace UIAutomationMCP.Tests.Tools
                 new ElementInfo { Name = "Window1", ProcessId = 1234, ControlType = "Window", IsVisible = true },
                 new ElementInfo { Name = "Window2", ProcessId = 5678, ControlType = "Window", IsVisible = true }
             };
-            
+
             var searchElementsResult = new SearchElementsResult
             {
                 Success = true,
@@ -138,7 +139,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockElementSearchService.Setup(s => s.SearchElementsAsync(It.IsAny<UIAutomationMCP.Models.Requests.SearchElementsRequest>(), 30))
                             .Returns(Task.FromResult(serverResponse));
 
@@ -160,7 +161,7 @@ namespace UIAutomationMCP.Tests.Tools
                 new ElementInfo { AutomationId = "btn1", Name = "Button1", ControlType = "Button" },
                 new ElementInfo { AutomationId = "btn2", Name = "Button2", ControlType = "Button" }
             };
-            
+
             var searchElementsResult = new SearchElementsResult
             {
                 Success = true,
@@ -173,7 +174,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             // _mockElementSearchService.Setup(s => s.SearchElementsAsync(It.IsNotNull<UIAutomationMCP.Models.Requests.SearchElementsRequest>()))
             //                        .Returns(Task.FromResult(serverResponse));
             //
@@ -206,7 +207,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockInvokeService.Setup(s => s.InvokeElementAsync("testButton", null, null, null, 30))
                                  .Returns(Task.FromResult(serverResponse));
 
@@ -235,7 +236,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockInvokeService.Setup(s => s.InvokeElementAsync("testButton", null, null, 1234, 30))
                                  .Returns(Task.FromResult(serverResponse));
 
@@ -264,7 +265,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             var customTimeout = 60;
             _mockInvokeService.Setup(s => s.InvokeElementAsync("testButton", "TestWindow", null, null, customTimeout))
                                  .Returns(Task.FromResult(serverResponse));
@@ -295,7 +296,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockInvokeService.Setup(s => s.InvokeElementAsync("nonExistentButton", "TestWindow", null, null, 30))
                                  .Returns(Task.FromResult(serverResponse));
 
@@ -316,9 +317,9 @@ namespace UIAutomationMCP.Tests.Tools
                                  .ThrowsAsync(new InvalidOperationException("Service error"));
 
             // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => 
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _tools.InvokeElement("testButton", "TestWindow"));
-            
+
             _mockInvokeService.Verify(s => s.InvokeElementAsync("testButton", null, null, null, 30), Times.Once);
             _output.WriteLine("InvokeElement service exception test passed");
         }
@@ -339,7 +340,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockInvokeService.Setup(s => s.InvokeElementAsync("", "TestWindow", null, null, 30))
                                  .Returns(Task.FromResult(serverResponse));
 
@@ -543,18 +544,7 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new TextInfoResult
             {
                 Success = true,
-                AutomationId = "textElement",
-                // WindowTitle not available in ElementSearchResult,
-                Text = "Sample text content",
-                TextLength = 19,
-                IsReadOnly = false,
-                IsPasswordField = false,
-                IsMultiline = false,
-                CanSelectText = true,
-                CanEditText = true,
-                HasText = true,
-                TextPattern = "TextPattern",
-                InputType = "text"
+                Text = "Sample text content"
             };
             var serverResponse = new ServerEnhancedResponse<TextInfoResult>
             {
@@ -670,7 +660,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockTreeNavigationService.Setup(s => s.GetElementTreeAsync(null, 3, 60))
                                    .Returns(Task.FromResult(serverResponse));
 
@@ -690,26 +680,18 @@ namespace UIAutomationMCP.Tests.Tools
         {
             // Arrange
             var expectedResult = ProcessLaunchResponse.CreateSuccess(1234, "notepad", false);
-            var serverResponse = new ServerEnhancedResponse<ProcessLaunchResponse>
-            {
-                Success = true,
-                Data = expectedResult,
-                ExecutionInfo = new ServerExecutionInfo(),
-                RequestMetadata = new RequestMetadata()
-            };
-            
-            _mockApplicationLauncher.Setup(s => s.LaunchWin32ApplicationAsync("notepad.exe", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                                  .Returns(Task.FromResult(serverResponse));
+            _mockApplicationLauncher.Setup(s => s.LaunchApplicationAsync("notepad.exe", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                                  .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.LaunchWin32Application("notepad.exe");
+            var result = await _tools.LaunchApplication("notepad.exe");
 
             // Assert
             Assert.NotNull(result);
             // The result is now a JSON string, so we just verify it's not null
             // and the service was called correctly
-            _mockApplicationLauncher.Verify(s => s.LaunchWin32ApplicationAsync("notepad.exe", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Once);
-            _output.WriteLine("LaunchWin32Application test passed");
+            _mockApplicationLauncher.Verify(s => s.LaunchApplicationAsync("notepad.exe", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Once);
+            _output.WriteLine("LaunchApplication test passed");
         }
 
         [Fact]
@@ -717,25 +699,17 @@ namespace UIAutomationMCP.Tests.Tools
         {
             // Arrange
             var expectedResult = ProcessLaunchResponse.CreateSuccess(5678, "Calculator", false);
-            var serverResponse = new ServerEnhancedResponse<ProcessLaunchResponse>
-            {
-                Success = true,
-                Data = expectedResult,
-                ExecutionInfo = new ServerExecutionInfo(),
-                RequestMetadata = new RequestMetadata()
-            };
-            
-            _mockApplicationLauncher.Setup(s => s.LaunchApplicationByNameAsync("Calculator", It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                                  .Returns(Task.FromResult(serverResponse));
+            _mockApplicationLauncher.Setup(s => s.LaunchApplicationAsync("Calculator", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                                  .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.LaunchApplicationByName("Calculator");
+            var result = await _tools.LaunchApplication("Calculator");
 
             // Assert
             Assert.NotNull(result);
             // The result is now a JSON string, so we just verify it's not null
             // and the service was called correctly
-            _mockApplicationLauncher.Verify(s => s.LaunchApplicationByNameAsync("Calculator", It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mockApplicationLauncher.Verify(s => s.LaunchApplicationAsync("Calculator", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Once);
             _output.WriteLine("LaunchApplicationByName test passed");
         }
 
@@ -762,7 +736,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockWindowService.Setup(s => s.WindowOperationAsync("minimize", "TestWindow", null, 30))
                                  .Returns(Task.FromResult(serverResponse));
 
@@ -935,9 +909,9 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo
+                    new UIAutomationMCP.Models.ElementInfo
                     {
                         AutomationId = "cell_1_2",
                         Name = "Cell Content",
@@ -972,18 +946,10 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new TableInfoResult
             {
                 Success = true,
-                AutomationId = "table1",
-                // WindowTitle not available in ElementSearchResult,
                 RowCount = 5,
                 ColumnCount = 3,
                 HasRowHeaders = true,
                 HasColumnHeaders = true,
-                IsScrollable = true,
-                IsSelectable = true,
-                CanSelectMultiple = false,
-                SelectionMode = "Single",
-                TotalCellCount = 15,
-                VisibleCellCount = 15,
                 RowOrColumnMajor = "RowMajor"
             };
             var serverResponse = new ServerEnhancedResponse<TableInfoResult>
@@ -1015,9 +981,9 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo
+                    new UIAutomationMCP.Models.ElementInfo
                     {
                         AutomationId = "viewContainer1",
                         Name = "View Container",
@@ -1055,9 +1021,9 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo
+                    new UIAutomationMCP.Models.ElementInfo
                     {
                         AutomationId = "viewContainer1",
                         Name = "View Container",
@@ -1095,9 +1061,9 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo
+                    new UIAutomationMCP.Models.ElementInfo
                     {
                         AutomationId = "viewContainer1",
                         Name = "View Container",
@@ -1135,7 +1101,7 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>(),
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>(),
                 SearchCriteria = "Available views for empty element ID"
             };
             var serverResponse = new ServerEnhancedResponse<ElementSearchResult>
@@ -1171,9 +1137,9 @@ namespace UIAutomationMCP.Tests.Tools
             // await Assert.ThrowsAsync<InvalidOperationException>(() => 
             //     _tools.GetAvailableViews("viewContainer1", "TestWindow"));
             // Method removed - test no longer valid
-            await Assert.ThrowsAsync<InvalidOperationException>(() => 
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 Task.FromException<object>(new InvalidOperationException("Method removed")));
-            
+
             _mockMultipleViewService.Verify(s => s.GetAvailableViewsAsync("viewContainer1", "TestWindow", null, null, 30), Times.Once);
             _output.WriteLine("GetAvailableViews service exception test passed");
         }
@@ -1186,9 +1152,9 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo
+                    new UIAutomationMCP.Models.ElementInfo
                     {
                         AutomationId = "viewContainer1",
                         Name = "View Container",
@@ -1226,9 +1192,9 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo
+                    new UIAutomationMCP.Models.ElementInfo
                     {
                         AutomationId = "viewContainer1",
                         Name = "View Container",
@@ -1266,9 +1232,9 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo
+                    new UIAutomationMCP.Models.ElementInfo
                     {
                         AutomationId = "viewContainer1",
                         Name = "View Container",
@@ -1310,9 +1276,9 @@ namespace UIAutomationMCP.Tests.Tools
             // await Assert.ThrowsAsync<ArgumentException>(() => 
             //     _tools.GetCurrentView("viewContainer1", "TestWindow"));
             // Method removed - test no longer valid
-            await Assert.ThrowsAsync<ArgumentException>(() => 
+            await Assert.ThrowsAsync<ArgumentException>(() =>
                 Task.FromException<object>(new ArgumentException("Method removed")));
-            
+
             _mockMultipleViewService.Verify(s => s.GetCurrentViewAsync("viewContainer1", "TestWindow", null, null, 30), Times.Once);
             _output.WriteLine("GetCurrentView service exception test passed");
         }
@@ -1325,9 +1291,9 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo
+                    new UIAutomationMCP.Models.ElementInfo
                     {
                         AutomationId = "viewContainer1",
                         Name = "View Container",
@@ -1363,9 +1329,9 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ElementSearchResult
             {
                 Success = true,
-                Elements = new List<UIAutomationMCP.Shared.ElementInfo>
+                Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
-                    new UIAutomationMCP.Shared.ElementInfo
+                    new UIAutomationMCP.Models.ElementInfo
                     {
                         AutomationId = "viewContainer1",
                         ProcessId = 1234,
@@ -1373,7 +1339,7 @@ namespace UIAutomationMCP.Tests.Tools
                         Name = "List View",
                         IsEnabled = true,
                         IsVisible = true,
-                        BoundingRectangle = new UIAutomationMCP.Shared.BoundingRectangle()
+                        BoundingRectangle = new UIAutomationMCP.Models.BoundingRectangle()
                     }
                 },
                 SearchCriteria = "View set to List View"
@@ -1408,7 +1374,7 @@ namespace UIAutomationMCP.Tests.Tools
                 Data = new ElementSearchResult
                 {
                     Success = true,
-                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>(),
+                    Elements = new List<UIAutomationMCP.Models.ElementInfo>(),
                     SearchCriteria = "View set successfully"
                 },
                 ExecutionInfo = new ServerExecutionInfo(),
@@ -1435,9 +1401,9 @@ namespace UIAutomationMCP.Tests.Tools
                                   .ThrowsAsync(new ArgumentException("Unsupported view ID: 999"));
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => 
+            await Assert.ThrowsAsync<ArgumentException>(() =>
                 _tools.SetView(999, "viewContainer1", "TestWindow"));
-            
+
             _mockMultipleViewService.Verify(s => s.SetViewAsync("viewContainer1", null, 999, null, null, 30), Times.Once);
             _output.WriteLine("SetView with invalid viewId test passed");
         }
@@ -1453,7 +1419,7 @@ namespace UIAutomationMCP.Tests.Tools
                 Data = new ElementSearchResult
                 {
                     Success = true,
-                    Elements = new List<UIAutomationMCP.Shared.ElementInfo>(),
+                    Elements = new List<UIAutomationMCP.Models.ElementInfo>(),
                     SearchCriteria = "View set to default"
                 },
                 ExecutionInfo = new ServerExecutionInfo(),
@@ -1480,9 +1446,9 @@ namespace UIAutomationMCP.Tests.Tools
                                   .ThrowsAsync(new ArgumentException("Invalid view ID: -1"));
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => 
+            await Assert.ThrowsAsync<ArgumentException>(() =>
                 _tools.SetView(-1, "viewContainer1", "TestWindow"));
-            
+
             _mockMultipleViewService.Verify(s => s.SetViewAsync("viewContainer1", null, -1, null, null, 30), Times.Once);
             _output.WriteLine("SetView with negative viewId test passed");
         }
@@ -1595,18 +1561,17 @@ namespace UIAutomationMCP.Tests.Tools
         [Trait("Category", "Unit")]
         public void GetScrollInfo_Should_Call_LayoutService_With_Correct_Parameters()
         {
-            // Arrange - Microsoft ScrollPattern 6             var resultObject = new ScrollInfoResult
+            // Arrange - Microsoft ScrollPattern 6つの必須プロパティをテスト
+            var resultObject = new ScrollInfoResult
             {
                 Success = true,
-                
+
                 HorizontalScrollPercent = 25.0,
                 VerticalScrollPercent = 50.0,
                 HorizontalViewSize = 80.0,
                 VerticalViewSize = 60.0,
                 HorizontallyScrollable = true,
-                VerticallyScrollable = true,
-                CanScrollHorizontally = true,
-                CanScrollVertically = true
+                VerticallyScrollable = true
             };
             var serverResponse = new ServerEnhancedResponse<ScrollInfoResult>
             {
@@ -1633,7 +1598,8 @@ namespace UIAutomationMCP.Tests.Tools
         [Trait("Category", "Unit")]
         public async Task SetScrollPercent_Should_Call_LayoutService_With_Valid_Percentages()
         {
-            // Arrange - Microsoft ScrollPattern SetScrollPercent             var resultObject = new ActionResult
+            // Arrange - Microsoft ScrollPattern SetScrollPercent
+            var resultObject = new ActionResult
             {
                 Success = true,
                 ActionName = "SetScrollPercent",
@@ -1650,7 +1616,7 @@ namespace UIAutomationMCP.Tests.Tools
                              .Returns(Task.FromResult(serverResponse));
 
             // Act
-            var result = await _tools.SetScrollPercent(automationId: "scrollContainer", horizontalPercent: 75.0, verticalPercent: 25.0, processId: 1234, timeoutSeconds: 30);
+            var result = await _tools.SetScrollPercent(automationId: "scrollContainer", horizontalPercent: 75.0, verticalPercent: 25.0, timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
@@ -1662,7 +1628,8 @@ namespace UIAutomationMCP.Tests.Tools
         [Trait("Category", "Unit")]
         public async Task SetScrollPercent_Should_Handle_NoScroll_Values()
         {
-            // Arrange - Microsoft -1 oScroll             var resultObject = new ActionResult
+            // Arrange - Microsoft -1 NoScroll values
+            var resultObject = new ActionResult
             {
                 Success = true,
                 ActionName = "SetScrollPercent",
@@ -1678,7 +1645,8 @@ namespace UIAutomationMCP.Tests.Tools
             _mockLayoutService.Setup(s => s.SetScrollPercentAsync("scrollElement", null, -1.0, 50.0, null, null, 30))
                              .Returns(Task.FromResult(serverResponse));
 
-            // Act -  NoScroll(-1) 50%             var result = await _tools.SetScrollPercent(automationId: "scrollElement", horizontalPercent: -1.0, verticalPercent: 50.0);
+            // Act - NoScroll(-1) for horizontal, 50% for vertical
+            var result = await _tools.SetScrollPercent(automationId: "scrollElement", horizontalPercent: -1.0, verticalPercent: 50.0);
 
             // Assert
             Assert.NotNull(result);
@@ -1694,7 +1662,8 @@ namespace UIAutomationMCP.Tests.Tools
         [InlineData(-1.0, -1.0)]   // NoScroll values
         public async Task SetScrollPercent_Should_Accept_Valid_Range_Values(double horizontal, double vertical)
         {
-            // Arrange - Microsoft -100 1             var resultObject = new ActionResult
+            // Arrange - Microsoft valid range values -100 to 100
+            var resultObject = new ActionResult
             {
                 Success = true,
                 ActionName = "SetScrollPercent",
@@ -1729,7 +1698,8 @@ namespace UIAutomationMCP.Tests.Tools
         [Trait("Category", "Unit")]
         public async Task ScrollElementIntoView_Should_Call_LayoutService_With_Correct_Parameters()
         {
-            // Arrange - Microsoft ScrollItemPattern.ScrollIntoView()             var expectedResult = new ServerEnhancedResponse<ActionResult>
+            // Arrange - Microsoft ScrollItemPattern.ScrollIntoView()
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
                 Data = new ActionResult
@@ -1740,7 +1710,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync("scrollableItem", "TestWindow", null, 1234, 30))
                              .Returns(Task.FromResult(expectedResult));
 
@@ -1796,14 +1766,14 @@ namespace UIAutomationMCP.Tests.Tools
         {
             // Arrange
             var expectedException = new InvalidOperationException("ScrollItemPattern is not supported by this element");
-            
+
             _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync("nonScrollableElement", null, null, null, 30))
                              .ThrowsAsync(expectedException);
 
             // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => 
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _tools.ScrollElementIntoView("nonScrollableElement"));
-            
+
             _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync("nonScrollableElement", null, null, null, 30), Times.Once);
             _output.WriteLine("ScrollElementIntoView pattern not supported exception test passed");
         }
@@ -1816,14 +1786,14 @@ namespace UIAutomationMCP.Tests.Tools
         {
             // Arrange
             var expectedException = new ArgumentException("Element not found: nonExistentElement");
-            
+
             _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync("nonExistentElement", "TestWindow", null, null, 30))
                              .ThrowsAsync(expectedException);
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => 
+            await Assert.ThrowsAsync<ArgumentException>(() =>
                 _tools.ScrollElementIntoView("nonExistentElement", "TestWindow"));
-            
+
             _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync("nonExistentElement", "TestWindow", null, null, 30), Times.Once);
             _output.WriteLine("ScrollElementIntoView element not found exception test passed");
         }
@@ -1872,7 +1842,8 @@ namespace UIAutomationMCP.Tests.Tools
         [InlineData("dataitem-3")]
         public async Task ScrollElementIntoView_Should_Work_With_Expected_Control_Types(string elementId)
         {
-            // Arrange - ListItem reeItem ataItem ScrollItemPattern             var expectedResult = new ServerEnhancedResponse<ActionResult>
+            // Arrange - ListItem TreeItem DataItem ScrollItemPattern
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
             {
                 Success = true,
                 Data = new ActionResult
@@ -1883,7 +1854,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync(elementId, "TestApplication", null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
@@ -1918,7 +1889,7 @@ namespace UIAutomationMCP.Tests.Tools
                     ErrorMessage = "Invalid parameters"
                 }
             };
-            
+
             _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync(elementId, windowTitle, null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
@@ -1941,7 +1912,8 @@ namespace UIAutomationMCP.Tests.Tools
         [Trait("Category", "Unit")]
         public async Task GetColumnHeader_Should_Call_TableService_With_Correct_Parameters()
         {
-            // Arrange - Microsoft TableItemPattern GetColumnHeader()             var resultObject = new ElementSearchResult
+            // Arrange - Microsoft TableItemPattern GetColumnHeader()
+            var resultObject = new ElementSearchResult
             {
                 Success = true,
                 Elements = new List<ElementInfo>
@@ -2031,14 +2003,14 @@ namespace UIAutomationMCP.Tests.Tools
         {
             // Arrange
             var expectedException = new InvalidOperationException("TableItemPattern not supported");
-            
+
             _mockGridService.Setup(s => s.GetColumnHeaderAsync("nonTableCell", "TestWindow", 0, null, null, 30))
                            .ThrowsAsync(expectedException);
 
             // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => 
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _tools.GetColumnHeader(0, "nonTableCell", "TestWindow"));
-            
+
             _mockGridService.Verify(s => s.GetColumnHeaderAsync("nonTableCell", "TestWindow", 0, null, null, 30), Times.Once);
             _output.WriteLine("GetColumnHeader pattern not supported exception test passed");
         }
@@ -2061,7 +2033,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockGridService.Setup(s => s.GetColumnHeaderAsync("emptyTableCell", "TestWindow", 0, null, null, 30))
                            .Returns(Task.FromResult(expectedResult));
 
@@ -2080,7 +2052,8 @@ namespace UIAutomationMCP.Tests.Tools
         [Trait("Category", "Unit")]
         public async Task GetRowHeader_Should_Call_TableService_With_Correct_Parameters()
         {
-            // Arrange - Microsoft TableItemPattern GetRowHeader()             var resultObject = new ElementSearchResult
+            // Arrange - Microsoft TableItemPattern GetRowHeader()
+            var resultObject = new ElementSearchResult
             {
                 Success = true,
                 Elements = new List<ElementInfo>
@@ -2145,7 +2118,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockGridService.Setup(s => s.GetRowHeaderAsync("defaultCell", null, 0, null, null, 30))
                            .Returns(Task.FromResult(expectedResult));
 
@@ -2168,14 +2141,14 @@ namespace UIAutomationMCP.Tests.Tools
         {
             // Arrange
             var expectedException = new InvalidOperationException("TableItemPattern not supported");
-            
+
             _mockGridService.Setup(s => s.GetRowHeaderAsync("nonTableCell", "TestWindow", 0, null, null, 30))
                            .ThrowsAsync(expectedException);
 
             // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => 
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _tools.GetRowHeader(0, "nonTableCell", "TestWindow"));
-            
+
             _mockGridService.Verify(s => s.GetRowHeaderAsync("nonTableCell", "TestWindow", 0, null, null, 30), Times.Once);
             _output.WriteLine("GetRowHeader pattern not supported exception test passed");
         }
@@ -2264,7 +2237,8 @@ namespace UIAutomationMCP.Tests.Tools
         [InlineData("cell_0_0", "Top-left cell")]
         public async Task TableItem_Pattern_Methods_Should_Work_For_Different_Cell_Types(string cellId, string description)
         {
-            // Arrange -              var columnHeadersResult = new ElementSearchResult
+            // Arrange
+            var columnHeadersResult = new ElementSearchResult
             {
                 Success = true,
                 Elements = new List<ElementInfo>
@@ -2281,7 +2255,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             var rowHeadersResult = new ElementSearchResult
             {
                 Success = true,
@@ -2299,7 +2273,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockGridService.Setup(s => s.GetColumnHeaderAsync(cellId, null, 0, null, null, 30))
                            .Returns(Task.FromResult(columnServerResponse));
             _mockGridService.Setup(s => s.GetRowHeaderAsync(cellId, null, 0, null, null, 30))
@@ -2340,7 +2314,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockGridService.Setup(s => s.GetColumnHeaderAsync(elementId, windowTitle, 0, null, null, 30))
                            .Returns(Task.FromResult(serverResponse));
             _mockGridService.Setup(s => s.GetRowHeaderAsync(elementId, windowTitle, 0, null, null, 30))

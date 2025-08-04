@@ -56,7 +56,7 @@ namespace UiAutomationMcp.Tests.UnitTests
             var description = stateValue switch
             {
                 0 => "The window is running and responding to user input",
-                1 => "The window is in the process of closing", 
+                1 => "The window is in the process of closing",
                 2 => "The window is ready for user interaction",
                 3 => "The window is blocked by a modal window",
                 4 => "The window is not responding",
@@ -120,7 +120,7 @@ namespace UiAutomationMcp.Tests.UnitTests
         public void WaitForInputIdle_Should_Parse_Timeout_Correctly(string timeoutInput, int expectedTimeout)
         {
             // Arrange & Act
-            var timeoutMilliseconds = !string.IsNullOrEmpty(timeoutInput) && 
+            var timeoutMilliseconds = !string.IsNullOrEmpty(timeoutInput) &&
                 int.TryParse(timeoutInput, out var timeout) && timeout >= 0 ? timeout : 10000;
 
             // Assert
@@ -136,7 +136,7 @@ namespace UiAutomationMcp.Tests.UnitTests
         public void WaitForInputIdle_Should_Generate_Correct_Messages(bool success, int timeoutMs, string expectedMessage)
         {
             // Act
-            var message = success 
+            var message = success
                 ? "Window became idle within the specified timeout"
                 : $"Window did not become idle within {timeoutMs}ms timeout";
 

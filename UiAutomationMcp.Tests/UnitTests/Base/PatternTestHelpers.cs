@@ -64,14 +64,14 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
             params object[] parameters) where TService : class
         {
             var testParams = new object[] { "validElement", "TestWindow", 0 }.Concat(parameters).ToArray();
-            
+
             try
             {
                 var method = typeof(TService).GetMethod(methodName);
                 if (method != null)
                 {
                     var result = method.Invoke(mockService.Object, testParams);
-                    
+
                     // Check if result is OperationResult
                     if (result is OperationResult operationResult)
                     {
@@ -189,7 +189,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
                 {
                     var parameters = new object[] { elementId, "TestWindow", 0 };
                     var result = method.Invoke(mockService.Object, parameters);
-                    
+
                     if (result is OperationResult operationResult)
                     {
                         //                                                    output.WriteLine($"  {methodName} error scenario test completed for {elementId}");

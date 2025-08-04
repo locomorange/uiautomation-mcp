@@ -20,14 +20,14 @@ namespace UiAutomationMcp.Tests.Infrastructure
         public UIAutomationTestFixture()
         {
             //                             CleanupWorkerProcesses();
-            
+
             //                                            
             for (int i = 0; i < 3; i++)
             {
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
             }
-            
+
             //                                 
             System.Threading.Thread.Sleep(500);
         }
@@ -42,9 +42,9 @@ namespace UiAutomationMcp.Tests.Infrastructure
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
                 }
-                
+
                 //         Worker                                 CleanupWorkerProcesses();
-                
+
                 //                            System.Threading.Thread.Sleep(1000);
             }
             catch (Exception ex)
@@ -52,7 +52,7 @@ namespace UiAutomationMcp.Tests.Infrastructure
                 Console.WriteLine($"Fixture disposal error: {ex.Message}");
             }
         }
-        
+
         private void CleanupWorkerProcesses()
         {
             try
@@ -75,7 +75,7 @@ namespace UiAutomationMcp.Tests.Infrastructure
                         // Ignore errors
                     }
                 }
-                
+
                 // dotnet.exe           UIAutomationMCP.Worker.dll                      
                 var dotnetProcesses = Process.GetProcessesByName("dotnet");
                 foreach (var process in dotnetProcesses)
@@ -106,7 +106,7 @@ namespace UiAutomationMcp.Tests.Infrastructure
                 Console.WriteLine($"Worker process cleanup error: {ex.Message}");
             }
         }
-        
+
         private string? GetProcessCommandLine(Process process)
         {
             try
@@ -115,11 +115,11 @@ namespace UiAutomationMcp.Tests.Infrastructure
                 if (!string.IsNullOrEmpty(process.StartInfo?.FileName))
                 {
                     var args = process.StartInfo.Arguments;
-                    return string.IsNullOrEmpty(args) 
-                        ? process.StartInfo.FileName 
+                    return string.IsNullOrEmpty(args)
+                        ? process.StartInfo.FileName
                         : $"{process.StartInfo.FileName} {args}";
                 }
-                
+
                 // Fallback: Try to get from MainModule (limited info but AOT compatible)
                 return process.MainModule?.FileName;
             }
