@@ -349,6 +349,29 @@ jobs:
             & $useCommand --help 2>&1 | Write-Host
             Write-Host "✅ Command responds to --help"
             echo "USE_COMMAND=$useCommand" >> $env:GITHUB_OUTPUT
+            
+            # Add Winget Links to PATH for current session and future steps
+            $wingetLinks = "$env:LOCALAPPDATA\Microsoft\WinGet\Links"
+            if (Test-Path $wingetLinks) {
+              Write-Host "Adding Winget Links to PATH: $wingetLinks"
+              $env:PATH = "$wingetLinks;$env:PATH"
+              
+              # Also add to GitHub Actions PATH for subsequent steps
+              Add-Content $env:GITHUB_PATH $wingetLinks
+              
+              # Test if uiautomation-mcp is now directly available
+              Write-Host "Testing direct command availability after PATH update..."
+              try {
+                $directCommand = Get-Command uiautomation-mcp -ErrorAction Stop
+                Write-Host "✅ uiautomation-mcp is now available in PATH: $($directCommand.Source)"
+                
+                # Quick test with direct command
+                uiautomation-mcp --help 2>&1 | Out-Null
+                Write-Host "✅ Direct command execution successful"
+              } catch {
+                Write-Host "⚠️ Command still not directly available in PATH: $_"
+              }
+            }
           } catch {
             Write-Warning "⚠️ Command found but may not be working: $_"
             echo "USE_COMMAND=$useCommand" >> $env:GITHUB_OUTPUT
