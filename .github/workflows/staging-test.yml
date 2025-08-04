@@ -145,15 +145,29 @@ jobs:
         # Save the process ID for cleanup
         echo "SERVER_PID=$($serverProcess.Id)" >> $env:GITHUB_OUTPUT
         
-        # Wait for server to start
-        Start-Sleep -Seconds 2
+        # Wait for server to start with retry logic
+        $maxRetries = 3
+        $retryCount = 0
+        $success = $false
         
-        # Verify server is running
-        try {
-          $response = Invoke-WebRequest -Uri "http://localhost:$port" -TimeoutSec 5
-          Write-Host "✅ HTTP server started successfully on http://localhost:$port"
-        } catch {
-          Write-Error "Failed to start HTTP server: $_"
+        while ($retryCount -lt $maxRetries -and -not $success) {
+          Start-Sleep -Seconds 2
+          try {
+            $response = Invoke-WebRequest -Uri "http://localhost:$port" -TimeoutSec 5
+            $success = $true
+            Write-Host "✅ HTTP server started successfully on http://localhost:$port"
+          } catch {
+            $retryCount++
+            if ($retryCount -lt $maxRetries) {
+              Write-Host "Retry $retryCount/$maxRetries: Waiting for HTTP server to start..."
+            } else {
+              Write-Host "Error details: $_"
+            }
+          }
+        }
+        
+        if (-not $success) {
+          Write-Error "Failed to start HTTP server after $maxRetries attempts"
           exit 1
         }
       shell: pwsh
