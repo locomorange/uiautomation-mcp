@@ -447,17 +447,28 @@ jobs:
           Write-Host "Command: $useCommand"
           
           # Create temporary files for capturing server output
-          $tempStdout = New-TemporaryFile
           $tempStderr = New-TemporaryFile
-          Write-Host "Server logs will be captured to:"
-          Write-Host "  stdout: $($tempStdout.FullName)"
-          Write-Host "  stderr: $($tempStderr.FullName)"
+          Write-Host "Server error log will be captured to: $($tempStderr.FullName)"
           
-          # Start the MCP server with output redirection
-          $serverProcess = Start-Process -FilePath $useCommand -NoNewWindow -PassThru `
-            -RedirectStandardOutput $tempStdout.FullName `
-            -RedirectStandardError $tempStderr.FullName
-          Start-Sleep -Seconds 3
+          # Configure process start info for proper IO redirection
+          $psi = New-Object System.Diagnostics.ProcessStartInfo
+          $psi.FileName = $useCommand
+          $psi.RedirectStandardInput = $true
+          $psi.RedirectStandardOutput = $true
+          $psi.RedirectStandardError = $true
+          $psi.UseShellExecute = $false
+          $psi.CreateNoWindow = $true
+          
+          # Start the MCP server process
+          Write-Host "Starting MCP server process..."
+          $serverProcess = [System.Diagnostics.Process]::Start($psi)
+          
+          # Redirect stderr to file for logging
+          $stderrReader = $serverProcess.StandardError
+          $stderrTask = $stderrReader.ReadToEndAsync()
+          
+          # Give server time to initialize
+          Start-Sleep -Seconds 2
           
           # Test 1: Initialize server and list tools
           Write-Host "🔍 Testing: Server initialization and tools list"
@@ -474,28 +485,36 @@ jobs:
               }
             } | ConvertTo-Json -Compress
             
-            # Send request using stdio (with timeout)
-            $job = Start-Job -ScriptBlock {
-              param($cmd, $request)
-              $request | & $cmd 2>&1
-            } -ArgumentList $useCommand, $initRequest
+            Write-Host "Sending initialization request: $initRequest"
             
-            $result = Wait-Job $job -Timeout 10
-            if ($result) {
-              $response = Receive-Job $job
+            # Send request to server's stdin
+            $serverProcess.StandardInput.WriteLine($initRequest)
+            $serverProcess.StandardInput.Flush()
+            
+            # Read response from stdout (with timeout)
+            $responseTask = $serverProcess.StandardOutput.ReadLineAsync()
+            $timeout = [System.Threading.Tasks.Task]::Delay(5000)
+            $completedTask = [System.Threading.Tasks.Task]::WhenAny($responseTask, $timeout).Result
+            
+            if ($completedTask -eq $responseTask) {
+              $response = $responseTask.Result
               Write-Host "Server response:"
               Write-Host $response
               
-              if ($response -match "serverInfo" -or $response -match "capabilities") {
-                Write-Host "✅ Server initialization successful"
+              if ($response) {
+                $responseObj = $response | ConvertFrom-Json -ErrorAction SilentlyContinue
+                if ($responseObj.result.serverInfo -or $responseObj.result.capabilities) {
+                  Write-Host "✅ Server initialization successful"
+                  Write-Host "  Server: $($responseObj.result.serverInfo.name) v$($responseObj.result.serverInfo.version)"
+                } else {
+                  Write-Warning "⚠️ Unexpected server response format"
+                }
               } else {
-                Write-Warning "⚠️ Unexpected server response"
+                Write-Warning "⚠️ Empty server response"
               }
             } else {
-              Stop-Job $job
-              Write-Warning "⚠️ Server initialization timed out"
+              Write-Warning "⚠️ Server response timed out after 5 seconds"
             }
-            Remove-Job $job -Force -ErrorAction SilentlyContinue
             
           } catch {
             Write-Warning "⚠️ Server initialization failed: $_"
@@ -536,32 +555,40 @@ jobs:
           # Stop the MCP server if still running
           if ($serverProcess -and !$serverProcess.HasExited) {
             Write-Host "Stopping MCP server process..."
-            $serverProcess.Kill()
-            $serverProcess.WaitForExit(5000)
-          }
-          
-          # Display server logs for debugging
-          if ($tempStdout -and (Test-Path $tempStdout.FullName)) {
-            Write-Host ""
-            Write-Host "=== MCP Server stdout ==="
-            $stdout = Get-Content $tempStdout.FullName -Raw
-            if ($stdout) {
-              Write-Host $stdout
-            } else {
-              Write-Host "(no stdout output)"
+            
+            # Close stdin to signal shutdown
+            try {
+              $serverProcess.StandardInput.Close()
+            } catch {}
+            
+            # Wait for graceful shutdown
+            if (!$serverProcess.WaitForExit(5000)) {
+              # Force kill if not exited
+              $serverProcess.Kill()
+              $serverProcess.WaitForExit(2000)
             }
-            Remove-Item $tempStdout.FullName -Force -ErrorAction SilentlyContinue
           }
           
+          # Get stderr output
+          if ($stderrTask) {
+            try {
+              $stderrTask.Wait(1000)
+              $stderrOutput = $stderrTask.Result
+              
+              Write-Host ""
+              Write-Host "=== MCP Server stderr log ==="
+              if ($stderrOutput) {
+                Write-Host $stderrOutput
+              } else {
+                Write-Host "(no stderr output)"
+              }
+            } catch {
+              Write-Host "Could not retrieve stderr: $_"
+            }
+          }
+          
+          # Clean up temp file
           if ($tempStderr -and (Test-Path $tempStderr.FullName)) {
-            Write-Host ""
-            Write-Host "=== MCP Server stderr ==="
-            $stderr = Get-Content $tempStderr.FullName -Raw
-            if ($stderr) {
-              Write-Host $stderr
-            } else {
-              Write-Host "(no stderr output)"
-            }
             Remove-Item $tempStderr.FullName -Force -ErrorAction SilentlyContinue
           }
           
