@@ -464,7 +464,9 @@ jobs:
             Write-Host "Search result:"
             Write-Host $searchResult
             
-            if ($searchResult -match "Calculator" -or $searchResult -match "success" -or $searchResult -match "elements") {
+            if ($searchResult -match "isError.*true" -or $searchResult -match "error occurred") {
+              Write-Warning "⚠️ Window search returned an error (this may be expected in CI environment)"
+            } elseif ($searchResult -match "Calculator" -or $searchResult -match "success" -or $searchResult -match "elements") {
               Write-Host "✅ Window search working"
             } else {
               Write-Warning "⚠️ Window search may have issues"
@@ -481,7 +483,9 @@ jobs:
             Write-Host "Element tree result:"
             Write-Host $treeResult
             
-            if ($treeResult -match "elements" -or $treeResult -match "children" -or $treeResult -match "tree") {
+            if ($treeResult -match "isError.*true" -or $treeResult -match "error occurred") {
+              Write-Warning "⚠️ Element tree returned an error (this may be expected in CI environment)"
+            } elseif ($treeResult -match "elements" -or $treeResult -match "children" -or $treeResult -match "tree") {
               Write-Host "✅ Element tree enumeration working"
             } else {
               Write-Warning "⚠️ Element tree enumeration may have issues"
@@ -497,7 +501,9 @@ jobs:
             Write-Host "Screenshot result:"
             Write-Host $screenshotResult
             
-            if ($screenshotResult -match "base64" -or $screenshotResult -match "screenshot" -or $screenshotResult -match "image") {
+            if ($screenshotResult -match "isError.*true" -or $screenshotResult -match "error occurred") {
+              Write-Warning "⚠️ Screenshot returned an error (this may be expected in CI environment)"
+            } elseif ($screenshotResult -match "base64" -or $screenshotResult -match "screenshot" -or $screenshotResult -match "image") {
               Write-Host "✅ Screenshot functionality working"
             } else {
               Write-Warning "⚠️ Screenshot may have issues"
@@ -506,19 +512,8 @@ jobs:
             Write-Warning "⚠️ Screenshot test failed: $_"
           }
           
-          # Test 6: Server initialization to check capabilities
-          Write-Host "ℹ️  Testing: Server initialization"
-          try {
-            $serverInfo = mcp-inspector --cli $useCommand --method initialize 2>&1
-            Write-Host "Server info:"
-            Write-Host $serverInfo
-            
-            if ($serverInfo -match "capabilities" -or $serverInfo -match "serverInfo") {
-              Write-Host "✅ Server initialization successful"
-            }
-          } catch {
-            Write-Warning "⚠️ Server initialization test failed: $_"
-          }
+          # Note: 'initialize' method is not supported in CLI mode
+          # The tools/list already confirms server connectivity and capabilities
           
           Write-Host ""
           Write-Host "📋 MCP Inspector Test Summary:"
