@@ -15,6 +15,35 @@ namespace UIAutomationMCP.Server
 {
     class Program
     {
+        /// <summary>
+        /// Find the solution directory by looking for .sln files or known project directories
+        /// </summary>
+        private static string? FindSolutionDirectory(string startDir)
+        {
+            var current = new DirectoryInfo(startDir);
+            
+            // Search up the directory tree for solution indicators
+            while (current != null)
+            {
+                // Look for .sln files
+                if (current.GetFiles("*.sln").Length > 0)
+                {
+                    return current.FullName;
+                }
+                
+                // Look for the Worker project directory as an indicator
+                var workerDir = Path.Combine(current.FullName, "UIAutomationMCP.Subprocess.Worker");
+                if (Directory.Exists(workerDir))
+                {
+                    return current.FullName;
+                }
+                
+                current = current.Parent;
+            }
+            
+            return null;
+        }
+
         static async Task Main(string[] args)
         {
             // Configure Console output for MCP STDIO transport
@@ -87,7 +116,7 @@ namespace UIAutomationMCP.Server
                 {
                     // Simple approach: Use project directories directly
                     // SubprocessExecutor will use 'dotnet run' which handles building automatically
-                    var solutionDir = Directory.GetParent(baseDir)?.Parent?.Parent?.Parent?.Parent?.FullName;
+                    var solutionDir = FindSolutionDirectory(baseDir);
                     if (solutionDir != null)
                     {
                         var workerProjectDir = Path.Combine(solutionDir, "UIAutomationMCP.Subprocess.Worker");
