@@ -429,26 +429,12 @@ jobs:
         }
         
         try {
-          Write-Host "Starting MCP server for Inspector testing..."
-          Write-Host "Command: $useCommand"
-          
-          # Create temporary files for capturing server output
-          $tempStdout = New-TemporaryFile
-          $tempStderr = New-TemporaryFile
-          Write-Host "Server logs will be captured to:"
-          Write-Host "  stdout: $($tempStdout.FullName)"
-          Write-Host "  stderr: $($tempStderr.FullName)"
-          
-          # Start the MCP server in background with output redirection
-          $serverProcess = Start-Process -FilePath $useCommand -NoNewWindow -PassThru `
-            -RedirectStandardOutput $tempStdout.FullName `
-            -RedirectStandardError $tempStderr.FullName
-          Start-Sleep -Seconds 3
+          Write-Host "Using MCP Inspector CLI mode with command: $useCommand"
           
           # Test 1: List available tools
           Write-Host "🔍 Testing: List available tools"
           try {
-            $toolsList = mcp-inspector tools list --server-command $useCommand 2>&1
+            $toolsList = mcp-inspector --cli $useCommand --method tools/list 2>&1
             Write-Host "Available tools:"
             Write-Host $toolsList
             
@@ -474,7 +460,7 @@ jobs:
           # Test 3: Search for Calculator window
           Write-Host "🔍 Testing: Search for Calculator window"
           try {
-            $searchResult = mcp-inspector call SearchElements --server-command $useCommand --args '{\"searchText\": \"Calculator\", \"requiredPattern\": \"Window\"}' 2>&1
+            $searchResult = mcp-inspector --cli $useCommand --method tools/call --tool-name SearchElements --tool-arg searchText=Calculator --tool-arg requiredPattern=Window 2>&1
             Write-Host "Search result:"
             Write-Host $searchResult
             
@@ -491,7 +477,7 @@ jobs:
           # Test 4: Get element tree structure
           Write-Host "🌳 Testing: Get element tree structure"
           try {
-            $treeResult = mcp-inspector call GetElementTree --server-command $useCommand --args '{\"maxDepth\": 2}' 2>&1
+            $treeResult = mcp-inspector --cli $useCommand --method tools/call --tool-name GetElementTree --tool-arg maxDepth=2 2>&1
             Write-Host "Element tree result:"
             Write-Host $treeResult
             
@@ -507,7 +493,7 @@ jobs:
           # Test 5: Take screenshot
           Write-Host "📷 Testing: Take screenshot"
           try {
-            $screenshotResult = mcp-inspector call TakeScreenshot --server-command $useCommand --args '{\"windowTitle\": \"Calculator\", \"maxTokens\": 1000}' 2>&1
+            $screenshotResult = mcp-inspector --cli $useCommand --method tools/call --tool-name TakeScreenshot --tool-arg windowTitle=Calculator --tool-arg maxTokens=1000 2>&1
             Write-Host "Screenshot result:"
             Write-Host $screenshotResult
             
@@ -520,18 +506,18 @@ jobs:
             Write-Warning "⚠️ Screenshot test failed: $_"
           }
           
-          # Test 6: Server info/capabilities
-          Write-Host "ℹ️  Testing: Server capabilities"
+          # Test 6: Server initialization to check capabilities
+          Write-Host "ℹ️  Testing: Server initialization"
           try {
-            $serverInfo = mcp-inspector info --server-command $useCommand 2>&1
+            $serverInfo = mcp-inspector --cli $useCommand --method initialize 2>&1
             Write-Host "Server info:"
             Write-Host $serverInfo
             
-            if ($serverInfo -match "capabilities" -or $serverInfo -match "tools") {
-              Write-Host "✅ Server info accessible"
+            if ($serverInfo -match "capabilities" -or $serverInfo -match "serverInfo") {
+              Write-Host "✅ Server initialization successful"
             }
           } catch {
-            Write-Warning "⚠️ Server info test failed: $_"
+            Write-Warning "⚠️ Server initialization test failed: $_"
           }
           
           Write-Host ""
@@ -550,44 +536,7 @@ jobs:
         } catch {
           Write-Warning "❌ MCP Inspector testing failed: $_"
           Write-Host "This may indicate issues with the MCP server or Inspector setup"
-          
-          # Display server logs for debugging
-          Write-Host ""
-          Write-Host "=== MCP Server Logs (stdout) ==="
-          if (Test-Path $tempStdout.FullName) {
-            $stdout = Get-Content $tempStdout.FullName -Raw
-            if ($stdout) {
-              Write-Host $stdout
-            } else {
-              Write-Host "(no stdout output)"
-            }
-          }
-          
-          Write-Host ""
-          Write-Host "=== MCP Server Logs (stderr) ==="
-          if (Test-Path $tempStderr.FullName) {
-            $stderr = Get-Content $tempStderr.FullName -Raw
-            if ($stderr) {
-              Write-Host $stderr
-            } else {
-              Write-Host "(no stderr output)"
-            }
-          }
         } finally {
-          # Clean up
-          if ($serverProcess -and !$serverProcess.HasExited) {
-            Write-Host "Stopping MCP server process..."
-            $serverProcess.Kill()
-          }
-          
-          # Clean up temporary files
-          if ($tempStdout -and (Test-Path $tempStdout.FullName)) {
-            Remove-Item $tempStdout.FullName -Force -ErrorAction SilentlyContinue
-          }
-          if ($tempStderr -and (Test-Path $tempStderr.FullName)) {
-            Remove-Item $tempStderr.FullName -Force -ErrorAction SilentlyContinue
-          }
-          
           # Close Calculator if opened
           try {
             Get-Process -Name "Calculator*" -ErrorAction SilentlyContinue | Stop-Process -Force
