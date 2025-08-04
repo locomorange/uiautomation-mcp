@@ -97,5 +97,5 @@ rm -f temp-request.json temp-response.json mcp-server.log 2>/dev/null
 echo ""
 echo "🛑 MCP Server shutdown complete!"
 echo ""
-echo "💡 To start again: ./start-mcp-server.sh"
-echo "💡 To view logs while running: ./show-mcp-logs.sh"
+echo "💡 To start again: ./scripts/start-mcp-server.sh"
+echo "💡 To view logs while running: ./scripts/show-mcp-logs.sh"

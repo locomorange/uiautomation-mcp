@@ -75,4 +75,4 @@ if (Test-Path \$devResponseLog) {
 
 echo ""
 echo "💡 Logs are continuously written while server is running."
-echo "💡 Use './stop-mcp-server.sh' to stop the server and see final logs."
+echo "💡 Use './scripts/stop-mcp-server.sh' to stop the server and see final logs."

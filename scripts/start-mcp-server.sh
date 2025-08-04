@@ -113,9 +113,9 @@ if [ -f "$PID_FILE" ]; then
     echo "   PowerShell PID: $POWERSHELL_PID"
     echo ""
     echo "📋 Usage:"
-    echo "   ./send-mcp-request.sh 'tools/list'"
-    echo "   ./send-mcp-request.sh 'tools/call' 'TakeScreenshot' '{\"maxTokens\": 1000}'"
-    echo "   ./stop-mcp-server.sh"
+    echo "   ./scripts/send-mcp-request.sh 'tools/list'"
+    echo "   ./scripts/send-mcp-request.sh 'tools/call' 'TakeScreenshot' '{\"maxTokens\": 1000}'"
+    echo "   ./scripts/stop-mcp-server.sh"
     echo ""
     echo "Server is ready for JSON-RPC requests!"
 else

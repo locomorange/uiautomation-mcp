@@ -8,27 +8,27 @@
 
 For advanced development workflows, these shell scripts provide complete background server management with comprehensive logging:
 
-**Available Scripts:**
-- `start-mcp-server.sh` - Start MCP server in background with logging
-- `send-mcp-request.sh` - Send JSON-RPC requests to running server  
-- `show-mcp-logs.sh` - Display server logs while running
-- `stop-mcp-server.sh` - Stop server and show final logs
+**Available Scripts (in `scripts/` folder):**
+- `scripts/start-mcp-server.sh` - Start MCP server in background with logging
+- `scripts/send-mcp-request.sh` - Send JSON-RPC requests to running server  
+- `scripts/show-mcp-logs.sh` - Display server logs while running
+- `scripts/stop-mcp-server.sh` - Stop server and show final logs
 
 ### Usage Workflow
 
 ```bash
 # 1. Start server in background
-./start-mcp-server.sh
+./scripts/start-mcp-server.sh
 
 # 2. Send requests (server runs in background)  
-./send-mcp-request.sh 'tools/list'
-./send-mcp-request.sh 'tools/call' 'TakeScreenshot' '{"maxTokens": 1000}'
+./scripts/send-mcp-request.sh 'tools/list'
+./scripts/send-mcp-request.sh 'tools/call' 'TakeScreenshot' '{"maxTokens": 1000}'
 
 # 3. View logs while running
-./show-mcp-logs.sh  
+./scripts/show-mcp-logs.sh  
 
 # 4. Stop server when done
-./stop-mcp-server.sh
+./scripts/stop-mcp-server.sh
 ```
 
 ### Key Features
@@ -51,16 +51,16 @@ Starting MCP server in background...
    PowerShell PID: 67890
 
 📋 Usage:
-   ./send-mcp-request.sh 'tools/list'
-   ./send-mcp-request.sh 'tools/call' 'TakeScreenshot' '{"maxTokens": 1000}'
-   ./stop-mcp-server.sh
+   ./scripts/send-mcp-request.sh 'tools/list'
+   ./scripts/send-mcp-request.sh 'tools/call' 'TakeScreenshot' '{"maxTokens": 1000}'
+   ./scripts/stop-mcp-server.sh
 
 Server is ready for JSON-RPC requests!
 ```
 
 **Request Example:**
 ```bash
-./send-mcp-request.sh 'tools/list'
+./scripts/send-mcp-request.sh 'tools/list'
 # Returns: {"result":{"tools":[{"name":"SearchElements",...}]},"id":2,"jsonrpc":"2.0"}
 ```
 
