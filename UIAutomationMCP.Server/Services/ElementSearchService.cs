@@ -16,7 +16,7 @@ namespace UIAutomationMCP.Server.Services
         private readonly IOptions<UIAutomationOptions> _options;
 
         public ElementSearchService(
-            IProcessManager processManager, 
+            IProcessManager processManager,
             ILogger<ElementSearchService> logger,
             IOptions<UIAutomationOptions> options)
             : base(processManager, logger)
@@ -27,24 +27,24 @@ namespace UIAutomationMCP.Server.Services
         protected override string GetOperationType() => "search";
 
         public async Task<ServerEnhancedResponse<ElementSearchResult>> FindElementsAsync(
-            string? windowTitle = null, 
-            string? searchText = null, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? windowTitle = null,
+            string? searchText = null,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 60)
         {
             return await FindElementsAsync(windowTitle, searchText, controlType, windowHandle, "descendants", true, 100, false, timeoutSeconds);
         }
 
         public async Task<ServerEnhancedResponse<ElementSearchResult>> FindElementsAsync(
-            string? windowTitle = null, 
-            string? searchText = null, 
-            string? controlType = null, 
-            long? windowHandle = null, 
-            string scope = "descendants", 
-            bool validatePatterns = true, 
-            int maxResults = 100, 
-            bool useCache = true, 
+            string? windowTitle = null,
+            string? searchText = null,
+            string? controlType = null,
+            long? windowHandle = null,
+            string scope = "descendants",
+            bool validatePatterns = true,
+            int maxResults = 100,
+            bool useCache = true,
             int timeoutSeconds = 60)
         {
             var request = new FindElementsRequest
@@ -71,7 +71,7 @@ namespace UIAutomationMCP.Server.Services
         }
 
         public async Task<ServerEnhancedResponse<SearchElementsResult>> SearchElementsAsync(
-            SearchElementsRequest request, 
+            SearchElementsRequest request,
             int timeoutSeconds = 30)
         {
             return await ExecuteServiceOperationAsync<SearchElementsRequest, SearchElementsResult>(

@@ -41,7 +41,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
                     WindowHandle = request.WindowHandle
                 };
                 var element = _elementFinderService.FindElement(searchCriteria);
-                
+
                 if (element == null)
                 {
                     throw new UIAutomationElementNotFoundException("Operation", null, "Element not found");
@@ -134,17 +134,17 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
 
             var fullText = documentRange.GetText(-1);
             var (startIndex, endIndex) = CalculateTextRange(fullText, request.StartIndex, request.Length);
-            
+
             if (startIndex >= fullText.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(request), "Start index is beyond text length");
             }
 
             var textRange = CreateTextRange(documentRange, startIndex, endIndex - startIndex);
-            
+
             // Check if any attributes have mixed values that would benefit from segmentation
             bool shouldSegment = ShouldUseSegmentation(textRange);
-            
+
             var result = new TextAttributesResult
             {
                 Success = true,
@@ -204,12 +204,12 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
                 attributes.FontSize = GetAttributeValue<double?>(textRange, TextPattern.FontSizeAttribute) ?? 0.0;
                 attributes.FontWeight = GetAttributeValue<object>(textRange, TextPattern.FontWeightAttribute)?.ToString() ?? string.Empty;
                 attributes.IsItalic = GetAttributeValue<bool?>(textRange, TextPattern.IsItalicAttribute) ?? false;
-                
+
                 // Colors - Microsoft Learn recommends checking for 0 as "not set"
                 var foregroundColor = GetAttributeValue<int>(textRange, TextPattern.ForegroundColorAttribute);
                 if (foregroundColor != 0)
                     attributes.ForegroundColor = $"#{foregroundColor:X6}";
-                
+
                 var backgroundColor = GetAttributeValue<int>(textRange, TextPattern.BackgroundColorAttribute);
                 if (backgroundColor != 0)
                     attributes.BackgroundColor = $"#{backgroundColor:X6}";
@@ -247,8 +247,8 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
         private bool DetermineBoldFromFontWeight(object? fontWeight)
         {
             _logger.LogDebug("DetermineBoldFromFontWeight called with: {FontWeight} (Type: {Type})", fontWeight?.ToString(), fontWeight?.GetType().Name);
-            
-            if (fontWeight == null) 
+
+            if (fontWeight == null)
             {
                 _logger.LogDebug("FontWeight is null, returning false");
                 return false;
@@ -256,19 +256,19 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
 
             var weightStr = fontWeight.ToString() ?? "";
             _logger.LogDebug("FontWeight string: '{WeightStr}'", weightStr);
-            
+
             // Check for numeric values (700+ is bold as per Microsoft standards)
             if (int.TryParse(weightStr, out var numericWeight))
             {
                 _logger.LogDebug("Parsed numeric weight: {NumericWeight}, isBold: {IsBold}", numericWeight, numericWeight >= 700);
                 return numericWeight >= 700;
             }
-            
+
             // Check for string patterns
-            var isBold = weightStr.Contains("Bold", StringComparison.OrdinalIgnoreCase) || 
+            var isBold = weightStr.Contains("Bold", StringComparison.OrdinalIgnoreCase) ||
                    weightStr.Contains("Heavy", StringComparison.OrdinalIgnoreCase) ||
                    weightStr.Contains("700") || weightStr.Contains("800") || weightStr.Contains("900");
-            
+
             _logger.LogDebug("String pattern check result: {IsBold}", isBold);
             return isBold;
         }
@@ -277,7 +277,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
         {
             return [
                 "FontName", "FontSize", "FontWeight", "IsItalic", "IsBold",
-                "ForegroundColor", "BackgroundColor", "IsUnderline", "IsStrikethrough", 
+                "ForegroundColor", "BackgroundColor", "IsUnderline", "IsStrikethrough",
                 "HorizontalTextAlignment", "Culture", "IsReadOnly", "IsHidden"
             ];
         }
@@ -287,9 +287,9 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
             try
             {
                 var value = textRange.GetAttributeValue(attribute);
-                _logger.LogDebug("Raw Attribute {Attribute}: Value={Value}, Type={Type}, IsMixed={IsMixed}, IsNotSupported={IsNotSupported}", 
-                    attribute.ProgrammaticName, 
-                    value?.ToString(), 
+                _logger.LogDebug("Raw Attribute {Attribute}: Value={Value}, Type={Type}, IsMixed={IsMixed}, IsNotSupported={IsNotSupported}",
+                    attribute.ProgrammaticName,
+                    value?.ToString(),
                     value?.GetType().Name,
                     ReferenceEquals(value, TextPattern.MixedAttributeValue),
                     ReferenceEquals(value, AutomationElement.NotSupported));
@@ -307,27 +307,27 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
             try
             {
                 var value = textRange.GetAttributeValue(attribute);
-                
+
                 // Log for debugging
-                _logger.LogDebug("Attribute {Attribute}: Value={Value}, Type={Type}, IsMixed={IsMixed}, IsNotSupported={IsNotSupported}", 
-                    attribute.ProgrammaticName, 
-                    value?.ToString(), 
+                _logger.LogDebug("Attribute {Attribute}: Value={Value}, Type={Type}, IsMixed={IsMixed}, IsNotSupported={IsNotSupported}",
+                    attribute.ProgrammaticName,
+                    value?.ToString(),
                     value?.GetType().Name,
                     ReferenceEquals(value, TextPattern.MixedAttributeValue),
                     ReferenceEquals(value, AutomationElement.NotSupported));
-                
+
                 // Handle special cases like MixedAttributeValue and NotSupported
-                if (ReferenceEquals(value, TextPattern.MixedAttributeValue) || 
+                if (ReferenceEquals(value, TextPattern.MixedAttributeValue) ||
                     ReferenceEquals(value, AutomationElement.NotSupported))
                 {
                     return default!;
                 }
-                
+
                 if (value is T typedValue)
                 {
                     return typedValue;
                 }
-                
+
                 // Try conversion for numeric types
                 if (typeof(T) == typeof(double) && value != null)
                 {
@@ -336,7 +336,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
                         return (T)(object)doubleValue;
                     }
                 }
-                
+
                 return default!;
             }
             catch (Exception ex)
@@ -384,11 +384,11 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
         private List<TextSegment> ExtractTextSegments(TextPatternRange textRange, int globalStartIndex)
         {
             var segments = new List<TextSegment>();
-            
+
             try
             {
                 var fullText = textRange.GetText(-1);
-                
+
                 if (string.IsNullOrEmpty(fullText))
                 {
                     return segments;
@@ -402,22 +402,22 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
                 {
                     // Get attributes for current position
                     var segmentAttributes = GetSegmentAttributes(currentRange);
-                    
+
                     // Find the end of current format by expanding until attributes change
                     var formatRange = currentRange.Clone();
                     formatRange.ExpandToEnclosingUnit(TextUnit.Format);
-                    
+
                     var formatText = formatRange.GetText(-1);
                     var segmentLength = Math.Min(formatText.Length, fullText.Length - totalProcessed);
-                    
+
                     if (segmentLength <= 0)
                     {
                         _logger.LogWarning("Invalid segment length {Length} at position {Position}", segmentLength, totalProcessed);
                         break;
                     }
-                    
+
                     var segmentText = fullText.Substring(totalProcessed, segmentLength);
-                    
+
                     var segment = new TextSegment
                     {
                         StartPosition = globalStartIndex + totalProcessed,
@@ -425,17 +425,17 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
                         Text = segmentText,
                         Attributes = segmentAttributes
                     };
-                    
+
                     segments.Add(segment);
-                    _logger.LogDebug("Created format segment: [{Start}-{End}] '{Text}' Bold={Bold} Italic={Italic}", 
-                        segment.StartPosition, segment.EndPosition, 
-                        segmentText, 
-                        segmentAttributes.IsBold, 
+                    _logger.LogDebug("Created format segment: [{Start}-{End}] '{Text}' Bold={Bold} Italic={Italic}",
+                        segment.StartPosition, segment.EndPosition,
+                        segmentText,
+                        segmentAttributes.IsBold,
                         segmentAttributes.IsItalic);
-                    
+
                     // Move to next format boundary
                     totalProcessed += segmentLength;
-                    
+
                     if (totalProcessed < fullText.Length)
                     {
                         // Move range to next position
@@ -443,7 +443,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
                         currentRange.MoveEndpointByUnit(TextPatternRangeEndpoint.End, TextUnit.Character, 1);
                     }
                 }
-                
+
                 _logger.LogDebug("Extracted {Count} format-based segments from text", segments.Count);
             }
             catch (Exception ex)
@@ -460,7 +460,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
                     Attributes = fallbackAttributes
                 });
             }
-            
+
             return segments;
         }
 
@@ -475,12 +475,12 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
                 attributes.FontSize = GetAttributeValue<double?>(textRange, TextPattern.FontSizeAttribute) ?? 0.0;
                 attributes.FontWeight = GetAttributeValue<object>(textRange, TextPattern.FontWeightAttribute)?.ToString() ?? string.Empty;
                 attributes.IsItalic = GetAttributeValue<bool?>(textRange, TextPattern.IsItalicAttribute) ?? false;
-                
+
                 // Colors - Microsoft Learn recommends checking for 0 as "not set"
                 var foregroundColor = GetAttributeValue<int>(textRange, TextPattern.ForegroundColorAttribute);
                 if (foregroundColor != 0)
                     attributes.ForegroundColor = $"#{foregroundColor:X6}";
-                
+
                 var backgroundColor = GetAttributeValue<int>(textRange, TextPattern.BackgroundColorAttribute);
                 if (backgroundColor != 0)
                     attributes.BackgroundColor = $"#{backgroundColor:X6}";
@@ -491,13 +491,13 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
 
                 // Underline
                 var underlineStyleValue = GetAttributeValue<object>(textRange, TextPattern.UnderlineStyleAttribute);
-                attributes.IsUnderline = underlineStyleValue != null && 
+                attributes.IsUnderline = underlineStyleValue != null &&
                     !string.Equals(underlineStyleValue.ToString(), "None", StringComparison.OrdinalIgnoreCase);
                 attributes.UnderlineStyle = underlineStyleValue?.ToString() ?? string.Empty;
 
                 // Strikethrough
                 var strikethroughStyle = GetAttributeValue<object>(textRange, TextPattern.StrikethroughStyleAttribute);
-                attributes.IsStrikethrough = strikethroughStyle != null && 
+                attributes.IsStrikethrough = strikethroughStyle != null &&
                     !string.Equals(strikethroughStyle.ToString(), "None", StringComparison.OrdinalIgnoreCase);
                 attributes.StrikethroughStyle = strikethroughStyle?.ToString() ?? string.Empty;
 

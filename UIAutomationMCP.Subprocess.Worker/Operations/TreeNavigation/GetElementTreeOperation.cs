@@ -20,7 +20,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation
         protected override async Task<ElementTreeResult> ExecuteOperationAsync(GetElementTreeRequest request)
         {
             var startTime = DateTime.UtcNow;
-            
+
             // Force UIAutomation cache refresh for real-time UI tree state
             if (request.BypassCache)
             {
@@ -35,7 +35,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation
                     // Continue if cache refresh fails
                 }
             }
-            
+
             var windowTitle = request.WindowTitle ?? "";
             var windowHandle = request.WindowHandle;
             var maxDepth = request.MaxDepth;
@@ -55,10 +55,10 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation
 
             // Build element tree
             var rootNode = await Task.Run(() => BuildElementTree(searchRoot, maxDepth, 0));
-            
+
             // Calculate build duration
             var buildDuration = DateTime.UtcNow - startTime;
-            
+
             return new ElementTreeResult
             {
                 RootNode = rootNode,
@@ -85,7 +85,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation
         {
             // Use ElementInfoBuilder to create base ElementInfo with all latest features
             var elementInfo = UIAutomationMCP.Subprocess.Core.Helpers.ElementInfoBuilder.CreateElementInfo(element, includeDetails: false);
-            
+
             // Create TreeNode from ElementInfo using constructor
             var node = new TreeNode(elementInfo)
             {
@@ -101,7 +101,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation
                 {
                     var children = element.FindAll(TreeScope.Children, Condition.TrueCondition);
                     node.HasChildren = children.Count > 0;
-                    
+
                     foreach (AutomationElement child in children)
                     {
                         if (child != null)

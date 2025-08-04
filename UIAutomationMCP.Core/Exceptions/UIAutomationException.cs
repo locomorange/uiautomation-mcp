@@ -11,30 +11,30 @@ namespace UIAutomationMCP.Core.Exceptions
         /// Operation that failed
         /// </summary>
         public string Operation { get; }
-        
+
         /// <summary>
         /// Element identifier involved in the operation
         /// </summary>
         public string? ElementId { get; }
-        
+
         /// <summary>
         /// Error category for classification
         /// </summary>
         public abstract string ErrorCategory { get; }
-        
+
         /// <summary>
         /// User-friendly suggestions for resolving the error
         /// </summary>
         public virtual string[] Suggestions { get; protected set; } = Array.Empty<string>();
 
-        protected UIAutomationException(string operation, string? elementId, string message) 
+        protected UIAutomationException(string operation, string? elementId, string message)
             : base(message)
         {
             Operation = operation;
             ElementId = elementId;
         }
 
-        protected UIAutomationException(string operation, string? elementId, string message, Exception innerException) 
+        protected UIAutomationException(string operation, string? elementId, string message, Exception innerException)
             : base(message, innerException)
         {
             Operation = operation;
@@ -48,7 +48,7 @@ namespace UIAutomationMCP.Core.Exceptions
     public class UIAutomationTimeoutException : UIAutomationException
     {
         public override string ErrorCategory => "Timeout";
-        
+
         public int TimeoutSeconds { get; }
 
         public UIAutomationTimeoutException(string operation, string? elementId, int timeoutSeconds, string? details = null)

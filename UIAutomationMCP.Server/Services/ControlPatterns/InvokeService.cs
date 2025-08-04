@@ -19,10 +19,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         protected override string GetOperationType() => "invoke";
 
         public async Task<ServerEnhancedResponse<ActionResult>> InvokeElementAsync(
-            string? automationId = null, 
-            string? name = null, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new InvokeElementRequest

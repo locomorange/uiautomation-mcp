@@ -14,7 +14,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Window
     public class WindowActionOperation : BaseUIAutomationOperation<WindowActionRequest, WindowActionResult>
     {
         public WindowActionOperation(
-            ElementFinderService elementFinderService, 
+            ElementFinderService elementFinderService,
             ILogger<WindowActionOperation> logger)
             : base(elementFinderService, logger)
         {
@@ -32,22 +32,22 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Window
                 UseWindowHandleAsFilter = true,
                 RequiredPattern = "Window"
             };
-            _logger.LogDebug("WindowAction: Using filter mode with WindowHandle={WindowHandle}, UseWindowHandleAsFilter={UseFilter}", 
+            _logger.LogDebug("WindowAction: Using filter mode with WindowHandle={WindowHandle}, UseWindowHandleAsFilter={UseFilter}",
                 request.WindowHandle, searchCriteria.UseWindowHandleAsFilter);
             Console.Error.WriteLine($"*** WORKER DEBUG *** WindowAction with WindowHandle={request.WindowHandle}, UseWindowHandleAsFilter={searchCriteria.UseWindowHandleAsFilter}");
             var window = _elementFinderService.FindElement(searchCriteria);
             if (window == null)
             {
-                var elementIdentifier = request.WindowHandle.HasValue 
-                    ? $"WindowHandle={request.WindowHandle.Value}" 
+                var elementIdentifier = request.WindowHandle.HasValue
+                    ? $"WindowHandle={request.WindowHandle.Value}"
                     : !string.IsNullOrEmpty(windowTitle) ? $"WindowTitle='{windowTitle}'" : "unknown";
                 throw new UIAutomationElementNotFoundException("WindowAction", elementIdentifier);
             }
 
             if (!window.TryGetCurrentPattern(WindowPattern.Pattern, out var pattern) || pattern is not WindowPattern windowPattern)
             {
-                var elementIdentifier = request.WindowHandle.HasValue 
-                    ? $"WindowHandle={request.WindowHandle.Value}" 
+                var elementIdentifier = request.WindowHandle.HasValue
+                    ? $"WindowHandle={request.WindowHandle.Value}"
                     : !string.IsNullOrEmpty(windowTitle) ? $"WindowTitle='{windowTitle}'" : "unknown";
                 throw new UIAutomationInvalidOperationException("WindowAction", elementIdentifier, "WindowPattern not supported");
             }
@@ -55,7 +55,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Window
             // Get the current state before action
             var previousState = windowPattern.Current.WindowVisualState.ToString();
             var windowHandle = (long)window.Current.NativeWindowHandle;
-            
+
             var result = new WindowActionResult
             {
                 ActionName = action,

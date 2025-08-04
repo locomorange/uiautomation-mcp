@@ -20,11 +20,11 @@ namespace UIAutomationMCP.Server.Services
 
 
         public async Task<ServerEnhancedResponse<EventMonitoringStartResult>> StartEventMonitoringAsync(
-            string eventType, 
-            string? automationId = null, 
-            string? name = null, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string eventType,
+            string? automationId = null,
+            string? name = null,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 60)
         {
             var request = new StartEventMonitoringRequest
@@ -47,7 +47,7 @@ namespace UIAutomationMCP.Server.Services
         }
 
         public async Task<ServerEnhancedResponse<EventMonitoringStopResult>> StopEventMonitoringAsync(
-            string? sessionId = null, 
+            string? sessionId = null,
             int timeoutSeconds = 60)
         {
             var request = new StopEventMonitoringRequest
@@ -65,8 +65,8 @@ namespace UIAutomationMCP.Server.Services
         }
 
         public async Task<ServerEnhancedResponse<EventLogResult>> GetEventLogAsync(
-            string? sessionId = null, 
-            int maxCount = 100, 
+            string? sessionId = null,
+            int maxCount = 100,
             int timeoutSeconds = 60)
         {
             var request = new GetEventLogRequest
@@ -87,7 +87,7 @@ namespace UIAutomationMCP.Server.Services
 
         private static ValidationResult ValidateStartEventMonitoringRequest(StartEventMonitoringRequest request)
         {
-            if (request.EventTypes == null || request.EventTypes.Length == 0 || 
+            if (request.EventTypes == null || request.EventTypes.Length == 0 ||
                 string.IsNullOrWhiteSpace(request.EventTypes[0]))
             {
                 return ValidationResult.Failure("Event type is required and cannot be empty");

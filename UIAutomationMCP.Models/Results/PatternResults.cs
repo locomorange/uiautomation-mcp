@@ -5,8 +5,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for range value operations
     /// </summary>
-    public class SetRangeValueResult : BaseOperationResult 
-    { 
+    public class SetRangeValueResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public double Minimum { get; set; }
@@ -22,8 +22,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for toggle state operations
     /// </summary>
-    public class SetToggleStateResult : BaseOperationResult 
-    { 
+    public class SetToggleStateResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public string ToggleState { get; set; } = string.Empty;
@@ -34,8 +34,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for toggle element operations
     /// </summary>
-    public class ToggleElementResult : BaseOperationResult 
-    { 
+    public class ToggleElementResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public string ToggleState { get; set; } = string.Empty;
@@ -46,8 +46,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for invoke element operations
     /// </summary>
-    public class InvokeElementResult : BaseOperationResult 
-    { 
+    public class InvokeElementResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public ElementInfo? InvokedElement { get; set; }
@@ -58,8 +58,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for set value operations
     /// </summary>
-    public class SetValueResult : BaseOperationResult 
-    { 
+    public class SetValueResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public string PreviousState { get; set; } = string.Empty;
@@ -70,8 +70,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for set focus operations
     /// </summary>
-    public class SetFocusResult : BaseOperationResult 
-    { 
+    public class SetFocusResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public ElementInfo? FocusedElement { get; set; }
@@ -82,8 +82,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Range operation result
     /// </summary>
-    public class RangeResult : BaseOperationResult 
-    { 
+    public class RangeResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public double Minimum { get; set; }
@@ -110,8 +110,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Toggle operation result
     /// </summary>
-    public class ToggleResult : BaseOperationResult 
-    { 
+    public class ToggleResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public string ToggleState { get; set; } = string.Empty;
@@ -123,8 +123,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Toggle action result
     /// </summary>
-    public class ToggleActionResult : BaseOperationResult 
-    { 
+    public class ToggleActionResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public string PreviousState { get; set; } = string.Empty;
@@ -135,8 +135,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// General pattern operation result
     /// </summary>
-    public class PatternResult : BaseOperationResult 
-    { 
+    public class PatternResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public string PatternName { get; set; } = string.Empty;
@@ -149,8 +149,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Multiple view pattern result
     /// </summary>
-    public class MultipleViewResult : BaseOperationResult 
-    { 
+    public class MultipleViewResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public int CurrentView { get; set; }
@@ -162,8 +162,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Item container pattern result
     /// </summary>
-    public class ItemContainerResult : BaseOperationResult 
-    { 
+    public class ItemContainerResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public ElementInfo? ContainerElement { get; set; }
@@ -175,8 +175,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Virtualized item pattern result
     /// </summary>
-    public class VirtualizedItemResult : BaseOperationResult 
-    { 
+    public class VirtualizedItemResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public ElementInfo? VirtualizedElement { get; set; }
@@ -188,8 +188,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Synchronized input pattern result
     /// </summary>
-    public class SynchronizedInputResult : BaseOperationResult 
-    { 
+    public class SynchronizedInputResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public string InputType { get; set; } = string.Empty;
@@ -201,8 +201,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Wait for input idle result
     /// </summary>
-    public class WaitForInputIdleResult : BaseOperationResult 
-    { 
+    public class WaitForInputIdleResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public int TimeoutMilliseconds { get; set; }
@@ -215,8 +215,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Window operation result
     /// </summary>
-    public class WindowResult : BaseOperationResult 
-    { 
+    public class WindowResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public string WindowState { get; set; } = string.Empty;
@@ -253,8 +253,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Generic state change result
     /// </summary>
-    public class StateChangeResult<T> : BaseOperationResult where T : class 
-    { 
+    public class StateChangeResult<T> : BaseOperationResult where T : class
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public T? PreviousState { get; set; }

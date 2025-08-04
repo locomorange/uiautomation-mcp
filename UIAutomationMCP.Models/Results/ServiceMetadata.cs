@@ -338,7 +338,7 @@ namespace UIAutomationMCP.Models.Results
         public bool HasExited { get; set; }
         public string WindowTitle { get; set; } = string.Empty;
         public string ActionPerformed { get; set; } = string.Empty;
-        
+
         // UIAutomation-based window detection metadata
         public int? LaunchedProcessId { get; set; }
         public int? DetectedProcessId { get; set; }

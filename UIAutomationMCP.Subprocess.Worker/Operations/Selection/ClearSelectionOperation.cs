@@ -13,7 +13,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Selection
     public class ClearSelectionOperation : BaseUIAutomationOperation<ClearSelectionRequest, SelectionActionResult>
     {
         public ClearSelectionOperation(
-            ElementFinderService elementFinderService, 
+            ElementFinderService elementFinderService,
             ILogger<ClearSelectionOperation> logger)
             : base(elementFinderService, logger)
         {
@@ -23,7 +23,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Selection
         {
             // Pattern conversion (get from request, default to SelectionPattern)
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? SelectionPattern.Pattern;
-            
+
             var searchCriteria = new ElementSearchCriteria
             {
                 AutomationId = request.AutomationId,
@@ -34,7 +34,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Selection
                 WindowHandle = request.WindowHandle
             };
             var element = _elementFinderService.FindElement(searchCriteria);
-            
+
             if (element == null)
             {
                 throw new UIAutomationElementNotFoundException("ClearSelection", request.AutomationId);
@@ -50,8 +50,8 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Selection
 
             foreach (AutomationElement selectedElement in selection)
             {
-                if (selectedElement != null && 
-                    selectedElement.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var itemPattern) && 
+                if (selectedElement != null &&
+                    selectedElement.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var itemPattern) &&
                     itemPattern is SelectionItemPattern itemSelectionPattern)
                 {
                     itemSelectionPattern.RemoveFromSelection();

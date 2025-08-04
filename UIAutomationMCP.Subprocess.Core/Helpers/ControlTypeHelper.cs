@@ -40,7 +40,7 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
             ["ToolTip"] = ControlType.ToolTip,
             ["Tree"] = ControlType.Tree,
             ["TreeItem"] = ControlType.TreeItem,
-            
+
             // Container controls
             ["DataGrid"] = ControlType.DataGrid,
             ["DataItem"] = ControlType.DataItem,
@@ -53,7 +53,7 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
             ["Table"] = ControlType.Table,
             ["TitleBar"] = ControlType.TitleBar,
             ["Separator"] = ControlType.Separator,
-            
+
             // Other controls
             ["Group"] = ControlType.Group,
             ["Thumb"] = ControlType.Thumb,
@@ -78,7 +78,7 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
         public static bool TryGetControlType(string? controlTypeName, out ControlType controlType)
         {
             controlType = ControlType.Custom;
-            
+
             if (string.IsNullOrEmpty(controlTypeName))
                 return false;
 

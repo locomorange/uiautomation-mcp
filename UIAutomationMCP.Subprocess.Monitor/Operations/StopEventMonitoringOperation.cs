@@ -30,7 +30,7 @@ namespace UIAutomationMCP.Subprocess.Monitor.Operations
             if (session == null)
             {
                 _logger.LogWarning("Session not found: {MonitorId}", request.MonitorId);
-                
+
                 return Task.FromResult(new EventMonitoringStopResult
                 {
                     Success = false,
@@ -42,7 +42,7 @@ namespace UIAutomationMCP.Subprocess.Monitor.Operations
 
             var finalEventCount = session.EventCount;
             session.Stop();
-            
+
             var removed = _sessionManager.RemoveSession(request.MonitorId);
             if (!removed)
             {

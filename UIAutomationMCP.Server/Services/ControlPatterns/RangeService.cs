@@ -20,11 +20,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         protected override string GetOperationType() => "range";
 
         public async Task<ServerEnhancedResponse<ActionResult>> SetRangeValueAsync(
-            string? automationId = null, 
-            string? name = null, 
-            double value = 0, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            double value = 0,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new SetRangeValueRequest
@@ -46,10 +46,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
         public async Task<ServerEnhancedResponse<RangeValueResult>> GetRangeValueAsync(
-            string? automationId = null, 
-            string? name = null, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new GetRangeValueRequest

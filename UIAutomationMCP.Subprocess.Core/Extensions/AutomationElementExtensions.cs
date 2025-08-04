@@ -11,7 +11,7 @@ namespace UIAutomationMCP.Subprocess.Core.Extensions
         /// <summary>
         /// Safely get pattern from element
         /// </summary>
-        public static TPattern? GetPattern<TPattern>(this AutomationElement element, AutomationPattern pattern) 
+        public static TPattern? GetPattern<TPattern>(this AutomationElement element, AutomationPattern pattern)
             where TPattern : class
         {
             try
@@ -121,7 +121,7 @@ namespace UIAutomationMCP.Subprocess.Core.Extensions
                 var automationId = element.GetPropertyValue<string>(AutomationElement.AutomationIdProperty) ?? "";
                 var name = element.GetPropertyValue<string>(AutomationElement.NameProperty) ?? "";
                 var controlType = element.GetPropertyValue<ControlType>(AutomationElement.ControlTypeProperty)?.ProgrammaticName ?? "";
-                
+
                 return (automationId, name, controlType);
             }
             catch

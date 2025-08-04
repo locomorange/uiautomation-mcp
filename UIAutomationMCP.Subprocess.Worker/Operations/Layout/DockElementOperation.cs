@@ -12,7 +12,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Layout
     public class DockElementOperation : BaseUIAutomationOperation<DockElementRequest, StateChangeResult<string>>
     {
         public DockElementOperation(
-            ElementFinderService elementFinderService, 
+            ElementFinderService elementFinderService,
             ILogger<DockElementOperation> logger) : base(elementFinderService, logger)
         {
         }
@@ -28,7 +28,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Layout
                 WindowHandle = request.WindowHandle
             };
             var element = _elementFinderService.FindElement(searchCriteria);
-            
+
             if (element == null)
             {
                 throw new UIAutomationElementNotFoundException("Operation", null, $"Element with AutomationId '{request.AutomationId}' and Name '{request.Name}' not found");
@@ -41,7 +41,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Layout
 
             var currentPosition = dockPattern.Current.DockPosition;
             var dockPosition = request.DockPosition ?? "fill";
-            
+
             DockPosition newPosition = dockPosition.ToLowerInvariant() switch
             {
                 "top" => DockPosition.Top,
@@ -55,11 +55,11 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Layout
 
             dockPattern.SetDockPosition(newPosition);
             var updatedPosition = dockPattern.Current.DockPosition;
-            
-            var result = new StateChangeResult<string> 
-            { 
-                ActionName = "DockElement", 
-                Completed = true, 
+
+            var result = new StateChangeResult<string>
+            {
+                ActionName = "DockElement",
+                Completed = true,
                 ExecutedAt = DateTime.UtcNow,
                 PreviousState = currentPosition.ToString(),
                 CurrentState = updatedPosition.ToString(),

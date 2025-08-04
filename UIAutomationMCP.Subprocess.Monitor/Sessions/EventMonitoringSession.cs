@@ -73,7 +73,7 @@ namespace UIAutomationMCP.Subprocess.Monitor.Sessions
                 try
                 {
                     RegisterEventHandlers();
-                    _logger.LogInformation("Event monitoring session {SessionId} started with {HandlerCount} handlers", 
+                    _logger.LogInformation("Event monitoring session {SessionId} started with {HandlerCount} handlers",
                         _sessionId, _eventHandlers.Count);
                 }
                 catch (Exception ex)
@@ -106,7 +106,7 @@ namespace UIAutomationMCP.Subprocess.Monitor.Sessions
             }
             _eventHandlers.Clear();
 
-            _logger.LogInformation("Event monitoring session {SessionId} stopped. Captured {EventCount} events", 
+            _logger.LogInformation("Event monitoring session {SessionId} stopped. Captured {EventCount} events",
                 _sessionId, _capturedEvents.Count);
         }
 
@@ -185,7 +185,7 @@ namespace UIAutomationMCP.Subprocess.Monitor.Sessions
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to create event handler for {EventType} in session {SessionId}", 
+                _logger.LogError(ex, "Failed to create event handler for {EventType} in session {SessionId}",
                     eventType, _sessionId);
                 return null;
             }

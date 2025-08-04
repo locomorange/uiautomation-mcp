@@ -23,7 +23,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Focus
         {
             // Pattern conversion (get from request)
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern);
-            
+
             var searchCriteria = new ElementSearchCriteria
             {
                 AutomationId = request.AutomationId,
@@ -33,24 +33,24 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Focus
                 WindowHandle = request.WindowHandle
             };
             var element = _elementFinderService.FindElement(searchCriteria);
-                
+
             if (element == null)
             {
                 throw new UIAutomationElementNotFoundException("SetFocus", request.AutomationId);
             }
 
             var elementInfo = _elementFinderService.GetElementBasicInfo(element);
-            
+
             // Get focus state before
             var beforeFocused = element.Current.HasKeyboardFocus;
-            
+
             // Execute SetFocus
             element.SetFocus();
-            
+
             // Wait a short time and then check the focus state
             await Task.Delay(100);
             var afterFocused = element.Current.HasKeyboardFocus;
-            
+
             return new ActionResult
             {
                 ActionName = "SetFocus",
@@ -69,8 +69,8 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Focus
 
         protected override UIAutomationMCP.Core.Validation.ValidationResult ValidateRequest(SetFocusRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.AutomationId) && 
-                string.IsNullOrWhiteSpace(request.Name) && 
+            if (string.IsNullOrWhiteSpace(request.AutomationId) &&
+                string.IsNullOrWhiteSpace(request.Name) &&
                 string.IsNullOrWhiteSpace(request.ControlType))
             {
                 return UIAutomationMCP.Core.Validation.ValidationResult.Failure("At least one element identifier (AutomationId, Name, or ControlType) is required");

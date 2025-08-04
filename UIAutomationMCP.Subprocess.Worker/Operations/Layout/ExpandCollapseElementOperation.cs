@@ -12,7 +12,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Layout
     public class ExpandCollapseElementOperation : BaseUIAutomationOperation<ExpandCollapseElementRequest, ExpandCollapseResult>
     {
         public ExpandCollapseElementOperation(
-            ElementFinderService elementFinderService, 
+            ElementFinderService elementFinderService,
             ILogger<ExpandCollapseElementOperation> logger) : base(elementFinderService, logger)
         {
         }
@@ -27,7 +27,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Layout
                 WindowHandle = request.WindowHandle
             };
             var element = _elementFinderService.FindElement(searchCriteria);
-            
+
             if (element == null)
             {
                 throw new UIAutomationElementNotFoundException("Operation", null, "Element not found");
@@ -41,7 +41,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Layout
             var currentState = expandCollapsePattern.Current.ExpandCollapseState;
             var previousState = currentState.ToString();
             var action = request.Action ?? "toggle";
-            
+
             switch (action.ToLowerInvariant())
             {
                 case "expand":
@@ -64,7 +64,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Layout
             await Task.Delay(100);
 
             var newState = expandCollapsePattern.Current.ExpandCollapseState;
-            
+
             var result = new ExpandCollapseResult
             {
                 ActionName = "ExpandCollapse",

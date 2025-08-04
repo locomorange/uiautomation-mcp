@@ -17,7 +17,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Extensions
             // Simple implementation for now - find all elements and filter
             var rootElement = AutomationElement.RootElement;
             var condition = Condition.TrueCondition;
-            
+
             if (!string.IsNullOrEmpty(parameters.AutomationId))
             {
                 condition = new PropertyCondition(AutomationElement.AutomationIdProperty, parameters.AutomationId);
@@ -26,7 +26,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Extensions
             {
                 condition = new PropertyCondition(AutomationElement.NameProperty, parameters.Name);
             }
-            
+
             return rootElement.FindAll(TreeScope.Descendants, condition);
         }
 
@@ -52,15 +52,15 @@ namespace UIAutomationMCP.Subprocess.Worker.Extensions
         public static List<AutomationElement> SortElements(this ElementFinderService service, List<AutomationElement> elements, string sortBy)
         {
             // Simple alphabetical sort by name
-            return elements.OrderBy(e => 
+            return elements.OrderBy(e =>
             {
-                try 
-                { 
-                    return e.Current.Name ?? string.Empty; 
-                } 
-                catch 
-                { 
-                    return string.Empty; 
+                try
+                {
+                    return e.Current.Name ?? string.Empty;
+                }
+                catch
+                {
+                    return string.Empty;
                 }
             }).ToList();
         }
@@ -74,7 +74,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Extensions
                 if (processWindow != null)
                     return processWindow;
             }
-            
+
             return AutomationElement.RootElement;
         }
 

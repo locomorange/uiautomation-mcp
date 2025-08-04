@@ -3,7 +3,7 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for starting event monitoring
     /// </summary>
-    public class EventMonitoringStartResult : BaseOperationResult 
+    public class EventMonitoringStartResult : BaseOperationResult
     {
         public string EventType { get; set; } = string.Empty;
         public string ElementId { get; set; } = string.Empty;
@@ -16,8 +16,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for stopping event monitoring
     /// </summary>
-    public class EventMonitoringStopResult : BaseOperationResult 
-    { 
+    public class EventMonitoringStopResult : BaseOperationResult
+    {
         public string SessionId { get; set; } = string.Empty;
         public int FinalEventCount { get; set; }
         public string MonitoringStatus { get; set; } = string.Empty;
@@ -26,7 +26,7 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for getting event log
     /// </summary>
-    public class EventLogResult : BaseOperationResult 
+    public class EventLogResult : BaseOperationResult
     {
         public string MonitorId { get; set; } = string.Empty;
         public List<TypedEventData> Events { get; set; } = new List<TypedEventData>();

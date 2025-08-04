@@ -13,7 +13,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Grid
     public class GetColumnHeaderOperation : BaseUIAutomationOperation<GetColumnHeaderRequest, ElementSearchResult>
     {
         public GetColumnHeaderOperation(
-            ElementFinderService elementFinderService, 
+            ElementFinderService elementFinderService,
             ILogger<GetColumnHeaderOperation> logger)
             : base(elementFinderService, logger)
         {
@@ -34,7 +34,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Grid
         protected override Task<ElementSearchResult> ExecuteOperationAsync(GetColumnHeaderRequest request)
         {
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? GridPattern.Pattern;
-                
+
             var searchCriteria = new ElementSearchCriteria
             {
                 AutomationId = request.AutomationId,
@@ -44,7 +44,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Grid
                 WindowHandle = request.WindowHandle
             };
             var element = _elementFinderService.FindElement(searchCriteria);
-            
+
             if (element == null)
             {
                 throw new UIAutomationElementNotFoundException("Operation", null, "Element not found");

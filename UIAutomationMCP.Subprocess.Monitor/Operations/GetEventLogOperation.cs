@@ -24,14 +24,14 @@ namespace UIAutomationMCP.Subprocess.Monitor.Operations
 
         protected override Task<EventLogResult> ExecuteOperationAsync(GetEventLogRequest request)
         {
-            _logger.LogInformation("Getting event log - MonitorId: {MonitorId}, MaxCount: {MaxCount}", 
+            _logger.LogInformation("Getting event log - MonitorId: {MonitorId}, MaxCount: {MaxCount}",
                 request.MonitorId, request.MaxCount);
 
             var session = _sessionManager.GetSession(request.MonitorId);
             if (session == null)
             {
                 _logger.LogWarning("Session not found: {MonitorId}", request.MonitorId);
-                
+
                 return Task.FromResult(new EventLogResult
                 {
                     Success = false,
@@ -51,7 +51,7 @@ namespace UIAutomationMCP.Subprocess.Monitor.Operations
                 SessionActive = session.IsActive
             };
 
-            _logger.LogInformation("Retrieved {EventCount} events for session {SessionId}", 
+            _logger.LogInformation("Retrieved {EventCount} events for session {SessionId}",
                 typedEvents.Count, request.MonitorId);
 
             return Task.FromResult(result);

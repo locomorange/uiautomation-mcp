@@ -1,12 +1,12 @@
 namespace UIAutomationMCP.Models.Results
 {
     // Layout and positioning operation results
-    
+
     /// <summary>
     /// Result for element docking operations
     /// </summary>
-    public class DockElementResult : BaseOperationResult 
-    { 
+    public class DockElementResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public string DockPosition { get; set; } = string.Empty;
@@ -17,8 +17,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for expand/collapse operations
     /// </summary>
-    public class ExpandCollapseElementResult : BaseOperationResult 
-    { 
+    public class ExpandCollapseElementResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public string ExpandCollapseState { get; set; } = string.Empty;
@@ -29,8 +29,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for element move operations
     /// </summary>
-    public class MoveElementResult : BaseOperationResult 
-    { 
+    public class MoveElementResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public double X { get; set; }
@@ -43,8 +43,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for element resize operations
     /// </summary>
-    public class ResizeElementResult : BaseOperationResult 
-    { 
+    public class ResizeElementResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public double Width { get; set; }
@@ -57,8 +57,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for element rotation operations
     /// </summary>
-    public class RotateElementResult : BaseOperationResult 
-    { 
+    public class RotateElementResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public double RotationAngle { get; set; }
@@ -69,8 +69,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for scroll percentage operations
     /// </summary>
-    public class SetScrollPercentResult : BaseOperationResult 
-    { 
+    public class SetScrollPercentResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public double HorizontalPercent { get; set; }
@@ -82,8 +82,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for scroll into view operations
     /// </summary>
-    public class ScrollElementIntoViewResult : BaseOperationResult 
-    { 
+    public class ScrollElementIntoViewResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public ElementInfo? ScrolledElement { get; set; }
@@ -94,8 +94,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for scroll element operations
     /// </summary>
-    public class ScrollElementResult : BaseOperationResult 
-    { 
+    public class ScrollElementResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public string ScrollDirection { get; set; } = string.Empty;
@@ -110,8 +110,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for expand/collapse state changes
     /// </summary>
-    public class ExpandCollapseResult : BaseOperationResult 
-    { 
+    public class ExpandCollapseResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public string PreviousState { get; set; } = string.Empty;
@@ -122,8 +122,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// General transform operation result
     /// </summary>
-    public class TransformActionResult : BaseOperationResult 
-    { 
+    public class TransformActionResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public string TransformType { get; set; } = string.Empty;
@@ -135,8 +135,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Transform capabilities result
     /// </summary>
-    public class TransformResult : BaseOperationResult 
-    { 
+    public class TransformResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public string TransformType { get; set; } = string.Empty;
@@ -160,8 +160,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Dock operation result
     /// </summary>
-    public class DockResult : BaseOperationResult 
-    { 
+    public class DockResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public string DockPosition { get; set; } = string.Empty;
@@ -173,8 +173,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Scroll operation result
     /// </summary>
-    public class ScrollResult : BaseOperationResult 
-    { 
+    public class ScrollResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public double HorizontalPercent { get; set; }
@@ -189,8 +189,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Scroll action result
     /// </summary>
-    public class ScrollActionResult : BaseOperationResult 
-    { 
+    public class ScrollActionResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public double HorizontalPercent { get; set; }

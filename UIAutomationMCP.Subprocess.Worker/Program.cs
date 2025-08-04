@@ -46,7 +46,7 @@ namespace UIAutomationMCP.Subprocess.Worker
                         {
                             return (false, "AutomationElement.RootElement returned null");
                         }
-                        
+
                         // Try to get a basic property to ensure it's accessible
                         var name = rootElement.Current.Name;
                         return (true, "");
@@ -98,7 +98,7 @@ namespace UIAutomationMCP.Subprocess.Worker
             if (!IsUIAutomationAvailable(out string errorReason))
             {
                 // Send environment error information via MCP relay
-                await ProcessLogRelay.LogErrorAsync("Worker.Environment", 
+                await ProcessLogRelay.LogErrorAsync("Worker.Environment",
                     $"UI Automation is not available in this environment: {errorReason}",
                     "worker",
                     data: new Dictionary<string, object?>
@@ -113,16 +113,16 @@ namespace UIAutomationMCP.Subprocess.Worker
                 try
                 {
                     var desktop = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop");
-                    await ProcessLogRelay.LogInfoAsync("Worker.Environment", 
+                    await ProcessLogRelay.LogInfoAsync("Worker.Environment",
                         $"Desktop registry key accessible: {desktop != null}", "worker");
                     desktop?.Close();
                 }
                 catch (Exception regEx)
                 {
-                    await ProcessLogRelay.LogErrorAsync("Worker.Environment", 
+                    await ProcessLogRelay.LogErrorAsync("Worker.Environment",
                         "Registry access failed", "worker", regEx);
                 }
-                
+
                 Environment.Exit(1);
                 return;
             }
@@ -137,7 +137,8 @@ namespace UIAutomationMCP.Subprocess.Worker
             // Add file logging for debugging but avoid console output pollution
             builder.Logging.AddProvider(new DebugLoggerProvider());
             // TEMPORARY: Add console error logging for debugging
-            builder.Logging.AddConsole(options => {
+            builder.Logging.AddConsole(options =>
+            {
                 options.LogToStandardErrorThreshold = LogLevel.Debug;
             });
             builder.Logging.SetMinimumLevel(LogLevel.Debug);
@@ -152,48 +153,48 @@ namespace UIAutomationMCP.Subprocess.Worker
             builder.Services.AddOperation<SetToggleStateOperation, SetToggleStateRequest>();
             builder.Services.AddOperation<SetElementValueOperation, SetElementValueRequest>();
             builder.Services.AddOperation<SetFocusOperation, SetFocusRequest>();
-            
+
             // Search and tree operations
             builder.Services.AddOperation<SearchElementsOperation, SearchElementsRequest>();
             builder.Services.AddOperation<GetElementTreeOperation, GetElementTreeRequest>();
-            
+
             // Grid operations
             builder.Services.AddOperation<GetGridItemOperation, GetGridItemRequest>();
             builder.Services.AddOperation<GetRowHeaderOperation, GetRowHeaderRequest>();
             builder.Services.AddOperation<GetColumnHeaderOperation, GetColumnHeaderRequest>();
-            
+
             // Selection operations
             builder.Services.AddOperation<SelectElementOperation, SelectElementRequest>();
             builder.Services.AddOperation<AddToSelectionOperation, AddToSelectionRequest>();
             builder.Services.AddOperation<RemoveFromSelectionOperation, RemoveFromSelectionRequest>();
             builder.Services.AddOperation<ClearSelectionOperation, ClearSelectionRequest>();
             builder.Services.AddOperation<SelectItemOperation, SelectItemRequest>();
-            
+
             // Text operations
             builder.Services.AddOperation<SelectTextOperation, SelectTextRequest>();
             builder.Services.AddOperation<SetTextOperation, SetTextRequest>();
             builder.Services.AddOperation<FindTextOperation, FindTextRequest>();
             builder.Services.AddOperation<GetTextAttributesOperation, GetTextAttributesRequest>();
-            
+
             // Layout operations
             builder.Services.AddOperation<ScrollElementOperation, ScrollElementRequest>();
             builder.Services.AddOperation<ExpandCollapseElementOperation, ExpandCollapseElementRequest>();
             builder.Services.AddOperation<DockElementOperation, DockElementRequest>();
             builder.Services.AddOperation<SetScrollPercentOperation, SetScrollPercentRequest>();
             builder.Services.AddOperation<ScrollElementIntoViewOperation, ScrollElementIntoViewRequest>();
-            
+
             // Transform operations
             builder.Services.AddOperation<MoveElementOperation, MoveElementRequest>();
             builder.Services.AddOperation<ResizeElementOperation, ResizeElementRequest>();
             builder.Services.AddOperation<RotateElementOperation, RotateElementRequest>();
-            
+
             // Window operations
             builder.Services.AddOperation<WindowActionOperation, WindowActionRequest>();
             builder.Services.AddOperation<WaitForInputIdleOperation, WaitForInputIdleRequest>();
-            
+
             // Range operations
             builder.Services.AddOperation<SetRangeValueOperation, SetRangeValueRequest>();
-            
+
             // Register Worker service
             builder.Services.AddSingleton<WorkerService>();
 
@@ -201,7 +202,7 @@ namespace UIAutomationMCP.Subprocess.Worker
 
             // Setup cancellation handling
             using var cts = new CancellationTokenSource();
-            
+
             // Handle console cancellation
             Console.CancelKeyPress += (_, e) =>
             {
@@ -212,19 +213,19 @@ namespace UIAutomationMCP.Subprocess.Worker
             try
             {
                 var workerService = host.Services.GetRequiredService<WorkerService>();
-                
+
                 // Run the worker with cancellation support
                 var workerTask = workerService.RunAsync();
                 var cancellationTask = Task.Delay(Timeout.Infinite, cts.Token);
-                
+
                 await Task.WhenAny(workerTask, cancellationTask);
-                
+
                 if (cts.Token.IsCancellationRequested)
                 {
                     // Cancellation requested
                     return;
                 }
-                
+
                 await workerTask; // Wait for completion or propagate exception
             }
             catch (OperationCanceledException)

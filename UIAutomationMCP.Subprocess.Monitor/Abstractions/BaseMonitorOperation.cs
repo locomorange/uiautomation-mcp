@@ -39,7 +39,7 @@ namespace UIAutomationMCP.Subprocess.Monitor.Abstractions
             try
             {
                 _logger.LogDebug("Starting {OperationType} with request type {RequestType}", GetType().Name, typeof(TRequest).Name);
-                
+
                 // Validate request
                 var validationResult = ValidateRequest(request);
                 if (!validationResult.IsValid)
@@ -51,7 +51,7 @@ namespace UIAutomationMCP.Subprocess.Monitor.Abstractions
 
                 // Execute the operation
                 var result = await ExecuteOperationAsync(request);
-                
+
                 _logger.LogDebug("Completed {OperationType} successfully", GetType().Name);
                 return OperationResult<TResult>.FromSuccess(result);
             }
@@ -84,14 +84,14 @@ namespace UIAutomationMCP.Subprocess.Monitor.Abstractions
                     // Deserialize JSON string to TRequest
                     request = JsonSerializationHelper.Deserialize<TRequest>(parametersJson);
                 }
-                
+
                 if (request == null)
                 {
                     return OperationResult.FromError("Failed to deserialize JSON parameters to request type");
                 }
 
                 var typedResult = await ExecuteAsync(request);
-                
+
                 return new OperationResult
                 {
                     Success = typedResult.Success,

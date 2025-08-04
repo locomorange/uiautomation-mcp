@@ -46,9 +46,11 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
                 AutomationId = request.AutomationId,
                 Name = request.Name,
                 ControlType = request.ControlType,
-                WindowTitle = request.WindowTitle, WindowHandle = request.WindowHandle };
+                WindowTitle = request.WindowTitle,
+                WindowHandle = request.WindowHandle
+            };
             var element = _elementFinderService.FindElement(searchCriteria);
-            
+
             if (element == null)
             {
                 throw new UIAutomationElementNotFoundException("Operation", null, $"Element with AutomationId '{request.AutomationId}' and Name '{request.Name}' not found");
@@ -61,12 +63,12 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
 
             var documentRange = textPattern.DocumentRange;
             var fullText = documentRange.GetText(-1);
-            
+
             if (request.StartIndex >= fullText.Length)
             {
                 throw new UIAutomationElementNotFoundException("Operation", null, "Start index is out of range");
             }
-            
+
             var length = request.Length;
             if (request.StartIndex + length > fullText.Length)
                 length = fullText.Length - request.StartIndex;
@@ -77,10 +79,10 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
             textRange.MoveEndpointByUnit(TextPatternRangeEndpoint.End, TextUnit.Character, length);
             textRange.Select();
 
-            return Task.FromResult(new ActionResult 
-            { 
-                ActionName = "SelectText", 
-                Completed = true, 
+            return Task.FromResult(new ActionResult
+            {
+                ActionName = "SelectText",
+                Completed = true,
                 ExecutedAt = DateTime.UtcNow,
                 Details = $"Selected text from index {request.StartIndex}, length {length}: '{fullText.Substring(request.StartIndex, length)}'"
             });

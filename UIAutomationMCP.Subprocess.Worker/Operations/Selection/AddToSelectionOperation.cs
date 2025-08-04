@@ -14,7 +14,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Selection
     public class AddToSelectionOperation : BaseUIAutomationOperation<AddToSelectionRequest, SelectionActionResult>
     {
         public AddToSelectionOperation(
-            ElementFinderService elementFinderService, 
+            ElementFinderService elementFinderService,
             ILogger<AddToSelectionOperation> logger)
             : base(elementFinderService, logger)
         {
@@ -24,7 +24,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Selection
         {
             // Pattern conversion (get from request, default to SelectionItemPattern)
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? SelectionItemPattern.Pattern;
-            
+
             var searchCriteria = new ElementSearchCriteria
             {
                 AutomationId = request.AutomationId,
@@ -35,7 +35,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Selection
                 WindowHandle = request.WindowHandle
             };
             var element = _elementFinderService.FindElement(searchCriteria);
-            
+
             if (element == null)
             {
                 throw new UIAutomationElementNotFoundException("AddToSelection", request.AutomationId);
@@ -74,10 +74,10 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Selection
             };
 
             // Try to get selection count from parent container
-            if (element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var itemPattern) && 
+            if (element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var itemPattern) &&
                 itemPattern is SelectionItemPattern selectionItemPattern &&
                 selectionItemPattern.Current.SelectionContainer is AutomationElement container &&
-                container.TryGetCurrentPattern(SelectionPattern.Pattern, out var containerPattern) && 
+                container.TryGetCurrentPattern(SelectionPattern.Pattern, out var containerPattern) &&
                 containerPattern is SelectionPattern selectionContainerPattern)
             {
                 var currentSelection = selectionContainerPattern.Current.GetSelection();

@@ -47,14 +47,14 @@ namespace UIAutomationMCP.Subprocess.Monitor
             try
             {
                 await ProcessLogRelay.LogInfoAsync("Monitor.Program", "Monitor process starting", "monitor");
-                
+
                 var monitorService = host.Services.GetRequiredService<MonitorService>();
                 await monitorService.RunAsync();
             }
             catch (Exception ex)
             {
                 await ProcessLogRelay.LogErrorAsync("Monitor.Program", "Monitor process failed", "monitor", ex);
-                
+
                 var logger = host.Services.GetService<ILogger<Program>>();
                 logger?.LogCritical(ex, "Monitor process failed");
                 Environment.Exit(1);

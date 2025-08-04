@@ -50,9 +50,9 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
                             _logger.LogInformation("All operations completed, shutting down {ProcessType} process", GetProcessType());
                             break;
                         }
-                        
+
                         _logger.LogDebug("Received UTF-8 JSON data: {Length} bytes", requestData.Length);
-                        
+
                         if (requestData.Length == 0)
                         {
                             _logger.LogDebug("Empty UTF-8 JSON data received, continuing");
@@ -63,9 +63,9 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
                         if (_shutdownRequested)
                         {
                             _logger.LogWarning("Shutdown requested, rejecting new operation");
-                            await WriteUtf8JsonResponseAsync(new WorkerResponse<object> 
-                            { 
-                                Success = false, 
+                            await WriteUtf8JsonResponseAsync(new WorkerResponse<object>
+                            {
+                                Success = false,
                                 Error = "Server is shutting down, operation rejected",
                                 Data = null
                             });
@@ -78,7 +78,7 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
                         {
                             continue; // Error already logged and response sent
                         }
-                        
+
                         _logger.LogDebug("Successfully extracted operation: {Operation}", operation);
                         var response = await ProcessRequestAsync(operation, requestData);
                         _logger.LogDebug("Processing completed, writing response: {Success}", response.Success);
@@ -93,9 +93,9 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Error processing request. Data length: {Length}", requestData?.Length ?? 0);
-                        await WriteUtf8JsonResponseAsync(new WorkerResponse<object> 
-                        { 
-                            Success = false, 
+                        await WriteUtf8JsonResponseAsync(new WorkerResponse<object>
+                        {
+                            Success = false,
                             Error = $"Request processing failed: {ex.Message}",
                             Data = null
                         });
@@ -121,25 +121,25 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
         protected virtual async Task<WorkerResponse<object>> ProcessRequestAsync(string operationName, byte[] utf8JsonData)
         {
             var operationId = Guid.NewGuid().ToString();
-            
+
             try
             {
-                _logger.LogInformation("[{ProcessType}] Starting operation: {Operation} (ID: {OperationId}) at {Time}", 
+                _logger.LogInformation("[{ProcessType}] Starting operation: {Operation} (ID: {OperationId}) at {Time}",
                     GetProcessType(), operationName, operationId, DateTime.UtcNow);
                 _logger.LogDebug("[{ProcessType}] UTF-8 JSON data length: {Length} bytes", GetProcessType(), utf8JsonData.Length);
 
                 // Create operation task for tracking
                 var operationTask = ExecuteOperationInternalAsync(operationName, utf8JsonData);
-                
+
                 // Track the operation
                 _runningOperations.TryAdd(operationId, operationTask);
-                _logger.LogDebug("[{ProcessType}] Operation {Operation} (ID: {OperationId}) added to tracking. Total running: {Count}", 
+                _logger.LogDebug("[{ProcessType}] Operation {Operation} (ID: {OperationId}) added to tracking. Total running: {Count}",
                     GetProcessType(), operationName, operationId, _runningOperations.Count);
 
                 try
                 {
                     var result = await operationTask;
-                    _logger.LogInformation("[{ProcessType}] Operation completed: {Operation} (ID: {OperationId}) at {Time}, Success: {Success}", 
+                    _logger.LogInformation("[{ProcessType}] Operation completed: {Operation} (ID: {OperationId}) at {Time}, Success: {Success}",
                         GetProcessType(), operationName, operationId, DateTime.UtcNow, result.Success);
                     return result;
                 }
@@ -147,7 +147,7 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
                 {
                     // Remove from tracking when completed
                     _runningOperations.TryRemove(operationId, out _);
-                    _logger.LogDebug("[{ProcessType}] Operation {Operation} (ID: {OperationId}) removed from tracking. Total running: {Count}", 
+                    _logger.LogDebug("[{ProcessType}] Operation {Operation} (ID: {OperationId}) removed from tracking. Total running: {Count}",
                         GetProcessType(), operationName, operationId, _runningOperations.Count);
                 }
             }
@@ -164,7 +164,7 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
         {
             // Convert UTF-8 JSON data to string for existing operation interfaces
             var parametersJson = System.Text.Encoding.UTF8.GetString(utf8JsonData);
-            
+
             // Try to get the operation for this request
             var operation = _serviceProvider.GetKeyedService<IUIAutomationOperation>(operationName);
             if (operation != null)
@@ -217,9 +217,9 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
                 else
                 {
                     var genericError = ErrorResult.CreateGenericError(
-                        operationName, 
-                        "", 
-                        "OperationFailure", 
+                        operationName,
+                        "",
+                        "OperationFailure",
                         operationResult.Error);
                     return WorkerResponse<object>.CreateError(genericError);
                 }
@@ -237,14 +237,14 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
             {
                 var jsonDoc = JsonDocument.Parse(utf8JsonData);
                 var root = jsonDoc.RootElement;
-                
+
                 if (!root.TryGetProperty("operation", out var opElement) && !root.TryGetProperty("Operation", out opElement))
                 {
                     _logger.LogWarning("Missing operation property in request. Data length: {Length}", utf8JsonData.Length);
                     await WriteUtf8JsonResponseAsync(WorkerResponse<object>.CreateError("Missing operation property"));
                     return null;
                 }
-                
+
                 var operation = opElement.GetString();
                 if (string.IsNullOrEmpty(operation))
                 {
@@ -252,7 +252,7 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
                     await WriteUtf8JsonResponseAsync(WorkerResponse<object>.CreateError("Empty operation property"));
                     return null;
                 }
-                
+
                 return operation;
             }
             catch (JsonException ex)
@@ -320,15 +320,15 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
             {
                 // Serialize to UTF-8 JSON byte array
                 byte[] responseData = JsonUtf8SerializationHelper.SerializeToUtf8Bytes(response);
-                
+
                 // Write length prefix
                 byte[] lengthBytes = BitConverter.GetBytes(responseData.Length);
                 await Console.OpenStandardOutput().WriteAsync(lengthBytes, 0, 4);
-                
+
                 // Write UTF-8 JSON data
                 await Console.OpenStandardOutput().WriteAsync(responseData, 0, responseData.Length);
                 await Console.OpenStandardOutput().FlushAsync();
-                
+
                 _logger.LogDebug("UTF-8 JSON response written successfully. Length: {Length} bytes", responseData.Length);
             }
             catch (Exception ex)
@@ -349,27 +349,27 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
                 return;
             }
 
-            _logger.LogInformation("[{ProcessType}] Waiting for {Count} running operations to complete", 
+            _logger.LogInformation("[{ProcessType}] Waiting for {Count} running operations to complete",
                 GetProcessType(), _runningOperations.Count);
 
             var timeout = TimeSpan.FromSeconds(30); // Maximum wait time
             var allOperations = _runningOperations.Values.ToArray();
-            
+
             try
             {
                 var completionTask = Task.WhenAll(allOperations);
                 var timeoutTask = Task.Delay(timeout);
-                
+
                 var completedTask = await Task.WhenAny(completionTask, timeoutTask);
-                
+
                 if (completedTask == completionTask)
                 {
-                    _logger.LogInformation("[{ProcessType}] All {Count} operations completed successfully", 
+                    _logger.LogInformation("[{ProcessType}] All {Count} operations completed successfully",
                         GetProcessType(), allOperations.Length);
                 }
                 else
                 {
-                    _logger.LogWarning("[{ProcessType}] Timeout reached after {Timeout}s, {Running} operations still running", 
+                    _logger.LogWarning("[{ProcessType}] Timeout reached after {Timeout}s, {Running} operations still running",
                         GetProcessType(), timeout.TotalSeconds, _runningOperations.Count);
                 }
             }
@@ -377,7 +377,7 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
             {
                 _logger.LogError(ex, "[{ProcessType}] Error while waiting for operations to complete", GetProcessType());
             }
-            
+
             // Clear any remaining operations
             var remainingCount = _runningOperations.Count;
             if (remainingCount > 0)

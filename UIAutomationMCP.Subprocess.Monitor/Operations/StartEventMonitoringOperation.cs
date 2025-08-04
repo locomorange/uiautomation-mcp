@@ -39,15 +39,15 @@ namespace UIAutomationMCP.Subprocess.Monitor.Operations
                     WindowHandle = request.WindowHandle
                 };
                 var targetElement = _elementFinderService.FindElement(searchCriteria);
-                
+
                 if (targetElement == null)
                 {
                     var error = $"Target element not found: AutomationId='{request.AutomationId}', Name='{request.Name}', ControlType='{request.ControlType}'";
                     _logger.LogWarning(error);
-                    
+
                     throw new InvalidOperationException(error);
                 }
-                
+
                 _logger.LogDebug("Target element found for monitoring: {ElementName}", targetElement.Current.Name);
             }
 
