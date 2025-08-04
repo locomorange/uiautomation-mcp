@@ -166,7 +166,8 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Success = true,
                     AutomationId = "movableWindow",
                     Action = "Move",
-                    ActionParameters = new ActionParameters { Position = new Point { X = (int)x, Y = (int)y } }
+                    // Intentionally rounding double coordinates to int for Point; precision loss is documented.
+                    ActionParameters = new ActionParameters { Position = new Point { X = (int)Math.Round(x), Y = (int)Math.Round(y) } }
                 }
             };
             _mockTransformService.Setup(s => s.MoveElementAsync("movableWindow", null, x, y, "MainApp", null, 30))
