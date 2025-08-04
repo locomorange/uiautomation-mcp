@@ -22,7 +22,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Value
 
         protected override Task<SetValueResult> ExecuteOperationAsync(SetElementValueRequest request)
         {
-            // 繝代ち繝ｼ繝ｳ螟画鋤・ｽE・ｽ繝ｪ繧ｯ繧ｨ繧ｹ繝医°繧牙叙蠕励√ョ繝輔か繝ｫ繝茨ｿｽEValuePattern・ｽE・ｽE
+            // Get the automation pattern from the request, defaulting to ValuePattern
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? ValuePattern.Pattern;
 
             var searchCriteria = new ElementSearchCriteria

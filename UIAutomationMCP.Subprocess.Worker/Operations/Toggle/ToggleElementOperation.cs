@@ -20,7 +20,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Toggle
 
         protected override async Task<ToggleActionResult> ExecuteOperationAsync(ToggleElementRequest request)
         {
-            // 繝代ち繝ｼ繝ｳ螟画鋤・ｽE・ｽ繝ｪ繧ｯ繧ｨ繧ｹ繝医°繧牙叙蠕励√ョ繝輔か繝ｫ繝茨ｿｽETogglePattern・ｽE・ｽE
+            // Get the automation pattern from the request, defaulting to TogglePattern
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? TogglePattern.Pattern;
 
             var searchCriteria = new ElementSearchCriteria
