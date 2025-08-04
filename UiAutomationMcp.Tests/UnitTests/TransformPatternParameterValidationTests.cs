@@ -68,12 +68,13 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine($"Testing MoveElementOperation with invalid elementId: '{invalidElementId}'");
 
             // Act
+            var parameters = (Dictionary<string, object>)request.Parameters!;
             var typedRequest = new MoveElementRequest 
             { 
-                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"], 
-                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"], 
-                X = double.TryParse((string)((Dictionary<string, object>)request.Parameters)["x"], out var x) ? x : 0.0,
-                Y = double.TryParse((string)((Dictionary<string, object>)request.Parameters)["y"], out var y) ? y : 0.0
+                AutomationId = (string)parameters["elementId"], 
+                WindowTitle = (string)parameters["windowTitle"], 
+                X = double.TryParse((string)parameters["x"], out var x) ? x : 0.0,
+                Y = double.TryParse((string)parameters["y"], out var y) ? y : 0.0
             };
             var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 
@@ -146,10 +147,11 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine("Testing MoveElementOperation with missing coordinate parameters");
 
             // Act
+            var parameters = (Dictionary<string, object>)request.Parameters!;
             var typedRequest = new MoveElementRequest 
             { 
-                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"], 
-                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"], 
+                AutomationId = (string)parameters["elementId"], 
+                WindowTitle = (string)parameters["windowTitle"], 
                 X = 0.0,  // Default values for missing coordinates
                 Y = 0.0
             };
@@ -190,12 +192,13 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine($"Testing ResizeElementOperation with invalid dimensions: width='{widthValue}', height='{heightValue}'");
 
             // Act
+            var parameters = (Dictionary<string, object>)request.Parameters!;
             var typedRequest = new ResizeElementRequest 
             { 
-                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"], 
-                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"], 
-                Width = double.TryParse((string)((Dictionary<string, object>)request.Parameters)["width"], out var w) ? w : 0.0,
-                Height = double.TryParse((string)((Dictionary<string, object>)request.Parameters)["height"], out var h) ? h : 0.0
+                AutomationId = (string)parameters["elementId"], 
+                WindowTitle = (string)parameters["windowTitle"], 
+                Width = double.TryParse((string)parameters["width"], out var w) ? w : 0.0,
+                Height = double.TryParse((string)parameters["height"], out var h) ? h : 0.0
             };
             var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 
@@ -321,11 +324,12 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine($"Testing RotateElementOperation with invalid degrees format: '{degreesValue}'");
 
             // Act
+            var parameters = (Dictionary<string, object>)request.Parameters!;
             var typedRequest = new RotateElementRequest 
             { 
-                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"], 
-                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"], 
-                Degrees = double.TryParse((string)((Dictionary<string, object>)request.Parameters)["degrees"], out var deg) ? deg : 0.0
+                AutomationId = (string)parameters["elementId"], 
+                WindowTitle = (string)parameters["windowTitle"], 
+                Degrees = double.TryParse((string)parameters["degrees"], out var deg) ? deg : 0.0
             };
             var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
 
@@ -466,10 +470,11 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine($"Testing Transform operation with invalid processId: '{invalidProcessIdValue}'");
 
             // Act
+            var parameters = (Dictionary<string, object>)request.Parameters!;
             var typedRequest = new MoveElementRequest 
             { 
-                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"], 
-                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"], 
+                AutomationId = (string)parameters["elementId"], 
+                WindowTitle = (string)parameters["windowTitle"], 
                 X = 100.0,
                 Y = 200.0
             };
@@ -511,10 +516,11 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine($"Testing Transform operation with windowTitle: '{windowTitle}'");
 
             // Act
+            var parameters = (Dictionary<string, object>)request.Parameters!;
             var typedRequest = new RotateElementRequest 
             { 
-                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"], 
-                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"], 
+                AutomationId = (string)parameters["elementId"], 
+                WindowTitle = (string)parameters["windowTitle"], 
                 Degrees = 90.0
             };
             var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));

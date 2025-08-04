@@ -395,15 +395,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Toggle", Action = "Toggle", ReturnValue = "On", Details = "Previous state: Off" }
             };
-            _mockToggleService.Setup(s => s.ToggleElementAsync("element1", null, null, processId, 30))
+            _mockToggleService.Setup(s => s.ToggleElementAsync("element1", "TestWindow", null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.ToggleElement(automationId: "element1", controlType: "TestWindow");
+            var result = await _tools.ToggleElement("element1", "TestWindow");
 
             // Assert
             Assert.NotNull(result);
-            _mockToggleService.Verify(s => s.ToggleElementAsync("element1", null, null, processId, 30), Times.Once);
+            _mockToggleService.Verify(s => s.ToggleElementAsync("element1", "TestWindow", null, null, 30), Times.Once);
             _output.WriteLine($"ProcessId parameter test passed: processId={processId}");
         }
 

@@ -185,7 +185,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Completed = true
                 }
             };
-            _mockSelectionService.Setup(s => s.RemoveFromSelectionAsync("item1", null, null, null, 30))
+            _mockSelectionService.Setup(s => s.RemoveFromSelectionAsync("item1", "App Window", null, null, 30))
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -193,7 +193,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.RemoveFromSelectionAsync("item1", null, null, null, 30), Times.Once);
+            _mockSelectionService.Verify(s => s.RemoveFromSelectionAsync("item1", "App Window", null, null, 30), Times.Once);
             _output.WriteLine("RemoveFromSelection test passed - Item removed from selection");
         }
 
