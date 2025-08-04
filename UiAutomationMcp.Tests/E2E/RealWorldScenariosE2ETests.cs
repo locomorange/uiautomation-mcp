@@ -115,7 +115,7 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
             {
                 // If not found, it might be virtualized - try to realize parent nodes
                 _output.WriteLine("Project node might be virtualized, attempting to realize");
-                
+
                 var realizeResult = await Tools.RealizeVirtualizedItem(
                     "TestProjects",
                     timeoutSeconds: 10);
@@ -126,7 +126,7 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
                     value: "MyProject.Tests",
                     automationId: containerId,
                     timeoutSeconds: 10);
-                
+
                 projectDict = projectResult as Dictionary<string, object>;
             }
 
@@ -236,7 +236,7 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
             for (int i = 0; i < 5; i++)
             {
                 var itemId = $"post_{i * 20}"; // Every 20th post
-                
+
                 var realizeResult = await Tools.RealizeVirtualizedItem(
                     itemId,
                     timeoutSeconds: 5);
@@ -245,7 +245,7 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
                 if (realizeDict != null && (bool)realizeDict["Success"])
                 {
                     _output.WriteLine($"Successfully realized post {i * 20}");
-                    
+
                     // In real scenario, would interact with the realized content
                     await Task.Delay(500);
                 }
@@ -308,7 +308,7 @@ public class RealWorldScenariosE2ETests : BaseE2ETest
                 {
                     // Record is virtualized, realize it
                     _output.WriteLine($"Record {recordId} is virtualized, realizing...");
-                    
+
                     var realizeResult = await Tools.RealizeVirtualizedItem(
                         $"Row_{recordId}",
                         timeoutSeconds: 10);

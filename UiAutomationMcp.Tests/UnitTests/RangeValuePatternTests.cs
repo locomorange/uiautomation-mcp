@@ -27,7 +27,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             _output = output;
             _mockRangeService = new Mock<IRangeService>();
-            
+
             // UIAutomationToolsの他のサービスもモック化（最小限の設定）
             var mockAppLauncher = new Mock<IApplicationLauncher>();
             var mockScreenshot = new Mock<IScreenshotService>();
@@ -193,7 +193,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange - Microsoft仕様：ArgumentOutOfRangeExceptionをスロー
             _mockRangeService.Setup(s => s.SetRangeValueAsync("rangeControl", null, invalidValue, null, null, 30))
-                           .ThrowsAsync(new ArgumentOutOfRangeException("value", 
+                           .ThrowsAsync(new ArgumentOutOfRangeException("value",
                                $"Value {invalidValue} is out of range. Valid range: 0 - 100"));
 
             // Act & Assert
@@ -394,7 +394,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                            .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.SetRangeValue(automationId: elementId, value: value, 
+            var result = await _tools.SetRangeValue(automationId: elementId, value: value,
                 name: string.IsNullOrEmpty(windowTitle) ? null : windowTitle);
 
             // Assert

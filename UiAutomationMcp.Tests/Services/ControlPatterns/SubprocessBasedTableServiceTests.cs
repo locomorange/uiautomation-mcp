@@ -82,8 +82,8 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             Assert.Equal(expectedColumnHeaders, result.Data);
 
             //  
-            _mockProcessManager.Verify(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", 
-                It.Is<GetColumnHeaderItemsRequest>(r => 
+            _mockProcessManager.Verify(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems",
+                It.Is<GetColumnHeaderItemsRequest>(r =>
                     r.AutomationId == "tableCell1" &&
                     r.WindowTitle == "TestWindow"), 30), Times.Once);
 
@@ -116,8 +116,8 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             Assert.Equal(expectedResult, result.Data);
 
             //  
-            _mockProcessManager.Verify(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", 
-                It.Is<GetColumnHeaderItemsRequest>(r => 
+            _mockProcessManager.Verify(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems",
+                It.Is<GetColumnHeaderItemsRequest>(r =>
                     r.AutomationId == "cell2_3" &&
                     r.WindowTitle == ""), 60), Times.Once);
 
@@ -190,8 +190,8 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             Assert.Equal(expectedRowHeaders, result.Data);
 
             //  
-            _mockProcessManager.Verify(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", 
-                It.Is<GetRowHeaderItemsRequest>(r => 
+            _mockProcessManager.Verify(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems",
+                It.Is<GetRowHeaderItemsRequest>(r =>
                     r.AutomationId == "tableCell2" &&
                     r.WindowTitle == "TestWindow"), 30), Times.Once);
 
@@ -224,8 +224,8 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             Assert.Equal(expectedResult, result.Data);
 
             //  
-            _mockProcessManager.Verify(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", 
-                It.Is<GetRowHeaderItemsRequest>(r => 
+            _mockProcessManager.Verify(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems",
+                It.Is<GetRowHeaderItemsRequest>(r =>
                     r.AutomationId == "defaultCell" &&
                     r.WindowTitle == ""), 30), Times.Once);
 
@@ -273,7 +273,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
                     new UIAutomationMCP.Models.ElementInfo { Name = $"Column Header for {cellId}" }
                 }
             };
-            
+
             var rowHeadersResult = new ElementSearchResult
             {
                 Elements = new List<UIAutomationMCP.Models.ElementInfo>
@@ -294,14 +294,14 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             // Assert
             Assert.NotNull(columnResult);
             Assert.NotNull(rowResult);
-            
+
             Assert.True(columnResult.Success);
             Assert.True(rowResult.Success);
 
             //  
-            _mockProcessManager.Verify(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", 
+            _mockProcessManager.Verify(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems",
                 It.Is<GetColumnHeaderItemsRequest>(r => r.AutomationId == cellId), 30), Times.Once);
-            _mockProcessManager.Verify(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", 
+            _mockProcessManager.Verify(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems",
                 It.Is<GetRowHeaderItemsRequest>(r => r.AutomationId == cellId), 30), Times.Once);
 
             _output.WriteLine($"TableItem pattern integration test passed for {description}");

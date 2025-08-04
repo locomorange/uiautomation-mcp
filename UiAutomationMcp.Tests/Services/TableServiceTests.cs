@@ -29,7 +29,7 @@ namespace UIAutomationMCP.Tests.Services
             _output = output;
             _mockLogger = new Mock<ILogger<TableService>>();
             _mockProcessManager = new Mock<IOperationExecutor>();
-            
+
             _tableService = new TableService(Mock.Of<IProcessManager>(), _mockLogger.Object);
         }
 
@@ -183,8 +183,8 @@ namespace UIAutomationMCP.Tests.Services
         {
             // Arrange
             var elementId = "table1";
-            var expectedResult = new ElementSearchResult 
-            { 
+            var expectedResult = new ElementSearchResult
+            {
                 Success = true,
                 Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
@@ -202,10 +202,10 @@ namespace UIAutomationMCP.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            _mockProcessManager.Verify(e => e.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", 
-                It.Is<GetRowHeadersRequest>(p => 
+            _mockProcessManager.Verify(e => e.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders",
+                It.Is<GetRowHeadersRequest>(p =>
                     p.AutomationId == elementId), 30), Times.Once);
-            
+
             _output.WriteLine("GetRowHeadersAsync service test passed");
         }
 
@@ -218,8 +218,8 @@ namespace UIAutomationMCP.Tests.Services
         {
             // Arrange
             var elementId = "table1";
-            var expectedResult = new ElementSearchResult 
-            { 
+            var expectedResult = new ElementSearchResult
+            {
                 Success = true,
                 Elements = new List<UIAutomationMCP.Models.ElementInfo>
                 {
@@ -237,10 +237,10 @@ namespace UIAutomationMCP.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            _mockProcessManager.Verify(e => e.ExecuteAsync<GetColumnHeadersRequest, ElementSearchResult>("GetColumnHeaders", 
-                It.Is<GetColumnHeadersRequest>(p => 
+            _mockProcessManager.Verify(e => e.ExecuteAsync<GetColumnHeadersRequest, ElementSearchResult>("GetColumnHeaders",
+                It.Is<GetColumnHeadersRequest>(p =>
                     p.AutomationId == elementId), 30), Times.Once);
-            
+
             _output.WriteLine("GetColumnHeadersAsync service test passed");
         }
 
@@ -264,8 +264,8 @@ namespace UIAutomationMCP.Tests.Services
 
             // Setup mock responses for all available members
             _mockProcessManager.Setup(e => e.ExecuteAsync<GetColumnHeadersRequest, ElementSearchResult>("GetColumnHeaders", It.IsAny<GetColumnHeadersRequest>(), 30))
-                .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(new ElementSearchResult 
-                { 
+                .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(new ElementSearchResult
+                {
                     Success = true,
                     Elements = new List<UIAutomationMCP.Models.ElementInfo>
                     {
@@ -273,10 +273,10 @@ namespace UIAutomationMCP.Tests.Services
                         new UIAutomationMCP.Models.ElementInfo { Name = "Header2" }
                     }
                 })));
-            
+
             _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", It.IsAny<GetRowHeadersRequest>(), 30))
-                .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(new ElementSearchResult 
-                { 
+                .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(new ElementSearchResult
+                {
                     Success = true,
                     Elements = new List<UIAutomationMCP.Models.ElementInfo>
                     {
@@ -331,7 +331,7 @@ namespace UIAutomationMCP.Tests.Services
             // Assert
             Assert.NotNull(result);
             _mockProcessManager.Verify(e => e.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", It.IsAny<GetRowHeadersRequest>(), timeout), Times.Once);
-            
+
             _output.WriteLine($"Timeout parameter test passed for {timeout} seconds");
         }
 

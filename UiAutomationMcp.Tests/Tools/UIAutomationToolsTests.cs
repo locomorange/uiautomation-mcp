@@ -52,7 +52,7 @@ namespace UIAutomationMCP.Tests.Tools
         public UIAutomationToolsTests(ITestOutputHelper output)
         {
             _output = output;
-            
+
             // Create all service mocks
             _mockApplicationLauncher = new Mock<IApplicationLauncher>();
             _mockScreenshotService = new Mock<IScreenshotService>();
@@ -79,7 +79,7 @@ namespace UIAutomationMCP.Tests.Tools
             _mockEventMonitorService = new Mock<IEventMonitorService>();
             _mockFocusService = new Mock<IFocusService>();
             _mockMcpLogService = new Mock<IMcpLogService>();
-            
+
             _tools = new UIAutomationTools(
                 _mockApplicationLauncher.Object,
                 _mockScreenshotService.Object,
@@ -125,7 +125,7 @@ namespace UIAutomationMCP.Tests.Tools
                 new ElementInfo { Name = "Window1", ProcessId = 1234, ControlType = "Window", IsVisible = true },
                 new ElementInfo { Name = "Window2", ProcessId = 5678, ControlType = "Window", IsVisible = true }
             };
-            
+
             var searchElementsResult = new SearchElementsResult
             {
                 Success = true,
@@ -139,7 +139,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockElementSearchService.Setup(s => s.SearchElementsAsync(It.IsAny<UIAutomationMCP.Models.Requests.SearchElementsRequest>(), 30))
                             .Returns(Task.FromResult(serverResponse));
 
@@ -161,7 +161,7 @@ namespace UIAutomationMCP.Tests.Tools
                 new ElementInfo { AutomationId = "btn1", Name = "Button1", ControlType = "Button" },
                 new ElementInfo { AutomationId = "btn2", Name = "Button2", ControlType = "Button" }
             };
-            
+
             var searchElementsResult = new SearchElementsResult
             {
                 Success = true,
@@ -174,7 +174,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             // _mockElementSearchService.Setup(s => s.SearchElementsAsync(It.IsNotNull<UIAutomationMCP.Models.Requests.SearchElementsRequest>()))
             //                        .Returns(Task.FromResult(serverResponse));
             //
@@ -207,7 +207,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockInvokeService.Setup(s => s.InvokeElementAsync("testButton", null, null, null, 30))
                                  .Returns(Task.FromResult(serverResponse));
 
@@ -236,7 +236,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockInvokeService.Setup(s => s.InvokeElementAsync("testButton", null, null, 1234, 30))
                                  .Returns(Task.FromResult(serverResponse));
 
@@ -265,7 +265,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             var customTimeout = 60;
             _mockInvokeService.Setup(s => s.InvokeElementAsync("testButton", "TestWindow", null, null, customTimeout))
                                  .Returns(Task.FromResult(serverResponse));
@@ -296,7 +296,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockInvokeService.Setup(s => s.InvokeElementAsync("nonExistentButton", "TestWindow", null, null, 30))
                                  .Returns(Task.FromResult(serverResponse));
 
@@ -317,9 +317,9 @@ namespace UIAutomationMCP.Tests.Tools
                                  .ThrowsAsync(new InvalidOperationException("Service error"));
 
             // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => 
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _tools.InvokeElement("testButton", "TestWindow"));
-            
+
             _mockInvokeService.Verify(s => s.InvokeElementAsync("testButton", null, null, null, 30), Times.Once);
             _output.WriteLine("InvokeElement service exception test passed");
         }
@@ -340,7 +340,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockInvokeService.Setup(s => s.InvokeElementAsync("", "TestWindow", null, null, 30))
                                  .Returns(Task.FromResult(serverResponse));
 
@@ -660,7 +660,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockTreeNavigationService.Setup(s => s.GetElementTreeAsync(null, 3, 60))
                                    .Returns(Task.FromResult(serverResponse));
 
@@ -736,7 +736,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockWindowService.Setup(s => s.WindowOperationAsync("minimize", "TestWindow", null, 30))
                                  .Returns(Task.FromResult(serverResponse));
 
@@ -1137,9 +1137,9 @@ namespace UIAutomationMCP.Tests.Tools
             // await Assert.ThrowsAsync<InvalidOperationException>(() => 
             //     _tools.GetAvailableViews("viewContainer1", "TestWindow"));
             // Method removed - test no longer valid
-            await Assert.ThrowsAsync<InvalidOperationException>(() => 
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 Task.FromException<object>(new InvalidOperationException("Method removed")));
-            
+
             _mockMultipleViewService.Verify(s => s.GetAvailableViewsAsync("viewContainer1", "TestWindow", null, null, 30), Times.Once);
             _output.WriteLine("GetAvailableViews service exception test passed");
         }
@@ -1276,9 +1276,9 @@ namespace UIAutomationMCP.Tests.Tools
             // await Assert.ThrowsAsync<ArgumentException>(() => 
             //     _tools.GetCurrentView("viewContainer1", "TestWindow"));
             // Method removed - test no longer valid
-            await Assert.ThrowsAsync<ArgumentException>(() => 
+            await Assert.ThrowsAsync<ArgumentException>(() =>
                 Task.FromException<object>(new ArgumentException("Method removed")));
-            
+
             _mockMultipleViewService.Verify(s => s.GetCurrentViewAsync("viewContainer1", "TestWindow", null, null, 30), Times.Once);
             _output.WriteLine("GetCurrentView service exception test passed");
         }
@@ -1401,9 +1401,9 @@ namespace UIAutomationMCP.Tests.Tools
                                   .ThrowsAsync(new ArgumentException("Unsupported view ID: 999"));
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => 
+            await Assert.ThrowsAsync<ArgumentException>(() =>
                 _tools.SetView(999, "viewContainer1", "TestWindow"));
-            
+
             _mockMultipleViewService.Verify(s => s.SetViewAsync("viewContainer1", null, 999, null, null, 30), Times.Once);
             _output.WriteLine("SetView with invalid viewId test passed");
         }
@@ -1446,9 +1446,9 @@ namespace UIAutomationMCP.Tests.Tools
                                   .ThrowsAsync(new ArgumentException("Invalid view ID: -1"));
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => 
+            await Assert.ThrowsAsync<ArgumentException>(() =>
                 _tools.SetView(-1, "viewContainer1", "TestWindow"));
-            
+
             _mockMultipleViewService.Verify(s => s.SetViewAsync("viewContainer1", null, -1, null, null, 30), Times.Once);
             _output.WriteLine("SetView with negative viewId test passed");
         }
@@ -1565,7 +1565,7 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new ScrollInfoResult
             {
                 Success = true,
-                
+
                 HorizontalScrollPercent = 25.0,
                 VerticalScrollPercent = 50.0,
                 HorizontalViewSize = 80.0,
@@ -1710,7 +1710,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync("scrollableItem", "TestWindow", null, 1234, 30))
                              .Returns(Task.FromResult(expectedResult));
 
@@ -1766,14 +1766,14 @@ namespace UIAutomationMCP.Tests.Tools
         {
             // Arrange
             var expectedException = new InvalidOperationException("ScrollItemPattern is not supported by this element");
-            
+
             _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync("nonScrollableElement", null, null, null, 30))
                              .ThrowsAsync(expectedException);
 
             // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => 
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _tools.ScrollElementIntoView("nonScrollableElement"));
-            
+
             _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync("nonScrollableElement", null, null, null, 30), Times.Once);
             _output.WriteLine("ScrollElementIntoView pattern not supported exception test passed");
         }
@@ -1786,14 +1786,14 @@ namespace UIAutomationMCP.Tests.Tools
         {
             // Arrange
             var expectedException = new ArgumentException("Element not found: nonExistentElement");
-            
+
             _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync("nonExistentElement", "TestWindow", null, null, 30))
                              .ThrowsAsync(expectedException);
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => 
+            await Assert.ThrowsAsync<ArgumentException>(() =>
                 _tools.ScrollElementIntoView("nonExistentElement", "TestWindow"));
-            
+
             _mockLayoutService.Verify(s => s.ScrollElementIntoViewAsync("nonExistentElement", "TestWindow", null, null, 30), Times.Once);
             _output.WriteLine("ScrollElementIntoView element not found exception test passed");
         }
@@ -1854,7 +1854,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync(elementId, "TestApplication", null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
@@ -1889,7 +1889,7 @@ namespace UIAutomationMCP.Tests.Tools
                     ErrorMessage = "Invalid parameters"
                 }
             };
-            
+
             _mockLayoutService.Setup(s => s.ScrollElementIntoViewAsync(elementId, windowTitle, null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
@@ -2003,14 +2003,14 @@ namespace UIAutomationMCP.Tests.Tools
         {
             // Arrange
             var expectedException = new InvalidOperationException("TableItemPattern not supported");
-            
+
             _mockGridService.Setup(s => s.GetColumnHeaderAsync("nonTableCell", "TestWindow", 0, null, null, 30))
                            .ThrowsAsync(expectedException);
 
             // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => 
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _tools.GetColumnHeader(0, "nonTableCell", "TestWindow"));
-            
+
             _mockGridService.Verify(s => s.GetColumnHeaderAsync("nonTableCell", "TestWindow", 0, null, null, 30), Times.Once);
             _output.WriteLine("GetColumnHeader pattern not supported exception test passed");
         }
@@ -2033,7 +2033,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockGridService.Setup(s => s.GetColumnHeaderAsync("emptyTableCell", "TestWindow", 0, null, null, 30))
                            .Returns(Task.FromResult(expectedResult));
 
@@ -2118,7 +2118,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockGridService.Setup(s => s.GetRowHeaderAsync("defaultCell", null, 0, null, null, 30))
                            .Returns(Task.FromResult(expectedResult));
 
@@ -2141,14 +2141,14 @@ namespace UIAutomationMCP.Tests.Tools
         {
             // Arrange
             var expectedException = new InvalidOperationException("TableItemPattern not supported");
-            
+
             _mockGridService.Setup(s => s.GetRowHeaderAsync("nonTableCell", "TestWindow", 0, null, null, 30))
                            .ThrowsAsync(expectedException);
 
             // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => 
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _tools.GetRowHeader(0, "nonTableCell", "TestWindow"));
-            
+
             _mockGridService.Verify(s => s.GetRowHeaderAsync("nonTableCell", "TestWindow", 0, null, null, 30), Times.Once);
             _output.WriteLine("GetRowHeader pattern not supported exception test passed");
         }
@@ -2255,7 +2255,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             var rowHeadersResult = new ElementSearchResult
             {
                 Success = true,
@@ -2273,7 +2273,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockGridService.Setup(s => s.GetColumnHeaderAsync(cellId, null, 0, null, null, 30))
                            .Returns(Task.FromResult(columnServerResponse));
             _mockGridService.Setup(s => s.GetRowHeaderAsync(cellId, null, 0, null, null, 30))
@@ -2314,7 +2314,7 @@ namespace UIAutomationMCP.Tests.Tools
                 ExecutionInfo = new ServerExecutionInfo(),
                 RequestMetadata = new RequestMetadata()
             };
-            
+
             _mockGridService.Setup(s => s.GetColumnHeaderAsync(elementId, windowTitle, 0, null, null, 30))
                            .Returns(Task.FromResult(serverResponse));
             _mockGridService.Setup(s => s.GetRowHeaderAsync(elementId, windowTitle, 0, null, null, 30))

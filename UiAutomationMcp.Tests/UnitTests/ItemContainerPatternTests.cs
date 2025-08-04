@@ -29,7 +29,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output = output;
             _mockLogger = new Mock<ILogger<ItemContainerService>>();
             _mockProcessManager = new Mock<IProcessManager>();
-            
+
             _service = new ItemContainerService(_mockProcessManager.Object, _mockLogger.Object);
         }
 
@@ -42,7 +42,8 @@ namespace UIAutomationMCP.Tests.UnitTests
             var value = "TestItem";
             var startAfterId = "item0";
             var windowTitle = "Test Window";
-            var expectedResult = new ElementSearchResult {
+            var expectedResult = new ElementSearchResult
+            {
                 Success = true,
                 OperationName = "FindItem",
                 Metadata = new Dictionary<string, object> { { "AutomationId", "item1" }, { "Name", "TestItem" } }
@@ -56,14 +57,14 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockProcessManager.Verify(e => e.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>("FindItemByProperty", 
-                It.Is<FindItemByPropertyRequest>(p => 
+            _mockProcessManager.Verify(e => e.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>("FindItemByProperty",
+                It.Is<FindItemByPropertyRequest>(p =>
                     p.ContainerId == containerId &&
                     p.PropertyName == propertyName &&
                     p.Value == value &&
                     p.StartAfterId == startAfterId &&
                     p.WindowTitle == windowTitle), 30), Times.Once);
-            
+
             _output.WriteLine("FindItemByPropertyAsync service test passed - Correct subprocess execution verified");
         }
 
@@ -72,7 +73,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var containerId = "container1";
-            var expectedResult = new ElementSearchResult {
+            var expectedResult = new ElementSearchResult
+            {
                 Success = true,
                 OperationName = "FindItem",
                 Metadata = new Dictionary<string, object> { { "AutomationId", "anyItem" } }
@@ -86,8 +88,8 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockProcessManager.Verify(e => e.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>("FindItemByProperty", 
-                It.Is<FindItemByPropertyRequest>(p => 
+            _mockProcessManager.Verify(e => e.ExecuteAsync<FindItemByPropertyRequest, ElementSearchResult>("FindItemByProperty",
+                It.Is<FindItemByPropertyRequest>(p =>
                     p.ContainerId == containerId &&
                     p.PropertyName == "" &&
                     p.Value == "" &&
@@ -112,7 +114,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result);
             Assert.False(result.Success);
             Assert.Equal(exceptionMessage, result.ErrorMessage);
-            
+
             _mockLogger.Verify(l => l.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
@@ -128,7 +130,8 @@ namespace UIAutomationMCP.Tests.UnitTests
             var containerId = "container1";
             var propertyName = "Name";
             var value = "TestItem";
-            var expectedResult = new ElementSearchResult {
+            var expectedResult = new ElementSearchResult
+            {
                 Success = true,
                 OperationName = "FindItem",
                 Metadata = new Dictionary<string, object> { { "Found", true } }
@@ -147,7 +150,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains($"Finding item in container: {containerId}")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
-            
+
             _mockLogger.Verify(l => l.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),

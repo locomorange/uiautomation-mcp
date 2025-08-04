@@ -86,10 +86,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var expectedResult = new ServerEnhancedResponse<ActionResult>
-            { 
-                Success = true, 
+            {
+                Success = true,
                 Data = new ActionResult
-                { 
+                {
                     Action = "GetSelectionContainer",
                     ActionName = "Container information retrieved",
                     AutomationId = "listItem1",
@@ -114,11 +114,11 @@ namespace UIAutomationMCP.Tests.UnitTests
         public void GetSelectionContainer_WhenNoContainer_ShouldReturnNull()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> 
-            { 
-                Success = true, 
-                Data = new ActionResult 
-                { 
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
+                Success = true,
+                Data = new ActionResult
+                {
                     Action = "GetSelectionContainer",
                     ActionName = "Container not found",
                     AutomationId = "orphanedItem",
@@ -147,10 +147,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task AddToSelection_WhenCalled_ShouldAddItemToSelection()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> 
-            { 
-                Success = true, 
-                Data = new ActionResult 
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
+                Success = true,
+                Data = new ActionResult
                 {
                     Action = "AddToSelection",
                     ActionName = "Element added to selection successfully",
@@ -174,10 +174,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task RemoveFromSelection_WhenCalled_ShouldRemoveItemFromSelection()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> 
-            { 
-                Success = true, 
-                Data = new ActionResult 
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
+                Success = true,
+                Data = new ActionResult
                 {
                     Action = "RemoveFromSelection",
                     ActionName = "Element removed from selection successfully",
@@ -201,10 +201,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ClearSelection_WhenCalled_ShouldClearAllSelections()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> 
-            { 
-                Success = true, 
-                Data = new ActionResult 
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
+                Success = true,
+                Data = new ActionResult
                 {
                     Action = "ClearSelection",
                     ActionName = "Selection cleared successfully",
@@ -229,8 +229,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var expectedResult = new ServerEnhancedResponse<SelectionInfoResult>
-            { 
-                Success = true, 
+            {
+                Success = true,
                 Data = new SelectionInfoResult
                 {
                     SelectedItems = new List<ElementInfo>

@@ -31,14 +31,14 @@ namespace UIAutomationMCP.Tests.Integration
         public TransformPatternSpecificationTests(ITestOutputHelper output)
         {
             _output = output;
-            
+
             var services = new ServiceCollection();
-            services.AddLogging(builder => 
+            services.AddLogging(builder =>
                 builder.AddConsole().SetMinimumLevel(LogLevel.Information));
-            
+
             _serviceProvider = services.BuildServiceProvider();
             var logger = _serviceProvider.GetRequiredService<ILogger<SubprocessExecutor>>();
-            
+
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var possiblePaths = new[]
             {
@@ -47,15 +47,15 @@ namespace UIAutomationMCP.Tests.Integration
                 Path.Combine(baseDir, "worker", "UIAutomationMCP.Worker.exe"),
             };
 
-            _workerPath = possiblePaths.FirstOrDefault(File.Exists) ?? 
+            _workerPath = possiblePaths.FirstOrDefault(File.Exists) ??
                 throw new InvalidOperationException("Worker executable not found");
 
             _subprocessExecutor = new SubprocessExecutor(logger, _workerPath, new CancellationTokenSource());
-            
+
             var transformLogger = _serviceProvider.GetRequiredService<ILoggerFactory>()
                 .CreateLogger<TransformService>();
             _transformService = new TransformService(Mock.Of<IProcessManager>(), transformLogger);
-            
+
             _output.WriteLine("Transform Pattern Specification Tests initialized");
             _output.WriteLine("Testing compliance with Microsoft UI Automation Transform Control Pattern specification");
         }
@@ -105,7 +105,7 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.NotNull(jsonResult);
             var result = UIAutomationMCP.Models.Serialization.JsonSerializationHelper.Deserialize<ServerEnhancedResponse<TransformCapabilitiesResult>>(jsonResult.ToString()!);
             Assert.NotNull(result);
-            
+
             //                        PI                              
             if (!result.Success)
             {
@@ -114,7 +114,7 @@ namespace UIAutomationMCP.Tests.Integration
                     result.ErrorMessage.Contains("not found", StringComparison.OrdinalIgnoreCase) ||
                     result.ErrorMessage.Contains("TransformPattern not supported", StringComparison.OrdinalIgnoreCase),
                     $"Error message should indicate element not found or pattern not supported. Actual: {result.ErrorMessage}");
-                
+
                 _output.WriteLine("  Required Properties API structure verified");
                 _output.WriteLine($"  Expected error for non-existent element: {result.ErrorMessage}");
             }
@@ -150,21 +150,21 @@ namespace UIAutomationMCP.Tests.Integration
             // Act & Assert - Move Method
             var moveJsonResult = await _transformService.MoveElementAsync(
                 elementId, windowTitle, 100.0, 200.0, timeoutSeconds: timeout);
-            
+
             Assert.NotNull(moveJsonResult);
             _output.WriteLine("  Move method implemented and callable");
 
             // Act & Assert - Resize Method
             var resizeJsonResult = await _transformService.ResizeElementAsync(
                 elementId, windowTitle, 800.0, 600.0, timeoutSeconds: timeout);
-            
+
             Assert.NotNull(resizeJsonResult);
             _output.WriteLine("  Resize method implemented and callable");
 
             // Act & Assert - Rotate Method
             var rotateJsonResult = await _transformService.RotateElementAsync(
                 elementId, windowTitle, 90.0, timeoutSeconds: timeout);
-            
+
             Assert.NotNull(rotateJsonResult);
             _output.WriteLine("  Rotate method implemented and callable");
 
@@ -192,7 +192,7 @@ namespace UIAutomationMCP.Tests.Integration
             // Act & Assert - Move with non-movable element expectation
             var moveJsonResult = await _transformService.MoveElementAsync(
                 elementId, windowTitle, 100.0, 200.0, null, null, timeout);
-            
+
             Assert.NotNull(moveJsonResult);
             var moveResult = DeserializeResult<UIAutomationMCP.Models.Results.ServerEnhancedResponse<UIAutomationMCP.Models.Results.ActionResult>>(moveJsonResult);
             Assert.False(moveResult.Success); //                                  _output.WriteLine("  Move operation handled appropriately");
@@ -200,7 +200,7 @@ namespace UIAutomationMCP.Tests.Integration
             // Act & Assert - Resize with non-resizable element expectation
             var resizeJsonResult = await _transformService.ResizeElementAsync(
                 automationId: elementId, width: 800.0, height: 600.0, timeoutSeconds: timeout);
-            
+
             Assert.NotNull(resizeJsonResult);
             var resizeResult = DeserializeResult<UIAutomationMCP.Models.Results.ServerEnhancedResponse<UIAutomationMCP.Models.Results.ActionResult>>(resizeJsonResult);
             Assert.False(resizeResult.Success); //                                  _output.WriteLine("  Resize operation handled appropriately");
@@ -208,7 +208,7 @@ namespace UIAutomationMCP.Tests.Integration
             // Act & Assert - Rotate with non-rotatable element expectation
             var rotateJsonResult = await _transformService.RotateElementAsync(
                 automationId: elementId, degrees: 90.0, timeoutSeconds: timeout);
-            
+
             Assert.NotNull(rotateJsonResult);
             var rotateResult = DeserializeResult<UIAutomationMCP.Models.Results.ServerEnhancedResponse<UIAutomationMCP.Models.Results.ActionResult>>(rotateJsonResult);
             Assert.False(rotateResult.Success); //                                  _output.WriteLine("  Rotate operation handled appropriately");
@@ -243,7 +243,7 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.NotNull(jsonResult);
             var result = DeserializeResult<ServerEnhancedResponse<ActionResult>>(jsonResult);
             Assert.False(result.Success);
-            
+
             if (width <= 0 || height <= 0)
             {
                 // 0                                          Assert.NotNull(result.ErrorMessage);
@@ -287,21 +287,21 @@ namespace UIAutomationMCP.Tests.Integration
             {
                 var jsonResult = await operation();
                 var result = DeserializeResult<ServerEnhancedResponse<ActionResult>>(jsonResult);
-                
+
                 // Assert
                 Assert.NotNull(result);
                 //                                        
                 //                                                  
                 Assert.False(result.Success); //                                  Assert.NotNull(result.ErrorMessage);
-                
+
                 // Check that operations do not trigger "event" related errors
                 var errorLower = result.ErrorMessage.ToLowerInvariant();
-                var hasEventError = errorLower.Contains("event handler") || 
-                                   errorLower.Contains("event listener") || 
+                var hasEventError = errorLower.Contains("event handler") ||
+                                   errorLower.Contains("event listener") ||
                                    errorLower.Contains("event subscription") ||
                                    errorLower.Contains("event fire");
                 Assert.False(hasEventError, $"Operation should not have event-related errors: {result.ErrorMessage}");
-                
+
                 _output.WriteLine($"  {operationName} operation completed without event-related issues");
             }
 
@@ -335,7 +335,7 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.False(result.Success); //                              
             //                                              Assert.NotNull(result.ErrorMessage);
             var errorMessage = result.ErrorMessage.ToLowerInvariant();
-            
+
             // Verify error indicates element not found or pattern not supported
             var validErrorPatterns = new[]
             {
@@ -347,10 +347,10 @@ namespace UIAutomationMCP.Tests.Integration
                 "operation failed"
             };
 
-            var hasValidErrorPattern = validErrorPatterns.Any(pattern => 
+            var hasValidErrorPattern = validErrorPatterns.Any(pattern =>
                 errorMessage.Contains(pattern, StringComparison.OrdinalIgnoreCase));
-            
-            Assert.True(hasValidErrorPattern, 
+
+            Assert.True(hasValidErrorPattern,
                 $"Error message should indicate element not found or pattern not supported. Actual: {result.ErrorMessage}");
 
             _output.WriteLine($"  Proper error indication provided: {result.ErrorMessage}");
@@ -388,7 +388,7 @@ namespace UIAutomationMCP.Tests.Integration
             //                                                    Assert.NotNull(result.ErrorMessage);
             Assert.DoesNotContain("crash", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("exception", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
-            
+
             _output.WriteLine($"  Extreme coordinates handled gracefully: {result.ErrorMessage}");
             _output.WriteLine("  Microsoft Specification: Extreme Coordinate Handling - PASSED");
         }
@@ -421,7 +421,7 @@ namespace UIAutomationMCP.Tests.Integration
             //                                                     Assert.NotNull(result.ErrorMessage);
             Assert.DoesNotContain("invalid angle", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("angle out of range", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
-            
+
             _output.WriteLine($"  Various angles handled gracefully: {result.ErrorMessage}");
             _output.WriteLine("  Microsoft Specification: Various Angle Handling - PASSED");
         }
@@ -455,7 +455,7 @@ namespace UIAutomationMCP.Tests.Integration
                 try
                 {
                     _output.WriteLine($"\nTesting: {scenario.Name}");
-                    
+
                     // Test all core operations for each scenario
                     var capabilitiesResult = await _transformService.GetTransformCapabilitiesAsync(
                         scenario.AutomationId, "SpecWindow", timeoutSeconds: 5);
@@ -499,7 +499,7 @@ namespace UIAutomationMCP.Tests.Integration
             }
 
             Assert.True(allTestsPassed, "All Microsoft Transform Pattern specification requirements must be met");
-            
+
             _output.WriteLine("\n  Microsoft Transform Pattern Specification - FULLY COMPLIANT");
             _output.WriteLine("  All required properties, methods, and behaviors are properly implemented");
             _output.WriteLine("  Exception handling follows Microsoft guidelines");

@@ -24,7 +24,7 @@ namespace UIAutomationMCP.Tests.Integration
         public VirtualizedItemPatternIntegrationTests(ITestOutputHelper output)
         {
             _output = output;
-            
+
             // Use simple mock loggers for integration tests
             _logger = Mock.Of<ILogger<VirtualizedItemService>>();
             var executorLogger = Mock.Of<ILogger<SubprocessExecutor>>();
@@ -58,15 +58,15 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Assert
             Assert.NotNull(result);
-            
+
             // Should return error result due to element not found
             var resultType = result.GetType();
             var successProperty = resultType.GetProperty("Success");
             Assert.NotNull(successProperty);
-            
+
             var success = (bool?)successProperty.GetValue(result);
             Assert.False(success);
-            
+
             var errorProperty = resultType.GetProperty("Error");
             Assert.NotNull(errorProperty);
             var error = errorProperty.GetValue(result)?.ToString();
@@ -83,14 +83,14 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Act - This tests the full Server->Worker communication pipeline
             var result = await _virtualizedItemService.RealizeItemAsync(
-                automationId: elementId, 
-                name: windowTitle, 
+                automationId: elementId,
+                name: windowTitle,
                 timeoutSeconds: 10);
 
             // Assert
             Assert.NotNull(result);
             _output.WriteLine($"Server-Worker communication test completed. Result type: {result.GetType().Name}");
-            
+
             // The Worker should handle the request and return a result (error or success)
             var resultType = result.GetType();
             var successProperty = resultType.GetProperty("Success");
@@ -107,15 +107,15 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Act
             var result = await _virtualizedItemService.RealizeItemAsync(
-                automationId: elementId, 
+                automationId: elementId,
                 timeoutSeconds: timeoutSeconds);
 
             // Assert
             var elapsed = DateTime.UtcNow - startTime;
             Assert.NotNull(result);
-            Assert.True(elapsed.TotalSeconds < timeoutSeconds + 2, 
+            Assert.True(elapsed.TotalSeconds < timeoutSeconds + 2,
                 $"Operation should complete within timeout period + buffer. Elapsed: {elapsed.TotalSeconds}s");
-            
+
             _output.WriteLine($"Timeout test completed in {elapsed.TotalSeconds:F2}s (timeout was {timeoutSeconds}s)");
         }
 
@@ -123,7 +123,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task RealizeItemAsync_WorkerProcessLifecycle_ShouldStartAndStop()
         {
             // This test verifies that the Worker process starts and stops correctly
-            
+
             // Arrange
             var elementId = "lifecycleTestItem";
 
@@ -131,7 +131,7 @@ namespace UIAutomationMCP.Tests.Integration
             for (int i = 0; i < 3; i++)
             {
                 var result = await _virtualizedItemService.RealizeItemAsync(
-                    automationId: $"{elementId}_{i}", 
+                    automationId: $"{elementId}_{i}",
                     timeoutSeconds: 5);
 
                 Assert.NotNull(result);

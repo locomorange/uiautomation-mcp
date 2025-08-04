@@ -44,7 +44,7 @@ namespace UiAutomationMcp.Tests.Models
             Assert.Equal(original.IsEnabled, deserialized.IsEnabled);
             Assert.Equal(original.IsVisible, deserialized.IsVisible);
             Assert.Equal(original.Details?.HelpText, deserialized.Details?.HelpText);
-            
+
             Assert.Equal(original.BoundingRectangle.X, deserialized.BoundingRectangle.X);
             Assert.Equal(original.BoundingRectangle.Y, deserialized.BoundingRectangle.Y);
             Assert.Equal(original.BoundingRectangle.Width, deserialized.BoundingRectangle.Width);
@@ -125,7 +125,7 @@ namespace UiAutomationMcp.Tests.Models
             Assert.Equal(operationParams.WindowTitle, deserialized.WindowTitle);
             Assert.Equal(operationParams.ProcessId, deserialized.ProcessId);
             Assert.Equal(operationParams.TimeoutSeconds, deserialized.TimeoutSeconds);
-            
+
             Assert.NotNull(deserialized.Parameters);
             Assert.Equal(3, deserialized.Parameters.Count);
             Assert.True(deserialized.Parameters.ContainsKey("Value"));

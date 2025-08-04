@@ -28,7 +28,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output = output;
             _mockLogger = new Mock<ILogger<VirtualizedItemService>>();
             _mockProcessManager = new Mock<IProcessManager>();
-            
+
             _service = new VirtualizedItemService(_mockProcessManager.Object, _mockLogger.Object);
         }
 
@@ -58,10 +58,10 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockProcessManager.Verify(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", 
-                It.Is<RealizeVirtualizedItemRequest>(r => 
+            _mockProcessManager.Verify(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem",
+                It.Is<RealizeVirtualizedItemRequest>(r =>
                     r.AutomationId == elementId), 30), Times.Once);
-            
+
             _output.WriteLine("RealizeItemAsync service test passed - Correct subprocess execution verified");
         }
 
@@ -91,8 +91,8 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockProcessManager.Verify(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", 
-                It.Is<RealizeVirtualizedItemRequest>(r => 
+            _mockProcessManager.Verify(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem",
+                It.Is<RealizeVirtualizedItemRequest>(r =>
                     r.AutomationId == elementId), 30), Times.Once);
         }
 
@@ -113,7 +113,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result);
             Assert.False(result.Success);
             Assert.Equal(exceptionMessage, result.ErrorMessage);
-            
+
             // The error should be in the result, not logged as an exception since it's handled
         }
 

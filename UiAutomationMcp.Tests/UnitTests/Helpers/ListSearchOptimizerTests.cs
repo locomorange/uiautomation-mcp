@@ -94,12 +94,12 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
             // Test with various framework IDs - the mock won't actually set these,
             // but the method should handle them gracefully
             var frameworks = new[] { "", null, "WPF", "Win32", "Unknown" };
-            
+
             foreach (var framework in frameworks)
             {
                 var mockElement = CreateMockElementWithFramework(framework ?? "");
                 var result = ListSearchOptimizer.GetOptimalMethod(mockElement!);
-                
+
                 Assert.True(Enum.IsDefined(typeof(ListSearchMethod), result));
             }
         }
@@ -126,7 +126,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
                 // you would use a mocking framework like Moq or create test doubles
                 // For now, we'll use AutomationElement.RootElement as a base and handle exceptions
                 var rootElement = AutomationElement.RootElement;
-                
+
                 // Note: In practice, you'd mock the Current.FrameworkId property
                 // This is a basic implementation for demonstration
                 return rootElement;
@@ -169,7 +169,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
 
                 // Act & Assert - Should not throw
                 var result = ListSearchOptimizer.GetOptimalMethod(desktop);
-                
+
                 // Should return a valid enum value
                 Assert.True(Enum.IsDefined(typeof(ListSearchMethod), result));
             }
@@ -195,7 +195,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
 
                 // Act & Assert - Should not throw even if no list items found
                 var result = ListSearchOptimizer.FindAllListItems(desktop);
-                
+
                 // Result can be null or empty collection, both are valid
                 // The important thing is that it doesn't throw
             }

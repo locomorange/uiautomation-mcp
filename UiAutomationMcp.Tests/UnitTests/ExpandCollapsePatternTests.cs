@@ -22,7 +22,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             _output = output;
             _mockLayoutService = new Mock<ILayoutService>();
-            
+
             // Create mocks for UIAutomationTools
             var mockAppLauncher = new Mock<IApplicationLauncher>();
             var mockScreenshot = new Mock<IScreenshotService>();
@@ -91,7 +91,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_WithExpandAction_ShouldSucceed(string elementSelector)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Expand", Details = "Expanded" }
             };
@@ -115,7 +116,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_WithCollapseAction_ShouldSucceed(string elementSelector)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Collapse", Details = "Collapsed" }
             };
@@ -139,7 +141,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_WithToggleAction_ShouldSucceed(string elementSelector)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Expand", Details = "Expanded" }
             };
@@ -162,7 +165,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_FromCollapsedToExpanded_ShouldReturnCorrectStates()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Expand", Details = "Expanded" }
             };
@@ -182,7 +186,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_FromExpandedToCollapsed_ShouldReturnCorrectStates()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Collapse", Details = "Collapsed" }
             };
@@ -202,7 +207,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_ToggleFromCollapsedToExpanded_ShouldReturnCorrectStates()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Expand", Details = "Expanded" }
             };
@@ -222,7 +228,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_ToggleFromExpandedToCollapsed_ShouldReturnCorrectStates()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Collapse", Details = "Collapsed" }
             };
@@ -323,7 +330,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_WithAlreadyExpandedElementToggle_ShouldCollapseCorrectly()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Collapse", Details = "Collapsed" }
             };
@@ -349,7 +357,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_WithEmptyParameters_ShouldCallService(string elementSelector, string action, string windowTitle)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "ExpandCollapse", Details = "Operation completed" }
             };
@@ -358,7 +367,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.ExpandCollapseElement(elementSelector, 
+            var result = await _tools.ExpandCollapseElement(elementSelector,
                 string.IsNullOrEmpty(windowTitle) ? null : windowTitle, action);
 
             // Assert
@@ -380,7 +389,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_WithProcessId_ShouldCallServiceCorrectly(int processId)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Collapse", Details = "Collapsed" }
             };
@@ -403,7 +413,8 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_WithCustomTimeout_ShouldCallServiceCorrectly(int timeoutSeconds)
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Expand", Details = "Expanded" }
             };
@@ -426,19 +437,23 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_NestedTreeNodes_ShouldExecuteInHierarchicalOrder()
         {
             // Arrange
-            var rootExpandResult = new ServerEnhancedResponse<ActionResult> {
+            var rootExpandResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Expand", Details = "Expanded" }
             };
-            var childExpandResult = new ServerEnhancedResponse<ActionResult> {
+            var childExpandResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Expand", Details = "Expanded" }
             };
-            var grandChildExpandResult = new ServerEnhancedResponse<ActionResult> {
+            var grandChildExpandResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Expand", Details = "Expanded" }
             };
-            var childCollapseResult = new ServerEnhancedResponse<ActionResult> {
+            var childCollapseResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Collapse", Details = "Collapsed" }
             };
@@ -476,15 +491,18 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_MultipleToggles_ShouldAlternateStates()
         {
             // Arrange
-            var firstToggleResult = new ServerEnhancedResponse<ActionResult> {
+            var firstToggleResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Toggle", Details = "Expanded" }
             };
-            var secondToggleResult = new ServerEnhancedResponse<ActionResult> {
+            var secondToggleResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Toggle", Details = "Collapsed" }
             };
-            var thirdToggleResult = new ServerEnhancedResponse<ActionResult> {
+            var thirdToggleResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Toggle", Details = "Expanded" }
             };
@@ -515,11 +533,13 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task ExpandCollapseElement_PropertyChange_ShouldTriggerEvent()
         {
             // Arrange
-            var expectedResult = new ServerEnhancedResponse<ActionResult> {
+            var expectedResult = new ServerEnhancedResponse<ActionResult>
+            {
                 Success = true,
-                Data = new ActionResult { 
-                    Success = true, 
-                    OperationName = "Expand", 
+                Data = new ActionResult
+                {
+                    Success = true,
+                    OperationName = "Expand",
                     Details = "Expanded",
                     Metadata = new Dictionary<string, object> {
                         { "PropertyChanged", true },

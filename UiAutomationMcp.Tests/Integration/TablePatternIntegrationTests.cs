@@ -63,12 +63,12 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Assert
             Assert.NotNull(result);
-            
+
             // Should return error result due to element not found
             var resultType = result.GetType();
             var successProperty = resultType.GetProperty("Success");
             Assert.NotNull(successProperty);
-            
+
             var success = (bool?)successProperty.GetValue(result);
             if (success == false)
             {
@@ -94,7 +94,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Assert
             Assert.NotNull(result);
-            
+
             // Should handle gracefully even with invalid elements
             var resultType = result.GetType();
             var successProperty = resultType.GetProperty("Success");
@@ -115,7 +115,7 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Assert
             Assert.NotNull(result);
-            
+
             // Should handle empty parameters gracefully
             var resultType = result.GetType();
             var successProperty = resultType.GetProperty("Success");
@@ -142,9 +142,9 @@ namespace UIAutomationMCP.Tests.Integration
             // Assert
             var elapsed = DateTime.UtcNow - startTime;
             Assert.NotNull(result);
-            
+
             // Should not exceed timeout significantly (allowing some buffer for processing)
-            Assert.True(elapsed.TotalSeconds <= timeoutSeconds + 2, 
+            Assert.True(elapsed.TotalSeconds <= timeoutSeconds + 2,
                 $"Operation took {elapsed.TotalSeconds} seconds, expected <= {timeoutSeconds + 2}");
 
             _output.WriteLine($"GetRowOrColumnMajorAsync timeout test completed - {timeoutSeconds}s timeout respected (took {elapsed.TotalSeconds:F2}s)");
@@ -163,7 +163,7 @@ namespace UIAutomationMCP.Tests.Integration
             var timeoutSeconds = 5;
 
             // Act & Assert - Test all required TablePattern members
-            
+
             // 1. RowOrColumnMajor property
             var rowOrColumnResult = await _tableService.GetRowOrColumnMajorAsync(automationId: elementId, name: windowTitle, timeoutSeconds: timeoutSeconds);
             Assert.NotNull(rowOrColumnResult);
@@ -205,13 +205,13 @@ namespace UIAutomationMCP.Tests.Integration
 
             // All should have Success/Error structure when handling errors
             var results = new object[] { rowOrColumnResult, columnHeadersResult, rowHeadersResult, tableInfoResult };
-            
+
             foreach (var result in results)
             {
                 var resultType = result.GetType();
                 var successProperty = resultType.GetProperty("Success");
                 Assert.NotNull(successProperty);
-                
+
                 // Error handling should be consistent across all methods
                 var success = (bool?)successProperty.GetValue(result);
                 if (success == false)
@@ -261,13 +261,13 @@ namespace UIAutomationMCP.Tests.Integration
 
                 // Assert
                 Assert.NotNull(result);
-                
+
                 var resultType = result.GetType();
                 var successProperty = resultType.GetProperty("Success");
                 Assert.NotNull(successProperty);
 
                 var success = (bool?)successProperty.GetValue(result);
-                
+
                 if (testCase.ExpectedToSupport)
                 {
                     // Elements that should support TablePattern might still fail due to element not found,
@@ -276,7 +276,7 @@ namespace UIAutomationMCP.Tests.Integration
                     {
                         var errorProperty = resultType.GetProperty("Error");
                         var error = errorProperty?.GetValue(result)?.ToString() ?? "";
-                        
+
                         // Should not fail specifically due to pattern support issues if element supports it
                         Assert.DoesNotContain("TablePattern not supported", error);
                     }
@@ -304,9 +304,9 @@ namespace UIAutomationMCP.Tests.Integration
             // Assert
             var elapsed = DateTime.UtcNow - startTime;
             Assert.NotNull(result);
-            
+
             // Should complete within reasonable time
-            Assert.True(elapsed.TotalSeconds <= maxAcceptableTimeSeconds + 1, 
+            Assert.True(elapsed.TotalSeconds <= maxAcceptableTimeSeconds + 1,
                 $"Operation took {elapsed.TotalSeconds} seconds, which exceeds reasonable performance expectations");
 
             _output.WriteLine($"TablePattern performance test completed - Operation completed in {elapsed.TotalSeconds:F2} seconds");
@@ -331,11 +331,11 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Assert
             Assert.NotNull(result);
-            
+
             // The result should have been processed through the subprocess pipeline
             // Even if the element doesn't exist, we should get a properly structured response
             var resultType = result.GetType();
-            
+
             // Should have Success property (from OperationResult structure)
             var successProperty = resultType.GetProperty("Success");
             Assert.NotNull(successProperty);
@@ -343,7 +343,7 @@ namespace UIAutomationMCP.Tests.Integration
             // Should have either Data or Error property depending on result
             var dataProperty = resultType.GetProperty("Data");
             var errorProperty = resultType.GetProperty("Error");
-            Assert.True(dataProperty != null || errorProperty != null, 
+            Assert.True(dataProperty != null || errorProperty != null,
                 "Result should have either Data or Error property from subprocess execution");
 
             _output.WriteLine("TableService subprocess execution integration test completed - Worker communication validated");

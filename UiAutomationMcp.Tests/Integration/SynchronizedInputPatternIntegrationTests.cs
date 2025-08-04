@@ -201,7 +201,7 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
                 $"element_{i}",
                 "KeyDown",
                 timeoutSeconds: 5);
-            
+
             Assert.NotNull(startResult);
             dynamic startObj = startResult;
             Assert.True(startObj.Success);

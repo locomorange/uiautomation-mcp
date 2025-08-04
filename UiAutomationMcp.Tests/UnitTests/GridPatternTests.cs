@@ -24,7 +24,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             _output = output;
             _mockGridService = new Mock<IGridService>();
-            
+
             // UIAutomationToolsの他サービスもモック化（最小限の設定）
             var mockAppLauncher = new Mock<IApplicationLauncher>();
             var mockScreenshot = new Mock<IScreenshotService>();
@@ -299,7 +299,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Arrange - Microsoft仕槁E 負の座標でArgumentOutOfRangeExceptionをスロー
             _mockGridService.Setup(s => s.GetGridItemAsync("grid", null, row, column, "TestApp", null, 30))
                            .ThrowsAsync(new ArgumentOutOfRangeException(
-                               row < 0 ? "row" : "column", 
+                               row < 0 ? "row" : "column",
                                $"Row/column coordinates must be greater than or equal to zero"));
 
             // Act & Assert
@@ -320,7 +320,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Arrange - Microsoft仕槁E RowCount/ColumnCountを趁E��る座標でArgumentOutOfRangeExceptionをスロー
             _mockGridService.Setup(s => s.GetGridItemAsync("grid", null, row, column, "TestApp", null, 30))
                            .ThrowsAsync(new ArgumentOutOfRangeException(
-                               row >= maxRow ? "row" : "column", 
+                               row >= maxRow ? "row" : "column",
                                $"Row/column coordinates must be less than RowCount/ColumnCount"));
 
             // Act & Assert

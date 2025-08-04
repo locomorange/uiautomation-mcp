@@ -25,14 +25,14 @@ namespace UIAutomationMCP.Tests.Integration
         public InvokePatternSpecificationTests(ITestOutputHelper output)
         {
             _output = output;
-            
+
             var services = new ServiceCollection();
-            services.AddLogging(builder => 
+            services.AddLogging(builder =>
                 builder.AddConsole().SetMinimumLevel(LogLevel.Information));
-            
+
             _serviceProvider = services.BuildServiceProvider();
             var logger = _serviceProvider.GetRequiredService<ILogger<SubprocessExecutor>>();
-            
+
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var possiblePaths = new[]
             {
@@ -41,11 +41,11 @@ namespace UIAutomationMCP.Tests.Integration
                 Path.Combine(baseDir, "worker", "UIAutomationMCP.Worker.exe"),
             };
 
-            _workerPath = possiblePaths.FirstOrDefault(File.Exists) ?? 
+            _workerPath = possiblePaths.FirstOrDefault(File.Exists) ??
                 throw new InvalidOperationException("Worker executable not found");
 
             _subprocessExecutor = new SubprocessExecutor(logger, _workerPath, new CancellationTokenSource());
-            _invokeService = new InvokeService(Mock.Of<IProcessManager>(), 
+            _invokeService = new InvokeService(Mock.Of<IProcessManager>(),
                 _serviceProvider.GetRequiredService<ILogger<InvokeService>>());
         }
 
@@ -53,7 +53,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task InvokeElement_ShouldReturnImmediately_NonBlocking()
         {
             // Microsoft     "asynchronous call and must return immediately without blocking"
-            
+
             // Given
             var elementId = "TestElement";
             var timeout = 5;
@@ -67,7 +67,7 @@ namespace UIAutomationMCP.Tests.Integration
             // Then - Should return quickly (not blocking UI)
             Assert.NotNull(result);
             Assert.True(responseTime < 1000, $"Invoke should return immediately, took {responseTime}ms");
-            
+
             _output.WriteLine($"Invoke returned in {responseTime}ms - non-blocking verified");
         }
 
@@ -75,7 +75,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task InvokeElement_ShouldHandleSingleUnambiguousAction()
         {
             // Microsoft     "single, unambiguous action"
-            
+
             // Given
             var elementId = "SingleActionButton";
             var timeout = 5;
@@ -92,7 +92,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task InvokeElement_ShouldNotMaintainState()
         {
             // Microsoft     Control should not maintain state after activation
-            
+
             // Given
             var elementId = "StatelessButton";
             var timeout = 5;
@@ -106,7 +106,7 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.NotNull(result1);
             Assert.NotNull(result2);
             Assert.NotNull(result3);
-            
+
             _output.WriteLine($"Stateless invocation results: {result1}, {result2}, {result3}");
         }
 
@@ -114,7 +114,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task InvokeElement_WithDisabledElement_ShouldHandleGracefully()
         {
             // Microsoft     ElementNotEnabledException for disabled controls
-            
+
             // Given
             var disabledAutomationId = "DisabledButton";
             var timeout = 5;
@@ -131,7 +131,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task InvokeElement_MultipleParameters_ShouldSupportFlexibleTargeting()
         {
             // Test all parameter combinations for element targeting
-            
+
             // Given
             var elementId = "FlexibleButton";
             var timeout = 3;
@@ -147,7 +147,7 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.NotNull(resultWithWindow);
             Assert.NotNull(resultWithProcess);
             Assert.NotNull(resultAllParams);
-            
+
             _output.WriteLine($"Flexible targeting results:");
             _output.WriteLine($"  Element only: {resultElementOnly}");
             _output.WriteLine($"  With window: {resultWithWindow}");
@@ -159,7 +159,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task InvokeElement_EdgeCaseParameters_ShouldHandleRobustly()
         {
             // Test edge cases and boundary conditions
-            
+
             // Given
             var timeout = 2;
 
@@ -174,7 +174,7 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.NotNull(resultNullWindow);
             Assert.NotNull(resultZeroProcess);
             Assert.NotNull(resultNegativeProcess);
-            
+
             _output.WriteLine($"Edge case handling results:");
             _output.WriteLine($"  Empty ID: {resultEmptyId}");
             _output.WriteLine($"  Null window: {resultNullWindow}");
@@ -186,7 +186,7 @@ namespace UIAutomationMCP.Tests.Integration
         public async Task InvokeElement_PerformanceUnderLoad_ShouldRemainResponsive()
         {
             // Test performance characteristics under load
-            
+
             // Given
             var elementCount = 10;
             var timeout = 1;
@@ -205,7 +205,7 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.Equal(elementCount, results.Length);
             Assert.All(results, result => Assert.NotNull(result));
             Assert.True(totalTime < 15000, $"Load test took too long: {totalTime}ms");
-            
+
             _output.WriteLine($"Load test: {elementCount} invocations completed in {totalTime}ms");
             _output.WriteLine($"Average response time: {totalTime / elementCount:F1}ms per invocation");
         }

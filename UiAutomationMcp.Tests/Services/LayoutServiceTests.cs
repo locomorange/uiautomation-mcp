@@ -27,7 +27,7 @@ namespace UiAutomationMcp.Tests.Services
             _output = output;
             _mockLogger = new Mock<ILogger<LayoutService>>();
             _mockProcessManager = new Mock<IProcessManager>();
-            
+
             _layoutService = new LayoutService(_mockProcessManager.Object, _mockLogger.Object);
         }
 
@@ -48,15 +48,15 @@ namespace UiAutomationMcp.Tests.Services
 
             // Assert - Verify that errors are handled correctly
             Assert.NotNull(result);
-            
+
             // JSON形式で結果を検証
             var jsonResult = System.Text.Json.JsonSerializer.Serialize(result);
             _output.WriteLine($"Result JSON: {jsonResult}");
-            
+
             // Verify result - Check that Worker executable not found error is included
             var resultString = jsonResult.ToString();
             Assert.Contains("Worker executable not found", resultString);
-            
+
             _output.WriteLine($"ScrollElementIntoView error handling test completed successfully");
         }
 
@@ -74,13 +74,13 @@ namespace UiAutomationMcp.Tests.Services
 
             // Assert - Verify default parameters are handled correctly
             Assert.NotNull(result);
-            
+
             // Verify result using type-safe method
             if (result.GetType().GetProperty("Success") != null)
             {
                 var success = result.GetType().GetProperty("Success")?.GetValue(result);
                 Assert.False((bool?)success);
-                
+
                 var error = result.GetType().GetProperty("Error")?.GetValue(result);
                 _output.WriteLine($"Default parameters test completed: {error}");
             }
@@ -106,13 +106,13 @@ namespace UiAutomationMcp.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            
+
             // 結果の検証
             if (result.GetType().GetProperty("Success") != null)
             {
                 var success = result.GetType().GetProperty("Success")?.GetValue(result);
                 Assert.False((bool?)success);
-                
+
                 var error = result.GetType().GetProperty("Error")?.GetValue(result);
                 _output.WriteLine($"Error logging test completed: {error}");
             }
@@ -140,20 +140,20 @@ namespace UiAutomationMcp.Tests.Services
             // Act - Execute with various parameters
             // windowTitle parameter is used for test validation
             var result = await _layoutService.ScrollElementIntoViewAsync(automationId: elementId, timeoutSeconds: 1);
-            
+
             // Validate windowTitle parameter usage
             Assert.True(string.IsNullOrEmpty(windowTitle) || !string.IsNullOrEmpty(windowTitle));
 
             // Assert - Verify that parameters are handled correctly
             Assert.NotNull(result);
-            
+
             // 結果の検証
             if (result.GetType().GetProperty("Success") != null)
             {
                 var success = result.GetType().GetProperty("Success")?.GetValue(result);
                 Assert.False((bool?)success); // Worker not found so fails, but parameter processing is normal
             }
-            
+
             _output.WriteLine($"Parameter test completed for elementId:'{elementId}', processId:{processId}");
         }
 

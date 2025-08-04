@@ -27,10 +27,10 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var normalizedAutomationId = elementId ?? "";
-            
+
             // Act & Assert
             var isValid = !string.IsNullOrWhiteSpace(normalizedAutomationId);
-            
+
             if (string.IsNullOrWhiteSpace(elementId))
             {
                 Assert.False(isValid, $"Empty or whitespace elementId '{elementId}' should be considered invalid");
@@ -39,7 +39,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             {
                 Assert.True(isValid, $"Non-empty elementId '{elementId}' should be considered valid");
             }
-            
+
             _output.WriteLine($"GetScrollInfo elementId validation test passed for: '{elementId}'");
         }
         [Theory]
@@ -51,7 +51,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange & Act -        ID                
             var canParse = int.TryParse(processIdStr, out var parsedProcessId);
-            
+
             // Assert
             if (canParse)
             {
@@ -77,18 +77,18 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Arrange & Act
             var horizontalValid = double.TryParse(horizontalStr, out var horizontal);
             var verticalValid = double.TryParse(verticalStr, out var vertical);
-            
+
             // Assert
             Assert.True(horizontalValid, $"Horizontal percentage '{horizontalStr}' should parse successfully");
             Assert.True(verticalValid, $"Vertical percentage '{verticalStr}' should parse successfully");
-            
+
             // Microsoft ScrollPattern         0-100       -1 (NoScroll)
             var horizontalInRange = (horizontal >= 0 && horizontal <= 100) || horizontal == -1;
             var verticalInRange = (vertical >= 0 && vertical <= 100) || vertical == -1;
-            
+
             Assert.True(horizontalInRange, $"Horizontal percentage {horizontal} should be in valid range (0-100 or -1)");
             Assert.True(verticalInRange, $"Vertical percentage {vertical} should be in valid range (0-100 or -1)");
-            
+
             _output.WriteLine($"SetScrollPercent valid percentage test passed for H:{horizontal}, V:{vertical}");
         }
         [Theory]
@@ -103,14 +103,14 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Arrange & Act
             var horizontalValid = double.TryParse(horizontalStr ?? "", out var horizontal);
             var verticalValid = double.TryParse(verticalStr ?? "", out var vertical);
-            
+
             // Assert
             var expectValidHorizontal = !string.IsNullOrWhiteSpace(horizontalStr) && horizontalStr != "invalid";
             var expectValidVertical = !string.IsNullOrWhiteSpace(verticalStr) && verticalStr != "invalid";
-            
+
             Assert.Equal(expectValidHorizontal, horizontalValid);
             Assert.Equal(expectValidVertical, verticalValid);
-            
+
             _output.WriteLine($"SetScrollPercent invalid percentage test passed for H:'{horizontalStr}' (valid: {horizontalValid}), V:'{verticalStr}' (valid: {verticalValid})");
         }
         [Theory]
@@ -126,13 +126,13 @@ namespace UIAutomationMCP.Tests.UnitTests
             var verticalValid = double.TryParse(verticalStr, out var vertical);
             // Assert - Values should be parseable as numbers
             Assert.True(horizontalValid && verticalValid, "Values should parse as numbers");
-            
+
             var horizontalInRange = (horizontal >= 0 && horizontal <= 100) || horizontal == -1;
             var verticalInRange = (vertical >= 0 && vertical <= 100) || vertical == -1;
-            
+
             // Test expects at least one value to be out of range for this test
             Assert.False(horizontalInRange && verticalInRange, $"At least one value should be out of range: H:{horizontal}, V:{vertical}");
-            
+
             _output.WriteLine($"SetScrollPercent out-of-range test passed for H:{horizontal} (inRange: {horizontalInRange}), V:{vertical} (inRange: {verticalInRange})");
         }
         [Fact]
@@ -144,7 +144,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             var verticalValid = double.TryParse(missingVertical, out _);
             // Assert -                                                 Assert.False(horizontalValid, "Missing horizontal parameter should be invalid");
             Assert.False(verticalValid, "Missing vertical parameter should be invalid");
-            
+
             _output.WriteLine("SetScrollPercent missing parameters test passed");
         }
         #endregion
@@ -158,7 +158,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange & Act - Microsoft UIAutomation ScrollPattern                             var isInValidRange = (percent >= 0 && percent <= 100) || percent == -1.0;
             // Assert - Microsoft                                            Assert.True(isInValidRange, $"Percentage {percent} should comply with Microsoft ScrollPattern specification (0-100 or -1)");
-            
+
             // Verify specific values
             if (percent == -1.0)
             {

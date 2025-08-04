@@ -16,14 +16,14 @@ namespace UIAutomationMCP.Tests.E2E
         private Process? _winUI3GalleryProcess;
         private const string WindowTitle = "WinUI 3 Gallery";
         private const int LaunchTimeoutSeconds = 30;
-        
+
         public async Task InitializeAsync()
         {
             // Check if WinUI 3 Gallery is already running
             var existingProcesses = Process.GetProcessesByName("WinUIGallery3")
                 .Concat(Process.GetProcessesByName("WinUI3Gallery"))
                 .Concat(Process.GetProcessesByName("WinUI 3 Gallery"));
-            
+
             if (existingProcesses.Any())
             {
                 // Use existing instance - don't set _winUI3GalleryProcess so we won't try to close it
@@ -33,15 +33,15 @@ namespace UIAutomationMCP.Tests.E2E
             // Launch WinUI 3 Gallery
             var serviceProvider = MCPToolsE2ETests.CreateServiceProvider();
             var tools = serviceProvider.GetRequiredService<UIAutomationTools>();
-            
+
             try
             {
                 // Try to launch by name
                 await tools.LaunchApplication(application: "WinUI 3 Gallery", timeoutSeconds: LaunchTimeoutSeconds);
-                
+
                 // Wait a bit for the app to fully initialize
                 await Task.Delay(3000);
-                
+
                 // Find the launched process
                 _winUI3GalleryProcess = Process.GetProcessesByName("WinUIGallery3")
                     .Concat(Process.GetProcessesByName("WinUI3Gallery"))

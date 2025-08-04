@@ -26,7 +26,7 @@ namespace UIAutomationMCP.Tests.E2E
         public async Task Scenario_NavigateToButtonPage_And_InteractWithButtons()
         {
             _output.WriteLine("=== Scenario: Navigate to Button page and interact ===");
-            
+
             try
             {
                 // Step 1: Take initial screenshot
@@ -42,16 +42,16 @@ namespace UIAutomationMCP.Tests.E2E
                 {
                     var navItemsJson = JsonSerializer.Serialize(navItems);
                     var itemsElement = JsonSerializer.Deserialize<JsonElement>(navItemsJson);
-                    
+
                     if (TryGetFirstElementId(itemsElement, out var buttonNavId))
                     {
                         _output.WriteLine($"Attempting to invoke Button navigation item: {buttonNavId}");
                         var invokeResult = await _tools.InvokeElement(buttonNavId!);
                         LogResult("Invoke result", invokeResult);
-                        
+
                         // Wait for navigation
                         await Task.Delay(1000);
-                        
+
                         // Take screenshot after navigation
                         await _tools.TakeScreenshot("WinUI 3 Gallery", "C:\\temp\\gallery_button_page.png");
                         _output.WriteLine("Button page screenshot taken");
@@ -80,7 +80,7 @@ namespace UIAutomationMCP.Tests.E2E
         public async Task Scenario_NavigateToTextBox_And_EnterText()
         {
             _output.WriteLine("=== Scenario: Navigate to TextBox page and enter text ===");
-            
+
             try
             {
                 // Step 1: Find TextBox navigation item
@@ -103,13 +103,13 @@ namespace UIAutomationMCP.Tests.E2E
                 {
                     var textBoxesJson = JsonSerializer.Serialize(textBoxes);
                     var textBoxElement = JsonSerializer.Deserialize<JsonElement>(textBoxesJson);
-                    
+
                     if (TryGetFirstElementId(textBoxElement, out var textBoxId))
                     {
                         _output.WriteLine($"Setting text in TextBox: {textBoxId}");
                         var setValue = await _tools.SetElementValue(textBoxId!, "Hello from MCP Test!");
                         LogResult("SetElementValue result", setValue);
-                        
+
                         // Get the value back using SearchElements instead of GetElementInfo
                         var getValueElements = await _tools.SearchElements(automationId: textBoxId!);
                         LogResult("SearchElements result (replacing GetElementInfo)", getValueElements);
@@ -130,7 +130,7 @@ namespace UIAutomationMCP.Tests.E2E
         public async Task Scenario_NavigateToCheckBox_And_Toggle()
         {
             _output.WriteLine("=== Scenario: Navigate to CheckBox page and toggle ===");
-            
+
             try
             {
                 // Step 1: Find CheckBox navigation item
@@ -169,7 +169,7 @@ namespace UIAutomationMCP.Tests.E2E
         public async Task Scenario_NavigateToSlider_And_SetValue()
         {
             _output.WriteLine("=== Scenario: Navigate to Slider page and set value ===");
-            
+
             try
             {
                 // Step 1: Find Slider navigation item
@@ -193,7 +193,7 @@ namespace UIAutomationMCP.Tests.E2E
                     // GetRangeValue method has been removed - use SearchElements or pattern-specific operations
                     // For range information, use SetRangeValue directly or other available patterns
                     _output.WriteLine("GetRangeValue functionality has been removed - using direct operations");
-                    
+
                     // Set new value
                     var setResult = await _tools.SetRangeValue(automationId: sliderId!, value: 50);
                     LogResult("SetRangeValue result", setResult);
@@ -212,7 +212,7 @@ namespace UIAutomationMCP.Tests.E2E
         public async Task Scenario_NavigateToScrollViewer_And_Scroll()
         {
             _output.WriteLine("=== Scenario: Navigate to ScrollViewer and test scrolling ===");
-            
+
             try
             {
                 // Step 1: Find ScrollViewer navigation item
@@ -236,11 +236,11 @@ namespace UIAutomationMCP.Tests.E2E
                     // GetScrollInfo method has been removed - use direct scroll operations
                     // Scroll info is available through the scroll pattern operations themselves
                     _output.WriteLine("GetScrollInfo functionality has been removed - using direct scroll operations");
-                    
+
                     // Scroll down
                     var scrollResult = await _tools.ScrollElement(automationId: scrollViewerId!, direction: "down", amount: 2.0);
                     LogResult("Scroll down result", scrollResult);
-                    
+
                     // Set scroll percentage
                     var setScrollResult = await _tools.SetScrollPercent(automationId: scrollViewerId!, horizontalPercent: -1, verticalPercent: 50);
                     LogResult("SetScrollPercent result", setScrollResult);
@@ -259,7 +259,7 @@ namespace UIAutomationMCP.Tests.E2E
         public async Task Scenario_AccessibilityValidation_AllPages()
         {
             _output.WriteLine("=== Scenario: Validate accessibility across different pages ===");
-            
+
             try
             {
                 // Step 1: Validate main window accessibility using SearchElements with includeDetails
@@ -276,7 +276,7 @@ namespace UIAutomationMCP.Tests.E2E
                 {
                     // Control type info is already included in SearchElements response
                     LogResult("Button elements (with control type info)", buttons);
-                    
+
                     // ValidateControlTypePatterns was removed - pattern info is available in SearchElements with includeDetails=true
                     var detailedButtons = await _tools.SearchElements(automationId: buttonId!, includeDetails: true, maxResults: 1);
                     LogResult("Button detailed pattern info", detailedButtons);
@@ -312,7 +312,7 @@ namespace UIAutomationMCP.Tests.E2E
         private bool TryGetFirstElementId(JsonElement element, out string? elementId)
         {
             elementId = null;
-            
+
             try
             {
                 if (element.TryGetProperty("data", out var dataElement) && dataElement.ValueKind == JsonValueKind.Array)
@@ -338,7 +338,7 @@ namespace UIAutomationMCP.Tests.E2E
             {
                 _output.WriteLine($"Failed to extract element ID: {ex.Message}");
             }
-            
+
             return false;
         }
 
@@ -346,8 +346,8 @@ namespace UIAutomationMCP.Tests.E2E
         {
             try
             {
-                var json = JsonSerializer.Serialize(result, new JsonSerializerOptions 
-                { 
+                var json = JsonSerializer.Serialize(result, new JsonSerializerOptions
+                {
                     WriteIndented = true,
                     MaxDepth = 5
                 });

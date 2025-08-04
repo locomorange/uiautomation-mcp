@@ -28,7 +28,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output = output;
             _mockLogger = new Mock<ILogger<SynchronizedInputService>>();
             _mockProcessManager = new Mock<IProcessManager>();
-            
+
             _service = new SynchronizedInputService(_mockProcessManager.Object, _mockLogger.Object);
         }
 
@@ -66,11 +66,11 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             _mockProcessManager.Verify(e => e.ExecuteAsync<StartSynchronizedInputRequest, ElementSearchResult>("StartSynchronizedInput",
-                It.Is<StartSynchronizedInputRequest>(r => 
+                It.Is<StartSynchronizedInputRequest>(r =>
                     r.AutomationId == elementId &&
                     r.InputType == inputType &&
                     r.WindowTitle == windowTitle), 30), Times.Once);
-            
+
             _output.WriteLine($"StartListeningAsync service test passed for {inputType}");
         }
 
@@ -102,10 +102,10 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             _mockProcessManager.Verify(e => e.ExecuteAsync<CancelSynchronizedInputRequest, ElementSearchResult>("CancelSynchronizedInput",
-                It.Is<CancelSynchronizedInputRequest>(r => 
+                It.Is<CancelSynchronizedInputRequest>(r =>
                     r.AutomationId == elementId &&
                     r.WindowTitle == windowTitle), 30), Times.Once);
-            
+
             _output.WriteLine("CancelAsync service test passed");
         }
 
@@ -125,7 +125,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             _mockProcessManager.Verify(e => e.ExecuteAsync<StartSynchronizedInputRequest, ElementSearchResult>("StartSynchronizedInput",
-                It.Is<StartSynchronizedInputRequest>(r => 
+                It.Is<StartSynchronizedInputRequest>(r =>
                     r.AutomationId == elementId &&
                     r.InputType == inputType &&
                     r.WindowTitle == ""), 30), Times.Once);
@@ -149,7 +149,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result);
             Assert.False(result.Success);
             Assert.Equal(exceptionMessage, result.ErrorMessage);
-            
+
             _mockLogger.Verify(l => l.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
@@ -175,7 +175,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result);
             Assert.False(result.Success);
             Assert.Equal(exceptionMessage, result.ErrorMessage);
-            
+
             _mockLogger.Verify(l => l.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),

@@ -26,17 +26,17 @@ namespace UiAutomationMcp.Tests.Integration
         public ScrollPatternSpecificationTests(ITestOutputHelper output)
         {
             _output = output;
-            
+
             // テスト用のサービスコンテナをセットアップ
             var services = new ServiceCollection();
-            
+
             // ロガーを追加
-            services.AddLogging(builder => 
+            services.AddLogging(builder =>
                 builder.AddConsole().SetMinimumLevel(LogLevel.Information));
-            
+
             _serviceProvider = services.BuildServiceProvider();
             var logger = _serviceProvider.GetRequiredService<ILogger<SubprocessExecutor>>();
-            
+
             // Worker.exeのパスを取得
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var possiblePaths = new[]
@@ -88,7 +88,7 @@ namespace UiAutomationMcp.Tests.Integration
 
                 // Assert - 結果が適切な形式であることを確認
                 Assert.NotNull(result);
-                
+
                 // Note: 実際のUIがない場合、"Element not found"エラーが期待される
                 // これはScrollPattern仕様の実装が正しく動作していることを示す
             }
@@ -96,7 +96,7 @@ namespace UiAutomationMcp.Tests.Integration
             {
                 // UIAutomation関連の例外が期待される動作
                 _output.WriteLine($"Expected exception (no UI element): {ex.Message}");
-                
+
                 // Worker自体が動作し、該当操作が登録されていることを確認
                 Assert.Contains("GetScrollInfo", ex.Message);
             }
@@ -123,14 +123,14 @@ namespace UiAutomationMcp.Tests.Integration
             {
                 var result = await _subprocessExecutor.ExecuteAsync<SetScrollPercentRequest, ActionResult>("SetScrollPercent", request, 5);
                 _output.WriteLine($"SetScrollPercent result: {System.Text.Json.JsonSerializer.Serialize(result)}");
-                
+
                 Assert.NotNull(result);
             }
             catch (Exception ex)
             {
                 // UIAutomation関連の例外が期待される動作
                 _output.WriteLine($"Expected exception (no UI element): {ex.Message}");
-                
+
                 // Worker自体が動作し、該当操作が登録されていることを確認
                 Assert.Contains("SetScrollPercent", ex.Message);
             }
@@ -156,7 +156,7 @@ namespace UiAutomationMcp.Tests.Integration
             {
                 var result = await _subprocessExecutor.ExecuteAsync<SetScrollPercentRequest, ActionResult>("SetScrollPercent", request, 5);
                 _output.WriteLine($"SetScrollPercent NoScroll result: {System.Text.Json.JsonSerializer.Serialize(result)}");
-                
+
                 Assert.NotNull(result);
             }
             catch (Exception ex)
@@ -216,7 +216,7 @@ namespace UiAutomationMcp.Tests.Integration
             if (exception != null)
             {
                 _output.WriteLine($"Operation {operationName} executed with expected exception: {exception.Message}");
-                
+
                 // "Unknown operation"エラーでないことを確認（＝操作が正しく登録されている）
                 Assert.DoesNotContain("unknown operation", exception.Message.ToLowerInvariant());
                 Assert.DoesNotContain("not found", exception.Message.ToLowerInvariant());
@@ -237,7 +237,7 @@ namespace UiAutomationMcp.Tests.Integration
             {
                 _output.WriteLine($"Disposal warning: {ex.Message}");
             }
-            
+
             try
             {
                 _serviceProvider?.Dispose();

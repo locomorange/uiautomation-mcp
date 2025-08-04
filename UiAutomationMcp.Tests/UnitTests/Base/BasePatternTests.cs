@@ -48,7 +48,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
         protected BasePatternTests(ITestOutputHelper output)
         {
             _output = output;
-            
+
             _mockAppLauncher = new Mock<IApplicationLauncher>();
             _mockScreenshot = new Mock<IScreenshotService>();
             _mockElementSearch = new Mock<IElementSearchService>();

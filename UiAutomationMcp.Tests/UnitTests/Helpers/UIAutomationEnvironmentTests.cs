@@ -13,7 +13,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
         {
             // Act & Assert - Should not throw regardless of UI Automation availability
             var isAvailable = UIAutomationEnvironment.IsAvailable;
-            
+
             // The result can be true or false, but accessing it should not throw
             Assert.True(isAvailable == true || isAvailable == false);
         }
@@ -93,7 +93,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
         {
             // This test verifies that our default timeout of 8 seconds is within
             // Microsoft's recommended range of 5-10 seconds for UI Automation operations
-            
+
             // Arrange
             Func<string> quickOperation = () => "test";
             var startTime = DateTime.UtcNow;
@@ -154,7 +154,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
             var duration = endTime - startTime;
 
             // Assert - Should be very fast (under 100ms for 100 calls)
-            Assert.True(duration.TotalMilliseconds < 100, 
+            Assert.True(duration.TotalMilliseconds < 100,
                 $"100 calls to IsAvailable took {duration.TotalMilliseconds}ms, expected < 100ms");
         }
 

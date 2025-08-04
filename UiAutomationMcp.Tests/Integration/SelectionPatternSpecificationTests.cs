@@ -24,14 +24,14 @@ namespace UIAutomationMCP.Tests.Integration
         public SelectionPatternSpecificationTests(ITestOutputHelper output)
         {
             _output = output;
-            
+
             var services = new ServiceCollection();
-            services.AddLogging(builder => 
+            services.AddLogging(builder =>
                 builder.AddConsole().SetMinimumLevel(LogLevel.Information));
-            
+
             _serviceProvider = services.BuildServiceProvider();
             var logger = _serviceProvider.GetRequiredService<ILogger<SubprocessExecutor>>();
-            
+
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var possiblePaths = new[]
             {
@@ -40,13 +40,13 @@ namespace UIAutomationMCP.Tests.Integration
                 Path.Combine(baseDir, "worker", "UIAutomationMCP.Worker.exe"),
             };
 
-            _workerPath = possiblePaths.FirstOrDefault(File.Exists) ?? 
+            _workerPath = possiblePaths.FirstOrDefault(File.Exists) ??
                 throw new InvalidOperationException("Worker executable not found");
 
             _subprocessExecutor = new SubprocessExecutor(logger, _workerPath, new CancellationTokenSource());
-            _selectionService = new SelectionService(Mock.Of<IProcessManager>(), 
+            _selectionService = new SelectionService(Mock.Of<IProcessManager>(),
                 _serviceProvider.GetRequiredService<ILogger<SelectionService>>());
-            
+
             _output.WriteLine($"Worker path: {_workerPath}");
         }
 
@@ -65,7 +65,7 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange
             var containerId = "test-selection-list";
-            
+
             try
             {
                 // Act
@@ -74,12 +74,12 @@ namespace UIAutomationMCP.Tests.Integration
                 // Assert
                 Assert.NotNull(result);
                 _output.WriteLine($"GetSelection result: {result}");
-                
+
                 // Microsoft spec: Method should return array of currently selected items
                 var resultType = result.GetType();
-                Assert.True(resultType.GetProperty("Success") != null, 
+                Assert.True(resultType.GetProperty("Success") != null,
                     "Result should contain Success property");
-                    
+
                 _output.WriteLine("  GetSelection method test completed - Microsoft specification compliance verified");
             }
             catch (Exception ex)
@@ -105,7 +105,7 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange
             var elementId = "test-item-with-container";
-            
+
             try
             {
                 // Act
@@ -114,12 +114,12 @@ namespace UIAutomationMCP.Tests.Integration
                 // Assert
                 Assert.NotNull(result);
                 _output.WriteLine($"GetSelectionContainer result: {result}");
-                
+
                 // Microsoft spec: Property should return reference to selection container
                 var resultType = result.GetType();
-                Assert.True(resultType.GetProperty("Success") != null, 
+                Assert.True(resultType.GetProperty("Success") != null,
                     "Result should contain Success property");
-                    
+
                 _output.WriteLine("  SelectionContainer property test completed - Microsoft specification compliance verified");
             }
             catch (Exception ex)
@@ -142,7 +142,7 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange
             var elementId = "test-multi-select-item";
-            
+
             try
             {
                 // Act
@@ -151,12 +151,12 @@ namespace UIAutomationMCP.Tests.Integration
                 // Assert
                 Assert.NotNull(result);
                 _output.WriteLine($"AddToSelection result: {result}");
-                
+
                 // Microsoft spec: Method should add item to current selection
                 var resultType = result.GetType();
-                Assert.True(resultType.GetProperty("Success") != null, 
+                Assert.True(resultType.GetProperty("Success") != null,
                     "Result should contain Success property");
-                    
+
                 _output.WriteLine("  AddToSelection operation test completed - Microsoft specification compliance verified");
             }
             catch (Exception ex)
@@ -175,7 +175,7 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange
             var elementId = "test-selected-item";
-            
+
             try
             {
                 // Act
@@ -184,12 +184,12 @@ namespace UIAutomationMCP.Tests.Integration
                 // Assert
                 Assert.NotNull(result);
                 _output.WriteLine($"RemoveFromSelection result: {result}");
-                
+
                 // Microsoft spec: Method should remove item from current selection
                 var resultType = result.GetType();
-                Assert.True(resultType.GetProperty("Success") != null, 
+                Assert.True(resultType.GetProperty("Success") != null,
                     "Result should contain Success property");
-                    
+
                 _output.WriteLine("  RemoveFromSelection operation test completed - Microsoft specification compliance verified");
             }
             catch (Exception ex)
@@ -208,7 +208,7 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange
             var containerId = "test-selection-container";
-            
+
             try
             {
                 // Act
@@ -217,12 +217,12 @@ namespace UIAutomationMCP.Tests.Integration
                 // Assert
                 Assert.NotNull(result);
                 _output.WriteLine($"ClearSelection result: {result}");
-                
+
                 // Microsoft spec: Operation should clear all current selections
                 var resultType = result.GetType();
-                Assert.True(resultType.GetProperty("Success") != null, 
+                Assert.True(resultType.GetProperty("Success") != null,
                     "Result should contain Success property");
-                    
+
                 _output.WriteLine("  ClearSelection operation test completed - Microsoft specification compliance verified");
             }
             catch (Exception ex)
@@ -246,7 +246,7 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange
             var containerId = "test-event-container";
-            
+
             try
             {
                 // Act - Test that service can handle selection changes
@@ -257,7 +257,7 @@ namespace UIAutomationMCP.Tests.Integration
                 Assert.NotNull(beforeResult);
                 Assert.NotNull(afterResult);
                 _output.WriteLine($"Event support test - Before: {beforeResult}, After: {afterResult}");
-                
+
                 // Microsoft spec: Pattern should support InvalidatedEvent for selection changes
                 _output.WriteLine("  Selection Pattern event support verified - Microsoft specification compliance verified");
             }
@@ -281,7 +281,7 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange
             var elementId = "disabled-selection-item";
-            
+
             try
             {
                 // Act
@@ -290,12 +290,12 @@ namespace UIAutomationMCP.Tests.Integration
                 // Assert
                 Assert.NotNull(result);
                 _output.WriteLine($"Disabled control handling result: {result}");
-                
+
                 // Microsoft spec: Should handle disabled controls appropriately
                 var resultType = result.GetType();
-                Assert.True(resultType.GetProperty("Success") != null, 
+                Assert.True(resultType.GetProperty("Success") != null,
                     "Result should contain Success property");
-                    
+
                 _output.WriteLine("  Disabled control error handling test completed - Microsoft specification compliance verified");
             }
             catch (Exception ex)
@@ -321,7 +321,7 @@ namespace UIAutomationMCP.Tests.Integration
             {
                 _output?.WriteLine($"Error during disposal: {ex.Message}");
             }
-            
+
             GC.SuppressFinalize(this);
         }
 

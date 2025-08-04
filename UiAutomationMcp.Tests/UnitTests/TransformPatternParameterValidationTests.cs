@@ -69,10 +69,10 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Act
             var parameters = (Dictionary<string, object>)request.Parameters!;
-            var typedRequest = new MoveElementRequest 
-            { 
-                AutomationId = (string)parameters["elementId"], 
-                WindowTitle = (string)parameters["windowTitle"], 
+            var typedRequest = new MoveElementRequest
+            {
+                AutomationId = (string)parameters["elementId"],
+                WindowTitle = (string)parameters["windowTitle"],
                 X = double.TryParse((string)parameters["x"], out var x) ? x : 0.0,
                 Y = double.TryParse((string)parameters["y"], out var y) ? y : 0.0
             };
@@ -82,7 +82,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result);
             Assert.False(result.Success);
             Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
-            
+
             _output.WriteLine($" MoveElementOperation correctly handled invalid elementId");
             _output.WriteLine($"  Error: {result.Error}");
         }
@@ -112,10 +112,10 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine($"Testing MoveElementOperation with invalid coordinates: x='{xValue}', y='{yValue}'");
 
             // Act
-            var typedRequest = new MoveElementRequest 
-            { 
-                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"], 
-                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"], 
+            var typedRequest = new MoveElementRequest
+            {
+                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"],
+                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"],
                 X = double.TryParse((string)((Dictionary<string, object>)request.Parameters)["x"], out var x) ? x : 0.0,
                 Y = double.TryParse((string)((Dictionary<string, object>)request.Parameters)["y"], out var y) ? y : 0.0
             };
@@ -148,10 +148,10 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Act
             var parameters = (Dictionary<string, object>)request.Parameters!;
-            var typedRequest = new MoveElementRequest 
-            { 
-                AutomationId = (string)parameters["elementId"], 
-                WindowTitle = (string)parameters["windowTitle"], 
+            var typedRequest = new MoveElementRequest
+            {
+                AutomationId = (string)parameters["elementId"],
+                WindowTitle = (string)parameters["windowTitle"],
                 X = 0.0,  // Default values for missing coordinates
                 Y = 0.0
             };
@@ -193,10 +193,10 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Act
             var parameters = (Dictionary<string, object>)request.Parameters!;
-            var typedRequest = new ResizeElementRequest 
-            { 
-                AutomationId = (string)parameters["elementId"], 
-                WindowTitle = (string)parameters["windowTitle"], 
+            var typedRequest = new ResizeElementRequest
+            {
+                AutomationId = (string)parameters["elementId"],
+                WindowTitle = (string)parameters["windowTitle"],
                 Width = double.TryParse((string)parameters["width"], out var w) ? w : 0.0,
                 Height = double.TryParse((string)parameters["height"], out var h) ? h : 0.0
             };
@@ -206,7 +206,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result);
             Assert.False(result.Success);
             Assert.Contains("must be greater than 0", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
-            
+
             _output.WriteLine($" ResizeElementOperation correctly rejected invalid dimensions");
             _output.WriteLine($"  Error: {result.Error}");
         }
@@ -236,10 +236,10 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine($"Testing ResizeElementOperation with invalid dimension format: width='{widthValue}', height='{heightValue}'");
 
             // Act
-            var typedRequest = new ResizeElementRequest 
-            { 
-                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"], 
-                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"], 
+            var typedRequest = new ResizeElementRequest
+            {
+                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"],
+                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"],
                 Width = double.TryParse((string)((Dictionary<string, object>)request.Parameters)["width"], out var w) ? w : 0.0,
                 Height = double.TryParse((string)((Dictionary<string, object>)request.Parameters)["height"], out var h) ? h : 0.0
             };
@@ -250,7 +250,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.False(result.Success);
             // Default value (0) should trigger error
             Assert.Contains("must be greater than 0", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
-            
+
             _output.WriteLine($" ResizeElementOperation handled invalid dimension format with default values");
             _output.WriteLine($"  Error: {result.Error}");
         }
@@ -279,10 +279,10 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine($"Testing ResizeElementOperation with valid dimensions: {width}x{height}");
 
             // Act
-            var typedRequest = new ResizeElementRequest 
-            { 
-                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"], 
-                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"], 
+            var typedRequest = new ResizeElementRequest
+            {
+                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"],
+                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"],
                 Width = width,
                 Height = height
             };
@@ -292,7 +292,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result);
             Assert.False(result.Success); // Expected failure due to missing element
             Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
-            
+
             _output.WriteLine($" ResizeElementOperation processed valid dimensions correctly");
             _output.WriteLine($"  Error: {result.Error}");
         }
@@ -325,10 +325,10 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Act
             var parameters = (Dictionary<string, object>)request.Parameters!;
-            var typedRequest = new RotateElementRequest 
-            { 
-                AutomationId = (string)parameters["elementId"], 
-                WindowTitle = (string)parameters["windowTitle"], 
+            var typedRequest = new RotateElementRequest
+            {
+                AutomationId = (string)parameters["elementId"],
+                WindowTitle = (string)parameters["windowTitle"],
                 Degrees = double.TryParse((string)parameters["degrees"], out var deg) ? deg : 0.0
             };
             var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
@@ -337,7 +337,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result);
             Assert.False(result.Success); // Expected failure due to missing element
             Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
-            
+
             _output.WriteLine($" RotateElementOperation handled invalid degrees format with default value");
             _output.WriteLine($"  Error: {result.Error}");
         }
@@ -369,10 +369,10 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output.WriteLine($"Testing RotateElementOperation with valid degrees: {degrees}");
 
             // Act
-            var typedRequest = new RotateElementRequest 
-            { 
-                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"], 
-                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"], 
+            var typedRequest = new RotateElementRequest
+            {
+                AutomationId = (string)((Dictionary<string, object>)request.Parameters!)["elementId"],
+                WindowTitle = (string)((Dictionary<string, object>)request.Parameters)["windowTitle"],
                 Degrees = degrees
             };
             var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
@@ -381,7 +381,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result);
             Assert.False(result.Success); // Expected failure due to missing element
             Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
-            
+
             _output.WriteLine($" RotateElementOperation processed valid degrees correctly");
             _output.WriteLine($"  Error: {result.Error}");
         }
@@ -401,10 +401,10 @@ namespace UIAutomationMCP.Tests.UnitTests
             {
                 ("MoveElement", async () => {
                     var op = new MoveElementOperation(_mockElementFinder.Object, _mockMoveElementLogger);
-                    var typedRequest = new MoveElementRequest 
-                    { 
-                        AutomationId = "TestElement", 
-                        WindowTitle = "TestWindow", 
+                    var typedRequest = new MoveElementRequest
+                    {
+                        AutomationId = "TestElement",
+                        WindowTitle = "TestWindow",
                         X = 100.0,
                         Y = 200.0
                     };
@@ -412,10 +412,10 @@ namespace UIAutomationMCP.Tests.UnitTests
                 }),
                 ("ResizeElement", async () => {
                     var op = new ResizeElementOperation(_mockElementFinder.Object, _mockResizeElementLogger);
-                    var typedRequest = new ResizeElementRequest 
-                    { 
-                        AutomationId = "TestElement", 
-                        WindowTitle = "TestWindow", 
+                    var typedRequest = new ResizeElementRequest
+                    {
+                        AutomationId = "TestElement",
+                        WindowTitle = "TestWindow",
                         Width = 800.0,
                         Height = 600.0
                     };
@@ -423,10 +423,10 @@ namespace UIAutomationMCP.Tests.UnitTests
                 }),
                 ("RotateElement", async () => {
                     var op = new RotateElementOperation(_mockElementFinder.Object, _mockRotateElementLogger);
-                    var typedRequest = new RotateElementRequest 
-                    { 
-                        AutomationId = "TestElement", 
-                        WindowTitle = "TestWindow", 
+                    var typedRequest = new RotateElementRequest
+                    {
+                        AutomationId = "TestElement",
+                        WindowTitle = "TestWindow",
                         Degrees = 90.0
                     };
                     return await op.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
@@ -439,11 +439,11 @@ namespace UIAutomationMCP.Tests.UnitTests
             foreach (var (name, execute) in operations)
             {
                 var result = await execute();
-                
+
                 Assert.NotNull(result);
                 Assert.False(result.Success); // Expected failure due to missing element
                 Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
-                
+
                 _output.WriteLine($" {name} processed processId {processIdValue} correctly");
             }
         }
@@ -471,10 +471,10 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Act
             var parameters = (Dictionary<string, object>)request.Parameters!;
-            var typedRequest = new MoveElementRequest 
-            { 
-                AutomationId = (string)parameters["elementId"], 
-                WindowTitle = (string)parameters["windowTitle"], 
+            var typedRequest = new MoveElementRequest
+            {
+                AutomationId = (string)parameters["elementId"],
+                WindowTitle = (string)parameters["windowTitle"],
                 X = 100.0,
                 Y = 200.0
             };
@@ -484,7 +484,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result);
             Assert.False(result.Success); // Expected failure due to missing element
             Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
-            
+
             _output.WriteLine($" Transform operation handled invalid processId with default value");
             _output.WriteLine($"  Error: {result.Error}");
         }
@@ -517,10 +517,10 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Act
             var parameters = (Dictionary<string, object>)request.Parameters!;
-            var typedRequest = new RotateElementRequest 
-            { 
-                AutomationId = (string)parameters["elementId"], 
-                WindowTitle = (string)parameters["windowTitle"], 
+            var typedRequest = new RotateElementRequest
+            {
+                AutomationId = (string)parameters["elementId"],
+                WindowTitle = (string)parameters["windowTitle"],
                 Degrees = 90.0
             };
             var result = await operation.ExecuteAsync(System.Text.Json.JsonSerializer.Serialize(typedRequest));
@@ -529,7 +529,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(result);
             Assert.False(result.Success); // Expected failure due to missing element
             Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
-            
+
             _output.WriteLine($" Transform operation handled windowTitle correctly");
             _output.WriteLine($"  Error: {result.Error}");
         }

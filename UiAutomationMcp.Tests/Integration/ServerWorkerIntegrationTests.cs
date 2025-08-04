@@ -26,17 +26,17 @@ namespace UiAutomationMcp.Tests.Integration
         public ServerWorkerIntegrationTests(ITestOutputHelper output)
         {
             _output = output;
-            
+
             //                                  
             var services = new ServiceCollection();
-            
+
             //             
-            services.AddLogging(builder => 
+            services.AddLogging(builder =>
                 builder.AddConsole().SetMinimumLevel(LogLevel.Information));
-            
+
             _serviceProvider = services.BuildServiceProvider();
             var logger = _serviceProvider.GetRequiredService<ILogger<SubprocessExecutor>>();
-            
+
             // Get base directory
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var possiblePaths = new[]

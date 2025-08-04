@@ -27,7 +27,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             _output = output;
             _mockGridService = new Mock<IGridService>();
-            
+
             // Mock other UIAutomationTools services (minimal setup)
             var mockAppLauncher = new Mock<IApplicationLauncher>();
             var mockScreenshot = new Mock<IScreenshotService>();
@@ -455,7 +455,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Arrange - Microsoft仕槁E 負の座標でArgumentOutOfRangeExceptionをスロー
             _mockGridService.Setup(s => s.GetGridItemAsync("errorGrid", null, row, column, "TestWindow", null, 30))
                            .ThrowsAsync(new ArgumentOutOfRangeException(
-                               row < 0 ? "row" : "column", 
+                               row < 0 ? "row" : "column",
                                "Row and column coordinates must be greater than or equal to zero"));
 
             // Act & Assert
@@ -476,7 +476,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Arrange - Microsoft仕槁E RowCount/ColumnCountを趁E��る座標でArgumentOutOfRangeExceptionをスロー
             _mockGridService.Setup(s => s.GetGridItemAsync("boundGrid", null, row, column, "TestWindow", null, 30))
                            .ThrowsAsync(new ArgumentOutOfRangeException(
-                               row >= maxRow ? "row" : "column", 
+                               row >= maxRow ? "row" : "column",
                                $"Row/column coordinates must be less than RowCount ({maxRow}) / ColumnCount ({maxColumn})"));
 
             // Act & Assert
@@ -645,17 +645,17 @@ namespace UIAutomationMCP.Tests.UnitTests
                     }
                 }
             };
-            _mockGridService.Setup(s => s.GetGridItemAsync(elementId, null, row, column, 
+            _mockGridService.Setup(s => s.GetGridItemAsync(elementId, null, row, column,
                 string.IsNullOrEmpty(windowTitle) ? null : windowTitle, null, 30))
                            .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.GetGridItem(row: row, column: column, automationId: elementId, 
+            var result = await _tools.GetGridItem(row: row, column: column, automationId: elementId,
                 name: string.IsNullOrEmpty(windowTitle) ? null : windowTitle);
 
             // Assert
             Assert.NotNull(result);
-            _mockGridService.Verify(s => s.GetGridItemAsync(elementId, null, row, column, 
+            _mockGridService.Verify(s => s.GetGridItemAsync(elementId, null, row, column,
                 string.IsNullOrEmpty(windowTitle) ? null : windowTitle, null, 30), Times.Once);
             _output.WriteLine($"Empty parameter test passed: elementId='{elementId}', window='{windowTitle}'");
         }
