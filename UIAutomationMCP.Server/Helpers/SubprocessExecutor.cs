@@ -320,7 +320,13 @@ namespace UIAutomationMCP.Server.Helpers
 
                 // Check if it's a project directory (for development)
                 // Note: _workerPath can be either Worker or Monitor project directory
-                if (Directory.Exists(_workerPath) && Directory.GetFiles(_workerPath, "*.csproj").Length > 0)
+                // Only treat as valid if the directory contains a Worker or Monitor project file
+                var projectFiles = Directory.Exists(_workerPath)
+                    ? Directory.GetFiles(_workerPath, "*Worker.csproj")
+                        .Concat(Directory.GetFiles(_workerPath, "*Monitor.csproj"))
+                        .ToArray()
+                    : Array.Empty<string>();
+                if (projectFiles.Length > 0)
                 {
                     // Detect configuration from the calling server's base directory
                     var baseDir = AppDomain.CurrentDomain.BaseDirectory;
