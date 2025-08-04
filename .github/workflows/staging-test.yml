@@ -115,9 +115,53 @@ jobs:
         Get-ChildItem $stagingDir -Recurse | Select-Object FullName
       shell: pwsh
     
+    - name: Start local HTTP server for package hosting
+      id: http_server
+      run: |
+        Write-Host "Starting local HTTP server to host the staging package..."
+        
+        # Find an available port
+        $port = 8080
+        $maxAttempts = 10
+        for ($i = 0; $i -lt $maxAttempts; $i++) {
+          $testPort = $port + $i
+          $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, $testPort)
+          try {
+            $listener.Start()
+            $listener.Stop()
+            $port = $testPort
+            break
+          } catch {
+            # Port is in use, try next
+          }
+        }
+        
+        Write-Host "Using port: $port"
+        echo "PORT=$port" >> $env:GITHUB_OUTPUT
+        
+        # Start Python HTTP server in background
+        $serverProcess = Start-Process python -ArgumentList "-m", "http.server", $port -PassThru -WindowStyle Hidden
+        
+        # Save the process ID for cleanup
+        echo "SERVER_PID=$($serverProcess.Id)" >> $env:GITHUB_OUTPUT
+        
+        # Wait for server to start
+        Start-Sleep -Seconds 2
+        
+        # Verify server is running
+        try {
+          $response = Invoke-WebRequest -Uri "http://localhost:$port" -TimeoutSec 5
+          Write-Host "✅ HTTP server started successfully on http://localhost:$port"
+        } catch {
+          Write-Error "Failed to start HTTP server: $_"
+          exit 1
+        }
+      shell: pwsh
+    
     - name: Prepare local Winget manifest
       run: |
         $version = "${{ steps.version.outputs.VERSION }}"
+        $httpPort = "${{ steps.http_server.outputs.PORT }}"
         
         # Determine ZIP name based on event type
         if ("${{ github.event_name }}" -eq "workflow_run") {
@@ -157,9 +201,9 @@ jobs:
         $installerPath = "$manifestDir/UIAutomationMCP.installer.yaml"
         $installerContent = Get-Content $installerPath -Raw
         
-        # For local installation, use the local ZIP file directly
-        $localZipPath = (Resolve-Path $zipName).Path
-        $installerContent = $installerContent -replace 'InstallerUrl: https://.*\.zip', "InstallerUrl: file:///$($localZipPath -replace '\\', '/')"
+        # Use HTTP URL from local server instead of file://
+        $httpUrl = "http://localhost:$httpPort/$zipName"
+        $installerContent = $installerContent -replace 'InstallerUrl: https://.*\.zip', "InstallerUrl: $httpUrl"
         
         # Calculate SHA256
         $sha256 = (Get-FileHash -Path $zipName -Algorithm SHA256).Hash
@@ -172,10 +216,18 @@ jobs:
         
         Write-Host "Local manifest prepared with 3 separate files:"
         Write-Host "  ZIP: $zipName"
-        Write-Host "  Local file: $localZipPath"
-        Write-Host "  File URL: file:///$($localZipPath -replace '\\', '/')"
+        Write-Host "  HTTP URL: $httpUrl"
         Write-Host "  SHA256: $($sha256.Substring(0,16))..."
         Write-Host "  Files: $($manifestFiles -join ', ')"
+        
+        # Verify the package is accessible via HTTP
+        try {
+          $testResponse = Invoke-WebRequest -Uri $httpUrl -Method Head -TimeoutSec 5
+          Write-Host "✅ Package accessible via HTTP server"
+        } catch {
+          Write-Error "Package not accessible at $httpUrl : $_"
+          exit 1
+        }
       shell: pwsh
     
     - name: Test Winget local installation
@@ -478,6 +530,21 @@ jobs:
             Get-Process -Name "Calculator*" -ErrorAction SilentlyContinue | Stop-Process -Force
           } catch {
             # Calculator may not be running
+          }
+        }
+      shell: pwsh
+    
+    - name: Cleanup HTTP server
+      if: always()
+      run: |
+        $serverPid = "${{ steps.http_server.outputs.SERVER_PID }}"
+        if ($serverPid) {
+          Write-Host "Stopping HTTP server (PID: $serverPid)..."
+          try {
+            Stop-Process -Id $serverPid -Force -ErrorAction SilentlyContinue
+            Write-Host "✅ HTTP server stopped"
+          } catch {
+            Write-Host "HTTP server may have already stopped"
           }
         }
       shell: pwsh
