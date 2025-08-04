@@ -49,7 +49,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
         {
             _output = output;
             
-            //                            _mockAppLauncher = new Mock<IApplicationLauncher>();
+            _mockAppLauncher = new Mock<IApplicationLauncher>();
             _mockScreenshot = new Mock<IScreenshotService>();
             _mockElementSearch = new Mock<IElementSearchService>();
             _mockTreeNavigation = new Mock<ITreeNavigationService>();

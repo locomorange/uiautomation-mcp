@@ -261,7 +261,6 @@ namespace UIAutomationMCP.Tests.Services
         {
             // Arrange
             var elementId = "compliantTable";
-            var processId = 1234;
 
             // Setup mock responses for all available members
             _mockProcessManager.Setup(e => e.ExecuteAsync<GetColumnHeadersRequest, ElementSearchResult>("GetColumnHeaders", It.IsAny<GetColumnHeadersRequest>(), 30))

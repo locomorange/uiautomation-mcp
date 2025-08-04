@@ -44,7 +44,6 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Arrange
             var elementId = "element1";
             var windowTitle = "Test Window";
-            var processId = 1234;
             var expectedResult = new ElementSearchResult
             {
                 Success = true,
@@ -81,7 +80,6 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Arrange
             var elementId = "element1";
             var windowTitle = "Test Window";
-            var processId = 1234;
             var expectedResult = new ElementSearchResult
             {
                 Success = true,

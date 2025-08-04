@@ -52,7 +52,6 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange
             var elementId = "NonExistentVirtualizedItem";
-            var processId = 99999; // Non-existent process ID
 
             // Act
             var result = await _virtualizedItemService.RealizeItemAsync(automationId: elementId, timeoutSeconds: 5);

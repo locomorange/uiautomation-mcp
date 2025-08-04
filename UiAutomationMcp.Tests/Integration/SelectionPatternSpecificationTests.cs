@@ -65,7 +65,6 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange
             var containerId = "test-selection-list";
-            var windowTitle = "Test Selection Application";
             
             try
             {
@@ -106,7 +105,6 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange
             var elementId = "test-item-with-container";
-            var windowTitle = "Test Container Window";
             
             try
             {
@@ -144,7 +142,6 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange
             var elementId = "test-multi-select-item";
-            var windowTitle = "Multi-Selection Test Window";
             
             try
             {
@@ -178,7 +175,6 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange
             var elementId = "test-selected-item";
-            var windowTitle = "Multi-Selection Test Window";
             
             try
             {
@@ -250,7 +246,6 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange
             var containerId = "test-event-container";
-            var windowTitle = "Event Test Window";
             
             try
             {
@@ -286,7 +281,6 @@ namespace UIAutomationMCP.Tests.Integration
         {
             // Arrange
             var elementId = "disabled-selection-item";
-            var windowTitle = "Disabled Control Test";
             
             try
             {

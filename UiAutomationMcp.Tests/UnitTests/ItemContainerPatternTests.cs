@@ -42,7 +42,6 @@ namespace UIAutomationMCP.Tests.UnitTests
             var value = "TestItem";
             var startAfterId = "item0";
             var windowTitle = "Test Window";
-            var processId = 1234;
             var expectedResult = new ElementSearchResult {
                 Success = true,
                 OperationName = "FindItem",

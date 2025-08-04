@@ -160,7 +160,6 @@ namespace UIAutomationMCP.Tests.Integration
             // Arrange
             var elementId = "IntegrationTestTable";
             var windowTitle = "Integration Test Window";
-            var processId = 54321;
             var timeoutSeconds = 5;
 
             // Act & Assert - Test all required TablePattern members
@@ -190,7 +189,6 @@ namespace UIAutomationMCP.Tests.Integration
             // Arrange
             var elementId = "NonExistentTable";
             var windowTitle = "ErrorTestWindow";
-            var processId = 99999;
             var timeoutSeconds = 3;
 
             // Act - Test error handling for all table methods

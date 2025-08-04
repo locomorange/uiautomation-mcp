@@ -42,7 +42,6 @@ namespace UiAutomationMcp.Tests.Services
         {
             // Arrange
             var elementId = "test-scroll-element";
-            var processId = 1234;
             var timeoutSeconds = 1; // Short timeout for fast test
             // Act - Execute with non-existent worker path
             var result = await _layoutService.ScrollElementIntoViewAsync(automationId: elementId, timeoutSeconds: timeoutSeconds);

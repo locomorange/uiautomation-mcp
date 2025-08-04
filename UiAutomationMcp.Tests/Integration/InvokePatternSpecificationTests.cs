@@ -134,7 +134,6 @@ namespace UIAutomationMCP.Tests.Integration
             
             // Given
             var elementId = "FlexibleButton";
-            var processId = 1234;
             var timeout = 3;
 
             // When - Test different targeting methods
