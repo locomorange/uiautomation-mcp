@@ -1,45 +1,86 @@
 # Testing Commands
 
-## MCP Server Testing
+## MCP Server Testing (Development Environment)
 
-### ✅ Recommended Testing Methods (Verified Working)
+### Shell Script Testing Method (Git Bash Background Operation)
 
-```bash
-cd UIAutomationMCP.Server
+### Background Server Management
 
-# Method 1: Sleep-based testing (BEST - Always works)
-(echo '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test", "version": "1.0"}}}'; sleep 2) | dotnet run --configuration Release
+For advanced development workflows, these shell scripts provide complete background server management with comprehensive logging:
 
-# Method 2: EOF marker (Works with expected JSON parse error)
-(echo '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test", "version": "1.0"}}}'; sleep 3; echo 'EOF') | dotnet run --configuration Release
+**Available Scripts:**
+- `start-mcp-server.sh` - Start MCP server in background with logging
+- `send-mcp-request.sh` - Send JSON-RPC requests to running server  
+- `show-mcp-logs.sh` - Display server logs while running
+- `stop-mcp-server.sh` - Stop server and show final logs
 
-# Expected successful response:
-# {"result":{"protocolVersion":"2024-11-05","capabilities":{"logging":{},"tools":{"listChanged":true}},"serverInfo":{"name":"UIAutomation MCP Server","version":"1.0.0"}},"id":1,"jsonrpc":"2.0"}
-```
-
-### ❌ Methods with Limitations
+### Usage Workflow
 
 ```bash
-# Timeout method - May result in empty stdout due to buffering
-echo '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test", "version": "1.0"}}}' | timeout 5s dotnet run --configuration Release
+# 1. Start server in background
+./start-mcp-server.sh
 
-# File-based debugging - stderr works, stdout may be empty
-echo 'JSON_REQUEST' > input.json && dotnet run --configuration Release 2>debug.log 1>response.json < input.json
+# 2. Send requests (server runs in background)  
+./send-mcp-request.sh 'tools/list'
+./send-mcp-request.sh 'tools/call' 'TakeScreenshot' '{"maxTokens": 1000}'
+
+# 3. View logs while running
+./show-mcp-logs.sh  
+
+# 4. Stop server when done
+./stop-mcp-server.sh
 ```
 
-### 🔍 Multiple Operations Testing
+### Key Features
 
+✅ **Background Operation**: Server runs independently, allowing Git Bash return to prompt  
+✅ **Comprehensive Logging**: Captures both stdout/stderr and response logs  
+✅ **Process Management**: Tracks PIDs for reliable start/stop operations  
+✅ **Error Handling**: Graceful cleanup and error reporting  
+✅ **Cross-platform**: Works in Git Bash on Windows
+
+### Expected Outputs
+
+**Server Start:**
+```
+=== MCP Server Background Starter ===
+Starting MCP server in background...
+✅ Server responding: UIAutomation MCP Server v1.0.0
+✅ MCP Server started successfully!
+   Server PID: 12345
+   PowerShell PID: 67890
+
+📋 Usage:
+   ./send-mcp-request.sh 'tools/list'
+   ./send-mcp-request.sh 'tools/call' 'TakeScreenshot' '{"maxTokens": 1000}'
+   ./stop-mcp-server.sh
+
+Server is ready for JSON-RPC requests!
+```
+
+**Request Example:**
 ```bash
-# Test initialization + tools list
-(echo '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test", "version": "1.0"}}}'; echo '{"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}}'; sleep 3) | dotnet run --configuration Release
+./send-mcp-request.sh 'tools/list'
+# Returns: {"result":{"tools":[{"name":"SearchElements",...}]},"id":2,"jsonrpc":"2.0"}
 ```
 
-### 📋 STDOUT Buffering Issue Explanation
+**Log Monitoring:**
+```
+=== MCP Server Logs ===
+Server PID: 12345
+✅ Server is running
+📄 Development Error Log:
+--- UIAutomationMCP.Server/dev-error.log ---
+[Recent error entries...]
+📄 Development Response Log:  
+--- UIAutomationMCP.Server/dev-response.log ---
+[Recent response entries...]
+```
 
-**Problem**: .NET MCP framework controls stdout buffering internally, causing empty output on rapid process termination.
+### Implementation Notes
 
-**Root Cause**: MCP framework's async JSON-RPC response writing vs. process lifecycle timing.
-
-**Solution**: Use sleep-based methods to allow response completion before process termination.
-
-**Important**: This is normal behavior. Production MCP clients (Claude, etc.) handle async responses correctly.
+- Uses PowerShell subprocess for reliable process management on Windows
+- Captures PID files for background operation tracking  
+- Provides separate error and response log files for debugging
+- Automatically cleans up processes and temporary files on shutdown
+- Based on GitHub Actions workflow patterns from `.github/workflows/staging-test.yml`
