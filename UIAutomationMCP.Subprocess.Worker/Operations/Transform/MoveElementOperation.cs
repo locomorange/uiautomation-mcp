@@ -14,7 +14,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Transform
     public class MoveElementOperation : BaseUIAutomationOperation<MoveElementRequest, TransformActionResult>
     {
         public MoveElementOperation(
-            ElementFinderService elementFinderService, 
+            ElementFinderService elementFinderService,
             ILogger<MoveElementOperation> logger)
             : base(elementFinderService, logger)
         {
@@ -24,16 +24,18 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Transform
         {
             // Use TransformPattern as the default required pattern
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? TransformPattern.Pattern;
-            
+
             var searchCriteria = new ElementSearchCriteria
             {
                 AutomationId = request.AutomationId,
                 Name = request.Name,
                 ControlType = request.ControlType,
                 WindowTitle = request.WindowTitle,
-                RequiredPattern = requiredPattern?.ProgrammaticName, WindowHandle = request.WindowHandle };
+                RequiredPattern = requiredPattern?.ProgrammaticName,
+                WindowHandle = request.WindowHandle
+            };
             var element = _elementFinderService.FindElement(searchCriteria);
-                
+
             if (element == null)
             {
                 throw new UIAutomationElementNotFoundException("MoveElement", request.AutomationId);
@@ -53,10 +55,10 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Transform
             var y = request.Y;
 
             transformPattern.Move(x, y);
-            
+
             // Wait a moment for the transformation to complete
             await Task.Delay(50);
-            
+
             // Get updated bounds after move
             var newBounds = new BoundingRectangle
             {

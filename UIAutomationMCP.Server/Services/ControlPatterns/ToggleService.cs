@@ -19,10 +19,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         protected override string GetOperationType() => "toggle";
 
         public async Task<ServerEnhancedResponse<ActionResult>> ToggleElementAsync(
-            string? automationId = null, 
-            string? name = null, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new ToggleElementRequest
@@ -99,10 +99,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         {
             var metadata = base.CreateSuccessMetadata(data, context);
             metadata.ActionPerformed = context.MethodName.Replace("Async", "").ToLowerInvariant();
-            
+
             // Note: ActionResult doesn't contain state information like ToggleActionResult would
             // If we need state information, we'd need to update the result types or use a different approach
-            
+
             return metadata;
         }
     }

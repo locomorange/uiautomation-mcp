@@ -85,23 +85,23 @@ namespace UIAutomationMCP.Core.Configuration
         private static bool TryParse<T>(string value, out T result)
         {
             result = default(T)!;
-            
+
             if (string.IsNullOrEmpty(value))
                 return false;
 
             try
             {
                 var type = typeof(T);
-                
+
                 // Handle nullable types
                 var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
-                
+
                 if (underlyingType == typeof(string))
                 {
                     result = (T)(object)value;
                     return true;
                 }
-                
+
                 if (underlyingType == typeof(bool))
                 {
                     if (bool.TryParse(value, out var boolResult))
@@ -110,7 +110,7 @@ namespace UIAutomationMCP.Core.Configuration
                         return true;
                     }
                 }
-                
+
                 if (underlyingType == typeof(int))
                 {
                     if (int.TryParse(value, out var intResult))
@@ -119,7 +119,7 @@ namespace UIAutomationMCP.Core.Configuration
                         return true;
                     }
                 }
-                
+
                 if (underlyingType == typeof(double))
                 {
                     if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var doubleResult))
@@ -128,7 +128,7 @@ namespace UIAutomationMCP.Core.Configuration
                         return true;
                     }
                 }
-                
+
                 // Fallback to Convert.ChangeType
                 result = (T)Convert.ChangeType(value, underlyingType, CultureInfo.InvariantCulture);
                 return true;

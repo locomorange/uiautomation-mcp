@@ -98,7 +98,7 @@ namespace UIAutomationMCP.Subprocess.Core.Services
                 }
 
                 var scope = GetSafeScope(searchCriteria.Scope);
-                
+
                 _logger.LogDebug("Searching for elements with scope: {Scope}", scope);
                 var elements = rootElement.FindAll(scope, condition);
                 _logger.LogDebug("Found {Count} elements", elements?.Count ?? 0);
@@ -149,7 +149,7 @@ namespace UIAutomationMCP.Subprocess.Core.Services
                     var element = AutomationElement.FromHandle(new IntPtr(criteria.WindowHandle.Value));
                     if (element != null)
                     {
-                        _logger.LogDebug("Successfully created AutomationElement from HWND: {WindowHandle} -> Name: {ElementName}", 
+                        _logger.LogDebug("Successfully created AutomationElement from HWND: {WindowHandle} -> Name: {ElementName}",
                             criteria.WindowHandle.Value, GetSafeProperty(element, e => e.Current.Name));
                         return element;
                     }
@@ -208,7 +208,7 @@ namespace UIAutomationMCP.Subprocess.Core.Services
         private Condition? BuildSearchCondition(ElementSearchCriteria criteria)
         {
             var conditions = new List<Condition>();
-            
+
             _logger.LogDebug("Building search condition with criteria: AutomationId={AutomationId}, Name={Name}, ControlType={ControlType}, WindowTitle={WindowTitle}, WindowHandle={WindowHandle}",
                 criteria.AutomationId, criteria.Name, criteria.ControlType, criteria.WindowTitle, criteria.WindowHandle);
 
@@ -275,13 +275,13 @@ namespace UIAutomationMCP.Subprocess.Core.Services
                 _logger.LogDebug("No conditions specified, using TrueCondition");
                 return Condition.TrueCondition;
             }
-            
+
             if (conditions.Count == 1)
             {
                 _logger.LogDebug("Using single condition");
                 return conditions[0];
             }
-            
+
             _logger.LogDebug("Using AndCondition with {Count} conditions", conditions.Count);
             return new AndCondition(conditions.ToArray());
         }

@@ -19,11 +19,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         protected override string GetOperationType() => "value";
 
         public async Task<ServerEnhancedResponse<ActionResult>> SetValueAsync(
-            string value, 
-            string? automationId = null, 
-            string? name = null, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string value,
+            string? automationId = null,
+            string? name = null,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new SetElementValueRequest
@@ -45,10 +45,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
         public async Task<ServerEnhancedResponse<TextInfoResult>> GetValueAsync(
-            string? automationId = null, 
-            string? name = null, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new GetValueRequest
@@ -98,7 +98,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         protected override ValueServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
         {
             var metadata = base.CreateSuccessMetadata(data, context);
-            
+
             if (data is ActionResult)
             {
                 metadata.ActionPerformed = "valueSet";
@@ -109,7 +109,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 metadata.ValueLength = textResult.Text?.Length ?? 0;
                 metadata.HasValue = !string.IsNullOrEmpty(textResult.Text);
             }
-            
+
             return metadata;
         }
     }

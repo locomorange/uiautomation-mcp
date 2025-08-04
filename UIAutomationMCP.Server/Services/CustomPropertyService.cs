@@ -20,11 +20,11 @@ namespace UIAutomationMCP.Server.Services
         protected override string GetOperationType() => "customProperty";
 
         public async Task<ServerEnhancedResponse<ElementSearchResult>> GetCustomPropertiesAsync(
-            string? automationId = null, 
-            string? name = null, 
-            string[]? propertyIds = null, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            string[]? propertyIds = null,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new GetCustomPropertiesRequest
@@ -46,12 +46,12 @@ namespace UIAutomationMCP.Server.Services
         }
 
         public async Task<ServerEnhancedResponse<ElementSearchResult>> SetCustomPropertyAsync(
-            string? automationId = null, 
-            string? name = null, 
-            string propertyId = "", 
-            object? value = null, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            string propertyId = "",
+            object? value = null,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new SetCustomPropertyRequest

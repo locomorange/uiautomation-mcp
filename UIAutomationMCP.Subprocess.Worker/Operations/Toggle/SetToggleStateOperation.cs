@@ -22,16 +22,18 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Toggle
         {
             // Use TogglePattern as the default required pattern
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? TogglePattern.Pattern;
-            
+
             var searchCriteria = new ElementSearchCriteria
             {
                 AutomationId = request.AutomationId,
                 Name = request.Name,
                 ControlType = request.ControlType,
                 WindowTitle = request.WindowTitle,
-                RequiredPattern = requiredPattern?.ProgrammaticName, WindowHandle = request.WindowHandle };
+                RequiredPattern = requiredPattern?.ProgrammaticName,
+                WindowHandle = request.WindowHandle
+            };
             var element = _elementFinderService.FindElement(searchCriteria);
-                
+
             if (element == null)
             {
                 throw new UIAutomationElementNotFoundException("SetToggleState", request.AutomationId);
@@ -49,21 +51,21 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Toggle
 
             var initialState = togglePattern.Current.ToggleState;
             var currentState = initialState;
-            
+
             while (currentState != targetState)
             {
                 togglePattern.Toggle();
-                
+
                 // Wait a moment for the state to update
                 await Task.Delay(50);
-                
+
                 var newState = togglePattern.Current.ToggleState;
-                
+
                 if (newState == currentState)
                 {
                     throw new UIAutomationInvalidOperationException("SetToggleState", request.AutomationId, $"Element does not support toggle state: {request.State}");
                 }
-                
+
                 currentState = newState;
             }
 

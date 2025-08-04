@@ -14,7 +14,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Transform
     public class ResizeElementOperation : BaseUIAutomationOperation<ResizeElementRequest, TransformActionResult>
     {
         public ResizeElementOperation(
-            ElementFinderService elementFinderService, 
+            ElementFinderService elementFinderService,
             ILogger<ResizeElementOperation> logger)
             : base(elementFinderService, logger)
         {
@@ -24,16 +24,18 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Transform
         {
             // Use TransformPattern as the default required pattern
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? TransformPattern.Pattern;
-            
+
             var searchCriteria = new ElementSearchCriteria
             {
                 AutomationId = request.AutomationId,
                 Name = request.Name,
                 ControlType = request.ControlType,
                 WindowTitle = request.WindowTitle,
-                RequiredPattern = requiredPattern?.ProgrammaticName, WindowHandle = request.WindowHandle };
+                RequiredPattern = requiredPattern?.ProgrammaticName,
+                WindowHandle = request.WindowHandle
+            };
             var element = _elementFinderService.FindElement(searchCriteria);
-                
+
             if (element == null)
             {
                 throw new UIAutomationElementNotFoundException("ResizeElement", request.AutomationId);
@@ -53,10 +55,10 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Transform
             var height = request.Height;
 
             transformPattern.Resize(width, height);
-            
+
             // Wait a moment for the transformation to complete
             await Task.Delay(50);
-            
+
             // Get updated bounds after resize
             var currentRect = element.Current.BoundingRectangle;
             var newBounds = new BoundingRectangle

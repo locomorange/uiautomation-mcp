@@ -46,13 +46,13 @@ namespace UIAutomationMCP.Server.Services
             }
 
             // Suggest checking application state
-            if (operationName.Contains("window", StringComparison.OrdinalIgnoreCase) || 
+            if (operationName.Contains("window", StringComparison.OrdinalIgnoreCase) ||
                 operationName.Contains("application", StringComparison.OrdinalIgnoreCase))
             {
                 suggestions.Add("ensure the target application is running and responsive");
             }
 
-            var suggestionText = suggestions.Count > 0 
+            var suggestionText = suggestions.Count > 0
                 ? " Consider: " + string.Join(", ", suggestions) + "."
                 : "";
 
@@ -139,21 +139,21 @@ namespace UIAutomationMCP.Server.Services
             var lowerOperation = operationName.ToLowerInvariant();
 
             // Fast operations
-            if (lowerOperation.Contains("click") || lowerOperation.Contains("invoke") || 
+            if (lowerOperation.Contains("click") || lowerOperation.Contains("invoke") ||
                 lowerOperation.Contains("toggle") || lowerOperation.Contains("set"))
             {
                 return Math.Max(currentTimeout, 30);
             }
 
             // Medium operations
-            if (lowerOperation.Contains("find") || lowerOperation.Contains("get") || 
+            if (lowerOperation.Contains("find") || lowerOperation.Contains("get") ||
                 lowerOperation.Contains("scroll") || lowerOperation.Contains("select"))
             {
                 return Math.Max(currentTimeout, 60);
             }
 
             // Slow operations
-            if (lowerOperation.Contains("tree") || lowerOperation.Contains("screenshot") || 
+            if (lowerOperation.Contains("tree") || lowerOperation.Contains("screenshot") ||
                 lowerOperation.Contains("launch") || lowerOperation.Contains("elements"))
             {
                 return Math.Max(currentTimeout, 120);

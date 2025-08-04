@@ -3,8 +3,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Server execution information
     /// </summary>
-    public class ServerExecutionInfo 
-    { 
+    public class ServerExecutionInfo
+    {
         public string ExecutionId { get; set; } = string.Empty;
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
@@ -20,8 +20,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Request metadata information
     /// </summary>
-    public class RequestMetadata 
-    { 
+    public class RequestMetadata
+    {
         public string RequestId { get; set; } = string.Empty;
         public string ClientId { get; set; } = string.Empty;
         public DateTime RequestTime { get; set; }
@@ -34,8 +34,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Enhanced server response wrapper
     /// </summary>
-    public class ServerEnhancedResponse<T> 
-    { 
+    public class ServerEnhancedResponse<T>
+    {
         public T? Data { get; set; }
         public bool Success { get; set; }
         public string ErrorMessage { get; set; } = string.Empty;
@@ -47,8 +47,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Universal response for flexible operations
     /// </summary>
-    public class UniversalResponse : BaseOperationResult 
-    { 
+    public class UniversalResponse : BaseOperationResult
+    {
         public object? Data { get; set; }
         public string ResponseType { get; set; } = string.Empty;
         public new string Metadata { get; set; } = string.Empty;

@@ -98,7 +98,7 @@ namespace UIAutomationMCP.Server.Tools
         [McpServerTool, Description("Search for UI elements with flexible filtering options. Returns basic element properties by default. When includeDetails=true, returns comprehensive data including: • All supported UI patterns (Toggle state, Range values, Window state, Selection info, Grid/Table structure, Scroll position, Text content, Transform capabilities, etc.) • Accessibility information (labeledBy, helpText, accessKey, acceleratorKey) • Advanced properties (frameworkId, runtimeId, isPassword) • Element hierarchy (parent and children relationships). For window detection, use scope='children' with requiredPattern='Window' (finds all elements with WindowPattern including Panes). Avoid controlType='Window' as it excludes WindowPattern-supporting Panes and other window-like elements.")]
         public async Task<object> SearchElements(
             [Description("Cross-property search text (searches Name, AutomationId, ClassName)")] string? searchText = null,
-            [Description("Specific AutomationId to search for")] string? automationId = null, 
+            [Description("Specific AutomationId to search for")] string? automationId = null,
             [Description("Specific Name (display name) to search for")] string? name = null,
             [Description("Control type filter (Button, Slider, TextBox, etc.). For windows, use requiredPattern='Window' instead")] string? controlType = null,
             [Description("Class name filter")] string? className = null,
@@ -140,8 +140,8 @@ namespace UIAutomationMCP.Server.Tools
 
         [McpServerTool, Description("Get the hierarchical element tree structure for navigation and overview. Returns basic ElementInfo without detailed pattern information. For detailed element analysis, use SearchElements with includeDetails=true.")]
         public async Task<object> GetElementTree(
-            [Description("Maximum depth to traverse (default: 3)")] int maxDepth = 3, 
-            [Description("Native window handle (HWND) for direct window targeting")] long? windowHandle = null, 
+            [Description("Maximum depth to traverse (default: 3)")] int maxDepth = 3,
+            [Description("Native window handle (HWND) for direct window targeting")] long? windowHandle = null,
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
             => JsonSerializationHelper.Serialize(await _treeNavigationService.GetElementTreeAsync(windowHandle, maxDepth, timeoutSeconds));
 
@@ -149,10 +149,10 @@ namespace UIAutomationMCP.Server.Tools
         // Application Management
         [McpServerTool, Description("Take a screenshot of the desktop or specific window")]
         public async Task<object> TakeScreenshot(
-            [Description("Title of the window to screenshot (optional, defaults to full screen)")] string? windowTitle = null, 
-            [Description("Path to save the screenshot (optional)")] string? outputPath = null, 
-            [Description("Maximum tokens for Base64 response (0 = no limit, auto-optimizes resolution and compression)")] int maxTokens = 0, 
-            [Description("Native window handle (HWND) for direct window targeting")] long? windowHandle = null, 
+            [Description("Title of the window to screenshot (optional, defaults to full screen)")] string? windowTitle = null,
+            [Description("Path to save the screenshot (optional)")] string? outputPath = null,
+            [Description("Maximum tokens for Base64 response (0 = no limit, auto-optimizes resolution and compression)")] int maxTokens = 0,
+            [Description("Native window handle (HWND) for direct window targeting")] long? windowHandle = null,
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
             => JsonSerializationHelper.Serialize(await _screenshotService.TakeScreenshotAsync(windowTitle, outputPath, maxTokens, windowHandle, timeoutSeconds));
 
@@ -179,7 +179,7 @@ namespace UIAutomationMCP.Server.Tools
                 automationId: automationId,
                 name: name,
                 controlType: controlType,
-                windowHandle: windowHandle, 
+                windowHandle: windowHandle,
                 timeoutSeconds: timeoutSeconds));
 
         [McpServerTool, Description("Set the value of an element (text input, etc.) using ValuePattern")]
@@ -196,7 +196,7 @@ namespace UIAutomationMCP.Server.Tools
                 automationId: automationId,
                 name: name,
                 controlType: controlType,
-                windowHandle: windowHandle, 
+                windowHandle: windowHandle,
                 timeoutSeconds: timeoutSeconds));
 
 
@@ -213,7 +213,7 @@ namespace UIAutomationMCP.Server.Tools
                 automationId: automationId,
                 name: name,
                 controlType: controlType,
-                windowHandle: windowHandle, 
+                windowHandle: windowHandle,
                 timeoutSeconds: timeoutSeconds));
 
         [McpServerTool, Description("Set focus to a UI element using UI Automation SetFocus method")]
@@ -283,8 +283,8 @@ namespace UIAutomationMCP.Server.Tools
 
         [McpServerTool, Description("Clear all selections in a container")]
         public async Task<object> ClearSelection(
-            [Description("Automation ID or name of the container element")] string containerElementId, 
-            [Description("Native window handle (HWND) for direct window targeting")] long? windowHandle = null, 
+            [Description("Automation ID or name of the container element")] string containerElementId,
+            [Description("Native window handle (HWND) for direct window targeting")] long? windowHandle = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _selectionService.ClearSelectionAsync(automationId: containerElementId, windowHandle: windowHandle, timeoutSeconds: timeoutSeconds));
 
@@ -382,9 +382,9 @@ namespace UIAutomationMCP.Server.Tools
         // Window Management Patterns
         [McpServerTool, Description("Perform window actions (minimize, maximize, close, etc.) using WindowPattern")]
         public async Task<object> WindowAction(
-            [Description("Action to perform: minimize, maximize, normal, restore, close")] string action, 
-            [Description("Title of the window (optional)")] string? windowTitle = null, 
-            [Description("Native window handle (HWND) for direct window targeting")] long? windowHandle = null, 
+            [Description("Action to perform: minimize, maximize, normal, restore, close")] string action,
+            [Description("Title of the window (optional)")] string? windowTitle = null,
+            [Description("Native window handle (HWND) for direct window targeting")] long? windowHandle = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _windowService.WindowOperationAsync(action, windowTitle, windowHandle, timeoutSeconds));
 

@@ -39,9 +39,11 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
             {
                 AutomationId = request.AutomationId,
                 Name = request.Name,
-                ControlType = request.ControlType, WindowHandle = request.WindowHandle };
+                ControlType = request.ControlType,
+                WindowHandle = request.WindowHandle
+            };
             var element = _elementFinderService.FindElement(searchCriteria);
-            
+
             if (element == null)
             {
                 throw new UIAutomationElementNotFoundException("Operation", null, "Element not found");
@@ -54,7 +56,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
                 {
                     var previousValue = vp.Current.Value ?? "";
                     vp.SetValue(request.Text);
-                    
+
                     var result = new SetValueResult
                     {
                         ActionName = "SetText",
@@ -72,7 +74,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
                     throw new UIAutomationElementNotFoundException("Operation", null, "Element is read-only");
                 }
             }
-            
+
             throw new UIAutomationElementNotFoundException("Operation", null, "Element does not support text modification");
         }
     }

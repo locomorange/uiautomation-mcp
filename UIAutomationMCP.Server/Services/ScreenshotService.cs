@@ -34,11 +34,11 @@ namespace UIAutomationMCP.Server.Services
         protected override string GetOperationType() => "screenshot";
 
         public async Task<ServerEnhancedResponse<ScreenshotResult>> TakeScreenshotAsync(
-            string? windowTitle = null, 
-            string? outputPath = null, 
-            int maxTokens = 0, 
-            long? windowHandle = null, 
-            int timeoutSeconds = 60, 
+            string? windowTitle = null,
+            string? outputPath = null,
+            int maxTokens = 0,
+            long? windowHandle = null,
+            int timeoutSeconds = 60,
             CancellationToken cancellationToken = default)
         {
             var request = new TakeScreenshotRequest
@@ -144,7 +144,7 @@ namespace UIAutomationMCP.Server.Services
                 if (!string.IsNullOrEmpty(request.WindowTitle) || request.WindowHandle.HasValue)
                 {
                     _logger.LogInformation("Attempting to get window info for title: {WindowTitle}, windowHandle: {WindowHandle}", request.WindowTitle, request.WindowHandle);
-                    
+
                     // Use Worker to get window information via UIAutomation
                     var windowInfo = await GetWindowInfoFromWorker(request.WindowTitle, request.WindowHandle);
                     if (windowInfo == null)
@@ -158,16 +158,16 @@ namespace UIAutomationMCP.Server.Services
                     // Extract bounding rectangle from window info
                     if (windowInfo.TryGetValue("BoundingRectangle", out var boundingRectObj))
                     {
-                        _logger.LogInformation("BoundingRectangle found, type: {Type}", 
+                        _logger.LogInformation("BoundingRectangle found, type: {Type}",
                             boundingRectObj?.GetType().Name ?? "null");
-                        
+
                         if (boundingRectObj is Dictionary<string, object> boundingRect)
                         {
                             var x = Convert.ToInt32(boundingRect["X"]);
                             var y = Convert.ToInt32(boundingRect["Y"]);
                             var width = Convert.ToInt32(boundingRect["Width"]);
                             var height = Convert.ToInt32(boundingRect["Height"]);
-                            
+
                             captureArea = new System.Drawing.Rectangle(x, y, width, height);
                             _logger.LogInformation("Capture area set to: {X}, {Y}, {Width}, {Height}", x, y, width, height);
                         }
@@ -178,7 +178,7 @@ namespace UIAutomationMCP.Server.Services
                             var y = jsonElement.GetProperty("Y").GetInt32();
                             var width = jsonElement.GetProperty("Width").GetInt32();
                             var height = jsonElement.GetProperty("Height").GetInt32();
-                            
+
                             captureArea = new System.Drawing.Rectangle(x, y, width, height);
                             _logger.LogInformation("Capture area set from JsonElement: {X}, {Y}, {Width}, {Height}", x, y, width, height);
                         }
@@ -196,7 +196,7 @@ namespace UIAutomationMCP.Server.Services
 
                     // Try to activate window using Worker's WindowAction for better reliability
                     await ActivateWindowViaWorker(request.WindowTitle, request.WindowHandle);
-                    
+
                     // Wait a bit for window to come to foreground
                     Thread.Sleep(500);
                 }
@@ -205,13 +205,13 @@ namespace UIAutomationMCP.Server.Services
                     // Capture entire screen using Win32 API
                     int screenWidth = GetSystemMetrics(SM_CXSCREEN);
                     int screenHeight = GetSystemMetrics(SM_CYSCREEN);
-                    
+
                     if (screenWidth <= 0 || screenHeight <= 0)
                     {
                         _logger.LogError("Failed to get screen dimensions");
                         return new ScreenshotResult { Success = false, Error = "Failed to get screen dimensions" };
                     }
-                    
+
                     captureArea = new System.Drawing.Rectangle(0, 0, screenWidth, screenHeight);
                     _logger.LogInformation("Using primary screen dimensions: {Width}x{Height}", screenWidth, screenHeight);
                 }
@@ -276,40 +276,40 @@ namespace UIAutomationMCP.Server.Services
             // Estimate that each base64 character is roughly 1 token
             // Base64 encoding increases size by ~33%, so we need to target image size accordingly
             var targetImageSize = (int)(maxTokens * 0.75); // Conservative estimate
-            
+
             var originalBytes = File.ReadAllBytes(imagePath);
             var originalBase64 = Convert.ToBase64String(originalBytes);
-            
+
             // If original image is already within token limit, return as-is
             if (originalBase64.Length <= maxTokens)
             {
                 return originalBase64;
             }
-            
+
             // Try different compression qualities until we fit within token limit
             var qualities = new[] { 75, 50, 25, 10 };
-            
+
             foreach (var quality in qualities)
             {
                 var optimizedBytes = await CompressImageWithQuality(imagePath, quality);
                 var optimizedBase64 = Convert.ToBase64String(optimizedBytes);
-                
+
                 if (optimizedBase64.Length <= maxTokens)
                 {
-                    _logger.LogInformation("Optimized image from {OriginalSize} to {OptimizedSize} tokens using quality {Quality}%", 
+                    _logger.LogInformation("Optimized image from {OriginalSize} to {OptimizedSize} tokens using quality {Quality}%",
                         originalBase64.Length, optimizedBase64.Length, quality);
                     return optimizedBase64;
                 }
             }
-            
+
             // If still too large, try reducing dimensions
             var scaleFactor = Math.Sqrt((double)maxTokens / originalBase64.Length);
             var optimizedBytesWithResize = await ResizeAndCompressImage(imagePath, scaleFactor, 25);
             var finalBase64 = Convert.ToBase64String(optimizedBytesWithResize);
-            
-            _logger.LogInformation("Heavily optimized image from {OriginalSize} to {OptimizedSize} tokens using resize factor {ScaleFactor:F2}", 
+
+            _logger.LogInformation("Heavily optimized image from {OriginalSize} to {OptimizedSize} tokens using resize factor {ScaleFactor:F2}",
                 originalBase64.Length, finalBase64.Length, scaleFactor);
-            
+
             return finalBase64;
         }
 
@@ -319,14 +319,14 @@ namespace UIAutomationMCP.Server.Services
             {
                 using var originalImage = Image.FromFile(imagePath);
                 using var memoryStream = new MemoryStream();
-                
+
                 // Create encoder parameters for JPEG compression
                 var encoderParameters = new EncoderParameters(1);
                 encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, quality);
-                
+
                 // Get JPEG encoder
                 var jpegEncoder = ImageCodecInfo.GetImageEncoders().First(x => x.FormatID == ImageFormat.Jpeg.Guid);
-                
+
                 originalImage.Save(memoryStream, jpegEncoder, encoderParameters);
                 return memoryStream.ToArray();
             });
@@ -339,26 +339,26 @@ namespace UIAutomationMCP.Server.Services
                 using var originalImage = Image.FromFile(imagePath);
                 var newWidth = (int)(originalImage.Width * scaleFactor);
                 var newHeight = (int)(originalImage.Height * scaleFactor);
-                
+
                 using var resizedImage = new Bitmap(newWidth, newHeight);
                 using var graphics = Graphics.FromImage(resizedImage);
-                
+
                 // Use high quality scaling
                 graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
                 graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
                 graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
-                
+
                 graphics.DrawImage(originalImage, 0, 0, newWidth, newHeight);
-                
+
                 using var memoryStream = new MemoryStream();
-                
+
                 // Create encoder parameters for JPEG compression
                 var encoderParameters = new EncoderParameters(1);
                 encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, quality);
-                
+
                 // Get JPEG encoder
                 var jpegEncoder = ImageCodecInfo.GetImageEncoders().First(x => x.FormatID == ImageFormat.Jpeg.Guid);
-                
+
                 resizedImage.Save(memoryStream, jpegEncoder, encoderParameters);
                 return memoryStream.ToArray();
             });
@@ -369,7 +369,7 @@ namespace UIAutomationMCP.Server.Services
             try
             {
                 _logger.LogInformation("Searching for window using SearchElements: WindowTitle={WindowTitle}, WindowHandle={WindowHandle}", windowTitle, windowHandle);
-                
+
                 var searchRequest = new SearchElementsRequest
                 {
                     ControlType = "Window",
@@ -381,13 +381,13 @@ namespace UIAutomationMCP.Server.Services
                 };
 
                 var searchResult = await _elementSearchService.SearchElementsAsync(searchRequest, 10);
-                
+
                 if (searchResult.Success && searchResult.Data?.Elements != null && searchResult.Data.Elements.Length > 0)
                 {
                     var windowElement = searchResult.Data.Elements[0];
-                    _logger.LogInformation("Found window element: Name={Name}, AutomationId={AutomationId}", 
+                    _logger.LogInformation("Found window element: Name={Name}, AutomationId={AutomationId}",
                         windowElement.Name, windowElement.AutomationId);
-                    
+
                     return new Dictionary<string, object>
                     {
                         ["BoundingRectangle"] = new Dictionary<string, object>
@@ -399,7 +399,7 @@ namespace UIAutomationMCP.Server.Services
                         }
                     };
                 }
-                
+
                 _logger.LogWarning("No window found matching the criteria");
                 return null;
             }
@@ -431,7 +431,7 @@ namespace UIAutomationMCP.Server.Services
                 }
                 else
                 {
-                    _logger.LogWarning("Failed to activate window via Worker. Result: {Result}", 
+                    _logger.LogWarning("Failed to activate window via Worker. Result: {Result}",
                         JsonSerializationHelper.Serialize(result));
                 }
 

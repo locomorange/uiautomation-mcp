@@ -98,7 +98,7 @@ namespace UIAutomationMCP.Models.Results
         /// デフォルトコンストラクタ
         /// </summary>
         public TreeNode() { }
-        
+
         /// <summary>
         /// ElementInfoからTreeNodeを作成するコンストラクタ
         /// </summary>

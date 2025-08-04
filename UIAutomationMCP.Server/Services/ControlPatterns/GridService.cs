@@ -20,12 +20,12 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         protected override string GetOperationType() => "grid";
 
         public async Task<ServerEnhancedResponse<ElementSearchResult>> GetGridItemAsync(
-            string? automationId = null, 
-            string? name = null, 
-            int row = 0, 
-            int column = 0, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            int row = 0,
+            int column = 0,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new GetGridItemRequest
@@ -48,11 +48,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
         public async Task<ServerEnhancedResponse<ElementSearchResult>> GetRowHeaderAsync(
-            string? automationId = null, 
-            string? name = null, 
-            int row = 0, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            int row = 0,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new GetRowHeaderRequest
@@ -74,11 +74,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
         public async Task<ServerEnhancedResponse<ElementSearchResult>> GetColumnHeaderAsync(
-            string? automationId = null, 
-            string? name = null, 
-            int column = 0, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            int column = 0,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new GetColumnHeaderRequest
@@ -100,10 +100,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
         public async Task<ServerEnhancedResponse<GridInfoResult>> GetGridInfoAsync(
-            string? automationId = null, 
-            string? name = null, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new GetGridInfoRequest

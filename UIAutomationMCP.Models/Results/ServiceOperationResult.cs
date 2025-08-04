@@ -10,13 +10,13 @@ namespace UIAutomationMCP.Models.Results
         public string? Error { get; init; }
         public string? ErrorCategory { get; init; }
         public string? ExceptionType { get; init; }
-        
+
         public static ServiceOperationResult<T> FromSuccess(T data) => new()
         {
             Success = true,
             Data = data
         };
-        
+
         public static ServiceOperationResult<T> FromError(string error, string? category = null, string? exceptionType = null) => new()
         {
             Success = false,
@@ -24,7 +24,7 @@ namespace UIAutomationMCP.Models.Results
             ErrorCategory = category,
             ExceptionType = exceptionType
         };
-        
+
         public static ServiceOperationResult<T> FromException(Exception exception, string? category = null) => new()
         {
             Success = false,

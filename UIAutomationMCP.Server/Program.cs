@@ -28,7 +28,7 @@ namespace UIAutomationMCP.Server
 
             // Configure logging for MCP - stderr only to avoid stdout protocol interference
             builder.Logging.ClearProviders();
-            builder.Logging.AddConsole(options => 
+            builder.Logging.AddConsole(options =>
             {
                 options.LogToStandardErrorThreshold = LogLevel.Trace;
             });
@@ -40,7 +40,7 @@ namespace UIAutomationMCP.Server
             // Register application services
             builder.Services.AddSingleton<IApplicationLauncher, ApplicationLauncher>();
             builder.Services.AddSingleton<IScreenshotService, ScreenshotService>();
-            
+
             // Register subprocess-based UI Automation services
             builder.Services.AddSingleton<IElementSearchService, ElementSearchService>();
             builder.Services.AddSingleton<ITreeNavigationService, TreeNavigationService>();
@@ -52,7 +52,7 @@ namespace UIAutomationMCP.Server
             builder.Services.AddSingleton<ITextService, TextService>();
             builder.Services.AddSingleton<ILayoutService, LayoutService>();
             builder.Services.AddSingleton<IRangeService, RangeService>();
-            
+
             // Register additional subprocess-based UI Automation services
             builder.Services.AddSingleton<IGridService, GridService>();
             builder.Services.AddSingleton<ITableService, TableService>();
@@ -65,24 +65,24 @@ namespace UIAutomationMCP.Server
             builder.Services.AddSingleton<ISynchronizedInputService, SynchronizedInputService>();
             builder.Services.AddSingleton<IEventMonitorService, EventMonitorService>();
             builder.Services.AddSingleton<IFocusService, FocusService>();
-            
-            
+
+
             // Register ControlType service
             builder.Services.AddSingleton<IControlTypeService, ControlTypeService>();
-            
+
             // Register ProcessManager for worker and monitor process management
             builder.Services.AddSingleton<ProcessManager>(provider =>
             {
                 var logger = provider.GetRequiredService<ILogger<ProcessManager>>();
                 var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
                 var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                
+
                 // Determine if we're in development or production
                 var isDevelopment = baseDir.Contains("bin\\Debug") || baseDir.Contains("bin\\Release");
-                
+
                 string? workerPath = null;
                 string? monitorPath = null;
-                
+
                 if (isDevelopment)
                 {
                     // In development, look for the Worker and Monitor projects
@@ -90,7 +90,7 @@ namespace UIAutomationMCP.Server
                     if (solutionDir != null)
                     {
                         var config = baseDir.Contains("Debug") ? "Debug" : "Release";
-                        
+
                         // Worker path - prioritize built executable
                         workerPath = Path.Combine(solutionDir, "UIAutomationMCP.Subprocess.Worker", "bin", config, "net9.0-windows", "win-x64", "UIAutomationMCP.Subprocess.Worker.exe");
                         if (!File.Exists(workerPath))
@@ -98,7 +98,7 @@ namespace UIAutomationMCP.Server
                             // Fallback to project directory for 'dotnet run'
                             workerPath = Path.Combine(solutionDir, "UIAutomationMCP.Subprocess.Worker");
                         }
-                        
+
                         // Monitor path - prioritize built executable  
                         monitorPath = Path.Combine(solutionDir, "UIAutomationMCP.Subprocess.Monitor", "bin", config, "net9.0-windows", "win-x64", "UIAutomationMCP.Subprocess.Monitor.exe");
                         if (!File.Exists(monitorPath))
@@ -125,7 +125,7 @@ namespace UIAutomationMCP.Server
                     };
 
                     workerPath = searchPaths.FirstOrDefault(File.Exists);
-                    
+
                     // Monitor search paths
                     var monitorSearchPaths = new[]
                     {
@@ -146,14 +146,14 @@ namespace UIAutomationMCP.Server
                 if (workerPath == null || (!File.Exists(workerPath) && !Directory.Exists(workerPath)))
                 {
                     var searchedPaths = new List<string>();
-                    
+
                     // Add all the paths we searched
                     var parentDir = Directory.GetParent(baseDir);
                     searchedPaths.Add(Path.Combine(baseDir, "UIAutomationMCP.Subprocess.Worker.exe"));
                     searchedPaths.Add(Path.Combine(baseDir, "Worker", "UIAutomationMCP.Subprocess.Worker.exe"));
                     searchedPaths.Add(Path.Combine(parentDir?.FullName ?? baseDir, "Worker", "UIAutomationMCP.Subprocess.Worker.exe"));
                     searchedPaths.Add(Path.Combine(parentDir?.Parent?.FullName ?? baseDir, "Worker", "UIAutomationMCP.Subprocess.Worker.exe"));
-                    
+
                     var solutionDir = Directory.GetParent(baseDir)?.Parent?.Parent?.Parent?.Parent?.FullName;
                     if (solutionDir != null)
                     {
@@ -162,9 +162,9 @@ namespace UIAutomationMCP.Server
                         searchedPaths.Add(Path.Combine(solutionDir, "UIAutomationMCP.Subprocess.Worker", "bin", config, "net9.0-windows", "UIAutomationMCP.Subprocess.Worker.exe"));
                     }
 
-                    logger.LogError("Worker not found. Base directory: {BaseDir}. Searched paths: {SearchedPaths}", 
+                    logger.LogError("Worker not found. Base directory: {BaseDir}. Searched paths: {SearchedPaths}",
                         baseDir, string.Join(", ", searchedPaths));
-                    
+
                     throw new InvalidOperationException($"UIAutomationMCP.Worker not found. Searched: {string.Join(", ", searchedPaths)}");
                 }
 
@@ -175,23 +175,23 @@ namespace UIAutomationMCP.Server
                     monitorPath = null;
                 }
 
-                logger.LogInformation("ProcessManager configured - Worker: {WorkerPath}, Monitor: {MonitorPath}", 
+                logger.LogInformation("ProcessManager configured - Worker: {WorkerPath}, Monitor: {MonitorPath}",
                     workerPath, monitorPath ?? "Not available (fallback to Worker)");
-                
+
                 var shutdownCts = provider.GetRequiredService<CancellationTokenSource>();
                 var processManager = new ProcessManager(logger, loggerFactory, shutdownCts, workerPath, monitorPath);
-                
+
                 // Set MCP log service for subprocess log relay
                 var mcpLogService = provider.GetRequiredService<IMcpLogService>();
                 processManager.SetMcpLogService(mcpLogService);
-                
+
                 return processManager;
             });
-            
+
             // Register ProcessManager as both IProcessManager and IOperationExecutor
             builder.Services.AddSingleton<IProcessManager>(provider => provider.GetRequiredService<ProcessManager>());
             builder.Services.AddSingleton<IOperationExecutor>(provider => provider.GetRequiredService<ProcessManager>());
-            
+
             // All UI Automation services are now handled through subprocess executor
 
             // Configure MCP Server
@@ -217,14 +217,14 @@ namespace UIAutomationMCP.Server
             {
                 var mcpLog = host.Services.GetRequiredService<IMcpLogService>();
                 await mcpLog.LogInformationAsync("Program", "Testing ApplicationLauncher directly...");
-                
+
                 var launcher = host.Services.GetRequiredService<IApplicationLauncher>();
-                
+
                 try
                 {
                     await mcpLog.LogInformationAsync("Program", "Launching calculator...");
                     var result = await launcher.LaunchApplicationAsync("calc", null, null, 60);
-                    
+
                     await mcpLog.LogInformationAsync("Program", $"Launch result: Success={result.Success}, ProcessId={result.ProcessId}");
                     if (!result.Success)
                     {
@@ -235,7 +235,7 @@ namespace UIAutomationMCP.Server
                 {
                     await mcpLog.LogErrorAsync("Program", "Launch exception occurred", ex);
                 }
-                
+
                 return;
             }
 

@@ -13,7 +13,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Window
     public class WaitForInputIdleOperation : BaseUIAutomationOperation<WaitForInputIdleRequest, WaitForInputIdleResult>
     {
         public WaitForInputIdleOperation(
-            ElementFinderService elementFinderService, 
+            ElementFinderService elementFinderService,
             ILogger<WaitForInputIdleOperation> logger)
             : base(elementFinderService, logger)
         {
@@ -35,16 +35,16 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Window
             var window = _elementFinderService.FindElement(searchCriteria);
             if (window == null)
             {
-                var elementIdentifier = request.WindowHandle.HasValue 
-                    ? $"WindowHandle={request.WindowHandle.Value}" 
+                var elementIdentifier = request.WindowHandle.HasValue
+                    ? $"WindowHandle={request.WindowHandle.Value}"
                     : !string.IsNullOrEmpty(windowTitle) ? $"WindowTitle='{windowTitle}'" : "unknown";
                 throw new UIAutomationElementNotFoundException("WaitForInputIdle", elementIdentifier);
             }
 
             if (!window.TryGetCurrentPattern(WindowPattern.Pattern, out var pattern) || pattern is not WindowPattern windowPattern)
             {
-                var elementIdentifier = request.WindowHandle.HasValue 
-                    ? $"WindowHandle={request.WindowHandle.Value}" 
+                var elementIdentifier = request.WindowHandle.HasValue
+                    ? $"WindowHandle={request.WindowHandle.Value}"
                     : !string.IsNullOrEmpty(windowTitle) ? $"WindowTitle='{windowTitle}'" : "unknown";
                 throw new UIAutomationInvalidOperationException("WaitForInputIdle", elementIdentifier, "WindowPattern not supported");
             }
@@ -61,7 +61,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Window
                 ElapsedMilliseconds = (int)elapsed.TotalMilliseconds,
                 TimedOut = !success,
                 WindowInteractionState = windowPattern.Current.WindowInteractionState.ToString(),
-                Message = success 
+                Message = success
                     ? "Window became idle within the specified timeout"
                     : $"Window did not become idle within {timeoutMilliseconds}ms timeout"
             });

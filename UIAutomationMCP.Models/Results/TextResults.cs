@@ -3,7 +3,7 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Text segment with attributes
     /// </summary>
-    public class TextSegment 
+    public class TextSegment
     {
         public int StartPosition { get; set; }
         public int EndPosition { get; set; }
@@ -14,7 +14,7 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Text match result
     /// </summary>
-    public class TextMatch 
+    public class TextMatch
     {
         public int StartPosition { get; set; }
         public int EndPosition { get; set; }
@@ -31,8 +31,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Text attributes for segments
     /// </summary>
-    public class SegmentAttributes 
-    { 
+    public class SegmentAttributes
+    {
         public string FontFamily { get; set; } = string.Empty;
         public string FontName { get; set; } = string.Empty;
         public double FontSize { get; set; }
@@ -58,12 +58,12 @@ namespace UIAutomationMCP.Models.Results
     public class SelectTextResult : BaseOperationResult { }
     public class FindTextResult : BaseOperationResult { }
     public class GetTextResult : BaseOperationResult { }
-    public class TextInfoResult : BaseOperationResult 
-    { 
+    public class TextInfoResult : BaseOperationResult
+    {
         public string Text { get; set; } = string.Empty;
     }
-    public class TextAttributesResult : BaseOperationResult 
-    { 
+    public class TextAttributesResult : BaseOperationResult
+    {
         public string AutomationId { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string ControlType { get; set; } = string.Empty;
@@ -78,8 +78,8 @@ namespace UIAutomationMCP.Models.Results
         public List<TextSegment> TextSegments { get; set; } = new List<TextSegment>();
         public TextAttributes TextAttributes { get; set; } = new TextAttributes();
     }
-    public class TextSearchResult : BaseOperationResult 
-    { 
+    public class TextSearchResult : BaseOperationResult
+    {
         public string SearchText { get; set; } = string.Empty;
         public bool CaseSensitive { get; set; }
         public string SearchDirection { get; set; } = string.Empty;
@@ -93,8 +93,8 @@ namespace UIAutomationMCP.Models.Results
     }
     public class TextAttributeRange : BaseOperationResult { }
     public class TextRangeAttributes : BaseOperationResult { }
-    public class TextAttributes : BaseOperationResult 
-    { 
+    public class TextAttributes : BaseOperationResult
+    {
         public string FontFamily { get; set; } = string.Empty;
         public string FontName { get; set; } = string.Empty;
         public double FontSize { get; set; }

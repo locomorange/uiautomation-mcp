@@ -32,7 +32,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Helpers
             var message = formatter(state, exception);
             var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
             var logMessage = $"[{timestamp}] [{logLevel}] [{_categoryName}] {message}";
-            
+
             // Send to MCP relay asynchronously
             _ = Task.Run(async () =>
             {
@@ -57,7 +57,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Helpers
                     // If there's an exception, send a separate error log
                     if (exception != null)
                     {
-                        await ProcessLogRelay.LogErrorAsync(_categoryName, 
+                        await ProcessLogRelay.LogErrorAsync(_categoryName,
                             $"Exception in {_categoryName}", "worker", exception);
                     }
                 }

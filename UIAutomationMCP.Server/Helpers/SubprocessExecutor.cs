@@ -21,7 +21,7 @@ namespace UIAutomationMCP.Server.Helpers
         private bool _disposed = false;
         private readonly object _lockObject = new object();
         private readonly ConcurrentDictionary<string, TaskCompletionSource<bool>> _pendingOperations = new();
-        
+
         // Log relay callback
         private Func<string, Task>? _logMessageCallback;
 
@@ -49,13 +49,13 @@ namespace UIAutomationMCP.Server.Helpers
         /// <param name="request">The typed request object</param>
         /// <param name="timeoutSeconds">Timeout in seconds</param>
         /// <returns>The operation result</returns>
-        public async Task<TResult> ExecuteAsync<TRequest, TResult>(string operation, TRequest request, int timeoutSeconds = 60) 
-            where TRequest : notnull 
+        public async Task<TResult> ExecuteAsync<TRequest, TResult>(string operation, TRequest request, int timeoutSeconds = 60)
+            where TRequest : notnull
             where TResult : notnull
         {
             var operationId = Guid.NewGuid().ToString();
             var operationTcs = new TaskCompletionSource<bool>();
-            
+
             try
             {
                 if (_disposed)
@@ -66,36 +66,36 @@ namespace UIAutomationMCP.Server.Helpers
 
                 // Track this operation
                 _pendingOperations.TryAdd(operationId, operationTcs);
-                _logger.LogDebug("[SubprocessExecutor] Operation {Operation} (ID: {OperationId}) started. Total pending: {Count}", 
+                _logger.LogDebug("[SubprocessExecutor] Operation {Operation} (ID: {OperationId}) started. Total pending: {Count}",
                     operation, operationId, _pendingOperations.Count);
-                
+
                 if (string.IsNullOrWhiteSpace(operation))
                 {
                     _logger.LogError($"[SubprocessExecutor] Operation is null or empty");
                     throw new ArgumentException("Operation cannot be null or empty", nameof(operation));
                 }
-                
+
                 if (timeoutSeconds <= 0)
                 {
                     _logger.LogError($"[SubprocessExecutor] Invalid timeout: {timeoutSeconds}");
                     throw new ArgumentException("Timeout must be greater than zero", nameof(timeoutSeconds));
                 }
-                
+
                 await _semaphore.WaitAsync();
                 try
                 {
                     await EnsureWorkerProcessAsync();
-                
+
                     var operationStartTime = DateTime.UtcNow;
                     // Serialize to UTF-8 JSON byte array
                     byte[] requestData = JsonUtf8SerializationHelper.SerializeToUtf8Bytes(request);
-                    
+
                     // Write length-prefixed UTF-8 JSON data
                     byte[] lengthBytes = BitConverter.GetBytes(requestData.Length);
-                    
+
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
                     using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, _shutdownCts.Token);
-                    
+
                     await _workerProcess!.StandardInput.BaseStream.WriteAsync(lengthBytes, combinedCts.Token);
                     await _workerProcess.StandardInput.BaseStream.WriteAsync(requestData, combinedCts.Token);
                     await _workerProcess.StandardInput.BaseStream.FlushAsync(combinedCts.Token);
@@ -112,10 +112,10 @@ namespace UIAutomationMCP.Server.Helpers
                             _logger.LogInformation("Worker operation cancelled due to shutdown: {Operation}", operation);
                             throw new OperationCanceledException("Operation cancelled due to server shutdown");
                         }
-                        
+
                         _logger.LogWarning("Worker operation could not complete within {TimeoutSeconds}s: {Operation}", timeoutSeconds, operation);
                         cts.Cancel();
-                        
+
                         // Wait for the responseTask to complete or be cancelled to avoid stream conflicts
                         try
                         {
@@ -130,14 +130,14 @@ namespace UIAutomationMCP.Server.Helpers
                         {
                             _logger.LogDebug(ex, "Exception while waiting for response task completion: {Operation}", operation);
                         }
-                        
+
                         // Check if worker process crashed
                         if (_workerProcess?.HasExited == true)
                         {
                             _logger.LogWarning("Worker process crashed during operation, restarting");
                             await RestartWorkerProcessAsync();
                         }
-                        
+
                         throw new TimeoutException($"Worker operation '{operation}' could not complete within {timeoutSeconds} seconds. Consider increasing the timeout duration.");
                     }
 
@@ -150,17 +150,17 @@ namespace UIAutomationMCP.Server.Helpers
                     {
                         throw new OperationCanceledException("Operation was cancelled");
                     }
-                    
+
                     if (responseData == null || responseData.Length == 0)
                     {
                         var exitCode = _workerProcess?.HasExited == true ? _workerProcess.ExitCode : (int?)null;
                         var errorMessage = $"Worker process returned empty response for operation '{operation}'";
-                        
+
                         if (exitCode.HasValue)
                         {
                             errorMessage += $" (process exited with code: {exitCode})";
                         }
-                        
+
                         _logger.LogError("{ErrorMessage}", errorMessage);
                         throw new InvalidOperationException(errorMessage);
                     }
@@ -178,7 +178,7 @@ namespace UIAutomationMCP.Server.Helpers
                         _logger.LogError(ex, "UTF-8 JSON deserialization failed: {ErrorMessage}", errorMessage);
                         throw new InvalidOperationException(errorMessage, ex);
                     }
-                    
+
                     if (response == null)
                     {
                         var responseString = System.Text.Encoding.UTF8.GetString(responseData);
@@ -191,34 +191,34 @@ namespace UIAutomationMCP.Server.Helpers
                     {
                         var errorMessage = response.Error ?? "Unknown error occurred";
                         var contextualErrorMessage = $"Worker operation '{operation}' failed: {errorMessage}";
-                        
-                        _logger.LogError("Worker operation failed: {Operation} for element: {ElementId} with category: {ErrorCategory}", 
-                            operation, 
-                            response.ErrorDetails?.AutomationId ?? "unknown", 
+
+                        _logger.LogError("Worker operation failed: {Operation} for element: {ElementId} with category: {ErrorCategory}",
+                            operation,
+                            response.ErrorDetails?.AutomationId ?? "unknown",
                             response.ErrorDetails?.ErrorCategory ?? "unknown");
-                        
+
                         // Use structured error information from ErrorDetails
                         var errorCategory = response.ErrorDetails?.ErrorCategory?.ToLowerInvariant();
-                        
+
                         switch (errorCategory)
                         {
                             case "invalidargument":
                             case "validation":
                             case "elementnotfound":
                                 throw new ArgumentException(contextualErrorMessage);
-                                
+
                             case "notsupported":
                                 throw new NotSupportedException(contextualErrorMessage);
-                                
+
                             case "invalidoperation":
                                 throw new InvalidOperationException(contextualErrorMessage);
-                                    
+
                             case "unauthorized":
                                 throw new UnauthorizedAccessException(contextualErrorMessage);
-                                
+
                             case "timeout":
                                 throw new TimeoutException(contextualErrorMessage);
-                                
+
                             default:
                                 throw new InvalidOperationException(contextualErrorMessage);
                         }
@@ -232,7 +232,7 @@ namespace UIAutomationMCP.Server.Helpers
                     }
                     catch (JsonException ex)
                     {
-                        _logger.LogError(ex, "Failed to deserialize response data to type {ResultType}. Data: {Data}", 
+                        _logger.LogError(ex, "Failed to deserialize response data to type {ResultType}. Data: {Data}",
                             typeof(TResult).Name, JsonUtf8SerializationHelper.SerializeToString(response.Data!));
                         throw new InvalidOperationException($"Failed to deserialize response data to {typeof(TResult).Name}: {ex.Message}", ex);
                     }
@@ -257,7 +257,7 @@ namespace UIAutomationMCP.Server.Helpers
                 // Complete and remove operation tracking
                 operationTcs.TrySetResult(true);
                 _pendingOperations.TryRemove(operationId, out _);
-                _logger.LogDebug("[SubprocessExecutor] Operation {Operation} (ID: {OperationId}) completed. Total pending: {Count}", 
+                _logger.LogDebug("[SubprocessExecutor] Operation {Operation} (ID: {OperationId}) completed. Total pending: {Count}",
                     operation, operationId, _pendingOperations.Count);
             }
         }
@@ -317,7 +317,7 @@ namespace UIAutomationMCP.Server.Helpers
             try
             {
                 ProcessStartInfo startInfo;
-                
+
                 // Check if it's a project directory (for development)
                 if (Directory.Exists(_workerPath) && File.Exists(Path.Combine(_workerPath, "UIAutomationMCP.Worker.csproj")))
                 {
@@ -341,7 +341,7 @@ namespace UIAutomationMCP.Server.Helpers
                     {
                         throw new FileNotFoundException($"Worker DLL not found at: {_workerPath}");
                     }
-                    
+
                     startInfo = new ProcessStartInfo
                     {
                         FileName = "dotnet",
@@ -376,7 +376,7 @@ namespace UIAutomationMCP.Server.Helpers
                 }
 
                 _workerProcess = new Process { StartInfo = startInfo };
-                
+
                 // Set up async stderr monitoring with log message processing
                 _workerProcess.ErrorDataReceived += async (sender, e) =>
                 {
@@ -404,7 +404,7 @@ namespace UIAutomationMCP.Server.Helpers
                         }
                     }
                 };
-                
+
                 try
                 {
                     _workerProcess.Start();
@@ -412,7 +412,7 @@ namespace UIAutomationMCP.Server.Helpers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to start worker process: {WorkerPath}. StartInfo: FileName={FileName}, Arguments={Arguments}", 
+                    _logger.LogError(ex, "Failed to start worker process: {WorkerPath}. StartInfo: FileName={FileName}, Arguments={Arguments}",
                         _workerPath, startInfo.FileName, startInfo.Arguments);
                     throw new InvalidOperationException($"Failed to start worker process: {_workerPath}", ex);
                 }
@@ -439,7 +439,7 @@ namespace UIAutomationMCP.Server.Helpers
         private async Task RestartWorkerProcessAsync()
         {
             _logger.LogInformation("Restarting worker process");
-            
+
             if (_workerProcess != null)
             {
                 try
@@ -447,18 +447,18 @@ namespace UIAutomationMCP.Server.Helpers
                     if (!_workerProcess.HasExited)
                     {
                         _logger.LogDebug("Attempting graceful shutdown of worker process PID: {ProcessId}", _workerProcess.Id);
-                        
+
                         // Try graceful shutdown first by closing stdin
                         try
                         {
                             _workerProcess.StandardInput.Close();
-                            
+
                             // Wait up to 3 seconds for graceful exit
                             if (!_workerProcess.WaitForExit(3000))
                             {
                                 _logger.LogWarning("Worker process did not exit gracefully, forcing termination");
                                 _workerProcess.Kill();
-                                
+
                                 // Wait up to 2 more seconds for forced termination
                                 if (!_workerProcess.WaitForExit(2000))
                                 {
@@ -486,7 +486,7 @@ namespace UIAutomationMCP.Server.Helpers
 
             // Add a small delay before restart to prevent rapid restart loops
             await Task.Delay(100);
-            
+
             await StartWorkerProcessAsync();
         }
 
@@ -506,21 +506,21 @@ namespace UIAutomationMCP.Server.Helpers
 
             var timeout = TimeSpan.FromSeconds(timeoutSeconds);
             var allOperations = _pendingOperations.Values.ToArray();
-            
+
             try
             {
                 var completionTask = Task.WhenAll(allOperations.Select(tcs => tcs.Task));
                 var timeoutTask = Task.Delay(timeout);
-                
+
                 var completedTask = await Task.WhenAny(completionTask, timeoutTask);
-                
+
                 if (completedTask == completionTask)
                 {
                     _logger.LogInformation("All {Count} pending operations completed successfully", allOperations.Length);
                 }
                 else
                 {
-                    _logger.LogWarning("Timeout reached after {Timeout}s, {Pending} operations still pending", 
+                    _logger.LogWarning("Timeout reached after {Timeout}s, {Pending} operations still pending",
                         timeout.TotalSeconds, _pendingOperations.Count);
                 }
             }
@@ -549,7 +549,7 @@ namespace UIAutomationMCP.Server.Helpers
                     if (!_workerProcess.HasExited)
                     {
                         _logger.LogInformation("Terminating worker process PID: {ProcessId}", _workerProcess.Id);
-                        
+
                         // Try graceful shutdown first by closing stdin
                         try
                         {
@@ -559,17 +559,17 @@ namespace UIAutomationMCP.Server.Helpers
                         {
                             _logger.LogDebug(ex, "Error closing standard input");
                         }
-                        
+
                         // Give it more time to exit gracefully
                         if (!_workerProcess.WaitForExit(3000))
                         {
                             _logger.LogWarning("Worker process did not exit gracefully within 3 seconds, forcing termination");
-                            
+
                             try
                             {
                                 // Kill the entire process tree to ensure cleanup
                                 _workerProcess.Kill(entireProcessTree: true);
-                                
+
                                 // Wait for forced termination to complete
                                 if (!_workerProcess.WaitForExit(2000))
                                 {
@@ -618,8 +618,8 @@ namespace UIAutomationMCP.Server.Helpers
         /// IOperationExecutor implementation - provides type-safe operation execution with ServiceOperationResult wrapper
         /// </summary>
         async Task<ServiceOperationResult<TResult>> IOperationExecutor.ExecuteAsync<TRequest, TResult>(
-            string operationName, 
-            TRequest request, 
+            string operationName,
+            TRequest request,
             int timeoutSeconds)
         {
             try
@@ -673,21 +673,21 @@ namespace UIAutomationMCP.Server.Helpers
             {
                 var timeout = TimeSpan.FromSeconds(30);
                 var allOperations = _pendingOperations.Values.ToArray();
-                
+
                 try
                 {
                     var completionTask = Task.WhenAll(allOperations.Select(tcs => tcs.Task));
                     var timeoutTask = Task.Delay(timeout);
-                    
+
                     var completedTask = await Task.WhenAny(completionTask, timeoutTask);
-                    
+
                     if (completedTask == completionTask)
                     {
                         _logger.LogInformation("[SubprocessExecutor] All {Count} pending operations completed successfully", allOperations.Length);
                     }
                     else
                     {
-                        _logger.LogWarning("[SubprocessExecutor] Timeout reached after {Timeout}s, {Remaining} operations still pending", 
+                        _logger.LogWarning("[SubprocessExecutor] Timeout reached after {Timeout}s, {Remaining} operations still pending",
                             timeout.TotalSeconds, _pendingOperations.Count);
                     }
                 }
@@ -695,7 +695,7 @@ namespace UIAutomationMCP.Server.Helpers
                 {
                     _logger.LogError(ex, "[SubprocessExecutor] Error while waiting for pending operations to complete");
                 }
-                
+
                 // Clear any remaining operations
                 var remainingCount = _pendingOperations.Count;
                 if (remainingCount > 0)
@@ -707,7 +707,7 @@ namespace UIAutomationMCP.Server.Helpers
 
             // Dispose synchronously as normal
             Dispose();
-            
+
             _logger.LogInformation("[SubprocessExecutor] Async disposal completed");
         }
 

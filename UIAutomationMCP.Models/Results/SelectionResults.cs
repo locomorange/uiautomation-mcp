@@ -5,8 +5,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for element selection operations
     /// </summary>
-    public class SelectElementResult : BaseOperationResult 
-    { 
+    public class SelectElementResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public ElementInfo? SelectedElement { get; set; }
@@ -17,8 +17,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for adding to selection operations
     /// </summary>
-    public class AddToSelectionResult : BaseOperationResult 
-    { 
+    public class AddToSelectionResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public ElementInfo? AddedElement { get; set; }
@@ -29,8 +29,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for removing from selection operations
     /// </summary>
-    public class RemoveFromSelectionResult : BaseOperationResult 
-    { 
+    public class RemoveFromSelectionResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public ElementInfo? RemovedElement { get; set; }
@@ -41,8 +41,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for clear selection operations
     /// </summary>
-    public class ClearSelectionResult : BaseOperationResult 
-    { 
+    public class ClearSelectionResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public int PreviousSelectedCount { get; set; }
@@ -52,8 +52,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for select item operations
     /// </summary>
-    public class SelectItemResult : BaseOperationResult 
-    { 
+    public class SelectItemResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public ElementInfo? SelectedItem { get; set; }
@@ -64,8 +64,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// General selection action result
     /// </summary>
-    public class SelectionActionResult : BaseOperationResult 
-    { 
+    public class SelectionActionResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public string SelectionType { get; set; } = string.Empty;

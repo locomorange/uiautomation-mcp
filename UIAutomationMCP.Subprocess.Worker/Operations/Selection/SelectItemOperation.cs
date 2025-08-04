@@ -13,7 +13,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Selection
     public class SelectItemOperation : BaseUIAutomationOperation<SelectItemRequest, SelectionActionResult>
     {
         public SelectItemOperation(
-            ElementFinderService elementFinderService, 
+            ElementFinderService elementFinderService,
             ILogger<SelectItemOperation> logger)
             : base(elementFinderService, logger)
         {
@@ -23,16 +23,18 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Selection
         {
             // Pattern conversion (get from request, default to SelectionItemPattern)
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? SelectionItemPattern.Pattern;
-            
+
             var searchCriteria = new ElementSearchCriteria
             {
                 AutomationId = request.AutomationId,
                 Name = request.Name,
                 ControlType = request.ControlType,
                 WindowTitle = request.WindowTitle,
-                RequiredPattern = requiredPattern?.ProgrammaticName, WindowHandle = request.WindowHandle };
+                RequiredPattern = requiredPattern?.ProgrammaticName,
+                WindowHandle = request.WindowHandle
+            };
             var element = _elementFinderService.FindElement(searchCriteria);
-            
+
             if (element == null)
             {
                 throw new UIAutomationElementNotFoundException("SelectItem", request.AutomationId);
@@ -44,7 +46,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Selection
             }
 
             selectionPattern.Select();
-            
+
             var selectedElement = new ElementInfo
             {
                 AutomationId = element.Current.AutomationId,
@@ -73,7 +75,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Selection
                     FrameworkId = element.Current.FrameworkId
                 }
             };
-            
+
             var result = new SelectionActionResult
             {
                 ActionName = "SelectItem",
@@ -83,7 +85,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Selection
                 SelectedElement = selectedElement,
                 CurrentSelectionCount = 1
             };
-            
+
             return Task.FromResult(result);
         }
 

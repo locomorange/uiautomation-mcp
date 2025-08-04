@@ -20,10 +20,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         protected override string GetOperationType() => "selection";
 
         public async Task<ServerEnhancedResponse<ActionResult>> SelectItemAsync(
-            string? automationId = null, 
-            string? name = null, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new SelectItemRequest
@@ -44,10 +44,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
         public async Task<ServerEnhancedResponse<ActionResult>> AddToSelectionAsync(
-            string? automationId = null, 
-            string? name = null, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new AddToSelectionRequest
@@ -68,10 +68,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
         public async Task<ServerEnhancedResponse<ActionResult>> RemoveFromSelectionAsync(
-            string? automationId = null, 
-            string? name = null, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new RemoveFromSelectionRequest
@@ -92,10 +92,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
         public async Task<ServerEnhancedResponse<ActionResult>> ClearSelectionAsync(
-            string? automationId = null, 
-            string? name = null, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new ClearSelectionRequest
@@ -116,10 +116,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
         public async Task<ServerEnhancedResponse<ActionResult>> GetSelectionContainerAsync(
-            string? automationId = null, 
-            string? name = null, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new GetSelectionContainerRequest
@@ -140,10 +140,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
         public async Task<ServerEnhancedResponse<SelectionInfoResult>> GetSelectionAsync(
-            string? automationId = null, 
-            string? name = null, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new GetSelectionRequest

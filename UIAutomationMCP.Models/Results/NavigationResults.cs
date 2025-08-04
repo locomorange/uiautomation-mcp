@@ -5,8 +5,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for tree navigation operations
     /// </summary>
-    public class TreeNavigationResult : BaseOperationResult 
-    { 
+    public class TreeNavigationResult : BaseOperationResult
+    {
         public List<ElementInfo> Elements { get; set; } = new List<ElementInfo>();
         public string NavigationType { get; set; } = string.Empty;
         public string SourceElementId { get; set; } = string.Empty;
@@ -16,8 +16,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for item search operations
     /// </summary>
-    public class FindItemResult : BaseOperationResult 
-    { 
+    public class FindItemResult : BaseOperationResult
+    {
         public ElementInfo? FoundElement { get; set; }
         public string SearchText { get; set; } = string.Empty;
         public int TotalMatches { get; set; }
@@ -27,8 +27,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for element detail operations
     /// </summary>
-    public class ElementDetailResult : BaseOperationResult 
-    { 
+    public class ElementDetailResult : BaseOperationResult
+    {
         public ElementInfo? Element { get; set; }
         public List<string> SupportedPatterns { get; set; } = new List<string>();
         public List<string> AvailableProperties { get; set; } = new List<string>();
@@ -39,8 +39,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for event monitoring operations
     /// </summary>
-    public class EventMonitoringResult : BaseOperationResult 
-    { 
+    public class EventMonitoringResult : BaseOperationResult
+    {
         public string EventType { get; set; } = string.Empty;
         public TimeSpan Duration { get; set; }
         public string ElementId { get; set; } = string.Empty;
@@ -52,8 +52,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for table information operations
     /// </summary>
-    public class TableInfoResult : BaseOperationResult 
-    { 
+    public class TableInfoResult : BaseOperationResult
+    {
         public int RowCount { get; set; }
         public int ColumnCount { get; set; }
         public string RowOrColumnMajor { get; set; } = string.Empty;
@@ -66,8 +66,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for grid item operations
     /// </summary>
-    public class GetGridItemResult : BaseOperationResult 
-    { 
+    public class GetGridItemResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public GridItemResult? GridItem { get; set; }
@@ -77,8 +77,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Grid item information
     /// </summary>
-    public class GridItemResult : BaseOperationResult 
-    { 
+    public class GridItemResult : BaseOperationResult
+    {
         public int Row { get; set; }
         public int Column { get; set; }
         public int RowSpan { get; set; }
@@ -90,8 +90,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for grid row header operations
     /// </summary>
-    public class GetRowHeaderResult : BaseOperationResult 
-    { 
+    public class GetRowHeaderResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public List<ElementInfo> RowHeaders { get; set; } = new List<ElementInfo>();
@@ -102,8 +102,8 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for grid column header operations
     /// </summary>
-    public class GetColumnHeaderResult : BaseOperationResult 
-    { 
+    public class GetColumnHeaderResult : BaseOperationResult
+    {
         public string ActionName { get; set; } = string.Empty;
         public bool Completed { get; set; }
         public List<ElementInfo> ColumnHeaders { get; set; } = new List<ElementInfo>();

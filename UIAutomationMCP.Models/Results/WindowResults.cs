@@ -3,7 +3,7 @@ namespace UIAutomationMCP.Models.Results
     /// <summary>
     /// Result for window action operations
     /// </summary>
-    public class WindowActionResult : BaseOperationResult 
+    public class WindowActionResult : BaseOperationResult
     {
         public string ActionName { get; set; } = string.Empty;
         public string WindowTitle { get; set; } = string.Empty;

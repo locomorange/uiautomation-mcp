@@ -13,8 +13,8 @@ namespace UIAutomationMCP.Server.Abstractions
         /// Execute operation in Worker process (short-term operations)
         /// </summary>
         Task<ServiceOperationResult<TResult>> ExecuteWorkerOperationAsync<TRequest, TResult>(
-            string operationName, 
-            TRequest request, 
+            string operationName,
+            TRequest request,
             int timeoutSeconds = 60)
             where TRequest : notnull
             where TResult : notnull;
@@ -23,8 +23,8 @@ namespace UIAutomationMCP.Server.Abstractions
         /// Execute operation in Monitor process (long-term monitoring operations)
         /// </summary>
         Task<ServiceOperationResult<TResult>> ExecuteMonitorOperationAsync<TRequest, TResult>(
-            string operationName, 
-            TRequest request, 
+            string operationName,
+            TRequest request,
             int timeoutSeconds = 60)
             where TRequest : notnull
             where TResult : notnull;

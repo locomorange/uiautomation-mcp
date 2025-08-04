@@ -19,9 +19,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         protected override string GetOperationType() => "window";
 
         public async Task<ServerEnhancedResponse<ActionResult>> WindowOperationAsync(
-            string operation, 
-            string? windowTitle = null, 
-            long? windowHandle = null, 
+            string operation,
+            string? windowTitle = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new WindowActionRequest
@@ -41,14 +41,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
         public async Task<object> TransformElementAsync(
-            string elementId, 
-            string action, 
-            double? x = null, 
-            double? y = null, 
-            double? width = null, 
-            double? height = null, 
-            string? windowTitle = null, 
-            long? windowHandle = null, 
+            string elementId,
+            string action,
+            double? x = null,
+            double? y = null,
+            double? width = null,
+            double? height = null,
+            string? windowTitle = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new TransformElementRequest
@@ -73,9 +73,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
         public async Task<ServerEnhancedResponse<ActionResult>> SetWindowStateAsync(
-            string windowState, 
-            string? windowTitle = null, 
-            long? windowHandle = null, 
+            string windowState,
+            string? windowTitle = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new SetWindowStateRequest
@@ -95,10 +95,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
         public async Task<ServerEnhancedResponse<ActionResult>> MoveWindowAsync(
-            int x, 
-            int y, 
-            string? windowTitle = null, 
-            long? windowHandle = null, 
+            int x,
+            int y,
+            string? windowTitle = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new MoveWindowRequest
@@ -118,10 +118,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
         public async Task<ServerEnhancedResponse<ActionResult>> ResizeWindowAsync(
-            int width, 
-            int height, 
-            string? windowTitle = null, 
-            long? windowHandle = null, 
+            int width,
+            int height,
+            string? windowTitle = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new ResizeWindowRequest
@@ -142,9 +142,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
         public async Task<ServerEnhancedResponse<BooleanResult>> WaitForInputIdleAsync(
-            int timeoutMilliseconds = 10000, 
-            string? windowTitle = null, 
-            long? windowHandle = null, 
+            int timeoutMilliseconds = 10000,
+            string? windowTitle = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new WaitForInputIdleRequest
@@ -164,8 +164,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
         public async Task<ServerEnhancedResponse<WindowInteractionStateResult>> GetWindowInteractionStateAsync(
-            string? windowTitle = null, 
-            long? windowHandle = null, 
+            string? windowTitle = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new GetWindowInfoRequest
@@ -183,8 +183,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
         public async Task<ServerEnhancedResponse<WindowCapabilitiesResult>> GetWindowCapabilitiesAsync(
-            string? windowTitle = null, 
-            long? windowHandle = null, 
+            string? windowTitle = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new GetWindowInfoRequest
@@ -268,11 +268,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         protected override WindowServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
         {
             var metadata = base.CreateSuccessMetadata(data, context);
-            
+
             if (data is ActionResult)
             {
                 metadata.ActionPerformed = context.MethodName.Replace("Async", "").ToLowerInvariant();
-                
+
                 // Extract size information for resize operations
                 if (context.MethodName.Contains("Resize"))
                 {
@@ -298,7 +298,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 metadata.ActionPerformed = "windowCapabilitiesRetrieved";
             }
-            
+
             return metadata;
         }
     }

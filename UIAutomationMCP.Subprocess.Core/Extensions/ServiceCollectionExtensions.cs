@@ -21,10 +21,10 @@ namespace UIAutomationMCP.Subprocess.Core.Extensions
             // Create instance of request to get operation name
             var request = new TRequest();
             var operationName = request.Operation;
-            
+
             // Register as keyed service
             services.AddKeyedTransient<IUIAutomationOperation, TOperation>(operationName);
-            
+
             return services;
         }
     }

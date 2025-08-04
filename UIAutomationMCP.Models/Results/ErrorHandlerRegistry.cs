@@ -6,7 +6,7 @@ namespace UIAutomationMCP.Models.Results
     public static class ErrorHandlerRegistry
     {
         public static void RegisterHandlers() { }
-        
+
         public static T Handle<T>(Func<T> operation) where T : BaseOperationResult, new()
         {
             try
@@ -21,12 +21,12 @@ namespace UIAutomationMCP.Models.Results
                 return result;
             }
         }
-        
+
         public static bool ValidateElementId(string? elementId)
         {
             return !string.IsNullOrWhiteSpace(elementId);
         }
-        
+
         public static bool ValidateElementId(string? elementId, string context)
         {
             return !string.IsNullOrWhiteSpace(elementId);

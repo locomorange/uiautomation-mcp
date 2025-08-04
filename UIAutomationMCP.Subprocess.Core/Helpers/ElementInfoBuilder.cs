@@ -101,7 +101,7 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                     // For cached elements, GetSupportedPatterns cannot be used
                     // Infer from cached pattern properties
                     var patterns = new List<string>();
-                    
+
                     // Check pattern property existence to infer
                     try { if (element.GetCachedPattern(ValuePattern.Pattern) != null) patterns.Add("ValuePatternIdentifiers.Pattern"); } catch { }
                     try { if (element.GetCachedPattern(TogglePattern.Pattern) != null) patterns.Add("TogglePatternIdentifiers.Pattern"); } catch { }
@@ -123,7 +123,7 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                     try { if (element.GetCachedPattern(VirtualizedItemPattern.Pattern) != null) patterns.Add("VirtualizedItemPatternIdentifiers.Pattern"); } catch { }
                     try { if (element.GetCachedPattern(ItemContainerPattern.Pattern) != null) patterns.Add("ItemContainerPatternIdentifiers.Pattern"); } catch { }
                     try { if (element.GetCachedPattern(SynchronizedInputPattern.Pattern) != null) patterns.Add("SynchronizedInputPatternIdentifiers.Pattern"); } catch { }
-                    
+
                     return patterns.ToArray();
                 }
                 else
@@ -153,7 +153,7 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
 
             // Set pattern information safely
             SetPatternInfo(element, details, logger, useCached: false);
-            
+
             return details;
         }
 
@@ -171,7 +171,7 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
 
             // Set pattern information safely
             SetPatternInfo(element, details, logger, useCached: true);
-            
+
             return details;
         }
 
@@ -204,7 +204,7 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                     {
                         // NativeWindowHandleは常にCurrentを使用（Cachedでは利用不可）
                         var hwndValue = current.Current.NativeWindowHandle;
-                        
+
                         if (hwndValue != 0 && nearestHwnd == null)
                         {
                             nearestHwnd = (long)hwndValue;
@@ -212,7 +212,7 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
 
                         // 親要素を取得
                         var parentElement = TreeWalker.ControlViewWalker.GetParent(current);
-                        
+
                         // 親がRootElementかチェック
                         if (parentElement != null && IsRootElement(parentElement))
                         {
@@ -250,7 +250,7 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
         {
             try
             {
-                return element.Equals(AutomationElement.RootElement) || 
+                return element.Equals(AutomationElement.RootElement) ||
                        TreeWalker.ControlViewWalker.GetParent(element) == null;
             }
             catch
@@ -266,7 +266,7 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
             try
             {
                 // Value Pattern
-                if ((useCached ? element.TryGetCachedPattern(ValuePattern.Pattern, out var valuePatternObj) : element.TryGetCurrentPattern(ValuePattern.Pattern, out valuePatternObj)) && 
+                if ((useCached ? element.TryGetCachedPattern(ValuePattern.Pattern, out var valuePatternObj) : element.TryGetCurrentPattern(ValuePattern.Pattern, out valuePatternObj)) &&
                     valuePatternObj is ValuePattern valuePattern)
                 {
                     details.ValueInfo = new ValueInfo
@@ -296,7 +296,7 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 var runtimeId = element.GetRuntimeId();
                 if (runtimeId == null || runtimeId.Length == 0)
                     return null;
-                
+
                 return string.Join(",", runtimeId);
             }
             catch (Exception)

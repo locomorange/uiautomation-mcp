@@ -19,12 +19,12 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         protected override string GetOperationType() => "text";
 
         public async Task<ServerEnhancedResponse<ActionResult>> SelectTextAsync(
-            string? automationId = null, 
-            string? name = null, 
-            int startIndex = 0, 
-            int length = 1, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            int startIndex = 0,
+            int length = 1,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new SelectTextRequest
@@ -47,11 +47,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
         public async Task<ServerEnhancedResponse<ActionResult>> SetTextAsync(
-            string? automationId = null, 
-            string? name = null, 
-            string text = "", 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            string text = "",
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new SetTextRequest
@@ -73,11 +73,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
         public async Task<ServerEnhancedResponse<ActionResult>> AppendTextAsync(
-            string? automationId = null, 
-            string? name = null, 
-            string text = "", 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            string text = "",
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new SetTextRequest
@@ -99,13 +99,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
         public async Task<ServerEnhancedResponse<TextAttributesResult>> GetTextAttributesAsync(
-            string? automationId = null, 
-            string? name = null, 
-            int startIndex = 0, 
-            int length = -1, 
-            string? attributeName = null, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            int startIndex = 0,
+            int length = -1,
+            string? attributeName = null,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new UIAutomationMCP.Models.Requests.GetTextAttributesRequest
@@ -129,13 +129,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
         public async Task<ServerEnhancedResponse<TextSearchResult>> FindTextAsync(
-            string? automationId = null, 
-            string? name = null, 
-            string searchText = "", 
-            bool backward = false, 
-            bool ignoreCase = true, 
-            string? controlType = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            string searchText = "",
+            bool backward = false,
+            bool ignoreCase = true,
+            string? controlType = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new UIAutomationMCP.Models.Requests.FindTextRequest
@@ -237,11 +237,11 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         protected override TextServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
         {
             var metadata = base.CreateSuccessMetadata(data, context);
-            
+
             if (data is ActionResult)
             {
                 metadata.ActionPerformed = context.MethodName.Replace("Async", "").ToLowerInvariant();
-                
+
                 // For text operations, we can extract text length from the request context if needed
                 if (context.MethodName.Contains("SetText") || context.MethodName.Contains("AppendText"))
                 {
@@ -260,7 +260,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 metadata.TextFound = searchResult.Found;
                 metadata.StartIndex = searchResult.StartIndex;
             }
-            
+
             return metadata;
         }
     }

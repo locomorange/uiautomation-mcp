@@ -21,19 +21,19 @@ namespace UIAutomationMCP.Subprocess.Worker.Helpers
             try
             {
                 var frameworkId = listElement.Current.FrameworkId;
-                
+
                 // WPF controls perform better with FindAll
                 if (IsWpfFramework(frameworkId))
                 {
                     return ListSearchMethod.FindAll;
                 }
-                
+
                 // Win32 controls perform better with TreeWalker
                 if (IsWin32Framework(frameworkId))
                 {
                     return ListSearchMethod.TreeWalker;
                 }
-                
+
                 // Default to FindAll for unknown frameworks
                 return ListSearchMethod.FindAll;
             }
@@ -53,7 +53,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Helpers
                 return null;
 
             var method = GetOptimalMethod(listElement);
-            
+
             return method switch
             {
                 ListSearchMethod.TreeWalker => FindListItemByIndexWithTreeWalker(listElement, index),
@@ -83,7 +83,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Helpers
 
         private static bool IsWpfFramework(string frameworkId)
         {
-            return !string.IsNullOrEmpty(frameworkId) && 
+            return !string.IsNullOrEmpty(frameworkId) &&
                    (frameworkId.Equals("WPF", StringComparison.OrdinalIgnoreCase) ||
                     frameworkId.Equals("WinUI", StringComparison.OrdinalIgnoreCase) ||
                     frameworkId.Equals("UWP", StringComparison.OrdinalIgnoreCase));
@@ -91,7 +91,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Helpers
 
         private static bool IsWin32Framework(string frameworkId)
         {
-            return !string.IsNullOrEmpty(frameworkId) && 
+            return !string.IsNullOrEmpty(frameworkId) &&
                    (frameworkId.Equals("Win32", StringComparison.OrdinalIgnoreCase) ||
                     frameworkId.Equals("WinForm", StringComparison.OrdinalIgnoreCase) ||
                     frameworkId.Equals("Windows Forms", StringComparison.OrdinalIgnoreCase));
@@ -103,16 +103,16 @@ namespace UIAutomationMCP.Subprocess.Worker.Helpers
             {
                 var condition = new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.ListItem);
                 var walker = new TreeWalker(condition);
-                
+
                 var currentElement = walker.GetFirstChild(listElement);
                 int currentIndex = 0;
-                
+
                 while (currentElement != null && currentIndex < index)
                 {
                     currentElement = walker.GetNextSibling(currentElement);
                     currentIndex++;
                 }
-                
+
                 return currentElement;
             }
             catch (ArgumentOutOfRangeException)
@@ -132,12 +132,12 @@ namespace UIAutomationMCP.Subprocess.Worker.Helpers
             {
                 var condition = new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.ListItem);
                 var listItems = listElement.FindAll(TreeScope.Children, condition);
-                
+
                 if (index >= 0 && index < listItems.Count)
                 {
                     return listItems[index];
                 }
-                
+
                 return null;
             }
             catch (ArgumentOutOfRangeException)
@@ -152,14 +152,14 @@ namespace UIAutomationMCP.Subprocess.Worker.Helpers
             {
                 var walker = new TreeWalker(condition);
                 var items = new List<AutomationElement>();
-                
+
                 var currentElement = walker.GetFirstChild(listElement);
                 while (currentElement != null)
                 {
                     items.Add(currentElement);
                     currentElement = walker.GetNextSibling(currentElement);
                 }
-                
+
                 // Convert to AutomationElementCollection-like structure
                 return listElement.FindAll(TreeScope.Children, condition);
             }
@@ -180,7 +180,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Helpers
         /// Use FindAll method (optimal for WPF controls)
         /// </summary>
         FindAll,
-        
+
         /// <summary>
         /// Use TreeWalker method (optimal for Win32 controls)
         /// </summary>

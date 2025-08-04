@@ -23,7 +23,7 @@ namespace UIAutomationMCP.Server.Infrastructure
         public static void Initialize()
         {
             if (_initialized) return;
-            
+
             lock (_lock)
             {
                 if (_initialized) return;
