@@ -81,7 +81,7 @@ Write-Host '📡 Connecting to server...'
 try {
     \$psi = New-Object System.Diagnostics.ProcessStartInfo
     \$psi.FileName = 'dotnet'
-    \$psi.Arguments = 'run --project $PROJECT_PATH --no-build'
+    \$psi.Arguments = 'run --project $PROJECT_PATH'
     \$psi.RedirectStandardInput = \$true
     \$psi.RedirectStandardOutput = \$true
     \$psi.RedirectStandardError = \$true
