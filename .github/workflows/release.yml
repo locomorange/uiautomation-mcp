@@ -18,7 +18,7 @@ jobs:
   # ===== Stage 1: 並列ビルド =====
   build:
     name: Build ${{ matrix.architecture }}
-    runs-on: windows-latest
+    runs-on: windows-2025
     strategy:
       matrix:
         architecture: [win-x64, win-arm64]
@@ -82,16 +82,8 @@ jobs:
     - name: Build with Framework-Dependent AOT
       run: |
         $runtime = "${{ matrix.architecture }}"
-        # Use existing publish-aot.ps1 and remove Runtime folder afterwards
-        powershell -ExecutionPolicy Bypass -File publish-aot.ps1 -CleanFirst -Runtime $runtime
-        
-        # Remove Runtime folder for framework-dependent distribution
-        $publishPath = "publish/aot-$runtime"
-        $runtimePath = "$publishPath/Runtime"
-        if (Test-Path $runtimePath) {
-          Remove-Item -Path $runtimePath -Recurse -Force
-          Write-Host "Removed Runtime folder for framework-dependent distribution"
-        }
+        # Use existing publish-aot.ps1 with -NoRuntime for distribution builds
+        powershell -ExecutionPolicy Bypass -File publish-aot.ps1 -CleanFirst -Runtime $runtime -NoRuntime
       shell: pwsh
       
     - name: Create release archive
@@ -314,7 +306,7 @@ jobs:
   winget:
     name: Submit to Winget
     needs: release  # リリース完了を待つ
-    runs-on: windows-latest
+    runs-on: windows-2025
     if: startsWith(github.ref, 'refs/tags/')  # タグプッシュ時のみ実行
     
     steps:

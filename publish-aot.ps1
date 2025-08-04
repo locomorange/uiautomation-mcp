@@ -13,7 +13,10 @@ param(
     [switch]$CleanFirst,
     
     [Parameter(Mandatory = $false)]
-    [switch]$NoAot
+    [switch]$NoAot,
+    
+    [Parameter(Mandatory = $false)]
+    [switch]$NoRuntime
 )
 
 # Colors for output
@@ -62,6 +65,7 @@ $AotPublishDir = Join-Path $PublishDir "aot-$Runtime"
 Write-Header "UIAutomationMCP Hybrid Native AOT Build"
 Write-Status "Runtime: $Runtime"
 Write-Status "AOT Mode: $(if ($NoAot) { 'Disabled (Traditional .NET)' } else { 'Enabled (Hybrid)' })"
+Write-Status "Runtime Mode: $(if ($NoRuntime) { 'Framework-dependent (no shared runtime)' } else { 'Self-contained (with shared runtime)' })"
 Write-Status "Project Root: $ProjectRoot"
 
 # Clean previous builds if requested
@@ -122,49 +126,53 @@ if (-not $TestOnly) {
     }
     Write-Success "Server published successfully"
 
-    # Step 2: Create Shared Runtime
-    Write-Status "Creating shared .NET runtime..."
-    $sharedRuntimePath = Join-Path $AotPublishDir "Runtime"
-    $workerTempPath = Join-Path $AotPublishDir "temp-worker"
-    
-    # First, publish Worker with self-contained to get runtime files
-    $workerRuntimeArgs = @(
-        "publish"
-        $WorkerProject
-        "--configuration", "Release"
-        "--runtime", $Runtime
-        "--self-contained", "true"
-        "--output", $workerTempPath
-        "/p:PublishAot=false"
-        "/p:PublishTrimmed=false"
-        "/p:PublishSingleFile=false"
-    )
-    
-    $workerRuntimeResult = & dotnet @workerRuntimeArgs 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        Write-Error "Failed to create runtime base"
-        Write-Host $workerRuntimeResult
-        exit 1
+    # Step 2: Create Shared Runtime (unless -NoRuntime specified)
+    if (-not $NoRuntime) {
+        Write-Status "Creating shared .NET runtime..."
+        $sharedRuntimePath = Join-Path $AotPublishDir "Runtime"
+        $workerTempPath = Join-Path $AotPublishDir "temp-worker"
+        
+        # First, publish Worker with self-contained to get runtime files
+        $workerRuntimeArgs = @(
+            "publish"
+            $WorkerProject
+            "--configuration", "Release"
+            "--runtime", $Runtime
+            "--self-contained", "true"
+            "--output", $workerTempPath
+            "/p:PublishAot=false"
+            "/p:PublishTrimmed=false"
+            "/p:PublishSingleFile=false"
+        )
+        
+        $workerRuntimeResult = & dotnet @workerRuntimeArgs 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to create runtime base"
+            Write-Host $workerRuntimeResult
+            exit 1
+        }
+        
+        # Extract runtime files to shared location
+        if (-not (Test-Path $sharedRuntimePath)) {
+            New-Item -Path $sharedRuntimePath -ItemType Directory -Force | Out-Null
+        }
+        
+        # Move runtime files (excluding application DLLs)
+        Write-Status "Extracting shared runtime files..."
+        Get-ChildItem $workerTempPath -File | Where-Object {
+            $_.Name -match "^(System\.|Microsoft\.|mscor|clr|host|coreclr|createdump|msquic|vcruntime|wpfgfx|PenImc|PresentationNative|D3DCompiler)" -or
+            $_.Extension -eq ".dll" -and $_.Name -notmatch "^UIAutomationMCP"
+        } | Move-Item -Destination $sharedRuntimePath -Force
+        
+        # Move localization folders
+        Get-ChildItem $workerTempPath -Directory | Where-Object {
+            $_.Name -match "^(cs|de|es|fr|it|ja|ko|pl|pt-BR|ru|tr|zh-Hans|zh-Hant)$"
+        } | Move-Item -Destination $sharedRuntimePath -Force
+        
+        Write-Success "Shared runtime created successfully"
+    } else {
+        Write-Status "Skipping shared runtime creation (-NoRuntime specified)"
     }
-    
-    # Extract runtime files to shared location
-    if (-not (Test-Path $sharedRuntimePath)) {
-        New-Item -Path $sharedRuntimePath -ItemType Directory -Force | Out-Null
-    }
-    
-    # Move runtime files (excluding application DLLs)
-    Write-Status "Extracting shared runtime files..."
-    Get-ChildItem $workerTempPath -File | Where-Object {
-        $_.Name -match "^(System\.|Microsoft\.|mscor|clr|host|coreclr|createdump|msquic|vcruntime|wpfgfx|PenImc|PresentationNative|D3DCompiler)" -or
-        $_.Extension -eq ".dll" -and $_.Name -notmatch "^UIAutomationMCP"
-    } | Move-Item -Destination $sharedRuntimePath -Force
-    
-    # Move localization folders
-    Get-ChildItem $workerTempPath -Directory | Where-Object {
-        $_.Name -match "^(cs|de|es|fr|it|ja|ko|pl|pt-BR|ru|tr|zh-Hans|zh-Hant)$"
-    } | Move-Item -Destination $sharedRuntimePath -Force
-    
-    Write-Success "Shared runtime created successfully"
 
     # Step 3: Publish Worker (Framework-dependent)
     Write-Status "Publishing UIAutomationMCP.Subprocess.Worker (framework-dependent)..."
@@ -211,9 +219,12 @@ if (-not $TestOnly) {
     Write-Success "Monitor published successfully"
     
     # Step 5: Clean up temporary files
-    if (Test-Path $workerTempPath) {
-        Remove-Item -Path $workerTempPath -Recurse -Force
-        Write-Status "Cleaned up temporary files"
+    if (-not $NoRuntime) {
+        $workerTempPath = Join-Path $AotPublishDir "temp-worker"
+        if (Test-Path $workerTempPath) {
+            Remove-Item -Path $workerTempPath -Recurse -Force
+            Write-Status "Cleaned up temporary files"
+        }
     }
     
     Write-Success "All projects published to: $AotPublishDir"
@@ -232,7 +243,7 @@ $missingComponents = @()
 if (-not (Test-Path $ServerExe)) { $missingComponents += "Server executable: $ServerExe" }
 if (-not (Test-Path $WorkerPath)) { $missingComponents += "Worker directory: $WorkerPath" }
 if (-not (Test-Path $MonitorPath)) { $missingComponents += "Monitor directory: $MonitorPath" }
-if (-not (Test-Path $RuntimePath)) { $missingComponents += "Runtime directory: $RuntimePath" }
+if (-not $NoRuntime -and -not (Test-Path $RuntimePath)) { $missingComponents += "Runtime directory: $RuntimePath" }
 
 if ($missingComponents.Count -gt 0) {
     Write-Error "Missing components:"
@@ -246,15 +257,26 @@ Write-Status "Analyzing build results..."
 $serverSize = (Get-Item $ServerExe).Length / 1MB
 $workerSize = (Get-ChildItem $WorkerPath -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB
 $monitorSize = (Get-ChildItem $MonitorPath -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB
-$runtimeSize = (Get-ChildItem $RuntimePath -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB
-$totalSize = $serverSize + $workerSize + $monitorSize + $runtimeSize
 
-Write-Status "Component sizes:"
-Write-Status "  Server (AOT): $([Math]::Round($serverSize, 2)) MB"
-Write-Status "  Worker: $([Math]::Round($workerSize, 2)) MB"
-Write-Status "  Monitor: $([Math]::Round($monitorSize, 2)) MB"
-Write-Status "  Shared Runtime: $([Math]::Round($runtimeSize, 2)) MB"
-Write-Status "  Total: $([Math]::Round($totalSize, 2)) MB"
+if (-not $NoRuntime) {
+    $runtimeSize = (Get-ChildItem $RuntimePath -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB
+    $totalSize = $serverSize + $workerSize + $monitorSize + $runtimeSize
+    
+    Write-Status "Component sizes:"
+    Write-Status "  Server (AOT): $([Math]::Round($serverSize, 2)) MB"
+    Write-Status "  Worker: $([Math]::Round($workerSize, 2)) MB"
+    Write-Status "  Monitor: $([Math]::Round($monitorSize, 2)) MB"
+    Write-Status "  Shared Runtime: $([Math]::Round($runtimeSize, 2)) MB"
+    Write-Status "  Total: $([Math]::Round($totalSize, 2)) MB"
+} else {
+    $totalSize = $serverSize + $workerSize + $monitorSize
+    
+    Write-Status "Component sizes (Framework-dependent):"
+    Write-Status "  Server (AOT): $([Math]::Round($serverSize, 2)) MB"
+    Write-Status "  Worker: $([Math]::Round($workerSize, 2)) MB"
+    Write-Status "  Monitor: $([Math]::Round($monitorSize, 2)) MB"
+    Write-Status "  Total (excluding runtime): $([Math]::Round($totalSize, 2)) MB"
+}
 
 if (-not $NoAot -and $serverSize -lt 50) {
     Write-Success "AOT optimization successful - compact executable generated"
@@ -329,7 +351,9 @@ Write-Status "Published binaries location:"
 Write-Status "  Server: $(Join-Path $AotPublishDir 'Server')"
 Write-Status "  Worker: $(Join-Path $AotPublishDir 'Worker')"
 Write-Status "  Monitor: $(Join-Path $AotPublishDir 'Monitor')"
-Write-Status "  Runtime: $(Join-Path $AotPublishDir 'Runtime')"
+if (-not $NoRuntime) {
+    Write-Status "  Runtime: $(Join-Path $AotPublishDir 'Runtime')"
+}
 
 if (-not $NoAot) {
     Write-Success "Hybrid Native AOT build completed successfully!"
