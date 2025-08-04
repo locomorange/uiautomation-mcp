@@ -81,7 +81,7 @@ Write-Host '📡 Connecting to server...'
 try {
     \$psi = New-Object System.Diagnostics.ProcessStartInfo
     \$psi.FileName = 'dotnet'
-    \$psi.Arguments = 'run --project $PROJECT_PATH'
+    \$psi.Arguments = 'run --project $PROJECT_PATH --no-build'
     \$psi.RedirectStandardInput = \$true
     \$psi.RedirectStandardOutput = \$true
     \$psi.RedirectStandardError = \$true
@@ -104,26 +104,19 @@ try {
     \$tempProcess.StandardInput.WriteLine(\$jsonRequest)
     \$tempProcess.StandardInput.Flush()
     
-    \$responseTask = \$tempProcess.StandardOutput.ReadLineAsync()
-    \$timeout = [System.Threading.Tasks.Task]::Delay(10000)
-    \$completedTask = [System.Threading.Tasks.Task]::WhenAny(\$responseTask, \$timeout).Result
+    # Wait for response from MCP server (no artificial timeout)
+    \$response = \$tempProcess.StandardOutput.ReadLine()
+    Write-Host '📥 Response received:'
+    Write-Host \$response
     
-    if (\$completedTask -eq \$responseTask) {
-        \$response = \$responseTask.Result
-        Write-Host '📥 Response received:'
-        Write-Host \$response
-        
-        # Try to format JSON nicely
-        try {
-            \$responseObj = \$response | ConvertFrom-Json
-            Write-Host ''
-            Write-Host '📋 Formatted response:' -ForegroundColor Cyan
-            \$responseObj | ConvertTo-Json -Depth 10
-        } catch {
-            Write-Host 'Could not format JSON response'
-        }
-    } else {
-        Write-Host '⚠️ Request timed out after 10 seconds'
+    # Try to format JSON nicely
+    try {
+        \$responseObj = \$response | ConvertFrom-Json
+        Write-Host ''
+        Write-Host '📋 Formatted response:' -ForegroundColor Cyan
+        \$responseObj | ConvertTo-Json -Depth 10
+    } catch {
+        Write-Host 'Could not format JSON response'
     }
     
 } catch {
