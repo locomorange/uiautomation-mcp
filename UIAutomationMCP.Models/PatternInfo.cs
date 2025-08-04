@@ -14,10 +14,10 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("state")]
         public string State { get; set; } = string.Empty;  // "On", "Off", "Indeterminate"
-        
+
         [JsonPropertyName("isToggled")]
         public bool IsToggled { get; set; }
-        
+
         [JsonPropertyName("canToggle")]
         public bool CanToggle { get; set; }
     }
@@ -29,19 +29,19 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("value")]
         public double Value { get; set; }
-        
+
         [JsonPropertyName("minimum")]
         public double Minimum { get; set; }
-        
+
         [JsonPropertyName("maximum")]
         public double Maximum { get; set; }
-        
+
         [JsonPropertyName("smallChange")]
         public double SmallChange { get; set; }
-        
+
         [JsonPropertyName("largeChange")]
         public double LargeChange { get; set; }
-        
+
         [JsonPropertyName("isReadOnly")]
         public bool IsReadOnly { get; set; }
     }
@@ -53,19 +53,19 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("canMaximize")]
         public bool CanMaximize { get; set; }
-        
+
         [JsonPropertyName("canMinimize")]
         public bool CanMinimize { get; set; }
-        
+
         [JsonPropertyName("isModal")]
         public bool IsModal { get; set; }
-        
+
         [JsonPropertyName("isTopmost")]
         public bool IsTopmost { get; set; }
-        
+
         [JsonPropertyName("interactionState")]
         public string InteractionState { get; set; } = string.Empty;
-        
+
         [JsonPropertyName("visualState")]
         public string VisualState { get; set; } = string.Empty;
     }
@@ -77,13 +77,13 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("canSelectMultiple")]
         public bool CanSelectMultiple { get; set; }
-        
+
         [JsonPropertyName("isSelectionRequired")]
         public bool IsSelectionRequired { get; set; }
-        
+
         [JsonPropertyName("selectedCount")]
         public int SelectedCount { get; set; }
-        
+
         [JsonPropertyName("selectedItems")]
         public List<SelectionItemInfo> SelectedItems { get; set; } = new();
     }
@@ -95,16 +95,16 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("automationId")]
         public string AutomationId { get; set; } = string.Empty;
-        
+
         [JsonPropertyName("name")]
         public string Name { get; set; } = string.Empty;
-        
+
         [JsonPropertyName("controlType")]
         public string ControlType { get; set; } = string.Empty;
-        
+
         [JsonPropertyName("isSelected")]
         public bool IsSelected { get; set; }
-        
+
         [JsonPropertyName("selectionContainer")]
         public string? SelectionContainer { get; set; }
     }
@@ -116,19 +116,19 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("rowCount")]
         public int RowCount { get; set; }
-        
+
         [JsonPropertyName("columnCount")]
         public int ColumnCount { get; set; }
-        
+
         [JsonPropertyName("canSelectMultiple")]
         public bool CanSelectMultiple { get; set; }
-        
+
         [JsonPropertyName("hasRowHeaders")]
         public bool HasRowHeaders { get; set; }
-        
+
         [JsonPropertyName("hasColumnHeaders")]
         public bool HasColumnHeaders { get; set; }
-        
+
         [JsonPropertyName("selectedItems")]
         public List<GridCellReference> SelectedItems { get; set; } = new();
     }
@@ -140,19 +140,19 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("horizontalPercent")]
         public double HorizontalPercent { get; set; }
-        
+
         [JsonPropertyName("verticalPercent")]
         public double VerticalPercent { get; set; }
-        
+
         [JsonPropertyName("horizontalViewSize")]
         public double HorizontalViewSize { get; set; }
-        
+
         [JsonPropertyName("verticalViewSize")]
         public double VerticalViewSize { get; set; }
-        
+
         [JsonPropertyName("horizontallyScrollable")]
         public bool HorizontallyScrollable { get; set; }
-        
+
         [JsonPropertyName("verticallyScrollable")]
         public bool VerticallyScrollable { get; set; }
     }
@@ -164,13 +164,13 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("text")]
         public string Text { get; set; } = string.Empty;
-        
+
         [JsonPropertyName("length")]
         public int Length { get; set; }
-        
+
         [JsonPropertyName("selectedText")]
         public string SelectedText { get; set; } = string.Empty;
-        
+
         [JsonPropertyName("hasSelection")]
         public bool HasSelection { get; set; }
     }
@@ -182,22 +182,22 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("canMove")]
         public bool CanMove { get; set; }
-        
+
         [JsonPropertyName("canResize")]
         public bool CanResize { get; set; }
-        
+
         [JsonPropertyName("canRotate")]
         public bool CanRotate { get; set; }
-        
+
         [JsonPropertyName("currentX")]
         public double CurrentX { get; set; }
-        
+
         [JsonPropertyName("currentY")]
         public double CurrentY { get; set; }
-        
+
         [JsonPropertyName("currentWidth")]
         public double CurrentWidth { get; set; }
-        
+
         [JsonPropertyName("currentHeight")]
         public double CurrentHeight { get; set; }
     }
@@ -209,7 +209,7 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("value")]
         public string Value { get; set; } = string.Empty;
-        
+
         [JsonPropertyName("isReadOnly")]
         public bool IsReadOnly { get; set; }
     }
@@ -239,13 +239,13 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("currentView")]
         public int CurrentView { get; set; }
-        
+
         [JsonPropertyName("availableViews")]
         public List<PatternViewInfo> AvailableViews { get; set; } = new();
-        
+
         [JsonPropertyName("supportedViewCount")]
         public int SupportedViewCount { get; set; }
-        
+
         [JsonPropertyName("viewChangedEventSupported")]
         public bool ViewChangedEventSupported { get; set; }
     }
@@ -257,7 +257,7 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("viewId")]
         public int ViewId { get; set; }
-        
+
         [JsonPropertyName("viewName")]
         public string ViewName { get; set; } = string.Empty;
     }
@@ -269,16 +269,16 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("row")]
         public int Row { get; set; }
-        
+
         [JsonPropertyName("column")]
         public int Column { get; set; }
-        
+
         [JsonPropertyName("rowSpan")]
         public int RowSpan { get; set; }
-        
+
         [JsonPropertyName("columnSpan")]
         public int ColumnSpan { get; set; }
-        
+
         [JsonPropertyName("containingGrid")]
         public string? ContainingGrid { get; set; }
     }
@@ -290,7 +290,7 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("columnHeaders")]
         public List<ElementInfo> ColumnHeaders { get; set; } = new();
-        
+
         [JsonPropertyName("rowHeaders")]
         public List<ElementInfo> RowHeaders { get; set; } = new();
     }
@@ -303,25 +303,25 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("rowCount")]
         public int RowCount { get; set; }
-        
+
         [JsonPropertyName("columnCount")]
         public int ColumnCount { get; set; }
-        
+
         [JsonPropertyName("rowOrColumnMajor")]
         public string RowOrColumnMajor { get; set; } = string.Empty;
-        
+
         [JsonPropertyName("columnHeaders")]
         public List<ElementInfo> ColumnHeaders { get; set; } = new();
-        
+
         [JsonPropertyName("rowHeaders")]
         public List<ElementInfo> RowHeaders { get; set; } = new();
-        
+
         [JsonPropertyName("primaryRowHeaderIndex")]
         public int PrimaryRowHeaderIndex { get; set; } = -1;
-        
+
         [JsonPropertyName("primaryColumnHeaderIndex")]
         public int PrimaryColumnHeaderIndex { get; set; } = -1;
-        
+
         [JsonPropertyName("selectedCells")]
         public List<GridCellReference> SelectedCells { get; set; } = new();
     }
@@ -378,13 +378,13 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("labeledBy")]
         public ElementReference? LabeledBy { get; set; }
-        
+
         [JsonPropertyName("helpText")]
         public string? HelpText { get; set; }
-        
+
         [JsonPropertyName("accessKey")]
         public string? AccessKey { get; set; }
-        
+
         [JsonPropertyName("acceleratorKey")]
         public string? AcceleratorKey { get; set; }
     }
@@ -396,14 +396,14 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("automationId")]
         public string AutomationId { get; set; } = string.Empty;
-        
+
         [JsonPropertyName("name")]
         public string Name { get; set; } = string.Empty;
-        
+
         [JsonPropertyName("controlType")]
         public string ControlType { get; set; } = string.Empty;
     }
-    
+
     /// <summary>
     /// Grid セル参照情報
     /// </summary>
@@ -411,13 +411,13 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("row")]
         public int Row { get; set; }
-        
+
         [JsonPropertyName("column")]
         public int Column { get; set; }
-        
+
         [JsonPropertyName("automationId")]
         public string AutomationId { get; set; } = string.Empty;
-        
+
         [JsonPropertyName("value")]
         public string Value { get; set; } = string.Empty;
     }

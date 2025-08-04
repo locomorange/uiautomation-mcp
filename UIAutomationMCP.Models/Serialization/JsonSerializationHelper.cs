@@ -141,7 +141,7 @@ namespace UIAutomationMCP.Models.Serialization
                 Type t when t == typeof(SearchElementsResult) => (JsonTypeInfo<T>)(object)_context.SearchElementsResult,
                 Type t when t == typeof(ElementDetailResult) => (JsonTypeInfo<T>)(object)_context.ElementDetailResult,
                 Type t when t == typeof(TableInfoResult) => (JsonTypeInfo<T>)(object)_context.TableInfoResult,
-                
+
                 // EventMonitor Result types
                 Type t when t == typeof(EventMonitoringResult) => (JsonTypeInfo<T>)(object)_context.EventMonitoringResult,
                 Type t when t == typeof(EventMonitoringStartResult) => (JsonTypeInfo<T>)(object)_context.EventMonitoringStartResult,
@@ -222,7 +222,7 @@ namespace UIAutomationMCP.Models.Serialization
                 Type t when t == typeof(SearchElementsRequest) => (JsonTypeInfo<T>)(object)_context.SearchElementsRequest,
                 Type t when t == typeof(GetElementDetailsRequest) => (JsonTypeInfo<T>)(object)_context.GetElementDetailsRequest,
                 Type t when t == typeof(ElementDetails) => (JsonTypeInfo<T>)(object)_context.ElementDetails,
-                
+
                 // EventMonitor Request types
                 Type t when t == typeof(StartEventMonitoringRequest) => (JsonTypeInfo<T>)(object)_context.StartEventMonitoringRequest,
                 Type t when t == typeof(StopEventMonitoringRequest) => (JsonTypeInfo<T>)(object)_context.StopEventMonitoringRequest,
@@ -531,7 +531,7 @@ namespace UIAutomationMCP.Models.Serialization
     [JsonSerializable(typeof(ExpandCollapseStateInfo))]
     [JsonSerializable(typeof(DockPositionInfo))]
     [JsonSourceGenerationOptions(
-        WriteIndented = false, 
+        WriteIndented = false,
         PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals)]

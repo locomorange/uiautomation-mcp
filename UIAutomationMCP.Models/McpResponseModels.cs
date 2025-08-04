@@ -9,10 +9,10 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("success")]
         public bool Success { get; set; }
-        
+
         [JsonPropertyName("error")]
         public string? Error { get; set; }
-        
+
         [JsonPropertyName("executedAt")]
         public DateTime ExecutedAt { get; set; } = DateTime.UtcNow;
     }
@@ -24,19 +24,19 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("processId")]
         public int ProcessId { get; set; }
-        
+
         [JsonPropertyName("processName")]
         public string ProcessName { get; set; } = string.Empty;
-        
+
         [JsonPropertyName("hasExited")]
         public bool HasExited { get; set; }
-        
+
         [JsonPropertyName("windowTitle")]
         public string? WindowTitle { get; set; }
-        
+
         [JsonPropertyName("windowHandle")]
         public long? WindowHandle { get; set; }
-        
+
         /// <summary>
         /// Create a success response
         /// </summary>
@@ -52,7 +52,7 @@ namespace UIAutomationMCP.Models
                 WindowHandle = windowHandle
             };
         }
-        
+
         /// <summary>
         /// Create an error response
         /// </summary>
@@ -73,7 +73,7 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("data")]
         public object? Data { get; set; }
-        
+
         /// <summary>
         /// Create a success response
         /// </summary>
@@ -85,7 +85,7 @@ namespace UIAutomationMCP.Models
                 Data = data
             };
         }
-        
+
         /// <summary>
         /// Create an error response
         /// </summary>
@@ -106,10 +106,10 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("elements")]
         public List<ElementInfo> Elements { get; set; } = new();
-        
+
         [JsonPropertyName("count")]
         public int Count { get; set; }
-        
+
         /// <summary>
         /// Create a success response
         /// </summary>
@@ -122,7 +122,7 @@ namespace UIAutomationMCP.Models
                 Count = elements.Count
             };
         }
-        
+
         /// <summary>
         /// Create an error response
         /// </summary>

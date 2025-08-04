@@ -12,7 +12,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Layout
     public class SetScrollPercentOperation : BaseUIAutomationOperation<SetScrollPercentRequest, ScrollActionResult>
     {
         public SetScrollPercentOperation(
-            ElementFinderService elementFinderService, 
+            ElementFinderService elementFinderService,
             ILogger<SetScrollPercentOperation> logger) : base(elementFinderService, logger)
         {
         }
@@ -41,7 +41,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Layout
                 WindowHandle = request.WindowHandle
             };
             var element = _elementFinderService.FindElement(searchCriteria);
-            
+
             if (element == null)
             {
                 throw new UIAutomationElementNotFoundException("Operation", null, "Element not found");

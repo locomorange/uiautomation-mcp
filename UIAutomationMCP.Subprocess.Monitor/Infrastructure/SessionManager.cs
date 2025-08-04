@@ -56,7 +56,7 @@ namespace UIAutomationMCP.Subprocess.Monitor.Infrastructure
                 throw new InvalidOperationException($"Failed to add session '{sessionId}' to active sessions");
             }
 
-            _logger.LogInformation("Created monitoring session: {SessionId} for events: [{EventTypes}]", 
+            _logger.LogInformation("Created monitoring session: {SessionId} for events: [{EventTypes}]",
                 sessionId, string.Join(", ", eventTypes));
 
             return session;

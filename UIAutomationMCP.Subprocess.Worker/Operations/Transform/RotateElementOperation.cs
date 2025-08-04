@@ -14,7 +14,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Transform
     public class RotateElementOperation : BaseUIAutomationOperation<RotateElementRequest, TransformActionResult>
     {
         public RotateElementOperation(
-            ElementFinderService elementFinderService, 
+            ElementFinderService elementFinderService,
             ILogger<RotateElementOperation> logger)
             : base(elementFinderService, logger)
         {
@@ -24,16 +24,18 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Transform
         {
             // Use TransformPattern as the default required pattern
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? TransformPattern.Pattern;
-            
+
             var searchCriteria = new ElementSearchCriteria
             {
                 AutomationId = request.AutomationId,
                 Name = request.Name,
                 ControlType = request.ControlType,
                 WindowTitle = request.WindowTitle,
-                RequiredPattern = requiredPattern?.ProgrammaticName, WindowHandle = request.WindowHandle };
+                RequiredPattern = requiredPattern?.ProgrammaticName,
+                WindowHandle = request.WindowHandle
+            };
             var element = _elementFinderService.FindElement(searchCriteria);
-                
+
             if (element == null)
             {
                 throw new UIAutomationElementNotFoundException("RotateElement", request.AutomationId);
@@ -52,10 +54,10 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Transform
             var degrees = request.Degrees;
 
             transformPattern.Rotate(degrees);
-            
+
             // Wait a moment for the transformation to complete
             await Task.Delay(50);
-            
+
             // Get current bounds (rotation may affect positioning)
             var currentRect = element.Current.BoundingRectangle;
             var newBounds = new BoundingRectangle

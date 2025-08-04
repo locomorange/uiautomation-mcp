@@ -40,9 +40,11 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
                 AutomationId = request.AutomationId,
                 Name = request.Name,
                 ControlType = request.ControlType,
-                WindowTitle = request.WindowTitle, WindowHandle = request.WindowHandle };
+                WindowTitle = request.WindowTitle,
+                WindowHandle = request.WindowHandle
+            };
             var element = _elementFinderService.FindElement(searchCriteria);
-            
+
             if (element == null)
             {
                 throw new UIAutomationElementNotFoundException("Operation", null, $"Element with AutomationId '{request.AutomationId}' and Name '{request.Name}' not found");
@@ -50,7 +52,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
 
             if (!element.TryGetCurrentPattern(TextPattern.Pattern, out var pattern) || pattern is not TextPattern textPattern)
             {
-                _logger.LogWarning("Element with AutomationId '{AutomationId}' and Name '{Name}' does not support TextPattern", 
+                _logger.LogWarning("Element with AutomationId '{AutomationId}' and Name '{Name}' does not support TextPattern",
                     request.AutomationId, request.Name);
                 throw new UIAutomationElementNotFoundException("Operation", null, "Element does not support TextPattern - text search requires a text control (TextBox, RichTextBox, etc.)");
             }
@@ -65,7 +67,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
                 }
 
                 var foundRange = documentRange.FindText(request.SearchText, request.Backward, request.IgnoreCase);
-            
+
                 if (foundRange != null)
                 {
                     var foundText = foundRange.GetText(-1) ?? "";
@@ -90,16 +92,16 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
                         IsSelected = false
                     };
 
-                    return Task.FromResult(new TextSearchResult 
-                    { 
+                    return Task.FromResult(new TextSearchResult
+                    {
                         // Primary properties - only set Matches
                         Matches = new List<TextMatch> { textMatch },
-                        
+
                         // Search context
                         SearchText = request.SearchText,
                         CaseSensitive = !request.IgnoreCase,
                         SearchDirection = request.Backward ? "Backward" : "Forward",
-                        
+
                         // Additional context
                         AutomationId = request.AutomationId ?? "",
                         Name = request.Name ?? "",
@@ -108,16 +110,16 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Text
                 }
                 else
                 {
-                    return Task.FromResult(new TextSearchResult 
-                    { 
+                    return Task.FromResult(new TextSearchResult
+                    {
                         // Primary properties - empty matches for not found
                         Matches = new List<TextMatch>(),
-                        
+
                         // Search context
                         SearchText = request.SearchText,
                         CaseSensitive = !request.IgnoreCase,
                         SearchDirection = request.Backward ? "Backward" : "Forward",
-                        
+
                         // Additional context
                         AutomationId = request.AutomationId ?? "",
                         Name = request.Name ?? "",

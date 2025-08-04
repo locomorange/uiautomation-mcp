@@ -12,7 +12,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Layout
     public class ScrollElementIntoViewOperation : BaseUIAutomationOperation<ScrollElementIntoViewRequest, ScrollActionResult>
     {
         public ScrollElementIntoViewOperation(
-            ElementFinderService elementFinderService, 
+            ElementFinderService elementFinderService,
             ILogger<ScrollElementIntoViewOperation> logger) : base(elementFinderService, logger)
         {
         }
@@ -27,7 +27,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Layout
                 WindowHandle = request.WindowHandle
             };
             var element = _elementFinderService.FindElement(searchCriteria);
-            
+
             if (element == null)
             {
                 throw new UIAutomationElementNotFoundException("Operation", null, "Element not found");
@@ -39,14 +39,14 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Layout
             }
 
             scrollItemPattern.ScrollIntoView();
-            
+
             var result = new ScrollActionResult
             {
                 ActionName = "ScrollIntoView",
                 Completed = true,
                 ExecutedAt = DateTime.UtcNow
             };
-            
+
             return Task.FromResult(result);
         }
     }

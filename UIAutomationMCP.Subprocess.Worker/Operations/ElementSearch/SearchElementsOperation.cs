@@ -32,7 +32,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
         protected override async Task<SearchElementsResult> ExecuteOperationAsync(SearchElementsRequest request)
         {
             var stopwatch = Stopwatch.StartNew();
-            
+
             try
             {
                 // Timeout handling is performed by SubprocessExecutor, so it is not handled directly here.
@@ -40,7 +40,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
 
                 stopwatch.Stop();
                 result.ExecutionTime = stopwatch.Elapsed;
-                
+
                 return result;
             }
             catch (Exception ex)
@@ -54,11 +54,11 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
         private Task<SearchElementsResult> PerformSearchAsync(SearchElementsRequest request)
         {
             var searchStopwatch = Stopwatch.StartNew();
-            
+
             try
             {
                 _logger?.LogDebug("Starting PerformSearchAsync");
-                
+
                 // UI Automation availability check - basic check only
                 try
                 {
@@ -105,7 +105,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
                     Scope = request.Scope,
                     WindowHandle = request.WindowHandle,
                     // Use the explicit parameter from request, with fallback logic for backward compatibility
-                    UseWindowHandleAsFilter = request.UseWindowHandleAsFilter || 
+                    UseWindowHandleAsFilter = request.UseWindowHandleAsFilter ||
                         (request.WindowHandle.HasValue && !string.IsNullOrEmpty(request.WindowTitle))
                 };
                 var foundElementsCollection = _elementFinderService.FindElements(searchCriteria);
@@ -161,7 +161,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
             {
                 searchStopwatch.Stop();
                 _logger?.LogError(ex, "SearchElements operation failed");
-                
+
                 throw new InvalidOperationException($"Search operation failed: {ex.Message}", ex);
             }
         }
@@ -181,25 +181,25 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
                 _ => elements
             };
         }
-        
+
         private string GetElementName(AutomationElement element)
         {
             try { return element.Current.Name ?? ""; }
             catch { return ""; }
         }
-        
+
         private string GetElementControlType(AutomationElement element)
         {
             try { return element.Current.ControlType.ProgrammaticName ?? ""; }
             catch { return ""; }
         }
-        
+
         private double GetElementX(AutomationElement element)
         {
             try { return element.Current.BoundingRectangle.X; }
             catch { return 0; }
         }
-        
+
         private double GetElementY(AutomationElement element)
         {
             try { return element.Current.BoundingRectangle.Y; }

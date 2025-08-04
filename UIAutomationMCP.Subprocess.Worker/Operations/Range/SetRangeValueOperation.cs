@@ -14,7 +14,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Range
     public class SetRangeValueOperation : BaseUIAutomationOperation<SetRangeValueRequest, SetRangeValueResult>
     {
         public SetRangeValueOperation(
-            ElementFinderService elementFinderService, 
+            ElementFinderService elementFinderService,
             ILogger<SetRangeValueOperation> logger)
             : base(elementFinderService, logger)
         {
@@ -24,7 +24,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Range
         {
             // Pattern conversion (get from request, default to RangeValuePattern)
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? RangeValuePattern.Pattern;
-            
+
             var searchCriteria = new ElementSearchCriteria
             {
                 AutomationId = request.AutomationId,
@@ -35,7 +35,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Range
                 WindowHandle = request.WindowHandle
             };
             var element = _elementFinderService.FindElement(searchCriteria);
-            
+
             if (element == null)
             {
                 throw new UIAutomationElementNotFoundException("SetRangeValue", request.AutomationId);
@@ -73,7 +73,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Range
 
             rangePattern.SetValue(value);
             var newValue = rangePattern.Current.Value;
-            
+
             return Task.FromResult(new SetRangeValueResult
             {
                 ActionName = "SetRangeValue",

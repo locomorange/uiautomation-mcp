@@ -16,7 +16,7 @@ namespace UIAutomationMCP.Models.Logging
             {
                 var logJson = logMessage.ToJson();
                 var logLine = $"{LOG_MESSAGE_PREFIX}{logJson}";
-                
+
                 // Send to stderr to avoid interfering with JSON responses on stdout
                 await Console.Error.WriteLineAsync(logLine);
                 await Console.Error.FlushAsync();
@@ -31,11 +31,11 @@ namespace UIAutomationMCP.Models.Logging
         /// Send log message with specified parameters
         /// </summary>
         public static async Task SendLogToServerAsync(
-            McpLogLevel level, 
-            string logger, 
-            string message, 
+            McpLogLevel level,
+            string logger,
+            string message,
             string source,
-            string? operationId = null, 
+            string? operationId = null,
             Dictionary<string, object?>? data = null)
         {
             var logMessage = new McpLogMessageBuilder()

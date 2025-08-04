@@ -73,7 +73,7 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
             if (pattern == VirtualizedItemPattern.Pattern) return "VirtualizedItem";
             if (pattern == ItemContainerPattern.Pattern) return "ItemContainer";
             if (pattern == SynchronizedInputPattern.Pattern) return "SynchronizedInput";
-            
+
             return "Unknown";
         }
 

@@ -23,7 +23,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Invoke
         {
             // Pattern conversion (get from request, default to InvokePattern)
             var requiredPattern = AutomationPatternHelper.GetAutomationPattern(request.RequiredPattern) ?? InvokePattern.Pattern;
-            
+
             var searchCriteria = new ElementSearchCriteria
             {
                 AutomationId = request.AutomationId,
@@ -33,7 +33,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Invoke
                 WindowHandle = request.WindowHandle
             };
             var element = _elementFinderService.FindElement(searchCriteria);
-            
+
             if (element == null)
             {
                 var elementIdentifier = !string.IsNullOrWhiteSpace(request.AutomationId) ? request.AutomationId : request.Name ?? "unknown";
@@ -47,9 +47,9 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Invoke
             }
 
             var elementInfo = _elementFinderService.GetElementBasicInfo(element);
-            
+
             invokePattern.Invoke();
-            
+
             return Task.FromResult(new ActionResult
             {
                 ActionName = "Invoke",

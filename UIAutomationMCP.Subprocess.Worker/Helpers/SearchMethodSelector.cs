@@ -49,8 +49,8 @@ namespace UIAutomationMCP.Subprocess.Worker.Helpers
                 // Optimization by control type
                 if (IsListContainer(controlType))
                 {
-                    return ListSearchOptimizer.GetOptimalMethod(searchRoot) == ListSearchMethod.FindAll 
-                        ? SearchMethod.FindAll 
+                    return ListSearchOptimizer.GetOptimalMethod(searchRoot) == ListSearchMethod.FindAll
+                        ? SearchMethod.FindAll
                         : SearchMethod.TreeWalker;
                 }
 
@@ -98,7 +98,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Helpers
         {
             var method = SelectOptimalMethod(searchRoot, condition, scope);
             var complexity = EvaluateComplexity(condition);
-            
+
             var recommendation = new SearchRecommendation
             {
                 Method = method,
@@ -177,7 +177,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Helpers
         /// FindAll method (batch search)
         /// </summary>
         FindAll,
-        
+
         /// <summary>
         /// TreeWalker method (step-by-step navigation)
         /// </summary>
@@ -193,12 +193,12 @@ namespace UIAutomationMCP.Subprocess.Worker.Helpers
         /// Simple condition (single property)
         /// </summary>
         Simple,
-        
+
         /// <summary>
         /// Medium complexity (2-3 conditions)
         /// </summary>
         Medium,
-        
+
         /// <summary>
         /// Complex condition (4 or more conditions, complex OR/NOT)
         /// </summary>
