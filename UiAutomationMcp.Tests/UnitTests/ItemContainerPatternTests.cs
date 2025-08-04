@@ -7,6 +7,7 @@ using UIAutomationMCP.Server.Services.ControlPatterns;
 using Xunit;
 using Xunit.Abstractions;
 using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Server.Abstractions;
 
 namespace UIAutomationMCP.Tests.UnitTests
 {
@@ -20,16 +21,16 @@ namespace UIAutomationMCP.Tests.UnitTests
     {
         private readonly ITestOutputHelper _output;
         private readonly Mock<ILogger<ItemContainerService>> _mockLogger;
-        private readonly Mock<IOperationExecutor> _mockProcessManager;
+        private readonly Mock<IProcessManager> _mockProcessManager;
         private readonly ItemContainerService _service;
 
         public ItemContainerPatternTests(ITestOutputHelper output)
         {
             _output = output;
             _mockLogger = new Mock<ILogger<ItemContainerService>>();
-            _mockProcessManager = new Mock<IOperationExecutor>();
+            _mockProcessManager = new Mock<IProcessManager>();
             
-            _service = new ItemContainerService(_mockLogger.Object, _mockProcessManager.Object);
+            _service = new ItemContainerService(_mockProcessManager.Object, _mockLogger.Object);
         }
 
         [Fact]
@@ -62,8 +63,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     p.PropertyName == propertyName &&
                     p.Value == value &&
                     p.StartAfterId == startAfterId &&
-                    p.WindowTitle == windowTitle &&
-                    p.ProcessId == processId), 30), Times.Once);
+                    p.WindowTitle == windowTitle), 30), Times.Once);
             
             _output.WriteLine("FindItemByPropertyAsync service test passed - Correct subprocess execution verified");
         }
@@ -93,8 +93,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     p.PropertyName == "" &&
                     p.Value == "" &&
                     p.StartAfterId == "" &&
-                    p.WindowTitle == "" &&
-                    p.ProcessId == 0), 30), Times.Once);
+                    p.WindowTitle == ""), 30), Times.Once);
         }
 
         [Fact]

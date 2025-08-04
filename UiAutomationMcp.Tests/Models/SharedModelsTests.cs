@@ -1,4 +1,6 @@
 using UIAutomationMCP.Models;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 
 namespace UiAutomationMcp.Tests.Models
@@ -155,7 +157,7 @@ namespace UiAutomationMcp.Tests.Models
             Assert.NotNull(deserialized);
             Assert.Equal(request.Operation, deserialized.Operation);
             Assert.NotNull(deserialized.Parameters);
-            Assert.Equal(2, deserialized.Parameters.Count);
+            Assert.Equal(2, ((Dictionary<string, object>)deserialized.Parameters).Count);
         }
 
         [Fact]

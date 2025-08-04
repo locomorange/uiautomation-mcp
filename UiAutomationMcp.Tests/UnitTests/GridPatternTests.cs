@@ -6,6 +6,7 @@ using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
 using Xunit.Abstractions;
 using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Models.Logging;
 
 namespace UIAutomationMCP.Tests.UnitTests
 {
@@ -24,7 +25,8 @@ namespace UIAutomationMCP.Tests.UnitTests
             _output = output;
             _mockGridService = new Mock<IGridService>();
             
-            // UIAutomationToolsの他サービスもモテス化（最小限の設定！E            var mockAppLauncher = new Mock<IApplicationLauncher>();
+            // UIAutomationToolsの他サービスもモック化（最小限の設定）
+            var mockAppLauncher = new Mock<IApplicationLauncher>();
             var mockScreenshot = new Mock<IScreenshotService>();
             var mockElementSearch = new Mock<IElementSearchService>();
             var mockTreeNavigation = new Mock<ITreeNavigationService>();
@@ -71,7 +73,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 mockSynchronizedInput.Object,
                 Mock.Of<IEventMonitorService>(),
                 Mock.Of<IFocusService>(),
-                Mock.Of<UIAutomationMCP.Server.Interfaces.IOperationExecutor>()
+                Mock.Of<IMcpLogService>()
             );
         }
 

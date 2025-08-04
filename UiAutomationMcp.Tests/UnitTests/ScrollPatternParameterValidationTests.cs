@@ -121,14 +121,17 @@ namespace UIAutomationMCP.Tests.UnitTests
         [InlineData("999.9", "999.9")]     // Way above maximum
         public void SetScrollPercent_Should_Reject_Out_Of_Range_Values(string horizontalStr, string verticalStr)
         {
-            // Arrange & Act - Microsoft                        : 0-100, -1              var horizontalValid = double.TryParse(horizontalStr, out var horizontal);
+            // Arrange & Act - Microsoft UI Automation specification: valid range is 0-100, -1 for unsupported
+            var horizontalValid = double.TryParse(horizontalStr, out var horizontal);
             var verticalValid = double.TryParse(verticalStr, out var vertical);
-            // Assert -                                            Assert.True(horizontalValid && verticalValid, "Values should parse as numbers");
+            // Assert - Values should be parseable as numbers
+            Assert.True(horizontalValid && verticalValid, "Values should parse as numbers");
             
             var horizontalInRange = (horizontal >= 0 && horizontal <= 100) || horizontal == -1;
             var verticalInRange = (vertical >= 0 && vertical <= 100) || vertical == -1;
             
-            //                                        Assert.False(horizontalInRange && verticalInRange, $"At least one value should be out of range: H:{horizontal}, V:{vertical}");
+            // Test expects at least one value to be out of range for this test
+            Assert.False(horizontalInRange && verticalInRange, $"At least one value should be out of range: H:{horizontal}, V:{vertical}");
             
             _output.WriteLine($"SetScrollPercent out-of-range test passed for H:{horizontal} (inRange: {horizontalInRange}), V:{vertical} (inRange: {verticalInRange})");
         }

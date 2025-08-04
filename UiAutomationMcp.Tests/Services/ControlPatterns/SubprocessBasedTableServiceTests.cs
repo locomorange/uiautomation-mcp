@@ -179,7 +179,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             };
 
             _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), 30))
-                        .Returns(Task.FromResult(expectedRowHeaders));
+                        .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedRowHeaders)));
 
             // Act
             var result = await _service.GetRowHeaderItemsAsync("tableCell2", "TestWindow", null, 30);
@@ -193,8 +193,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             _mockProcessManager.Verify(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", 
                 It.Is<GetRowHeaderItemsRequest>(r => 
                     r.AutomationId == "tableCell2" &&
-                    r.WindowTitle == "TestWindow" &&
-                    r.ProcessId == 0), 30), Times.Once);
+                    r.WindowTitle == "TestWindow"), 30), Times.Once);
 
             _output.WriteLine("GetRowHeaderItemsAsync test passed - TableItemPattern.GetRowHeaderItems() verified");
         }
@@ -214,7 +213,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             };
 
             _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), 30))
-                        .Returns(Task.FromResult(expectedResult));
+                        .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
 
             // Act
             var result = await _service.GetRowHeaderItemsAsync("defaultCell");
@@ -228,8 +227,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             _mockProcessManager.Verify(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", 
                 It.Is<GetRowHeaderItemsRequest>(r => 
                     r.AutomationId == "defaultCell" &&
-                    r.WindowTitle == "" &&
-                    r.ProcessId == 0), 30), Times.Once);
+                    r.WindowTitle == ""), 30), Times.Once);
 
             _output.WriteLine("GetRowHeaderItemsAsync with default parameters test passed");
         }
@@ -285,9 +283,9 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             };
 
             _mockProcessManager.Setup(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 30))
-                        .Returns(Task.FromResult(columnHeadersResult));
+                        .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(columnHeadersResult)));
             _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), 30))
-                        .Returns(Task.FromResult(rowHeadersResult));
+                        .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(rowHeadersResult)));
 
             // Act
             var columnResult = await _service.GetColumnHeaderItemsAsync(cellId, "TestApplication", null, 30);
@@ -318,9 +316,9 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             // Arrange
             var expectedResult = new ElementSearchResult { Elements = new List<UIAutomationMCP.Models.ElementInfo>() };
             _mockProcessManager.Setup(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 30))
-                        .Returns(Task.FromResult(expectedResult));
+                        .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
             _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), 30))
-                        .Returns(Task.FromResult(expectedResult));
+                        .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
 
             // Act
             await _service.GetColumnHeaderItemsAsync("testCell", "TestApp", null, 30);
@@ -359,9 +357,9 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             // Arrange
             var expectedResult = new ElementSearchResult { Elements = new List<UIAutomationMCP.Models.ElementInfo>() };
             _mockProcessManager.Setup(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), timeoutSeconds))
-                        .Returns(Task.FromResult(expectedResult));
+                        .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
             _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), timeoutSeconds))
-                        .Returns(Task.FromResult(expectedResult));
+                        .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
 
             // Act
             await _service.GetColumnHeaderItemsAsync("timeoutTestCell", "TestApp", null, timeoutSeconds);
@@ -401,9 +399,9 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             };
 
             _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", It.IsAny<GetRowHeadersRequest>(), 30))
-                        .Returns(Task.FromResult(rowHeadersResult));
+                        .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(rowHeadersResult)));
             _mockProcessManager.Setup(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 30))
-                        .Returns(Task.FromResult(columnHeaderItemsResult));
+                        .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(columnHeaderItemsResult)));
 
             // Act
             var rowHeadersResponse = await _service.GetRowHeadersAsync("table1", "TestApp", null, 30);

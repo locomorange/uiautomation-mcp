@@ -6,6 +6,7 @@ using UIAutomationMCP.Server.Tools;
 using UIAutomationMCP.Models.Results;
 using Xunit.Abstractions;
 using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Models.Logging;
 
 namespace UIAutomationMCP.Tests.UnitTests
 {
@@ -93,7 +94,6 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Data = new TransformCapabilitiesResult
                 {
                     Success = true,
-                    AutomationId = "window1",
                     CanMove = true,
                     CanResize = true,
                     CanRotate = false
@@ -128,7 +128,6 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Data = new TransformCapabilitiesResult
                 {
                     Success = true,
-                    AutomationId = "element1",
                     CanMove = canMove,
                     CanResize = canResize,
                     CanRotate = canRotate

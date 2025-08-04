@@ -544,18 +544,7 @@ namespace UIAutomationMCP.Tests.Tools
             var resultObject = new TextInfoResult
             {
                 Success = true,
-                AutomationId = "textElement",
-                // WindowTitle not available in ElementSearchResult,
-                Text = "Sample text content",
-                TextLength = 19,
-                IsReadOnly = false,
-                IsPasswordField = false,
-                IsMultiline = false,
-                CanSelectText = true,
-                CanEditText = true,
-                HasText = true,
-                TextPattern = "TextPattern",
-                InputType = "text"
+                Text = "Sample text content"
             };
             var serverResponse = new ServerEnhancedResponse<TextInfoResult>
             {

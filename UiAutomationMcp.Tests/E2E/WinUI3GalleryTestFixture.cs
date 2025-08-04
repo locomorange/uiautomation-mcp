@@ -37,7 +37,7 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Try to launch by name
-                await tools.LaunchApplicationByName("WinUI 3 Gallery", timeoutSeconds: LaunchTimeoutSeconds);
+                await tools.LaunchApplication(application: "WinUI 3 Gallery", timeoutSeconds: LaunchTimeoutSeconds);
                 
                 // Wait a bit for the app to fully initialize
                 await Task.Delay(3000);

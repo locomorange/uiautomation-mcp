@@ -6,6 +6,7 @@ using UIAutomationMCP.Server.Tools;
 using UIAutomationMCP.Models.Results;
 using Xunit.Abstractions;
 using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Models.Logging;
 
 namespace UIAutomationMCP.Tests.UnitTests
 {

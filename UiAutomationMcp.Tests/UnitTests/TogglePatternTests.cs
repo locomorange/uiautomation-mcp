@@ -50,7 +50,6 @@ namespace UIAutomationMCP.Tests.UnitTests
             var mockItemContainer = new Mock<IItemContainerService>();
             var mockSynchronizedInput = new Mock<ISynchronizedInputService>();
             var mockEventMonitor = new Mock<IEventMonitorService>();
-            var mockSubprocessExecutor = new Mock<IOperationExecutor>();
 
             _tools = new UIAutomationTools(
                 mockAppLauncher.Object,

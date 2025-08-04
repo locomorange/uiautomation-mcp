@@ -110,10 +110,10 @@ namespace UIAutomationMCP.Tests.UnitTests.Operations
 
             // Assert
             Assert.NotNull(request);
-            Assert.Equal(elementId, request.Parameters["elementId"]);
-            Assert.Equal(windowTitle, request.Parameters["windowTitle"]);
-            Assert.Equal(row, request.Parameters["row"]);
-            Assert.Equal(column, request.Parameters["column"]);
+            Assert.Equal(elementId, ((Dictionary<string, object>)request.Parameters)["elementId"]);
+            Assert.Equal(windowTitle, ((Dictionary<string, object>)request.Parameters)["windowTitle"]);
+            Assert.Equal(row, ((Dictionary<string, object>)request.Parameters)["row"]);
+            Assert.Equal(column, ((Dictionary<string, object>)request.Parameters)["column"]);
         }
 
         [Fact]
@@ -136,8 +136,8 @@ namespace UIAutomationMCP.Tests.UnitTests.Operations
 
             // Assert
             Assert.NotNull(request);
-            Assert.Equal(elementId, request.Parameters["elementId"]);
-            Assert.Equal(processId, request.Parameters["processId"]);
+            Assert.Equal(elementId, ((Dictionary<string, object>)request.Parameters)["elementId"]);
+            Assert.Equal(processId, ((Dictionary<string, object>)request.Parameters)["processId"]);
         }
 
         public void Dispose()
