@@ -12,18 +12,18 @@ namespace UIAutomationMCP.Server.Infrastructure
     /// <summary>
     /// Base class for all UI Automation services providing unified execution patterns with type-safe metadata
     /// </summary>
-    public abstract class BaseUIAutomationService<TMetadata> 
+    public abstract class BaseUIAutomationService<TMetadata>
         where TMetadata : ServiceMetadata, new()
     {
         protected readonly IProcessManager _processManager;
         protected readonly ILogger _logger;
-        
+
         protected BaseUIAutomationService(IProcessManager processManager, ILogger logger)
         {
             _processManager = processManager ?? throw new ArgumentNullException(nameof(processManager));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-        
+
         /// <summary>
         /// Execute a service operation with unified error handling, logging, and response creation
         /// </summary>
@@ -37,7 +37,7 @@ namespace UIAutomationMCP.Server.Infrastructure
             where TResult : notnull
         {
             var context = new ServiceContext(methodName, timeoutSeconds);
-            
+
             try
             {
                 // 1. Unified validation
@@ -46,13 +46,13 @@ namespace UIAutomationMCP.Server.Infrastructure
                 {
                     return CreateValidationErrorResponse<TResult>(validation, context);
                 }
-                
+
                 // 2. Unified logging - start
                 LogOperationStart(operationName, context);
-                
+
                 // 3. Execute operation in Worker process
                 var result = await _processManager.ExecuteWorkerOperationAsync<TRequest, TResult>(operationName, request, timeoutSeconds);
-                
+
                 // 4. Handle result
                 if (result.Success)
                 {
@@ -76,7 +76,7 @@ namespace UIAutomationMCP.Server.Infrastructure
                 CleanupLogs(context.OperationId);
             }
         }
-        
+
         /// <summary>
         /// Execute a service operation in Monitor process with unified error handling, logging, and response creation
         /// </summary>
@@ -90,7 +90,7 @@ namespace UIAutomationMCP.Server.Infrastructure
             where TResult : notnull
         {
             var context = new ServiceContext(methodName, timeoutSeconds);
-            
+
             try
             {
                 // 1. Unified validation
@@ -99,13 +99,13 @@ namespace UIAutomationMCP.Server.Infrastructure
                 {
                     return CreateValidationErrorResponse<TResult>(validation, context);
                 }
-                
+
                 // 2. Unified logging - start
                 LogOperationStart(operationName, context);
-                
+
                 // 3. Execute operation in Monitor process
                 var result = await _processManager.ExecuteMonitorOperationAsync<TRequest, TResult>(operationName, request, timeoutSeconds);
-                
+
                 // 4. Handle result
                 if (result.Success)
                 {
@@ -129,23 +129,23 @@ namespace UIAutomationMCP.Server.Infrastructure
                 CleanupLogs(context.OperationId);
             }
         }
-        
+
         /// <summary>
         /// Validate request - override for custom validation logic
         /// </summary>
         protected virtual ValidationResult ValidateRequest<TRequest>(
-            TRequest request, 
+            TRequest request,
             Func<TRequest, ValidationResult>? customValidation = null)
         {
             return customValidation?.Invoke(request) ?? ValidationResult.Success;
         }
-        
+
         #region Response Creation
-        
+
         private ServerEnhancedResponse<TResult> CreateSuccessResponse<TResult>(
-            TResult data, 
-            IServiceContext context, 
-            string methodName, 
+            TResult data,
+            IServiceContext context,
+            string methodName,
             int timeoutSeconds)
         {
             return new ServerEnhancedResponse<TResult>
@@ -172,13 +172,13 @@ namespace UIAutomationMCP.Server.Infrastructure
                 }
             };
         }
-        
+
         private ServerEnhancedResponse<TResult> CreateValidationErrorResponse<TResult>(
-            ValidationResult validation, 
+            ValidationResult validation,
             IServiceContext context)
         {
             var errorMessage = $"Validation failed: {string.Join(", ", validation.Errors)}";
-            
+
             return new ServerEnhancedResponse<TResult>
             {
                 Success = false,
@@ -203,11 +203,11 @@ namespace UIAutomationMCP.Server.Infrastructure
                 }
             };
         }
-        
+
         private ServerEnhancedResponse<TResult> CreateOperationErrorResponse<TResult>(
-            ServiceOperationResult<TResult> result, 
-            IServiceContext context, 
-            string methodName, 
+            ServiceOperationResult<TResult> result,
+            IServiceContext context,
+            string methodName,
             int timeoutSeconds)
         {
             return new ServerEnhancedResponse<TResult>
@@ -234,11 +234,11 @@ namespace UIAutomationMCP.Server.Infrastructure
                 }
             };
         }
-        
+
         private ServerEnhancedResponse<TResult> CreateUnhandledErrorResponse<TResult>(
-            Exception ex, 
-            IServiceContext context, 
-            string methodName, 
+            Exception ex,
+            IServiceContext context,
+            string methodName,
             int timeoutSeconds)
         {
             return new ServerEnhancedResponse<TResult>
@@ -265,11 +265,11 @@ namespace UIAutomationMCP.Server.Infrastructure
                 }
             };
         }
-        
+
         #endregion
-        
+
         #region Metadata Creation - Type-safe and extensible
-        
+
         /// <summary>
         /// Create success metadata - override in derived classes for service-specific information
         /// </summary>
@@ -283,7 +283,7 @@ namespace UIAutomationMCP.Server.Infrastructure
                 MethodName = context.MethodName
             };
         }
-        
+
         /// <summary>
         /// Create validation error metadata
         /// </summary>
@@ -297,7 +297,7 @@ namespace UIAutomationMCP.Server.Infrastructure
                 MethodName = context.MethodName
             };
         }
-        
+
         /// <summary>
         /// Get server version in a Native AOT compatible way
         /// </summary>
@@ -306,12 +306,12 @@ namespace UIAutomationMCP.Server.Infrastructure
             // Native AOT compatible version retrieval
             // Uses compile-time constant from project file
             return typeof(BaseUIAutomationService<>).Assembly
-                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion 
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
                 ?? typeof(BaseUIAutomationService<>).Assembly
-                .GetCustomAttribute<AssemblyVersionAttribute>()?.Version 
+                .GetCustomAttribute<AssemblyVersionAttribute>()?.Version
                 ?? "1.0.0";
         }
-        
+
         /// <summary>
         /// Create operation error metadata
         /// </summary>
@@ -325,7 +325,7 @@ namespace UIAutomationMCP.Server.Infrastructure
                 MethodName = context.MethodName
             };
         }
-        
+
         /// <summary>
         /// Create unhandled error metadata
         /// </summary>
@@ -339,45 +339,45 @@ namespace UIAutomationMCP.Server.Infrastructure
                 MethodName = context.MethodName
             };
         }
-        
+
         /// <summary>
         /// Get the operation type for this service - implement in derived classes
         /// </summary>
         protected abstract string GetOperationType();
-        
+
         #endregion
-        
+
         #region Logging
-        
+
         private void LogOperationStart(string operationName, IServiceContext context)
         {
-            _logger.LogInformationWithOperation(context.OperationId, 
+            _logger.LogInformationWithOperation(context.OperationId,
                 $"Starting {operationName} operation via {context.MethodName}");
         }
-        
+
         private void LogOperationSuccess(string operationName, IServiceContext context)
         {
-            _logger.LogInformationWithOperation(context.OperationId, 
+            _logger.LogInformationWithOperation(context.OperationId,
                 $"Successfully completed {operationName} operation in {context.Stopwatch.Elapsed.TotalMilliseconds:F2}ms");
         }
-        
+
         private void LogOperationError(string operationName, string error, IServiceContext context)
         {
-            _logger.LogError("Operation {OperationName} failed: {Error} (OperationId: {OperationId})", 
+            _logger.LogError("Operation {OperationName} failed: {Error} (OperationId: {OperationId})",
                 operationName, error, context.OperationId);
         }
-        
+
         private void LogUnhandledException(string operationName, Exception ex, IServiceContext context)
         {
             _logger.LogErrorWithOperation(context.OperationId, ex,
                 $"Unhandled exception in {operationName} operation");
         }
-        
+
         private void CleanupLogs(string operationId)
         {
             LogCollectorExtensions.Instance.ClearLogs(operationId);
         }
-        
+
         #endregion
     }
 }

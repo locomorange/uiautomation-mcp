@@ -28,14 +28,14 @@ namespace UIAutomationMCP.Server.Infrastructure
         {
             _logger = logger;
             _workerExecutor = new SubprocessExecutor(
-                loggerFactory.CreateLogger<SubprocessExecutor>(), 
+                loggerFactory.CreateLogger<SubprocessExecutor>(),
                 workerPath,
                 shutdownCts);
 
             if (!string.IsNullOrEmpty(monitorPath))
             {
                 _monitorExecutor = new SubprocessExecutor(
-                    loggerFactory.CreateLogger<SubprocessExecutor>(), 
+                    loggerFactory.CreateLogger<SubprocessExecutor>(),
                     monitorPath,
                     shutdownCts);
             }
@@ -47,7 +47,7 @@ namespace UIAutomationMCP.Server.Infrastructure
                 _monitorExecutor.SetLogMessageCallback(ProcessLogMessage);
             }
 
-            _logger.LogInformation("ProcessManager initialized - Worker: {WorkerPath}, Monitor: {MonitorPath}", 
+            _logger.LogInformation("ProcessManager initialized - Worker: {WorkerPath}, Monitor: {MonitorPath}",
                 workerPath, monitorPath ?? "Not configured");
         }
 
@@ -85,8 +85,8 @@ namespace UIAutomationMCP.Server.Infrastructure
         /// Execute operation in Worker process
         /// </summary>
         public async Task<ServiceOperationResult<TResult>> ExecuteWorkerOperationAsync<TRequest, TResult>(
-            string operationName, 
-            TRequest request, 
+            string operationName,
+            TRequest request,
             int timeoutSeconds = 60)
             where TRequest : notnull
             where TResult : notnull
@@ -95,7 +95,7 @@ namespace UIAutomationMCP.Server.Infrastructure
                 throw new ObjectDisposedException(nameof(ProcessManager));
 
             _logger.LogDebug("Executing Worker operation: {OperationName}", operationName);
-            
+
             return await ((IOperationExecutor)_workerExecutor).ExecuteAsync<TRequest, TResult>(
                 operationName, request, timeoutSeconds);
         }
@@ -104,8 +104,8 @@ namespace UIAutomationMCP.Server.Infrastructure
         /// Execute operation in Monitor process
         /// </summary>
         public async Task<ServiceOperationResult<TResult>> ExecuteMonitorOperationAsync<TRequest, TResult>(
-            string operationName, 
-            TRequest request, 
+            string operationName,
+            TRequest request,
             int timeoutSeconds = 60)
             where TRequest : notnull
             where TResult : notnull
@@ -120,7 +120,7 @@ namespace UIAutomationMCP.Server.Infrastructure
             }
 
             _logger.LogDebug("Executing Monitor operation: {OperationName}", operationName);
-            
+
             return await ((IOperationExecutor)_monitorExecutor).ExecuteAsync<TRequest, TResult>(
                 operationName, request, timeoutSeconds);
         }
@@ -129,8 +129,8 @@ namespace UIAutomationMCP.Server.Infrastructure
         /// Default execution - routes to Worker process for compatibility
         /// </summary>
         public async Task<ServiceOperationResult<TResult>> ExecuteAsync<TRequest, TResult>(
-            string operationName, 
-            TRequest request, 
+            string operationName,
+            TRequest request,
             int timeoutSeconds = 60)
             where TRequest : notnull
             where TResult : notnull

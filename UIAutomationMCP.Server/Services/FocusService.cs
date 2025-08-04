@@ -19,11 +19,11 @@ namespace UIAutomationMCP.Server.Services
         protected override string GetOperationType() => "focus";
 
         public async Task<ServerEnhancedResponse<ActionResult>> SetFocusAsync(
-            string? automationId = null, 
-            string? name = null, 
-            string? controlType = null, 
-            string? requiredPattern = null, 
-            long? windowHandle = null, 
+            string? automationId = null,
+            string? name = null,
+            string? controlType = null,
+            string? requiredPattern = null,
+            long? windowHandle = null,
             int timeoutSeconds = 30)
         {
             var request = new SetFocusRequest
@@ -50,7 +50,7 @@ namespace UIAutomationMCP.Server.Services
             if (data is ActionResult actionResult)
             {
                 metadata.FocusSuccessful = actionResult.Success;
-                
+
                 // Extract focus target information from request context if available
                 // Note: In a more advanced implementation, we could access the original request
                 // through the context to populate target element information

@@ -34,7 +34,7 @@ namespace UIAutomationMCP.Server.Services
                 {
                     _mcpEndpoint = mcpEndpoint;
                     _mcpEndpointAvailable = true;
-                    
+
                     // Send any pending logs
                     while (_pendingLogs.Count > 0)
                     {
@@ -57,14 +57,14 @@ namespace UIAutomationMCP.Server.Services
                 lock (_lock)
                 {
                     _pendingLogs.Enqueue(message);
-                    
+
                     // Limit queue size to prevent memory issues
                     while (_pendingLogs.Count > 1000)
                     {
                         _pendingLogs.Dequeue();
                     }
                 }
-                
+
                 // Fallback to stderr logging for now
                 await LogToStderrFallback(message);
             }

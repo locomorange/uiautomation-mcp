@@ -33,15 +33,15 @@ namespace UIAutomationMCP.Server.Services
             try
             {
                 _logger.LogDebug("Capturing all UI elements with scope 'children', includeDetails: {IncludeDetails}", includeDetails);
-                
-                var request = new SearchElementsRequest 
-                { 
+
+                var request = new SearchElementsRequest
+                {
                     Scope = "children", // Search only direct children of desktop (windows)
-                    MaxResults = 1000, 
+                    MaxResults = 1000,
                     IncludeDetails = includeDetails, // Now configurable for focus detection
                     BypassCache = true // Force fresh data - essential for detecting new elements
                 };
-                
+
                 var result = await ExecuteServiceOperationAsync<SearchElementsRequest, SearchElementsResult>(
                     "SearchElements", request, nameof(CaptureAllElements), timeoutSeconds);
 
@@ -69,34 +69,34 @@ namespace UIAutomationMCP.Server.Services
             // Get WindowHandle lists (filter out null handles)
             var beforeHandles = beforeElements.Where(e => e.WindowHandle.HasValue).Select(e => e.WindowHandle!.Value).ToList();
             var afterHandles = afterElements.Where(e => e.WindowHandle.HasValue).Select(e => e.WindowHandle!.Value).ToList();
-            
+
             _logger.LogDebug("Before HWNDs: [{BeforeHandles}]", string.Join(", ", beforeHandles.Take(10).Select(h => $"0x{h:X}")));
             _logger.LogDebug("After HWNDs: [{AfterHandles}]", string.Join(", ", afterHandles.Take(10).Select(h => $"0x{h:X}")));
-            
+
             // Find new WindowHandles that appeared after launch
             var newHandles = new HashSet<long>();
-            
+
             // Simple approach: if a WindowHandle appears more times in after than before, it's new
             var beforeHandleCounts = beforeHandles.GroupBy(h => h).ToDictionary(g => g.Key, g => g.Count());
             var afterHandleCounts = afterHandles.GroupBy(h => h).ToDictionary(g => g.Key, g => g.Count());
-            
+
             foreach (var (handle, afterCount) in afterHandleCounts)
             {
                 var beforeCount = beforeHandleCounts.GetValueOrDefault(handle, 0);
                 if (afterCount > beforeCount)
                 {
                     newHandles.Add(handle);
-                    _logger.LogInformation("HWND 0x{Handle:X} increased from {Before} to {After} windows - marking as new", 
+                    _logger.LogInformation("HWND 0x{Handle:X} increased from {Before} to {After} windows - marking as new",
                         handle, beforeCount, afterCount);
                 }
             }
-            
+
             // Return all elements with new WindowHandles
             var newElements = afterElements.Where(e => e.WindowHandle.HasValue && newHandles.Contains(e.WindowHandle.Value)).ToList();
-            
-            _logger.LogInformation("Before: {BeforeCount} windows, After: {AfterCount} windows, New HWNDs: [{NewHandles}], New elements: {NewCount}", 
+
+            _logger.LogInformation("Before: {BeforeCount} windows, After: {AfterCount} windows, New HWNDs: [{NewHandles}], New elements: {NewCount}",
                 beforeElements.Count, afterElements.Count, string.Join(", ", newHandles.Select(h => $"0x{h:X}")), newElements.Count);
-            
+
             return newElements;
         }
 
@@ -111,24 +111,24 @@ namespace UIAutomationMCP.Server.Services
                 var beforeFocusElements = beforeElements
                     .Where(e => e.Details != null && e.WindowHandle.HasValue)
                     .ToList();
-                    
+
                 var afterFocusElements = afterElements
                     .Where(e => e.Details != null && e.WindowHandle.HasValue)
                     .ToList();
 
-                _logger.LogDebug("Checking focus changes: Before={BeforeCount} elements with details, After={AfterCount} elements with details", 
+                _logger.LogDebug("Checking focus changes: Before={BeforeCount} elements with details, After={AfterCount} elements with details",
                     beforeFocusElements.Count, afterFocusElements.Count);
 
                 // Find elements that gained focus (HasKeyboardFocus changed from false to true)
                 var activatedWindowHandles = new HashSet<long>();
-                
+
                 foreach (var afterElement in afterFocusElements)
                 {
                     if (afterElement.Details!.HasKeyboardFocus)
                     {
                         // Find corresponding element in before state
-                        var beforeElement = beforeFocusElements.FirstOrDefault(e => 
-                            e.WindowHandle == afterElement.WindowHandle && 
+                        var beforeElement = beforeFocusElements.FirstOrDefault(e =>
+                            e.WindowHandle == afterElement.WindowHandle &&
                             e.AutomationId == afterElement.AutomationId &&
                             e.Name == afterElement.Name &&
                             e.ControlType == afterElement.ControlType);
@@ -137,7 +137,7 @@ namespace UIAutomationMCP.Server.Services
                         if (beforeElement == null || !beforeElement.Details!.HasKeyboardFocus)
                         {
                             activatedWindowHandles.Add(afterElement.WindowHandle!.Value);
-                            _logger.LogInformation("HWND 0x{Handle:X} gained focus - element: {Name} ({ControlType})", 
+                            _logger.LogInformation("HWND 0x{Handle:X} gained focus - element: {Name} ({ControlType})",
                                 afterElement.WindowHandle.Value, afterElement.Name, afterElement.ControlType);
                         }
                     }
@@ -149,12 +149,12 @@ namespace UIAutomationMCP.Server.Services
                     var activatedElements = afterElements
                         .Where(e => e.WindowHandle.HasValue && activatedWindowHandles.Contains(e.WindowHandle.Value))
                         .ToList();
-                    
-                    _logger.LogInformation("Found {Count} activated windows: [{Handles}], returning {ElementCount} elements", 
+
+                    _logger.LogInformation("Found {Count} activated windows: [{Handles}], returning {ElementCount} elements",
                         activatedWindowHandles.Count,
                         string.Join(", ", activatedWindowHandles.Select(h => $"0x{h:X}")),
                         activatedElements.Count);
-                    
+
                     return activatedElements;
                 }
 
@@ -172,9 +172,9 @@ namespace UIAutomationMCP.Server.Services
         /// Wait for new elements to appear after application launch
         /// </summary>
         private async Task<List<ElementInfo>> WaitForNewElements(
-            List<ElementInfo> beforeElements, 
-            string appName, 
-            int maxWaitMs, 
+            List<ElementInfo> beforeElements,
+            string appName,
+            int maxWaitMs,
             CancellationToken cancellationToken)
         {
             var stopwatch = Stopwatch.StartNew();
@@ -192,9 +192,9 @@ namespace UIAutomationMCP.Server.Services
                     // Merge new elements, avoiding duplicates by WindowHandle
                     var existingWindowHandles = new HashSet<long>(allNewElements.Where(e => e.WindowHandle.HasValue).Select(e => e.WindowHandle!.Value));
                     var uniqueNewElements = newElements.Where(e => e.WindowHandle.HasValue && !existingWindowHandles.Contains(e.WindowHandle.Value)).ToList();
-                    
+
                     allNewElements.AddRange(uniqueNewElements);
-                    _logger.LogDebug("Found {NewCount} new unique elements, total: {TotalCount}", 
+                    _logger.LogDebug("Found {NewCount} new unique elements, total: {TotalCount}",
                         uniqueNewElements.Count, allNewElements.Count);
 
                     // If we found elements, wait a bit more for additional elements to appear
@@ -213,9 +213,9 @@ namespace UIAutomationMCP.Server.Services
                 await Task.Delay(500, cancellationToken); // Longer delay to allow UI elements to be created
             }
 
-            _logger.LogInformation("Element detection completed for {AppName}: found {Count} new elements in {ElapsedMs}ms", 
+            _logger.LogInformation("Element detection completed for {AppName}: found {Count} new elements in {ElapsedMs}ms",
                 appName, allNewElements.Count, stopwatch.ElapsedMilliseconds);
-            
+
             return allNewElements;
         }
 
@@ -229,7 +229,7 @@ namespace UIAutomationMCP.Server.Services
                 return ProcessLaunchResponse.CreateError("Application is required");
 
             var detectionStopwatch = Stopwatch.StartNew();
-            
+
             try
             {
                 // Capture baseline UI elements before launching (needed for all launch types)
@@ -244,7 +244,7 @@ namespace UIAutomationMCP.Server.Services
                     _logger.LogInformation("Win32 launch succeeded for {Application}, now detecting new elements", application);
                     // Wait a moment for the application to create its UI elements
                     await Task.Delay(1000, cancellationToken);
-                    
+
                     var result = await WaitForElementsAndCreateResponse(beforeElements, application, "Win32", detectionStopwatch, cancellationToken);
                     if (result != null) return result; // Returns either success or detection failure error
                 }
@@ -256,7 +256,7 @@ namespace UIAutomationMCP.Server.Services
                     _logger.LogInformation("UWP launch succeeded for {Application}, now detecting new elements", application);
                     // Wait a moment for the application to create its UI elements
                     await Task.Delay(1000, cancellationToken);
-                    
+
                     var result = await WaitForElementsAndCreateResponse(beforeElements, application, "UWP", detectionStopwatch, cancellationToken);
                     if (result != null) return result; // Returns either success or detection failure error
                 }
@@ -271,16 +271,16 @@ namespace UIAutomationMCP.Server.Services
                         _logger.LogInformation("Protocol URI launch succeeded for {Application}, now detecting new elements", application);
                         // Protocol URIs may take longer to show UI elements
                         await Task.Delay(2000, cancellationToken);
-                        
+
                         var result = await WaitForElementsAndCreateResponse(beforeElements, application, "Protocol URI", detectionStopwatch, cancellationToken);
                         if (result != null) return result; // Returns either success or detection failure error
                     }
                 }
 
                 detectionStopwatch.Stop();
-                _logger.LogWarning("All launch methods failed for application: {Application}. Win32 success: {Win32Success}, UWP success: {UwpSuccess}, Protocol success: {ProtocolSuccess}", 
+                _logger.LogWarning("All launch methods failed for application: {Application}. Win32 success: {Win32Success}, UWP success: {UwpSuccess}, Protocol success: {ProtocolSuccess}",
                     application, win32LaunchResult.LaunchSucceeded, uwpLaunchResult.LaunchSucceeded, protocolLaunchResult.LaunchSucceeded);
-                
+
                 var methods = IsProtocolUri(application) ? "Win32, UWP, and Protocol URI methods" : "Win32 and UWP methods";
                 return ProcessLaunchResponse.CreateError($"Failed to launch application: {application}. All launch methods unsuccessful ({methods}).");
             }
@@ -299,7 +299,7 @@ namespace UIAutomationMCP.Server.Services
         {
             // Protocol URIs typically have the format "protocol:" 
             // Common examples: ms-settings:, mailto:, http:, https:, tel:, etc.
-            return application.Contains(':') && 
+            return application.Contains(':') &&
                    !Path.IsPathFullyQualified(application) && // Not a file path like C:\Program Files\...
                    !application.StartsWith("\\\\"); // Not a UNC path
         }
@@ -329,7 +329,7 @@ namespace UIAutomationMCP.Server.Services
             _logger.LogInformation("No new windows detected for {LaunchType} launch, checking for focus changes", launchType);
             var currentElements = await CaptureAllElements(10, cancellationToken, includeDetails: true);
             var activatedElements = FindActivatedElements(beforeElements, currentElements);
-            
+
             if (activatedElements.Any())
             {
                 detectionStopwatch.Stop();
@@ -346,8 +346,8 @@ namespace UIAutomationMCP.Server.Services
         /// Process new elements and create success response with most relevant window
         /// </summary>
         private ProcessLaunchResponse CreateSuccessResponseFromElements(
-            List<ElementInfo> newElements, 
-            string application, 
+            List<ElementInfo> newElements,
+            string application,
             string launchType,
             long elapsedMs)
         {
@@ -358,19 +358,19 @@ namespace UIAutomationMCP.Server.Services
 
             // Group elements by WindowHandle and find the most relevant window
             var elementsByWindow = newElements.Where(e => e.WindowHandle.HasValue).GroupBy(e => e.WindowHandle!.Value).ToList();
-            
+
             if (elementsByWindow.Any())
             {
                 // Simply select the window with the most elements
                 var mostRelevantGroup = elementsByWindow
                     .OrderByDescending(g => g.Count())
                     .First();
-                
+
                 var windowHandle = mostRelevantGroup.Key;
                 var relevantElements = mostRelevantGroup.ToList();
                 var processId = relevantElements.FirstOrDefault()?.ProcessId ?? 0;
-                
-                _logger.LogInformation("Successfully launched {LaunchType} application: {Application}, HWND: 0x{WindowHandle:X}, PID: {ProcessId}, found {Count} elements for this window (total new: {TotalCount}) in {ElapsedMs}ms", 
+
+                _logger.LogInformation("Successfully launched {LaunchType} application: {Application}, HWND: 0x{WindowHandle:X}, PID: {ProcessId}, found {Count} elements for this window (total new: {TotalCount}) in {ElapsedMs}ms",
                     launchType, application, windowHandle, processId, relevantElements.Count, newElements.Count, elapsedMs);
                 return ProcessLaunchResponse.CreateSuccess(processId, application, false, relevantElements.FirstOrDefault()?.Name, windowHandle);
             }
@@ -386,7 +386,7 @@ namespace UIAutomationMCP.Server.Services
             {
                 var relevantProcesses = new HashSet<int>();
                 var processes = Process.GetProcesses();
-                
+
                 foreach (var process in processes)
                 {
                     try
@@ -405,7 +405,7 @@ namespace UIAutomationMCP.Server.Services
                         process.Dispose();
                     }
                 }
-                
+
                 return relevantProcesses;
             }
             catch (Exception ex)
@@ -420,10 +420,10 @@ namespace UIAutomationMCP.Server.Services
             try
             {
                 if (process.HasExited) return false;
-                
+
                 var processName = process.ProcessName;
                 var cleanAppName = Path.GetFileNameWithoutExtension(appName);
-                
+
                 return processName.Contains(cleanAppName, StringComparison.OrdinalIgnoreCase) ||
                        processName.Contains(appName, StringComparison.OrdinalIgnoreCase);
             }
@@ -438,7 +438,7 @@ namespace UIAutomationMCP.Server.Services
             try
             {
                 _logger.LogInformation("Attempting Win32 launch for {Application}", application);
-                
+
                 // Check if it's a full path
                 if (Path.IsPathFullyQualified(application) && File.Exists(application))
                 {
@@ -523,7 +523,7 @@ namespace UIAutomationMCP.Server.Services
         private Task<LaunchResult> LaunchWin32Process(string executablePath, string? arguments, string? workingDirectory, CancellationToken cancellationToken)
         {
             var appName = Path.GetFileNameWithoutExtension(executablePath);
-            
+
             try
             {
                 _logger.LogDebug("Starting Win32 process launch for {Application}", appName);
@@ -540,11 +540,11 @@ namespace UIAutomationMCP.Server.Services
                 var process = Process.Start(processInfo);
                 var launchedProcessId = process?.Id;
                 _logger.LogInformation("Started Win32 process {Application} with PID {ProcessId}", appName, launchedProcessId);
-                
+
                 // Verify the process is still running
                 if (process != null && !process.HasExited)
                 {
-                    _logger.LogInformation("Process {ProcessId} is running with name: {ProcessName}", 
+                    _logger.LogInformation("Process {ProcessId} is running with name: {ProcessName}",
                         process.Id, process.ProcessName);
                 }
                 else
@@ -569,7 +569,7 @@ namespace UIAutomationMCP.Server.Services
             try
             {
                 _logger.LogInformation("Attempting Protocol URI launch for {ProtocolUri}", protocolUri);
-                
+
                 var processInfo = new ProcessStartInfo
                 {
                     FileName = protocolUri,
@@ -579,7 +579,7 @@ namespace UIAutomationMCP.Server.Services
 
                 var process = Process.Start(processInfo);
                 _logger.LogInformation("Started protocol URI {ProtocolUri}", protocolUri);
-                
+
                 // Return success with process info (process may be null for protocol URIs)
                 return Task.FromResult(LaunchResult.Success(process?.Id ?? 0, protocolUri));
             }
@@ -672,7 +672,7 @@ namespace UIAutomationMCP.Server.Services
         protected override ApplicationLauncherMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
         {
             var metadata = base.CreateSuccessMetadata(data, context);
-            
+
             if (data is ProcessLaunchResponse response)
             {
                 metadata.ApplicationPath = response.ProcessName ?? "";
@@ -684,7 +684,7 @@ namespace UIAutomationMCP.Server.Services
                 metadata.ActionPerformed = "applicationLaunched";
                 metadata.UsedUIAutomationDetection = true; // Now using element-based detection with SearchElements
             }
-            
+
             return metadata;
         }
     }
@@ -700,10 +700,10 @@ namespace UIAutomationMCP.Server.Services
         public string? AppId { get; set; }
         public string? ErrorMessage { get; set; }
 
-        public static LaunchResult Success(int? processId = null, string? appId = null) => 
+        public static LaunchResult Success(int? processId = null, string? appId = null) =>
             new() { LaunchSucceeded = true, LaunchedProcessId = processId, AppId = appId };
 
-        public static LaunchResult Failure(string error) => 
+        public static LaunchResult Failure(string error) =>
             new() { LaunchSucceeded = false, ErrorMessage = error };
     }
 }

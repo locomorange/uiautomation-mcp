@@ -22,7 +22,7 @@ namespace UIAutomationMCP.Server.Services
             // Check for cancellation before starting
             if (stoppingToken.IsCancellationRequested)
                 return;
-                
+
             // Wait longer for MCP server to fully initialize
             try
             {
