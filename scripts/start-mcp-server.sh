@@ -13,7 +13,8 @@ echo "=== MCP Server Background Starter ==="
 # Check if server is already running
 if [ -f "$PID_FILE" ]; then
     OLD_PID=$(cat "$PID_FILE")
-    if tasklist //fi "PID eq $OLD_PID" 2>/dev/null | grep -q "$OLD_PID"; then
+    # Check if process is running using PowerShell for Windows compatibility
+    if powershell -Command "Get-Process -Id $OLD_PID -ErrorAction SilentlyContinue" >/dev/null 2>&1; then
         echo "Server already running (PID: $OLD_PID)"
         echo "Use './stop-mcp-server.sh' to stop it first"
         exit 1
@@ -69,7 +70,8 @@ try {
 # Check final status
 if [ -f "$PID_FILE" ]; then
     SERVER_PID=$(cat "$PID_FILE")
-    if tasklist //fi "PID eq $SERVER_PID" 2>/dev/null | grep -q "$SERVER_PID"; then
+    # Check if process is running using PowerShell for Windows compatibility
+    if powershell -Command "Get-Process -Id $SERVER_PID -ErrorAction SilentlyContinue" >/dev/null 2>&1; then
         echo "Script completed - server is running in background (PID: $SERVER_PID)"
     else
         echo "❌ Server process no longer running"

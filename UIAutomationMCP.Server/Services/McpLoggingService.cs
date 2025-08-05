@@ -228,7 +228,7 @@ namespace UIAutomationMCP.Server.Services
 
             try
             {
-                var timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff");
+                var timestamp = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff");
                 var processId = Environment.ProcessId;
                 var logLine = $"[{timestamp}] [{level}] PID:{processId} [{source}] [{logger}] {message}";
 
@@ -240,9 +240,14 @@ namespace UIAutomationMCP.Server.Services
                     writer.WriteLine(logLine);
                 }
             }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or DirectoryNotFoundException)
+            {
+                // Log file logging errors to the fallback logger to aid troubleshooting
+                _fallbackLogger.LogError(ex, "Failed to write log entry to debug file '{DebugLogPath}'.", _debugLogPath);
+            }
             catch
             {
-                // Silently ignore file logging errors to avoid disrupting main functionality
+                // Silently ignore other exceptions to avoid disrupting main functionality
             }
         }
     }

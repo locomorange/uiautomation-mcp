@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 
@@ -29,9 +28,11 @@ namespace UIAutomationMCP.Server.Helpers
             var fileInfo = new FileInfo(executablePath);
 
             // Resolve symbolic links recursively (returnFinalTarget: true)
+            // ResolveLinkTarget returns null if the file is not a symbolic link.
             var resolvedTarget = fileInfo.ResolveLinkTarget(returnFinalTarget: true);
 
             // Return the directory of the resolved executable
+            // Note: resolvedTarget will be null if the file is not a symbolic link, handled by null-coalescing operator
             var resolvedPath = resolvedTarget?.FullName ?? fileInfo.FullName;
             if (string.IsNullOrEmpty(resolvedPath))
                 throw new InvalidOperationException("Unable to determine the resolved executable path.");
@@ -221,7 +222,7 @@ namespace UIAutomationMCP.Server.Helpers
         {
             var parentDir = Directory.GetParent(baseDir);
             var executableBaseName = Path.GetFileNameWithoutExtension(executableName);
-            
+
             // Extract the component name (Worker or Monitor) from the full executable name
             string componentName;
             if (executableName.Contains("Worker"))
@@ -251,7 +252,14 @@ namespace UIAutomationMCP.Server.Helpers
                 Path.Combine(parentDir?.Parent?.FullName ?? baseDir, executableBaseName, executableName)
             };
 
-            return productionPaths.FirstOrDefault(File.Exists);
+            foreach (var path in productionPaths)
+            {
+                if (File.Exists(path))
+                {
+                    return path;
+                }
+            }
+            return null;
         }
 
         /// <summary>
@@ -285,12 +293,12 @@ namespace UIAutomationMCP.Server.Helpers
             {
                 var parentDir = Directory.GetParent(actualBaseDir);
                 var executableBaseName = Path.GetFileNameWithoutExtension(executableName);
-                
+
                 // Determine component name for WinGet structure
-                string componentName = executableName.Contains("Worker") ? "Worker" : 
-                                     executableName.Contains("Monitor") ? "Monitor" : 
+                string componentName = executableName.Contains("Worker") ? "Worker" :
+                                     executableName.Contains("Monitor") ? "Monitor" :
                                      executableBaseName;
-                
+
                 searchedPaths.AddRange(new[]
                 {
                     Path.Combine(actualBaseDir, executableName),
@@ -336,12 +344,12 @@ namespace UIAutomationMCP.Server.Helpers
             {
                 var parentDir = Directory.GetParent(actualBaseDir);
                 var executableBaseName = Path.GetFileNameWithoutExtension(executableName);
-                
+
                 // Determine component name for WinGet structure
-                string componentName = executableName.Contains("Worker") ? "Worker" : 
-                                     executableName.Contains("Monitor") ? "Monitor" : 
+                string componentName = executableName.Contains("Worker") ? "Worker" :
+                                     executableName.Contains("Monitor") ? "Monitor" :
                                      executableBaseName;
-                
+
                 searchedPaths.AddRange(new[]
                 {
                     Path.Combine(actualBaseDir, executableName),
