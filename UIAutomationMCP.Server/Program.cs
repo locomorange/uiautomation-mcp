@@ -122,7 +122,7 @@ namespace UIAutomationMCP.Server
                 var monitorPath = ExecutablePathResolver.ResolveMonitorPath(baseDir);
 
                 // Validate worker path (required)
-                if (workerPath == null || !Directory.Exists(workerPath))
+                if (workerPath == null || (!File.Exists(workerPath) && !Directory.Exists(workerPath)))
                 {
                     var searchedPaths = ExecutablePathResolver.GetSearchedPaths("UIAutomationMCP.Subprocess.Worker", baseDir);
 

@@ -220,17 +220,35 @@ namespace UIAutomationMCP.Server.Helpers
         private static string? ResolveProductionPath(string executableName, string baseDir)
         {
             var parentDir = Directory.GetParent(baseDir);
+            var executableBaseName = Path.GetFileNameWithoutExtension(executableName);
+            
+            // Extract the component name (Worker or Monitor) from the full executable name
+            string componentName;
+            if (executableName.Contains("Worker"))
+            {
+                componentName = "Worker";
+            }
+            else if (executableName.Contains("Monitor"))
+            {
+                componentName = "Monitor";
+            }
+            else
+            {
+                componentName = executableBaseName;
+            }
 
             var productionPaths = new[]
             {
                 // Same directory as server
                 Path.Combine(baseDir, executableName),
+                // WinGet structure: Server/uiautomation-mcp.exe, Worker/UIAutomationMCP.Subprocess.Worker.exe
+                Path.Combine(parentDir?.FullName ?? baseDir, componentName, executableName),
                 // Subdirectory under current directory
-                Path.Combine(baseDir, Path.GetFileNameWithoutExtension(executableName), executableName),
-                // Parent directory structure
-                Path.Combine(parentDir?.FullName ?? baseDir, Path.GetFileNameWithoutExtension(executableName), executableName),
+                Path.Combine(baseDir, executableBaseName, executableName),
+                // Parent directory structure with full name
+                Path.Combine(parentDir?.FullName ?? baseDir, executableBaseName, executableName),
                 // Grandparent directory structure
-                Path.Combine(parentDir?.Parent?.FullName ?? baseDir, Path.GetFileNameWithoutExtension(executableName), executableName)
+                Path.Combine(parentDir?.Parent?.FullName ?? baseDir, executableBaseName, executableName)
             };
 
             return productionPaths.FirstOrDefault(File.Exists);
@@ -266,12 +284,21 @@ namespace UIAutomationMCP.Server.Helpers
             else
             {
                 var parentDir = Directory.GetParent(actualBaseDir);
+                var executableBaseName = Path.GetFileNameWithoutExtension(executableName);
+                
+                // Determine component name for WinGet structure
+                string componentName = executableName.Contains("Worker") ? "Worker" : 
+                                     executableName.Contains("Monitor") ? "Monitor" : 
+                                     executableBaseName;
+                
                 searchedPaths.AddRange(new[]
                 {
                     Path.Combine(actualBaseDir, executableName),
-                    Path.Combine(actualBaseDir, Path.GetFileNameWithoutExtension(executableName), executableName),
-                    Path.Combine(parentDir?.FullName ?? actualBaseDir, Path.GetFileNameWithoutExtension(executableName), executableName),
-                    Path.Combine(parentDir?.Parent?.FullName ?? actualBaseDir, Path.GetFileNameWithoutExtension(executableName), executableName)
+                    // WinGet structure
+                    Path.Combine(parentDir?.FullName ?? actualBaseDir, componentName, executableName),
+                    Path.Combine(actualBaseDir, executableBaseName, executableName),
+                    Path.Combine(parentDir?.FullName ?? actualBaseDir, executableBaseName, executableName),
+                    Path.Combine(parentDir?.Parent?.FullName ?? actualBaseDir, executableBaseName, executableName)
                 });
             }
 
@@ -308,12 +335,21 @@ namespace UIAutomationMCP.Server.Helpers
             else
             {
                 var parentDir = Directory.GetParent(actualBaseDir);
+                var executableBaseName = Path.GetFileNameWithoutExtension(executableName);
+                
+                // Determine component name for WinGet structure
+                string componentName = executableName.Contains("Worker") ? "Worker" : 
+                                     executableName.Contains("Monitor") ? "Monitor" : 
+                                     executableBaseName;
+                
                 searchedPaths.AddRange(new[]
                 {
                     Path.Combine(actualBaseDir, executableName),
-                    Path.Combine(actualBaseDir, Path.GetFileNameWithoutExtension(executableName), executableName),
-                    Path.Combine(parentDir?.FullName ?? actualBaseDir, Path.GetFileNameWithoutExtension(executableName), executableName),
-                    Path.Combine(parentDir?.Parent?.FullName ?? actualBaseDir, Path.GetFileNameWithoutExtension(executableName), executableName)
+                    // WinGet structure
+                    Path.Combine(parentDir?.FullName ?? actualBaseDir, componentName, executableName),
+                    Path.Combine(actualBaseDir, executableBaseName, executableName),
+                    Path.Combine(parentDir?.FullName ?? actualBaseDir, executableBaseName, executableName),
+                    Path.Combine(parentDir?.Parent?.FullName ?? actualBaseDir, executableBaseName, executableName)
                 });
             }
 
