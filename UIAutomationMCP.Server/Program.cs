@@ -176,15 +176,15 @@ namespace UIAutomationMCP.Server
                     throw new InvalidOperationException("UIAutomationMCP.Subprocess.Worker project directory not found. Ensure the project is in the solution.");
                 }
 
-                // Validate monitor path (optional - will fallback to worker if not available)
+                // Validate monitor path (required)
                 if (monitorPath != null && !Directory.Exists(monitorPath))
                 {
-                    logger.LogWarning("Monitor project directory not found. Monitor operations will fallback to Worker process.");
-                    monitorPath = null;
-                }
+                    logger.LogWarning("Monitor project directory not found. Base directory: {BaseDir}", baseDir);
+                    throw new InvalidOperationException("UIAutomationMCP.Subprocess.Monitor project directory not found. Ensure the project is in the solution.");
+               }
 
                 logger.LogInformation("ProcessManager configured - Worker: {WorkerPath}, Monitor: {MonitorPath}",
-                    workerPath, monitorPath ?? "Not available (fallback to Worker)");
+                    workerPath, monitorPath);
 
                 var shutdownCts = provider.GetRequiredService<CancellationTokenSource>();
                 var processManager = new ProcessManager(logger, loggerFactory, shutdownCts, workerPath, monitorPath);

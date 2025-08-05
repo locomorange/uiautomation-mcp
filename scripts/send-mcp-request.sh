@@ -75,8 +75,8 @@ if (\$processes.Count -eq 0) {
 $JSON_REQUEST
 '@ | Out-File -FilePath \$requestFile -Encoding UTF8
 
-# Use a new dotnet process to send the request
-Write-Host '📡 Connecting to server...'
+# Create a lightweight client connection to send the request
+Write-Host '📡 Sending request to running server...'
 \$tempProcess = \$null
 try {
     \$psi = New-Object System.Diagnostics.ProcessStartInfo
@@ -90,14 +90,8 @@ try {
     
     \$tempProcess = [System.Diagnostics.Process]::Start(\$psi)
     
-    # Register cleanup handler for process termination
-    Register-EngineEvent PowerShell.Exiting -Action { 
-        if (\$tempProcess -and !\$tempProcess.HasExited) { 
-            \$tempProcess.Kill() 
-        } 
-    } | Out-Null
-    
-    Start-Sleep -Seconds 2
+    # Shorter startup time since we're just sending one request
+    Start-Sleep -Seconds 1
     
     # Read request from file and send
     \$jsonRequest = Get-Content \$requestFile -Raw
