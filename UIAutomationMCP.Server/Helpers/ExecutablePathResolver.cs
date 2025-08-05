@@ -32,7 +32,10 @@ namespace UIAutomationMCP.Server.Helpers
             var resolvedTarget = fileInfo.ResolveLinkTarget(returnFinalTarget: true);
 
             // Return the directory of the resolved executable
-            return Path.GetDirectoryName(resolvedTarget?.FullName ?? fileInfo.FullName)!;
+            var resolvedPath = resolvedTarget?.FullName ?? fileInfo.FullName;
+            if (string.IsNullOrEmpty(resolvedPath))
+                throw new InvalidOperationException("Unable to determine the resolved executable path.");
+            return Path.GetDirectoryName(resolvedPath)!;
         }
 
         /// <summary>
@@ -152,7 +155,7 @@ namespace UIAutomationMCP.Server.Helpers
         /// </summary>
         /// <param name="path">Path to check</param>
         /// <returns>True if directory contains any .csproj file</returns>
-        public static bool IsAnyProjectDirectory(string path)
+        public static bool IsDotNetProjectDirectory(string path)
         {
             if (!Directory.Exists(path))
                 return false;

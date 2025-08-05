@@ -319,7 +319,7 @@ namespace UIAutomationMCP.Server.Helpers
                 ProcessStartInfo startInfo;
 
                 // Check if it's a project directory (for development)
-                if (ExecutablePathResolver.IsAnyProjectDirectory(_executablePath))
+                if (ExecutablePathResolver.IsDotNetProjectDirectory(_executablePath))
                 {
                     // Use dotnet run for project directory with Release configuration
                     startInfo = new ProcessStartInfo

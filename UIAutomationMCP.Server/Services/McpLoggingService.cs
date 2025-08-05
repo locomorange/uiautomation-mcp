@@ -33,7 +33,8 @@ namespace UIAutomationMCP.Server.Services
             if (_fileLoggingEnabled)
             {
                 _fallbackLogger.LogInformation("Debug file logging enabled: {LogPath}", _debugLogPath);
-                LogToFile("INFO", "McpLoggingService", $"Debug file logging initialized - Server PID: {Environment.ProcessId}", "server");
+                // Log file initialization in the background to avoid blocking startup
+                Task.Run(() => LogToFile("INFO", "McpLoggingService", $"Debug file logging initialized - Server PID: {Environment.ProcessId}", "server"));
             }
         }
 
@@ -231,10 +232,12 @@ namespace UIAutomationMCP.Server.Services
                 var processId = Environment.ProcessId;
                 var logLine = $"[{timestamp}] [{level}] PID:{processId} [{source}] [{logger}] {message}";
 
-                // Thread-safe file writing
+                // Thread-safe file writing using FileStream for atomicity
                 lock (_lock)
                 {
-                    File.AppendAllText(_debugLogPath, logLine + Environment.NewLine);
+                    using var stream = new FileStream(_debugLogPath, FileMode.Append, FileAccess.Write, FileShare.Read);
+                    using var writer = new StreamWriter(stream);
+                    writer.WriteLine(logLine);
                 }
             }
             catch
