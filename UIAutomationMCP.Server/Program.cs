@@ -75,92 +75,27 @@ namespace UIAutomationMCP.Server
             {
                 var logger = provider.GetRequiredService<ILogger<ProcessManager>>();
                 var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-                var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                var baseDir = ExecutablePathResolver.GetExecutableRealPath();
+                logger.LogInformation("ProcessManager initialization - Base directory: {BaseDir}", baseDir);
 
-                // Determine if we're in development or production
-                var isDevelopment = baseDir.Contains("bin\\Debug") || baseDir.Contains("bin\\Release");
-
-                string? workerPath = null;
-                string? monitorPath = null;
+                // Use centralized path resolution
+                var isDevelopment = ExecutablePathResolver.IsDevEnvironment(baseDir);
+                logger.LogInformation("Development mode: {IsDevelopment}", isDevelopment);
 
                 if (isDevelopment)
                 {
-                    // In development, look for the Worker and Monitor projects
-                    var solutionDir = Directory.GetParent(baseDir)?.Parent?.Parent?.Parent?.Parent?.FullName;
-                    if (solutionDir != null)
-                    {
-                        var config = baseDir.Contains("Debug") ? "Debug" : "Release";
-
-                        // Worker path - prioritize built executable
-                        workerPath = Path.Combine(solutionDir, "UIAutomationMCP.Subprocess.Worker", "bin", config, "net9.0-windows", "win-x64", "UIAutomationMCP.Subprocess.Worker.exe");
-                        if (!File.Exists(workerPath))
-                        {
-                            // Fallback to project directory for 'dotnet run'
-                            workerPath = Path.Combine(solutionDir, "UIAutomationMCP.Subprocess.Worker");
-                        }
-
-                        // Monitor path - prioritize built executable  
-                        monitorPath = Path.Combine(solutionDir, "UIAutomationMCP.Subprocess.Monitor", "bin", config, "net9.0-windows", "win-x64", "UIAutomationMCP.Subprocess.Monitor.exe");
-                        if (!File.Exists(monitorPath))
-                        {
-                            // Fallback to directory if exe not found
-                            monitorPath = Path.Combine(solutionDir, "UIAutomationMCP.Subprocess.Monitor");
-                        }
-                    }
+                    var solutionDir = ExecutablePathResolver.FindSolutionDirectory(baseDir);
+                    logger.LogInformation("Solution directory: {SolutionDir}", solutionDir ?? "null");
                 }
-                else
-                {
-                    // In production/tool deployment, try multiple possible locations
-                    var parentDir = Directory.GetParent(baseDir);
-                    var searchPaths = new[]
-                    {
-                        // Same directory as server
-                        Path.Combine(baseDir, "UIAutomationMCP.Subprocess.Worker.exe"),
-                        // Worker subdirectory under current directory
-                        Path.Combine(baseDir, "Worker", "UIAutomationMCP.Subprocess.Worker.exe"),
-                        // Parent Worker directory (for publish structure like publish/aot-win-x64/Server -> publish/aot-win-x64/Worker)
-                        Path.Combine(parentDir?.FullName ?? baseDir, "Worker", "UIAutomationMCP.Subprocess.Worker.exe"),
-                        // Grandparent Worker directory (for nested publish structure)
-                        Path.Combine(parentDir?.Parent?.FullName ?? baseDir, "Worker", "UIAutomationMCP.Subprocess.Worker.exe")
-                    };
 
-                    workerPath = searchPaths.FirstOrDefault(File.Exists);
-
-                    // Monitor search paths
-                    var monitorSearchPaths = new[]
-                    {
-                        // Same directory as server
-                        Path.Combine(baseDir, "UIAutomationMCP.Subprocess.Monitor.exe"),
-                        // Monitor subdirectory under current directory
-                        Path.Combine(baseDir, "Monitor", "UIAutomationMCP.Subprocess.Monitor.exe"),
-                        // Parent Monitor directory (for publish structure like publish/aot-win-x64/Server -> publish/aot-win-x64/Monitor)
-                        Path.Combine(parentDir?.FullName ?? baseDir, "Monitor", "UIAutomationMCP.Subprocess.Monitor.exe"),
-                        // Grandparent Monitor directory (for nested publish structure)
-                        Path.Combine(parentDir?.Parent?.FullName ?? baseDir, "Monitor", "UIAutomationMCP.Subprocess.Monitor.exe")
-                    };
-
-                    monitorPath = monitorSearchPaths.FirstOrDefault(File.Exists);
-                }
+                // Resolve Worker and Monitor paths using centralized logic
+                var workerPath = ExecutablePathResolver.ResolveWorkerPath(baseDir);
+                var monitorPath = ExecutablePathResolver.ResolveMonitorPath(baseDir);
 
                 // Validate worker path (required)
                 if (workerPath == null || (!File.Exists(workerPath) && !Directory.Exists(workerPath)))
                 {
-                    var searchedPaths = new List<string>();
-
-                    // Add all the paths we searched
-                    var parentDir = Directory.GetParent(baseDir);
-                    searchedPaths.Add(Path.Combine(baseDir, "UIAutomationMCP.Subprocess.Worker.exe"));
-                    searchedPaths.Add(Path.Combine(baseDir, "Worker", "UIAutomationMCP.Subprocess.Worker.exe"));
-                    searchedPaths.Add(Path.Combine(parentDir?.FullName ?? baseDir, "Worker", "UIAutomationMCP.Subprocess.Worker.exe"));
-                    searchedPaths.Add(Path.Combine(parentDir?.Parent?.FullName ?? baseDir, "Worker", "UIAutomationMCP.Subprocess.Worker.exe"));
-
-                    var solutionDir = Directory.GetParent(baseDir)?.Parent?.Parent?.Parent?.Parent?.FullName;
-                    if (solutionDir != null)
-                    {
-                        searchedPaths.Add(Path.Combine(solutionDir, "UIAutomationMCP.Subprocess.Worker"));
-                        var config = baseDir.Contains("Debug") ? "Debug" : "Release";
-                        searchedPaths.Add(Path.Combine(solutionDir, "UIAutomationMCP.Subprocess.Worker", "bin", config, "net9.0-windows", "UIAutomationMCP.Subprocess.Worker.exe"));
-                    }
+                    var searchedPaths = ExecutablePathResolver.GetSearchedPaths("UIAutomationMCP.Subprocess.Worker", baseDir);
 
                     logger.LogError("Worker not found. Base directory: {BaseDir}. Searched paths: {SearchedPaths}",
                         baseDir, string.Join(", ", searchedPaths));
@@ -168,15 +103,19 @@ namespace UIAutomationMCP.Server
                     throw new InvalidOperationException($"UIAutomationMCP.Worker not found. Searched: {string.Join(", ", searchedPaths)}");
                 }
 
-                // Validate monitor path (optional - will fallback to worker if not available)
-                if (monitorPath != null && !File.Exists(monitorPath) && !Directory.Exists(monitorPath))
+                // Validate monitor path (required)
+                if (monitorPath == null || (!File.Exists(monitorPath) && !Directory.Exists(monitorPath)))
                 {
-                    logger.LogWarning("Monitor process not found at {MonitorPath}. Monitor operations will fallback to Worker process.", monitorPath);
-                    monitorPath = null;
+                    var searchedPaths = ExecutablePathResolver.GetSearchedPaths("UIAutomationMCP.Subprocess.Monitor", baseDir);
+
+                    logger.LogError("Monitor not found. Base directory: {BaseDir}. Searched paths: {SearchedPaths}",
+                        baseDir, string.Join(", ", searchedPaths));
+
+                    throw new InvalidOperationException($"UIAutomationMCP.Monitor not found. Searched: {string.Join(", ", searchedPaths)}");
                 }
 
                 logger.LogInformation("ProcessManager configured - Worker: {WorkerPath}, Monitor: {MonitorPath}",
-                    workerPath, monitorPath ?? "Not available (fallback to Worker)");
+                    workerPath, monitorPath);
 
                 var shutdownCts = provider.GetRequiredService<CancellationTokenSource>();
                 var processManager = new ProcessManager(logger, loggerFactory, shutdownCts, workerPath, monitorPath);

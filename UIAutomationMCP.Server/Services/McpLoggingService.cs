@@ -16,11 +16,25 @@ namespace UIAutomationMCP.Server.Services
         private readonly object _lock = new();
         private volatile bool _mcpEndpointAvailable = false;
 
+        // Debug file logging feature
+        private readonly bool _fileLoggingEnabled;
+        private readonly string _debugLogPath;
+
         public McpLoggingService(ILogger<McpLoggingService> fallbackLogger, IMcpEndpoint? mcpEndpoint = null)
         {
             _fallbackLogger = fallbackLogger;
             _mcpEndpoint = mcpEndpoint;
             _mcpEndpointAvailable = mcpEndpoint != null;
+
+            // Check environment variable for debug file logging (disabled by default)
+            _fileLoggingEnabled = Environment.GetEnvironmentVariable("MCP_DEBUG_FILE_LOGGING")?.ToLowerInvariant() == "true";
+            _debugLogPath = Environment.GetEnvironmentVariable("MCP_DEBUG_LOG_PATH") ?? "mcp-debug.log";
+
+            if (_fileLoggingEnabled)
+            {
+                _fallbackLogger.LogInformation("Debug file logging enabled: {LogPath}", _debugLogPath);
+                LogToFile("INFO", "McpLoggingService", $"Debug file logging initialized - Server PID: {Environment.ProcessId}", "server");
+            }
         }
 
         /// <summary>
@@ -195,7 +209,38 @@ namespace UIAutomationMCP.Server.Services
                     message.Source, message.Logger, message.Message);
             }
 
+            // Also log to debug file if enabled
+            if (_fileLoggingEnabled)
+            {
+                LogToFile(message.Level.ToString().ToUpperInvariant(), message.Logger, message.Message, message.Source);
+            }
+
             await Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Log message to debug file (only when MCP_DEBUG_FILE_LOGGING=true)
+        /// </summary>
+        private void LogToFile(string level, string logger, string message, string source)
+        {
+            if (!_fileLoggingEnabled) return;
+
+            try
+            {
+                var timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff");
+                var processId = Environment.ProcessId;
+                var logLine = $"[{timestamp}] [{level}] PID:{processId} [{source}] [{logger}] {message}";
+
+                // Thread-safe file writing
+                lock (_lock)
+                {
+                    File.AppendAllText(_debugLogPath, logLine + Environment.NewLine);
+                }
+            }
+            catch
+            {
+                // Silently ignore file logging errors to avoid disrupting main functionality
+            }
         }
     }
 }

@@ -4,6 +4,8 @@
 
 ### Shell Script Testing Method (Git Bash Background Operation)
 
+**⚠️ Limitation**: This method also creates new server instances per request, making it unsuitable for session persistence testing.
+
 ### Background Server Management
 
 For advanced development workflows, these shell scripts provide complete background server management with comprehensive logging:

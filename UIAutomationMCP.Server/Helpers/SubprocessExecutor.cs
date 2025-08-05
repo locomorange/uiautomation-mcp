@@ -14,7 +14,7 @@ namespace UIAutomationMCP.Server.Helpers
     public class SubprocessExecutor : IOperationExecutor, IDisposable, IAsyncDisposable
     {
         private readonly ILogger<SubprocessExecutor> _logger;
-        private readonly string _workerPath;
+        private readonly string _executablePath;
         private readonly CancellationTokenSource _shutdownCts;
         private Process? _workerProcess;
         private readonly SemaphoreSlim _semaphore = new(1, 1);
@@ -25,10 +25,10 @@ namespace UIAutomationMCP.Server.Helpers
         // Log relay callback
         private Func<string, Task>? _logMessageCallback;
 
-        public SubprocessExecutor(ILogger<SubprocessExecutor> logger, string workerPath, CancellationTokenSource shutdownCts)
+        public SubprocessExecutor(ILogger<SubprocessExecutor> logger, string executablePath, CancellationTokenSource shutdownCts)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _workerPath = !string.IsNullOrWhiteSpace(workerPath) ? workerPath : throw new ArgumentException("Worker path cannot be null or empty", nameof(workerPath));
+            _executablePath = !string.IsNullOrWhiteSpace(executablePath) ? executablePath : throw new ArgumentException("Executable path cannot be null or empty", nameof(executablePath));
             _shutdownCts = shutdownCts ?? throw new ArgumentNullException(nameof(shutdownCts));
         }
 
@@ -307,7 +307,7 @@ namespace UIAutomationMCP.Server.Helpers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[SubprocessExecutor] Failed to ensure worker process is running. Worker path: {_workerPath}");
+                _logger.LogError(ex, $"[SubprocessExecutor] Failed to ensure worker process is running. Executable path: {_executablePath}");
                 throw new InvalidOperationException($"Failed to start or verify worker process: {ex.Message}", ex);
             }
         }
@@ -319,7 +319,7 @@ namespace UIAutomationMCP.Server.Helpers
                 ProcessStartInfo startInfo;
 
                 // Check if it's a project directory (for development)
-                if (Directory.Exists(_workerPath) && File.Exists(Path.Combine(_workerPath, "UIAutomationMCP.Worker.csproj")))
+                if (ExecutablePathResolver.IsAnyProjectDirectory(_executablePath))
                 {
                     // Use dotnet run for project directory with Release configuration
                     startInfo = new ProcessStartInfo
@@ -331,47 +331,47 @@ namespace UIAutomationMCP.Server.Helpers
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
                         CreateNoWindow = true,
-                        WorkingDirectory = _workerPath
+                        WorkingDirectory = _executablePath
                     };
                 }
-                else if (_workerPath.EndsWith(".dll"))
+                else if (_executablePath.EndsWith(".dll"))
                 {
                     // For .dll files, use dotnet to run them
-                    if (!File.Exists(_workerPath))
+                    if (!File.Exists(_executablePath))
                     {
-                        throw new FileNotFoundException($"Worker DLL not found at: {_workerPath}");
+                        throw new FileNotFoundException($"DLL not found at: {_executablePath}");
                     }
 
                     startInfo = new ProcessStartInfo
                     {
                         FileName = "dotnet",
-                        Arguments = $"\"{_workerPath}\"",
+                        Arguments = $"\"{_executablePath}\"",
                         UseShellExecute = false,
                         RedirectStandardInput = true,
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
                         CreateNoWindow = true,
-                        WorkingDirectory = Path.GetDirectoryName(_workerPath) ?? ""
+                        WorkingDirectory = Path.GetDirectoryName(_executablePath) ?? ""
                     };
                 }
                 else
                 {
                     // For executable files
-                    if (!File.Exists(_workerPath))
+                    if (!File.Exists(_executablePath))
                     {
-                        throw new FileNotFoundException($"Worker executable not found at: {_workerPath}");
+                        throw new FileNotFoundException($"Executable not found at: {_executablePath}");
                     }
 
                     startInfo = new ProcessStartInfo
                     {
-                        FileName = _workerPath,
+                        FileName = _executablePath,
                         Arguments = "",
                         UseShellExecute = false,
                         RedirectStandardInput = true,
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
                         CreateNoWindow = true,
-                        WorkingDirectory = Path.GetDirectoryName(_workerPath) ?? ""
+                        WorkingDirectory = Path.GetDirectoryName(_executablePath) ?? ""
                     };
                 }
 
@@ -412,9 +412,9 @@ namespace UIAutomationMCP.Server.Helpers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to start worker process: {WorkerPath}. StartInfo: FileName={FileName}, Arguments={Arguments}",
-                        _workerPath, startInfo.FileName, startInfo.Arguments);
-                    throw new InvalidOperationException($"Failed to start worker process: {_workerPath}", ex);
+                    _logger.LogError(ex, "Failed to start subprocess: {ExecutablePath}. StartInfo: FileName={FileName}, Arguments={Arguments}",
+                        _executablePath, startInfo.FileName, startInfo.Arguments);
+                    throw new InvalidOperationException($"Failed to start subprocess: {_executablePath}", ex);
                 }
 
                 // Wait longer for the process to start properly
@@ -423,16 +423,16 @@ namespace UIAutomationMCP.Server.Helpers
                 if (_workerProcess.HasExited)
                 {
                     var exitCode = _workerProcess.ExitCode;
-                    _logger.LogError("Worker process exited immediately with code: {ExitCode}", exitCode);
-                    throw new InvalidOperationException($"Worker process failed to start (exit code: {exitCode})");
+                    _logger.LogError("Subprocess exited immediately with code: {ExitCode}", exitCode);
+                    throw new InvalidOperationException($"Subprocess failed to start (exit code: {exitCode})");
                 }
 
-                _logger.LogInformation("Worker process started with PID: {ProcessId}", _workerProcess.Id);
+                _logger.LogInformation("Subprocess started with PID: {ProcessId}", _workerProcess.Id);
             }
             catch (Exception ex) when (!(ex is FileNotFoundException))
             {
-                _logger.LogError(ex, "Unexpected error while starting worker process: {WorkerPath}", _workerPath);
-                throw new InvalidOperationException($"Failed to start worker process due to unexpected error: {ex.Message}", ex);
+                _logger.LogError(ex, "Unexpected error while starting subprocess: {ExecutablePath}", _executablePath);
+                throw new InvalidOperationException($"Failed to start subprocess due to unexpected error: {ex.Message}", ex);
             }
         }
 
