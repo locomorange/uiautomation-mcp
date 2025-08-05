@@ -331,7 +331,7 @@ namespace UIAutomationMCP.Server.Helpers
                     // Detect configuration from the calling server's base directory
                     var baseDir = AppDomain.CurrentDomain.BaseDirectory;
                     var config = baseDir.Contains("Debug") ? "Debug" : "Release";
-                    
+
                     // Use dotnet run for project directory with detected configuration
                     startInfo = new ProcessStartInfo
                     {

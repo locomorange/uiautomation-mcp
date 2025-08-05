@@ -21,7 +21,7 @@ namespace UIAutomationMCP.Server
         private static string? FindSolutionDirectory(string startDir)
         {
             var current = new DirectoryInfo(startDir);
-            
+
             // Search up the directory tree for solution indicators
             while (current != null)
             {
@@ -30,17 +30,17 @@ namespace UIAutomationMCP.Server
                 {
                     return current.FullName;
                 }
-                
+
                 // Look for the Worker project directory as an indicator
                 var workerDir = Path.Combine(current.FullName, "UIAutomationMCP.Subprocess.Worker");
                 if (Directory.Exists(workerDir))
                 {
                     return current.FullName;
                 }
-                
+
                 current = current.Parent;
             }
-            
+
             return null;
         }
 
@@ -121,13 +121,13 @@ namespace UIAutomationMCP.Server
                     {
                         var workerProjectDir = Path.Combine(solutionDir, "UIAutomationMCP.Subprocess.Worker");
                         var monitorProjectDir = Path.Combine(solutionDir, "UIAutomationMCP.Subprocess.Monitor");
-                        
+
                         if (Directory.Exists(workerProjectDir))
                         {
                             workerPath = workerProjectDir;
                             logger.LogInformation("Using Worker project directory: {WorkerPath}", workerPath);
                         }
-                        
+
                         if (Directory.Exists(monitorProjectDir))
                         {
                             monitorPath = monitorProjectDir;
@@ -181,7 +181,7 @@ namespace UIAutomationMCP.Server
                 {
                     logger.LogWarning("Monitor project directory not found. Base directory: {BaseDir}", baseDir);
                     throw new InvalidOperationException("UIAutomationMCP.Subprocess.Monitor project directory not found. Ensure the project is in the solution.");
-               }
+                }
 
                 logger.LogInformation("ProcessManager configured - Worker: {WorkerPath}, Monitor: {MonitorPath}",
                     workerPath, monitorPath);
