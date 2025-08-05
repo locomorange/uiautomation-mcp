@@ -321,11 +321,12 @@ namespace UIAutomationMCP.Server.Helpers
                 // Check if it's a project directory (for development)
                 if (ExecutablePathResolver.IsDotNetProjectDirectory(_executablePath))
                 {
-                    // Use dotnet run for project directory with Release configuration
+                    // Use dotnet run for project directory with current configuration
+                    var config = ExecutablePathResolver.GetConfiguration(ExecutablePathResolver.GetExecutableRealPath());
                     startInfo = new ProcessStartInfo
                     {
                         FileName = "dotnet",
-                        Arguments = "run --configuration Release",
+                        Arguments = $"run --configuration {config}",
                         UseShellExecute = false,
                         RedirectStandardInput = true,
                         RedirectStandardOutput = true,

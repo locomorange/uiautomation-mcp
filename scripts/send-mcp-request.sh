@@ -75,8 +75,8 @@ if (\$processes.Count -eq 0) {
 $JSON_REQUEST
 '@ | Out-File -FilePath \$requestFile -Encoding UTF8
 
-# Use a new dotnet process to send the request
-Write-Host '📡 Connecting to server...'
+# Create a lightweight client connection to send the request
+Write-Host '📡 Sending request to running server...'
 \$tempProcess = \$null
 try {
     \$psi = New-Object System.Diagnostics.ProcessStartInfo
@@ -90,40 +90,27 @@ try {
     
     \$tempProcess = [System.Diagnostics.Process]::Start(\$psi)
     
-    # Register cleanup handler for process termination
-    Register-EngineEvent PowerShell.Exiting -Action { 
-        if (\$tempProcess -and !\$tempProcess.HasExited) { 
-            \$tempProcess.Kill() 
-        } 
-    } | Out-Null
-    
-    Start-Sleep -Seconds 2
+    # Shorter startup time since we're just sending one request
+    Start-Sleep -Seconds 1
     
     # Read request from file and send
     \$jsonRequest = Get-Content \$requestFile -Raw
     \$tempProcess.StandardInput.WriteLine(\$jsonRequest)
     \$tempProcess.StandardInput.Flush()
     
-    \$responseTask = \$tempProcess.StandardOutput.ReadLineAsync()
-    \$timeout = [System.Threading.Tasks.Task]::Delay(10000)
-    \$completedTask = [System.Threading.Tasks.Task]::WhenAny(\$responseTask, \$timeout).Result
+    # Wait for response from MCP server (no artificial timeout)
+    \$response = \$tempProcess.StandardOutput.ReadLine()
+    Write-Host '📥 Response received:'
+    Write-Host \$response
     
-    if (\$completedTask -eq \$responseTask) {
-        \$response = \$responseTask.Result
-        Write-Host '📥 Response received:'
-        Write-Host \$response
-        
-        # Try to format JSON nicely
-        try {
-            \$responseObj = \$response | ConvertFrom-Json
-            Write-Host ''
-            Write-Host '📋 Formatted response:' -ForegroundColor Cyan
-            \$responseObj | ConvertTo-Json -Depth 10
-        } catch {
-            Write-Host 'Could not format JSON response'
-        }
-    } else {
-        Write-Host '⚠️ Request timed out after 10 seconds'
+    # Try to format JSON nicely
+    try {
+        \$responseObj = \$response | ConvertFrom-Json
+        Write-Host ''
+        Write-Host '📋 Formatted response:' -ForegroundColor Cyan
+        \$responseObj | ConvertTo-Json -Depth 10
+    } catch {
+        Write-Host 'Could not format JSON response'
     }
     
 } catch {
