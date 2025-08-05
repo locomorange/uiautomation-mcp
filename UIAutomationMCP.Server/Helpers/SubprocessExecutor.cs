@@ -319,13 +319,24 @@ namespace UIAutomationMCP.Server.Helpers
                 ProcessStartInfo startInfo;
 
                 // Check if it's a project directory (for development)
-                if (Directory.Exists(_workerPath) && File.Exists(Path.Combine(_workerPath, "UIAutomationMCP.Worker.csproj")))
+                // Note: _workerPath can be either Worker or Monitor project directory
+                // Only treat as valid if the directory contains a Worker or Monitor project file
+                var projectFiles = Directory.Exists(_workerPath)
+                    ? Directory.GetFiles(_workerPath, "*Worker.csproj")
+                        .Concat(Directory.GetFiles(_workerPath, "*Monitor.csproj"))
+                        .ToArray()
+                    : Array.Empty<string>();
+                if (projectFiles.Length > 0)
                 {
-                    // Use dotnet run for project directory with Release configuration
+                    // Detect configuration from the calling server's base directory
+                    var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                    var config = baseDir.Contains("Debug") ? "Debug" : "Release";
+
+                    // Use dotnet run for project directory with detected configuration
                     startInfo = new ProcessStartInfo
                     {
                         FileName = "dotnet",
-                        Arguments = "run --configuration Release",
+                        Arguments = $"run --configuration {config}",
                         UseShellExecute = false,
                         RedirectStandardInput = true,
                         RedirectStandardOutput = true,

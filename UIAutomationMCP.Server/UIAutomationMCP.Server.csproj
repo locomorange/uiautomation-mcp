@@ -43,8 +43,8 @@
     <ProjectReference Include="..\UIAutomationMCP.Models\UIAutomationMCP.Models.csproj" />
   </ItemGroup>
 
-  <!-- Conditional references for Debug builds only (for easier debugging) -->
-  <ItemGroup Condition="'$(Configuration)' == 'Debug' AND '$(PublishAot)' != 'true'">
+  <!-- Conditional references for both Debug and Release builds (excluding PublishAot scenarios) -->
+  <ItemGroup Condition="'$(PublishAot)' != 'true'">
     <ProjectReference Include="..\UIAutomationMCP.Subprocess.Worker\UIAutomationMCP.Subprocess.Worker.csproj" />
     <ProjectReference Include="..\UIAutomationMCP.Subprocess.Monitor\UIAutomationMCP.Subprocess.Monitor.csproj" />
   </ItemGroup>
