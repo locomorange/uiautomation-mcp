@@ -104,83 +104,43 @@ namespace UIAutomationMCP.Server
             {
                 var logger = provider.GetRequiredService<ILogger<ProcessManager>>();
                 var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-                var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                var baseDir = ExecutablePathResolver.GetExecutableRealPath();
+                logger.LogInformation("ProcessManager initialization - Base directory: {BaseDir}", baseDir);
 
-                // Determine if we're in development or production
-                var isDevelopment = baseDir.Contains("bin\\Debug") || baseDir.Contains("bin\\Release");
-
-                string? workerPath = null;
-                string? monitorPath = null;
+                // Use centralized path resolution
+                var isDevelopment = ExecutablePathResolver.IsDevEnvironment(baseDir);
+                logger.LogInformation("Development mode: {IsDevelopment}", isDevelopment);
 
                 if (isDevelopment)
                 {
-                    // Simple approach: Use project directories directly
-                    // SubprocessExecutor will use 'dotnet run' which handles building automatically
-                    var solutionDir = FindSolutionDirectory(baseDir);
-                    if (solutionDir != null)
-                    {
-                        var workerProjectDir = Path.Combine(solutionDir, "UIAutomationMCP.Subprocess.Worker");
-                        var monitorProjectDir = Path.Combine(solutionDir, "UIAutomationMCP.Subprocess.Monitor");
-
-                        if (Directory.Exists(workerProjectDir))
-                        {
-                            workerPath = workerProjectDir;
-                            logger.LogInformation("Using Worker project directory: {WorkerPath}", workerPath);
-                        }
-
-                        if (Directory.Exists(monitorProjectDir))
-                        {
-                            monitorPath = monitorProjectDir;
-                            logger.LogInformation("Using Monitor project directory: {MonitorPath}", monitorPath);
-                        }
-                    }
+                    var solutionDir = ExecutablePathResolver.FindSolutionDirectory(baseDir);
+                    logger.LogInformation("Solution directory: {SolutionDir}", solutionDir ?? "null");
                 }
-                else
-                {
-                    // In production/tool deployment, try multiple possible locations
-                    var parentDir = Directory.GetParent(baseDir);
-                    var searchPaths = new[]
-                    {
-                        // Same directory as server
-                        Path.Combine(baseDir, "UIAutomationMCP.Subprocess.Worker.exe"),
-                        // Worker subdirectory under current directory
-                        Path.Combine(baseDir, "Worker", "UIAutomationMCP.Subprocess.Worker.exe"),
-                        // Parent Worker directory (for publish structure like publish/aot-win-x64/Server -> publish/aot-win-x64/Worker)
-                        Path.Combine(parentDir?.FullName ?? baseDir, "Worker", "UIAutomationMCP.Subprocess.Worker.exe"),
-                        // Grandparent Worker directory (for nested publish structure)
-                        Path.Combine(parentDir?.Parent?.FullName ?? baseDir, "Worker", "UIAutomationMCP.Subprocess.Worker.exe")
-                    };
 
-                    workerPath = searchPaths.FirstOrDefault(File.Exists);
-
-                    // Monitor search paths
-                    var monitorSearchPaths = new[]
-                    {
-                        // Same directory as server
-                        Path.Combine(baseDir, "UIAutomationMCP.Subprocess.Monitor.exe"),
-                        // Monitor subdirectory under current directory
-                        Path.Combine(baseDir, "Monitor", "UIAutomationMCP.Subprocess.Monitor.exe"),
-                        // Parent Monitor directory (for publish structure like publish/aot-win-x64/Server -> publish/aot-win-x64/Monitor)
-                        Path.Combine(parentDir?.FullName ?? baseDir, "Monitor", "UIAutomationMCP.Subprocess.Monitor.exe"),
-                        // Grandparent Monitor directory (for nested publish structure)
-                        Path.Combine(parentDir?.Parent?.FullName ?? baseDir, "Monitor", "UIAutomationMCP.Subprocess.Monitor.exe")
-                    };
-
-                    monitorPath = monitorSearchPaths.FirstOrDefault(File.Exists);
-                }
+                // Resolve Worker and Monitor paths using centralized logic
+                var workerPath = ExecutablePathResolver.ResolveWorkerPath(baseDir);
+                var monitorPath = ExecutablePathResolver.ResolveMonitorPath(baseDir);
 
                 // Validate worker path (required)
-                if (workerPath == null || !Directory.Exists(workerPath))
+                if (workerPath == null || (!File.Exists(workerPath) && !Directory.Exists(workerPath)))
                 {
-                    logger.LogError("Worker project directory not found. Base directory: {BaseDir}", baseDir);
-                    throw new InvalidOperationException("UIAutomationMCP.Subprocess.Worker project directory not found. Ensure the project is in the solution.");
+                    var searchedPaths = ExecutablePathResolver.GetSearchedPaths("UIAutomationMCP.Subprocess.Worker", baseDir);
+
+                    logger.LogError("Worker not found. Base directory: {BaseDir}. Searched paths: {SearchedPaths}",
+                        baseDir, string.Join(", ", searchedPaths));
+
+                    throw new InvalidOperationException($"UIAutomationMCP.Worker not found. Searched: {string.Join(", ", searchedPaths)}");
                 }
 
                 // Validate monitor path (required)
-                if (monitorPath != null && !Directory.Exists(monitorPath))
+                if (monitorPath == null || (!File.Exists(monitorPath) && !Directory.Exists(monitorPath)))
                 {
-                    logger.LogWarning("Monitor project directory not found. Base directory: {BaseDir}", baseDir);
-                    throw new InvalidOperationException("UIAutomationMCP.Subprocess.Monitor project directory not found. Ensure the project is in the solution.");
+                    var searchedPaths = ExecutablePathResolver.GetSearchedPaths("UIAutomationMCP.Subprocess.Monitor", baseDir);
+
+                    logger.LogError("Monitor not found. Base directory: {BaseDir}. Searched paths: {SearchedPaths}",
+                        baseDir, string.Join(", ", searchedPaths));
+
+                    throw new InvalidOperationException($"UIAutomationMCP.Monitor not found. Searched: {string.Join(", ", searchedPaths)}");
                 }
 
                 logger.LogInformation("ProcessManager configured - Worker: {WorkerPath}, Monitor: {MonitorPath}",

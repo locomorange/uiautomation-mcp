@@ -16,11 +16,26 @@ namespace UIAutomationMCP.Server.Services
         private readonly object _lock = new();
         private volatile bool _mcpEndpointAvailable = false;
 
+        // Debug file logging feature
+        private readonly bool _fileLoggingEnabled;
+        private readonly string _debugLogPath;
+
         public McpLoggingService(ILogger<McpLoggingService> fallbackLogger, IMcpEndpoint? mcpEndpoint = null)
         {
             _fallbackLogger = fallbackLogger;
             _mcpEndpoint = mcpEndpoint;
             _mcpEndpointAvailable = mcpEndpoint != null;
+
+            // Check environment variable for debug file logging (disabled by default)
+            _fileLoggingEnabled = Environment.GetEnvironmentVariable("MCP_DEBUG_FILE_LOGGING")?.ToLowerInvariant() == "true";
+            _debugLogPath = Environment.GetEnvironmentVariable("MCP_DEBUG_LOG_PATH") ?? "mcp-debug.log";
+
+            if (_fileLoggingEnabled)
+            {
+                _fallbackLogger.LogInformation("Debug file logging enabled: {LogPath}", _debugLogPath);
+                // Log file initialization in the background to avoid blocking startup
+                Task.Run(() => LogToFile("INFO", "McpLoggingService", $"Debug file logging initialized - Server PID: {Environment.ProcessId}", "server"));
+            }
         }
 
         /// <summary>
@@ -195,7 +210,45 @@ namespace UIAutomationMCP.Server.Services
                     message.Source, message.Logger, message.Message);
             }
 
+            // Also log to debug file if enabled
+            if (_fileLoggingEnabled)
+            {
+                LogToFile(message.Level.ToString().ToUpperInvariant(), message.Logger, message.Message, message.Source);
+            }
+
             await Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Log message to debug file (only when MCP_DEBUG_FILE_LOGGING=true)
+        /// </summary>
+        private void LogToFile(string level, string logger, string message, string source)
+        {
+            if (!_fileLoggingEnabled) return;
+
+            try
+            {
+                var timestamp = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff");
+                var processId = Environment.ProcessId;
+                var logLine = $"[{timestamp}] [{level}] PID:{processId} [{source}] [{logger}] {message}";
+
+                // Thread-safe file writing using FileStream for atomicity
+                lock (_lock)
+                {
+                    using var stream = new FileStream(_debugLogPath, FileMode.Append, FileAccess.Write, FileShare.Read);
+                    using var writer = new StreamWriter(stream);
+                    writer.WriteLine(logLine);
+                }
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or DirectoryNotFoundException)
+            {
+                // Log file logging errors to the fallback logger to aid troubleshooting
+                _fallbackLogger.LogError(ex, "Failed to write log entry to debug file '{DebugLogPath}'.", _debugLogPath);
+            }
+            catch
+            {
+                // Silently ignore other exceptions to avoid disrupting main functionality
+            }
         }
     }
 }

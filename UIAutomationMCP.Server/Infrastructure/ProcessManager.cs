@@ -114,10 +114,7 @@ namespace UIAutomationMCP.Server.Infrastructure
                 throw new ObjectDisposedException(nameof(ProcessManager));
 
             if (_monitorExecutor == null)
-            {
-                _logger.LogWarning("Monitor process not configured, falling back to Worker process for operation: {OperationName}", operationName);
-                return await ExecuteWorkerOperationAsync<TRequest, TResult>(operationName, request, timeoutSeconds);
-            }
+                throw new InvalidOperationException("Monitor process is required but not available");
 
             _logger.LogDebug("Executing Monitor operation: {OperationName}", operationName);
 
