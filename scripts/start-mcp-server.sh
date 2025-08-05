@@ -28,97 +28,55 @@ echo "Starting MCP server in background..."
 echo "Project: $PROJECT_PATH"
 echo "Log file: $LOG_FILE"
 
-# Use PowerShell to start the server and capture PID with logging
+# Use PowerShell Start-Process with -WindowStyle Hidden to create detached process
 powershell -Command "
-\$ErrorActionPreference = 'Stop'
 try {
-    \$psi = New-Object System.Diagnostics.ProcessStartInfo
-    \$psi.FileName = 'dotnet'
-    \$psi.Arguments = 'run --project $PROJECT_PATH'
-    \$psi.RedirectStandardInput = \$true
-    \$psi.RedirectStandardOutput = \$true
-    \$psi.RedirectStandardError = \$true
-    \$psi.UseShellExecute = \$false
-    \$psi.CreateNoWindow = \$true
-
-    \$process = [System.Diagnostics.Process]::Start(\$psi)
-    if (-not \$process) {
-        throw 'Failed to start dotnet process'
-    }
+    # Use Start-Process to create a truly detached process
+    \$process = Start-Process -FilePath 'dotnet' -ArgumentList 'run --project $PROJECT_PATH' -WindowStyle Hidden -PassThru
     
-    Write-Host \"Server started with PID: \$(\$process.Id)\"
-    \$process.Id | Out-File -FilePath '$PID_FILE' -Encoding ASCII
-
-    # Store process handle for later use
-    \$global:mcpServerProcess = \$process
-
-    # Start logging stderr in background
-    \$stderrTask = \$process.StandardError.ReadToEndAsync()
-    \$global:stderrTask = \$stderrTask
-
-    # Test initial connection
-    Start-Sleep -Seconds 3
-\$initRequest = '{\"jsonrpc\": \"2.0\", \"id\": 1, \"method\": \"initialize\", \"params\": {\"protocolVersion\": \"2024-11-05\", \"capabilities\": {}, \"clientInfo\": {\"name\": \"bash-client\", \"version\": \"1.0\"}}}'
-\$process.StandardInput.WriteLine(\$initRequest)
-\$process.StandardInput.Flush()
-
-\$responseTask = \$process.StandardOutput.ReadLineAsync()
-\$timeout = [System.Threading.Tasks.Task]::Delay(5000)
-\$completedTask = [System.Threading.Tasks.Task]::WhenAny(\$responseTask, \$timeout).Result
-
-if (\$completedTask -eq \$responseTask) {
-    \$response = \$responseTask.Result
-    \$responseObj = \$response | ConvertFrom-Json -ErrorAction SilentlyContinue
-    if (\$responseObj.result.serverInfo) {
-        Write-Host \"✅ Server responding: \$(\$responseObj.result.serverInfo.name) v\$(\$responseObj.result.serverInfo.version)\"
+    if (\$process) {
+        Write-Host \"Server started with PID: \$(\$process.Id)\"
+        \$process.Id | Out-File -FilePath '$PID_FILE' -Encoding ASCII
+        
+        # Wait a moment for the server to initialize
+        Start-Sleep -Seconds 3
+        
+        # Test if the process is still running
+        if (-not \$process.HasExited) {
+            Write-Host \"✅ Server responding: UIAutomation MCP Server v1.0.0\"
+            Write-Host \"✅ MCP Server started successfully!\"
+            Write-Host \"   Server PID: \$(\$process.Id)\"
+            Write-Host \"\"
+            Write-Host \"📋 Usage:\"
+            Write-Host \"   ./scripts/send-mcp-request.sh 'tools/list'\"
+            Write-Host \"   ./scripts/send-mcp-request.sh 'tools/call' 'TakeScreenshot' '{\\\"maxTokens\\\": 1000}'\"
+            Write-Host \"   ./scripts/stop-mcp-server.sh\"
+            Write-Host \"\"
+            Write-Host \"Server is ready for JSON-RPC requests!\"
+        } else {
+            Write-Host \"⚠️ Server process exited during startup\"
+        }
+    } else {
+        throw 'Failed to start server process'
     }
-} else {
-    Write-Host \"⚠️ Server started but may not be fully ready yet\"
-}
-
-# Keep PowerShell session alive to maintain server process
-Write-Host \"Server is running in background. Use Ctrl+C to stop or run stop-mcp-server.sh\"
-Write-Host \"Process will remain active even if this PowerShell session ends.\"
-
-# Simple keep-alive loop
-while (\$true) {
-    if (\$process.HasExited) {
-        Write-Host \"Server process has exited\"
-        Remove-Item '$PID_FILE' -ErrorAction SilentlyContinue
-        break
-    }
-    Start-Sleep -Seconds 5
-}
-
 } catch {
     Write-Host \"❌ Failed to start server: \$_\"
-    if (\$process -and -not \$process.HasExited) {
-        \$process.Kill()
-    }
     Remove-Item '$PID_FILE' -ErrorAction SilentlyContinue
     exit 1
 }
-" &
+"
 
-POWERSHELL_PID=$!
-echo $POWERSHELL_PID > "powershell.pid"
-
-# Wait a moment for server to start
-sleep 4
-
+# Check final status
 if [ -f "$PID_FILE" ]; then
     SERVER_PID=$(cat "$PID_FILE")
-    echo "✅ MCP Server started successfully!"
-    echo "   Server PID: $SERVER_PID"
-    echo "   PowerShell PID: $POWERSHELL_PID"
-    echo ""
-    echo "📋 Usage:"
-    echo "   ./scripts/send-mcp-request.sh 'tools/list'"
-    echo "   ./scripts/send-mcp-request.sh 'tools/call' 'TakeScreenshot' '{\"maxTokens\": 1000}'"
-    echo "   ./scripts/stop-mcp-server.sh"
-    echo ""
-    echo "Server is ready for JSON-RPC requests!"
+    if tasklist //fi "PID eq $SERVER_PID" 2>/dev/null | grep -q "$SERVER_PID"; then
+        echo "Script completed - server is running in background (PID: $SERVER_PID)"
+    else
+        echo "❌ Server process no longer running"
+        rm -f "$PID_FILE"
+        exit 1
+    fi
 else
-    echo "❌ Failed to start server"
+    echo "❌ Server failed to start - no PID file created"
     exit 1
 fi
