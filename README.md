@@ -52,7 +52,7 @@ For Claude Desktop, add to `%APPDATA%\Claude\claude_desktop_config.json`:
 {
   "mcpServers": {
     "uiautomation": {
-      "command": "C:\\Program Files\\locomorange\\uiautomation-mcp\\uiautomation-mcp.exe",
+      "command": "uiautomation-mcp",
       "args": []
     }
   }
