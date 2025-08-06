@@ -189,7 +189,7 @@ namespace UIAutomationMCP.Server.Infrastructure.Logging
             Console.WriteLine();
             Console.WriteLine("# File rotation");
             Console.WriteLine("MCP_LOG_FILE_MAX_SIZE_MB=10");
-            Console.WriteLine("MCP_LOG_FILE_MAX_COUNT=5");
+            Console.WriteLine("MCP_LOG_FILE_BACKUP_COUNT=5");
             Console.WriteLine("=========================================");
         }
     }
