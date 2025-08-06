@@ -157,19 +157,19 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
         {
             // Log using the existing _mcpLogService
-            await _mcpLogService.LogInformationAsync("TakeScreenshot", 
-                $"TakeScreenshot called: windowTitle={windowTitle}, maxTokens={maxTokens}, timeoutSeconds={timeoutSeconds}", 
+            await _mcpLogService.LogInformationAsync("TakeScreenshot",
+                $"TakeScreenshot called: windowTitle={windowTitle}, maxTokens={maxTokens}, timeoutSeconds={timeoutSeconds}",
                 "tool");
 
             // MCP notification would need to be sent here during tool execution
             // Currently not possible without access to IMcpServer in tool methods
 
             var result = await _screenshotService.TakeScreenshotAsync(windowTitle, outputPath, maxTokens, windowHandle, timeoutSeconds);
-            
-            await _mcpLogService.LogInformationAsync("TakeScreenshot", 
-                "Screenshot captured successfully", 
+
+            await _mcpLogService.LogInformationAsync("TakeScreenshot",
+                "Screenshot captured successfully",
                 "tool");
-            
+
             return JsonSerializationHelper.Serialize(result);
         }
 

@@ -135,7 +135,7 @@ namespace UIAutomationMCP.Server.Infrastructure.Logging
         private async Task SendMcpNotificationAsync(LogLevel logLevel, string message, DateTimeOffset timestamp, Exception? exception)
         {
             var level = MapLogLevelToMcpString(logLevel);
-            
+
             var data = new Dictionary<string, object?>
             {
                 ["message"] = message,
@@ -203,10 +203,10 @@ namespace UIAutomationMCP.Server.Infrastructure.Logging
 
                 // Use AOT-compatible JSON serialization
                 var json = JsonSerializer.Serialize(logEntry, McpNotificationJsonContext.Default.McpFileLogEntry);
-                
+
                 // Rotate file if necessary
                 RotateFileIfNeeded(_options.FileOutputPath);
-                
+
                 // Append to file
                 File.AppendAllText(_options.FileOutputPath, json + Environment.NewLine);
             }
@@ -221,7 +221,7 @@ namespace UIAutomationMCP.Server.Infrastructure.Logging
             try
             {
                 var logLine = $"[{timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{logLevel}] [{_categoryName}] {message}";
-                
+
                 if (exception != null)
                 {
                     logLine += Environment.NewLine + $"Exception: {exception}";
@@ -229,7 +229,7 @@ namespace UIAutomationMCP.Server.Infrastructure.Logging
 
                 // Rotate file if necessary
                 RotateFileIfNeeded(_options.FileOutputPath);
-                
+
                 // Append to file
                 File.AppendAllText(_options.FileOutputPath, logLine + Environment.NewLine);
             }
@@ -256,10 +256,10 @@ namespace UIAutomationMCP.Server.Infrastructure.Logging
                     {
                         var oldFile = $"{filePath}.{i - 1}";
                         var newFile = $"{filePath}.{i}";
-                        
+
                         if (File.Exists(newFile))
                             File.Delete(newFile);
-                        
+
                         if (File.Exists(oldFile))
                             File.Move(oldFile, newFile);
                     }
@@ -268,7 +268,7 @@ namespace UIAutomationMCP.Server.Infrastructure.Logging
                     var backupFile = $"{filePath}.1";
                     if (File.Exists(backupFile))
                         File.Delete(backupFile);
-                    
+
                     File.Move(filePath, backupFile);
                 }
             }

@@ -131,7 +131,7 @@ namespace UIAutomationMCP.Server.Services
 
                     // Create a logger with the subprocess source info
                     var subprocessLogger = _serviceProvider.GetService<ILoggerFactory>()?.CreateLogger($"[{logMessage.Source.ToUpper()}] {logMessage.Logger}");
-                    
+
                     if (subprocessLogger != null)
                     {
                         // Log through the logger infrastructure so it goes through CompositeMcpLoggerProvider
@@ -140,7 +140,7 @@ namespace UIAutomationMCP.Server.Services
                     else
                     {
                         // Fallback
-                        _logger.LogInformation("[SUBPROCESS] [{Source}] [{Logger}] {Message}", 
+                        _logger.LogInformation("[SUBPROCESS] [{Source}] [{Logger}] {Message}",
                             logMessage.Source, logMessage.Logger, logMessage.Message);
                     }
                 }

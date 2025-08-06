@@ -12,7 +12,18 @@ namespace UIAutomationMCP.Server.Infrastructure.Logging
         /// </summary>
         public static McpLoggerOptions CreateFromEnvironment()
         {
-            var options = new McpLoggerOptions();
+            var options = new McpLoggerOptions
+            {
+                // Production-safe defaults
+                EnableNotifications = true,  // MCP notifications are always enabled
+                EnableFileOutput = false,    // File logging is OFF by default (production-safe)
+                FileOutputPath = "mcp-logs.json",
+                FileOutputFormat = "json",
+                FileMinimumLevel = LogLevel.Information,
+                NotificationMinimumLevel = LogLevel.Information,
+                MaxFileSizeMB = 10,
+                BackupFileCount = 5
+            };
 
             // MCP_LOG_ENABLE_NOTIFICATIONS (default: true)
             if (bool.TryParse(Environment.GetEnvironmentVariable("MCP_LOG_ENABLE_NOTIFICATIONS"), out var enableNotifications))
@@ -20,7 +31,7 @@ namespace UIAutomationMCP.Server.Infrastructure.Logging
                 options.EnableNotifications = enableNotifications;
             }
 
-            // MCP_LOG_ENABLE_FILE (default: false)
+            // MCP_LOG_ENABLE_FILE (default: false - must explicitly enable)
             if (bool.TryParse(Environment.GetEnvironmentVariable("MCP_LOG_ENABLE_FILE"), out var enableFile))
             {
                 options.EnableFileOutput = enableFile;
@@ -142,7 +153,7 @@ namespace UIAutomationMCP.Server.Infrastructure.Logging
             Console.WriteLine("=== MCP Logger Configuration ===");
             Console.WriteLine($"Notifications Enabled: {options.EnableNotifications}");
             Console.WriteLine($"File Output Enabled: {options.EnableFileOutput}");
-            
+
             if (options.EnableFileOutput)
             {
                 Console.WriteLine($"File Path: {options.FileOutputPath}");
@@ -151,12 +162,12 @@ namespace UIAutomationMCP.Server.Infrastructure.Logging
                 Console.WriteLine($"Max File Size: {options.MaxFileSizeMB}MB");
                 Console.WriteLine($"Backup File Count: {options.BackupFileCount}");
             }
-            
+
             if (options.EnableNotifications)
             {
                 Console.WriteLine($"Notification Min Level: {options.NotificationMinimumLevel}");
             }
-            
+
             Console.WriteLine("================================");
         }
 

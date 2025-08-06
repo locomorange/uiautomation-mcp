@@ -187,21 +187,15 @@ namespace UIAutomationMCP.Server
             {
                 var mcpServer = host.Services.GetService<IMcpServer>();
                 var loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();
-                
+
                 if (mcpServer != null)
                 {
-                    // Create MCP options for logging
-                    var mcpOptions = new UIAutomationMCP.Server.Infrastructure.Logging.McpLoggerOptions
-                    {
-                        EnableNotifications = true,
-                        EnableFileOutput = true,
-                        FileOutputPath = "mcp-logs.json",
-                        FileOutputFormat = "json"
-                    };
-                    
+                    // Use environment variables for configuration, with production-safe defaults
+                    var mcpOptions = UIAutomationMCP.Server.Infrastructure.Logging.McpLoggerConfigurationHelper.CreateFromEnvironment();
+
                     // Add McpLoggerProvider as the main logger provider
                     loggerFactory.AddProvider(new UIAutomationMCP.Server.Infrastructure.Logging.McpLoggerProvider(mcpServer, mcpOptions));
-                    
+
                 }
                 else
                 {
