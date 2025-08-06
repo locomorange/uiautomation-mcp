@@ -27,7 +27,7 @@ UIAutomation MCP is a Windows UI Automation server that implements the Model Con
 
 ```powershell
 # Install UIAutomation MCP server
-winget install locomorange.uiautomation-mcp
+winget install Locomorange.UIAutomationMCP
 ```
 
 ### MCP Server Configuration
