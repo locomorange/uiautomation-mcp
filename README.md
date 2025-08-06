@@ -1,51 +1,105 @@
-# win-UIAutomation-mcp
+# UIAutomation MCP
 
-Windows UI Automation MCP (Model Context Protocol) Server - Microsoft Learn ガイドライン準拠
+## Project Overview
 
-このプロジェクトは、Windows UI Automation 機能を MCP プロトコル経由で公開する C# サーバーです。Microsoft Learn の [Control Pattern Mapping for UI Automation Clients](https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/control-pattern-mapping-for-ui-automation-clients) ガイドラインに基づいて実装されています。
+UIAutomation MCP is a Windows UI Automation server that implements the Model Context Protocol (MCP), enabling AI assistants and other applications to interact with Windows desktop applications programmatically. This server provides comprehensive access to Windows UI Automation capabilities through a standardized protocol interface.
 
+**Key Features:**
+- **Complete UI Automation Access**: Interact with any Windows application that supports UI Automation
+- **Microsoft Learn Compliant**: Follows official Microsoft guidelines for UI Automation control patterns
+- **Native AOT Performance**: Optimized for fast startup and low memory usage
+- **Multi-Process Architecture**: Secure separation between MCP protocol handling and UI operations
+- **Comprehensive Control Support**: Buttons, text fields, lists, grids, and all standard Windows controls
 
-## Microsoft Learn ガイドラインとの適合性
+**Use Cases:**
+- Automated testing of Windows applications
+- AI-powered desktop automation
+- Accessibility tool development
+- Application integration and workflow automation
 
-このプロジェクトは、Microsoft の公式ドキュメントに記載されているコントロールパターンマッピングに準拠しています：
+## Installation & Setup
 
-| コントロールタイプ | 必須パターン | 条件付きパターン | 非サポート |
-|---|---|---|---|
-| Button | None | Invoke, Toggle, ExpandCollapse | None |
-| CheckBox | Toggle | None | None |
-| ComboBox | ExpandCollapse | Selection, Value | Scroll |
-| Edit | None | Text, RangeValue, Value | None |
-| List | None | Grid, MultipleView, Scroll, Selection | Table |
+### Prerequisites
+- Windows 10/11 (UI Automation requires Windows)
+- .NET 9.0 Runtime (automatically installed with winget)
 
-詳細は [Microsoft Learn のドキュメント](https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/control-pattern-mapping-for-ui-automation-clients) を参照してください。
+### Install via Winget
 
-## ビルドと実行
-
+> **Note:** The winget package `Locomorange.UIAutomationMCP` may not be available yet. If you encounter an error, please check the [GitHub releases page](https://github.com/locomorange/uiautomation-mcp/releases) for manual installation instructions or verify the package name once published.
 ```powershell
-# プロジェクトのビルド
-dotnet build UiAutomationMcpServer.csproj --verbosity quiet --nologo
-
-# サーバーの実行
-.\bin\Debug\net8.0-windows\UiAutomationMcpServer.exe
+# Install UIAutomation MCP server
+winget install Locomorange.UIAutomationMCP
 ```
 
-## 技術仕様
+### MCP Server Configuration
 
-- **.NET 8.0** - Windows専用フレームワーク
-- **System.Windows.Automation** - Windows UI Automation API（ワーカープロセス専用）
-- **ModelContextProtocol** - MCP サーバー実装
-- **Microsoft.Extensions.Hosting** - ホスティングとDI
-- **プロセス間通信** - JSON-RPC via stdin/stdout
+Add the UIAutomation MCP server to your MCP client configuration. For most MCP clients, add this to your MCP settings JSON file:
 
+```json
+{
+  "mcpServers": {
+    "uiautomation": {
+      "command": "uiautomation-mcp",
+      "args": [],
+      "env": {}
+    }
+  }
+}
+```
 
+For Claude Desktop, add to `%APPDATA%\Claude\claude_desktop_config.json`:
 
-### 最適化された設計原則
+```json
+{
+  "mcpServers": {
+    "uiautomation": {
+      "command": "uiautomation-mcp",
+      "args": []
+    }
+  }
+}
+```
 
-1. **分離されたプロセス**: MCPプロトコル処理とUI Automation実行の完全分離
-2. **冗長性の排除**: サーバー側からSystem.Windows.Automationを削除、ワーカー側に統合
-3. **責任の分離**: 各パターン実行がワーカー側で専用エグゼキューターを使用
-4. **依存性注入**: 全コンポーネントがDIコンテナで管理
-5. **テスト可能性**: 各コンポーネントが独立してテスト可能（72テストすべて通過）
-6. **保守性**: 機能別にファイルを分割し、理解しやすい構造
+### Manual Installation
 
-#
+1. Download the latest release from the [GitHub releases page](https://github.com/locomorange/uiautomation-mcp/releases)
+2. Extract to your preferred location
+3. Add the executable path to your MCP client configuration
+
+## Basic Usage Example
+
+Once configured, you can use the UIAutomation MCP server through your MCP client. Here are some example commands:
+
+### Take a Screenshot
+```
+Take a screenshot of the current desktop
+```
+
+### Find and Click a Button
+```
+Find a button with text "OK" and click it
+```
+
+### Enter Text in a Field
+```
+Find the text field with name "Username" and enter "john.doe"
+```
+
+### Get Window Information
+```
+List all open windows and their titles
+```
+
+### Navigate Application Menus
+```
+Open the File menu in Notepad and click "Save As"
+```
+
+The server provides comprehensive UI automation capabilities including:
+- **Element Discovery**: Find UI elements by name, type, or properties
+- **Interaction**: Click, type, select, and manipulate controls
+- **Information Gathering**: Get text, properties, and state of UI elements
+- **Window Management**: Focus, resize, and manage application windows
+- **Grid and Table Operations**: Work with complex data displays
+
+For detailed API documentation and advanced usage examples, see the project documentation.
