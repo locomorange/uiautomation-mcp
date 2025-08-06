@@ -38,7 +38,7 @@ Add the UIAutomation MCP server to your MCP client configuration. For most MCP c
 {
   "mcpServers": {
     "uiautomation": {
-      "command": "uiautomation-mcp.exe",
+      "command": "uiautomation-mcp",
       "args": [],
       "env": {}
     }
