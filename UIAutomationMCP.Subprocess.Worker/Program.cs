@@ -134,13 +134,8 @@ namespace UIAutomationMCP.Subprocess.Worker
 
             // Configure logging - disable console logging to avoid interference with JSON responses
             builder.Logging.ClearProviders();
-            // Add file logging for debugging but avoid console output pollution
+            // Add our custom logging provider that uses ProcessLogRelay
             builder.Logging.AddProvider(new DebugLoggerProvider());
-            // TEMPORARY: Add console error logging for debugging
-            builder.Logging.AddConsole(options =>
-            {
-                options.LogToStandardErrorThreshold = LogLevel.Debug;
-            });
             builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
             // Register helper services

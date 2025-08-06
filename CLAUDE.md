@@ -1,88 +1,49 @@
 # Testing Commands
 
-## MCP Server Testing (Development Environment)
+## MCP Server Testing
 
-### Shell Script Testing Method (Git Bash Background Operation)
-
-**⚠️ Limitation**: This method also creates new server instances per request, making it unsuitable for session persistence testing.
-
-### Background Server Management
-
-For advanced development workflows, these shell scripts provide complete background server management with comprehensive logging:
-
-**Available Scripts (in `scripts/` folder):**
-- `scripts/start-mcp-server.sh` - Start MCP server in background with logging
-- `scripts/send-mcp-request.sh` - Send JSON-RPC requests to running server  
-- `scripts/show-mcp-logs.sh` - Display server logs while running
-- `scripts/stop-mcp-server.sh` - Stop server and show final logs
-
-### Usage Workflow
+### MCP Inspector CLI Testing
 
 ```bash
-# 1. Start server in background
-./scripts/start-mcp-server.sh
+# Install MCP Inspector
+npm install -g @modelcontextprotocol/inspector
 
-# 2. Send requests (server runs in background)  
-./scripts/send-mcp-request.sh 'tools/list'
-./scripts/send-mcp-request.sh 'tools/call' 'TakeScreenshot' '{"maxTokens": 1000}'
+# Test the server
+mcp-inspector --cli "dotnet run --project UIAutomationMCP.Server --configuration Debug"
 
-# 3. View logs while running
-./scripts/show-mcp-logs.sh  
+# List tools
+mcp-inspector --cli "dotnet run --project UIAutomationMCP.Server --configuration Debug" --method tools/list
 
-# 4. Stop server when done
-./scripts/stop-mcp-server.sh
+# Call tools
+mcp-inspector --cli "dotnet run --project UIAutomationMCP.Server --configuration Debug" --method tools/call --tool-name TakeScreenshot --tool-arg maxTokens=1000
 ```
 
-### Key Features
+### File Logging
 
-✅ **Background Operation**: Server runs independently, allowing Git Bash return to prompt  
-✅ **Comprehensive Logging**: Captures both stdout/stderr and response logs  
-✅ **Process Management**: Tracks PIDs for reliable start/stop operations  
-✅ **Error Handling**: Graceful cleanup and error reporting  
-✅ **Cross-platform**: Works in Git Bash on Windows
+**Default**: File logging is **OFF** in production (secure by default).
 
-### Expected Outputs
-
-**Server Start:**
-```
-=== MCP Server Background Starter ===
-Starting MCP server in background...
-✅ Server responding: UIAutomation MCP Server v1.0.0
-✅ MCP Server started successfully!
-   Server PID: 12345
-   PowerShell PID: 67890
-
-📋 Usage:
-   ./scripts/send-mcp-request.sh 'tools/list'
-   ./scripts/send-mcp-request.sh 'tools/call' 'TakeScreenshot' '{"maxTokens": 1000}'
-   ./scripts/stop-mcp-server.sh
-
-Server is ready for JSON-RPC requests!
-```
-
-**Request Example:**
+To enable file logging for debugging:
 ```bash
-./scripts/send-mcp-request.sh 'tools/list'
-# Returns: {"result":{"tools":[{"name":"SearchElements",...}]},"id":2,"jsonrpc":"2.0"}
+# Enable file logging explicitly
+MCP_LOG_ENABLE_FILE=true dotnet run --project UIAutomationMCP.Server
+
+# With custom settings
+MCP_LOG_ENABLE_FILE=true MCP_LOG_FILE_PATH=debug.log MCP_LOG_FILE_FORMAT=json dotnet run
 ```
 
-**Log Monitoring:**
-```
-=== MCP Server Logs ===
-Server PID: 12345
-✅ Server is running
-📄 Development Error Log:
---- UIAutomationMCP.Server/dev-error.log ---
-[Recent error entries...]
-📄 Development Response Log:  
---- UIAutomationMCP.Server/dev-response.log ---
-[Recent response entries...]
-```
+**Available Environment Variables:**
+- `MCP_LOG_ENABLE_FILE=true` - Enable file logging (default: false)
+- `MCP_LOG_FILE_PATH=filename.log` - Log file path (default: mcp-logs.json)
+- `MCP_LOG_FILE_FORMAT=json|text` - Format (default: json)
 
-### Implementation Notes
+## Logging Architecture
 
-- Uses PowerShell subprocess for reliable process management on Windows
-- Captures PID files for background operation tracking  
-- Provides separate error and response log files for debugging
-- Automatically cleans up processes and temporary files on shutdown
-- Based on GitHub Actions workflow patterns from `.github/workflows/staging-test.yml`
+- **McpLoggerProvider**: Handles MCP notifications and file output
+- **LogRelayService**: Relays subprocess logs to main logging system
+- **Unified Flow**: All logs → McpLoggerProvider → MCP notifications + file output
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.

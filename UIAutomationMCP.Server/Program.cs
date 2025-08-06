@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ModelContextProtocol.Server;
+using System.Reflection;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Helpers;
@@ -55,16 +57,19 @@ namespace UIAutomationMCP.Server
             var shutdownCts = new CancellationTokenSource();
             builder.Services.AddSingleton(shutdownCts);
 
-            // Configure logging for MCP - stderr only to avoid stdout protocol interference
+            // Configure logging for MCP - remove all providers and use only CompositeMcpLoggerProvider
             builder.Logging.ClearProviders();
-            builder.Logging.AddConsole(options =>
-            {
-                options.LogToStandardErrorThreshold = LogLevel.Trace;
-            });
             builder.Logging.SetMinimumLevel(LogLevel.Information);
 
-            // Register MCP logging service
-            builder.Services.AddSingleton<IMcpLogService, McpLoggingService>();
+            // Configure MCP logging after host is built
+            builder.Services.Configure<HostOptions>(options =>
+            {
+                options.ServicesStartConcurrently = true;
+                options.ServicesStopConcurrently = true;
+            });
+
+            // Register log relay service for subprocess logs
+            builder.Services.AddSingleton<IMcpLogService, LogRelayService>();
 
             // Register application services
             builder.Services.AddSingleton<IApplicationLauncher, ApplicationLauncher>();
@@ -175,37 +180,33 @@ namespace UIAutomationMCP.Server
                 .WithStdioServerTransport()
                 .WithTools<UIAutomationTools>();
 
-            // Configure hosted service to set MCP endpoint after initialization
-            builder.Services.AddHostedService<McpEndpointConfiguration>();
-
             var host = builder.Build();
 
-            // Test ApplicationLauncher directly if no arguments provided
-            if (args.Length > 0 && args[0] == "--test-app-launcher")
+            // Configure MCP logging after host is built
+            try
             {
-                var mcpLog = host.Services.GetRequiredService<IMcpLogService>();
-                await mcpLog.LogInformationAsync("Program", "Testing ApplicationLauncher directly...");
+                var mcpServer = host.Services.GetService<IMcpServer>();
+                var loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();
 
-                var launcher = host.Services.GetRequiredService<IApplicationLauncher>();
-
-                try
+                if (mcpServer != null)
                 {
-                    await mcpLog.LogInformationAsync("Program", "Launching calculator...");
-                    var result = await launcher.LaunchApplicationAsync("calc", null, null, 60);
+                    // Use environment variables for configuration, with production-safe defaults
+                    var mcpOptions = UIAutomationMCP.Server.Infrastructure.Logging.McpLoggerConfigurationHelper.CreateFromEnvironment();
 
-                    await mcpLog.LogInformationAsync("Program", $"Launch result: Success={result.Success}, ProcessId={result.ProcessId}");
-                    if (!result.Success)
-                    {
-                        await mcpLog.LogErrorAsync("Program", $"Launch failed: {result.Error}");
-                    }
+                    // Add McpLoggerProvider as the main logger provider
+                    loggerFactory.AddProvider(new UIAutomationMCP.Server.Infrastructure.Logging.McpLoggerProvider(mcpServer, mcpOptions));
+
                 }
-                catch (Exception ex)
+                else
                 {
-                    await mcpLog.LogErrorAsync("Program", "Launch exception occurred", ex);
+                    Console.Error.WriteLine("Warning: IMcpServer not found - MCP logging disabled");
                 }
-
-                return;
             }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Warning: Failed to configure MCP logging: {ex.Message}");
+            }
+
 
             // Simple MCP server - let the framework handle lifecycle
             await host.RunAsync();

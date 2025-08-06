@@ -33,7 +33,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
-    <PackageReference Include="ModelContextProtocol" Version="0.3.0-preview.1" />
+    <PackageReference Include="ModelContextProtocol" Version="0.3.0-preview.3" />
     <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
   </ItemGroup>
 

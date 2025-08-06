@@ -1,5 +1,6 @@
 using ModelContextProtocol.Server;
 using ModelContextProtocol;
+using Microsoft.Extensions.Logging;
 using System.ComponentModel;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
@@ -154,7 +155,23 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Maximum tokens for Base64 response (0 = no limit, auto-optimizes resolution and compression)")] int maxTokens = 0,
             [Description("Native window handle (HWND) for direct window targeting")] long? windowHandle = null,
             [Description("Timeout in seconds (default: 60)")] int timeoutSeconds = 60)
-            => JsonSerializationHelper.Serialize(await _screenshotService.TakeScreenshotAsync(windowTitle, outputPath, maxTokens, windowHandle, timeoutSeconds));
+        {
+            // Log using the existing _mcpLogService
+            await _mcpLogService.LogInformationAsync("TakeScreenshot",
+                $"TakeScreenshot called: windowTitle={windowTitle}, maxTokens={maxTokens}, timeoutSeconds={timeoutSeconds}",
+                "tool");
+
+            // MCP notification would need to be sent here during tool execution
+            // Currently not possible without access to IMcpServer in tool methods
+
+            var result = await _screenshotService.TakeScreenshotAsync(windowTitle, outputPath, maxTokens, windowHandle, timeoutSeconds);
+
+            await _mcpLogService.LogInformationAsync("TakeScreenshot",
+                "Screenshot captured successfully",
+                "tool");
+
+            return JsonSerializationHelper.Serialize(result);
+        }
 
 
 
