@@ -25,6 +25,7 @@ UIAutomation MCP is a Windows UI Automation server that implements the Model Con
 
 ### Install via Winget
 
+> **Note:** The winget package `Locomorange.UIAutomationMCP` may not be available yet. If you encounter an error, please check the [GitHub releases page](https://github.com/locomorange/uiautomation-mcp/releases) for manual installation instructions or verify the package name once published.
 ```powershell
 # Install UIAutomation MCP server
 winget install Locomorange.UIAutomationMCP
