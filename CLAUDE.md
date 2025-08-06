@@ -2,87 +2,125 @@
 
 ## MCP Server Testing (Development Environment)
 
-### Shell Script Testing Method (Git Bash Background Operation)
+**⚠️ Note**: This method creates new server instances per request and cannot test continuous processes like monitoring functionality.
 
-**⚠️ Limitation**: This method also creates new server instances per request, making it unsuitable for session persistence testing.
+### MCP Inspector CLI Testing
 
-### Background Server Management
+The recommended way to test the MCP server is using the official MCP Inspector CLI tool.
 
-For advanced development workflows, these shell scripts provide complete background server management with comprehensive logging:
-
-**Available Scripts (in `scripts/` folder):**
-- `scripts/start-mcp-server.sh` - Start MCP server in background with logging
-- `scripts/send-mcp-request.sh` - Send JSON-RPC requests to running server  
-- `scripts/show-mcp-logs.sh` - Display server logs while running
-- `scripts/stop-mcp-server.sh` - Stop server and show final logs
-
-### Usage Workflow
+#### Installation
 
 ```bash
-# 1. Start server in background
-./scripts/start-mcp-server.sh
-
-# 2. Send requests (server runs in background)  
-./scripts/send-mcp-request.sh 'tools/list'
-./scripts/send-mcp-request.sh 'tools/call' 'TakeScreenshot' '{"maxTokens": 1000}'
-
-# 3. View logs while running
-./scripts/show-mcp-logs.sh  
-
-# 4. Stop server when done
-./scripts/stop-mcp-server.sh
+npm install -g @modelcontextprotocol/inspector
 ```
 
-### Key Features
+#### Usage
 
-✅ **Background Operation**: Server runs independently, allowing Git Bash return to prompt  
-✅ **Comprehensive Logging**: Captures both stdout/stderr and response logs  
-✅ **Process Management**: Tracks PIDs for reliable start/stop operations  
-✅ **Error Handling**: Graceful cleanup and error reporting  
-✅ **Cross-platform**: Works in Git Bash on Windows
-
-### Expected Outputs
-
-**Server Start:**
-```
-=== MCP Server Background Starter ===
-Starting MCP server in background...
-✅ Server responding: UIAutomation MCP Server v1.0.0
-✅ MCP Server started successfully!
-   Server PID: 12345
-   PowerShell PID: 67890
-
-📋 Usage:
-   ./scripts/send-mcp-request.sh 'tools/list'
-   ./scripts/send-mcp-request.sh 'tools/call' 'TakeScreenshot' '{"maxTokens": 1000}'
-   ./scripts/stop-mcp-server.sh
-
-Server is ready for JSON-RPC requests!
-```
-
-**Request Example:**
 ```bash
-./scripts/send-mcp-request.sh 'tools/list'
-# Returns: {"result":{"tools":[{"name":"SearchElements",...}]},"id":2,"jsonrpc":"2.0"}
+# Test the server using dotnet run (from project root)
+mcp-inspector --cli "dotnet run --project UIAutomationMCP.Server --configuration Debug"
+
+# List available tools
+mcp-inspector --cli "dotnet run --project UIAutomationMCP.Server --configuration Debug" --method tools/list
+
+# Call specific tools
+mcp-inspector --cli "dotnet run --project UIAutomationMCP.Server --configuration Debug" --method tools/call --tool-name TakeScreenshot --tool-arg maxTokens=1000
+
+# Search for elements
+mcp-inspector --cli "dotnet run --project UIAutomationMCP.Server --configuration Debug" --method tools/call --tool-name SearchElements --tool-arg query=button --tool-arg maxResults=5
 ```
 
-**Log Monitoring:**
-```
-=== MCP Server Logs ===
-Server PID: 12345
-✅ Server is running
-📄 Development Error Log:
---- UIAutomationMCP.Server/dev-error.log ---
-[Recent error entries...]
-📄 Development Response Log:  
---- UIAutomationMCP.Server/dev-response.log ---
-[Recent response entries...]
+#### Key Benefits
+
+✅ **Pure CLI Operation**: No GUI, perfect for automation and scripting  
+✅ **JSON Output**: Structured responses for easy parsing  
+✅ **Server Logs**: View server stderr output for debugging  
+✅ **Flexible Testing**: Test any tool with any parameters  
+
+#### Monitoring Server Logs
+
+**⚠️ Important**: MCP Inspector CLI does not display server stderr output, so additional logging setup is required for debugging.
+
+The MCP server outputs detailed logs to stderr, providing insight into:
+
+- Tool execution flow
+- Error messages and stack traces  
+- Performance timing
+- Subprocess communication
+
+**MCP Log Notifications Status:**
+- MCP Inspector CLI supports displaying server logs via the `serverLogs` field in responses
+- However, the current MCP C# SDK version (0.3.0-preview.3) does not include the `AsClientLoggerProvider()` extension method needed for proper MCP log notifications
+- The server currently falls back to stderr logging, which is not captured by MCP Inspector CLI
+- File logging is therefore essential for development debugging
+
+#### Method 1: File Logging (Essential for Development)
+
+**⚠️ Note**: MCP Inspector CLI does not display server stderr output or MCP log notifications, making file logging essential for debugging.
+
+Enable file logging using environment variables:
+
+```bash
+# Enable debug file logging
+MCP_DEBUG_FILE_LOGGING=true MCP_DEBUG_LOG_PATH=mcp-debug.log mcp-inspector --cli "dotnet run --project UIAutomationMCP.Server --configuration Debug" --method tools/call --tool-name TakeScreenshot --tool-arg maxTokens=500
+
+# View the log file in real-time (separate terminal)
+tail -f mcp-debug.log
+
+# Or view after execution
+cat mcp-debug.log
 ```
 
-### Implementation Notes
+**Environment Variables:**
+- `MCP_DEBUG_FILE_LOGGING=true` - Enables comprehensive file logging (captures ALL server logs)
+- `MCP_DEBUG_LOG_PATH=filename.log` - Sets custom log file path (optional, defaults to `mcp-debug.log`)
 
-- Uses PowerShell subprocess for reliable process management on Windows
-- Captures PID files for background operation tracking  
-- Provides separate error and response log files for debugging
-- Automatically cleans up processes and temporary files on shutdown
-- Based on GitHub Actions workflow patterns from `.github/workflows/staging-test.yml`
+**Comprehensive Log Content:**
+When enabled, file logging captures complete server execution details:
+- ✅ **MCP Protocol**: Server initialization, client handshake, method calls, shutdown
+- ✅ **Process Management**: Worker/Monitor subprocess lifecycle and paths  
+- ✅ **Service Operations**: Screenshot optimization, element search, UI automation actions
+- ✅ **Performance Data**: Execution timing, memory usage, image compression details
+- ✅ **Error Diagnostics**: Stack traces, subprocess communication errors, DI container status
+- ✅ **All Log Levels**: TRACE, DEBUG, INFORMATION, WARNING, ERROR, CRITICAL
+
+#### Method 2: Direct Server Testing with stderr Capture
+
+For detailed debugging, run the server directly:
+
+```bash
+# Capture both JSON response and server logs
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | dotnet run --project UIAutomationMCP.Server --configuration Debug 2>server-logs.txt 1>response.json
+
+# View server logs
+cat server-logs.txt
+
+# View JSON response  
+cat response.json
+```
+
+#### Method 3: Combined Approach
+
+For comprehensive testing with both JSON responses and logging:
+
+```bash
+# Terminal 1: Run test with file logging
+MCP_DEBUG_FILE_LOGGING=true MCP_DEBUG_LOG_PATH=debug.log mcp-inspector --cli "dotnet run --project UIAutomationMCP.Server --configuration Debug" --method tools/call --tool-name SearchElements --tool-arg query=button > response.json
+
+# Terminal 2: Monitor logs in real-time
+tail -f debug.log
+
+# Analysis
+echo "=== Tool Response ===" && cat response.json
+echo "=== Server Logs ===" && cat debug.log
+```
+
+#### Advanced Usage
+
+```bash
+# Save JSON output to file for analysis
+mcp-inspector --cli "dotnet run --project UIAutomationMCP.Server --configuration Debug" --method tools/list > tools-output.json
+
+# Test multiple tools in sequence
+mcp-inspector --cli "dotnet run --project UIAutomationMCP.Server --configuration Debug" --method tools/call --tool-name GetElementTree --tool-arg maxDepth=2
+```

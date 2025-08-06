@@ -63,12 +63,11 @@ namespace UIAutomationMCP.Subprocess.Worker.Helpers
                 }
                 catch
                 {
-                    // Fallback to stderr if MCP relay fails
-                    Debug.WriteLine(logMessage);
-                    Console.Error.WriteLine($"[WORKER] {logMessage}");
+                    // Only use Debug output if MCP relay fails to avoid stderr pollution
+                    Debug.WriteLine($"[WORKER-FALLBACK] {logMessage}");
                     if (exception != null)
                     {
-                        Console.Error.WriteLine($"[WORKER] Exception: {exception}");
+                        Debug.WriteLine($"[WORKER-FALLBACK] Exception: {exception}");
                     }
                 }
             });
