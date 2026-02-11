@@ -10,6 +10,11 @@ namespace UIAutomationMCP.Core.Options
         public const string SectionName = "UIAutomation";
 
         /// <summary>
+        /// タイムアウトとパフォーマンスの設定
+        /// </summary>
+        public PerformanceOptions Performance { get; set; } = new();
+
+        /// <summary>
         /// 要素検索のデフォルト設定
         /// </summary>
         public ElementSearchOptions ElementSearch { get; set; } = new();
@@ -38,6 +43,46 @@ namespace UIAutomationMCP.Core.Options
         /// レイアウト操作のデフォルト設定
         /// </summary>
         public LayoutOptions Layout { get; set; } = new();
+    }
+
+    /// <summary>
+    /// パフォーマンスとタイムアウトのオプション
+    /// </summary>
+    public class PerformanceOptions
+    {
+        /// <summary>
+        /// デフォルトのオペレーションタイムアウト（秒）
+        /// </summary>
+        [Range(1, 600)]
+        public int DefaultOperationTimeoutSeconds { get; set; } = 55;
+
+        /// <summary>
+        /// ツリー走査操作のタイムアウト（秒）
+        /// </summary>
+        [Range(1, 600)]
+        public int TreeTraversalTimeoutSeconds { get; set; } = 110;
+
+        /// <summary>
+        /// トグル操作の最大反復回数
+        /// </summary>
+        [Range(1, 100)]
+        public int ToggleMaxIterations { get; set; } = 10;
+
+        /// <summary>
+        /// ツリー走査時の最大要素数
+        /// </summary>
+        [Range(100, 100000)]
+        public int MaxElementCount { get; set; } = 10000;
+
+        /// <summary>
+        /// CacheRequestを使用してCOM呼び出しを最適化するか
+        /// </summary>
+        public bool EnableCacheOptimization { get; set; } = true;
+
+        /// <summary>
+        /// キャッシュ最適化のログレベル（True: Debug, False: Info以上のみ）
+        /// </summary>
+        public bool VerboseCacheLogging { get; set; } = false;
     }
 
     /// <summary>

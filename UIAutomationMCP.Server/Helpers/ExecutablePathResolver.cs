@@ -18,25 +18,43 @@ namespace UIAutomationMCP.Server.Helpers
 
         /// <summary>
         /// Gets the real physical path of the current executable, resolving any symbolic links.
+        /// Handles all hosting scenarios: dotnet run, dotnet app.dll, Native AOT .exe, WinGet symlinks.
         /// </summary>
         public static string GetExecutableRealPath()
         {
-            // For Native AOT, Environment.ProcessPath is the most reliable
-            var executablePath = Environment.ProcessPath
-                ?? throw new InvalidOperationException("Unable to determine executable path");
+            // Strategy 1: AppContext.BaseDirectory works correctly in all managed hosting scenarios
+            // - dotnet run: returns bin\Debug\net9.0-windows\ (correct app directory)
+            // - dotnet app.dll: returns the DLL's directory (correct)
+            // - Native AOT .exe: returns the .exe's directory (correct)
+            // Note: For symlinks, this returns the symlink's directory, not the target's
+            var appBaseDir = AppContext.BaseDirectory?.TrimEnd(
+                Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
-            var fileInfo = new FileInfo(executablePath);
+            // Strategy 2: Check if Environment.ProcessPath is a symbolic link
+            // WinGet installs may use symlinks, and we need the resolved target directory
+            var processPath = Environment.ProcessPath;
+            if (processPath != null)
+            {
+                var fileInfo = new FileInfo(processPath);
+                var resolvedTarget = fileInfo.ResolveLinkTarget(returnFinalTarget: true);
+                if (resolvedTarget != null)
+                {
+                    // Symbolic link detected - return the resolved target's directory
+                    return Path.GetDirectoryName(resolvedTarget.FullName)!;
+                }
+            }
 
-            // Resolve symbolic links recursively (returnFinalTarget: true)
-            // ResolveLinkTarget returns null if the file is not a symbolic link.
-            var resolvedTarget = fileInfo.ResolveLinkTarget(returnFinalTarget: true);
+            // Use AppContext.BaseDirectory if available (covers dotnet run / dotnet app.dll)
+            if (!string.IsNullOrEmpty(appBaseDir))
+            {
+                return appBaseDir;
+            }
 
-            // Return the directory of the resolved executable
-            // Note: resolvedTarget will be null if the file is not a symbolic link, handled by null-coalescing operator
-            var resolvedPath = resolvedTarget?.FullName ?? fileInfo.FullName;
-            if (string.IsNullOrEmpty(resolvedPath))
-                throw new InvalidOperationException("Unable to determine the resolved executable path.");
-            return Path.GetDirectoryName(resolvedPath)!;
+            // Strategy 3: Fallback to Environment.ProcessPath for edge cases
+            if (processPath == null)
+                throw new InvalidOperationException("Unable to determine executable path");
+
+            return Path.GetDirectoryName(processPath)!;
         }
 
         /// <summary>

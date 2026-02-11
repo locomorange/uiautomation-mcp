@@ -8,6 +8,7 @@ using UIAutomationMCP.Subprocess.Core.Abstractions;
 using UIAutomationMCP.Subprocess.Core.Services;
 using UIAutomationMCP.Subprocess.Core.Helpers;
 using UIAutomationMCP.Subprocess.Worker.Extensions;
+using UIAutomationMCP.Subprocess.Worker.Helpers;
 using UIAutomationMCP.Core.Exceptions;
 
 namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
@@ -96,6 +97,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
 
                 // Perform search using ElementFinderService with new criteria-based API
                 _logger?.LogDebug("Starting FindElements with ControlType={ControlType}, WindowHandle={WindowHandle}", request.ControlType, request.WindowHandle);
+                
                 var searchCriteria = new ElementSearchCriteria
                 {
                     AutomationId = request.AutomationId,
@@ -108,8 +110,16 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
                     UseWindowHandleAsFilter = request.UseWindowHandleAsFilter ||
                         (request.WindowHandle.HasValue && !string.IsNullOrEmpty(request.WindowTitle))
                 };
-                var foundElementsCollection = _elementFinderService.FindElements(searchCriteria);
-                _logger?.LogDebug("FindElements completed, found {Count} elements", foundElementsCollection?.Count ?? 0);
+                
+                // Create cache request for optimized property access
+                var cacheRequest = CacheRequestHelper.CreateElementSearchCache();
+                
+                AutomationElementCollection foundElementsCollection;
+                using (cacheRequest.Activate())
+                {
+                    foundElementsCollection = _elementFinderService.FindElements(searchCriteria);
+                    _logger?.LogDebug("FindElements completed with cache optimization, found {Count} elements", foundElementsCollection?.Count ?? 0);
+                }
 
                 // Convert to list for further processing
                 var foundElementsList = new List<AutomationElement>();
