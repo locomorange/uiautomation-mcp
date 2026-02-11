@@ -59,8 +59,8 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation
             }
 
             // Build element tree
-            _elementCount = 0;
-            var rootNode = await Task.Run(() => BuildElementTree(searchRoot, maxDepth, 0));
+            var elementCount = 0;
+            var rootNode = await Task.Run(() => BuildElementTree(searchRoot, maxDepth, 0, ref elementCount));
 
             // Calculate build duration
             var buildDuration = DateTime.UtcNow - startTime;
@@ -88,11 +88,10 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation
         }
 
         private const int MaxElementCount = 10000;
-        private int _elementCount = 0;
 
-        private TreeNode BuildElementTree(AutomationElement element, int maxDepth, int currentDepth)
+        private TreeNode BuildElementTree(AutomationElement element, int maxDepth, int currentDepth, ref int elementCount)
         {
-            Interlocked.Increment(ref _elementCount);
+            elementCount++;
 
             // Use ElementInfoBuilder to create base ElementInfo with all latest features
             var elementInfo = UIAutomationMCP.Subprocess.Core.Helpers.ElementInfoBuilder.CreateElementInfo(element, includeDetails: false);
@@ -106,7 +105,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation
             };
 
             // Build children if within depth limit and element count limit
-            if (currentDepth < maxDepth && _elementCount < MaxElementCount)
+            if (currentDepth < maxDepth && elementCount < MaxElementCount)
             {
                 try
                 {
@@ -115,11 +114,11 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation
 
                     foreach (AutomationElement child in children)
                     {
-                        if (child != null && _elementCount < MaxElementCount)
+                        if (child != null && elementCount < MaxElementCount)
                         {
                             try
                             {
-                                var childNode = BuildElementTree(child, maxDepth, currentDepth + 1);
+                                var childNode = BuildElementTree(child, maxDepth, currentDepth + 1, ref elementCount);
                                 childNode.ParentAutomationId = node.AutomationId;
                                 node.Children.Add(childNode);
                             }

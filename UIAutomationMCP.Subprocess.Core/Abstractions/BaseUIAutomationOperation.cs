@@ -61,7 +61,9 @@ namespace UIAutomationMCP.Subprocess.Core.Abstractions
                 using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
 
                 var operationTask = Task.Run(() => ExecuteOperationAsync(request), combinedCts.Token);
-                var completedTask = await Task.WhenAny(operationTask, Task.Delay(Timeout.Infinite, combinedCts.Token));
+
+                // Wait for either the operation to complete or the timeout/cancellation to fire
+                await Task.WhenAny(operationTask, Task.Delay(Timeout.Infinite, combinedCts.Token));
 
                 if (combinedCts.Token.IsCancellationRequested && !operationTask.IsCompleted)
                 {

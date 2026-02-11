@@ -170,7 +170,7 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
             if (operation != null)
             {
                 _logger.LogDebug("[{ProcessType}] Operation handler found: {OperationType}", GetProcessType(), operation.GetType().Name);
-                var operationResult = await operation.ExecuteAsync(parametersJson, _shutdownRequested ? CancellationToken.None : CancellationToken.None);
+                var operationResult = await operation.ExecuteAsync(parametersJson);
                 return ConvertOperationResult(operationResult, operationName);
             }
 
