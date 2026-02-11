@@ -51,9 +51,17 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Toggle
 
             var initialState = togglePattern.Current.ToggleState;
             var currentState = initialState;
+            const int maxIterations = 10;
+            var iterations = 0;
 
             while (currentState != targetState)
             {
+                if (++iterations > maxIterations)
+                {
+                    throw new UIAutomationInvalidOperationException("SetToggleState", request.AutomationId,
+                        $"Failed to reach target state '{request.State}' after {maxIterations} toggle attempts. Current state: {currentState}");
+                }
+
                 togglePattern.Toggle();
 
                 // Wait a moment for the state to update

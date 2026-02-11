@@ -19,6 +19,11 @@ namespace UIAutomationMCP.Subprocess.Core.Abstractions
         protected readonly ElementFinderService _elementFinderService;
         protected readonly ILogger _logger;
 
+        /// <summary>
+        /// Default operation timeout in seconds. Override in derived classes for specific timeout values.
+        /// </summary>
+        protected virtual int OperationTimeoutSeconds => 55;
+
         protected BaseUIAutomationOperation(ElementFinderService elementFinderService, ILogger logger)
         {
             _elementFinderService = elementFinderService;
@@ -29,6 +34,14 @@ namespace UIAutomationMCP.Subprocess.Core.Abstractions
         /// Execute operation with typed request and result
         /// </summary>
         public async Task<OperationResult<TResult>> ExecuteAsync(TRequest request)
+        {
+            return await ExecuteAsync(request, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Execute operation with typed request, result, and cancellation support
+        /// </summary>
+        public async Task<OperationResult<TResult>> ExecuteAsync(TRequest request, CancellationToken cancellationToken)
         {
             try
             {
@@ -43,11 +56,32 @@ namespace UIAutomationMCP.Subprocess.Core.Abstractions
                     return OperationResult<TResult>.FromError(error);
                 }
 
-                // Execute the operation
-                var result = await ExecuteOperationAsync(request);
+                // Execute the operation with timeout protection
+                using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(OperationTimeoutSeconds));
+                using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
+
+                var operationTask = Task.Run(() => ExecuteOperationAsync(request), combinedCts.Token);
+                var completedTask = await Task.WhenAny(operationTask, Task.Delay(Timeout.Infinite, combinedCts.Token));
+
+                if (combinedCts.Token.IsCancellationRequested && !operationTask.IsCompleted)
+                {
+                    var reason = timeoutCts.Token.IsCancellationRequested
+                        ? $"Operation '{GetType().Name}' timed out after {OperationTimeoutSeconds} seconds"
+                        : $"Operation '{GetType().Name}' was cancelled";
+                    _logger.LogWarning("{Reason}", reason);
+                    return OperationResult<TResult>.FromError(reason);
+                }
+
+                var result = await operationTask;
 
                 _logger.LogDebug("Completed {OperationType} successfully", GetType().Name);
                 return OperationResult<TResult>.FromSuccess(result);
+            }
+            catch (OperationCanceledException)
+            {
+                var message = $"Operation '{GetType().Name}' was cancelled or timed out after {OperationTimeoutSeconds} seconds";
+                _logger.LogWarning("{Message}", message);
+                return OperationResult<TResult>.FromError(message);
             }
             catch (UIAutomationException ex)
             {
@@ -65,6 +99,14 @@ namespace UIAutomationMCP.Subprocess.Core.Abstractions
         /// JSON string-based interface implementation
         /// </summary>
         public async Task<OperationResult> ExecuteAsync(string parametersJson)
+        {
+            return await ExecuteAsync(parametersJson, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// JSON string-based interface implementation with cancellation support
+        /// </summary>
+        public async Task<OperationResult> ExecuteAsync(string parametersJson, CancellationToken cancellationToken)
         {
             try
             {
@@ -84,7 +126,7 @@ namespace UIAutomationMCP.Subprocess.Core.Abstractions
                     return OperationResult.FromError("Failed to deserialize JSON parameters to request type");
                 }
 
-                var typedResult = await ExecuteAsync(request);
+                var typedResult = await ExecuteAsync(request, cancellationToken);
 
                 return new OperationResult
                 {

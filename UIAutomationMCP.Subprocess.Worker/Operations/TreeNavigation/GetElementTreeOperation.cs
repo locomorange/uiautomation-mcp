@@ -17,6 +17,11 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation
         {
         }
 
+        /// <summary>
+        /// Tree building can be slow for deep hierarchies, allow more time but still prevent indefinite hangs
+        /// </summary>
+        protected override int OperationTimeoutSeconds => 110;
+
         protected override async Task<ElementTreeResult> ExecuteOperationAsync(GetElementTreeRequest request)
         {
             var startTime = DateTime.UtcNow;
@@ -54,6 +59,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation
             }
 
             // Build element tree
+            _elementCount = 0;
             var rootNode = await Task.Run(() => BuildElementTree(searchRoot, maxDepth, 0));
 
             // Calculate build duration
@@ -81,8 +87,13 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation
             return UIAutomationMCP.Core.Validation.ValidationResult.Success;
         }
 
+        private const int MaxElementCount = 10000;
+        private int _elementCount = 0;
+
         private TreeNode BuildElementTree(AutomationElement element, int maxDepth, int currentDepth)
         {
+            Interlocked.Increment(ref _elementCount);
+
             // Use ElementInfoBuilder to create base ElementInfo with all latest features
             var elementInfo = UIAutomationMCP.Subprocess.Core.Helpers.ElementInfoBuilder.CreateElementInfo(element, includeDetails: false);
 
@@ -94,8 +105,8 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation
                 HasChildren = false
             };
 
-            // Build children if within depth limit
-            if (currentDepth < maxDepth)
+            // Build children if within depth limit and element count limit
+            if (currentDepth < maxDepth && _elementCount < MaxElementCount)
             {
                 try
                 {
@@ -104,7 +115,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation
 
                     foreach (AutomationElement child in children)
                     {
-                        if (child != null)
+                        if (child != null && _elementCount < MaxElementCount)
                         {
                             try
                             {

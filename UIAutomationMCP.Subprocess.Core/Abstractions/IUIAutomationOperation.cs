@@ -30,6 +30,15 @@ namespace UIAutomationMCP.Subprocess.Core.Abstractions
         /// <param name="parametersJson">Operation parameters as JSON string</param>
         /// <returns>Operation result</returns>
         Task<OperationResult> ExecuteAsync(string parametersJson);
+
+        /// <summary>
+        /// Execute UI automation operation with JSON string parameters and cancellation support
+        /// </summary>
+        /// <param name="parametersJson">Operation parameters as JSON string</param>
+        /// <param name="cancellationToken">Cancellation token for timeout protection</param>
+        /// <returns>Operation result</returns>
+        Task<OperationResult> ExecuteAsync(string parametersJson, CancellationToken cancellationToken)
+            => ExecuteAsync(parametersJson);
     }
 }
 
