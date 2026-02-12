@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using UIAutomationMCP.Core.Options;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
@@ -15,9 +17,15 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
 {
     public class SearchElementsOperation : BaseUIAutomationOperation<SearchElementsRequest, SearchElementsResult>
     {
-        public SearchElementsOperation(ElementFinderService elementFinderService, ILogger<SearchElementsOperation> logger)
+        private readonly IOptions<UIAutomationOptions> _options;
+
+        public SearchElementsOperation(
+            ElementFinderService elementFinderService,
+            ILogger<SearchElementsOperation> logger,
+            IOptions<UIAutomationOptions> options)
             : base(elementFinderService, logger)
         {
+            _options = options;
         }
         protected override UIAutomationMCP.Core.Validation.ValidationResult ValidateRequest(SearchElementsRequest request)
         {
@@ -111,14 +119,21 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
                         (request.WindowHandle.HasValue && !string.IsNullOrEmpty(request.WindowTitle))
                 };
                 
-                // Create cache request for optimized property access
-                var cacheRequest = CacheRequestHelper.CreateElementSearchCache();
-                
                 AutomationElementCollection foundElementsCollection;
-                using (cacheRequest.Activate())
+                if (_options.Value.Performance.EnableCacheOptimization)
+                {
+                    // Create cache request for optimized property access
+                    var cacheRequest = CacheRequestHelper.CreateElementSearchCache();
+                    using (cacheRequest.Activate())
+                    {
+                        foundElementsCollection = _elementFinderService.FindElements(searchCriteria);
+                        _logger?.LogDebug("FindElements completed with cache optimization, found {Count} elements", foundElementsCollection?.Count ?? 0);
+                    }
+                }
+                else
                 {
                     foundElementsCollection = _elementFinderService.FindElements(searchCriteria);
-                    _logger?.LogDebug("FindElements completed with cache optimization, found {Count} elements", foundElementsCollection?.Count ?? 0);
+                    _logger?.LogDebug("FindElements completed, found {Count} elements", foundElementsCollection?.Count ?? 0);
                 }
 
                 // Convert to list for further processing

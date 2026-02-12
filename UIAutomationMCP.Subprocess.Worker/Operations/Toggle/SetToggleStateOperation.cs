@@ -1,5 +1,7 @@
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using UIAutomationMCP.Core.Options;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
@@ -13,9 +15,15 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Toggle
 {
     public class SetToggleStateOperation : BaseUIAutomationOperation<SetToggleStateRequest, ToggleActionResult>
     {
-        public SetToggleStateOperation(ElementFinderService elementFinderService, ILogger<SetToggleStateOperation> logger)
+        private readonly IOptions<UIAutomationOptions> _options;
+
+        public SetToggleStateOperation(
+            ElementFinderService elementFinderService,
+            ILogger<SetToggleStateOperation> logger,
+            IOptions<UIAutomationOptions> options)
             : base(elementFinderService, logger)
         {
+            _options = options;
         }
 
         protected override async Task<ToggleActionResult> ExecuteOperationAsync(SetToggleStateRequest request)
@@ -51,7 +59,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Toggle
 
             var initialState = togglePattern.Current.ToggleState;
             var currentState = initialState;
-            const int maxIterations = 10;
+            var maxIterations = _options.Value.Performance.ToggleMaxIterations;
             var iterations = 0;
 
             while (currentState != targetState)
