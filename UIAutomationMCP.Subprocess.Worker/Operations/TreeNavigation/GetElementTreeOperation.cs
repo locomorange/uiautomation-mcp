@@ -127,6 +127,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation
 
         private TreeNode BuildElementTreeWithCache(AutomationElement element, int maxDepth, int currentDepth, ref int elementCount, CacheRequest cacheRequest, int maxElementCount)
         {
+            OperationCancellationToken.ThrowIfCancellationRequested();
             elementCount++;
 
             // Use cache request to get element with pre-cached properties
@@ -203,6 +204,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation
 
         private TreeNode BuildElementTree(AutomationElement element, int maxDepth, int currentDepth, ref int elementCount, int maxElementCount)
         {
+            OperationCancellationToken.ThrowIfCancellationRequested();
             elementCount++;
 
             // Use ElementInfoBuilder to create base ElementInfo with all latest features

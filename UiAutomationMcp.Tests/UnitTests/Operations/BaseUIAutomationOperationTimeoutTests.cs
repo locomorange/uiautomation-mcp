@@ -35,7 +35,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Operations
 
         protected override async Task<TestTimeoutResult> ExecuteOperationAsync(TestTimeoutRequest request)
         {
-            await Task.Delay(request.DelayMs);
+            await Task.Delay(request.DelayMs, OperationCancellationToken);
             return new TestTimeoutResult { Completed = true };
         }
     }
@@ -52,7 +52,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Operations
 
         protected override async Task<TestTimeoutResult> ExecuteOperationAsync(TestTimeoutRequest request)
         {
-            await Task.Delay(request.DelayMs);
+            await Task.Delay(request.DelayMs, OperationCancellationToken);
             return new TestTimeoutResult { Completed = true };
         }
     }

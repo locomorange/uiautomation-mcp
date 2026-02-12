@@ -24,6 +24,14 @@ namespace UIAutomationMCP.Subprocess.Core.Abstractions
         /// </summary>
         protected virtual int OperationTimeoutSeconds => 55;
 
+        /// <summary>
+        /// Cancellation token for the current operation. Operations should check this token
+        /// periodically, especially in loops or between COM calls.
+        /// Note: Synchronous COM calls cannot be interrupted, but checking this token allows
+        /// operations to stop processing between calls when a timeout or cancellation occurs.
+        /// </summary>
+        protected CancellationToken OperationCancellationToken { get; private set; }
+
         protected BaseUIAutomationOperation(ElementFinderService elementFinderService, ILogger logger)
         {
             _elementFinderService = elementFinderService;
@@ -60,17 +68,21 @@ namespace UIAutomationMCP.Subprocess.Core.Abstractions
                 using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(OperationTimeoutSeconds));
                 using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
 
+                // Expose the cancellation token so operations can check it cooperatively
+                OperationCancellationToken = combinedCts.Token;
+
                 var operationTask = Task.Run(() => ExecuteOperationAsync(request), combinedCts.Token);
+                var timeoutTask = Task.Delay(Timeout.Infinite, combinedCts.Token);
 
-                // Wait for either the operation to complete or the timeout/cancellation to fire
-                await Task.WhenAny(operationTask, Task.Delay(Timeout.Infinite, combinedCts.Token));
+                var completedTask = await Task.WhenAny(operationTask, timeoutTask);
 
-                if (combinedCts.Token.IsCancellationRequested && !operationTask.IsCompleted)
+                if (completedTask != operationTask)
                 {
+                    // Timeout or cancellation fired before operation completed
                     var reason = timeoutCts.Token.IsCancellationRequested
                         ? $"Operation '{GetType().Name}' timed out after {OperationTimeoutSeconds} seconds"
                         : $"Operation '{GetType().Name}' was cancelled";
-                    _logger.LogWarning("{Reason}", reason);
+                    _logger.LogWarning("{Reason}. Note: the background operation may still be running until the next COM call completes.", reason);
                     return OperationResult<TResult>.FromError(reason);
                 }
 
@@ -163,7 +175,9 @@ namespace UIAutomationMCP.Subprocess.Core.Abstractions
 
         /// <summary>
         /// Execute the specific operation logic
-        /// Implement in derived classes
+        /// Implement in derived classes.
+        /// Operations can check <see cref="OperationCancellationToken"/> for cooperative cancellation,
+        /// especially in loops or between multiple COM calls.
         /// </summary>
         /// <param name="request">Validated request</param>
         /// <returns>Operation result</returns>

@@ -64,6 +64,8 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.Toggle
 
             while (currentState != targetState)
             {
+                OperationCancellationToken.ThrowIfCancellationRequested();
+
                 if (++iterations > maxIterations)
                 {
                     throw new UIAutomationInvalidOperationException("SetToggleState", request.AutomationId,
