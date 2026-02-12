@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Windows.Automation;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using UIAutomationMCP.Core.Options;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
@@ -8,15 +10,22 @@ using UIAutomationMCP.Subprocess.Core.Abstractions;
 using UIAutomationMCP.Subprocess.Core.Services;
 using UIAutomationMCP.Subprocess.Core.Helpers;
 using UIAutomationMCP.Subprocess.Worker.Extensions;
+using UIAutomationMCP.Subprocess.Worker.Helpers;
 using UIAutomationMCP.Core.Exceptions;
 
 namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
 {
     public class SearchElementsOperation : BaseUIAutomationOperation<SearchElementsRequest, SearchElementsResult>
     {
-        public SearchElementsOperation(ElementFinderService elementFinderService, ILogger<SearchElementsOperation> logger)
+        private readonly IOptions<UIAutomationOptions> _options;
+
+        public SearchElementsOperation(
+            ElementFinderService elementFinderService,
+            ILogger<SearchElementsOperation> logger,
+            IOptions<UIAutomationOptions> options)
             : base(elementFinderService, logger)
         {
+            _options = options;
         }
         protected override UIAutomationMCP.Core.Validation.ValidationResult ValidateRequest(SearchElementsRequest request)
         {
@@ -96,6 +105,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
 
                 // Perform search using ElementFinderService with new criteria-based API
                 _logger?.LogDebug("Starting FindElements with ControlType={ControlType}, WindowHandle={WindowHandle}", request.ControlType, request.WindowHandle);
+                
                 var searchCriteria = new ElementSearchCriteria
                 {
                     AutomationId = request.AutomationId,
@@ -108,8 +118,23 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
                     UseWindowHandleAsFilter = request.UseWindowHandleAsFilter ||
                         (request.WindowHandle.HasValue && !string.IsNullOrEmpty(request.WindowTitle))
                 };
-                var foundElementsCollection = _elementFinderService.FindElements(searchCriteria);
-                _logger?.LogDebug("FindElements completed, found {Count} elements", foundElementsCollection?.Count ?? 0);
+                
+                AutomationElementCollection foundElementsCollection;
+                if (_options.Value.Performance.EnableCacheOptimization)
+                {
+                    // Create cache request for optimized property access
+                    var cacheRequest = CacheRequestHelper.CreateElementSearchCache();
+                    using (cacheRequest.Activate())
+                    {
+                        foundElementsCollection = _elementFinderService.FindElements(searchCriteria);
+                        _logger?.LogDebug("FindElements completed with cache optimization, found {Count} elements", foundElementsCollection?.Count ?? 0);
+                    }
+                }
+                else
+                {
+                    foundElementsCollection = _elementFinderService.FindElements(searchCriteria);
+                    _logger?.LogDebug("FindElements completed, found {Count} elements", foundElementsCollection?.Count ?? 0);
+                }
 
                 // Convert to list for further processing
                 var foundElementsList = new List<AutomationElement>();

@@ -116,10 +116,21 @@ namespace UIAutomationMCP.Server.Helpers
                         _logger.LogWarning("Worker operation could not complete within {TimeoutSeconds}s: {Operation}", timeoutSeconds, operation);
                         cts.Cancel();
 
-                        // Wait for the responseTask to complete or be cancelled to avoid stream conflicts
+                        // Wait for the responseTask to complete with a bounded timeout to avoid hanging
+                        // If the worker process is hung on a COM call, the stream read may never return
                         try
                         {
-                            await responseTask;
+                            var cleanupTimeout = Task.Delay(TimeSpan.FromSeconds(5));
+                            var cleanupCompleted = await Task.WhenAny(responseTask, cleanupTimeout);
+                            if (cleanupCompleted == cleanupTimeout)
+                            {
+                                _logger.LogWarning("Response task did not complete within cleanup timeout for operation: {Operation}. Restarting worker process.", operation);
+                                await RestartWorkerProcessAsync();
+                            }
+                            else
+                            {
+                                await responseTask;
+                            }
                         }
                         catch (OperationCanceledException)
                         {

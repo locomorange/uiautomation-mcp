@@ -129,6 +129,10 @@ namespace UIAutomationMCP.Subprocess.Worker
 
             var builder = Host.CreateApplicationBuilder(args);
 
+            // Bind UIAutomation configuration section to options
+            builder.Services.Configure<UIAutomationMCP.Core.Options.UIAutomationOptions>(
+                builder.Configuration.GetSection(UIAutomationMCP.Core.Options.UIAutomationOptions.SectionName));
+
             // Tools Level Serialization: Configuration is now handled at Server level only
             // Worker operations receive pre-configured typed requests via JSON
 
