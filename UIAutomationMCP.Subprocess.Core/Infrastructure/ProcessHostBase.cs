@@ -6,6 +6,7 @@ using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Serialization;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Subprocess.Core.Abstractions;
+using System.IO;
 
 namespace UIAutomationMCP.Subprocess.Core.Infrastructure
 {
@@ -216,11 +217,16 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
                 }
                 else
                 {
+                    if (!string.IsNullOrEmpty(operationResult.Error))
+                    {
+                        return WorkerResponse<object>.CreateError(operationResult.Error);
+                    }
+
                     var genericError = ErrorResult.CreateGenericError(
                         operationName,
                         "",
                         "OperationFailure",
-                        operationResult.Error);
+                        "Unknown error");
                     return WorkerResponse<object>.CreateError(genericError);
                 }
             }

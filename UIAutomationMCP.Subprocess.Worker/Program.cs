@@ -19,6 +19,9 @@ using UIAutomationMCP.Subprocess.Worker.Operations.Window;
 using UIAutomationMCP.Subprocess.Worker.Operations.Range;
 using UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation;
 using UIAutomationMCP.Subprocess.Worker.Operations.Focus;
+using UIAutomationMCP.Subprocess.Worker.Operations.MultipleView;
+using UIAutomationMCP.Subprocess.Worker.Operations.VirtualizedItem;
+using UIAutomationMCP.Subprocess.Worker.Operations.SynchronizedInput;
 using UIAutomationMCP.Subprocess.Core.Helpers;
 using UIAutomationMCP.Models.Logging;
 using UIAutomationMCP.Models.Requests;
@@ -186,13 +189,26 @@ namespace UIAutomationMCP.Subprocess.Worker
             builder.Services.AddOperation<MoveElementOperation, MoveElementRequest>();
             builder.Services.AddOperation<ResizeElementOperation, ResizeElementRequest>();
             builder.Services.AddOperation<RotateElementOperation, RotateElementRequest>();
+            builder.Services.AddOperation<GetTransformCapabilitiesOperation, GetTransformCapabilitiesRequest>();
 
             // Window operations
             builder.Services.AddOperation<WindowActionOperation, WindowActionRequest>();
             builder.Services.AddOperation<WaitForInputIdleOperation, WaitForInputIdleRequest>();
+            builder.Services.AddOperation<GetWindowInteractionStateOperation, GetWindowInteractionStateRequest>();
+            builder.Services.AddOperation<GetWindowCapabilitiesOperation, GetWindowCapabilitiesRequest>();
 
             // Range operations
             builder.Services.AddOperation<SetRangeValueOperation, SetRangeValueRequest>();
+
+            // MultipleView operations
+            builder.Services.AddOperation<SetViewOperation, SetViewRequest>();
+
+            // VirtualizedItem operations
+            builder.Services.AddOperation<RealizeVirtualizedItemOperation, RealizeVirtualizedItemRequest>();
+
+            // SynchronizedInput operations
+            builder.Services.AddOperation<StartSynchronizedInputOperation, StartSynchronizedInputRequest>();
+            builder.Services.AddOperation<CancelSynchronizedInputOperation, CancelSynchronizedInputRequest>();
 
             // Register Worker service
             builder.Services.AddSingleton<WorkerService>();

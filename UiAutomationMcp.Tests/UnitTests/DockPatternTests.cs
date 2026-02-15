@@ -33,15 +33,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Dock", Details = $"Docked to {dockPosition}", Metadata = new Dictionary<string, object> { { "PreviousPosition", "None" }, { "NewPosition", dockPosition } } }
             };
-            _mockService.Setup(s => s.DockElementAsync("dockablePane", null, dockPosition, "TestWindow", null, 30))
+            _mockService.Setup(s => s.DockElementAsync("dockablePane", "TestWindow", dockPosition, null, null, null, 30))
                        .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.DockElement("dockablePane", "TestWindow", dockPosition);
+            var result = await _tools.DockElement(automationId: "dockablePane", name: "TestWindow", dockPosition: dockPosition);
 
             // Assert
             Assert.NotNull(result);
-            _mockService.Verify(s => s.DockElementAsync("dockablePane", null, dockPosition, "TestWindow", null, 30), Times.Once);
+            _mockService.Verify(s => s.DockElementAsync("dockablePane", "TestWindow", dockPosition, null, null, null, 30), Times.Once);
             _output.WriteLine($"  DockElement test passed for position: {dockPosition}");
         }
 
@@ -53,14 +53,14 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task DockElement_WithInvalidDockPositions_ShouldHandleError(string invalidPosition)
         {
             // Arrange
-            _mockService.Setup(s => s.DockElementAsync("dockablePane", null, invalidPosition, "TestWindow", null, 30))
+            _mockService.Setup(s => s.DockElementAsync("dockablePane", "TestWindow", invalidPosition, null, null, null, 30))
                        .ThrowsAsync(new ArgumentException($"Unsupported dock position: {invalidPosition}"));
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(
-                () => _tools.DockElement("dockablePane", invalidPosition, "TestWindow"));
+                () => _tools.DockElement(automationId: "dockablePane", name: "TestWindow", dockPosition: invalidPosition));
 
-            _mockService.Verify(s => s.DockElementAsync("dockablePane", null, invalidPosition, "TestWindow", null, 30), Times.Once);
+            _mockService.Verify(s => s.DockElementAsync("dockablePane", "TestWindow", invalidPosition, null, null, null, 30), Times.Once);
             _output.WriteLine($"  DockElement correctly rejected invalid position: {invalidPosition}");
         }
 
@@ -81,15 +81,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Dock", Details = "Docked to Top", Metadata = new Dictionary<string, object> { { "PreviousPosition", "None" }, { "NewPosition", "Top" } } }
             };
-            _mockService.Setup(s => s.DockElementAsync("toolbar", null, "top", "MainWindow", null, 30))
+            _mockService.Setup(s => s.DockElementAsync("toolbar", "MainWindow", "top", null, null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.DockElement("toolbar", "top", "MainWindow");
+            var result = await _tools.DockElement(automationId: "toolbar", name: "MainWindow", dockPosition: "top");
 
             // Assert
             Assert.NotNull(result);
-            _mockService.Verify(s => s.DockElementAsync("toolbar", null, "top", "MainWindow", null, 30), Times.Once);
+            _mockService.Verify(s => s.DockElementAsync("toolbar", "MainWindow", "top", null, null, null, 30), Times.Once);
             _output.WriteLine("Position change from None to Top test passed");
         }
 
@@ -102,15 +102,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Dock", Details = "Docked to Right", Metadata = new Dictionary<string, object> { { "PreviousPosition", "Left" }, { "NewPosition", "Right" } } }
             };
-            _mockService.Setup(s => s.DockElementAsync("sidebar", null, "right", "IDE", null, 30))
+            _mockService.Setup(s => s.DockElementAsync("sidebar", "IDE", "right", null, null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.DockElement("sidebar", "right", "IDE");
+            var result = await _tools.DockElement(automationId: "sidebar", name: "IDE", dockPosition: "right");
 
             // Assert
             Assert.NotNull(result);
-            _mockService.Verify(s => s.DockElementAsync("sidebar", null, "right", "IDE", null, 30), Times.Once);
+            _mockService.Verify(s => s.DockElementAsync("sidebar", "IDE", "right", null, null, null, 30), Times.Once);
             _output.WriteLine("Position change from Left to Right test passed");
         }
 
@@ -123,15 +123,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Dock", Details = "Docked to Fill", Metadata = new Dictionary<string, object> { { "PreviousPosition", "None" }, { "NewPosition", "Fill" } } }
             };
-            _mockService.Setup(s => s.DockElementAsync("contentArea", null, "fill", "App", null, 30))
+            _mockService.Setup(s => s.DockElementAsync("contentArea", "App", "fill", null, null, null, 30))
                              .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.DockElement("contentArea", "fill", "App");
+            var result = await _tools.DockElement(automationId: "contentArea", name: "App", dockPosition: "fill");
 
             // Assert
             Assert.NotNull(result);
-            _mockService.Verify(s => s.DockElementAsync("contentArea", null, "fill", "App", null, 30), Times.Once);
+            _mockService.Verify(s => s.DockElementAsync("contentArea", "App", "fill", null, null, null, 30), Times.Once);
             _output.WriteLine("Fill dock position test passed");
         }
 
@@ -142,14 +142,14 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task DockElement_WithNonExistentElement_ShouldHandleError()
         {
             // Arrange
-            _mockService.Setup(s => s.DockElementAsync("nonExistentElement", null, "top", "TestWindow", null, 30))
+            _mockService.Setup(s => s.DockElementAsync("nonExistentElement", "TestWindow", "top", null, null, null, 30))
                        .ThrowsAsync(new InvalidOperationException(CommonTestData.ErrorMessages.ElementNotFound));
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(
-                () => _tools.DockElement("nonExistentElement", "top", "TestWindow"));
+                () => _tools.DockElement(automationId: "nonExistentElement", name: "TestWindow", dockPosition: "top"));
 
-            _mockService.Verify(s => s.DockElementAsync("nonExistentElement", null, "top", "TestWindow", null, 30), Times.Once);
+            _mockService.Verify(s => s.DockElementAsync("nonExistentElement", "TestWindow", "top", null, null, null, 30), Times.Once);
             _output.WriteLine("  Non-existent element error handling test passed");
         }
 
@@ -157,14 +157,14 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task DockElement_WithUnsupportedElement_ShouldHandleError()
         {
             // Arrange
-            _mockService.Setup(s => s.DockElementAsync("staticText", null, "top", "TestWindow", null, 30))
+            _mockService.Setup(s => s.DockElementAsync("staticText", "TestWindow", "top", null, null, null, 30))
                        .ThrowsAsync(new InvalidOperationException(CommonTestData.ErrorMessages.PatternNotSupported));
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(
-                () => _tools.DockElement("staticText", "top", "TestWindow"));
+                () => _tools.DockElement(automationId: "staticText", name: "TestWindow", dockPosition: "top"));
 
-            _mockService.Verify(s => s.DockElementAsync("staticText", null, "top", "TestWindow", null, 30), Times.Once);
+            _mockService.Verify(s => s.DockElementAsync("staticText", "TestWindow", "top", null, null, null, 30), Times.Once);
             _output.WriteLine("  Unsupported element error handling test passed");
         }
 
@@ -208,15 +208,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Dock", Details = "Docked to Top", Metadata = new Dictionary<string, object> { { "PreviousPosition", "None" }, { "NewPosition", "Top" } } }
             };
-            _mockService.Setup(s => s.DockElementAsync("element1", null, "top", "TestWindow", processId, 30))
+            _mockService.Setup(s => s.DockElementAsync("element1", "TestWindow", "top", null, null, processId, 30))
                        .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.DockElement(automationId: "element1", dockPosition: "top", controlType: "TestWindow");
+            var result = await _tools.DockElement(automationId: "element1", name: "TestWindow", dockPosition: "top", processId: processId);
 
             // Assert
             Assert.NotNull(result);
-            _mockService.Verify(s => s.DockElementAsync("element1", null, "top", "TestWindow", processId, 30), Times.Once);
+            _mockService.Verify(s => s.DockElementAsync("element1", "TestWindow", "top", null, null, processId, 30), Times.Once);
             _output.WriteLine($"  ProcessId parameter test passed: processId={processId}");
         }
 
@@ -230,15 +230,15 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, OperationName = "Dock", Details = "Docked to Bottom", Metadata = new Dictionary<string, object> { { "PreviousPosition", "None" }, { "NewPosition", "Bottom" } } }
             };
-            _mockService.Setup(s => s.DockElementAsync("element1", null, "bottom", "TestWindow", null, timeoutSeconds))
+            _mockService.Setup(s => s.DockElementAsync("element1", "TestWindow", "bottom", null, null, null, timeoutSeconds))
                        .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.DockElement("element1", "bottom", "TestWindow", timeoutSeconds: timeoutSeconds);
+            var result = await _tools.DockElement(automationId: "element1", name: "TestWindow", dockPosition: "bottom", timeoutSeconds: timeoutSeconds);
 
             // Assert
             Assert.NotNull(result);
-            _mockService.Verify(s => s.DockElementAsync("element1", null, "bottom", "TestWindow", null, timeoutSeconds), Times.Once);
+            _mockService.Verify(s => s.DockElementAsync("element1", "TestWindow", "bottom", null, null, null, timeoutSeconds), Times.Once);
             _output.WriteLine($"  Custom timeout test passed: timeout={timeoutSeconds}s");
         }
 

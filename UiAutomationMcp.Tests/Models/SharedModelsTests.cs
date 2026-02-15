@@ -128,9 +128,16 @@ namespace UiAutomationMcp.Tests.Models
 
             Assert.NotNull(deserialized.Parameters);
             Assert.Equal(3, deserialized.Parameters.Count);
-            Assert.True(deserialized.Parameters.ContainsKey("Value"));
-            Assert.True(deserialized.Parameters.ContainsKey("Action"));
-            Assert.True(deserialized.Parameters.ContainsKey("Count"));
+            
+            // System.Text.Json deserializes 'object' as JsonElement
+            var value = (JsonElement)deserialized.Parameters["Value"];
+            Assert.Equal("test value", value.GetString());
+            
+            var action = (JsonElement)deserialized.Parameters["Action"];
+            Assert.Equal("click", action.GetString());
+            
+            var count = (JsonElement)deserialized.Parameters["Count"];
+            Assert.Equal(5, count.GetInt32());
         }
 
         [Fact]
@@ -157,7 +164,10 @@ namespace UiAutomationMcp.Tests.Models
             Assert.NotNull(deserialized);
             Assert.Equal(request.Operation, deserialized.Operation);
             Assert.NotNull(deserialized.Parameters);
-            Assert.Equal(2, ((Dictionary<string, object>)deserialized.Parameters).Count);
+            
+            // System.Text.Json deserializes 'object' as JsonElement
+            var paramsDict = (JsonElement)deserialized.Parameters!;
+            Assert.Equal(2, paramsDict.EnumerateObject().Count());
         }
 
         [Fact]

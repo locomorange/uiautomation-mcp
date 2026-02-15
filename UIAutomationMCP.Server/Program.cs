@@ -95,10 +95,14 @@ namespace UIAutomationMCP.Server
             builder.Services.AddSingleton<ICustomPropertyService, CustomPropertyService>();
             builder.Services.AddSingleton<ITransformService, TransformService>();
             builder.Services.AddSingleton<IVirtualizedItemService, VirtualizedItemService>();
-            builder.Services.AddSingleton<IItemContainerService, ItemContainerService>();
             builder.Services.AddSingleton<ISynchronizedInputService, SynchronizedInputService>();
             builder.Services.AddSingleton<IEventMonitorService, EventMonitorService>();
             builder.Services.AddSingleton<IFocusService, FocusService>();
+            
+            // Register consolidated services
+            builder.Services.AddSingleton<IInteractionService, InteractionService>();
+            builder.Services.AddSingleton<IGridTableService, GridTableService>();
+            builder.Services.AddSingleton<IAdvancedPatternService, AdvancedPatternService>();
 
 
             // Register ControlType service

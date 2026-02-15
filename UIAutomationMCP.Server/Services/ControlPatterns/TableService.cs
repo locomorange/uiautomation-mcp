@@ -20,14 +20,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         protected override string GetOperationType() => "table";
 
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetRowHeadersAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetRowHeadersAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var request = new GetRowHeadersRequest
             {
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<GetRowHeadersRequest, ElementSearchResult>(
@@ -39,14 +40,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             );
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetColumnHeadersAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetColumnHeadersAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var request = new GetColumnHeadersRequest
             {
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<GetColumnHeadersRequest, ElementSearchResult>(
@@ -59,14 +61,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         }
 
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetColumnHeaderItemsAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetColumnHeaderItemsAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var request = new GetColumnHeaderItemsRequest
             {
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<GetColumnHeaderItemsRequest, ElementSearchResult>(
@@ -78,14 +81,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             );
         }
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetRowHeaderItemsAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetRowHeaderItemsAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var request = new GetRowHeaderItemsRequest
             {
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<GetRowHeaderItemsRequest, ElementSearchResult>(
@@ -97,14 +101,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             );
         }
 
-        public async Task<ServerEnhancedResponse<ActionResult>> GetRowOrColumnMajorAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> GetRowOrColumnMajorAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var request = new GetTableInfoRequest
             {
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<GetTableInfoRequest, ActionResult>(
@@ -116,14 +121,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             );
         }
 
-        public async Task<ServerEnhancedResponse<TableInfoResult>> GetTableInfoAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<TableInfoResult>> GetTableInfoAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var request = new GetTableInfoRequest
             {
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<GetTableInfoRequest, TableInfoResult>(

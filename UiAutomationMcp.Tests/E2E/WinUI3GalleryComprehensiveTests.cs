@@ -166,9 +166,9 @@ namespace UIAutomationMCP.Tests.E2E
                 await Tools.TakeScreenshot("WinUI 3 Gallery", @"C:\temp\before_actual_nav.png");
 
                 // Step 5: Perform ACTUAL navigation
-                Output.WriteLine("\n5. Performing SelectElement on FundamentalsItem...");
-                var selectResult = await Tools.SelectElement("FundamentalsItem");
-                Output.WriteLine($"SelectElement result: {JsonSerializer.Serialize(selectResult, new JsonSerializerOptions { WriteIndented = true })}");
+                Output.WriteLine("\n5. Performing SelectionAction on FundamentalsItem...");
+                var selectResult = await Tools.SelectionAction(action: "select", automationId: "FundamentalsItem");
+                Output.WriteLine($"SelectionAction result: {JsonSerializer.Serialize(selectResult, new JsonSerializerOptions { WriteIndented = true })}");
 
                 // Verify the operation returned success
                 var selectData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(selectResult));
@@ -537,7 +537,7 @@ namespace UIAutomationMCP.Tests.E2E
                         try
                         {
                             // Try to find Basic Input page
-                            await Tools.SelectElement("FundamentalsItem");
+                            await Tools.SelectionAction(action: "select", automationId: "FundamentalsItem");
                             await Task.Delay(2000);
 
                             // Search again after navigation

@@ -52,7 +52,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
         {
             // When & Then
             var exception = Assert.Throws<ArgumentException>(() => new SubprocessExecutor(_mockLogger.Object, workerPath!, new CancellationTokenSource()));
-            Assert.Contains("workerPath", exception.ParamName);
+            Assert.Contains("executablePath", exception.ParamName);
         }
 
         [Fact]
@@ -62,7 +62,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
             using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath, new CancellationTokenSource());
 
             // When & Then
-            await Assert.ThrowsAsync<FileNotFoundException>(async () =>
+            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
                 await executor.ExecuteAsync<TestRequest, object>("TestOperation", new TestRequest(), 5));
         }
 
@@ -74,7 +74,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
 
             // When & Then
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            await Assert.ThrowsAsync<FileNotFoundException>(async () =>
+            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
                 await executor.ExecuteAsync<TestRequest, object>("TestOperation", new TestRequest(), 1));
             stopwatch.Stop();
 
@@ -103,7 +103,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
             using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath, new CancellationTokenSource());
 
             // When & Then
-            await Assert.ThrowsAsync<FileNotFoundException>(async () =>
+            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
                 await executor.ExecuteAsync<TestRequest, object>("TestOperation", null!, 5));
         }
 
@@ -114,7 +114,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
             using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath, new CancellationTokenSource());
 
             // When & Then
-            await Assert.ThrowsAsync<FileNotFoundException>(async () =>
+            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
                 await executor.ExecuteAsync<TestRequest, object>("TestOperation", new TestRequest(), 5));
         }
 
@@ -128,7 +128,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
             using var executor = new SubprocessExecutor(_mockLogger.Object, _nonExistentWorkerPath, new CancellationTokenSource());
 
             // When & Then
-            await Assert.ThrowsAsync<FileNotFoundException>(async () =>
+            await Assert.ThrowsAsync<ArgumentException>(async () =>
                 await executor.ExecuteAsync<TestRequest, object>("TestOperation", new TestRequest(), timeout));
         }
 
@@ -183,7 +183,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Helpers
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    await Assert.ThrowsAsync<FileNotFoundException>(async () =>
+                    await Assert.ThrowsAsync<InvalidOperationException>(async () =>
                         await executor.ExecuteAsync<TestRequest, object>("TestOperation", new TestRequest(), 2));
                 }));
             }

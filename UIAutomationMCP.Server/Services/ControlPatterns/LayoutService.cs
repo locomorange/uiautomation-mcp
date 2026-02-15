@@ -19,7 +19,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
         protected override string GetOperationType() => "layout";
 
-        public async Task<ServerEnhancedResponse<ActionResult>> ExpandCollapseElementAsync(string? automationId = null, string? name = null, string action = "toggle", string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> ExpandCollapseElementAsync(string? automationId = null, string? name = null, string action = "toggle", string? controlType = null, long? windowHandle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var request = new ExpandCollapseElementRequest
             {
@@ -27,7 +27,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Name = name,
                 Action = action,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<ExpandCollapseElementRequest, ActionResult>(
@@ -39,7 +40,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             );
         }
 
-        public async Task<ServerEnhancedResponse<ActionResult>> ScrollElementAsync(string? automationId = null, string? name = null, string direction = "down", double amount = 1.0, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> ScrollElementAsync(string? automationId = null, string? name = null, string direction = "down", double amount = 1.0, string? controlType = null, long? windowHandle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var request = new ScrollElementRequest
             {
@@ -48,7 +49,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Direction = direction,
                 Amount = amount,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<ScrollElementRequest, ActionResult>(
@@ -60,14 +62,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             );
         }
 
-        public async Task<ServerEnhancedResponse<ActionResult>> ScrollElementIntoViewAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> ScrollElementIntoViewAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var request = new ScrollElementIntoViewRequest
             {
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<ScrollElementIntoViewRequest, ActionResult>(
@@ -79,7 +82,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             );
         }
 
-        public async Task<ServerEnhancedResponse<ActionResult>> SetScrollPercentAsync(string? automationId = null, string? name = null, double horizontalPercent = -1, double verticalPercent = -1, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> SetScrollPercentAsync(string? automationId = null, string? name = null, double horizontalPercent = -1, double verticalPercent = -1, string? controlType = null, long? windowHandle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var request = new SetScrollPercentRequest
             {
@@ -88,7 +91,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 HorizontalPercent = horizontalPercent,
                 VerticalPercent = verticalPercent,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<SetScrollPercentRequest, ActionResult>(
@@ -100,7 +104,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             );
         }
 
-        public async Task<ServerEnhancedResponse<ActionResult>> DockElementAsync(string? automationId = null, string? name = null, string dockPosition = "none", string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ActionResult>> DockElementAsync(string? automationId = null, string? name = null, string dockPosition = "none", string? controlType = null, long? windowHandle = null, int? processId = null, int timeoutSeconds = 30)
         {
             var request = new DockElementRequest
             {
@@ -108,7 +112,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Name = name,
                 DockPosition = dockPosition,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<DockElementRequest, ActionResult>(
@@ -117,25 +122,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 nameof(DockElementAsync),
                 timeoutSeconds,
                 ValidateDockRequest
-            );
-        }
-
-        public async Task<ServerEnhancedResponse<ScrollInfoResult>> GetScrollInfoAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
-        {
-            var request = new GetScrollInfoRequest
-            {
-                AutomationId = automationId,
-                Name = name,
-                ControlType = controlType,
-                WindowHandle = windowHandle
-            };
-
-            return await ExecuteServiceOperationAsync<GetScrollInfoRequest, ScrollInfoResult>(
-                "GetScrollInfo",
-                request,
-                nameof(GetScrollInfoAsync),
-                timeoutSeconds,
-                ValidateElementIdentificationRequest
             );
         }
 

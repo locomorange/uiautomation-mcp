@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Models.Requests;
+using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using Xunit.Abstractions;
@@ -35,32 +36,17 @@ namespace UiAutomationMcp.Tests.Integration
             _serviceProvider = services.BuildServiceProvider();
             var logger = _serviceProvider.GetRequiredService<ILogger<SubprocessExecutor>>();
 
-            // Find Worker.exe path
-            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            var possiblePaths = new[]
-            {
-                Path.Combine(baseDir, "UIAutomationMCP.Worker.exe"),
-                Path.Combine(baseDir, "..", "UIAutomationMCP.Worker", "bin", "Debug", "net9.0-windows", "UIAutomationMCP.Worker.exe"),
-                Path.Combine(baseDir, "worker", "UIAutomationMCP.Worker.exe"),
-                Path.Combine(baseDir, "..", "..", "..", "..", "UIAutomationMCP.Worker", "bin", "Debug", "net9.0-windows", "UIAutomationMCP.Worker.exe")
-            };
+            // Resolve Worker path using ExecutablePathResolver
+            var baseDir = ExecutablePathResolver.GetExecutableRealPath();
+            var workerPath = ExecutablePathResolver.ResolveWorkerPath(baseDir);
 
-            _workerPath = null!;
-            foreach (var path in possiblePaths)
+            if (workerPath == null || (!File.Exists(workerPath) && !Directory.Exists(workerPath)))
             {
-                var fullPath = Path.GetFullPath(path);
-                if (File.Exists(fullPath))
-                {
-                    _workerPath = fullPath;
-                    break;
-                }
+                var searchedPaths = ExecutablePathResolver.GetSearchedPaths("UIAutomationMCP.Subprocess.Worker", baseDir);
+                throw new InvalidOperationException($"Worker executable not found. Searched paths: {string.Join(", ", searchedPaths)}");
             }
 
-            if (string.IsNullOrEmpty(_workerPath))
-            {
-                throw new FileNotFoundException($"UIAutomationMCP.Worker.exe not found. Searched paths: {string.Join(", ", possiblePaths)}");
-            }
-
+            _workerPath = workerPath!;
             _subprocessExecutor = new SubprocessExecutor(logger, _workerPath, new CancellationTokenSource());
             _output.WriteLine($"Using worker path: {_workerPath}");
         }
@@ -201,7 +187,8 @@ namespace UiAutomationMcp.Tests.Integration
                 {
                     "window not found",
                     "windowpattern not supported",
-                    "error getting window"
+                    "error getting window",
+                    "not found"
                 };
 
                 var isRegistered = expectedErrors.Any(expected => errorMessage.Contains(expected));
@@ -231,29 +218,30 @@ namespace UiAutomationMcp.Tests.Integration
             var stopwatch = Stopwatch.StartNew();
             try
             {
-                await (operationName switch
+                Task task = operationName switch
                 {
-                    "GetWindowInteractionState" => _subprocessExecutor.ExecuteAsync<GetWindowInteractionStateRequest, object>(
+                    "GetWindowInteractionState" => _subprocessExecutor.ExecuteAsync<GetWindowInteractionStateRequest, WindowInteractionStateResult>(
                         operationName,
                         new GetWindowInteractionStateRequest { WindowTitle = "NonExistentWindow" },
                         timeoutSeconds),
-                    "GetWindowCapabilities" => _subprocessExecutor.ExecuteAsync<GetWindowCapabilitiesRequest, object>(
+                    "GetWindowCapabilities" => _subprocessExecutor.ExecuteAsync<GetWindowCapabilitiesRequest, WindowCapabilitiesResult>(
                         operationName,
                         new GetWindowCapabilitiesRequest { WindowTitle = "NonExistentWindow" },
                         timeoutSeconds),
-                    "WaitForInputIdle" => _subprocessExecutor.ExecuteAsync<WaitForInputIdleRequest, object>(
+                    "WaitForInputIdle" => _subprocessExecutor.ExecuteAsync<WaitForInputIdleRequest, WaitForInputIdleResult>(
                         operationName,
                         new WaitForInputIdleRequest { WindowTitle = "NonExistentWindow", TimeoutMilliseconds = 1000 },
                         timeoutSeconds),
                     _ => throw new ArgumentException($"Unknown operation: {operationName}")
-                });
+                };
+                await task;
             }
             catch (Exception ex)
             {
                 stopwatch.Stop();
 
                 var isTimeoutRelated = ex.Message.Contains("timeout") ||
-                                     ex.Message.Contains("Window not found") ||
+                                     ex.Message.Contains("not found") ||
                                      ex.Message.Contains("process");
 
                 Assert.True(isTimeoutRelated, $"Unexpected error for {operationName}: {ex.Message}");

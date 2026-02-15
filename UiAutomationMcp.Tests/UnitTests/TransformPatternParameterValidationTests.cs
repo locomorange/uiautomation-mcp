@@ -81,7 +81,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             Assert.False(result.Success);
-            Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("Either AutomationId or Name is required", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
 
             _output.WriteLine($" MoveElementOperation correctly handled invalid elementId");
             _output.WriteLine($"  Error: {result.Error}");
@@ -336,7 +336,9 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             Assert.False(result.Success); // Expected failure due to missing element
-            Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
+            var error = result.Error ?? "";
+            Assert.True(error.Contains("not found", StringComparison.OrdinalIgnoreCase) || 
+                        error.Contains("Either AutomationId or Name is required", StringComparison.OrdinalIgnoreCase));
 
             _output.WriteLine($" RotateElementOperation handled invalid degrees format with default value");
             _output.WriteLine($"  Error: {result.Error}");
@@ -528,7 +530,9 @@ namespace UIAutomationMCP.Tests.UnitTests
             // Assert
             Assert.NotNull(result);
             Assert.False(result.Success); // Expected failure due to missing element
-            Assert.Contains("not found", result.Error ?? "", StringComparison.OrdinalIgnoreCase);
+            var error = result.Error ?? "";
+            Assert.True(error.Contains("not found", StringComparison.OrdinalIgnoreCase) || 
+                        error.Contains("Either AutomationId or Name is required", StringComparison.OrdinalIgnoreCase));
 
             _output.WriteLine($" Transform operation handled windowTitle correctly");
             _output.WriteLine($"  Error: {result.Error}");

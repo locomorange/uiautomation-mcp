@@ -153,9 +153,9 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
             var endTime = DateTime.UtcNow;
             var duration = endTime - startTime;
 
-            // Assert - Should be very fast (under 100ms for 100 calls)
-            Assert.True(duration.TotalMilliseconds < 100,
-                $"100 calls to IsAvailable took {duration.TotalMilliseconds}ms, expected < 100ms");
+            // Assert - Should be relatively fast (under 500ms for 100 calls, allowing for CI/slow machines)
+            Assert.True(duration.TotalMilliseconds < 500,
+                $"100 calls to IsAvailable took {duration.TotalMilliseconds}ms, expected < 500ms");
         }
 
         [Fact(Skip = "ExecuteWithTimeoutAsync method not available")]

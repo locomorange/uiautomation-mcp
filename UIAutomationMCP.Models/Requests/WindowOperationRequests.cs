@@ -5,15 +5,9 @@ namespace UIAutomationMCP.Models.Requests
     // === ウィンドウ操作 ===
 
 
-    public class WindowActionRequest : TypedWorkerRequest
+    public class WindowActionRequest : ElementTargetRequest
     {
         public override string Operation => "WindowAction";
-
-        [JsonPropertyName("windowTitle")]
-        public string? WindowTitle { get; set; }
-
-        [JsonPropertyName("windowHandle")]
-        public long? WindowHandle { get; set; }
 
         [JsonPropertyName("action")]
         public string Action { get; set; } = ""; // "close", "minimize", "maximize", "restore", "setfocus"
@@ -25,16 +19,10 @@ namespace UIAutomationMCP.Models.Requests
         public int TimeoutSeconds { get; set; } = 10;
     }
 
-    public class GetWindowInfoRequest : TypedWorkerRequest
+    public class GetWindowInfoRequest : ElementTargetRequest
     {
         public override string Operation => "GetWindowInfo";
 
-        [JsonPropertyName("windowTitle")]
-        public string? WindowTitle { get; set; }
-
-        [JsonPropertyName("windowHandle")]
-        public long? WindowHandle { get; set; }
-
         /// <summary>
         /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）
         /// </summary>
@@ -42,16 +30,10 @@ namespace UIAutomationMCP.Models.Requests
         public int TimeoutSeconds { get; set; } = 10;
     }
 
-    public class GetWindowInteractionStateRequest : TypedWorkerRequest
+    public class GetWindowInteractionStateRequest : ElementTargetRequest
     {
         public override string Operation => "GetWindowInteractionState";
 
-        [JsonPropertyName("windowTitle")]
-        public string? WindowTitle { get; set; }
-
-        [JsonPropertyName("windowHandle")]
-        public long? WindowHandle { get; set; }
-
         /// <summary>
         /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）
         /// </summary>
@@ -59,16 +41,10 @@ namespace UIAutomationMCP.Models.Requests
         public int TimeoutSeconds { get; set; } = 10;
     }
 
-    public class GetWindowCapabilitiesRequest : TypedWorkerRequest
+    public class GetWindowCapabilitiesRequest : ElementTargetRequest
     {
         public override string Operation => "GetWindowCapabilities";
 
-        [JsonPropertyName("windowTitle")]
-        public string? WindowTitle { get; set; }
-
-        [JsonPropertyName("windowHandle")]
-        public long? WindowHandle { get; set; }
-
         /// <summary>
         /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）
         /// </summary>
@@ -76,15 +52,9 @@ namespace UIAutomationMCP.Models.Requests
         public int TimeoutSeconds { get; set; } = 10;
     }
 
-    public class SetWindowStateRequest : TypedWorkerRequest
+    public class SetWindowStateRequest : ElementTargetRequest
     {
         public override string Operation => "SetWindowState";
-
-        [JsonPropertyName("windowTitle")]
-        public string? WindowTitle { get; set; }
-
-        [JsonPropertyName("windowHandle")]
-        public long? WindowHandle { get; set; }
 
         [JsonPropertyName("windowState")]
         public string WindowState { get; set; } = ""; // "normal", "minimized", "maximized"
@@ -96,15 +66,9 @@ namespace UIAutomationMCP.Models.Requests
         public int TimeoutSeconds { get; set; } = 10;
     }
 
-    public class MoveWindowRequest : TypedWorkerRequest
+    public class MoveWindowRequest : ElementTargetRequest
     {
         public override string Operation => "MoveWindow";
-
-        [JsonPropertyName("windowTitle")]
-        public string? WindowTitle { get; set; }
-
-        [JsonPropertyName("windowHandle")]
-        public long? WindowHandle { get; set; }
 
         [JsonPropertyName("x")]
         public int X { get; set; }
@@ -119,15 +83,9 @@ namespace UIAutomationMCP.Models.Requests
         public int TimeoutSeconds { get; set; } = 10;
     }
 
-    public class ResizeWindowRequest : TypedWorkerRequest
+    public class ResizeWindowRequest : ElementTargetRequest
     {
         public override string Operation => "ResizeWindow";
-
-        [JsonPropertyName("windowTitle")]
-        public string? WindowTitle { get; set; }
-
-        [JsonPropertyName("windowHandle")]
-        public long? WindowHandle { get; set; }
 
         [JsonPropertyName("width")]
         public int Width { get; set; }

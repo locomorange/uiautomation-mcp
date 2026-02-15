@@ -21,63 +21,43 @@ namespace UIAutomationMCP.Tests.UnitTests
     {
         private readonly ITestOutputHelper _output;
         private readonly UIAutomationTools _tools;
+        private readonly Mock<IInteractionService> _mockInteractionService;
         private readonly Mock<IRangeService> _mockRangeService;
 
         public RangeValuePatternTests(ITestOutputHelper output)
         {
             _output = output;
-            _mockRangeService = new Mock<IRangeService>();
+            _mockInteractionService = new Mock<IInteractionService>();
+            _mockRangeService = new Mock<IRangeService>(); // Kept for legacy if needed, but we use Interaction for Tools test
 
             // UIAutomationToolsの他のサービスもモック化（最小限の設定）
             var mockAppLauncher = new Mock<IApplicationLauncher>();
             var mockScreenshot = new Mock<IScreenshotService>();
             var mockElementSearch = new Mock<IElementSearchService>();
             var mockTreeNavigation = new Mock<ITreeNavigationService>();
-            var mockInvoke = new Mock<IInvokeService>();
-            var mockValue = new Mock<IValueService>();
             var mockSelection = new Mock<ISelectionService>();
             var mockText = new Mock<ITextService>();
-            var mockToggle = new Mock<IToggleService>();
             var mockWindow = new Mock<IWindowService>();
-            var mockLayout = new Mock<ILayoutService>();
-            var mockGrid = new Mock<IGridService>();
-            var mockTable = new Mock<ITableService>();
-            var mockMultipleView = new Mock<IMultipleViewService>();
-            var mockAccessibility = new Mock<IAccessibilityService>();
-            var mockCustomProperty = new Mock<ICustomPropertyService>();
-            var mockControlType = new Mock<IControlTypeService>();
             var mockTransform = new Mock<ITransformService>();
-            var mockVirtualizedItem = new Mock<IVirtualizedItemService>();
-            var mockItemContainer = new Mock<IItemContainerService>();
-            var mockSynchronizedInput = new Mock<ISynchronizedInputService>();
+            var mockFocus = new Mock<IFocusService>();
+            var mockLog = new Mock<IMcpLogService>();
 
             _tools = new UIAutomationTools(
                 mockAppLauncher.Object,
                 mockScreenshot.Object,
                 mockElementSearch.Object,
                 mockTreeNavigation.Object,
-                mockInvoke.Object,
-                mockValue.Object,
-                _mockRangeService.Object,
+                _mockInteractionService.Object,
                 mockSelection.Object,
                 mockText.Object,
-                mockToggle.Object,
+                Mock.Of<ILayoutService>(),
+                Mock.Of<IGridTableService>(),
+                Mock.Of<IAdvancedPatternService>(),
                 mockWindow.Object,
-                mockLayout.Object,
-                mockGrid.Object,
-                mockTable.Object,
-                mockMultipleView.Object,
-                mockAccessibility.Object,
-                mockCustomProperty.Object,
-                mockControlType.Object,
                 mockTransform.Object,
-                mockVirtualizedItem.Object,
-                mockItemContainer.Object,
-                mockSynchronizedInput.Object,
                 Mock.Of<IEventMonitorService>(),
-                Mock.Of<IFocusService>(),
-                Mock.Of<IMcpLogService>()
-            );
+                mockFocus.Object,
+                mockLog.Object);
         }
 
         public void Dispose()
@@ -86,70 +66,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         }
 
         #region Microsoft仕様準拠の必須プロパティテスト
-        [Fact]
-        public void GetRangeValue_ShouldReturnAllRequiredProperties()
-        {
-            // Arrange - Microsoft仕様の必須プロパティ
-            var expectedResult = new ServerEnhancedResponse<RangeValueResult>
-            {
-                Success = true,
-                Data = new RangeValueResult
-                {
-                    Success = true,
-                    Value = 50.0,
-                    Minimum = 0.0,
-                    Maximum = 100.0,
-                    LargeChange = 10.0,
-                    SmallChange = 1.0,
-                    IsReadOnly = false
-                }
-            };
-            _mockRangeService.Setup(s => s.GetRangeValueAsync("slider1", null, null, null, 30))
-                           .Returns(Task.FromResult(expectedResult));
-
-            // Act
-            // GetRangeValue method has been removed - functionality consolidated
-            // var result = await _tools.GetRangeValue("slider1", "TestWindow");
-            var result = new { Success = true }; // Placeholder for removed method
-
-            // Assert
-            Assert.NotNull(result);
-            _mockRangeService.Verify(s => s.GetRangeValueAsync("slider1", null, null, null, 30), Times.Once);
-            _output.WriteLine("All required RangeValue properties test passed");
-        }
-
-        [Fact]
-        public void GetRangeValue_ShouldReturnCurrentValue()
-        {
-            // Arrange
-            var expectedResult = new ServerEnhancedResponse<RangeValueResult>
-            {
-                Success = true,
-                Data = new RangeValueResult
-                {
-                    Success = true,
-                    Value = 75.5,
-                    Minimum = 0.0,
-                    Maximum = 100.0,
-                    LargeChange = 5.0,
-                    SmallChange = 0.5,
-                    IsReadOnly = false
-                }
-            };
-            _mockRangeService.Setup(s => s.GetRangeValueAsync("progressBar", null, null, null, 30))
-                           .Returns(Task.FromResult(expectedResult));
-
-            // Act
-            // GetRangeValue method has been removed - functionality consolidated
-            // var result = await _tools.GetRangeValue("progressBar", "App");
-            var result = new { Success = true }; // Placeholder for removed method
-
-            // Assert
-            Assert.NotNull(result);
-            _mockRangeService.Verify(s => s.GetRangeValueAsync("progressBar", null, null, null, 30), Times.Once);
-            _output.WriteLine("GetRangeValue test passed");
-        }
-
+        // GetRangeValue tests removed - method deleted, functionality moved to SearchElements includeDetails
         #endregion
 
         #region Microsoft仕様準拠のSetValueメソッドテスト
@@ -172,7 +89,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Details = $"Set value from 10.0 to {value}"
                 }
             };
-            _mockRangeService.Setup(s => s.SetRangeValueAsync("volumeSlider", null, value, null, null, 30))
+            _mockInteractionService.Setup(s => s.SetRangeValueAsync("volumeSlider", "MediaPlayer", value, null, null, null, 30))
                            .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -180,7 +97,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockRangeService.Verify(s => s.SetRangeValueAsync("volumeSlider", null, value, null, null, 30), Times.Once);
+            _mockInteractionService.Verify(s => s.SetRangeValueAsync("volumeSlider", "MediaPlayer", value, null, null, null, 30), Times.Once);
             _output.WriteLine($"SetRangeValue test passed for value: {value}");
         }
 
@@ -192,7 +109,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task SetRangeValue_WithOutOfRangeValues_ShouldThrowArgumentOutOfRangeException(double invalidValue)
         {
             // Arrange - Microsoft仕様：ArgumentOutOfRangeExceptionをスロー
-            _mockRangeService.Setup(s => s.SetRangeValueAsync("rangeControl", null, invalidValue, null, null, 30))
+            _mockInteractionService.Setup(s => s.SetRangeValueAsync("rangeControl", "TestWindow", invalidValue, null, null, null, 30))
                            .ThrowsAsync(new ArgumentOutOfRangeException("value",
                                $"Value {invalidValue} is out of range. Valid range: 0 - 100"));
 
@@ -200,7 +117,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
                 () => _tools.SetRangeValue(automationId: "rangeControl", name: "TestWindow", value: invalidValue));
 
-            _mockRangeService.Verify(s => s.SetRangeValueAsync("rangeControl", null, invalidValue, null, null, 30), Times.Once);
+            _mockInteractionService.Verify(s => s.SetRangeValueAsync("rangeControl", "TestWindow", invalidValue, null, null, null, 30), Times.Once);
             _output.WriteLine($"ArgumentOutOfRangeException correctly thrown for value: {invalidValue}");
         }
 
@@ -211,48 +128,18 @@ namespace UIAutomationMCP.Tests.UnitTests
         public async Task SetRangeValue_OnReadOnlyElement_ShouldThrowInvalidOperationException()
         {
             // Arrange - 読み取り専用要素
-            _mockRangeService.Setup(s => s.SetRangeValueAsync("readOnlyProgressBar", null, 50.0, null, null, 30))
+            _mockInteractionService.Setup(s => s.SetRangeValueAsync("readOnlyProgressBar", "StatusWindow", 50.0, null, null, null, 30))
                            .ThrowsAsync(new InvalidOperationException("Range element is read-only"));
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(
                 () => _tools.SetRangeValue(automationId: "readOnlyProgressBar", name: "StatusWindow", value: 50.0));
 
-            _mockRangeService.Verify(s => s.SetRangeValueAsync("readOnlyProgressBar", null, 50.0, null, null, 30), Times.Once);
+            _mockInteractionService.Verify(s => s.SetRangeValueAsync("readOnlyProgressBar", "StatusWindow", 50.0, null, null, null, 30), Times.Once);
             _output.WriteLine("ReadOnly element error handling test passed");
         }
 
-        [Fact]
-        public void GetRangeValue_ReadOnlyElement_ShouldReturnIsReadOnlyTrue()
-        {
-            // Arrange
-            var expectedResult = new ServerEnhancedResponse<RangeValueResult>
-            {
-                Success = true,
-                Data = new RangeValueResult
-                {
-                    Success = true,
-                    Value = 65.0,
-                    Minimum = 0.0,
-                    Maximum = 100.0,
-                    LargeChange = 10.0,
-                    SmallChange = 1.0,
-                    IsReadOnly = true  // 読み取り専用
-                }
-            };
-            _mockRangeService.Setup(s => s.GetRangeValueAsync("batteryLevel", null, null, null, 30))
-                           .Returns(Task.FromResult(expectedResult));
-
-            // Act
-            // GetRangeValue method has been removed - functionality consolidated
-            // var result = await _tools.GetRangeValue("batteryLevel", "SystemTray");
-            var result = new { Success = true }; // Placeholder for removed method
-
-            // Assert
-            Assert.NotNull(result);
-            _mockRangeService.Verify(s => s.GetRangeValueAsync("batteryLevel", null, null, null, 30), Times.Once);
-            _output.WriteLine("ReadOnly property retrieval test passed");
-        }
+        // GetRangeValue_ReadOnlyElement test removed - method deleted, functionality moved to SearchElements includeDetails
 
         #endregion
 
@@ -272,7 +159,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Details = "Set value from 50.0 to 0.0"
                 }
             };
-            _mockRangeService.Setup(s => s.SetRangeValueAsync("brightnessSlider", null, 0.0, null, null, 30))
+            _mockInteractionService.Setup(s => s.SetRangeValueAsync("brightnessSlider", "Settings", 0.0, null, null, null, 30))
                            .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -280,7 +167,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockRangeService.Verify(s => s.SetRangeValueAsync("brightnessSlider", null, 0.0, null, null, 30), Times.Once);
+            _mockInteractionService.Verify(s => s.SetRangeValueAsync("brightnessSlider", "Settings", 0.0, null, null, null, 30), Times.Once);
             _output.WriteLine("Minimum boundary value test passed");
         }
 
@@ -299,7 +186,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Details = "Set value from 50.0 to 100.0"
                 }
             };
-            _mockRangeService.Setup(s => s.SetRangeValueAsync("temperatureControl", null, 100.0, null, null, 30))
+            _mockInteractionService.Setup(s => s.SetRangeValueAsync("temperatureControl", "Thermostat", 100.0, null, null, null, 30))
                            .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -307,7 +194,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockRangeService.Verify(s => s.SetRangeValueAsync("temperatureControl", null, 100.0, null, null, 30), Times.Once);
+            _mockInteractionService.Verify(s => s.SetRangeValueAsync("temperatureControl", "Thermostat", 100.0, null, null, null, 30), Times.Once);
             _output.WriteLine("Maximum boundary value test passed");
         }
 
@@ -332,7 +219,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     Details = $"Set value from {min} to {value}"
                 }
             };
-            _mockRangeService.Setup(s => s.SetRangeValueAsync("customRange", null, value, null, null, 30))
+            _mockInteractionService.Setup(s => s.SetRangeValueAsync("customRange", "AdvancedApp", value, null, null, null, 30))
                            .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -340,43 +227,27 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockRangeService.Verify(s => s.SetRangeValueAsync("customRange", null, value, null, null, 30), Times.Once);
+            _mockInteractionService.Verify(s => s.SetRangeValueAsync("customRange", "AdvancedApp", value, null, null, null, 30), Times.Once);
             _output.WriteLine($"Custom range test passed: [{min}, {max}], value={value}");
         }
 
         #endregion
 
         #region エラーハンドリングテスト
-        [Fact]
-        public async Task GetRangeValue_WithNonExistentElement_ShouldHandleError()
-        {
-            // Arrange
-            _mockRangeService.Setup(s => s.GetRangeValueAsync("nonExistentSlider", null, null, null, 30))
-                           .ThrowsAsync(new InvalidOperationException("Element 'nonExistentSlider' not found"));
-
-            // Act & Assert
-            // GetRangeValue method has been removed - functionality consolidated
-            // await Assert.ThrowsAsync<InvalidOperationException>(
-            //     () => _tools.GetRangeValue("nonExistentSlider", "TestWindow"));
-            await Assert.ThrowsAsync<InvalidOperationException>(
-                () => Task.FromException<object>(new InvalidOperationException("Method removed")));
-
-            _mockRangeService.Verify(s => s.GetRangeValueAsync("nonExistentSlider", null, null, null, 30), Times.Once);
-            _output.WriteLine("Non-existent element error handling test passed");
-        }
+        // GetRangeValue_WithNonExistentElement test removed - method deleted, functionality moved to SearchElements includeDetails
 
         [Fact]
         public async Task SetRangeValue_WithUnsupportedElement_ShouldHandleError()
         {
             // Arrange
-            _mockRangeService.Setup(s => s.SetRangeValueAsync("textBox", null, 50.0, null, null, 30))
+            _mockInteractionService.Setup(s => s.SetRangeValueAsync("textBox", "TestWindow", 50.0, null, null, null, 30))
                            .ThrowsAsync(new InvalidOperationException("Element does not support RangeValuePattern"));
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(
                 () => _tools.SetRangeValue(automationId: "textBox", name: "TestWindow", value: 50.0));
 
-            _mockRangeService.Verify(s => s.SetRangeValueAsync("textBox", null, 50.0, null, null, 30), Times.Once);
+            _mockInteractionService.Verify(s => s.SetRangeValueAsync("textBox", "TestWindow", 50.0, null, null, null, 30), Times.Once);
             _output.WriteLine("Unsupported element error handling test passed");
         }
 
@@ -390,7 +261,7 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var expectedResult = new ServerEnhancedResponse<ActionResult> { Success = true, Data = new ActionResult { Success = true, Action = "SetValue", ReturnValue = value, Details = $"Set value to {value}" } };
-            _mockRangeService.Setup(s => s.SetRangeValueAsync(elementId, null, value, null, null, 30))
+            _mockInteractionService.Setup(s => s.SetRangeValueAsync(elementId, string.IsNullOrEmpty(windowTitle) ? null : windowTitle, value, null, null, null, 30))
                            .Returns(Task.FromResult(expectedResult));
 
             // Act
@@ -399,7 +270,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockRangeService.Verify(s => s.SetRangeValueAsync(elementId, null, value, null, null, 30), Times.Once);
+            _mockInteractionService.Verify(s => s.SetRangeValueAsync(elementId, string.IsNullOrEmpty(windowTitle) ? null : windowTitle, value, null, null, null, 30), Times.Once);
             _output.WriteLine($"Empty parameter test passed: elementId='{elementId}', value={value}, window='{windowTitle}'");
         }
 
@@ -411,39 +282,19 @@ namespace UIAutomationMCP.Tests.UnitTests
         {
             // Arrange
             var expectedResult = new ServerEnhancedResponse<ActionResult> { Success = true, Data = new ActionResult { Success = true, Action = "SetValue", ReturnValue = 75.0, Details = "Set value from 10.0 to 75.0" } };
-            _mockRangeService.Setup(s => s.SetRangeValueAsync("volumeSlider", null, 75.0, null, processId, 30))
+            _mockInteractionService.Setup(s => s.SetRangeValueAsync("volumeSlider", "AudioApp", 75.0, null, null, processId, 30))
                            .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _tools.SetRangeValue(automationId: "volumeSlider", name: "AudioApp", value: 75.0);
+            var result = await _tools.SetRangeValue(automationId: "volumeSlider", name: "AudioApp", value: 75.0, processId: processId);
 
             // Assert
             Assert.NotNull(result);
-            _mockRangeService.Verify(s => s.SetRangeValueAsync("volumeSlider", null, 75.0, null, processId, 30), Times.Once);
+            _mockInteractionService.Verify(s => s.SetRangeValueAsync("volumeSlider", "AudioApp", 75.0, null, null, processId, 30), Times.Once);
             _output.WriteLine($"ProcessId parameter test passed: processId={processId}");
         }
 
-        [Theory]
-        [InlineData(10)]
-        [InlineData(60)]
-        [InlineData(120)]
-        public void GetRangeValue_WithCustomTimeout_ShouldCallServiceCorrectly(int timeoutSeconds)
-        {
-            // Arrange
-            var expectedResult = new ServerEnhancedResponse<RangeValueResult> { Success = true, Data = new RangeValueResult { Success = true, Value = 25.0, Minimum = 0.0, Maximum = 100.0, LargeChange = 1.0, SmallChange = 0.1, IsReadOnly = false } };
-            _mockRangeService.Setup(s => s.GetRangeValueAsync("progressBar", null, null, null, timeoutSeconds))
-                           .Returns(Task.FromResult(expectedResult));
-
-            // Act
-            // GetRangeValue method has been removed - functionality consolidated
-            // var result = await _tools.GetRangeValue("progressBar", "App", timeoutSeconds: timeoutSeconds);
-            var result = new { Success = true }; // Placeholder for removed method
-
-            // Assert
-            Assert.NotNull(result);
-            _mockRangeService.Verify(s => s.GetRangeValueAsync("progressBar", null, null, null, timeoutSeconds), Times.Once);
-            _output.WriteLine($"Custom timeout test passed: timeout={timeoutSeconds}s");
-        }
+        // GetRangeValue_WithCustomTimeout test removed - method deleted, functionality moved to SearchElements includeDetails
 
         #endregion
 
@@ -457,13 +308,13 @@ namespace UIAutomationMCP.Tests.UnitTests
             var result3 = new ServerEnhancedResponse<ActionResult> { Success = true, Data = new ActionResult { Success = true, Action = "SetValue", ReturnValue = 75.0, Details = "Set value from 50.0 to 75.0" } };
             var result4 = new ServerEnhancedResponse<ActionResult> { Success = true, Data = new ActionResult { Success = true, Action = "SetValue", ReturnValue = 100.0, Details = "Set value from 75.0 to 100.0" } };
 
-            _mockRangeService.Setup(s => s.SetRangeValueAsync("animatedSlider", null, 25.0, null, null, 30))
+            _mockInteractionService.Setup(s => s.SetRangeValueAsync("animatedSlider", "Presentation", 25.0, null, null, null, 30))
                            .Returns(Task.FromResult(result1));
-            _mockRangeService.Setup(s => s.SetRangeValueAsync("animatedSlider", null, 50.0, null, null, 30))
+            _mockInteractionService.Setup(s => s.SetRangeValueAsync("animatedSlider", "Presentation", 50.0, null, null, null, 30))
                            .Returns(Task.FromResult(result2));
-            _mockRangeService.Setup(s => s.SetRangeValueAsync("animatedSlider", null, 75.0, null, null, 30))
+            _mockInteractionService.Setup(s => s.SetRangeValueAsync("animatedSlider", "Presentation", 75.0, null, null, null, 30))
                            .Returns(Task.FromResult(result3));
-            _mockRangeService.Setup(s => s.SetRangeValueAsync("animatedSlider", null, 100.0, null, null, 30))
+            _mockInteractionService.Setup(s => s.SetRangeValueAsync("animatedSlider", "Presentation", 100.0, null, null, null, 30))
                            .Returns(Task.FromResult(result4));
 
             // Act
@@ -478,10 +329,10 @@ namespace UIAutomationMCP.Tests.UnitTests
             Assert.NotNull(r3);
             Assert.NotNull(r4);
 
-            _mockRangeService.Verify(s => s.SetRangeValueAsync("animatedSlider", null, 25.0, null, null, 30), Times.Once);
-            _mockRangeService.Verify(s => s.SetRangeValueAsync("animatedSlider", null, 50.0, null, null, 30), Times.Once);
-            _mockRangeService.Verify(s => s.SetRangeValueAsync("animatedSlider", null, 75.0, null, null, 30), Times.Once);
-            _mockRangeService.Verify(s => s.SetRangeValueAsync("animatedSlider", null, 100.0, null, null, 30), Times.Once);
+            _mockInteractionService.Verify(s => s.SetRangeValueAsync("animatedSlider", "Presentation", 25.0, null, null, null, 30), Times.Once);
+            _mockInteractionService.Verify(s => s.SetRangeValueAsync("animatedSlider", "Presentation", 50.0, null, null, null, 30), Times.Once);
+            _mockInteractionService.Verify(s => s.SetRangeValueAsync("animatedSlider", "Presentation", 75.0, null, null, null, 30), Times.Once);
+            _mockInteractionService.Verify(s => s.SetRangeValueAsync("animatedSlider", "Presentation", 100.0, null, null, null, 30), Times.Once);
 
             _output.WriteLine("Multiple value changes sequence test passed");
         }

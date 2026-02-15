@@ -70,11 +70,11 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
                 }
             };
 
-            _mockProcessManager.Setup(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteWorkerOperationAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 30))
                         .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedColumnHeaders)));
 
             // Act
-            var result = await _service.GetColumnHeaderItemsAsync("tableCell1", "TestWindow", null, 30);
+            var result = await _service.GetColumnHeaderItemsAsync("tableCell1", name: "TestWindow", timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
@@ -82,10 +82,10 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             Assert.Equal(expectedColumnHeaders, result.Data);
 
             //  
-            _mockProcessManager.Verify(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems",
+            _mockProcessManager.Verify(e => e.ExecuteWorkerOperationAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems",
                 It.Is<GetColumnHeaderItemsRequest>(r =>
                     r.AutomationId == "tableCell1" &&
-                    r.WindowTitle == "TestWindow"), 30), Times.Once);
+                    r.Name == "TestWindow"), 30), Times.Once);
 
             _output.WriteLine("GetColumnHeaderItemsAsync test passed - TableItemPattern.GetColumnHeaderItems() verified");
         }
@@ -104,11 +104,11 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
                 }
             };
 
-            _mockProcessManager.Setup(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 60))
+            _mockProcessManager.Setup(e => e.ExecuteWorkerOperationAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 60))
                         .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
 
             // Act
-            var result = await _service.GetColumnHeaderItemsAsync("cell2_3", null, null, 1234, 60);
+            var result = await _service.GetColumnHeaderItemsAsync("cell2_3", processId: 1234, timeoutSeconds: 60);
 
             // Assert
             Assert.NotNull(result);
@@ -116,10 +116,10 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             Assert.Equal(expectedResult, result.Data);
 
             //  
-            _mockProcessManager.Verify(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems",
+            _mockProcessManager.Verify(e => e.ExecuteWorkerOperationAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems",
                 It.Is<GetColumnHeaderItemsRequest>(r =>
                     r.AutomationId == "cell2_3" &&
-                    r.WindowTitle == ""), 60), Times.Once);
+                    r.Name == null), 60), Times.Once);
 
             _output.WriteLine("GetColumnHeaderItemsAsync with ProcessId and custom timeout test passed");
         }
@@ -131,11 +131,11 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
         {
             // Arrange
             var expectedException = new InvalidOperationException("TableItemPattern not supported");
-            _mockProcessManager.Setup(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteWorkerOperationAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 30))
                         .ThrowsAsync(expectedException);
 
             // Act
-            var result = await _service.GetColumnHeaderItemsAsync("nonTableCell", "TestWindow", null, 30);
+            var result = await _service.GetColumnHeaderItemsAsync("nonTableCell", name: "TestWindow", timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
@@ -178,11 +178,11 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
                 }
             };
 
-            _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteWorkerOperationAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), 30))
                         .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedRowHeaders)));
 
             // Act
-            var result = await _service.GetRowHeaderItemsAsync("tableCell2", "TestWindow", null, 30);
+            var result = await _service.GetRowHeaderItemsAsync("tableCell2", name: "TestWindow", timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
@@ -190,10 +190,10 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             Assert.Equal(expectedRowHeaders, result.Data);
 
             //  
-            _mockProcessManager.Verify(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems",
+            _mockProcessManager.Verify(e => e.ExecuteWorkerOperationAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems",
                 It.Is<GetRowHeaderItemsRequest>(r =>
                     r.AutomationId == "tableCell2" &&
-                    r.WindowTitle == "TestWindow"), 30), Times.Once);
+                    r.Name == "TestWindow"), 30), Times.Once);
 
             _output.WriteLine("GetRowHeaderItemsAsync test passed - TableItemPattern.GetRowHeaderItems() verified");
         }
@@ -212,7 +212,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
                 }
             };
 
-            _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteWorkerOperationAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), 30))
                         .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
 
             // Act
@@ -224,10 +224,10 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             Assert.Equal(expectedResult, result.Data);
 
             //  
-            _mockProcessManager.Verify(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems",
+            _mockProcessManager.Verify(e => e.ExecuteWorkerOperationAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems",
                 It.Is<GetRowHeaderItemsRequest>(r =>
                     r.AutomationId == "defaultCell" &&
-                    r.WindowTitle == ""), 30), Times.Once);
+                    r.Name == null), 30), Times.Once);
 
             _output.WriteLine("GetRowHeaderItemsAsync with default parameters test passed");
         }
@@ -239,11 +239,11 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
         {
             // Arrange
             var expectedException = new ArgumentException("Element not found: nonExistentCell");
-            _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteWorkerOperationAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), 30))
                         .ThrowsAsync(expectedException);
 
             // Act
-            var result = await _service.GetRowHeaderItemsAsync("nonExistentCell", "TestWindow", null, 30);
+            var result = await _service.GetRowHeaderItemsAsync("nonExistentCell", name: "TestWindow", timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(result);
@@ -282,14 +282,14 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
                 }
             };
 
-            _mockProcessManager.Setup(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteWorkerOperationAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 30))
                         .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(columnHeadersResult)));
-            _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteWorkerOperationAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), 30))
                         .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(rowHeadersResult)));
 
             // Act
-            var columnResult = await _service.GetColumnHeaderItemsAsync(cellId, "TestApplication", null, 30);
-            var rowResult = await _service.GetRowHeaderItemsAsync(cellId, "TestApplication", null, 30);
+            var columnResult = await _service.GetColumnHeaderItemsAsync(cellId, name: "TestApplication", timeoutSeconds: 30);
+            var rowResult = await _service.GetRowHeaderItemsAsync(cellId, name: "TestApplication", timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(columnResult);
@@ -299,9 +299,9 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
             Assert.True(rowResult.Success);
 
             //  
-            _mockProcessManager.Verify(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems",
+            _mockProcessManager.Verify(e => e.ExecuteWorkerOperationAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems",
                 It.Is<GetColumnHeaderItemsRequest>(r => r.AutomationId == cellId), 30), Times.Once);
-            _mockProcessManager.Verify(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems",
+            _mockProcessManager.Verify(e => e.ExecuteWorkerOperationAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems",
                 It.Is<GetRowHeaderItemsRequest>(r => r.AutomationId == cellId), 30), Times.Once);
 
             _output.WriteLine($"TableItem pattern integration test passed for {description}");
@@ -315,21 +315,21 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
         {
             // Arrange
             var expectedResult = new ElementSearchResult { Elements = new List<UIAutomationMCP.Models.ElementInfo>() };
-            _mockProcessManager.Setup(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteWorkerOperationAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 30))
                         .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
-            _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteWorkerOperationAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), 30))
                         .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
 
             // Act
-            await _service.GetColumnHeaderItemsAsync("testCell", "TestApp", null, 30);
-            await _service.GetRowHeaderItemsAsync("testCell", "TestApp", null, 30);
+            await _service.GetColumnHeaderItemsAsync("testCell", name: "TestApp", timeoutSeconds: 30);
+            await _service.GetRowHeaderItemsAsync("testCell", name: "TestApp", timeoutSeconds: 30);
 
             // Assert -  
             _mockLogger.Verify(
                 l => l.Log(
                     LogLevel.Information,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Getting column header items for element: testCell")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Starting GetColumnHeaderItems operation via GetColumnHeaderItemsAsync")),
                     It.IsAny<Exception?>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.Once);
@@ -338,7 +338,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
                 l => l.Log(
                     LogLevel.Information,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Getting row header items for element: testCell")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Starting GetRowHeaderItems operation via GetRowHeaderItemsAsync")),
                     It.IsAny<Exception?>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.Once);
@@ -356,18 +356,18 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
         {
             // Arrange
             var expectedResult = new ElementSearchResult { Elements = new List<UIAutomationMCP.Models.ElementInfo>() };
-            _mockProcessManager.Setup(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), timeoutSeconds))
+            _mockProcessManager.Setup(e => e.ExecuteWorkerOperationAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), timeoutSeconds))
                         .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
-            _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), timeoutSeconds))
+            _mockProcessManager.Setup(e => e.ExecuteWorkerOperationAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), timeoutSeconds))
                         .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
 
             // Act
-            await _service.GetColumnHeaderItemsAsync("timeoutTestCell", "TestApp", null, timeoutSeconds);
-            await _service.GetRowHeaderItemsAsync("timeoutTestCell", "TestApp", null, timeoutSeconds);
+            await _service.GetColumnHeaderItemsAsync("timeoutTestCell", name: "TestApp", timeoutSeconds: timeoutSeconds);
+            await _service.GetRowHeaderItemsAsync("timeoutTestCell", name: "TestApp", timeoutSeconds: timeoutSeconds);
 
             // Assert
-            _mockProcessManager.Verify(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), timeoutSeconds), Times.Once);
-            _mockProcessManager.Verify(e => e.ExecuteAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), timeoutSeconds), Times.Once);
+            _mockProcessManager.Verify(e => e.ExecuteWorkerOperationAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), timeoutSeconds), Times.Once);
+            _mockProcessManager.Verify(e => e.ExecuteWorkerOperationAsync<GetRowHeaderItemsRequest, ElementSearchResult>("GetRowHeaderItems", It.IsAny<GetRowHeaderItemsRequest>(), timeoutSeconds), Times.Once);
 
             _output.WriteLine($"TableItem pattern custom timeout test passed for {timeoutSeconds} seconds");
         }
@@ -398,22 +398,22 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
                 }
             };
 
-            _mockProcessManager.Setup(e => e.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", It.IsAny<GetRowHeadersRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteWorkerOperationAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", It.IsAny<GetRowHeadersRequest>(), 30))
                         .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(rowHeadersResult)));
-            _mockProcessManager.Setup(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteWorkerOperationAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 30))
                         .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(columnHeaderItemsResult)));
 
             // Act
-            var rowHeadersResponse = await _service.GetRowHeadersAsync("table1", "TestApp", null, 30);
-            var columnHeaderItemsResponse = await _service.GetColumnHeaderItemsAsync("cell1_1", "TestApp", null, 30);
+            var rowHeadersResponse = await _service.GetRowHeadersAsync("table1", name: "TestApp", timeoutSeconds: 30);
+            var columnHeaderItemsResponse = await _service.GetColumnHeaderItemsAsync("cell1_1", name: "TestApp", timeoutSeconds: 30);
 
             // Assert
             Assert.NotNull(rowHeadersResponse);
             Assert.NotNull(columnHeaderItemsResponse);
 
             //  
-            _mockProcessManager.Verify(e => e.ExecuteAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", It.IsAny<GetRowHeadersRequest>(), 30), Times.Once);
-            _mockProcessManager.Verify(e => e.ExecuteAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 30), Times.Once);
+            _mockProcessManager.Verify(e => e.ExecuteWorkerOperationAsync<GetRowHeadersRequest, ElementSearchResult>("GetRowHeaders", It.IsAny<GetRowHeadersRequest>(), 30), Times.Once);
+            _mockProcessManager.Verify(e => e.ExecuteWorkerOperationAsync<GetColumnHeaderItemsRequest, ElementSearchResult>("GetColumnHeaderItems", It.IsAny<GetColumnHeaderItemsRequest>(), 30), Times.Once);
 
             _output.WriteLine("TableService integration test passed - both Table and TableItem patterns supported");
         }

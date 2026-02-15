@@ -149,7 +149,7 @@ namespace UIAutomationMCP.Server.Helpers
                             await RestartWorkerProcessAsync();
                         }
 
-                        throw new TimeoutException($"Worker operation '{operation}' could not complete within {timeoutSeconds} seconds. Consider increasing the timeout duration.");
+                        throw new TimeoutException($"Worker operation '{operation}' timed out after {timeoutSeconds} seconds. Consider increasing the timeout duration.");
                     }
 
                     byte[] responseData;
@@ -258,7 +258,7 @@ namespace UIAutomationMCP.Server.Helpers
                 _logger.LogInformation("Operation '{Operation}' cancelled due to server shutdown", operation);
                 throw new OperationCanceledException("Operation cancelled due to server shutdown", ex);
             }
-            catch (Exception ex) when (!(ex is ArgumentException || ex is ObjectDisposedException))
+            catch (Exception ex) when (ex is not (ArgumentException or ObjectDisposedException or TimeoutException or InvalidOperationException or NotSupportedException or UnauthorizedAccessException))
             {
                 _logger.LogError(ex, "Unexpected error in ExecuteAsync for operation '{Operation}'", operation);
                 throw new InvalidOperationException($"Internal server error occurred while executing operation '{operation}': {ex.Message}", ex);

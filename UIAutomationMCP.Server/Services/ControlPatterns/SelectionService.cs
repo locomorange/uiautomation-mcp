@@ -24,6 +24,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string? name = null,
             string? controlType = null,
             long? windowHandle = null,
+            int? processId = null,
             int timeoutSeconds = 30)
         {
             var request = new SelectItemRequest
@@ -31,7 +32,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<SelectItemRequest, ActionResult>(
@@ -48,6 +50,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string? name = null,
             string? controlType = null,
             long? windowHandle = null,
+            int? processId = null,
             int timeoutSeconds = 30)
         {
             var request = new AddToSelectionRequest
@@ -55,7 +58,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<AddToSelectionRequest, ActionResult>(
@@ -72,6 +76,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string? name = null,
             string? controlType = null,
             long? windowHandle = null,
+            int? processId = null,
             int timeoutSeconds = 30)
         {
             var request = new RemoveFromSelectionRequest
@@ -79,7 +84,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<RemoveFromSelectionRequest, ActionResult>(
@@ -96,6 +102,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string? name = null,
             string? controlType = null,
             long? windowHandle = null,
+            int? processId = null,
             int timeoutSeconds = 30)
         {
             var request = new ClearSelectionRequest
@@ -103,7 +110,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<ClearSelectionRequest, ActionResult>(
@@ -120,6 +128,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string? name = null,
             string? controlType = null,
             long? windowHandle = null,
+            int? processId = null,
             int timeoutSeconds = 30)
         {
             var request = new GetSelectionContainerRequest
@@ -127,7 +136,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<GetSelectionContainerRequest, ActionResult>(
@@ -144,6 +154,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string? name = null,
             string? controlType = null,
             long? windowHandle = null,
+            int? processId = null,
             int timeoutSeconds = 30)
         {
             var request = new GetSelectionRequest
@@ -151,7 +162,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<GetSelectionRequest, SelectionInfoResult>(

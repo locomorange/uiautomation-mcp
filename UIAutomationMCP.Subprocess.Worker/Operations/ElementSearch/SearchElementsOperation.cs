@@ -160,8 +160,9 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
                     foundElementsList = foundElementsList.Take(request.MaxResults).ToList();
                 }
 
-                // Convert to ElementInfo array
-                var elements = foundElementsList.Select(e => _elementFinderService.GetElementBasicInfo(e)).ToArray();
+                // Convert to ElementInfo array with includeDetails support
+                var elements = foundElementsList.Select(e => 
+                    UIAutomationMCP.Subprocess.Core.Helpers.ElementInfoBuilder.CreateElementInfo(e, request.IncludeDetails, _logger)).ToArray();
 
                 searchStopwatch.Stop();
 

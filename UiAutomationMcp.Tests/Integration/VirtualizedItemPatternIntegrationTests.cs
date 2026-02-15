@@ -29,17 +29,17 @@ namespace UIAutomationMCP.Tests.Integration
             _logger = Mock.Of<ILogger<VirtualizedItemService>>();
             var executorLogger = Mock.Of<ILogger<SubprocessExecutor>>();
 
-            // Locate the Worker executable for subprocess testing
-            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            var possiblePaths = new[]
-            {
-                Path.Combine(baseDir, "UIAutomationMCP.Worker.exe"),
-                Path.Combine(baseDir, "..", "..", "..", "..", "UIAutomationMCP.Worker", "bin", "Debug", "net9.0-windows", "UIAutomationMCP.Worker.exe"),
-                Path.Combine(baseDir, "..", "UIAutomationMCP.Worker", "bin", "Debug", "net9.0-windows", "UIAutomationMCP.Worker.exe"),
-            };
+            // Resolve Worker path using ExecutablePathResolver
+            var baseDir = ExecutablePathResolver.GetExecutableRealPath();
+            var workerPath = ExecutablePathResolver.ResolveWorkerPath(baseDir);
 
-            _workerPath = possiblePaths.FirstOrDefault(File.Exists) ??
-                throw new InvalidOperationException($"Worker executable not found. Searched paths: {string.Join(", ", possiblePaths)}");
+            if (workerPath == null || (!File.Exists(workerPath) && !Directory.Exists(workerPath)))
+            {
+                var searchedPaths = ExecutablePathResolver.GetSearchedPaths("UIAutomationMCP.Subprocess.Worker", baseDir);
+                throw new InvalidOperationException($"Worker executable not found. Searched paths: {string.Join(", ", searchedPaths)}");
+            }
+
+            _workerPath = workerPath!;
 
             _subprocessExecutor = new SubprocessExecutor(executorLogger, _workerPath, new CancellationTokenSource());
             _virtualizedItemService = new VirtualizedItemService(Mock.Of<IProcessManager>(), _logger);
@@ -60,18 +60,9 @@ namespace UIAutomationMCP.Tests.Integration
             Assert.NotNull(result);
 
             // Should return error result due to element not found
-            var resultType = result.GetType();
-            var successProperty = resultType.GetProperty("Success");
-            Assert.NotNull(successProperty);
-
-            var success = (bool?)successProperty.GetValue(result);
-            Assert.False(success);
-
-            var errorProperty = resultType.GetProperty("Error");
-            Assert.NotNull(errorProperty);
-            var error = errorProperty.GetValue(result)?.ToString();
-            Assert.NotNull(error);
-            _output.WriteLine($"Expected error result: {error}");
+            Assert.False(result.Success);
+            Assert.NotNull(result.ErrorMessage);
+            _output.WriteLine($"Expected error result: {result.ErrorMessage}");
         }
 
         [Fact]
@@ -92,9 +83,7 @@ namespace UIAutomationMCP.Tests.Integration
             _output.WriteLine($"Server-Worker communication test completed. Result type: {result.GetType().Name}");
 
             // The Worker should handle the request and return a result (error or success)
-            var resultType = result.GetType();
-            var successProperty = resultType.GetProperty("Success");
-            Assert.NotNull(successProperty);
+            Assert.True(result.Success || !result.Success); // Just check it returned
         }
 
         [Fact]

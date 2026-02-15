@@ -50,7 +50,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 }
             };
 
-            _mockProcessManager.Setup(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", It.IsAny<RealizeVirtualizedItemRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteWorkerOperationAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", It.IsAny<RealizeVirtualizedItemRequest>(), 30))
                 .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
 
             // Act
@@ -58,7 +58,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockProcessManager.Verify(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem",
+            _mockProcessManager.Verify(e => e.ExecuteWorkerOperationAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem",
                 It.Is<RealizeVirtualizedItemRequest>(r =>
                     r.AutomationId == elementId), 30), Times.Once);
 
@@ -83,7 +83,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 }
             };
 
-            _mockProcessManager.Setup(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", It.IsAny<RealizeVirtualizedItemRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteWorkerOperationAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", It.IsAny<RealizeVirtualizedItemRequest>(), 30))
                 .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
 
             // Act
@@ -91,7 +91,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockProcessManager.Verify(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem",
+            _mockProcessManager.Verify(e => e.ExecuteWorkerOperationAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem",
                 It.Is<RealizeVirtualizedItemRequest>(r =>
                     r.AutomationId == elementId), 30), Times.Once);
         }
@@ -103,7 +103,7 @@ namespace UIAutomationMCP.Tests.UnitTests
             var elementId = "item1";
             var exceptionMessage = "Failed to realize item";
 
-            _mockProcessManager.Setup(e => e.ExecuteAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", It.IsAny<RealizeVirtualizedItemRequest>(), 30))
+            _mockProcessManager.Setup(e => e.ExecuteWorkerOperationAsync<RealizeVirtualizedItemRequest, ElementSearchResult>("RealizeVirtualizedItem", It.IsAny<RealizeVirtualizedItemRequest>(), 30))
                 .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromError(exceptionMessage)));
 
             // Act

@@ -22,13 +22,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string operation,
             string? windowTitle = null,
             long? windowHandle = null,
+            int? processId = null,
             int timeoutSeconds = 30)
         {
             var request = new WindowActionRequest
             {
                 Action = operation,
                 WindowTitle = windowTitle,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<WindowActionRequest, ActionResult>(
@@ -76,13 +78,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string windowState,
             string? windowTitle = null,
             long? windowHandle = null,
+            int? processId = null,
             int timeoutSeconds = 30)
         {
             var request = new SetWindowStateRequest
             {
                 WindowState = windowState,
                 WindowTitle = windowTitle,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<SetWindowStateRequest, ActionResult>(
@@ -99,6 +103,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             int y,
             string? windowTitle = null,
             long? windowHandle = null,
+            int? processId = null,
             int timeoutSeconds = 30)
         {
             var request = new MoveWindowRequest
@@ -106,7 +111,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 X = x,
                 Y = y,
                 WindowTitle = windowTitle,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<MoveWindowRequest, ActionResult>(
@@ -122,6 +128,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             int height,
             string? windowTitle = null,
             long? windowHandle = null,
+            int? processId = null,
             int timeoutSeconds = 30)
         {
             var request = new ResizeWindowRequest
@@ -129,7 +136,8 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Width = width,
                 Height = height,
                 WindowTitle = windowTitle,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<ResizeWindowRequest, ActionResult>(
@@ -145,13 +153,15 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             int timeoutMilliseconds = 10000,
             string? windowTitle = null,
             long? windowHandle = null,
+            int? processId = null,
             int timeoutSeconds = 30)
         {
             var request = new WaitForInputIdleRequest
             {
                 TimeoutMilliseconds = timeoutMilliseconds,
                 WindowTitle = windowTitle,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<WaitForInputIdleRequest, BooleanResult>(
@@ -166,12 +176,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         public async Task<ServerEnhancedResponse<WindowInteractionStateResult>> GetWindowInteractionStateAsync(
             string? windowTitle = null,
             long? windowHandle = null,
+            int? processId = null,
             int timeoutSeconds = 30)
         {
             var request = new GetWindowInfoRequest
             {
                 WindowTitle = windowTitle,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<GetWindowInfoRequest, WindowInteractionStateResult>(
@@ -185,12 +197,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         public async Task<ServerEnhancedResponse<WindowCapabilitiesResult>> GetWindowCapabilitiesAsync(
             string? windowTitle = null,
             long? windowHandle = null,
+            int? processId = null,
             int timeoutSeconds = 30)
         {
             var request = new GetWindowInfoRequest
             {
                 WindowTitle = windowTitle,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<GetWindowInfoRequest, WindowCapabilitiesResult>(

@@ -151,6 +151,8 @@ namespace UIAutomationMCP.Models.Results
     /// </summary>
     public class TransformCapabilitiesResult : BaseOperationResult
     {
+        public string ActionName { get; set; } = string.Empty;
+        public bool Completed { get; set; }
         public bool CanMove { get; set; }
         public bool CanResize { get; set; }
         public bool CanRotate { get; set; }

@@ -99,26 +99,10 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
                         controlType: controlType);
                     _output.WriteLine($"{controlType} containers found: {JsonSerializer.Serialize(containers, new JsonSerializerOptions { WriteIndented = true })}");
 
-                    // If containers found, try to find items by property
+                    // If containers found, FindItemByProperty was removed (no replacement)
                     if (containers != null)
                     {
-                        // Try to find an item by name property
-                        var findResult = await Tools.FindItemByProperty(
-                            automationId: "MainContainer", // Generic container ID
-                            propertyName: "Name",
-                            value: "Sample Item",
-                            timeoutSeconds: 5);
-
-                        _output.WriteLine($"Find item by property result for {controlType}: {JsonSerializer.Serialize(findResult, new JsonSerializerOptions { WriteIndented = true })}");
-
-                        // Try to find by ControlType property
-                        var findResult2 = await Tools.FindItemByProperty(
-                            automationId: "MainContainer",
-                            propertyName: "ControlType",
-                            value: "ListItem",
-                            timeoutSeconds: 5);
-
-                        _output.WriteLine($"Find item by ControlType result for {controlType}: {JsonSerializer.Serialize(findResult2, new JsonSerializerOptions { WriteIndented = true })}");
+                        _output.WriteLine($"FindItemByProperty tests skipped for {controlType} - method removed");
                     }
                 }
                 catch (Exception ex)
@@ -166,8 +150,9 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
                     if (controls != null)
                     {
                         // Start synchronized input
-                        var startResult = await Tools.StartSynchronizedInput(
-                            "KeyDown",
+                        var startResult = await Tools.SynchronizedInput(
+                            action: "start",
+                            inputType: "KeyDown",
                             automationId: "MainControl", // Generic control ID
                             timeoutSeconds: 5);
 
@@ -177,8 +162,9 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
                         await Task.Delay(1000);
 
                         // Cancel synchronized input
-                        var cancelResult = await Tools.CancelSynchronizedInput(
-                            "MainControl");
+                        var cancelResult = await Tools.SynchronizedInput(
+                            action: "cancel",
+                            automationId: "MainControl");
 
                         _output.WriteLine($"Cancel synchronized input result for {controlType}: {JsonSerializer.Serialize(cancelResult, new JsonSerializerOptions { WriteIndented = true })}");
                     }
@@ -248,12 +234,8 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
             {
                 try
                 {
-                    var findResult = await Tools.FindItemByProperty(
-                        automationId: "MainWindow",
-                        propertyName: propertyName,
-                        value: value,
-                        timeoutSeconds: 3);
-                    _output.WriteLine($"Find by {propertyName}={value} result: {JsonSerializer.Serialize(findResult, new JsonSerializerOptions { WriteIndented = true })}");
+                    // FindItemByProperty removed - no replacement available
+                    _output.WriteLine($"FindItemByProperty test skipped for {propertyName}={value} - method removed");
                 }
                 catch (Exception ex)
                 {
@@ -268,8 +250,9 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
                 try
                 {
                     // Start synchronized input
-                    var startResult = await Tools.StartSynchronizedInput(
-                        "LeftMouseButton",
+                    var startResult = await Tools.SynchronizedInput(
+                        action: "start",
+                        inputType: "LeftMouseButton",
                         automationId: target,
                         timeoutSeconds: 2);
                     _output.WriteLine($"Start sync input for {target}: {JsonSerializer.Serialize(startResult, new JsonSerializerOptions { WriteIndented = true })}");
@@ -278,8 +261,9 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
                     await Task.Delay(500);
 
                     // Cancel synchronized input
-                    var cancelResult = await Tools.CancelSynchronizedInput(
-                        target);
+                    var cancelResult = await Tools.SynchronizedInput(
+                        action: "cancel",
+                        automationId: target);
                     _output.WriteLine($"Cancel sync input for {target}: {JsonSerializer.Serialize(cancelResult, new JsonSerializerOptions { WriteIndented = true })}");
                 }
                 catch (Exception ex)
@@ -320,13 +304,9 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
             var navigationStructure = await Tools.GetElementTree(maxDepth: 3);
             _output.WriteLine($"Navigation structure: {JsonSerializer.Serialize(navigationStructure, new JsonSerializerOptions { WriteIndented = true })}");
 
-            // Step 4: Find all navigation items using ItemContainerPattern
-            var navFindResult = await Tools.FindItemByProperty(
-                automationId: "NavigationView",
-                propertyName: "ControlType",
-                value: "NavigationViewItem",
-                timeoutSeconds: 10);
-            _output.WriteLine($"Navigation items found: {JsonSerializer.Serialize(navFindResult, new JsonSerializerOptions { WriteIndented = true })}");
+            // Step 4: Find all navigation items (FindItemByProperty removed - no replacement)
+            // ItemContainerPattern is no longer exposed as a standalone tool method
+            _output.WriteLine("FindItemByProperty test skipped - method removed");
 
             // Step 5: Try to realize virtualized navigation items
             var navigationTargets = new[] { "BasicInput", "Collections", "DateAndTime", "Dialogs", "Layout", "Media", "Navigation", "StatusAndInfo", "Text" };
@@ -346,8 +326,9 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
             }
 
             // Step 6: Use synchronized input for navigation
-            var syncNavResult = await Tools.StartSynchronizedInput(
-                "LeftMouseButton",
+            var syncNavResult = await Tools.SynchronizedInput(
+                action: "start",
+                inputType: "LeftMouseButton",
                 automationId: "NavigationView",
                 timeoutSeconds: 5);
             _output.WriteLine($"Synchronized navigation input started: {JsonSerializer.Serialize(syncNavResult, new JsonSerializerOptions { WriteIndented = true })}");
@@ -356,8 +337,9 @@ public class WinUI3GalleryNewPatternsTests : BaseE2ETest
             await Task.Delay(1000);
 
             // Step 8: Cancel synchronized input
-            var cancelNavResult = await Tools.CancelSynchronizedInput(
-                "NavigationView");
+            var cancelNavResult = await Tools.SynchronizedInput(
+                action: "cancel",
+                automationId: "NavigationView");
             _output.WriteLine($"Synchronized navigation input cancelled: {JsonSerializer.Serialize(cancelNavResult, new JsonSerializerOptions { WriteIndented = true })}");
 
             // Step 9: Final screenshot

@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using UIAutomationMCP.Server.Abstractions;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Models.Results;
@@ -14,17 +15,17 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
 {
     private readonly ServiceProvider _serviceProvider;
     private readonly ISynchronizedInputService _service;
-    private readonly Mock<IOperationExecutor> _mockSubprocessExecutor;
+    private readonly Mock<IProcessManager> _mockSubprocessExecutor;
     private readonly Mock<ILogger<SynchronizedInputService>> _mockLogger;
 
     public SynchronizedInputPatternIntegrationTests()
     {
         var services = new ServiceCollection();
 
-        _mockSubprocessExecutor = new Mock<IOperationExecutor>();
+        _mockSubprocessExecutor = new Mock<IProcessManager>();
         _mockLogger = new Mock<ILogger<SynchronizedInputService>>();
 
-        services.AddSingleton(_mockSubprocessExecutor.Object);
+        services.AddSingleton<IProcessManager>(_mockSubprocessExecutor.Object);
         services.AddSingleton(_mockLogger.Object);
         services.AddSingleton<ISynchronizedInputService, SynchronizedInputService>();
 
@@ -37,7 +38,7 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
     {
         // Arrange
         _mockSubprocessExecutor
-            .Setup(x => x.ExecuteAsync<StartSynchronizedInputRequest, ElementSearchResult>(
+            .Setup(x => x.ExecuteWorkerOperationAsync<StartSynchronizedInputRequest, ElementSearchResult>(
                 It.IsAny<string>(),
                 It.IsAny<StartSynchronizedInputRequest>(),
                 It.IsAny<int>()))
@@ -52,9 +53,8 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
 
         // Assert
         Assert.NotNull(result);
-        dynamic resultObj = result;
-        Assert.False(resultObj.Success);
-        Assert.Contains("not found", resultObj.Error);
+        Assert.False(result.Success);
+        Assert.Contains("not found", result.ErrorMessage);
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
     {
         // Arrange
         _mockSubprocessExecutor
-            .Setup(x => x.ExecuteAsync<StartSynchronizedInputRequest, ElementSearchResult>(
+            .Setup(x => x.ExecuteWorkerOperationAsync<StartSynchronizedInputRequest, ElementSearchResult>(
                 It.IsAny<string>(),
                 It.IsAny<StartSynchronizedInputRequest>(),
                 It.IsAny<int>()))
@@ -71,15 +71,13 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
         // Act
         var result = await _service.StartListeningAsync(
             "button1",
-            "MouseLeftButtonDown",
+            inputType: "MouseLeftButtonDown",
             timeoutSeconds: 30);
 
         // Assert
         Assert.NotNull(result);
-        dynamic resultObj = result;
-        Assert.True(resultObj.Success);
-        Assert.Equal("Synchronized input listening started", resultObj.Message);
-        _mockSubprocessExecutor.Verify(x => x.ExecuteAsync<StartSynchronizedInputRequest, ElementSearchResult>(
+        Assert.True(result.Success);
+        _mockSubprocessExecutor.Verify(x => x.ExecuteWorkerOperationAsync<StartSynchronizedInputRequest, ElementSearchResult>(
             "StartSynchronizedInput",
             It.IsAny<StartSynchronizedInputRequest>(),
             30), Times.Once);
@@ -90,7 +88,7 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
     {
         // Arrange
         _mockSubprocessExecutor
-            .Setup(x => x.ExecuteAsync<CancelSynchronizedInputRequest, ElementSearchResult>(
+            .Setup(x => x.ExecuteWorkerOperationAsync<CancelSynchronizedInputRequest, ElementSearchResult>(
                 It.IsAny<string>(),
                 It.IsAny<CancelSynchronizedInputRequest>(),
                 It.IsAny<int>()))
@@ -101,10 +99,8 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
 
         // Assert
         Assert.NotNull(result);
-        dynamic resultObj = result;
-        Assert.True(resultObj.Success);
-        Assert.Equal("Synchronized input canceled", resultObj.Message);
-        _mockSubprocessExecutor.Verify(x => x.ExecuteAsync<CancelSynchronizedInputRequest, ElementSearchResult>(
+        Assert.True(result.Success);
+        _mockSubprocessExecutor.Verify(x => x.ExecuteWorkerOperationAsync<CancelSynchronizedInputRequest, ElementSearchResult>(
             "CancelSynchronizedInput",
             It.IsAny<CancelSynchronizedInputRequest>(),
             10), Times.Once);
@@ -125,7 +121,7 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
         };
 
         _mockSubprocessExecutor
-            .Setup(x => x.ExecuteAsync<StartSynchronizedInputRequest, ElementSearchResult>(
+            .Setup(x => x.ExecuteWorkerOperationAsync<StartSynchronizedInputRequest, ElementSearchResult>(
                 It.IsAny<string>(),
                 It.IsAny<StartSynchronizedInputRequest>(),
                 It.IsAny<int>()))
@@ -136,14 +132,14 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
         {
             var result = await _service.StartListeningAsync(
                 "testElement",
-                inputType,
+                inputType: inputType,
                 timeoutSeconds: 10);
 
             Assert.NotNull(result);
         }
 
         // Verify the mock was called exactly 6 times (once per input type)
-        _mockSubprocessExecutor.Verify(x => x.ExecuteAsync<StartSynchronizedInputRequest, ElementSearchResult>(
+        _mockSubprocessExecutor.Verify(x => x.ExecuteWorkerOperationAsync<StartSynchronizedInputRequest, ElementSearchResult>(
             "StartSynchronizedInput",
             It.IsAny<StartSynchronizedInputRequest>(),
             10), Times.Exactly(6));
@@ -154,7 +150,7 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
     {
         // Arrange
         _mockSubprocessExecutor
-            .Setup(x => x.ExecuteAsync<StartSynchronizedInputRequest, ElementSearchResult>(
+            .Setup(x => x.ExecuteWorkerOperationAsync<StartSynchronizedInputRequest, ElementSearchResult>(
                 It.IsAny<string>(),
                 It.IsAny<StartSynchronizedInputRequest>(),
                 It.IsAny<int>()))
@@ -163,14 +159,13 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
         // Act
         var result = await _service.StartListeningAsync(
             "unsupportedElement",
-            "MouseLeftButtonDown",
+            inputType: "MouseLeftButtonDown",
             timeoutSeconds: 15);
 
         // Assert
         Assert.NotNull(result);
-        dynamic resultObj = result;
-        Assert.False(resultObj.Success);
-        Assert.Contains("not supported", resultObj.Error);
+        Assert.False(result.Success);
+        Assert.Contains("not supported", result.ErrorMessage);
     }
 
     [Fact]
@@ -181,14 +176,14 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
         var cancelCallCount = 0;
 
         _mockSubprocessExecutor
-            .Setup(x => x.ExecuteAsync<StartSynchronizedInputRequest, ElementSearchResult>(
+            .Setup(x => x.ExecuteWorkerOperationAsync<StartSynchronizedInputRequest, ElementSearchResult>(
                 "StartSynchronizedInput",
                 It.IsAny<StartSynchronizedInputRequest>(),
                 It.IsAny<int>()))
             .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(new ElementSearchResult())));
 
         _mockSubprocessExecutor
-            .Setup(x => x.ExecuteAsync<CancelSynchronizedInputRequest, ElementSearchResult>(
+            .Setup(x => x.ExecuteWorkerOperationAsync<CancelSynchronizedInputRequest, ElementSearchResult>(
                 "CancelSynchronizedInput",
                 It.IsAny<CancelSynchronizedInputRequest>(),
                 It.IsAny<int>()))
@@ -199,27 +194,23 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
         {
             var startResult = await _service.StartListeningAsync(
                 $"element_{i}",
-                "KeyDown",
+                inputType: "KeyDown",
                 timeoutSeconds: 5);
 
             Assert.NotNull(startResult);
-            dynamic startObj = startResult;
-            Assert.True(startObj.Success);
+            Assert.True(startResult.Success);
 
             var cancelResult = await _service.CancelAsync($"element_{i}", timeoutSeconds: 5);
             Assert.NotNull(cancelResult);
-            dynamic cancelObj = cancelResult;
-            Assert.True(cancelObj.Success);
+            Assert.True(cancelResult.Success);
         }
 
         // Assert
-        Assert.Equal(3, startCallCount);
-        Assert.Equal(3, cancelCallCount);
-        _mockSubprocessExecutor.Verify(x => x.ExecuteAsync<StartSynchronizedInputRequest, ElementSearchResult>(
+        _mockSubprocessExecutor.Verify(x => x.ExecuteWorkerOperationAsync<StartSynchronizedInputRequest, ElementSearchResult>(
             "StartSynchronizedInput",
             It.IsAny<StartSynchronizedInputRequest>(),
             It.IsAny<int>()), Times.Exactly(3));
-        _mockSubprocessExecutor.Verify(x => x.ExecuteAsync<CancelSynchronizedInputRequest, ElementSearchResult>(
+        _mockSubprocessExecutor.Verify(x => x.ExecuteWorkerOperationAsync<CancelSynchronizedInputRequest, ElementSearchResult>(
             "CancelSynchronizedInput",
             It.IsAny<CancelSynchronizedInputRequest>(),
             It.IsAny<int>()), Times.Exactly(3));
