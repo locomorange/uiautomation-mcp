@@ -69,7 +69,7 @@ namespace UIAutomationMCP.Server.Tools
 
         // Window and Element Discovery
 
-        [McpServerTool, Description("Search for UI elements with flexible filtering options. Returns basic element properties by default. When includeDetails=true, returns comprehensive data including: • All supported UI patterns (Toggle state, Range values, Window state, Selection info, Grid/Table structure, Scroll position, Text content, Transform capabilities, etc.) • Accessibility information (labeledBy, helpText, accessKey, acceleratorKey) • Advanced properties (frameworkId, runtimeId, isPassword) • Element hierarchy (parent and children relationships). For window detection, use scope='children' with requiredPattern='Window' (finds all elements with WindowPattern including Panes). Avoid controlType='Window' as it excludes WindowPattern-supporting Panes and other window-like elements.")]
+        [McpServerTool, Description("Search for UI elements with flexible filtering options. Returns basic element properties by default. When includeDetails=true, returns comprehensive data including: • All supported UI patterns (Toggle state, Range values, Window state, Selection info, SelectionItem state per element, Grid/Table structure, Scroll position, Text content, Transform capabilities, etc.) • Accessibility information (labeledBy, helpText, accessKey, acceleratorKey) • Advanced properties (frameworkId, runtimeId, isPassword) • Element hierarchy (parent and children relationships). For window detection, use scope='children' with requiredPattern='Window' (finds all elements with WindowPattern including Panes). Avoid controlType='Window' as it excludes WindowPattern-supporting Panes and other window-like elements.")]
         public async Task<object> SearchElements(
             [Description("Cross-property search text (searches Name, AutomationId, ClassName)")] string? searchText = null,
             [Description("Specific AutomationId to search for")] string? automationId = null,
@@ -85,7 +85,7 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Only return enabled elements (default: false)")] bool enabledOnly = false,
             [Description("Maximum number of results to return (default: 50)")] int maxResults = 50,
             [Description("Sort results by: Name, ControlType, Position (optional)")] string? sortBy = null,
-            [Description("Include comprehensive details: all UI patterns (Toggle, Range, Window, Selection, Grid, Scroll, Text, Transform, Value, ExpandCollapse, Dock, MultipleView, Table, etc.), accessibility info (labels, help text, keyboard shortcuts), and element hierarchy (default: false)")] bool includeDetails = false,
+            [Description("Include comprehensive details: all UI patterns (Toggle, Range, Window, Selection, SelectionItem per-element state, Grid, Scroll, Text, Transform, Value, ExpandCollapse, Dock, MultipleView, Table, etc.), accessibility info (labeledBy, helpText, accessKey, acceleratorKey), and advanced properties (default: false)")] bool includeDetails = false,
             [Description("Use WindowHandle as filter instead of search root (default: false). true=window-level search, false=search within window")] bool useWindowHandleAsFilter = false,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _elementSearchService.SearchElementsAsync(
@@ -221,7 +221,7 @@ namespace UIAutomationMCP.Server.Tools
                 windowHandle: windowHandle,
                 timeoutSeconds: timeoutSeconds));
 
-        [McpServerTool, Description("Perform selection actions on an element (select, add, remove, clear) using SelectionItemPattern or SelectionPattern")]
+        [McpServerTool, Description("Perform selection actions on an element (select, add, remove, clear) using SelectionItemPattern or SelectionPattern. To check current selection state, use SearchElements with includeDetails=true — the selectionItem field shows isSelected and selectionContainer per element.")]
         public async Task<object> SelectionAction(
             [Description("Action to perform: select, add, remove, clear")] string action,
             [Description("AutomationId of the element (preferred, stable identifier)")] string? automationId = null,
