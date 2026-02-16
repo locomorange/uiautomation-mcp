@@ -12,6 +12,7 @@ using System.Diagnostics;
 using Moq;
 using UIAutomationMCP.Server.Abstractions;
 using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Tests.E2E;
 
 namespace UIAutomationMCP.Tests.Integration
 {
@@ -185,38 +186,6 @@ namespace UIAutomationMCP.Tests.Integration
             _output.WriteLine($"Short timeout test completed in {actualTime}s with result: {result}");
         }
 
-        private async Task SafelyTerminateProcessAsync(Process? process, string appName)
-        {
-            if (process == null) return;
-
-            try
-            {
-                if (!process.HasExited)
-                {
-                    _output.WriteLine($"Terminating {appName} with PID: {process.Id}");
-
-                    //                                      process.CloseMainWindow();
-
-                    //                                          if (!process.WaitForExit(2000))
-                    {
-                        _output.WriteLine($"Force killing {appName} with PID: {process.Id}");
-                        process.Kill();
-                        await process.WaitForExitAsync();
-                    }
-
-                    _output.WriteLine($"{appName} with PID: {process.Id} terminated successfully");
-                }
-            }
-            catch (Exception ex)
-            {
-                _output.WriteLine($"Error terminating {appName}: {ex.Message}");
-            }
-            finally
-            {
-                process?.Dispose();
-            }
-        }
-
         [Fact]
         public async Task BasicWorkflow_WithCalculator_ShouldHandleGracefully()
         {
@@ -263,7 +232,8 @@ namespace UIAutomationMCP.Tests.Integration
             }
             finally
             {
-                await SafelyTerminateProcessAsync(calcProcess, "Calculator");
+                if (calcProcess != null)
+                    await ProcessCleanupHelper.CleanupProcess(calcProcess, _output, "Calculator");
             }
         }
 

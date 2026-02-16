@@ -168,9 +168,7 @@ namespace UiAutomationMcp.Tests.Services
 
         public void Dispose()
         {
-            // テストクリーンアップ
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
+            // WindowsJobObject により Worker は自動終了されるため、明示的なクリーンアップは不要
         }
     }
 }

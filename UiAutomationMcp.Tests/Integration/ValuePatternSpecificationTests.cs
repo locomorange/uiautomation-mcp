@@ -188,8 +188,6 @@ namespace UIAutomationMCP.Tests.Integration
         public void Dispose()
         {
             _serviceProvider?.Dispose();
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
         }
     }
 }

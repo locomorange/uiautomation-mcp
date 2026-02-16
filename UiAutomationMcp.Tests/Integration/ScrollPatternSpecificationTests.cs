@@ -234,9 +234,8 @@ namespace UiAutomationMcp.Tests.Integration
                 _output.WriteLine($"Service provider disposal warning: {ex.Message}");
             }
 
-            // プロセスクリーンアップ
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
+            // プロセスクリーンアップ - WindowsJobObject により Worker は自動終了されるため、
+            // 明示的な GC.Collect は不要
         }
     }
 }

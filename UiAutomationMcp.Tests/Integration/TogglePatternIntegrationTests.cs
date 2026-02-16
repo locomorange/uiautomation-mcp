@@ -8,7 +8,7 @@ using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using Xunit.Abstractions;
 using System.Diagnostics;
-
+using UIAutomationMCP.Tests.E2E;
 using UIAutomationMCP.Server.Abstractions;
 using Moq;
 namespace UIAutomationMCP.Tests.Integration
@@ -242,7 +242,8 @@ namespace UIAutomationMCP.Tests.Integration
             }
             finally
             {
-                await SafelyTerminateProcessAsync(calcProcess, "Calculator");
+                if (calcProcess != null)
+                    await ProcessCleanupHelper.CleanupProcess(calcProcess, _output, "Calculator");
             }
         }
 
@@ -364,38 +365,6 @@ namespace UIAutomationMCP.Tests.Integration
         }
 
         #endregion
-
-        private async Task SafelyTerminateProcessAsync(Process? process, string appName)
-        {
-            if (process == null) return;
-
-            try
-            {
-                if (!process.HasExited)
-                {
-                    _output.WriteLine($"Terminating {appName} with PID: {process.Id}");
-
-                    //                                      process.CloseMainWindow();
-
-                    //                                          if (!process.WaitForExit(2000))
-                    {
-                        _output.WriteLine($"Force killing {appName} with PID: {process.Id}");
-                        process.Kill();
-                        await process.WaitForExitAsync();
-                    }
-
-                    _output.WriteLine($"{appName} with PID: {process.Id} terminated successfully");
-                }
-            }
-            catch (Exception ex)
-            {
-                _output.WriteLine($"Error terminating {appName}: {ex.Message}");
-            }
-            finally
-            {
-                process?.Dispose();
-            }
-        }
 
         public void Dispose()
         {
