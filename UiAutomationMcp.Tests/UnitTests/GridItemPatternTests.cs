@@ -70,7 +70,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ElementSearchResult { Elements = new System.Collections.Generic.List<ElementInfo> { new ElementInfo { AutomationId = "cell1" } } }
             };
-            _mockGridTableService.Setup(s => s.GetGridItemAsync("grid1", null, 0, 0, null, null, null, 30))
+            _mockGridTableService.Setup(s => s.GetGridItemAsync("grid1", null, 0, 0, null, null, 30))
                 .ReturnsAsync(expectedResult);
 
             // Act
@@ -78,7 +78,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockGridTableService.Verify(s => s.GetGridItemAsync("grid1", null, 0, 0, null, null, null, 30), Times.Once);
+            _mockGridTableService.Verify(s => s.GetGridItemAsync("grid1", null, 0, 0, null, null, 30), Times.Once);
         }
     }
 }

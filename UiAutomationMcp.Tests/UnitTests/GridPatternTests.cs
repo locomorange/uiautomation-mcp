@@ -76,7 +76,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                     }
                 }
             };
-            _mockGridTableService.Setup(s => s.GetGridItemAsync("grid1", null, 1, 2, null, null, null, 30))
+            _mockGridTableService.Setup(s => s.GetGridItemAsync("grid1", null, 1, 2, null, null, 30))
                 .ReturnsAsync(expectedResult);
 
             // Act
@@ -84,7 +84,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockGridTableService.Verify(s => s.GetGridItemAsync("grid1", null, 1, 2, null, null, null, 30), Times.Once);
+            _mockGridTableService.Verify(s => s.GetGridItemAsync("grid1", null, 1, 2, null, null, 30), Times.Once);
         }
     }
 }

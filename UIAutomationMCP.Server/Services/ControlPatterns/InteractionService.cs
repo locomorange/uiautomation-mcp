@@ -23,19 +23,19 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             _rangeService = rangeService;
         }
 
-        public Task<ServerEnhancedResponse<ActionResult>> InvokeElementAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int? processId = null, int timeoutSeconds = 30)
-            => _invokeService.InvokeElementAsync(automationId, name, controlType, windowHandle, processId, timeoutSeconds);
+        public Task<ServerEnhancedResponse<ActionResult>> InvokeElementAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
+            => _invokeService.InvokeElementAsync(automationId, name, controlType, windowHandle, timeoutSeconds);
 
-        public Task<ServerEnhancedResponse<ActionResult>> SetValueAsync(string? automationId = null, string? name = null, string value = "", string? controlType = null, long? windowHandle = null, int? processId = null, int timeoutSeconds = 30)
-            => _valueService.SetValueAsync(value, automationId, name, controlType, windowHandle, processId, timeoutSeconds);
+        public Task<ServerEnhancedResponse<ActionResult>> SetValueAsync(string? automationId = null, string? name = null, string value = "", string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
+            => _valueService.SetValueAsync(value, automationId, name, controlType, windowHandle, timeoutSeconds);
 
-        public Task<ServerEnhancedResponse<ActionResult>> ToggleElementAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int? processId = null, int timeoutSeconds = 30)
-            => _toggleService.ToggleElementAsync(automationId, name, controlType, windowHandle, processId, timeoutSeconds);
+        public Task<ServerEnhancedResponse<ActionResult>> ToggleElementAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
+            => _toggleService.ToggleElementAsync(automationId, name, controlType, windowHandle, timeoutSeconds);
 
-        public Task<ServerEnhancedResponse<ActionResult>> SetRangeValueAsync(string? automationId = null, string? name = null, double value = 0, string? controlType = null, long? windowHandle = null, int? processId = null, int timeoutSeconds = 30)
-            => _rangeService.SetRangeValueAsync(automationId, name, value, controlType, windowHandle, processId, timeoutSeconds);
+        public Task<ServerEnhancedResponse<ActionResult>> SetRangeValueAsync(string? automationId = null, string? name = null, double value = 0, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
+            => _rangeService.SetRangeValueAsync(automationId, name, value, controlType, windowHandle, timeoutSeconds);
 
-        public Task<ServerEnhancedResponse<RangeValueResult>> GetRangeValueAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int? processId = null, int timeoutSeconds = 30)
-            => _rangeService.GetRangeValueAsync(automationId, name, controlType, windowHandle, processId, timeoutSeconds);
+        public Task<ServerEnhancedResponse<RangeValueResult>> GetRangeValueAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
+            => _rangeService.GetRangeValueAsync(automationId, name, controlType, windowHandle, timeoutSeconds);
     }
 }

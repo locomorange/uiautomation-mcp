@@ -25,7 +25,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             int length = 1,
             string? controlType = null,
             long? windowHandle = null,
-            int? processId = null,
             int timeoutSeconds = 30)
         {
             var request = new SelectTextRequest
@@ -36,7 +35,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Length = length,
                 ControlType = controlType,
                 WindowHandle = windowHandle,
-                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<SelectTextRequest, ActionResult>(
@@ -54,7 +52,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string text = "",
             string? controlType = null,
             long? windowHandle = null,
-            int? processId = null,
             int timeoutSeconds = 30)
         {
             var request = new SetTextRequest
@@ -64,7 +61,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Text = text ?? "",
                 ControlType = controlType,
                 WindowHandle = windowHandle,
-                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<SetTextRequest, ActionResult>(
@@ -82,7 +78,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string text = "",
             string? controlType = null,
             long? windowHandle = null,
-            int? processId = null,
             int timeoutSeconds = 30)
         {
             var request = new SetTextRequest
@@ -92,7 +87,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Text = text ?? "",
                 ControlType = controlType,
                 WindowHandle = windowHandle,
-                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<SetTextRequest, ActionResult>(
@@ -112,7 +106,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string? attributeName = null,
             string? controlType = null,
             long? windowHandle = null,
-            int? processId = null,
             int timeoutSeconds = 30)
         {
             var request = new UIAutomationMCP.Models.Requests.GetTextAttributesRequest
@@ -124,7 +117,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 StartIndex = startIndex,
                 Length = length,
                 AttributeName = attributeName,
-                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<UIAutomationMCP.Models.Requests.GetTextAttributesRequest, TextAttributesResult>(
@@ -144,7 +136,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             bool ignoreCase = true,
             string? controlType = null,
             long? windowHandle = null,
-            int? processId = null,
             int timeoutSeconds = 30)
         {
             var request = new UIAutomationMCP.Models.Requests.FindTextRequest
@@ -156,7 +147,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 SearchText = searchText,
                 Backward = backward,
                 IgnoreCase = ignoreCase,
-                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<UIAutomationMCP.Models.Requests.FindTextRequest, TextSearchResult>(
@@ -173,7 +163,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             string? name = null,
             string? controlType = null,
             long? windowHandle = null,
-            int? processId = null,
             int timeoutSeconds = 30)
         {
             var request = new UIAutomationMCP.Models.Requests.GetTextRequest
@@ -182,7 +171,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Name = name,
                 ControlType = controlType,
                 WindowHandle = windowHandle,
-                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<UIAutomationMCP.Models.Requests.GetTextRequest, TextResult>(

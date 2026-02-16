@@ -71,7 +71,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, Action = "Select" }
             };
-            _mockSelectionService.Setup(s => s.SelectItemAsync("item1", null, null, null, null, 30))
+            _mockSelectionService.Setup(s => s.SelectItemAsync("item1", null, null, null, 30))
                 .ReturnsAsync(expectedResult);
 
             // Act
@@ -79,7 +79,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.SelectItemAsync("item1", null, null, null, null, 30), Times.Once);
+            _mockSelectionService.Verify(s => s.SelectItemAsync("item1", null, null, null, 30), Times.Once);
         }
 
         [Fact]
@@ -91,7 +91,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, Action = "AddToSelection" }
             };
-            _mockSelectionService.Setup(s => s.AddToSelectionAsync("item1", null, null, null, null, 30))
+            _mockSelectionService.Setup(s => s.AddToSelectionAsync("item1", null, null, null, 30))
                 .ReturnsAsync(expectedResult);
 
             // Act
@@ -99,7 +99,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.AddToSelectionAsync("item1", null, null, null, null, 30), Times.Once);
+            _mockSelectionService.Verify(s => s.AddToSelectionAsync("item1", null, null, null, 30), Times.Once);
         }
 
         [Fact]
@@ -111,7 +111,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, Action = "RemoveFromSelection" }
             };
-            _mockSelectionService.Setup(s => s.RemoveFromSelectionAsync("item1", null, null, null, null, 30))
+            _mockSelectionService.Setup(s => s.RemoveFromSelectionAsync("item1", null, null, null, 30))
                 .ReturnsAsync(expectedResult);
 
             // Act
@@ -119,7 +119,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.RemoveFromSelectionAsync("item1", null, null, null, null, 30), Times.Once);
+            _mockSelectionService.Verify(s => s.RemoveFromSelectionAsync("item1", null, null, null, 30), Times.Once);
         }
 
         [Fact]
@@ -131,7 +131,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, Action = "ClearSelection" }
             };
-            _mockSelectionService.Setup(s => s.ClearSelectionAsync("container1", null, null, null, null, 30))
+            _mockSelectionService.Setup(s => s.ClearSelectionAsync("container1", null, null, null, 30))
                 .ReturnsAsync(expectedResult);
 
             // Act
@@ -139,7 +139,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockSelectionService.Verify(s => s.ClearSelectionAsync("container1", null, null, null, null, 30), Times.Once);
+            _mockSelectionService.Verify(s => s.ClearSelectionAsync("container1", null, null, null, 30), Times.Once);
         }
     }
 }

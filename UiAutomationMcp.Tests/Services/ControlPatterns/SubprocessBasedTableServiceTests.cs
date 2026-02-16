@@ -108,7 +108,7 @@ namespace UIAutomationMCP.Tests.Services.ControlPatterns
                         .Returns(Task.FromResult(ServiceOperationResult<ElementSearchResult>.FromSuccess(expectedResult)));
 
             // Act
-            var result = await _service.GetColumnHeaderItemsAsync("cell2_3", processId: 1234, timeoutSeconds: 60);
+            var result = await _service.GetColumnHeaderItemsAsync("cell2_3", timeoutSeconds: 60);
 
             // Assert
             Assert.NotNull(result);

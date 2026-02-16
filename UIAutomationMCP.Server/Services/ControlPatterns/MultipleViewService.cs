@@ -19,7 +19,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
         protected override string GetOperationType() => "multipleView";
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> SetViewAsync(string? automationId = null, string? name = null, int viewId = 0, string? controlType = null, long? windowHandle = null, int? processId = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<ElementSearchResult>> SetViewAsync(string? automationId = null, string? name = null, int viewId = 0, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
         {
             var request = new SetViewRequest
             {
@@ -28,7 +28,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 ViewId = viewId,
                 ControlType = controlType,
                 WindowHandle = windowHandle,
-                ProcessId = processId
             };
 
             return await ExecuteServiceOperationAsync<SetViewRequest, ElementSearchResult>(

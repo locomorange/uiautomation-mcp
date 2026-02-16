@@ -24,7 +24,6 @@ namespace UIAutomationMCP.Server.Services
             string? controlType = null,
             string? requiredPattern = null,
             long? windowHandle = null,
-            int? processId = null,
             int timeoutSeconds = 30)
         {
             var request = new SetFocusRequest
@@ -33,7 +32,6 @@ namespace UIAutomationMCP.Server.Services
                 Name = name,
                 ControlType = controlType,
                 WindowHandle = windowHandle,
-                ProcessId = processId,
                 RequiredPattern = requiredPattern
             };
 

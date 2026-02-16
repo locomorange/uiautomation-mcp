@@ -71,7 +71,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, Action = "Move" }
             };
-            _mockTransformService.Setup(s => s.MoveElementAsync("element1", null, 100, 200, null, null, null, 30))
+            _mockTransformService.Setup(s => s.MoveElementAsync("element1", null, 100, 200, null, null, 30))
                 .ReturnsAsync(expectedResult);
 
             // Act
@@ -79,7 +79,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockTransformService.Verify(s => s.MoveElementAsync("element1", null, 100, 200, null, null, null, 30), Times.Once);
+            _mockTransformService.Verify(s => s.MoveElementAsync("element1", null, 100, 200, null, null, 30), Times.Once);
         }
 
         [Fact]
@@ -91,7 +91,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, Action = "Resize" }
             };
-            _mockTransformService.Setup(s => s.ResizeElementAsync("element1", null, 800, 600, null, null, null, 30))
+            _mockTransformService.Setup(s => s.ResizeElementAsync("element1", null, 800, 600, null, null, 30))
                 .ReturnsAsync(expectedResult);
 
             // Act
@@ -99,7 +99,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockTransformService.Verify(s => s.ResizeElementAsync("element1", null, 800, 600, null, null, null, 30), Times.Once);
+            _mockTransformService.Verify(s => s.ResizeElementAsync("element1", null, 800, 600, null, null, 30), Times.Once);
         }
 
         [Fact]
@@ -111,7 +111,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 Success = true,
                 Data = new ActionResult { Success = true, Action = "Rotate" }
             };
-            _mockTransformService.Setup(s => s.RotateElementAsync("element1", null, 45, null, null, null, 30))
+            _mockTransformService.Setup(s => s.RotateElementAsync("element1", null, 45, null, null, 30))
                 .ReturnsAsync(expectedResult);
 
             // Act
@@ -119,7 +119,7 @@ namespace UIAutomationMCP.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            _mockTransformService.Verify(s => s.RotateElementAsync("element1", null, 45, null, null, null, 30), Times.Once);
+            _mockTransformService.Verify(s => s.RotateElementAsync("element1", null, 45, null, null, 30), Times.Once);
         }
     }
 }

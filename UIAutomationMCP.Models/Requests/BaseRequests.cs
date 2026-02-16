@@ -57,12 +57,6 @@ namespace UIAutomationMCP.Models.Requests
         /// </summary>
         [JsonPropertyName("windowHandle")]
         public long? WindowHandle { get; set; }
-
-        /// <summary>
-        /// プロセスIDによる要素絞り込み
-        /// </summary>
-        [JsonPropertyName("processId")]
-        public int? ProcessId { get; set; }
     }
 
 }

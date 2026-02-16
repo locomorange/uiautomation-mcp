@@ -159,7 +159,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Name of the element (fallback, display name)")] string? name = null,
             [Description("ControlType to filter by (Button, MenuItem, etc.)")] string? controlType = null,
             [Description("Native window handle (HWND) for direct element targeting")] long? windowHandle = null,
-            [Description("ProcessId to filter elements by")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
             [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
             => JsonSerializationHelper.Serialize(await _interactionService.InvokeElementAsync(
@@ -167,7 +166,6 @@ namespace UIAutomationMCP.Server.Tools
                 name: name,
                 controlType: controlType,
                 windowHandle: windowHandle,
-                processId: processId,
                 timeoutSeconds: timeoutSeconds));
 
         [McpServerTool, Description("Set the value of an element (text input, etc.) using ValuePattern")]
@@ -177,7 +175,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Value to set")] string value = "",
             [Description("ControlType to filter by (TextBox, Edit, etc.)")] string? controlType = null,
             [Description("Native window handle (HWND) for direct element targeting")] long? windowHandle = null,
-            [Description("ProcessId to filter elements by")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
             [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
             => JsonSerializationHelper.Serialize(await _interactionService.SetValueAsync(
@@ -186,7 +183,6 @@ namespace UIAutomationMCP.Server.Tools
                 value: value,
                 controlType: controlType,
                 windowHandle: windowHandle,
-                processId: processId,
                 timeoutSeconds: timeoutSeconds));
 
 
@@ -197,7 +193,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Name of the element (fallback, display name)")] string? name = null,
             [Description("ControlType to filter by (CheckBox, ToggleButton, etc.)")] string? controlType = null,
             [Description("Native window handle (HWND) for direct element targeting")] long? windowHandle = null,
-            [Description("ProcessId to filter elements by")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
             [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
             => JsonSerializationHelper.Serialize(await _interactionService.ToggleElementAsync(
@@ -205,7 +200,6 @@ namespace UIAutomationMCP.Server.Tools
                 name: name,
                 controlType: controlType,
                 windowHandle: windowHandle,
-                processId: processId,
                 timeoutSeconds: timeoutSeconds));
 
         [McpServerTool, Description("Set focus to a UI element using UI Automation SetFocus method")]
@@ -215,7 +209,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("ControlType to filter by (Edit, Button, etc.)")] string? controlType = null,
             [Description("Required pattern for element filtering (optional, e.g., 'value', 'invoke')")] string? requiredPattern = null,
             [Description("Native window handle (HWND) for direct element targeting")] long? windowHandle = null,
-            [Description("ProcessId to filter elements by")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _focusService.SetFocusAsync(
                 automationId: automationId,
@@ -223,7 +216,6 @@ namespace UIAutomationMCP.Server.Tools
                 controlType: controlType,
                 requiredPattern: requiredPattern,
                 windowHandle: windowHandle,
-                processId: processId,
                 timeoutSeconds: timeoutSeconds));
 
         [McpServerTool, Description("Perform selection actions on an element (select, add, remove, clear) using SelectionItemPattern or SelectionPattern")]
@@ -233,15 +225,14 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Name of the element (fallback, display name)")] string? name = null,
             [Description("ControlType to filter by (ListItem, TabItem, TreeItem, etc.)")] string? controlType = null,
             [Description("Native window handle (HWND) for direct element targeting")] long? windowHandle = null,
-            [Description("ProcessId to filter elements by")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
         {
             return action.ToLower() switch
             {
-                "select" => JsonSerializationHelper.Serialize(await _selectionService.SelectItemAsync(automationId: automationId, name: name, controlType: controlType, windowHandle: windowHandle, processId: processId, timeoutSeconds: timeoutSeconds)),
-                "add" => JsonSerializationHelper.Serialize(await _selectionService.AddToSelectionAsync(automationId: automationId, name: name, controlType: controlType, windowHandle: windowHandle, processId: processId, timeoutSeconds: timeoutSeconds)),
-                "remove" => JsonSerializationHelper.Serialize(await _selectionService.RemoveFromSelectionAsync(automationId: automationId, name: name, controlType: controlType, windowHandle: windowHandle, processId: processId, timeoutSeconds: timeoutSeconds)),
-                "clear" => JsonSerializationHelper.Serialize(await _selectionService.ClearSelectionAsync(automationId: automationId, name: name, controlType: controlType, windowHandle: windowHandle, processId: processId, timeoutSeconds: timeoutSeconds)),
+                "select" => JsonSerializationHelper.Serialize(await _selectionService.SelectItemAsync(automationId: automationId, name: name, controlType: controlType, windowHandle: windowHandle, timeoutSeconds: timeoutSeconds)),
+                "add" => JsonSerializationHelper.Serialize(await _selectionService.AddToSelectionAsync(automationId: automationId, name: name, controlType: controlType, windowHandle: windowHandle, timeoutSeconds: timeoutSeconds)),
+                "remove" => JsonSerializationHelper.Serialize(await _selectionService.RemoveFromSelectionAsync(automationId: automationId, name: name, controlType: controlType, windowHandle: windowHandle, timeoutSeconds: timeoutSeconds)),
+                "clear" => JsonSerializationHelper.Serialize(await _selectionService.ClearSelectionAsync(automationId: automationId, name: name, controlType: controlType, windowHandle: windowHandle, timeoutSeconds: timeoutSeconds)),
                 _ => throw new ArgumentException($"Invalid action: {action}")
             };
         }
@@ -255,7 +246,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Action to perform: expand, collapse, toggle")] string action = "toggle",
             [Description("ControlType to filter by (TreeItem, MenuItem, etc.)")] string? controlType = null,
             [Description("Native window handle (HWND) for direct element targeting")] long? windowHandle = null,
-            [Description("ProcessId to filter elements by")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
             [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
             => JsonSerializationHelper.Serialize(await _layoutService.ExpandCollapseElementAsync(
@@ -264,7 +254,6 @@ namespace UIAutomationMCP.Server.Tools
                 action: action,
                 controlType: controlType,
                 windowHandle: windowHandle,
-                processId: processId,
                 timeoutSeconds: timeoutSeconds));
 
         [McpServerTool, Description("Scroll an element using ScrollPattern")]
@@ -275,7 +264,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Amount to scroll (default: 1.0)")] double amount = 1.0,
             [Description("ControlType to filter by (ScrollViewer, ListBox, etc.)")] string? controlType = null,
             [Description("Native window handle (HWND) for direct element targeting")] long? windowHandle = null,
-            [Description("ProcessId to filter elements by")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
             [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
             => JsonSerializationHelper.Serialize(await _layoutService.ScrollElementAsync(
@@ -285,7 +273,6 @@ namespace UIAutomationMCP.Server.Tools
                 amount: amount,
                 controlType: controlType,
                 windowHandle: windowHandle,
-                processId: processId,
                 timeoutSeconds: timeoutSeconds));
 
         [McpServerTool, Description("Scroll an element into view using ScrollItemPattern")]
@@ -294,7 +281,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Name of the element (fallback, display name)")] string? name = null,
             [Description("ControlType to filter by (ListItem, TreeItem, etc.)")] string? controlType = null,
             [Description("Native window handle (HWND) for direct element targeting")] long? windowHandle = null,
-            [Description("ProcessId to filter elements by")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
             [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
             => JsonSerializationHelper.Serialize(await _layoutService.ScrollElementIntoViewAsync(
@@ -302,7 +288,6 @@ namespace UIAutomationMCP.Server.Tools
                 name: name,
                 controlType: controlType,
                 windowHandle: windowHandle,
-                processId: processId,
                 timeoutSeconds: timeoutSeconds));
 
 
@@ -314,7 +299,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Vertical scroll percentage (0-100, -1 for no change)")] double verticalPercent = -1,
             [Description("ControlType to filter by (ScrollViewer, ListBox, etc.)")] string? controlType = null,
             [Description("Native window handle (HWND) for direct element targeting")] long? windowHandle = null,
-            [Description("ProcessId to filter elements by")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
             [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
             => JsonSerializationHelper.Serialize(await _layoutService.SetScrollPercentAsync(
@@ -324,7 +308,6 @@ namespace UIAutomationMCP.Server.Tools
                 verticalPercent: verticalPercent,
                 controlType: controlType,
                 windowHandle: windowHandle,
-                processId: processId,
                 timeoutSeconds: timeoutSeconds));
 
 
@@ -336,7 +319,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Value to set within the element's range")] double value = 0,
             [Description("ControlType to filter by (Slider, ProgressBar, etc.)")] string? controlType = null,
             [Description("Native window handle (HWND) for direct element targeting")] long? windowHandle = null,
-            [Description("ProcessId to filter elements by")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
             [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
             => JsonSerializationHelper.Serialize(await _interactionService.SetRangeValueAsync(
@@ -345,7 +327,6 @@ namespace UIAutomationMCP.Server.Tools
                 value: value,
                 controlType: controlType,
                 windowHandle: windowHandle,
-                processId: processId,
                 timeoutSeconds: timeoutSeconds));
 
 
@@ -355,9 +336,8 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Action to perform: minimize, maximize, normal, restore, close")] string action,
             [Description("Title of the window (optional)")] string? windowTitle = null,
             [Description("Native window handle (HWND) for direct window targeting")] long? windowHandle = null,
-            [Description("ProcessId to filter windows by")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
-            => JsonSerializationHelper.Serialize(await _windowService.WindowOperationAsync(operation: action, windowTitle: windowTitle, windowHandle: windowHandle, processId: processId, timeoutSeconds: timeoutSeconds));
+            => JsonSerializationHelper.Serialize(await _windowService.WindowOperationAsync(operation: action, windowTitle: windowTitle, windowHandle: windowHandle, timeoutSeconds: timeoutSeconds));
 
         // GetWindowInteractionState and GetWindowCapabilities merged into FindElements Properties field
 
@@ -397,7 +377,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Dock position: top, bottom, left, right, fill, none")] string dockPosition = "none",
             [Description("ControlType to filter by (Pane, ToolBar, etc.)")] string? controlType = null,
             [Description("Native window handle (HWND) for direct element targeting")] long? windowHandle = null,
-            [Description("ProcessId to filter elements by")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
             [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
             => JsonSerializationHelper.Serialize(await _layoutService.DockElementAsync(
@@ -406,7 +385,6 @@ namespace UIAutomationMCP.Server.Tools
                 dockPosition: dockPosition,
                 controlType: controlType,
                 windowHandle: windowHandle,
-                processId: processId,
                 timeoutSeconds: timeoutSeconds));
 
         // Text Pattern Operations
@@ -419,7 +397,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Length of text to select")] int length = 1,
             [Description("ControlType to filter by (Edit, Document, etc.)")] string? controlType = null,
             [Description("Native window handle (HWND) for direct element targeting")] long? windowHandle = null,
-            [Description("ProcessId to filter elements by")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30,
             [Description("DEPRECATED: Use automationId or name instead")] string? elementId = null)
             => JsonSerializationHelper.Serialize(await _textService.SelectTextAsync(
@@ -429,7 +406,6 @@ namespace UIAutomationMCP.Server.Tools
                 length: length,
                 controlType: controlType,
                 windowHandle: windowHandle,
-                processId: processId,
                 timeoutSeconds: timeoutSeconds));
 
         [McpServerTool, Description("Find text in an element using TextPattern")]
@@ -508,7 +484,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Name of the grid element (fallback, display name)")] string? name = null,
             [Description("ControlType to filter by (DataGrid, List, Table, etc.)")] string? controlType = null,
             [Description("Native window handle (HWND) for direct element targeting")] long? windowHandle = null,
-            [Description("ProcessId to filter elements by")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
         {
             // In unit tests, many grid/multipleview mocks expect automationId and name to be passed exactly.
@@ -516,14 +491,14 @@ namespace UIAutomationMCP.Server.Tools
             
             return action.ToLower() switch
             {
-                "get-item" => JsonSerializationHelper.Serialize(await _gridTableService.GetGridItemAsync(automationId: automationId, name: name, row: row, column: column, controlType: controlType, windowHandle: windowHandle, processId: processId, timeoutSeconds: timeoutSeconds)),
-                "get-row-header" => JsonSerializationHelper.Serialize(await _gridTableService.GetRowHeaderAsync(automationId: automationId, name: name, row: row, controlType: controlType, windowHandle: windowHandle, processId: processId, timeoutSeconds: timeoutSeconds)),
-                "get-column-header" => JsonSerializationHelper.Serialize(await _gridTableService.GetColumnHeaderAsync(automationId: automationId, name: name, column: column, controlType: controlType, windowHandle: windowHandle, processId: processId, timeoutSeconds: timeoutSeconds)),
-                "get-table-info" => JsonSerializationHelper.Serialize(await _gridTableService.GetTableInfoAsync(automationId: automationId, name: name, controlType: controlType, windowHandle: windowHandle, processId: processId, timeoutSeconds: timeoutSeconds)),
-                "getitem" => JsonSerializationHelper.Serialize(await _gridTableService.GetGridItemAsync(automationId: automationId, name: name, row: row, column: column, controlType: controlType, windowHandle: windowHandle, processId: processId, timeoutSeconds: timeoutSeconds)),
-                "getrowheader" => JsonSerializationHelper.Serialize(await _gridTableService.GetRowHeaderAsync(automationId: automationId, name: name, row: row, controlType: controlType, windowHandle: windowHandle, processId: processId, timeoutSeconds: timeoutSeconds)),
-                "getcolumnheader" => JsonSerializationHelper.Serialize(await _gridTableService.GetColumnHeaderAsync(automationId: automationId, name: name, column: column, controlType: controlType, windowHandle: windowHandle, processId: processId, timeoutSeconds: timeoutSeconds)),
-                "gettableinfo" => JsonSerializationHelper.Serialize(await _gridTableService.GetTableInfoAsync(automationId: automationId, name: name, controlType: controlType, windowHandle: windowHandle, processId: processId, timeoutSeconds: timeoutSeconds)),
+                "get-item" => JsonSerializationHelper.Serialize(await _gridTableService.GetGridItemAsync(automationId: automationId, name: name, row: row, column: column, controlType: controlType, windowHandle: windowHandle, timeoutSeconds: timeoutSeconds)),
+                "get-row-header" => JsonSerializationHelper.Serialize(await _gridTableService.GetRowHeaderAsync(automationId: automationId, name: name, row: row, controlType: controlType, windowHandle: windowHandle, timeoutSeconds: timeoutSeconds)),
+                "get-column-header" => JsonSerializationHelper.Serialize(await _gridTableService.GetColumnHeaderAsync(automationId: automationId, name: name, column: column, controlType: controlType, windowHandle: windowHandle, timeoutSeconds: timeoutSeconds)),
+                "get-table-info" => JsonSerializationHelper.Serialize(await _gridTableService.GetTableInfoAsync(automationId: automationId, name: name, controlType: controlType, windowHandle: windowHandle, timeoutSeconds: timeoutSeconds)),
+                "getitem" => JsonSerializationHelper.Serialize(await _gridTableService.GetGridItemAsync(automationId: automationId, name: name, row: row, column: column, controlType: controlType, windowHandle: windowHandle, timeoutSeconds: timeoutSeconds)),
+                "getrowheader" => JsonSerializationHelper.Serialize(await _gridTableService.GetRowHeaderAsync(automationId: automationId, name: name, row: row, controlType: controlType, windowHandle: windowHandle, timeoutSeconds: timeoutSeconds)),
+                "getcolumnheader" => JsonSerializationHelper.Serialize(await _gridTableService.GetColumnHeaderAsync(automationId: automationId, name: name, column: column, controlType: controlType, windowHandle: windowHandle, timeoutSeconds: timeoutSeconds)),
+                "gettableinfo" => JsonSerializationHelper.Serialize(await _gridTableService.GetTableInfoAsync(automationId: automationId, name: name, controlType: controlType, windowHandle: windowHandle, timeoutSeconds: timeoutSeconds)),
                 _ => throw new ArgumentException($"Invalid action: {action}")
             };
         }
@@ -539,7 +514,6 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Name of the element (fallback, display name)")] string? name = null,
             [Description("ControlType to filter by (Pane, Custom, etc.)")] string? controlType = null,
             [Description("Native window handle (HWND) for direct element targeting")] long? windowHandle = null,
-            [Description("ProcessId to filter elements by")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
         {
             return JsonSerializationHelper.Serialize(await _advancedPatternService.SetViewAsync(
@@ -548,7 +522,6 @@ namespace UIAutomationMCP.Server.Tools
                 viewId: viewId,
                 controlType: controlType,
                 windowHandle: windowHandle,
-                processId: processId,
                 timeoutSeconds: timeoutSeconds));
         }
 
@@ -564,14 +537,12 @@ namespace UIAutomationMCP.Server.Tools
             [Description("Name of the virtualized element (fallback, display name)")] string? name = null,
             [Description("ControlType to filter by (ListItem, TreeItem, DataItem, etc.)")] string? controlType = null,
             [Description("Native window handle (HWND) for direct element targeting")] long? windowHandle = null,
-            [Description("ProcessId to filter elements by")] int? processId = null,
             [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
             => JsonSerializationHelper.Serialize(await _advancedPatternService.RealizeItemAsync(
                 automationId: automationId,
                 name: name,
                 controlType: controlType,
                 windowHandle: windowHandle,
-                processId: processId,
                 timeoutSeconds: timeoutSeconds));
 
 
