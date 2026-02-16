@@ -12,13 +12,31 @@ namespace UIAutomationMCP.Server.Services
     public interface IApplicationLauncher
     {
         Task<ProcessLaunchResponse> LaunchApplicationAsync(string application, string? arguments = null, string? workingDirectory = null, int timeoutSeconds = 60, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Returns the process IDs of all applications launched by this instance.
+        /// Uses a Windows Job Object for reliable tracking including child processes.
+        /// </summary>
+        int[] GetTrackedProcessIds();
     }
 
-    public class ApplicationLauncher : BaseUIAutomationService<ApplicationLauncherMetadata>, IApplicationLauncher
+    public class ApplicationLauncher : BaseUIAutomationService<ApplicationLauncherMetadata>, IApplicationLauncher, IDisposable
     {
+        private readonly WindowsJobObject? _launchedAppsJobObject;
+        private bool _disposed;
+
         public ApplicationLauncher(IProcessManager processManager, ILogger<ApplicationLauncher> logger)
             : base(processManager, logger)
         {
+            try
+            {
+                _launchedAppsJobObject = new WindowsJobObject(killOnClose: false, logger, "UIAutomationMCP_LaunchedApps");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to create tracking Job Object for launched applications. Process tracking will be unavailable.");
+                _launchedAppsJobObject = null;
+            }
         }
 
         protected override string GetOperationType() => "applicationLauncher";
@@ -541,6 +559,19 @@ namespace UIAutomationMCP.Server.Services
                 var launchedProcessId = process?.Id;
                 _logger.LogInformation("Started Win32 process {Application} with PID {ProcessId}", appName, launchedProcessId);
 
+                // Track the launched process via Job Object (D-plan: tracking only, no auto-kill)
+                if (process != null && _launchedAppsJobObject != null)
+                {
+                    try
+                    {
+                        _launchedAppsJobObject.AssignProcess(process);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug(ex, "Failed to track launched process PID {ProcessId} in Job Object", launchedProcessId);
+                    }
+                }
+
                 // Verify the process is still running
                 if (process != null && !process.HasExited)
                 {
@@ -686,6 +717,23 @@ namespace UIAutomationMCP.Server.Services
             }
 
             return metadata;
+        }
+
+        /// <inheritdoc />
+        public int[] GetTrackedProcessIds()
+        {
+            if (_disposed || _launchedAppsJobObject == null)
+                return Array.Empty<int>();
+
+            return _launchedAppsJobObject.GetProcessIds();
+        }
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+
+            _launchedAppsJobObject?.Dispose();
         }
     }
 

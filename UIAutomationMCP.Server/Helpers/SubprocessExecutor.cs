@@ -8,6 +8,7 @@ using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Models.Abstractions;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Logging;
+using UIAutomationMCP.Server.Infrastructure;
 
 namespace UIAutomationMCP.Server.Helpers
 {
@@ -17,6 +18,7 @@ namespace UIAutomationMCP.Server.Helpers
         private readonly string _executablePath;
         private readonly CancellationTokenSource _shutdownCts;
         private Process? _workerProcess;
+        private WindowsJobObject? _jobObject;
         private readonly SemaphoreSlim _semaphore = new(1, 1);
         private bool _disposed = false;
         private readonly object _lockObject = new object();
@@ -429,6 +431,20 @@ namespace UIAutomationMCP.Server.Helpers
                     throw new InvalidOperationException($"Failed to start subprocess: {_executablePath}", ex);
                 }
 
+                // Assign to Job Object for automatic cleanup on parent process exit
+                try
+                {
+                    _jobObject = new WindowsJobObject(killOnClose: true, _logger);
+                    _jobObject.AssignProcess(_workerProcess);
+                }
+                catch (Exception ex)
+                {
+                    // Job Object is a safety net - failure should not prevent operation
+                    _logger.LogWarning(ex, "Failed to assign subprocess to Job Object. Process will rely on manual cleanup.");
+                    _jobObject?.Dispose();
+                    _jobObject = null;
+                }
+
                 // Wait longer for the process to start properly
                 await Task.Delay(500);
 
@@ -439,7 +455,7 @@ namespace UIAutomationMCP.Server.Helpers
                     throw new InvalidOperationException($"Subprocess failed to start (exit code: {exitCode})");
                 }
 
-                _logger.LogInformation("Subprocess started with PID: {ProcessId}", _workerProcess.Id);
+                _logger.LogInformation("Subprocess started with PID: {ProcessId}, Job Object: {HasJobObject}", _workerProcess.Id, _jobObject != null);
             }
             catch (Exception ex) when (!(ex is FileNotFoundException))
             {
@@ -493,6 +509,10 @@ namespace UIAutomationMCP.Server.Helpers
                 {
                     _workerProcess.Dispose();
                     _workerProcess = null;
+
+                    // Dispose old Job Object before restart
+                    _jobObject?.Dispose();
+                    _jobObject = null;
                 }
             }
 
@@ -612,6 +632,17 @@ namespace UIAutomationMCP.Server.Helpers
                     }
                     _workerProcess = null;
                 }
+            }
+
+            // Dispose Job Object (if killOnClose was set, OS already killed assigned processes)
+            try
+            {
+                _jobObject?.Dispose();
+                _jobObject = null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error disposing Job Object");
             }
 
             try

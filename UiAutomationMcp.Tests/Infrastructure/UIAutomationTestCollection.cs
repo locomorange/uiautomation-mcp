@@ -14,21 +14,22 @@ namespace UiAutomationMcp.Tests.Infrastructure
 
     /// <summary>
     ///                 -                                  
+    /// Note: With WindowsJobObject (JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE) integrated into SubprocessExecutor,
+    /// Worker processes are now automatically terminated by the OS when the parent process exits,
+    /// even in crash scenarios. The manual CleanupWorkerProcesses() method is retained as a
+    /// defensive fallback but should rarely be needed.
     /// </summary>
     public class UIAutomationTestFixture : IDisposable
     {
         public UIAutomationTestFixture()
         {
-            //                             CleanupWorkerProcesses();
-
-            //                                            
+            // GC collection to clean up any finalizables from previous test runs
             for (int i = 0; i < 3; i++)
             {
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
             }
 
-            //                                 
             System.Threading.Thread.Sleep(500);
         }
 
@@ -36,16 +37,11 @@ namespace UiAutomationMcp.Tests.Infrastructure
         {
             try
             {
-                //                                            
                 for (int i = 0; i < 3; i++)
                 {
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
                 }
-
-                //         Worker                                 CleanupWorkerProcesses();
-
-                //                            System.Threading.Thread.Sleep(1000);
             }
             catch (Exception ex)
             {
