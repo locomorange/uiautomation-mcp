@@ -22,6 +22,7 @@ using UIAutomationMCP.Subprocess.Worker.Operations.Focus;
 using UIAutomationMCP.Subprocess.Worker.Operations.MultipleView;
 using UIAutomationMCP.Subprocess.Worker.Operations.VirtualizedItem;
 using UIAutomationMCP.Subprocess.Worker.Operations.SynchronizedInput;
+using UIAutomationMCP.Subprocess.Worker.Operations.ItemContainer;
 using UIAutomationMCP.Subprocess.Core.Helpers;
 using UIAutomationMCP.Models.Logging;
 using UIAutomationMCP.Models.Requests;
@@ -209,6 +210,9 @@ namespace UIAutomationMCP.Subprocess.Worker
             // SynchronizedInput operations
             builder.Services.AddOperation<StartSynchronizedInputOperation, StartSynchronizedInputRequest>();
             builder.Services.AddOperation<CancelSynchronizedInputOperation, CancelSynchronizedInputRequest>();
+
+            // ItemContainer operations
+            builder.Services.AddOperation<FindItemByPropertyOperation, FindItemByPropertyRequest>();
 
             // Register Worker service
             builder.Services.AddSingleton<WorkerService>();

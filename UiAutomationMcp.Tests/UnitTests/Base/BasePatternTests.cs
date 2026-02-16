@@ -45,6 +45,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
         protected readonly Mock<IAdvancedPatternService> _mockAdvancedPatternService;
         protected readonly Mock<IEventMonitorService> _mockEventMonitor;
         protected readonly Mock<IFocusService> _mockFocus;
+        protected readonly Mock<IItemContainerService> _mockItemContainer;
         protected readonly Mock<IProcessManager> _mockSubprocessExecutor;
         protected readonly Mock<IMcpLogService> _mockMcpLogService;
 
@@ -75,6 +76,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
             _mockSynchronizedInput = new Mock<ISynchronizedInputService>();
             _mockEventMonitor = new Mock<IEventMonitorService>();
             _mockFocus = new Mock<IFocusService>();
+            _mockItemContainer = new Mock<IItemContainerService>();
             _mockSubprocessExecutor = new Mock<IProcessManager>();
             _mockMcpLogService = new Mock<IMcpLogService>();
 
@@ -115,6 +117,7 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
                 _mockTransform.Object,
                 _mockEventMonitor.Object,
                 _mockFocus.Object,
+                _mockItemContainer.Object,
                 _mockMcpLogService.Object
             );
         }

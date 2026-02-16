@@ -54,6 +54,7 @@ namespace UIAutomationMCP.Tests.UnitTests
                 mockTransform.Object,
                 mockEventMonitor.Object,
                 mockFocus.Object,
+                Mock.Of<IItemContainerService>(),
                 mockLog.Object);
         }
 

@@ -28,6 +28,7 @@ namespace UIAutomationMCP.Server.Tools
         private readonly ITransformService _transformService;
         private readonly IEventMonitorService _eventMonitorService;
         private readonly IFocusService _focusService;
+        private readonly IItemContainerService _itemContainerService;
         private readonly IMcpLogService _mcpLogService;
 
         public UIAutomationTools(
@@ -45,6 +46,7 @@ namespace UIAutomationMCP.Server.Tools
             ITransformService transformService,
             IEventMonitorService eventMonitorService,
             IFocusService focusService,
+            IItemContainerService itemContainerService,
             IMcpLogService mcpLogService)
         {
             _applicationLauncher = applicationLauncher;
@@ -61,6 +63,7 @@ namespace UIAutomationMCP.Server.Tools
             _transformService = transformService;
             _eventMonitorService = eventMonitorService;
             _focusService = focusService;
+            _itemContainerService = itemContainerService;
             _mcpLogService = mcpLogService;
         }
 
@@ -545,6 +548,26 @@ namespace UIAutomationMCP.Server.Tools
                 windowHandle: windowHandle,
                 timeoutSeconds: timeoutSeconds));
 
+        // ItemContainer Pattern
+        [McpServerTool, Description("Find an item within a virtualized container (DataGrid, ListView, etc.) using ItemContainerPattern.FindItemByProperty. Efficiently searches without loading all items. Auto-realizes the found item if virtualized.")]
+        public async Task<object> FindItemByProperty(
+            [Description("AutomationId of the container element (preferred, stable identifier)")] string? automationId = null,
+            [Description("Name of the container element (fallback, display name)")] string? name = null,
+            [Description("Property to search by: Name, AutomationId, ClassName, ControlType, etc. (empty = search all properties)")] string? propertyName = null,
+            [Description("Value to search for")] string? value = null,
+            [Description("AutomationId of the element to start searching after (for pagination)")] string? startAfterId = null,
+            [Description("ControlType to filter by (DataGrid, List, Tree, etc.)")] string? controlType = null,
+            [Description("Native window handle (HWND) for direct element targeting")] long? windowHandle = null,
+            [Description("Timeout in seconds (default: 30)")] int timeoutSeconds = 30)
+            => JsonSerializationHelper.Serialize(await _itemContainerService.FindItemByPropertyAsync(
+                automationId: automationId,
+                name: name,
+                propertyName: propertyName,
+                value: value,
+                startAfterId: startAfterId,
+                controlType: controlType,
+                windowHandle: windowHandle,
+                timeoutSeconds: timeoutSeconds));
 
 
         [McpServerTool, Description("Manage synchronized input (start, cancel) on an element using SynchronizedInputPattern")]

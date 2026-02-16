@@ -407,6 +407,9 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                             Length = text?.Length ?? 0,
                             SelectedText = selectedText ?? "",
                             HasSelection = selection.Length > 0
+                            // TODO: TextPattern2.GetCaretRange() (CaretPosition) is not available
+                            //       in the managed System.Windows.Automation API. The CaretPosition property
+                            //       exists in the model (TextInfo) as nullable but requires COM IUIAutomation interop.
                         };
                     }
                     catch
@@ -429,6 +432,9 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                         CurrentY = bounds.Y,
                         CurrentWidth = bounds.Width,
                         CurrentHeight = bounds.Height
+                        // TODO: TransformPattern2 (CanZoom, ZoomLevel, ZoomMinimum, ZoomMaximum) is not available
+                        //       in the managed System.Windows.Automation API. These properties exist in the model
+                        //       (TransformInfo) as nullable fields but require COM IUIAutomation interop to populate.
                     };
                 }
 
@@ -581,6 +587,78 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                     synchronizedInputPatternObj is SynchronizedInputPattern)
                 {
                     details.SynchronizedInput = new SynchronizedInputInfo { SupportsSynchronizedInput = true };
+                }
+
+                // SelectionItem Pattern (per-element selection state)
+                if ((useCached ? element.TryGetCachedPattern(SelectionItemPattern.Pattern, out var selectionItemPatternObj) : element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out selectionItemPatternObj)) &&
+                    selectionItemPatternObj is SelectionItemPattern selectionItemPattern)
+                {
+                    try
+                    {
+                        var isSelected = useCached ? selectionItemPattern.Cached.IsSelected : selectionItemPattern.Current.IsSelected;
+                        string? containerInfo = null;
+                        try
+                        {
+                            var container = useCached ? selectionItemPattern.Cached.SelectionContainer : selectionItemPattern.Current.SelectionContainer;
+                            if (container != null)
+                            {
+                                var containerId = container.Current.AutomationId;
+                                var containerName = container.Current.Name;
+                                containerInfo = !string.IsNullOrEmpty(containerId) ? containerId : containerName;
+                            }
+                        }
+                        catch { /* SelectionContainer may not be accessible */ }
+
+                        details.SelectionItem = new SelectionItemDetailInfo
+                        {
+                            IsSelected = isSelected,
+                            SelectionContainer = containerInfo
+                        };
+                    }
+                    catch
+                    {
+                        details.SelectionItem = new SelectionItemDetailInfo { IsSelected = false };
+                    }
+                }
+
+                // Accessibility information (from AutomationElement properties, not a pattern)
+                try
+                {
+                    ElementReference? labeledByRef = null;
+                    try
+                    {
+                        var labeledByElement = useCached ? element.Cached.LabeledBy : element.Current.LabeledBy;
+                        if (labeledByElement != null)
+                        {
+                            labeledByRef = new ElementReference
+                            {
+                                AutomationId = labeledByElement.Current.AutomationId ?? "",
+                                Name = labeledByElement.Current.Name ?? "",
+                                ControlType = labeledByElement.Current.ControlType.ProgrammaticName ?? ""
+                            };
+                        }
+                    }
+                    catch { /* LabeledBy may not be accessible */ }
+
+                    var accessKey = useCached ? element.Cached.AccessKey : element.Current.AccessKey;
+                    var acceleratorKey = useCached ? element.Cached.AcceleratorKey : element.Current.AcceleratorKey;
+                    var helpText = useCached ? element.Cached.HelpText : element.Current.HelpText;
+
+                    // Only set if at least one property has a value
+                    if (labeledByRef != null || !string.IsNullOrEmpty(accessKey) || !string.IsNullOrEmpty(acceleratorKey) || !string.IsNullOrEmpty(helpText))
+                    {
+                        details.Accessibility = new AccessibilityInfo
+                        {
+                            LabeledBy = labeledByRef,
+                            AccessKey = string.IsNullOrEmpty(accessKey) ? null : accessKey,
+                            AcceleratorKey = string.IsNullOrEmpty(acceleratorKey) ? null : acceleratorKey,
+                            HelpText = string.IsNullOrEmpty(helpText) ? null : helpText
+                        };
+                    }
+                }
+                catch
+                {
+                    // Accessibility properties may not be accessible in some environments
                 }
 
             }

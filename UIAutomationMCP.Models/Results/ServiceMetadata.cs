@@ -311,6 +311,18 @@ namespace UIAutomationMCP.Models.Results
     }
 
     /// <summary>
+    /// Item container service metadata
+    /// </summary>
+    public class ItemContainerServiceMetadata : ServiceMetadata
+    {
+        public bool OperationSuccessful { get; set; }
+        public string ActionPerformed { get; set; } = string.Empty;
+        public bool ItemFound { get; set; }
+        public string SearchProperty { get; set; } = string.Empty;
+        public string SearchValue { get; set; } = string.Empty;
+    }
+
+    /// <summary>
     /// Application launcher metadata
     /// </summary>
     public class ApplicationLauncherMetadata : ServiceMetadata

@@ -10,6 +10,11 @@ using System.Windows.Automation;
 
 namespace UIAutomationMCP.Subprocess.Worker.Operations.Transform
 {
+    /// <summary>
+    /// Not exposed as MCP tool: transform capabilities (CanMove/CanResize/CanRotate) are available
+    /// via SearchElements with includeDetails=true in the transform property.
+    /// This operation is registered in Worker DI for internal use.
+    /// </summary>
     public class GetTransformCapabilitiesOperation : BaseUIAutomationOperation<GetTransformCapabilitiesRequest, TransformCapabilitiesResult>
     {
         public GetTransformCapabilitiesOperation(

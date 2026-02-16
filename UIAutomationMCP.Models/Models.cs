@@ -237,6 +237,9 @@ namespace UIAutomationMCP.Models
         [JsonPropertyName("synchronizedInput")]
         public SynchronizedInputInfo? SynchronizedInput { get; set; }
 
+        [JsonPropertyName("selectionItem")]
+        public SelectionItemDetailInfo? SelectionItem { get; set; }
+
         [JsonPropertyName("accessibility")]
         public AccessibilityInfo? Accessibility { get; set; }
 
