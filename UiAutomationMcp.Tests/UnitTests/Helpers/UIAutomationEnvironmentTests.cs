@@ -1,6 +1,4 @@
 using System;
-using System.Linq;
-using System.Threading.Tasks;
 using UIAutomationMCP.Subprocess.Core.Helpers;
 using Xunit;
 
@@ -28,66 +26,6 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
             Assert.NotNull(reason);
         }
 
-        [Fact(Skip = "ExecuteWithErrorHandling method not available")]
-        public void ExecuteWithErrorHandling_WithValidOperation_ReturnsResult()
-        {
-            return; // Skip test body
-        }
-
-        [Fact(Skip = "ExecuteWithErrorHandling method not available")]
-        public void ExecuteWithErrorHandling_WithVoidOperation_DoesNotThrow()
-        {
-            return; // Skip test body
-        }
-
-        [Fact(Skip = "ExecuteWithErrorHandling method not available")]
-        public void ExecuteWithErrorHandling_WithException_WrapsInInvalidOperationException()
-        {
-            return; // Skip test body
-        }
-
-        [Fact(Skip = "ExecuteWithTimeoutAsync method not available")]
-        public void ExecuteWithTimeoutAsync_WithValidOperation_ReturnsResult()
-        {
-            return; // Skip test body
-        }
-
-        [Fact(Skip = "ExecuteWithTimeoutAsync method not available")]
-        public void ExecuteWithTimeoutAsync_WithDefaultTimeout_UsesEightSeconds()
-        {
-            return; // Skip test body
-        }
-
-        [Fact(Skip = "ExecuteWithTimeoutAsync method not available")]
-        public void ExecuteWithTimeoutAsync_WithSlowOperation_ThrowsTimeoutException()
-        {
-            return; // Skip test body
-        }
-
-        [Fact(Skip = "ExecuteWithTimeout method not available")]
-        public void ExecuteWithTimeout_SyncVersion_WithValidOperation_ReturnsResult()
-        {
-            return; // Skip test body
-        }
-
-        [Fact(Skip = "ExecuteWithTimeout method not available")]
-        public void ExecuteWithTimeout_SyncVersion_WithDefaultTimeout_UsesEightSeconds()
-        {
-            return; // Skip test body
-        }
-
-        [Fact(Skip = "ExecuteWithTimeout method not available")]
-        public void ExecuteWithTimeout_SyncVersion_WithSlowOperation_ThrowsTimeoutException()
-        {
-            return; // Skip test body
-        }
-
-        [Fact(Skip = "ExecuteWithTimeoutAsync method not available")]
-        public void ExecuteWithTimeoutAsync_WithVariousTimeouts_RespectsTimeoutValue()
-        {
-            return; // Skip test body
-        }
-
         [Fact]
         public void TimeoutDefault_IsWithinMicrosoftRecommendedRange()
         {
@@ -112,24 +50,6 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
                 // If we hit a timeout, verify it's at least 5 seconds (minimum recommended)
                 Assert.Contains("8 seconds", ex.Message);
             }
-        }
-
-        [Fact(Skip = "ExecuteWithTimeoutAsync method not available")]
-        public void ExecuteWithTimeoutAsync_ErrorHandling_WrapsExceptions()
-        {
-            return; // Skip test body
-        }
-
-        [Fact(Skip = "ExecuteWithErrorHandling method not available")]
-        public void ExecuteWithErrorHandling_TypeInitializationException_WrapsCorrectly()
-        {
-            return; // Skip test body
-        }
-
-        [Fact(Skip = "ExecuteWithErrorHandling method not available")]
-        public void ExecuteWithErrorHandling_AutomationElementException_WrapsCorrectly()
-        {
-            return; // Skip test body
         }
     }
 
@@ -156,12 +76,6 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
             // Assert - Should be relatively fast (under 500ms for 100 calls, allowing for CI/slow machines)
             Assert.True(duration.TotalMilliseconds < 500,
                 $"100 calls to IsAvailable took {duration.TotalMilliseconds}ms, expected < 500ms");
-        }
-
-        [Fact(Skip = "ExecuteWithTimeoutAsync method not available")]
-        public void ExecuteWithTimeoutAsync_ConcurrentOperations_HandlesCorrectly()
-        {
-            return; // Skip test body
         }
     }
 }
