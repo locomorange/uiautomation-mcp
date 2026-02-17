@@ -78,10 +78,14 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 elementInfo.RootWindowHandle = rootWindowHandle;
             }
 
-            // Include details if requested — pass supportedPatternIds to avoid redundant COM calls
+            // Include details if requested — pass supportedPatternIds to avoid redundant COM calls.
+            // Details/pattern info always uses .Current because CacheRequest does not include
+            // pattern objects — adding all ~20 patterns would bloat the cache payload for minimal
+            // gain (most elements support only 1-3 patterns). The ShouldCheck guard in SetPatternInfo
+            // already skips unsupported patterns, keeping COM calls to the minimum necessary.
             if (includeDetails)
             {
-                elementInfo.Details = CreateElementDetails(element, logger, supportedPatternIds, useCached);
+                elementInfo.Details = CreateElementDetails(element, logger, supportedPatternIds, useCached: false);
             }
 
             return elementInfo;
