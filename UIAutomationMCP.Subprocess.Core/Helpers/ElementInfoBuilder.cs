@@ -14,7 +14,13 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
         /// <summary>
         /// Creates an ElementInfo from AutomationElement with optional details
         /// </summary>
-        public static ElementInfo CreateElementInfo(AutomationElement element, bool includeDetails = false, ILogger? logger = null)
+        /// <param name="element">The AutomationElement to create info from</param>
+        /// <param name="includeDetails">Whether to include detailed pattern information</param>
+        /// <param name="logger">Optional logger</param>
+        /// <param name="parentWindowHandle">Parent's WindowHandle for propagation (avoids redundant COM calls in tree traversal)</param>
+        /// <param name="parentRootWindowHandle">Parent's RootWindowHandle for propagation</param>
+        public static ElementInfo CreateElementInfo(AutomationElement element, bool includeDetails = false, ILogger? logger = null,
+            long? parentWindowHandle = null, long? parentRootWindowHandle = null)
         {
             var elementInfo = new ElementInfo
             {
@@ -37,10 +43,28 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 SupportedPatterns = GetSupportedPatternsArray(element, false)
             };
 
-            // 階層的HWND検索
-            var (windowHandle, rootWindowHandle) = GetHierarchicalWindowHandles(element, false);
-            elementInfo.WindowHandle = windowHandle;
-            elementInfo.RootWindowHandle = rootWindowHandle;
+            // 親コンテキストが提供されている場合、再帰的な親トラバーサルをスキップ
+            if (parentWindowHandle != null && parentRootWindowHandle != null)
+            {
+                // 要素自身のHWNDを確認（1回のCOM呼び出しのみ）
+                try
+                {
+                    var ownHwnd = element.Current.NativeWindowHandle;
+                    elementInfo.WindowHandle = ownHwnd != 0 ? (long)ownHwnd : parentWindowHandle;
+                }
+                catch
+                {
+                    elementInfo.WindowHandle = parentWindowHandle;
+                }
+                elementInfo.RootWindowHandle = parentRootWindowHandle;
+            }
+            else
+            {
+                // 親コンテキストなし: 従来通り階層的HWND検索
+                var (windowHandle, rootWindowHandle) = GetHierarchicalWindowHandles(element, false);
+                elementInfo.WindowHandle = windowHandle;
+                elementInfo.RootWindowHandle = rootWindowHandle;
+            }
 
             // Include details if requested
             if (includeDetails)
@@ -54,7 +78,13 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
         /// <summary>
         /// Creates an ElementInfo from cached AutomationElement with optional details
         /// </summary>
-        public static ElementInfo CreateElementInfoFromCached(AutomationElement element, bool includeDetails = false, ILogger? logger = null)
+        /// <param name="element">The cached AutomationElement to create info from</param>
+        /// <param name="includeDetails">Whether to include detailed pattern information</param>
+        /// <param name="logger">Optional logger</param>
+        /// <param name="parentWindowHandle">Parent's WindowHandle for propagation (avoids redundant COM calls in tree traversal)</param>
+        /// <param name="parentRootWindowHandle">Parent's RootWindowHandle for propagation</param>
+        public static ElementInfo CreateElementInfoFromCached(AutomationElement element, bool includeDetails = false, ILogger? logger = null,
+            long? parentWindowHandle = null, long? parentRootWindowHandle = null)
         {
             var elementInfo = new ElementInfo
             {
@@ -77,10 +107,28 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 SupportedPatterns = GetSupportedPatternsArray(element, true)
             };
 
-            // 階層的HWND検索
-            var (windowHandle, rootWindowHandle) = GetHierarchicalWindowHandles(element, true);
-            elementInfo.WindowHandle = windowHandle;
-            elementInfo.RootWindowHandle = rootWindowHandle;
+            // 親コンテキストが提供されている場合、再帰的な親トラバーサルをスキップ
+            if (parentWindowHandle != null && parentRootWindowHandle != null)
+            {
+                try
+                {
+                    // NativeWindowHandleは常にCurrentを使用（Cachedでは利用不可）
+                    var ownHwnd = element.Current.NativeWindowHandle;
+                    elementInfo.WindowHandle = ownHwnd != 0 ? (long)ownHwnd : parentWindowHandle;
+                }
+                catch
+                {
+                    elementInfo.WindowHandle = parentWindowHandle;
+                }
+                elementInfo.RootWindowHandle = parentRootWindowHandle;
+            }
+            else
+            {
+                // 親コンテキストなし: 従来通り階層的HWND検索
+                var (windowHandle, rootWindowHandle) = GetHierarchicalWindowHandles(element, true);
+                elementInfo.WindowHandle = windowHandle;
+                elementInfo.RootWindowHandle = rootWindowHandle;
+            }
 
             // Include details if requested
             if (includeDetails)

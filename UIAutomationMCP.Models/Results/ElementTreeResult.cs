@@ -117,6 +117,8 @@ namespace UIAutomationMCP.Models.Results
             IsOffscreen = elementInfo.IsOffscreen;
             SupportedPatterns = elementInfo.SupportedPatterns;
             Details = elementInfo.Details;
+            WindowHandle = elementInfo.WindowHandle;
+            RootWindowHandle = elementInfo.RootWindowHandle;
         }
         /// <summary>
         /// 子ノードのリスト

@@ -125,7 +125,8 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation
             return UIAutomationMCP.Core.Validation.ValidationResult.Success;
         }
 
-        private TreeNode BuildElementTreeWithCache(AutomationElement element, int maxDepth, int currentDepth, ref int elementCount, CacheRequest cacheRequest, int maxElementCount)
+        private TreeNode BuildElementTreeWithCache(AutomationElement element, int maxDepth, int currentDepth, ref int elementCount, CacheRequest cacheRequest, int maxElementCount,
+            long? parentWindowHandle = null, long? parentRootWindowHandle = null)
         {
             OperationCancellationToken.ThrowIfCancellationRequested();
             elementCount++;
@@ -143,8 +144,10 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation
             }
 
             // Use ElementInfoBuilder to create base ElementInfo with all latest features
-            // ElementInfoBuilder will use Cached properties when available, reducing COM calls
-            var elementInfo = UIAutomationMCP.Subprocess.Core.Helpers.ElementInfoBuilder.CreateElementInfo(cachedElement, includeDetails: false);
+            // Pass parent window handles to avoid redundant recursive parent traversal (O(N*D) -> O(N))
+            var elementInfo = UIAutomationMCP.Subprocess.Core.Helpers.ElementInfoBuilder.CreateElementInfo(
+                cachedElement, includeDetails: false, logger: null,
+                parentWindowHandle: parentWindowHandle, parentRootWindowHandle: parentRootWindowHandle);
 
             // Create TreeNode from ElementInfo using constructor
             var node = new TreeNode(elementInfo)
@@ -175,7 +178,9 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation
                         {
                             try
                             {
-                                var childNode = BuildElementTreeWithCache(child, maxDepth, currentDepth + 1, ref elementCount, cacheRequest, maxElementCount);
+                                // Propagate window handles to children to avoid re-traversing parent chain
+                                var childNode = BuildElementTreeWithCache(child, maxDepth, currentDepth + 1, ref elementCount, cacheRequest, maxElementCount,
+                                    parentWindowHandle: node.WindowHandle, parentRootWindowHandle: node.RootWindowHandle);
                                 childNode.ParentAutomationId = node.AutomationId;
                                 node.Children.Add(childNode);
                             }
@@ -202,13 +207,17 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation
             return node;
         }
 
-        private TreeNode BuildElementTree(AutomationElement element, int maxDepth, int currentDepth, ref int elementCount, int maxElementCount)
+        private TreeNode BuildElementTree(AutomationElement element, int maxDepth, int currentDepth, ref int elementCount, int maxElementCount,
+            long? parentWindowHandle = null, long? parentRootWindowHandle = null)
         {
             OperationCancellationToken.ThrowIfCancellationRequested();
             elementCount++;
 
             // Use ElementInfoBuilder to create base ElementInfo with all latest features
-            var elementInfo = UIAutomationMCP.Subprocess.Core.Helpers.ElementInfoBuilder.CreateElementInfo(element, includeDetails: false);
+            // Pass parent window handles to avoid redundant recursive parent traversal (O(N*D) -> O(N))
+            var elementInfo = UIAutomationMCP.Subprocess.Core.Helpers.ElementInfoBuilder.CreateElementInfo(
+                element, includeDetails: false, logger: null,
+                parentWindowHandle: parentWindowHandle, parentRootWindowHandle: parentRootWindowHandle);
 
             // Create TreeNode from ElementInfo using constructor
             var node = new TreeNode(elementInfo)
@@ -232,7 +241,9 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation
                         {
                             try
                             {
-                                var childNode = BuildElementTree(child, maxDepth, currentDepth + 1, ref elementCount, maxElementCount);
+                                // Propagate window handles to children to avoid re-traversing parent chain
+                                var childNode = BuildElementTree(child, maxDepth, currentDepth + 1, ref elementCount, maxElementCount,
+                                    parentWindowHandle: node.WindowHandle, parentRootWindowHandle: node.RootWindowHandle);
                                 childNode.ParentAutomationId = node.AutomationId;
                                 node.Children.Add(childNode);
                             }
