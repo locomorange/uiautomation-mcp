@@ -40,8 +40,11 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                     Width = element.Current.BoundingRectangle.Width,
                     Height = element.Current.BoundingRectangle.Height
                 },
-                SupportedPatterns = GetSupportedPatternsArray(element, false)
             };
+
+            // Get supported patterns data (names + IDs) in a single pass
+            var (patternNames, supportedPatternIds) = GetSupportedPatternData(element, useCached: false);
+            elementInfo.SupportedPatterns = patternNames;
 
             // 親コンテキストが提供されている場合、再帰的な親トラバーサルをスキップ
             if (parentWindowHandle != null && parentRootWindowHandle != null)
@@ -66,10 +69,10 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 elementInfo.RootWindowHandle = rootWindowHandle;
             }
 
-            // Include details if requested
+            // Include details if requested — pass supportedPatternIds to avoid redundant COM calls
             if (includeDetails)
             {
-                elementInfo.Details = CreateElementDetails(element, logger);
+                elementInfo.Details = CreateElementDetails(element, logger, supportedPatternIds);
             }
 
             return elementInfo;
@@ -104,8 +107,11 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                     Width = element.Cached.BoundingRectangle.Width,
                     Height = element.Cached.BoundingRectangle.Height
                 },
-                SupportedPatterns = GetSupportedPatternsArray(element, true)
             };
+
+            // Get supported patterns data (names + IDs) in a single pass
+            var (patternNames, supportedPatternIds) = GetSupportedPatternData(element, useCached: true);
+            elementInfo.SupportedPatterns = patternNames;
 
             // 親コンテキストが提供されている場合、再帰的な親トラバーサルをスキップ
             if (parentWindowHandle != null && parentRootWindowHandle != null)
@@ -130,17 +136,22 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 elementInfo.RootWindowHandle = rootWindowHandle;
             }
 
-            // Include details if requested
+            // Include details if requested — pass supportedPatternIds to avoid redundant COM calls
             if (includeDetails)
             {
-                elementInfo.Details = CreateElementDetailsFromCached(element, logger);
+                elementInfo.Details = CreateElementDetailsFromCached(element, logger, supportedPatternIds);
             }
 
             return elementInfo;
         }
 
 
-        private static string[] GetSupportedPatternsArray(AutomationElement element, bool useCached = false)
+        /// <summary>
+        /// Gets supported pattern names and their IDs in a single pass.
+        /// Returns both the display names (for SupportedPatterns property) and
+        /// a HashSet of pattern IDs (for efficient lookup in SetPatternInfo).
+        /// </summary>
+        private static (string[] Names, HashSet<int> PatternIds) GetSupportedPatternData(AutomationElement element, bool useCached = false)
         {
             try
             {
@@ -149,45 +160,52 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                     // For cached elements, GetSupportedPatterns cannot be used
                     // Infer from cached pattern properties
                     var patterns = new List<string>();
+                    var patternIds = new HashSet<int>();
 
-                    // Check pattern property existence to infer
-                    try { if (element.GetCachedPattern(ValuePattern.Pattern) != null) patterns.Add("ValuePatternIdentifiers.Pattern"); } catch { }
-                    try { if (element.GetCachedPattern(TogglePattern.Pattern) != null) patterns.Add("TogglePatternIdentifiers.Pattern"); } catch { }
-                    try { if (element.GetCachedPattern(SelectionPattern.Pattern) != null) patterns.Add("SelectionPatternIdentifiers.Pattern"); } catch { }
-                    try { if (element.GetCachedPattern(RangeValuePattern.Pattern) != null) patterns.Add("RangeValuePatternIdentifiers.Pattern"); } catch { }
-                    try { if (element.GetCachedPattern(GridPattern.Pattern) != null) patterns.Add("GridPatternIdentifiers.Pattern"); } catch { }
-                    try { if (element.GetCachedPattern(TablePattern.Pattern) != null) patterns.Add("TablePatternIdentifiers.Pattern"); } catch { }
-                    try { if (element.GetCachedPattern(ScrollPattern.Pattern) != null) patterns.Add("ScrollPatternIdentifiers.Pattern"); } catch { }
-                    try { if (element.GetCachedPattern(TransformPattern.Pattern) != null) patterns.Add("TransformPatternIdentifiers.Pattern"); } catch { }
-                    try { if (element.GetCachedPattern(WindowPattern.Pattern) != null) patterns.Add("WindowPatternIdentifiers.Pattern"); } catch { }
-                    try { if (element.GetCachedPattern(ExpandCollapsePattern.Pattern) != null) patterns.Add("ExpandCollapsePatternIdentifiers.Pattern"); } catch { }
-                    try { if (element.GetCachedPattern(DockPattern.Pattern) != null) patterns.Add("DockPatternIdentifiers.Pattern"); } catch { }
-                    try { if (element.GetCachedPattern(MultipleViewPattern.Pattern) != null) patterns.Add("MultipleViewPatternIdentifiers.Pattern"); } catch { }
-                    try { if (element.GetCachedPattern(TextPattern.Pattern) != null) patterns.Add("TextPatternIdentifiers.Pattern"); } catch { }
-                    try { if (element.GetCachedPattern(GridItemPattern.Pattern) != null) patterns.Add("GridItemPatternIdentifiers.Pattern"); } catch { }
-                    try { if (element.GetCachedPattern(TableItemPattern.Pattern) != null) patterns.Add("TableItemPatternIdentifiers.Pattern"); } catch { }
-                    try { if (element.GetCachedPattern(InvokePattern.Pattern) != null) patterns.Add("InvokePatternIdentifiers.Pattern"); } catch { }
-                    try { if (element.GetCachedPattern(ScrollItemPattern.Pattern) != null) patterns.Add("ScrollItemPatternIdentifiers.Pattern"); } catch { }
-                    try { if (element.GetCachedPattern(VirtualizedItemPattern.Pattern) != null) patterns.Add("VirtualizedItemPatternIdentifiers.Pattern"); } catch { }
-                    try { if (element.GetCachedPattern(ItemContainerPattern.Pattern) != null) patterns.Add("ItemContainerPatternIdentifiers.Pattern"); } catch { }
-                    try { if (element.GetCachedPattern(SynchronizedInputPattern.Pattern) != null) patterns.Add("SynchronizedInputPatternIdentifiers.Pattern"); } catch { }
+                    void TryAddCached(AutomationPattern pattern, string name)
+                    {
+                        try { if (element.GetCachedPattern(pattern) != null) { patterns.Add(name); patternIds.Add(pattern.Id); } } catch { }
+                    }
 
-                    return patterns.ToArray();
+                    TryAddCached(ValuePattern.Pattern, "ValuePatternIdentifiers.Pattern");
+                    TryAddCached(TogglePattern.Pattern, "TogglePatternIdentifiers.Pattern");
+                    TryAddCached(SelectionPattern.Pattern, "SelectionPatternIdentifiers.Pattern");
+                    TryAddCached(RangeValuePattern.Pattern, "RangeValuePatternIdentifiers.Pattern");
+                    TryAddCached(GridPattern.Pattern, "GridPatternIdentifiers.Pattern");
+                    TryAddCached(TablePattern.Pattern, "TablePatternIdentifiers.Pattern");
+                    TryAddCached(ScrollPattern.Pattern, "ScrollPatternIdentifiers.Pattern");
+                    TryAddCached(TransformPattern.Pattern, "TransformPatternIdentifiers.Pattern");
+                    TryAddCached(WindowPattern.Pattern, "WindowPatternIdentifiers.Pattern");
+                    TryAddCached(ExpandCollapsePattern.Pattern, "ExpandCollapsePatternIdentifiers.Pattern");
+                    TryAddCached(DockPattern.Pattern, "DockPatternIdentifiers.Pattern");
+                    TryAddCached(MultipleViewPattern.Pattern, "MultipleViewPatternIdentifiers.Pattern");
+                    TryAddCached(TextPattern.Pattern, "TextPatternIdentifiers.Pattern");
+                    TryAddCached(GridItemPattern.Pattern, "GridItemPatternIdentifiers.Pattern");
+                    TryAddCached(TableItemPattern.Pattern, "TableItemPatternIdentifiers.Pattern");
+                    TryAddCached(InvokePattern.Pattern, "InvokePatternIdentifiers.Pattern");
+                    TryAddCached(ScrollItemPattern.Pattern, "ScrollItemPatternIdentifiers.Pattern");
+                    TryAddCached(VirtualizedItemPattern.Pattern, "VirtualizedItemPatternIdentifiers.Pattern");
+                    TryAddCached(ItemContainerPattern.Pattern, "ItemContainerPatternIdentifiers.Pattern");
+                    TryAddCached(SynchronizedInputPattern.Pattern, "SynchronizedInputPatternIdentifiers.Pattern");
+
+                    return (patterns.ToArray(), patternIds);
                 }
                 else
                 {
-                    // For non-cached elements, use GetSupportedPatterns
+                    // For non-cached elements, use GetSupportedPatterns (single COM call)
                     var supportedPatterns = element.GetSupportedPatterns();
-                    return supportedPatterns.Select(p => p.ProgrammaticName).ToArray();
+                    var names = supportedPatterns.Select(p => p.ProgrammaticName).ToArray();
+                    var patternIds = new HashSet<int>(supportedPatterns.Select(p => p.Id));
+                    return (names, patternIds);
                 }
             }
             catch (Exception)
             {
-                return new string[0];
+                return (Array.Empty<string>(), new HashSet<int>());
             }
         }
 
-        private static ElementDetails CreateElementDetails(AutomationElement element, ILogger? logger = null)
+        private static ElementDetails CreateElementDetails(AutomationElement element, ILogger? logger = null, HashSet<int>? supportedPatternIds = null)
         {
             var details = new ElementDetails
             {
@@ -199,13 +217,13 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 RuntimeId = GetRuntimeIdString(element)
             };
 
-            // Set pattern information safely
-            SetPatternInfo(element, details, logger, useCached: false);
+            // Set pattern information safely — pass supportedPatternIds to skip unsupported patterns
+            SetPatternInfo(element, details, logger, useCached: false, supportedPatternIds: supportedPatternIds);
 
             return details;
         }
 
-        private static ElementDetails CreateElementDetailsFromCached(AutomationElement element, ILogger? logger = null)
+        private static ElementDetails CreateElementDetailsFromCached(AutomationElement element, ILogger? logger = null, HashSet<int>? supportedPatternIds = null)
         {
             var details = new ElementDetails
             {
@@ -217,8 +235,8 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 RuntimeId = GetRuntimeIdString(element)
             };
 
-            // Set pattern information safely
-            SetPatternInfo(element, details, logger, useCached: true);
+            // Set pattern information safely — pass supportedPatternIds to skip unsupported patterns
+            SetPatternInfo(element, details, logger, useCached: true, supportedPatternIds: supportedPatternIds);
 
             return details;
         }
@@ -307,12 +325,22 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
             }
         }
 
-        private static void SetPatternInfo(AutomationElement element, ElementDetails details, ILogger? logger, bool useCached = false)
+        /// <summary>
+        /// Sets pattern information on ElementDetails.
+        /// When supportedPatternIds is provided, only checks patterns that are known to be supported,
+        /// avoiding redundant COM cross-process calls for unsupported patterns.
+        /// </summary>
+        private static void SetPatternInfo(AutomationElement element, ElementDetails details, ILogger? logger, bool useCached = false, HashSet<int>? supportedPatternIds = null)
         {
+            // Local helper: returns true if the pattern should be checked
+            // When supportedPatternIds is null (no pre-scan data), all patterns are checked (backward compatible)
+            bool ShouldCheck(AutomationPattern pattern) => supportedPatternIds == null || supportedPatternIds.Contains(pattern.Id);
+
             try
             {
                 // Value Pattern
-                if ((useCached ? element.TryGetCachedPattern(ValuePattern.Pattern, out var valuePatternObj) : element.TryGetCurrentPattern(ValuePattern.Pattern, out valuePatternObj)) &&
+                if (ShouldCheck(ValuePattern.Pattern) &&
+                    (useCached ? element.TryGetCachedPattern(ValuePattern.Pattern, out var valuePatternObj) : element.TryGetCurrentPattern(ValuePattern.Pattern, out valuePatternObj)) &&
                     valuePatternObj is ValuePattern valuePattern)
                 {
                     details.ValueInfo = new ValueInfo
@@ -323,7 +351,8 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 }
 
                 // Toggle Pattern
-                if ((useCached ? element.TryGetCachedPattern(TogglePattern.Pattern, out var togglePatternObj) : element.TryGetCurrentPattern(TogglePattern.Pattern, out togglePatternObj)) &&
+                if (ShouldCheck(TogglePattern.Pattern) &&
+                    (useCached ? element.TryGetCachedPattern(TogglePattern.Pattern, out var togglePatternObj) : element.TryGetCurrentPattern(TogglePattern.Pattern, out togglePatternObj)) &&
                     togglePatternObj is TogglePattern togglePattern)
                 {
                     var state = useCached ? togglePattern.Cached.ToggleState : togglePattern.Current.ToggleState;
@@ -336,7 +365,8 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 }
 
                 // RangeValue Pattern
-                if ((useCached ? element.TryGetCachedPattern(RangeValuePattern.Pattern, out var rangePatternObj) : element.TryGetCurrentPattern(RangeValuePattern.Pattern, out rangePatternObj)) &&
+                if (ShouldCheck(RangeValuePattern.Pattern) &&
+                    (useCached ? element.TryGetCachedPattern(RangeValuePattern.Pattern, out var rangePatternObj) : element.TryGetCurrentPattern(RangeValuePattern.Pattern, out rangePatternObj)) &&
                     rangePatternObj is RangeValuePattern rangePattern)
                 {
                     details.Range = new RangeInfo
@@ -351,7 +381,8 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 }
 
                 // Window Pattern
-                if ((useCached ? element.TryGetCachedPattern(WindowPattern.Pattern, out var windowPatternObj) : element.TryGetCurrentPattern(WindowPattern.Pattern, out windowPatternObj)) &&
+                if (ShouldCheck(WindowPattern.Pattern) &&
+                    (useCached ? element.TryGetCachedPattern(WindowPattern.Pattern, out var windowPatternObj) : element.TryGetCurrentPattern(WindowPattern.Pattern, out windowPatternObj)) &&
                     windowPatternObj is WindowPattern windowPattern)
                 {
                     details.Window = new WindowPatternInfo
@@ -366,7 +397,8 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 }
 
                 // Selection Pattern
-                if ((useCached ? element.TryGetCachedPattern(SelectionPattern.Pattern, out var selectionPatternObj) : element.TryGetCurrentPattern(SelectionPattern.Pattern, out selectionPatternObj)) &&
+                if (ShouldCheck(SelectionPattern.Pattern) &&
+                    (useCached ? element.TryGetCachedPattern(SelectionPattern.Pattern, out var selectionPatternObj) : element.TryGetCurrentPattern(SelectionPattern.Pattern, out selectionPatternObj)) &&
                     selectionPatternObj is SelectionPattern selectionPattern)
                 {
                     var selection = useCached ? selectionPattern.Cached.GetSelection() : selectionPattern.Current.GetSelection();
@@ -402,16 +434,21 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 }
 
                 // Grid Pattern
-                if ((useCached ? element.TryGetCachedPattern(GridPattern.Pattern, out var gridPatternObj) : element.TryGetCurrentPattern(GridPattern.Pattern, out gridPatternObj)) &&
+                if (ShouldCheck(GridPattern.Pattern) &&
+                    (useCached ? element.TryGetCachedPattern(GridPattern.Pattern, out var gridPatternObj) : element.TryGetCurrentPattern(GridPattern.Pattern, out gridPatternObj)) &&
                     gridPatternObj is GridPattern gridPattern)
                 {
-                    // Check if the element also supports TablePattern to infer header/selection info
-                    var hasTablePattern = useCached
-                        ? element.TryGetCachedPattern(TablePattern.Pattern, out _)
-                        : element.TryGetCurrentPattern(TablePattern.Pattern, out _);
-                    var hasSelectionPattern = useCached
-                        ? element.TryGetCachedPattern(SelectionPattern.Pattern, out _)
-                        : element.TryGetCurrentPattern(SelectionPattern.Pattern, out _);
+                    // Use supportedPatternIds to check Table/Selection support without extra COM calls
+                    var hasTablePattern = supportedPatternIds != null
+                        ? supportedPatternIds.Contains(TablePattern.Pattern.Id)
+                        : (useCached
+                            ? element.TryGetCachedPattern(TablePattern.Pattern, out _)
+                            : element.TryGetCurrentPattern(TablePattern.Pattern, out _));
+                    var hasSelectionPattern = supportedPatternIds != null
+                        ? supportedPatternIds.Contains(SelectionPattern.Pattern.Id)
+                        : (useCached
+                            ? element.TryGetCachedPattern(SelectionPattern.Pattern, out _)
+                            : element.TryGetCurrentPattern(SelectionPattern.Pattern, out _));
 
                     details.Grid = new GridInfo
                     {
@@ -424,7 +461,8 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 }
 
                 // Scroll Pattern
-                if ((useCached ? element.TryGetCachedPattern(ScrollPattern.Pattern, out var scrollPatternObj) : element.TryGetCurrentPattern(ScrollPattern.Pattern, out scrollPatternObj)) &&
+                if (ShouldCheck(ScrollPattern.Pattern) &&
+                    (useCached ? element.TryGetCachedPattern(ScrollPattern.Pattern, out var scrollPatternObj) : element.TryGetCurrentPattern(ScrollPattern.Pattern, out scrollPatternObj)) &&
                     scrollPatternObj is ScrollPattern scrollPattern)
                 {
                     details.Scroll = new ScrollInfo
@@ -439,7 +477,8 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 }
 
                 // Text Pattern
-                if ((useCached ? element.TryGetCachedPattern(TextPattern.Pattern, out var textPatternObj) : element.TryGetCurrentPattern(TextPattern.Pattern, out textPatternObj)) &&
+                if (ShouldCheck(TextPattern.Pattern) &&
+                    (useCached ? element.TryGetCachedPattern(TextPattern.Pattern, out var textPatternObj) : element.TryGetCurrentPattern(TextPattern.Pattern, out textPatternObj)) &&
                     textPatternObj is TextPattern textPattern)
                 {
                     try
@@ -467,7 +506,8 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 }
 
                 // Transform Pattern
-                if ((useCached ? element.TryGetCachedPattern(TransformPattern.Pattern, out var transformPatternObj) : element.TryGetCurrentPattern(TransformPattern.Pattern, out transformPatternObj)) &&
+                if (ShouldCheck(TransformPattern.Pattern) &&
+                    (useCached ? element.TryGetCachedPattern(TransformPattern.Pattern, out var transformPatternObj) : element.TryGetCurrentPattern(TransformPattern.Pattern, out transformPatternObj)) &&
                     transformPatternObj is TransformPattern transformPattern)
                 {
                     var bounds = useCached ? element.Cached.BoundingRectangle : element.Current.BoundingRectangle;
@@ -487,7 +527,8 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 }
 
                 // ExpandCollapse Pattern
-                if ((useCached ? element.TryGetCachedPattern(ExpandCollapsePattern.Pattern, out var expandCollapsePatternObj) : element.TryGetCurrentPattern(ExpandCollapsePattern.Pattern, out expandCollapsePatternObj)) &&
+                if (ShouldCheck(ExpandCollapsePattern.Pattern) &&
+                    (useCached ? element.TryGetCachedPattern(ExpandCollapsePattern.Pattern, out var expandCollapsePatternObj) : element.TryGetCurrentPattern(ExpandCollapsePattern.Pattern, out expandCollapsePatternObj)) &&
                     expandCollapsePatternObj is ExpandCollapsePattern expandCollapsePattern)
                 {
                     details.ExpandCollapse = new ExpandCollapseInfo
@@ -497,7 +538,8 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 }
 
                 // Dock Pattern
-                if ((useCached ? element.TryGetCachedPattern(DockPattern.Pattern, out var dockPatternObj) : element.TryGetCurrentPattern(DockPattern.Pattern, out dockPatternObj)) &&
+                if (ShouldCheck(DockPattern.Pattern) &&
+                    (useCached ? element.TryGetCachedPattern(DockPattern.Pattern, out var dockPatternObj) : element.TryGetCurrentPattern(DockPattern.Pattern, out dockPatternObj)) &&
                     dockPatternObj is DockPattern dockPattern)
                 {
                     details.Dock = new DockInfo
@@ -507,7 +549,8 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 }
 
                 // MultipleView Pattern
-                if ((useCached ? element.TryGetCachedPattern(MultipleViewPattern.Pattern, out var multipleViewPatternObj) : element.TryGetCurrentPattern(MultipleViewPattern.Pattern, out multipleViewPatternObj)) &&
+                if (ShouldCheck(MultipleViewPattern.Pattern) &&
+                    (useCached ? element.TryGetCachedPattern(MultipleViewPattern.Pattern, out var multipleViewPatternObj) : element.TryGetCurrentPattern(MultipleViewPattern.Pattern, out multipleViewPatternObj)) &&
                     multipleViewPatternObj is MultipleViewPattern multipleViewPattern)
                 {
                     var currentView = useCached ? multipleViewPattern.Cached.CurrentView : multipleViewPattern.Current.CurrentView;
@@ -527,7 +570,8 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 }
 
                 // GridItem Pattern
-                if ((useCached ? element.TryGetCachedPattern(GridItemPattern.Pattern, out var gridItemPatternObj) : element.TryGetCurrentPattern(GridItemPattern.Pattern, out gridItemPatternObj)) &&
+                if (ShouldCheck(GridItemPattern.Pattern) &&
+                    (useCached ? element.TryGetCachedPattern(GridItemPattern.Pattern, out var gridItemPatternObj) : element.TryGetCurrentPattern(GridItemPattern.Pattern, out gridItemPatternObj)) &&
                     gridItemPatternObj is GridItemPattern gridItemPattern)
                 {
                     var containingGrid = useCached ? gridItemPattern.Cached.ContainingGrid : gridItemPattern.Current.ContainingGrid;
@@ -558,7 +602,8 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 }
 
                 // TableItem Pattern
-                if ((useCached ? element.TryGetCachedPattern(TableItemPattern.Pattern, out var tableItemPatternObj) : element.TryGetCurrentPattern(TableItemPattern.Pattern, out tableItemPatternObj)) &&
+                if (ShouldCheck(TableItemPattern.Pattern) &&
+                    (useCached ? element.TryGetCachedPattern(TableItemPattern.Pattern, out var tableItemPatternObj) : element.TryGetCurrentPattern(TableItemPattern.Pattern, out tableItemPatternObj)) &&
                     tableItemPatternObj is TableItemPattern tableItemPattern)
                 {
                     try
@@ -579,7 +624,8 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 }
 
                 // Table Pattern
-                if ((useCached ? element.TryGetCachedPattern(TablePattern.Pattern, out var tablePatternObj) : element.TryGetCurrentPattern(TablePattern.Pattern, out tablePatternObj)) &&
+                if (ShouldCheck(TablePattern.Pattern) &&
+                    (useCached ? element.TryGetCachedPattern(TablePattern.Pattern, out var tablePatternObj) : element.TryGetCurrentPattern(TablePattern.Pattern, out tablePatternObj)) &&
                     tablePatternObj is TablePattern tablePattern)
                 {
                     try
@@ -603,42 +649,48 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                 }
 
                 // Invoke Pattern
-                if ((useCached ? element.TryGetCachedPattern(InvokePattern.Pattern, out var invokePatternObj) : element.TryGetCurrentPattern(InvokePattern.Pattern, out invokePatternObj)) &&
+                if (ShouldCheck(InvokePattern.Pattern) &&
+                    (useCached ? element.TryGetCachedPattern(InvokePattern.Pattern, out var invokePatternObj) : element.TryGetCurrentPattern(InvokePattern.Pattern, out invokePatternObj)) &&
                     invokePatternObj is InvokePattern)
                 {
                     details.Invoke = new InvokeInfo { IsInvokable = true };
                 }
 
                 // ScrollItem Pattern
-                if ((useCached ? element.TryGetCachedPattern(ScrollItemPattern.Pattern, out var scrollItemPatternObj) : element.TryGetCurrentPattern(ScrollItemPattern.Pattern, out scrollItemPatternObj)) &&
+                if (ShouldCheck(ScrollItemPattern.Pattern) &&
+                    (useCached ? element.TryGetCachedPattern(ScrollItemPattern.Pattern, out var scrollItemPatternObj) : element.TryGetCurrentPattern(ScrollItemPattern.Pattern, out scrollItemPatternObj)) &&
                     scrollItemPatternObj is ScrollItemPattern)
                 {
                     details.ScrollItem = new ScrollItemInfo { IsScrollable = true };
                 }
 
                 // VirtualizedItem Pattern
-                if ((useCached ? element.TryGetCachedPattern(VirtualizedItemPattern.Pattern, out var virtualizedItemPatternObj) : element.TryGetCurrentPattern(VirtualizedItemPattern.Pattern, out virtualizedItemPatternObj)) &&
+                if (ShouldCheck(VirtualizedItemPattern.Pattern) &&
+                    (useCached ? element.TryGetCachedPattern(VirtualizedItemPattern.Pattern, out var virtualizedItemPatternObj) : element.TryGetCurrentPattern(VirtualizedItemPattern.Pattern, out virtualizedItemPatternObj)) &&
                     virtualizedItemPatternObj is VirtualizedItemPattern)
                 {
                     details.VirtualizedItem = new VirtualizedItemInfo { IsVirtualized = true };
                 }
 
                 // ItemContainer Pattern
-                if ((useCached ? element.TryGetCachedPattern(ItemContainerPattern.Pattern, out var itemContainerPatternObj) : element.TryGetCurrentPattern(ItemContainerPattern.Pattern, out itemContainerPatternObj)) &&
+                if (ShouldCheck(ItemContainerPattern.Pattern) &&
+                    (useCached ? element.TryGetCachedPattern(ItemContainerPattern.Pattern, out var itemContainerPatternObj) : element.TryGetCurrentPattern(ItemContainerPattern.Pattern, out itemContainerPatternObj)) &&
                     itemContainerPatternObj is ItemContainerPattern)
                 {
                     details.ItemContainer = new ItemContainerInfo { IsItemContainer = true };
                 }
 
                 // SynchronizedInput Pattern
-                if ((useCached ? element.TryGetCachedPattern(SynchronizedInputPattern.Pattern, out var synchronizedInputPatternObj) : element.TryGetCurrentPattern(SynchronizedInputPattern.Pattern, out synchronizedInputPatternObj)) &&
+                if (ShouldCheck(SynchronizedInputPattern.Pattern) &&
+                    (useCached ? element.TryGetCachedPattern(SynchronizedInputPattern.Pattern, out var synchronizedInputPatternObj) : element.TryGetCurrentPattern(SynchronizedInputPattern.Pattern, out synchronizedInputPatternObj)) &&
                     synchronizedInputPatternObj is SynchronizedInputPattern)
                 {
                     details.SynchronizedInput = new SynchronizedInputInfo { SupportsSynchronizedInput = true };
                 }
 
                 // SelectionItem Pattern (per-element selection state)
-                if ((useCached ? element.TryGetCachedPattern(SelectionItemPattern.Pattern, out var selectionItemPatternObj) : element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out selectionItemPatternObj)) &&
+                if (ShouldCheck(SelectionItemPattern.Pattern) &&
+                    (useCached ? element.TryGetCachedPattern(SelectionItemPattern.Pattern, out var selectionItemPatternObj) : element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out selectionItemPatternObj)) &&
                     selectionItemPatternObj is SelectionItemPattern selectionItemPattern)
                 {
                     try
