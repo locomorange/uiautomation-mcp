@@ -76,6 +76,7 @@ namespace UIAutomationMCP.Tests.E2E
             services.AddSingleton<IMultipleViewService, MultipleViewService>();
             services.AddSingleton<IVirtualizedItemService, VirtualizedItemService>();
             services.AddSingleton<ISynchronizedInputService, SynchronizedInputService>();
+            services.AddSingleton<IItemContainerService, ItemContainerService>();
 
             // Register consolidated services
             services.AddSingleton<IInteractionService, InteractionService>();
