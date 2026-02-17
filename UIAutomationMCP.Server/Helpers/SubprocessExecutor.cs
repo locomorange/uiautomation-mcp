@@ -239,8 +239,35 @@ namespace UIAutomationMCP.Server.Helpers
 
                     try
                     {
-                        var dataBytes = JsonUtf8SerializationHelper.SerializeToUtf8Bytes(response.Data!);
-                        var result = JsonUtf8SerializationHelper.DeserializeFromUtf8Bytes<TResult>(dataBytes)!;
+                        TResult result;
+                        if (response.Data is JsonElement jsonElement)
+                        {
+                            // Direct conversion from JsonElement without serialize→deserialize round-trip.
+                            // JsonElement retains the original UTF-8 tokens internally, so this is both
+                            // faster and avoids any intermediate string/byte[] allocations.
+                            var typeInfo = JsonSerializationHelper.GetTypeInfo<TResult>();
+                            if (typeInfo != null)
+                            {
+                                result = jsonElement.Deserialize<TResult>(typeInfo)!;
+                            }
+                            else
+                            {
+                                // Fallback: serialize to UTF-8 bytes then deserialize
+                                var dataBytes = JsonUtf8SerializationHelper.SerializeToUtf8Bytes(response.Data!);
+                                result = JsonUtf8SerializationHelper.DeserializeFromUtf8Bytes<TResult>(dataBytes)!;
+                            }
+                        }
+                        else if (response.Data is TResult alreadyTyped)
+                        {
+                            // Already the correct type — no conversion needed
+                            result = alreadyTyped;
+                        }
+                        else
+                        {
+                            // Fallback: serialize→deserialize round-trip for unexpected types
+                            var dataBytes = JsonUtf8SerializationHelper.SerializeToUtf8Bytes(response.Data!);
+                            result = JsonUtf8SerializationHelper.DeserializeFromUtf8Bytes<TResult>(dataBytes)!;
+                        }
                         return result;
                     }
                     catch (JsonException ex)

@@ -84,11 +84,13 @@ namespace UIAutomationMCP.Models.Serialization
         }
 
         /// <summary>
-        /// Gets the unified JsonTypeInfo for a given type by consolidating all type mappings
+        /// Gets the unified JsonTypeInfo for a given type by consolidating all type mappings.
+        /// Public to allow direct use by JsonUtf8SerializationHelper and SubprocessExecutor
+        /// for zero-intermediate-allocation UTF-8 serialization while preserving AOT compatibility.
         /// </summary>
         /// <typeparam name="T">The type to get JsonTypeInfo for</typeparam>
         /// <returns>JsonTypeInfo for the specified type, or null if not supported</returns>
-        private static JsonTypeInfo<T>? GetTypeInfo<T>()
+        public static JsonTypeInfo<T>? GetTypeInfo<T>()
         {
             return typeof(T) switch
             {
