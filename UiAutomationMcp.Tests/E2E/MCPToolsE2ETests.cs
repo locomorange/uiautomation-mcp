@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Text.Json;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services;
-using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
 using Xunit;
 using Xunit.Abstractions;
@@ -47,41 +46,8 @@ namespace UIAutomationMCP.Tests.E2E
             var shutdownCts = new CancellationTokenSource();
             services.AddSingleton(shutdownCts);
 
-            // Register log relay service
-            services.AddSingleton<IMcpLogService, LogRelayService>();
-
-            // Register application services
-            services.AddSingleton<IApplicationLauncher, ApplicationLauncher>();
-            services.AddSingleton<IScreenshotService, ScreenshotService>();
-
-            // Register subprocess-based UI Automation services
-            services.AddSingleton<IElementSearchService, ElementSearchService>();
-            services.AddSingleton<ITreeNavigationService, TreeNavigationService>();
-            services.AddSingleton<ISelectionService, SelectionService>();
-            services.AddSingleton<IWindowService, WindowService>();
-            services.AddSingleton<ITextService, TextService>();
-            services.AddSingleton<ILayoutService, LayoutService>();
-            services.AddSingleton<ITransformService, TransformService>();
-            services.AddSingleton<IControlTypeService, ControlTypeService>();
-            services.AddSingleton<IEventMonitorService, EventMonitorService>();
-            services.AddSingleton<IFocusService, FocusService>();
-
-            // Register underlying services for consolidated patterns
-            services.AddSingleton<IInvokeService, InvokeService>();
-            services.AddSingleton<IValueService, ValueService>();
-            services.AddSingleton<IToggleService, ToggleService>();
-            services.AddSingleton<IRangeService, RangeService>();
-            services.AddSingleton<IGridService, GridService>();
-            services.AddSingleton<ITableService, TableService>();
-            services.AddSingleton<IMultipleViewService, MultipleViewService>();
-            services.AddSingleton<IVirtualizedItemService, VirtualizedItemService>();
-            services.AddSingleton<ISynchronizedInputService, SynchronizedInputService>();
-            services.AddSingleton<IItemContainerService, ItemContainerService>();
-
-            // Register consolidated services
-            services.AddSingleton<IInteractionService, InteractionService>();
-            services.AddSingleton<IGridTableService, GridTableService>();
-            services.AddSingleton<IAdvancedPatternService, AdvancedPatternService>();
+            // Register all core UIAutomation services (shared with Program.cs)
+            services.AddUIAutomationCoreServices();
 
             // Register ProcessManager for worker and monitor process management
             services.AddSingleton<ProcessManager>(provider =>

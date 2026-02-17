@@ -2,9 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
-using System.Reflection;
-using UIAutomationMCP.Server.Services;
-using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Infrastructure;
 using UIAutomationMCP.Server.Abstractions;
@@ -68,46 +65,8 @@ namespace UIAutomationMCP.Server
                 options.ServicesStopConcurrently = true;
             });
 
-            // Register log relay service for subprocess logs
-            builder.Services.AddSingleton<IMcpLogService, LogRelayService>();
-
-            // Register application services
-            builder.Services.AddSingleton<IApplicationLauncher, ApplicationLauncher>();
-            builder.Services.AddSingleton<IScreenshotService, ScreenshotService>();
-
-            // Register subprocess-based UI Automation services
-            builder.Services.AddSingleton<IElementSearchService, ElementSearchService>();
-            builder.Services.AddSingleton<ITreeNavigationService, TreeNavigationService>();
-            builder.Services.AddSingleton<IInvokeService, InvokeService>();
-            builder.Services.AddSingleton<IValueService, ValueService>();
-            builder.Services.AddSingleton<IToggleService, ToggleService>();
-            builder.Services.AddSingleton<ISelectionService, SelectionService>();
-            builder.Services.AddSingleton<IWindowService, WindowService>();
-            builder.Services.AddSingleton<ITextService, TextService>();
-            builder.Services.AddSingleton<ILayoutService, LayoutService>();
-            builder.Services.AddSingleton<IRangeService, RangeService>();
-
-            // Register additional subprocess-based UI Automation services
-            builder.Services.AddSingleton<IGridService, GridService>();
-            builder.Services.AddSingleton<ITableService, TableService>();
-            builder.Services.AddSingleton<IMultipleViewService, MultipleViewService>();
-            builder.Services.AddSingleton<IAccessibilityService, AccessibilityService>();
-            builder.Services.AddSingleton<ICustomPropertyService, CustomPropertyService>();
-            builder.Services.AddSingleton<ITransformService, TransformService>();
-            builder.Services.AddSingleton<IVirtualizedItemService, VirtualizedItemService>();
-            builder.Services.AddSingleton<IItemContainerService, ItemContainerService>();
-            builder.Services.AddSingleton<ISynchronizedInputService, SynchronizedInputService>();
-            builder.Services.AddSingleton<IEventMonitorService, EventMonitorService>();
-            builder.Services.AddSingleton<IFocusService, FocusService>();
-            
-            // Register consolidated services
-            builder.Services.AddSingleton<IInteractionService, InteractionService>();
-            builder.Services.AddSingleton<IGridTableService, GridTableService>();
-            builder.Services.AddSingleton<IAdvancedPatternService, AdvancedPatternService>();
-
-
-            // Register ControlType service
-            builder.Services.AddSingleton<IControlTypeService, ControlTypeService>();
+            // Register all core UIAutomation services (shared with test infrastructure)
+            builder.Services.AddUIAutomationCoreServices();
 
             // Register ProcessManager for worker and monitor process management
             builder.Services.AddSingleton<ProcessManager>(provider =>
