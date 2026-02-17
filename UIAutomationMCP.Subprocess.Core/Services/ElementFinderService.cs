@@ -12,6 +12,10 @@ namespace UIAutomationMCP.Subprocess.Core.Services
     /// </summary>
     public class ElementFinderService
     {
+        private static readonly Lazy<AutomationElementCollection> _emptyCollection = new(() =>
+            AutomationElement.RootElement.FindAll(TreeScope.Children,
+                new PropertyCondition(AutomationElement.AutomationIdProperty, "___NonExistentElement___")));
+
         private readonly ILogger<ElementFinderService> _logger;
 
         public ElementFinderService(ILogger<ElementFinderService> logger)
@@ -328,10 +332,9 @@ namespace UIAutomationMCP.Subprocess.Core.Services
             }
         }
 
-        private AutomationElementCollection GetEmptyElementCollection()
+        private static AutomationElementCollection GetEmptyElementCollection()
         {
-            return AutomationElement.RootElement.FindAll(TreeScope.Children,
-                new PropertyCondition(AutomationElement.AutomationIdProperty, "___NonExistentElement___"));
+            return _emptyCollection.Value;
         }
 
         #endregion
