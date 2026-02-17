@@ -120,7 +120,8 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
                 };
                 
                 AutomationElementCollection foundElementsCollection;
-                if (_options.Value.Performance.EnableCacheOptimization)
+                bool useCacheOptimization = _options.Value.Performance.EnableCacheOptimization;
+                if (useCacheOptimization)
                 {
                     // Create cache request for optimized property access
                     var cacheRequest = CacheRequestHelper.CreateElementSearchCache();
@@ -150,7 +151,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
                 // Apply basic filtering and sorting
                 if (!string.IsNullOrEmpty(request.SortBy))
                 {
-                    foundElementsList = SortElementsBasic(foundElementsList, request.SortBy);
+                    foundElementsList = SortElementsBasic(foundElementsList, request.SortBy, useCacheOptimization);
                 }
 
                 // Apply result limits
@@ -161,8 +162,10 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
                 }
 
                 // Convert to ElementInfo array with includeDetails support
+                // When cache optimization is enabled, use .Cached properties for bulk reads
                 var elements = foundElementsList.Select(e => 
-                    UIAutomationMCP.Subprocess.Core.Helpers.ElementInfoBuilder.CreateElementInfo(e, request.IncludeDetails, _logger)).ToArray();
+                    UIAutomationMCP.Subprocess.Core.Helpers.ElementInfoBuilder.CreateElementInfo(
+                        e, request.IncludeDetails, _logger, useCached: useCacheOptimization)).ToArray();
 
                 searchStopwatch.Stop();
 
@@ -196,39 +199,55 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
         /// <summary>
         /// Sort elements using basic criteria
         /// </summary>
-        private List<AutomationElement> SortElementsBasic(List<AutomationElement> elements, string sortBy)
+        private List<AutomationElement> SortElementsBasic(List<AutomationElement> elements, string sortBy, bool useCached = false)
         {
             return sortBy?.ToLower() switch
             {
-                "name" => elements.OrderBy(e => GetElementName(e)).ToList(),
-                "controltype" => elements.OrderBy(e => GetElementControlType(e)).ToList(),
-                "position" => elements.OrderBy(e => GetElementX(e))
-                                   .ThenBy(e => GetElementY(e)).ToList(),
+                "name" => elements.OrderBy(e => GetElementName(e, useCached)).ToList(),
+                "controltype" => elements.OrderBy(e => GetElementControlType(e, useCached)).ToList(),
+                "position" => elements.OrderBy(e => GetElementX(e, useCached))
+                                   .ThenBy(e => GetElementY(e, useCached)).ToList(),
                 _ => elements
             };
         }
 
-        private string GetElementName(AutomationElement element)
+        private string GetElementName(AutomationElement element, bool useCached = false)
         {
-            try { return element.Current.Name ?? ""; }
+            try
+            {
+                var props = useCached ? element.Cached : element.Current;
+                return props.Name ?? "";
+            }
             catch { return ""; }
         }
 
-        private string GetElementControlType(AutomationElement element)
+        private string GetElementControlType(AutomationElement element, bool useCached = false)
         {
-            try { return element.Current.ControlType.ProgrammaticName ?? ""; }
+            try
+            {
+                var props = useCached ? element.Cached : element.Current;
+                return props.ControlType.ProgrammaticName ?? "";
+            }
             catch { return ""; }
         }
 
-        private double GetElementX(AutomationElement element)
+        private double GetElementX(AutomationElement element, bool useCached = false)
         {
-            try { return element.Current.BoundingRectangle.X; }
+            try
+            {
+                var props = useCached ? element.Cached : element.Current;
+                return props.BoundingRectangle.X;
+            }
             catch { return 0; }
         }
 
-        private double GetElementY(AutomationElement element)
+        private double GetElementY(AutomationElement element, bool useCached = false)
         {
-            try { return element.Current.BoundingRectangle.Y; }
+            try
+            {
+                var props = useCached ? element.Cached : element.Current;
+                return props.BoundingRectangle.Y;
+            }
             catch { return 0; }
         }
 

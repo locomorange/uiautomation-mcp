@@ -12,44 +12,53 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
     public static class ElementInfoBuilder
     {
         /// <summary>
-        /// Creates an ElementInfo from AutomationElement with optional details
+        /// Creates an ElementInfo from AutomationElement with optional details.
+        /// When useCached is true, reads basic properties from .Cached (requires a prior CacheRequest).
+        /// SupportedPatterns and NativeWindowHandle always use .Current regardless of useCached,
+        /// because CacheRequest does not include pattern objects and NativeWindowHandle is unreliable from cache.
         /// </summary>
         /// <param name="element">The AutomationElement to create info from</param>
         /// <param name="includeDetails">Whether to include detailed pattern information</param>
         /// <param name="logger">Optional logger</param>
         /// <param name="parentWindowHandle">Parent's WindowHandle for propagation (avoids redundant COM calls in tree traversal)</param>
         /// <param name="parentRootWindowHandle">Parent's RootWindowHandle for propagation</param>
+        /// <param name="useCached">When true, read basic properties from .Cached instead of .Current (for bulk operations with CacheRequest)</param>
         public static ElementInfo CreateElementInfo(AutomationElement element, bool includeDetails = false, ILogger? logger = null,
-            long? parentWindowHandle = null, long? parentRootWindowHandle = null)
+            long? parentWindowHandle = null, long? parentRootWindowHandle = null, bool useCached = false)
         {
+            // Read basic properties from .Cached or .Current based on useCached flag.
+            // Using .Cached avoids per-property cross-process COM calls when a CacheRequest is active.
+            var props = useCached ? element.Cached : element.Current;
+
             var elementInfo = new ElementInfo
             {
-                AutomationId = element.Current.AutomationId ?? "",
-                Name = element.Current.Name ?? "",
-                ControlType = element.Current.ControlType.ProgrammaticName ?? "",
-                LocalizedControlType = string.IsNullOrEmpty(element.Current.ControlType.LocalizedControlType) ? null : element.Current.ControlType.LocalizedControlType,
-                IsEnabled = element.Current.IsEnabled,
-                IsVisible = !element.Current.IsOffscreen,
-                IsOffscreen = element.Current.IsOffscreen,
-                ProcessId = element.Current.ProcessId,
-                ClassName = element.Current.ClassName ?? "",
+                AutomationId = props.AutomationId ?? "",
+                Name = props.Name ?? "",
+                ControlType = props.ControlType.ProgrammaticName ?? "",
+                LocalizedControlType = string.IsNullOrEmpty(props.ControlType.LocalizedControlType) ? null : props.ControlType.LocalizedControlType,
+                IsEnabled = props.IsEnabled,
+                IsVisible = !props.IsOffscreen,
+                IsOffscreen = props.IsOffscreen,
+                ProcessId = props.ProcessId,
+                ClassName = props.ClassName ?? "",
                 BoundingRectangle = new BoundingRectangle
                 {
-                    X = element.Current.BoundingRectangle.X,
-                    Y = element.Current.BoundingRectangle.Y,
-                    Width = element.Current.BoundingRectangle.Width,
-                    Height = element.Current.BoundingRectangle.Height
+                    X = props.BoundingRectangle.X,
+                    Y = props.BoundingRectangle.Y,
+                    Width = props.BoundingRectangle.Width,
+                    Height = props.BoundingRectangle.Height
                 },
             };
 
-            // Get supported patterns data (names + IDs) in a single pass
+            // SupportedPatterns: always use .Current (GetSupportedPatterns is a single COM call;
+            // CacheRequest does not cache pattern objects, so .Cached would fail)
             var (patternNames, supportedPatternIds) = GetSupportedPatternData(element, useCached: false);
             elementInfo.SupportedPatterns = patternNames;
 
             // 親コンテキストが提供されている場合、再帰的な親トラバーサルをスキップ
             if (parentWindowHandle != null && parentRootWindowHandle != null)
             {
-                // 要素自身のHWNDを確認（1回のCOM呼び出しのみ）
+                // NativeWindowHandleは常に.Currentを使用（Cachedでは信頼性が低い）
                 try
                 {
                     var ownHwnd = element.Current.NativeWindowHandle;
@@ -64,7 +73,7 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
             else
             {
                 // 親コンテキストなし: 従来通り階層的HWND検索
-                var (windowHandle, rootWindowHandle) = GetHierarchicalWindowHandles(element, false);
+                var (windowHandle, rootWindowHandle) = GetHierarchicalWindowHandles(element, useCached: false);
                 elementInfo.WindowHandle = windowHandle;
                 elementInfo.RootWindowHandle = rootWindowHandle;
             }
@@ -72,74 +81,7 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
             // Include details if requested — pass supportedPatternIds to avoid redundant COM calls
             if (includeDetails)
             {
-                elementInfo.Details = CreateElementDetails(element, logger, supportedPatternIds);
-            }
-
-            return elementInfo;
-        }
-
-        /// <summary>
-        /// Creates an ElementInfo from cached AutomationElement with optional details
-        /// </summary>
-        /// <param name="element">The cached AutomationElement to create info from</param>
-        /// <param name="includeDetails">Whether to include detailed pattern information</param>
-        /// <param name="logger">Optional logger</param>
-        /// <param name="parentWindowHandle">Parent's WindowHandle for propagation (avoids redundant COM calls in tree traversal)</param>
-        /// <param name="parentRootWindowHandle">Parent's RootWindowHandle for propagation</param>
-        public static ElementInfo CreateElementInfoFromCached(AutomationElement element, bool includeDetails = false, ILogger? logger = null,
-            long? parentWindowHandle = null, long? parentRootWindowHandle = null)
-        {
-            var elementInfo = new ElementInfo
-            {
-                AutomationId = element.Cached.AutomationId ?? "",
-                Name = element.Cached.Name ?? "",
-                ControlType = element.Cached.ControlType.ProgrammaticName ?? "",
-                LocalizedControlType = string.IsNullOrEmpty(element.Cached.ControlType.LocalizedControlType) ? null : element.Cached.ControlType.LocalizedControlType,
-                IsEnabled = element.Cached.IsEnabled,
-                IsVisible = !element.Cached.IsOffscreen,
-                IsOffscreen = element.Cached.IsOffscreen,
-                ProcessId = element.Cached.ProcessId,
-                ClassName = element.Cached.ClassName ?? "",
-                BoundingRectangle = new BoundingRectangle
-                {
-                    X = element.Cached.BoundingRectangle.X,
-                    Y = element.Cached.BoundingRectangle.Y,
-                    Width = element.Cached.BoundingRectangle.Width,
-                    Height = element.Cached.BoundingRectangle.Height
-                },
-            };
-
-            // Get supported patterns data (names + IDs) in a single pass
-            var (patternNames, supportedPatternIds) = GetSupportedPatternData(element, useCached: true);
-            elementInfo.SupportedPatterns = patternNames;
-
-            // 親コンテキストが提供されている場合、再帰的な親トラバーサルをスキップ
-            if (parentWindowHandle != null && parentRootWindowHandle != null)
-            {
-                try
-                {
-                    // NativeWindowHandleは常にCurrentを使用（Cachedでは利用不可）
-                    var ownHwnd = element.Current.NativeWindowHandle;
-                    elementInfo.WindowHandle = ownHwnd != 0 ? (long)ownHwnd : parentWindowHandle;
-                }
-                catch
-                {
-                    elementInfo.WindowHandle = parentWindowHandle;
-                }
-                elementInfo.RootWindowHandle = parentRootWindowHandle;
-            }
-            else
-            {
-                // 親コンテキストなし: 従来通り階層的HWND検索
-                var (windowHandle, rootWindowHandle) = GetHierarchicalWindowHandles(element, true);
-                elementInfo.WindowHandle = windowHandle;
-                elementInfo.RootWindowHandle = rootWindowHandle;
-            }
-
-            // Include details if requested — pass supportedPatternIds to avoid redundant COM calls
-            if (includeDetails)
-            {
-                elementInfo.Details = CreateElementDetailsFromCached(element, logger, supportedPatternIds);
+                elementInfo.Details = CreateElementDetails(element, logger, supportedPatternIds, useCached);
             }
 
             return elementInfo;
@@ -205,38 +147,23 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
             }
         }
 
-        private static ElementDetails CreateElementDetails(AutomationElement element, ILogger? logger = null, HashSet<int>? supportedPatternIds = null)
+        private static ElementDetails CreateElementDetails(AutomationElement element, ILogger? logger = null, HashSet<int>? supportedPatternIds = null, bool useCached = false)
         {
+            // Read detail properties from .Cached or .Current based on useCached flag
+            var props = useCached ? element.Cached : element.Current;
+
             var details = new ElementDetails
             {
-                HelpText = string.IsNullOrEmpty(element.Current.HelpText) ? null : element.Current.HelpText,
-                HasKeyboardFocus = element.Current.HasKeyboardFocus,
-                IsKeyboardFocusable = element.Current.IsKeyboardFocusable,
-                IsPassword = element.Current.IsPassword,
-                FrameworkId = string.IsNullOrEmpty(element.Current.FrameworkId) ? null : element.Current.FrameworkId,
+                HelpText = string.IsNullOrEmpty(props.HelpText) ? null : props.HelpText,
+                HasKeyboardFocus = props.HasKeyboardFocus,
+                IsKeyboardFocusable = props.IsKeyboardFocusable,
+                IsPassword = props.IsPassword,
+                FrameworkId = string.IsNullOrEmpty(props.FrameworkId) ? null : props.FrameworkId,
                 RuntimeId = GetRuntimeIdString(element)
             };
 
             // Set pattern information safely — pass supportedPatternIds to skip unsupported patterns
-            SetPatternInfo(element, details, logger, useCached: false, supportedPatternIds: supportedPatternIds);
-
-            return details;
-        }
-
-        private static ElementDetails CreateElementDetailsFromCached(AutomationElement element, ILogger? logger = null, HashSet<int>? supportedPatternIds = null)
-        {
-            var details = new ElementDetails
-            {
-                HelpText = string.IsNullOrEmpty(element.Cached.HelpText) ? null : element.Cached.HelpText,
-                HasKeyboardFocus = element.Cached.HasKeyboardFocus,
-                IsKeyboardFocusable = element.Cached.IsKeyboardFocusable,
-                IsPassword = element.Cached.IsPassword,
-                FrameworkId = string.IsNullOrEmpty(element.Cached.FrameworkId) ? null : element.Cached.FrameworkId,
-                RuntimeId = GetRuntimeIdString(element)
-            };
-
-            // Set pattern information safely — pass supportedPatternIds to skip unsupported patterns
-            SetPatternInfo(element, details, logger, useCached: true, supportedPatternIds: supportedPatternIds);
+            SetPatternInfo(element, details, logger, useCached: useCached, supportedPatternIds: supportedPatternIds);
 
             return details;
         }
@@ -611,6 +538,8 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                         var rowHeaders = useCached ? tableItemPattern.Cached.GetRowHeaderItems() : tableItemPattern.Current.GetRowHeaderItems();
                         var columnHeaders = useCached ? tableItemPattern.Cached.GetColumnHeaderItems() : tableItemPattern.Current.GetColumnHeaderItems();
                         
+                        // Header elements returned by GetRowHeaderItems/GetColumnHeaderItems are outside
+                        // the CacheRequest scope, so we intentionally use useCached: false (.Current) here.
                         details.TableItem = new TableItemInfo
                         {
                             RowHeaders = rowHeaders.Select(h => CreateElementInfo(h, false, logger)).ToList(),
@@ -633,6 +562,7 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
                         var rowHeaders = useCached ? tablePattern.Cached.GetRowHeaders() : tablePattern.Current.GetRowHeaders();
                         var columnHeaders = useCached ? tablePattern.Cached.GetColumnHeaders() : tablePattern.Current.GetColumnHeaders();
                         
+                        // Header elements are outside the CacheRequest scope — use .Current intentionally.
                         details.Table = new TableInfo
                         {
                             RowCount = useCached ? tablePattern.Cached.RowCount : tablePattern.Current.RowCount,

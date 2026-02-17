@@ -145,9 +145,12 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.TreeNavigation
 
             // Use ElementInfoBuilder to create base ElementInfo with all latest features
             // Pass parent window handles to avoid redundant recursive parent traversal (O(N*D) -> O(N))
+            // Use cached properties (.Cached) to avoid per-property COM calls — the element was
+            // obtained via UpdateElementCache, so all CacheRequest properties are available locally.
             var elementInfo = UIAutomationMCP.Subprocess.Core.Helpers.ElementInfoBuilder.CreateElementInfo(
                 cachedElement, includeDetails: false, logger: null,
-                parentWindowHandle: parentWindowHandle, parentRootWindowHandle: parentRootWindowHandle);
+                parentWindowHandle: parentWindowHandle, parentRootWindowHandle: parentRootWindowHandle,
+                useCached: true);
 
             // Create TreeNode from ElementInfo using constructor
             var node = new TreeNode(elementInfo)
