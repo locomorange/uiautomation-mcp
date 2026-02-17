@@ -6,46 +6,97 @@ using System.Linq;
 namespace UIAutomationMCP.Subprocess.Worker.Helpers
 {
     /// <summary>
-    /// Optimizes list item search based on control type (Win32 vs WPF)
+    /// Optimizes list/container child element search based on framework (Win32 vs WPF).
+    /// Win32 controls perform better with TreeWalker (step-by-step navigation),
+    /// while WPF controls perform better with FindAll (batch COM call).
     /// </summary>
     public static class ListSearchOptimizer
     {
-        /// <summary>
-        /// Determines the optimal search method for list items
-        /// </summary>
-        public static ListSearchMethod GetOptimalMethod(AutomationElement listElement)
+        // ControlTypes that are considered list-like containers
+        private static readonly HashSet<ControlType> ListContainerTypes = new()
         {
-            if (listElement == null)
+            ControlType.List,
+            ControlType.DataGrid,
+            ControlType.Tree,
+            ControlType.ComboBox
+        };
+
+        /// <summary>
+        /// Determines the optimal search method based on the element's framework
+        /// </summary>
+        public static ListSearchMethod GetOptimalMethod(AutomationElement element)
+        {
+            if (element == null)
                 return ListSearchMethod.FindAll;
 
             try
             {
-                var frameworkId = listElement.Current.FrameworkId;
+                var frameworkId = element.Current.FrameworkId;
 
-                // WPF controls perform better with FindAll
-                if (IsWpfFramework(frameworkId))
-                {
-                    return ListSearchMethod.FindAll;
-                }
-
-                // Win32 controls perform better with TreeWalker
                 if (IsWin32Framework(frameworkId))
-                {
                     return ListSearchMethod.TreeWalker;
-                }
 
-                // Default to FindAll for unknown frameworks
+                // WPF/WinUI/UWP and unknown frameworks default to FindAll
                 return ListSearchMethod.FindAll;
             }
             catch
             {
-                // Fallback to FindAll if framework detection fails
                 return ListSearchMethod.FindAll;
             }
         }
 
         /// <summary>
-        /// Finds list items using the optimal method
+        /// Returns true if the given element is a list-like container (List, DataGrid, Tree, ComboBox)
+        /// </summary>
+        public static bool IsListContainer(AutomationElement element)
+        {
+            if (element == null)
+                return false;
+
+            try
+            {
+                return ListContainerTypes.Contains(element.Current.ControlType);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Finds all child elements matching the given condition, using the optimal method
+        /// for the parent element's framework. This is the primary integration point for
+        /// SearchElementsOperation when the search root is a list container.
+        /// </summary>
+        public static IReadOnlyList<AutomationElement> FindAllChildrenOptimized(
+            AutomationElement parent, Condition condition)
+        {
+            if (parent == null)
+                return Array.Empty<AutomationElement>();
+
+            var method = GetOptimalMethod(parent);
+
+            return method switch
+            {
+                ListSearchMethod.TreeWalker => FindChildrenWithTreeWalker(parent, condition),
+                _ => FindChildrenWithFindAll(parent, condition)
+            };
+        }
+
+        /// <summary>
+        /// Finds all list items using the optimal method
+        /// </summary>
+        public static IReadOnlyList<AutomationElement> FindAllListItems(AutomationElement listElement)
+        {
+            if (listElement == null)
+                return Array.Empty<AutomationElement>();
+
+            var condition = new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.ListItem);
+            return FindAllChildrenOptimized(listElement, condition);
+        }
+
+        /// <summary>
+        /// Finds a single list item by index using the optimal method
         /// </summary>
         public static AutomationElement? FindListItemByIndex(AutomationElement listElement, int index)
         {
@@ -57,37 +108,11 @@ namespace UIAutomationMCP.Subprocess.Worker.Helpers
             return method switch
             {
                 ListSearchMethod.TreeWalker => FindListItemByIndexWithTreeWalker(listElement, index),
-                ListSearchMethod.FindAll => FindListItemByIndexWithFindAll(listElement, index),
                 _ => FindListItemByIndexWithFindAll(listElement, index)
             };
         }
 
-        /// <summary>
-        /// Finds all list items using the optimal method
-        /// </summary>
-        public static AutomationElementCollection? FindAllListItems(AutomationElement listElement)
-        {
-            if (listElement == null)
-                return null;
-
-            var method = GetOptimalMethod(listElement);
-            var condition = new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.ListItem);
-
-            return method switch
-            {
-                ListSearchMethod.TreeWalker => FindAllListItemsWithTreeWalker(listElement, condition),
-                ListSearchMethod.FindAll => listElement.FindAll(TreeScope.Children, condition),
-                _ => listElement.FindAll(TreeScope.Children, condition)
-            };
-        }
-
-        private static bool IsWpfFramework(string frameworkId)
-        {
-            return !string.IsNullOrEmpty(frameworkId) &&
-                   (frameworkId.Equals("WPF", StringComparison.OrdinalIgnoreCase) ||
-                    frameworkId.Equals("WinUI", StringComparison.OrdinalIgnoreCase) ||
-                    frameworkId.Equals("UWP", StringComparison.OrdinalIgnoreCase));
-        }
+        #region Private helpers
 
         private static bool IsWin32Framework(string frameworkId)
         {
@@ -95,6 +120,59 @@ namespace UIAutomationMCP.Subprocess.Worker.Helpers
                    (frameworkId.Equals("Win32", StringComparison.OrdinalIgnoreCase) ||
                     frameworkId.Equals("WinForm", StringComparison.OrdinalIgnoreCase) ||
                     frameworkId.Equals("Windows Forms", StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>
+        /// TreeWalker-based search: walks children one-by-one via GetFirstChild/GetNextSibling.
+        /// More efficient for Win32 controls and avoids issues with large virtualized lists.
+        /// </summary>
+        private static List<AutomationElement> FindChildrenWithTreeWalker(
+            AutomationElement parent, Condition condition)
+        {
+            try
+            {
+                var walker = new TreeWalker(condition);
+                var items = new List<AutomationElement>();
+
+                var current = walker.GetFirstChild(parent);
+                while (current != null)
+                {
+                    items.Add(current);
+                    current = walker.GetNextSibling(current);
+                }
+
+                return items;
+            }
+            catch
+            {
+                // Fallback to FindAll if TreeWalker fails
+                return FindChildrenWithFindAll(parent, condition);
+            }
+        }
+
+        /// <summary>
+        /// FindAll-based search: single COM batch call. More efficient for WPF controls.
+        /// </summary>
+        private static List<AutomationElement> FindChildrenWithFindAll(
+            AutomationElement parent, Condition condition)
+        {
+            try
+            {
+                var collection = parent.FindAll(TreeScope.Children, condition);
+                var items = new List<AutomationElement>(collection.Count);
+
+                foreach (AutomationElement element in collection)
+                {
+                    if (element != null)
+                        items.Add(element);
+                }
+
+                return items;
+            }
+            catch
+            {
+                return new List<AutomationElement>();
+            }
         }
 
         private static AutomationElement? FindListItemByIndexWithTreeWalker(AutomationElement listElement, int index)
@@ -121,7 +199,6 @@ namespace UIAutomationMCP.Subprocess.Worker.Helpers
             }
             catch
             {
-                // Fallback to FindAll if TreeWalker fails
                 return FindListItemByIndexWithFindAll(listElement, index);
             }
         }
@@ -146,29 +223,7 @@ namespace UIAutomationMCP.Subprocess.Worker.Helpers
             }
         }
 
-        private static AutomationElementCollection? FindAllListItemsWithTreeWalker(AutomationElement listElement, Condition condition)
-        {
-            try
-            {
-                var walker = new TreeWalker(condition);
-                var items = new List<AutomationElement>();
-
-                var currentElement = walker.GetFirstChild(listElement);
-                while (currentElement != null)
-                {
-                    items.Add(currentElement);
-                    currentElement = walker.GetNextSibling(currentElement);
-                }
-
-                // Convert to AutomationElementCollection-like structure
-                return listElement.FindAll(TreeScope.Children, condition);
-            }
-            catch
-            {
-                // Fallback to FindAll
-                return listElement.FindAll(TreeScope.Children, condition);
-            }
-        }
+        #endregion
     }
 
     /// <summary>

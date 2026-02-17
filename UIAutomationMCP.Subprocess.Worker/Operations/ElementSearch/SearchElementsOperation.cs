@@ -119,34 +119,8 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
                         (request.WindowHandle.HasValue && !string.IsNullOrEmpty(request.WindowTitle))
                 };
                 
-                AutomationElementCollection foundElementsCollection;
                 bool useCacheOptimization = _options.Value.Performance.EnableCacheOptimization;
-                if (useCacheOptimization)
-                {
-                    // Create cache request for optimized property access
-                    var cacheRequest = CacheRequestHelper.CreateElementSearchCache();
-                    using (cacheRequest.Activate())
-                    {
-                        foundElementsCollection = _elementFinderService.FindElements(searchCriteria);
-                        _logger?.LogDebug("FindElements completed with cache optimization, found {Count} elements", foundElementsCollection?.Count ?? 0);
-                    }
-                }
-                else
-                {
-                    foundElementsCollection = _elementFinderService.FindElements(searchCriteria);
-                    _logger?.LogDebug("FindElements completed, found {Count} elements", foundElementsCollection?.Count ?? 0);
-                }
-
-                // Convert to list for further processing
-                var foundElementsList = new List<AutomationElement>();
-                if (foundElementsCollection != null)
-                {
-                    foreach (AutomationElement element in foundElementsCollection)
-                    {
-                        if (element != null)
-                            foundElementsList.Add(element);
-                    }
-                }
+                var foundElementsList = FindElementsWithOptimalMethod(searchCriteria, useCacheOptimization);
 
                 // Apply basic filtering and sorting
                 if (!string.IsNullOrEmpty(request.SortBy))
@@ -193,6 +167,127 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
 
                 throw new InvalidOperationException($"Search operation failed: {ex.Message}", ex);
             }
+        }
+
+        /// <summary>
+        /// Selects the optimal search strategy based on the search root's characteristics.
+        /// For list containers (List, DataGrid, Tree, ComboBox) with Children scope,
+        /// uses ListSearchOptimizer to pick TreeWalker (Win32) or FindAll (WPF).
+        /// Otherwise falls back to the standard ElementFinderService.FindElements path.
+        /// </summary>
+        private List<AutomationElement> FindElementsWithOptimalMethod(
+            ElementSearchCriteria searchCriteria, bool useCacheOptimization)
+        {
+            // Check if we can use ListSearchOptimizer for this search.
+            // Conditions: the search root is a list container AND scope is "children".
+            var scope = searchCriteria.Scope?.ToLower();
+            if (scope is "children" or null) // default scope resolves to Children
+            {
+                try
+                {
+                    var searchRoot = _elementFinderService.GetSearchRoot(searchCriteria);
+                    if (searchRoot != null && ListSearchOptimizer.IsListContainer(searchRoot))
+                    {
+                        _logger?.LogDebug(
+                            "Search root is a list container (FrameworkId={FrameworkId}), using ListSearchOptimizer",
+                            searchRoot.Current.FrameworkId);
+
+                        // Build the same condition that ElementFinderService would build
+                        var condition = BuildSearchConditionForOptimizer(searchCriteria);
+                        if (condition != null)
+                        {
+                            // Run outside CacheRequest scope — TreeWalker has its own COM pattern
+                            var optimizedResults = ListSearchOptimizer.FindAllChildrenOptimized(searchRoot, condition);
+                            _logger?.LogDebug("ListSearchOptimizer returned {Count} elements", optimizedResults.Count);
+                            return optimizedResults.ToList();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogWarning(ex, "ListSearchOptimizer check failed, falling back to standard search");
+                }
+            }
+
+            // Standard path: FindAll via ElementFinderService (with optional CacheRequest)
+            return FindElementsStandard(searchCriteria, useCacheOptimization);
+        }
+
+        /// <summary>
+        /// Standard FindAll path with optional CacheRequest optimization
+        /// </summary>
+        private List<AutomationElement> FindElementsStandard(
+            ElementSearchCriteria searchCriteria, bool useCacheOptimization)
+        {
+            AutomationElementCollection foundElementsCollection;
+
+            if (useCacheOptimization)
+            {
+                var cacheRequest = CacheRequestHelper.CreateElementSearchCache();
+                using (cacheRequest.Activate())
+                {
+                    foundElementsCollection = _elementFinderService.FindElements(searchCriteria);
+                    _logger?.LogDebug("FindElements completed with cache optimization, found {Count} elements",
+                        foundElementsCollection?.Count ?? 0);
+                }
+            }
+            else
+            {
+                foundElementsCollection = _elementFinderService.FindElements(searchCriteria);
+                _logger?.LogDebug("FindElements completed, found {Count} elements",
+                    foundElementsCollection?.Count ?? 0);
+            }
+
+            var result = new List<AutomationElement>();
+            if (foundElementsCollection != null)
+            {
+                foreach (AutomationElement element in foundElementsCollection)
+                {
+                    if (element != null)
+                        result.Add(element);
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Builds a Condition matching the search criteria, for use with ListSearchOptimizer.
+        /// Mirrors the condition-building logic in ElementFinderService.BuildSearchCondition.
+        /// </summary>
+        private Condition? BuildSearchConditionForOptimizer(ElementSearchCriteria criteria)
+        {
+            var conditions = new List<Condition>();
+
+            if (!string.IsNullOrEmpty(criteria.AutomationId))
+                conditions.Add(new PropertyCondition(AutomationElement.AutomationIdProperty, criteria.AutomationId));
+
+            if (!string.IsNullOrEmpty(criteria.Name))
+                conditions.Add(new PropertyCondition(AutomationElement.NameProperty, criteria.Name));
+
+            if (!string.IsNullOrEmpty(criteria.ClassName))
+                conditions.Add(new PropertyCondition(AutomationElement.ClassNameProperty, criteria.ClassName));
+
+            if (!string.IsNullOrEmpty(criteria.ControlType))
+            {
+                if (UIAutomationMCP.Subprocess.Core.Helpers.ControlTypeHelper.TryGetControlType(
+                    criteria.ControlType, out var controlType))
+                {
+                    conditions.Add(new PropertyCondition(AutomationElement.ControlTypeProperty, controlType));
+                }
+            }
+
+            if (criteria.VisibleOnly)
+                conditions.Add(new PropertyCondition(AutomationElement.IsOffscreenProperty, false));
+
+            if (criteria.EnabledOnly)
+                conditions.Add(new PropertyCondition(AutomationElement.IsEnabledProperty, true));
+
+            if (conditions.Count == 0)
+                return Condition.TrueCondition;
+
+            return conditions.Count == 1
+                ? conditions[0]
+                : new AndCondition(conditions.ToArray());
         }
 
 

@@ -138,7 +138,11 @@ namespace UIAutomationMCP.Subprocess.Core.Services
 
         #region Helper Methods
 
-        private AutomationElement? GetSearchRoot(ElementSearchCriteria criteria)
+        /// <summary>
+        /// Resolves the search root element from criteria (WindowHandle, WindowTitle, or RootElement).
+        /// Public to allow callers (e.g., SearchElementsOperation) to inspect the root before searching.
+        /// </summary>
+        public AutomationElement? GetSearchRoot(ElementSearchCriteria criteria)
         {
             // Priority 1: Use WindowHandle if specified and not using it as filter
             if (criteria.WindowHandle.HasValue && !criteria.UseWindowHandleAsFilter)
