@@ -343,6 +343,7 @@ namespace UIAutomationMCP.Models.Results
         public int WindowsDetectedAfter { get; set; }
         public int NewWindowsFound { get; set; }
         public bool UsedUIAutomationDetection { get; set; }
+        public bool UsedEventBasedDetection { get; set; }
         public TimeSpan WindowDetectionTime { get; set; }
         public int DetectionRetries { get; set; }
     }

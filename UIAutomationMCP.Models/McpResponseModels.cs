@@ -37,10 +37,13 @@ namespace UIAutomationMCP.Models
         [JsonPropertyName("windowHandle")]
         public long? WindowHandle { get; set; }
 
+        [JsonPropertyName("usedEventBasedDetection")]
+        public bool UsedEventBasedDetection { get; set; }
+
         /// <summary>
         /// Create a success response
         /// </summary>
-        public static ProcessLaunchResponse CreateSuccess(int processId, string processName, bool hasExited, string? windowTitle = null, long? windowHandle = null)
+        public static ProcessLaunchResponse CreateSuccess(int processId, string processName, bool hasExited, string? windowTitle = null, long? windowHandle = null, bool usedEventBasedDetection = false)
         {
             return new ProcessLaunchResponse
             {
@@ -49,7 +52,8 @@ namespace UIAutomationMCP.Models
                 ProcessName = processName,
                 HasExited = hasExited,
                 WindowTitle = windowTitle,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
+                UsedEventBasedDetection = usedEventBasedDetection
             };
         }
 

@@ -127,6 +127,9 @@ namespace UIAutomationMCP.Tests.E2E
                 var appLauncher = _serviceProvider.GetRequiredService<IApplicationLauncher>();
                 var result = await appLauncher.LaunchApplicationAsync("notepad.exe");
                 Assert.NotNull(result);
+                Assert.True(result.Success, "LaunchApplication should succeed for notepad.exe");
+                Assert.True(result.WindowHandle.HasValue, "LaunchApplication should return a window handle for notepad.exe");
+                _output.WriteLine($"UsedEventBasedDetection: {result.UsedEventBasedDetection}");
 
                 _output.WriteLine($"LaunchApplicationByName result: {JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}");
 

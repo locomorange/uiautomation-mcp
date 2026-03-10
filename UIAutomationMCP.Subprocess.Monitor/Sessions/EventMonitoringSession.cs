@@ -11,6 +11,7 @@ namespace UIAutomationMCP.Subprocess.Monitor.Sessions
     /// </summary>
     public class EventMonitoringSession : IDisposable
     {
+        private const int MaxCapturedEvents = 500;
         private readonly string _sessionId;
         private readonly string[] _eventTypes;
         private readonly string? _automationId;
@@ -24,12 +25,16 @@ namespace UIAutomationMCP.Subprocess.Monitor.Sessions
         private readonly List<IDisposable> _eventHandlers = new();
         private readonly ConcurrentQueue<TypedEventData> _capturedEvents = new();
         private readonly object _lockObject = new();
+        private int _droppedEventCount;
+        private int _discardedLowConfidenceEventCount;
         private bool _isActive = false;
         private bool _disposed = false;
 
         public string SessionId => _sessionId;
         public bool IsActive => _isActive;
         public int EventCount => _capturedEvents.Count;
+        public int DroppedEventCount => _droppedEventCount;
+        public int DiscardedLowConfidenceEventCount => _discardedLowConfidenceEventCount;
         public DateTime StartTime { get; private set; }
 
         public EventMonitoringSession(
@@ -197,14 +202,17 @@ namespace UIAutomationMCP.Subprocess.Monitor.Sessions
             {
                 if (!_isActive) return;
 
+                var (processId, windowHandle) = GetProcessAndWindowInfo(sender as AutomationElement);
                 var eventData = new FocusEventData
                 {
                     Timestamp = DateTime.UtcNow,
                     SourceElement = "Focus changed",
-                    SessionId = _sessionId
+                    SessionId = _sessionId,
+                    ProcessId = processId,
+                    WindowHandle = windowHandle
                 };
 
-                _capturedEvents.Enqueue(eventData);
+                EnqueueEvent(eventData);
             };
 
             Automation.AddAutomationFocusChangedEventHandler(handler);
@@ -228,15 +236,18 @@ namespace UIAutomationMCP.Subprocess.Monitor.Sessions
             {
                 if (!_isActive) return;
 
+                var (processId, windowHandle) = GetProcessAndWindowInfo(sender as AutomationElement);
                 var eventData = new InvokeEventData
                 {
                     Timestamp = DateTime.UtcNow,
                     SourceElement = GetElementDescription(sender as AutomationElement),
                     SessionId = _sessionId,
-                    EventId = e.EventId.ProgrammaticName
+                    EventId = e.EventId.ProgrammaticName,
+                    ProcessId = processId,
+                    WindowHandle = windowHandle
                 };
 
-                _capturedEvents.Enqueue(eventData);
+                EnqueueEvent(eventData);
             };
 
             Automation.AddAutomationEventHandler(InvokePattern.InvokedEvent, element, TreeScope.Subtree, handler);
@@ -260,15 +271,18 @@ namespace UIAutomationMCP.Subprocess.Monitor.Sessions
             {
                 if (!_isActive) return;
 
+                var (processId, windowHandle) = GetProcessAndWindowInfo(sender as AutomationElement);
                 var eventData = new SelectionEventData
                 {
                     Timestamp = DateTime.UtcNow,
                     SourceElement = GetElementDescription(sender as AutomationElement),
                     SessionId = _sessionId,
-                    EventId = e.EventId.ProgrammaticName
+                    EventId = e.EventId.ProgrammaticName,
+                    ProcessId = processId,
+                    WindowHandle = windowHandle
                 };
 
-                _capturedEvents.Enqueue(eventData);
+                EnqueueEvent(eventData);
             };
 
             Automation.AddAutomationEventHandler(SelectionItemPattern.ElementSelectedEvent, element, TreeScope.Subtree, handler);
@@ -292,15 +306,18 @@ namespace UIAutomationMCP.Subprocess.Monitor.Sessions
             {
                 if (!_isActive) return;
 
+                var (processId, windowHandle) = GetProcessAndWindowInfo(sender as AutomationElement);
                 var eventData = new TextChangedEventData
                 {
                     Timestamp = DateTime.UtcNow,
                     SourceElement = GetElementDescription(sender as AutomationElement),
                     SessionId = _sessionId,
-                    EventId = e.EventId.ProgrammaticName
+                    EventId = e.EventId.ProgrammaticName,
+                    ProcessId = processId,
+                    WindowHandle = windowHandle
                 };
 
-                _capturedEvents.Enqueue(eventData);
+                EnqueueEvent(eventData);
             };
 
             Automation.AddAutomationEventHandler(TextPattern.TextChangedEvent, element, TreeScope.Subtree, handler);
@@ -324,6 +341,7 @@ namespace UIAutomationMCP.Subprocess.Monitor.Sessions
             {
                 if (!_isActive) return;
 
+                var (processId, windowHandle) = GetProcessAndWindowInfo(sender as AutomationElement);
                 var eventData = new PropertyChangedEventData
                 {
                     Timestamp = DateTime.UtcNow,
@@ -331,10 +349,12 @@ namespace UIAutomationMCP.Subprocess.Monitor.Sessions
                     SessionId = _sessionId,
                     PropertyId = e.Property.ProgrammaticName,
                     NewValue = e.NewValue?.ToString() ?? "null",
-                    OldValue = e.OldValue?.ToString() ?? "null"
+                    OldValue = e.OldValue?.ToString() ?? "null",
+                    ProcessId = processId,
+                    WindowHandle = windowHandle
                 };
 
-                _capturedEvents.Enqueue(eventData);
+                EnqueueEvent(eventData);
             };
 
             var properties = new[]
@@ -366,16 +386,19 @@ namespace UIAutomationMCP.Subprocess.Monitor.Sessions
             {
                 if (!_isActive) return;
 
+                var (processId, windowHandle) = GetProcessAndWindowInfo(sender as AutomationElement);
                 var eventData = new StructureChangedEventData
                 {
                     Timestamp = DateTime.UtcNow,
                     SourceElement = GetElementDescription(sender as AutomationElement),
                     SessionId = _sessionId,
                     StructureChangeType = e.StructureChangeType.ToString(),
-                    RuntimeId = e.GetRuntimeId()?.ToArray() ?? Array.Empty<int>()
+                    RuntimeId = e.GetRuntimeId()?.ToArray() ?? Array.Empty<int>(),
+                    ProcessId = processId,
+                    WindowHandle = windowHandle
                 };
 
-                _capturedEvents.Enqueue(eventData);
+                EnqueueEvent(eventData);
             };
 
             Automation.AddStructureChangedEventHandler(element, TreeScope.Subtree, handler);
@@ -415,15 +438,18 @@ namespace UIAutomationMCP.Subprocess.Monitor.Sessions
             {
                 if (!_isActive) return;
 
+                var (processId, windowHandle) = GetProcessAndWindowInfo(sender as AutomationElement);
                 var eventData = new GenericEventData(eventType)
                 {
                     Timestamp = DateTime.UtcNow,
                     SourceElement = GetElementDescription(sender as AutomationElement),
                     SessionId = _sessionId,
-                    EventId = e.EventId.ProgrammaticName
+                    EventId = e.EventId.ProgrammaticName,
+                    ProcessId = processId,
+                    WindowHandle = windowHandle
                 };
 
-                _capturedEvents.Enqueue(eventData);
+                EnqueueEvent(eventData);
             };
 
             Automation.AddAutomationEventHandler(automationEvent, element, TreeScope.Subtree, handler);
@@ -439,6 +465,67 @@ namespace UIAutomationMCP.Subprocess.Monitor.Sessions
                     _logger.LogError(ex, "Failed to remove {EventType} event handler in session {SessionId}", eventType, _sessionId);
                 }
             });
+        }
+
+        private void EnqueueEvent(TypedEventData eventData)
+        {
+            if (eventData.EventType.Equals("window.opened", StringComparison.OrdinalIgnoreCase) &&
+                eventData.ProcessId <= 0 &&
+                !eventData.WindowHandle.HasValue)
+            {
+                System.Threading.Interlocked.Increment(ref _discardedLowConfidenceEventCount);
+                _logger.LogDebug(
+                    "Discarding low-confidence window.opened payload in session {SessionId}: PID={ProcessId}, HWND={WindowHandle}",
+                    _sessionId,
+                    eventData.ProcessId,
+                    eventData.WindowHandle);
+                return;
+            }
+
+            _capturedEvents.Enqueue(eventData);
+
+            while (_capturedEvents.Count > MaxCapturedEvents && _capturedEvents.TryDequeue(out _))
+            {
+                System.Threading.Interlocked.Increment(ref _droppedEventCount);
+            }
+        }
+
+        private (int ProcessId, long? WindowHandle) GetProcessAndWindowInfo(AutomationElement? element)
+        {
+            if (element == null) return (0, null);
+
+            var processId = 0;
+            long? windowHandle = null;
+
+            try
+            {
+                processId = element.Current.ProcessId;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Failed to read ProcessId for event source in session {SessionId}", _sessionId);
+            }
+
+            try
+            {
+                var handle = element.Current.NativeWindowHandle;
+                if (handle != 0)
+                {
+                    windowHandle = (long)handle;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Failed to read NativeWindowHandle for event source in session {SessionId}", _sessionId);
+            }
+
+            if (processId <= 0 && !windowHandle.HasValue)
+            {
+                _logger.LogDebug("Event source payload is incomplete in session {SessionId}: PID={ProcessId}, HWND={WindowHandle}",
+                    _sessionId, processId, windowHandle);
+            }
+
+            return (processId, windowHandle);
         }
 
         private string GetElementDescription(AutomationElement? element)

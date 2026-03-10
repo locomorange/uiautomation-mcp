@@ -5,6 +5,7 @@ using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Models.Abstractions;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Logging;
+using UIAutomationMCP.Server.Services;
 
 namespace UIAutomationMCP.Server.Infrastructure
 {
@@ -17,6 +18,7 @@ namespace UIAutomationMCP.Server.Infrastructure
         private readonly SubprocessExecutor? _monitorExecutor;
         private readonly ILogger<ProcessManager> _logger;
         private IMcpLogService? _mcpLogService;
+        private bool _isDisposing = false;
         private bool _disposed = false;
 
         public ProcessManager(
@@ -66,6 +68,11 @@ namespace UIAutomationMCP.Server.Infrastructure
         {
             try
             {
+                if (_disposed || _isDisposing)
+                {
+                    return;
+                }
+
                 if (_mcpLogService != null)
                 {
                     await _mcpLogService.ProcessInterProcessLogAsync(logJson);
@@ -142,6 +149,16 @@ namespace UIAutomationMCP.Server.Infrastructure
                 return;
 
             _logger.LogInformation("Disposing ProcessManager");
+            _isDisposing = true;
+
+            if (_mcpLogService is LogRelayService logRelayService)
+            {
+                logRelayService.BeginShutdown();
+            }
+
+            _workerExecutor.SetLogMessageCallback(_ => Task.CompletedTask);
+            _monitorExecutor?.SetLogMessageCallback(_ => Task.CompletedTask);
+            _mcpLogService = null;
 
             try
             {
@@ -162,6 +179,7 @@ namespace UIAutomationMCP.Server.Infrastructure
             }
 
             _disposed = true;
+            _isDisposing = false;
             _logger.LogInformation("ProcessManager disposed");
         }
 
@@ -174,6 +192,16 @@ namespace UIAutomationMCP.Server.Infrastructure
                 return;
 
             _logger.LogInformation("Async disposing ProcessManager - waiting for operations to complete");
+            _isDisposing = true;
+
+            if (_mcpLogService is LogRelayService logRelayService)
+            {
+                logRelayService.BeginShutdown();
+            }
+
+            _workerExecutor.SetLogMessageCallback(_ => Task.CompletedTask);
+            _monitorExecutor?.SetLogMessageCallback(_ => Task.CompletedTask);
+            _mcpLogService = null;
 
             // Wait for Worker operations to complete
             if (_workerExecutor != null)
@@ -204,6 +232,7 @@ namespace UIAutomationMCP.Server.Infrastructure
             }
 
             _disposed = true;
+            _isDisposing = false;
             _logger.LogInformation("ProcessManager async disposal completed");
         }
     }

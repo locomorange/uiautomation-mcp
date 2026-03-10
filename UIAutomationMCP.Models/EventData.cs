@@ -14,10 +14,23 @@ namespace UIAutomationMCP.Models
     [JsonDerivedType(typeof(GenericEventData), "Generic")]
     public abstract class TypedEventData
     {
-        public string EventType { get; protected set; } = string.Empty;
+        [JsonPropertyName("eventType")]
+        public string EventType { get; set; } = string.Empty;
+
+        [JsonPropertyName("timestamp")]
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+
+        [JsonPropertyName("sourceElement")]
         public string SourceElement { get; set; } = string.Empty;
+
+        [JsonPropertyName("sessionId")]
         public string SessionId { get; set; } = string.Empty;
+
+        [JsonPropertyName("processId")]
+        public int ProcessId { get; set; }
+
+        [JsonPropertyName("windowHandle")]
+        public long? WindowHandle { get; set; }
     }
 
     /// <summary>

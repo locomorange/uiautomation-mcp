@@ -6,6 +6,7 @@ using UIAutomationMCP.Models.Abstractions;
 using UIAutomationMCP.Server.Infrastructure;
 using UIAutomationMCP.Server.Abstractions;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace UIAutomationMCP.Server.Services
 {
@@ -77,6 +78,68 @@ namespace UIAutomationMCP.Server.Services
                 _logger.LogError(ex, "Error capturing UI elements");
                 return new List<ElementInfo>();
             }
+        }
+
+        /// <summary>
+        /// Launch path専用のスナップショット取得。SearchElementsのタイムアウト時に段階的に再試行する。
+        /// </summary>
+        private async Task<List<ElementInfo>> CaptureLaunchSnapshotWithRetryAsync(
+            string snapshotName,
+            CancellationToken cancellationToken,
+            bool includeDetails = true)
+        {
+            var timeoutPlanSeconds = new[] { 10, 14, 20 };
+
+            for (var attempt = 0; attempt < timeoutPlanSeconds.Length; attempt++)
+            {
+                var timeoutSeconds = timeoutPlanSeconds[attempt];
+
+                try
+                {
+                    var elements = await CaptureAllElements(timeoutSeconds, cancellationToken, includeDetails);
+
+                    if (elements.Count > 0 || attempt == timeoutPlanSeconds.Length - 1)
+                    {
+                        if (attempt > 0)
+                        {
+                            _logger.LogInformation(
+                                "Launch snapshot {SnapshotName} succeeded on retry {Attempt}/{TotalAttempts} with timeout {TimeoutSeconds}s (elements: {ElementCount})",
+                                snapshotName,
+                                attempt + 1,
+                                timeoutPlanSeconds.Length,
+                                timeoutSeconds,
+                                elements.Count);
+                        }
+
+                        return elements;
+                    }
+
+                    _logger.LogWarning(
+                        "Launch snapshot {SnapshotName} returned 0 elements on attempt {Attempt}/{TotalAttempts} (timeout {TimeoutSeconds}s); retrying",
+                        snapshotName,
+                        attempt + 1,
+                        timeoutPlanSeconds.Length,
+                        timeoutSeconds);
+                }
+                catch (TimeoutException ex)
+                {
+                    _logger.LogWarning(
+                        ex,
+                        "Launch snapshot {SnapshotName} timed out on attempt {Attempt}/{TotalAttempts} (timeout {TimeoutSeconds}s)",
+                        snapshotName,
+                        attempt + 1,
+                        timeoutPlanSeconds.Length,
+                        timeoutSeconds);
+                }
+
+                if (attempt < timeoutPlanSeconds.Length - 1)
+                {
+                    var delayMs = 250 * (attempt + 1);
+                    await Task.Delay(delayMs, cancellationToken);
+                }
+            }
+
+            return new List<ElementInfo>();
         }
 
         /// <summary>
@@ -247,24 +310,45 @@ namespace UIAutomationMCP.Server.Services
                 return ProcessLaunchResponse.CreateError("Application is required");
 
             var detectionStopwatch = Stopwatch.StartNew();
+            string? sessionId = null;
 
             try
             {
-                // Capture baseline UI elements before launching (needed for all launch types)
-                // Include details for focus change detection
-                var beforeElements = await CaptureAllElements(timeoutSeconds, cancellationToken, includeDetails: true);
+                // Capture baseline UI elements (kept for fallback and focus detection)
+                var beforeElements = await CaptureLaunchSnapshotWithRetryAsync(
+                    "before-launch-baseline",
+                    cancellationToken,
+                    includeDetails: true);
                 _logger.LogInformation("Baseline elements for {Application}: {Count} elements", application, beforeElements.Count);
+
+                // Start monitoring for window.opened events before launch
+                try
+                {
+                    var startRequest = new StartEventMonitoringRequest
+                    {
+                        EventTypes = new[] { "window.opened" }
+                    };
+                    var startResult = await ExecuteMonitorServiceOperationAsync<StartEventMonitoringRequest, EventMonitoringStartResult>(
+                        "StartEventMonitoring", startRequest, "StartMonitoringForLaunch", 10);
+                    
+                    if (startResult.Success && startResult.Data != null)
+                    {
+                        sessionId = startResult.Data.SessionId;
+                        _logger.LogInformation("Started window.opened monitoring session {SessionId} for {Application}", sessionId, application);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to start monitoring session for {Application}. Proceeding with fallback detection.", application);
+                }
 
                 // Step 1: Try Win32 application launch
                 var win32LaunchResult = await TryLaunchWin32(application, arguments, workingDirectory, cancellationToken);
                 if (win32LaunchResult.LaunchSucceeded)
                 {
                     _logger.LogInformation("Win32 launch succeeded for {Application}, now detecting new elements", application);
-                    // Wait a moment for the application to create its UI elements
-                    await Task.Delay(1000, cancellationToken);
-
-                    var result = await WaitForElementsAndCreateResponse(beforeElements, application, "Win32", detectionStopwatch, cancellationToken);
-                    if (result != null) return result; // Returns either success or detection failure error
+                    var result = await WaitForElementsAndCreateResponse(beforeElements, application, "Win32", win32LaunchResult.LaunchedProcessId, sessionId, detectionStopwatch, cancellationToken);
+                    if (result != null) return result;
                 }
 
                 // Step 2: Try UWP application launch
@@ -272,26 +356,20 @@ namespace UIAutomationMCP.Server.Services
                 if (uwpLaunchResult.LaunchSucceeded)
                 {
                     _logger.LogInformation("UWP launch succeeded for {Application}, now detecting new elements", application);
-                    // Wait a moment for the application to create its UI elements
-                    await Task.Delay(1000, cancellationToken);
-
-                    var result = await WaitForElementsAndCreateResponse(beforeElements, application, "UWP", detectionStopwatch, cancellationToken);
-                    if (result != null) return result; // Returns either success or detection failure error
+                    var result = await WaitForElementsAndCreateResponse(beforeElements, application, "UWP", null, sessionId, detectionStopwatch, cancellationToken);
+                    if (result != null) return result;
                 }
 
                 // Step 3: Try Protocol URI launch (e.g., ms-settings:, mailto:, http:)
-                LaunchResult protocolLaunchResult = LaunchResult.Failure("Not attempted");
+                 LaunchResult protocolLaunchResult = LaunchResult.Failure("Not attempted");
                 if (IsProtocolUri(application))
                 {
                     protocolLaunchResult = await TryLaunchProtocolUri(application, cancellationToken);
                     if (protocolLaunchResult.LaunchSucceeded)
                     {
                         _logger.LogInformation("Protocol URI launch succeeded for {Application}, now detecting new elements", application);
-                        // Protocol URIs may take longer to show UI elements
-                        await Task.Delay(2000, cancellationToken);
-
-                        var result = await WaitForElementsAndCreateResponse(beforeElements, application, "Protocol URI", detectionStopwatch, cancellationToken);
-                        if (result != null) return result; // Returns either success or detection failure error
+                        var result = await WaitForElementsAndCreateResponse(beforeElements, application, "Protocol URI", null, sessionId, detectionStopwatch, cancellationToken);
+                        if (result != null) return result;
                     }
                 }
 
@@ -308,6 +386,23 @@ namespace UIAutomationMCP.Server.Services
                 _logger.LogError(ex, "Error launching application: {Application}", application);
                 return ProcessLaunchResponse.CreateError($"Exception during launch: {ex.Message}");
             }
+            finally
+            {
+                // Ensure monitoring session is stopped
+                if (!string.IsNullOrEmpty(sessionId))
+                {
+                    try
+                    {
+                        var stopRequest = new StopEventMonitoringRequest { MonitorId = sessionId };
+                        await ExecuteMonitorServiceOperationAsync<StopEventMonitoringRequest, EventMonitoringStopResult>(
+                            "StopEventMonitoring", stopRequest, "StopMonitoringAfterLaunch", 10);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to stop monitoring session {SessionId}", sessionId);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -322,42 +417,477 @@ namespace UIAutomationMCP.Server.Services
                    !application.StartsWith("\\\\"); // Not a UNC path
         }
 
-        /// <summary>
-        /// Wait for new UI elements and create success response after launch
-        /// </summary>
         private async Task<ProcessLaunchResponse> WaitForElementsAndCreateResponse(
             List<ElementInfo> beforeElements,
             string application,
             string launchType,
+            int? launchedProcessId,
+            string? monitoringSessionId,
             Stopwatch detectionStopwatch,
             CancellationToken cancellationToken)
         {
-            // Wait for new elements to appear - protocol URIs might need slightly longer
-            var waitTimeMs = launchType == "Protocol URI" ? 10000 : 8000;
-            var newElements = await WaitForNewElements(beforeElements, application, waitTimeMs, cancellationToken);
-            _logger.LogInformation("Found {Count} new elements after {LaunchType} launch", newElements.Count, launchType);
+            var waitTimeMs = launchType == "Protocol URI" ? 15000 : 12000;
+            const int pollIntervalMs = 100;
+            const int stabilizationWindowMs = 700;
+            var stopwatch = Stopwatch.StartNew();
+            var allOpenedEvents = new List<TypedEventData>();
+            TypedEventData? bestEvent = null;
+            TypedEventData? lastEventWithHwnd = null;
+            var bestScore = int.MinValue;
+            long? firstCandidateSeenAtMs = null;
+            var stabilizationExtended = false;
 
-            if (newElements.Any())
+            // Event-driven detection phase (primary)
+            if (!string.IsNullOrEmpty(monitoringSessionId))
             {
-                detectionStopwatch.Stop();
-                return CreateSuccessResponseFromElements(newElements, application, launchType, detectionStopwatch.ElapsedMilliseconds);
+                while (stopwatch.ElapsedMilliseconds < waitTimeMs && !cancellationToken.IsCancellationRequested)
+                {
+                    try
+                    {
+                        var logRequest = new GetEventLogRequest
+                        {
+                            MonitorId = monitoringSessionId,
+                            MaxCount = 200,
+                            PreserveEvents = true
+                        };
+                        var logResult = await ExecuteMonitorServiceOperationAsync<GetEventLogRequest, EventLogResult>(
+                            "GetEventLog", logRequest, "ProcessEventsDuringLaunch", 10);
+
+                        if (logResult.Success && logResult.Data?.Events != null)
+                        {
+                            var openedEvents = logResult.Data.Events
+                                .Where(IsWindowOpenedEvent)
+                                .ToList();
+
+                            if (openedEvents.Count > 0)
+                            {
+                                allOpenedEvents.AddRange(openedEvents);
+
+                                var candidateWithHwnd = openedEvents
+                                    .Where(e => e.WindowHandle.HasValue)
+                                    .OrderByDescending(e => ScoreWindowEvent(e, launchedProcessId, application))
+                                    .ThenByDescending(e => e.Timestamp)
+                                    .FirstOrDefault();
+
+                                if (candidateWithHwnd != null)
+                                {
+                                    lastEventWithHwnd = candidateWithHwnd;
+                                }
+
+                                var candidate = SelectBestWindowEvent(allOpenedEvents, launchedProcessId, application);
+                                if (candidate != null)
+                                {
+                                    var candidateScore = ScoreWindowEvent(candidate, launchedProcessId, application);
+                                    if (candidateScore > bestScore ||
+                                        (candidateScore == bestScore &&
+                                         (bestEvent == null || candidate.Timestamp > bestEvent.Timestamp)))
+                                    {
+                                        bestEvent = candidate;
+                                        bestScore = candidateScore;
+                                    }
+
+                                    if (!firstCandidateSeenAtMs.HasValue)
+                                    {
+                                        firstCandidateSeenAtMs = stopwatch.ElapsedMilliseconds;
+                                        _logger.LogDebug(
+                                            "First window.opened candidate seen for {Application}; starting stabilization window of {StabilizationWindowMs}ms",
+                                            application,
+                                            stabilizationWindowMs);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error during event-based detection for {Application}", application);
+                    }
+
+                    if (firstCandidateSeenAtMs.HasValue &&
+                        stopwatch.ElapsedMilliseconds - firstCandidateSeenAtMs.Value >= stabilizationWindowMs)
+                    {
+                        if (bestEvent?.WindowHandle.HasValue == true)
+                        {
+                            detectionStopwatch.Stop();
+                            _logger.LogInformation(
+                                "Detected window via stabilized window.opened event: 0x{Handle:X}, PID: {Pid}, Score: {Score}",
+                                bestEvent.WindowHandle.Value,
+                                bestEvent.ProcessId,
+                                bestScore);
+
+                            var responseProcessId = bestEvent.ProcessId != 0
+                                ? bestEvent.ProcessId
+                                : launchedProcessId.GetValueOrDefault();
+
+                            return ProcessLaunchResponse.CreateSuccess(
+                                responseProcessId,
+                                application,
+                                false,
+                                bestEvent.SourceElement,
+                                bestEvent.WindowHandle.Value,
+                                usedEventBasedDetection: true);
+                        }
+
+                        if (!stabilizationExtended)
+                        {
+                            stabilizationExtended = true;
+                            firstCandidateSeenAtMs = stopwatch.ElapsedMilliseconds - (stabilizationWindowMs - 300);
+                            _logger.LogDebug(
+                                "Window.opened candidate found for {Application} but no HWND yet; extending stabilization window by 300ms",
+                                application);
+                        }
+                        else if (lastEventWithHwnd?.WindowHandle.HasValue == true)
+                        {
+                            detectionStopwatch.Stop();
+                            var responseProcessId = lastEventWithHwnd.ProcessId != 0
+                                ? lastEventWithHwnd.ProcessId
+                                : launchedProcessId.GetValueOrDefault();
+
+                            _logger.LogInformation(
+                                "Detected window via last window.opened event with HWND after stabilization: 0x{Handle:X}, PID: {Pid}, Score: {Score}",
+                                lastEventWithHwnd.WindowHandle.Value,
+                                responseProcessId,
+                                ScoreWindowEvent(lastEventWithHwnd, launchedProcessId, application));
+
+                            return ProcessLaunchResponse.CreateSuccess(
+                                responseProcessId,
+                                application,
+                                false,
+                                lastEventWithHwnd.SourceElement,
+                                lastEventWithHwnd.WindowHandle.Value,
+                                usedEventBasedDetection: true);
+                        }
+
+                        _logger.LogDebug(
+                            "Window.opened candidate found for {Application} but no HWND yet; continuing event polling",
+                            application);
+                    }
+
+                    await Task.Delay(pollIntervalMs, cancellationToken);
+                }
+            }
+            else
+            {
+                _logger.LogDebug("No monitoring session available for {Application}; skipping event-based detection phase", application);
             }
 
-            // Fallback: Check for focus changes (existing window activation)
-            _logger.LogInformation("No new windows detected for {LaunchType} launch, checking for focus changes", launchType);
+            // Final safety net: focus-change detection.
             var currentElements = await CaptureAllElements(10, cancellationToken, includeDetails: true);
             var activatedElements = FindActivatedElements(beforeElements, currentElements);
+
+            if (launchedProcessId.HasValue && launchedProcessId.Value > 0)
+            {
+                activatedElements = activatedElements
+                    .Where(e => e.ProcessId == launchedProcessId.Value)
+                    .ToList();
+            }
 
             if (activatedElements.Any())
             {
                 detectionStopwatch.Stop();
-                _logger.LogInformation("Detected window activation via focus change for {LaunchType} launch", launchType);
+                _logger.LogInformation("Detected window via focus change for {Application}", application);
                 return CreateSuccessResponseFromElements(activatedElements, application, $"{launchType} (Activated)", detectionStopwatch.ElapsedMilliseconds);
             }
 
-            // Application launch succeeded but no windows were detected
-            _logger.LogInformation("Application launched successfully but window not detected for {Application}. Window may be minimized, not focused, or in taskbar notification state", application);
-            return ProcessLaunchResponse.CreateError($"Application launched successfully but window not detected: {application}. Window may be minimized, not focused, or in taskbar notification state.");
+            // Final event snapshot before giving up.
+            if (!string.IsNullOrEmpty(monitoringSessionId))
+            {
+                try
+                {
+                    // First, try resolving from best in-memory candidate collected during polling.
+                    if (bestEvent != null)
+                    {
+                        var inMemoryResolved = await TryResolveWindowHandleFromSourceElementAsync(bestEvent, launchedProcessId, application, cancellationToken);
+                        if (inMemoryResolved.HasValue)
+                        {
+                            detectionStopwatch.Stop();
+                            var responseProcessId = bestEvent.ProcessId != 0
+                                ? bestEvent.ProcessId
+                                : launchedProcessId.GetValueOrDefault();
+
+                            _logger.LogInformation(
+                                "Resolved HWND from in-memory window.opened candidate: 0x{Handle:X}, PID: {Pid}",
+                                inMemoryResolved.Value,
+                                responseProcessId);
+
+                            return ProcessLaunchResponse.CreateSuccess(
+                                responseProcessId,
+                                application,
+                                false,
+                                bestEvent.SourceElement,
+                                inMemoryResolved.Value,
+                                usedEventBasedDetection: true);
+                        }
+                    }
+
+                    var finalLogRequest = new GetEventLogRequest
+                    {
+                        MonitorId = monitoringSessionId,
+                        MaxCount = 200,
+                        PreserveEvents = false
+                    };
+                    var finalLogResult = await ExecuteMonitorServiceOperationAsync<GetEventLogRequest, EventLogResult>(
+                        "GetEventLog", finalLogRequest, "FinalEventSnapshotDuringLaunch", 10);
+
+                    if (finalLogResult.Success && finalLogResult.Data?.Events != null)
+                    {
+                        var openedEvents = finalLogResult.Data.Events
+                            .Where(IsWindowOpenedEvent)
+                            .ToList();
+
+                        var candidate = SelectBestWindowEvent(openedEvents, launchedProcessId, application);
+                        if (candidate?.WindowHandle.HasValue == true)
+                        {
+                            detectionStopwatch.Stop();
+                            var responseProcessId = candidate.ProcessId != 0
+                                ? candidate.ProcessId
+                                : launchedProcessId.GetValueOrDefault();
+
+                            _logger.LogInformation(
+                                "Detected window from final window.opened snapshot: 0x{Handle:X}, PID: {Pid}",
+                                candidate.WindowHandle.Value,
+                                responseProcessId);
+
+                            return ProcessLaunchResponse.CreateSuccess(
+                                responseProcessId,
+                                application,
+                                false,
+                                candidate.SourceElement,
+                                candidate.WindowHandle.Value,
+                                usedEventBasedDetection: true);
+                        }
+
+                        var sourceResolved = await TryResolveWindowHandleFromSourceElementAsync(candidate, launchedProcessId, application, cancellationToken);
+                        if (sourceResolved.HasValue)
+                        {
+                            detectionStopwatch.Stop();
+                            var responseProcessId = candidate!.ProcessId != 0
+                                ? candidate.ProcessId
+                                : launchedProcessId.GetValueOrDefault();
+
+                            _logger.LogInformation(
+                                "Resolved HWND from final window.opened snapshot source: 0x{Handle:X}, PID: {Pid}",
+                                sourceResolved.Value,
+                                responseProcessId);
+
+                            return ProcessLaunchResponse.CreateSuccess(
+                                responseProcessId,
+                                application,
+                                false,
+                                candidate.SourceElement,
+                                sourceResolved.Value,
+                                usedEventBasedDetection: true);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Final event snapshot failed for {Application}", application);
+                }
+            }
+
+            // Win32 helper fallback: if launch PID is known, try main window handle directly.
+            if (launchedProcessId.HasValue && launchedProcessId.Value > 0)
+            {
+                var processWindowHandle = await TryGetMainWindowHandleAsync(launchedProcessId.Value, cancellationToken);
+                if (processWindowHandle.HasValue)
+                {
+                    detectionStopwatch.Stop();
+                    _logger.LogInformation(
+                        "Detected window via process main window fallback: 0x{Handle:X}, PID: {Pid}",
+                        processWindowHandle.Value,
+                        launchedProcessId.Value);
+
+                    return ProcessLaunchResponse.CreateSuccess(
+                        launchedProcessId.Value,
+                        application,
+                        false,
+                        "Application launched",
+                        processWindowHandle.Value,
+                        usedEventBasedDetection: false);
+                }
+            }
+
+            _logger.LogWarning("Window detection timed out for {Application} after {Elapsed}ms", application, stopwatch.ElapsedMilliseconds);
+            return ProcessLaunchResponse.CreateError($"Application launched successfully but window not detected: {application}.");
+        }
+
+        private static async Task<long?> TryGetMainWindowHandleAsync(int processId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var process = Process.GetProcessById(processId);
+
+                for (var i = 0; i < 10 && !cancellationToken.IsCancellationRequested; i++)
+                {
+                    process.Refresh();
+                    var handle = process.MainWindowHandle;
+                    if (handle != IntPtr.Zero)
+                    {
+                        return handle.ToInt64();
+                    }
+
+                    await Task.Delay(200, cancellationToken);
+                }
+            }
+            catch
+            {
+                // Best-effort fallback only.
+            }
+
+            return null;
+        }
+
+        private async Task<long?> TryResolveWindowHandleFromSourceElementAsync(TypedEventData? eventData, int? launchedProcessId, string application, CancellationToken cancellationToken)
+        {
+            if (eventData == null)
+            {
+                return null;
+            }
+
+            // Source format is typically: "System.Windows.Automation.ControlType 'Title' (AutomationId: ...)"
+            var title = string.Empty;
+            if (!string.IsNullOrWhiteSpace(eventData.SourceElement))
+            {
+                var match = Regex.Match(eventData.SourceElement, "'(?<title>[^']+)'", RegexOptions.CultureInvariant);
+                if (match.Success)
+                {
+                    title = match.Groups["title"].Value;
+                }
+            }
+
+            var cleanAppName = Path.GetFileNameWithoutExtension(application);
+
+            try
+            {
+                var searchResult = await ExecuteServiceOperationAsync<SearchElementsRequest, SearchElementsResult>(
+                    "SearchElements",
+                    new SearchElementsRequest
+                    {
+                        ControlType = "Window",
+                        Scope = "children",
+                        MaxResults = 20,
+                        BypassCache = true
+                    },
+                    nameof(TryResolveWindowHandleFromSourceElementAsync),
+                    10);
+
+                if (searchResult.Success && searchResult.Data?.Elements != null)
+                {
+                    var matched = searchResult.Data.Elements
+                        .Where(e => e.WindowHandle.HasValue)
+                        .OrderByDescending(e =>
+                        {
+                            var score = 0;
+
+                            if (!string.IsNullOrWhiteSpace(title) &&
+                                !string.IsNullOrWhiteSpace(e.Name) &&
+                                e.Name.Contains(title, StringComparison.OrdinalIgnoreCase))
+                            {
+                                score += 80;
+                            }
+
+                            if (!string.IsNullOrWhiteSpace(e.Name) &&
+                                (e.Name.Contains(cleanAppName, StringComparison.OrdinalIgnoreCase) ||
+                                 e.Name.Contains(application, StringComparison.OrdinalIgnoreCase)))
+                            {
+                                score += 40;
+                            }
+
+                            if (launchedProcessId.HasValue && launchedProcessId.Value > 0 && e.ProcessId == launchedProcessId.Value)
+                            {
+                                score += 60;
+                            }
+
+                            return score;
+                        })
+                        .ThenByDescending(e => e.WindowHandle)
+                        .FirstOrDefault();
+
+                    if (matched?.WindowHandle.HasValue == true)
+                    {
+                        return matched.WindowHandle.Value;
+                    }
+                }
+            }
+            catch
+            {
+                // Best effort only.
+            }
+
+            return null;
+        }
+
+        private TypedEventData? SelectBestWindowEvent(List<TypedEventData> events, int? launchedProcessId, string appName)
+        {
+            return events
+                .OrderByDescending(e => ScoreWindowEvent(e, launchedProcessId, appName))
+                .ThenByDescending(e => e.Timestamp)
+                .FirstOrDefault();
+        }
+
+        private static int ScoreWindowEvent(TypedEventData eventData, int? launchedProcessId, string appName)
+        {
+            var score = 0;
+            var cleanAppName = Path.GetFileNameWithoutExtension(appName);
+            var launchedProcessIdValue = launchedProcessId.GetValueOrDefault();
+            var launchedProcessKnown = launchedProcessIdValue > 0;
+
+            if (launchedProcessKnown && eventData.ProcessId == launchedProcessIdValue)
+            {
+                score += 100;
+            }
+
+            if (eventData.ProcessId <= 0)
+            {
+                score -= 15;
+            }
+
+            if (eventData.WindowHandle.HasValue)
+            {
+                score += 40;
+            }
+
+            if (!string.IsNullOrWhiteSpace(eventData.SourceElement) &&
+                (eventData.SourceElement.Contains(cleanAppName, StringComparison.OrdinalIgnoreCase) ||
+                 eventData.SourceElement.Contains(appName, StringComparison.OrdinalIgnoreCase)))
+            {
+                score += 25;
+            }
+
+            if (!launchedProcessKnown &&
+                !string.IsNullOrWhiteSpace(eventData.SourceElement) &&
+                eventData.SourceElement.Contains(cleanAppName, StringComparison.OrdinalIgnoreCase))
+            {
+                score += 20;
+            }
+
+            if (eventData.EventType.Equals("window.opened", StringComparison.OrdinalIgnoreCase))
+            {
+                score += 10;
+            }
+
+            return score;
+        }
+
+        private static bool IsWindowOpenedEvent(TypedEventData eventData)
+        {
+            if (eventData.EventType.Equals("window.opened", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            var eventId = eventData switch
+            {
+                GenericEventData generic => generic.EventId,
+                InvokeEventData invoke => invoke.EventId,
+                SelectionEventData selection => selection.EventId,
+                TextChangedEventData text => text.EventId,
+                _ => string.Empty
+            };
+
+            return !string.IsNullOrWhiteSpace(eventId) &&
+                   eventId.Contains("WindowOpened", StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -713,7 +1243,8 @@ namespace UIAutomationMCP.Server.Services
                 metadata.ProcessName = response.ProcessName ?? "";
                 metadata.HasExited = response.HasExited;
                 metadata.ActionPerformed = "applicationLaunched";
-                metadata.UsedUIAutomationDetection = true; // Now using element-based detection with SearchElements
+                metadata.UsedUIAutomationDetection = true; 
+                metadata.UsedEventBasedDetection = response.UsedEventBasedDetection;
             }
 
             return metadata;
