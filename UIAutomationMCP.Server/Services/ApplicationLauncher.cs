@@ -572,7 +572,10 @@ namespace UIAutomationMCP.Server.Services
             }
 
             // Final safety net: focus-change detection.
-            var currentElements = await CaptureAllElements(10, cancellationToken, includeDetails: true);
+            var currentElements = await CaptureLaunchSnapshotWithRetryAsync(
+                "post-launch-focus-check",
+                cancellationToken,
+                includeDetails: true);
             var activatedElements = FindActivatedElements(beforeElements, currentElements);
 
             if (launchedProcessId.HasValue && launchedProcessId.Value > 0)
