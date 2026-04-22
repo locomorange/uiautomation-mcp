@@ -8,7 +8,7 @@ namespace UIAutomationMCP.Subprocess.Monitor.Infrastructure
     /// <summary>
     /// Manages event monitoring sessions in the Monitor process
     /// </summary>
-    public class SessionManager
+    public class SessionManager : IDisposable
     {
         private readonly ConcurrentDictionary<string, EventMonitoringSession> _activeSessions = new();
         private readonly ILogger<SessionManager> _logger;

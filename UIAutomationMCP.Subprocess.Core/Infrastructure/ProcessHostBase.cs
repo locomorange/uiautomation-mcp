@@ -19,12 +19,16 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
         protected readonly ILogger _logger;
         protected readonly IServiceProvider _serviceProvider;
         private readonly ConcurrentDictionary<string, Task> _runningOperations = new();
+        private readonly Stream _stdin;
+        private readonly Stream _stdout;
         private volatile bool _shutdownRequested = false;
 
         protected ProcessHostBase(ILogger logger, IServiceProvider serviceProvider)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
+            _stdin = Console.OpenStandardInput();
+            _stdout = Console.OpenStandardOutput();
         }
 
         /// <summary>
@@ -42,7 +46,7 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
                     try
                     {
                         // Read length-prefixed UTF-8 JSON data
-                        requestData = await ReadUtf8JsonRequestAsync(Console.OpenStandardInput());
+                        requestData = await ReadUtf8JsonRequestAsync(_stdin);
                         if (requestData == null)
                         {
                             _logger.LogInformation("Standard input closed, waiting for running operations to complete in {ProcessType} process", GetProcessType());
@@ -329,11 +333,11 @@ namespace UIAutomationMCP.Subprocess.Core.Infrastructure
 
                 // Write length prefix
                 byte[] lengthBytes = BitConverter.GetBytes(responseData.Length);
-                await Console.OpenStandardOutput().WriteAsync(lengthBytes, 0, 4);
+                await _stdout.WriteAsync(lengthBytes, 0, 4);
 
                 // Write UTF-8 JSON data
-                await Console.OpenStandardOutput().WriteAsync(responseData, 0, responseData.Length);
-                await Console.OpenStandardOutput().FlushAsync();
+                await _stdout.WriteAsync(responseData, 0, responseData.Length);
+                await _stdout.FlushAsync();
 
                 _logger.LogDebug("UTF-8 JSON response written successfully. Length: {Length} bytes", responseData.Length);
             }
