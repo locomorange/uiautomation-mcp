@@ -110,10 +110,15 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
                 {
                     AutomationId = request.AutomationId,
                     Name = request.Name,
+                    ClassName = request.ClassName,
                     ControlType = request.ControlType,
                     WindowTitle = request.WindowTitle,
                     Scope = request.Scope,
                     WindowHandle = request.WindowHandle,
+                    // VisibleOnly defaults to true in the request: SearchElements excludes
+                    // offscreen elements (IsOffscreen=false) unless the caller opts out.
+                    VisibleOnly = request.VisibleOnly,
+                    EnabledOnly = request.EnabledOnly,
                     // Use the explicit parameter from request, with fallback logic for backward compatibility
                     UseWindowHandleAsFilter = request.UseWindowHandleAsFilter ||
                         (request.WindowHandle.HasValue && !string.IsNullOrEmpty(request.WindowTitle))
