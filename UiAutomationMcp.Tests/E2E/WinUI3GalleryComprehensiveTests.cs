@@ -131,6 +131,97 @@ namespace UIAutomationMCP.Tests.E2E
             Assert.NotNull(buttons);
         }
 
+        [Fact]
+        public async Task Test_05b_SearchElements_ClassNameFilter_ReturnsOnlyMatchingClass()
+        {
+            // Regression guard: the worker previously ignored the advertised `className` parameter,
+            // so a className filter had no effect. It must now return only elements of that class.
+            Output.WriteLine("=== Testing SearchElements className filter ===");
+
+            // Baseline: unfiltered, window-scoped. visibleOnly:false so the class distribution
+            // reflects the whole tree and is not affected by on/off-screen state.
+            var allResponse = (await Tools.SearchElements(
+                windowTitle: WindowTitle, scope: "descendants", visibleOnly: false, maxResults: 4000)).ToJsonElement();
+            var allElements = GetElements(allResponse);
+            Assert.True(allElements.Count > 0, "Baseline window-scoped search should find elements");
+
+            // Choose the most common className present so the filtered set is meaningful and
+            // strictly smaller than the whole tree (there is always more than one className).
+            var targetClass = allElements
+                .Select(e => GetStr(e, "className"))
+                .Where(s => s.Length > 0)
+                .GroupBy(s => s)
+                .OrderByDescending(g => g.Count())
+                .Select(g => g.Key)
+                .FirstOrDefault();
+            Assert.False(string.IsNullOrEmpty(targetClass), "Baseline elements should expose a className");
+            Output.WriteLine($"Filtering by className: '{targetClass}'");
+
+            var filteredResponse = (await Tools.SearchElements(
+                windowTitle: WindowTitle, className: targetClass, scope: "descendants",
+                visibleOnly: false, maxResults: 4000)).ToJsonElement();
+            var filteredElements = GetElements(filteredResponse);
+            int totalAll = GetTotalFound(allResponse);
+            int totalFiltered = GetTotalFound(filteredResponse);
+            Output.WriteLine($"Unfiltered totalFound={totalAll}, className-filtered totalFound={totalFiltered}");
+
+            Assert.True(filteredElements.Count > 0, $"className '{targetClass}' should match at least one element");
+            Assert.True(totalFiltered < totalAll,
+                "className filter must exclude elements of other classes (filtered < unfiltered)");
+
+            // Every returned element must actually carry the requested className.
+            foreach (var el in filteredElements)
+            {
+                var className = GetStr(el, "className");
+                Assert.Equal(targetClass, className);
+            }
+
+            // A className that cannot exist must return nothing (proves the filter is applied,
+            // not ignored — the pre-fix behavior returned the whole tree).
+            var bogusResponse = (await Tools.SearchElements(
+                windowTitle: WindowTitle, className: "ZZ_NoSuchClass_QWERTY_123", scope: "descendants",
+                visibleOnly: false, maxResults: 4000)).ToJsonElement();
+            Assert.Equal(0, GetTotalFound(bogusResponse));
+            Assert.Empty(GetElements(bogusResponse));
+        }
+
+        [Fact]
+        public async Task Test_05c_SearchElements_VisibleOnly_ExcludesOffscreenElements()
+        {
+            // Regression guard: the worker previously ignored the advertised `visibleOnly` parameter.
+            // With visibleOnly (default true) wired in, offscreen elements (IsOffscreen=true) must be
+            // excluded, whereas visibleOnly:false returns them.
+            Output.WriteLine("=== Testing SearchElements visibleOnly excludes offscreen elements ===");
+
+            var inclusiveResponse = (await Tools.SearchElements(
+                windowTitle: WindowTitle, scope: "descendants", visibleOnly: false, maxResults: 4000)).ToJsonElement();
+            var visibleOnlyResponse = (await Tools.SearchElements(
+                windowTitle: WindowTitle, scope: "descendants", visibleOnly: true, maxResults: 4000)).ToJsonElement();
+
+            // An element is offscreen only when its isOffscreen property is literally true.
+            static bool IsOffscreen(JsonElement e) =>
+                e.TryGetPropertyCI("isOffscreen", out var v) && v.ValueKind == JsonValueKind.True;
+
+            var inclusiveElements = GetElements(inclusiveResponse);
+            var visibleElements = GetElements(visibleOnlyResponse);
+            int inclusiveOffscreen = inclusiveElements.Count(IsOffscreen);
+            int visibleOffscreen = visibleElements.Count(IsOffscreen);
+            Output.WriteLine($"visibleOnly=false: total={GetTotalFound(inclusiveResponse)} offscreen={inclusiveOffscreen}");
+            Output.WriteLine($"visibleOnly=true:  total={GetTotalFound(visibleOnlyResponse)} offscreen={visibleOffscreen}");
+
+            // The WinUI 3 Gallery tree always contains offscreen elements (collapsed pages,
+            // virtualized/below-the-fold list & grid items). Without the filter they are returned.
+            Assert.True(inclusiveOffscreen > 0,
+                "visibleOnly:false should return at least one offscreen element");
+
+            // With the filter on, none of the returned elements may be offscreen...
+            Assert.Equal(0, visibleOffscreen);
+
+            // ...and excluding the offscreen elements must strictly reduce the total.
+            Assert.True(GetTotalFound(visibleOnlyResponse) < GetTotalFound(inclusiveResponse),
+                "visibleOnly:true must return fewer elements than visibleOnly:false");
+        }
+
         #endregion
 
         #region Application Management Tools
@@ -191,9 +282,12 @@ namespace UIAutomationMCP.Tests.E2E
             try
             {
                 // Step 1: Capture selection state of nav items BEFORE navigating.
+                // visibleOnly:false because nav items scrolled out of the NavigationView pane
+                // (or when the window is not foreground) report IsOffscreen=true; this test cares
+                // about the item's existence/selection state, not its on-screen visibility.
                 Output.WriteLine("1. Capturing initial nav selection state...");
                 var beforeNav = await Tools.SearchElements(
-                    controlType: "ListItem", windowTitle: WindowTitle, includeDetails: true);
+                    controlType: "ListItem", windowTitle: WindowTitle, visibleOnly: false, includeDetails: true);
                 bool foundBefore = TryGetNavItemSelected(beforeNav, targetNavId, out bool selectedBefore);
                 Assert.True(foundBefore, $"Nav item '{targetNavId}' should exist in the WinUI 3 Gallery navigation");
                 Output.WriteLine($"  {targetNavId} selected before navigation: {selectedBefore}");
@@ -214,7 +308,7 @@ namespace UIAutomationMCP.Tests.E2E
                 {
                     await Task.Delay(500);
                     var afterNav = await Tools.SearchElements(
-                        controlType: "ListItem", windowTitle: WindowTitle, includeDetails: true);
+                        controlType: "ListItem", windowTitle: WindowTitle, visibleOnly: false, includeDetails: true);
                     if (TryGetNavItemSelected(afterNav, targetNavId, out selectedAfter) && selectedAfter)
                         break;
                 }
