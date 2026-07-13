@@ -169,7 +169,7 @@ namespace UiAutomationMcp.Tests.Integration
         }
 
         [Fact]
-        public async Task WorkerProcess_ShouldHandleTimeouts()
+        public async Task WorkerProcess_ShouldFailFast_WhenElementNotFound()
         {
             // Arrange
             var request = new InvokeElementRequest
@@ -179,11 +179,11 @@ namespace UiAutomationMcp.Tests.Integration
             };
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<TimeoutException>(async () =>
-                await _subprocessExecutor.ExecuteAsync<InvokeElementRequest, ActionResult>("InvokeElement", request, 1)); // 1                         
-            // Worker searches for element and times out due to missing element
-            Assert.Contains("timed out", exception.Message);
-            _output.WriteLine($"Timeout handling test completed: {exception.Message}");
+            // Element lookup fails fast with a not-found error instead of consuming the timeout
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await _subprocessExecutor.ExecuteAsync<InvokeElementRequest, ActionResult>("InvokeElement", request, 1));
+            Assert.Contains("not found", exception.Message);
+            _output.WriteLine($"Fail-fast handling test completed: {exception.Message}");
         }
 
         public void Dispose()
