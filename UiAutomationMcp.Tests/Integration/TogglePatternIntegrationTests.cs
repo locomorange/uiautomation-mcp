@@ -8,7 +8,7 @@ using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
 using Xunit.Abstractions;
 using System.Diagnostics;
-
+using UIAutomationMCP.Tests.E2E;
 using UIAutomationMCP.Server.Abstractions;
 using Moq;
 namespace UIAutomationMCP.Tests.Integration
@@ -37,16 +37,17 @@ namespace UIAutomationMCP.Tests.Integration
             _serviceProvider = services.BuildServiceProvider();
             var logger = _serviceProvider.GetRequiredService<ILogger<SubprocessExecutor>>();
 
-            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            var possiblePaths = new[]
-            {
-                Path.Combine(baseDir, "UIAutomationMCP.Worker.exe"),
-                Path.Combine(baseDir, "..", "UIAutomationMCP.Worker", "bin", "Debug", "net9.0-windows", "UIAutomationMCP.Worker.exe"),
-                Path.Combine(baseDir, "worker", "UIAutomationMCP.Worker.exe"),
-            };
+            // Resolve Worker path using ExecutablePathResolver
+            var baseDir = ExecutablePathResolver.GetExecutableRealPath();
+            var workerPath = ExecutablePathResolver.ResolveWorkerPath(baseDir);
 
-            _workerPath = possiblePaths.FirstOrDefault(File.Exists) ??
-                throw new InvalidOperationException("Worker executable not found");
+            if (workerPath == null || (!File.Exists(workerPath) && !Directory.Exists(workerPath)))
+            {
+                var searchedPaths = ExecutablePathResolver.GetSearchedPaths("UIAutomationMCP.Subprocess.Worker", baseDir);
+                throw new InvalidOperationException($"Worker executable not found. Searched paths: {string.Join(", ", searchedPaths)}");
+            }
+
+            _workerPath = workerPath!;
 
             _subprocessExecutor = new SubprocessExecutor(logger, _workerPath, new CancellationTokenSource());
 
@@ -241,7 +242,8 @@ namespace UIAutomationMCP.Tests.Integration
             }
             finally
             {
-                await SafelyTerminateProcessAsync(calcProcess, "Calculator");
+                if (calcProcess != null)
+                    await ProcessCleanupHelper.CleanupProcess(calcProcess, _output, "Calculator");
             }
         }
 
@@ -363,38 +365,6 @@ namespace UIAutomationMCP.Tests.Integration
         }
 
         #endregion
-
-        private async Task SafelyTerminateProcessAsync(Process? process, string appName)
-        {
-            if (process == null) return;
-
-            try
-            {
-                if (!process.HasExited)
-                {
-                    _output.WriteLine($"Terminating {appName} with PID: {process.Id}");
-
-                    //                                      process.CloseMainWindow();
-
-                    //                                          if (!process.WaitForExit(2000))
-                    {
-                        _output.WriteLine($"Force killing {appName} with PID: {process.Id}");
-                        process.Kill();
-                        await process.WaitForExitAsync();
-                    }
-
-                    _output.WriteLine($"{appName} with PID: {process.Id} terminated successfully");
-                }
-            }
-            catch (Exception ex)
-            {
-                _output.WriteLine($"Error terminating {appName}: {ex.Message}");
-            }
-            finally
-            {
-                process?.Dispose();
-            }
-        }
 
         public void Dispose()
         {

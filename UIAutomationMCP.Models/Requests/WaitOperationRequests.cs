@@ -4,15 +4,9 @@ namespace UIAutomationMCP.Models.Requests
 {
     // === Wait操作 ===
 
-    public class WaitForInputIdleRequest : TypedWorkerRequest
+    public class WaitForInputIdleRequest : ElementTargetRequest
     {
         public override string Operation => "WaitForInputIdle";
-
-        [JsonPropertyName("windowTitle")]
-        public string? WindowTitle { get; set; }
-
-        [JsonPropertyName("windowHandle")]
-        public long? WindowHandle { get; set; }
 
         [JsonPropertyName("timeoutMilliseconds")]
         public int TimeoutMilliseconds { get; set; } = 10000;

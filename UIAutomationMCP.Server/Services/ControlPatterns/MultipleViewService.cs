@@ -19,25 +19,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
         protected override string GetOperationType() => "multipleView";
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetAvailableViewsAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
-        {
-            var request = new GetAvailableViewsRequest
-            {
-                AutomationId = automationId,
-                Name = name,
-                ControlType = controlType,
-                WindowHandle = windowHandle
-            };
-
-            return await ExecuteServiceOperationAsync<GetAvailableViewsRequest, ElementSearchResult>(
-                "GetAvailableViews",
-                request,
-                nameof(GetAvailableViewsAsync),
-                timeoutSeconds,
-                ValidateElementIdentificationRequest
-            );
-        }
-
         public async Task<ServerEnhancedResponse<ElementSearchResult>> SetViewAsync(string? automationId = null, string? name = null, int viewId = 0, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
         {
             var request = new SetViewRequest
@@ -46,52 +27,13 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Name = name,
                 ViewId = viewId,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<SetViewRequest, ElementSearchResult>(
                 "SetView",
                 request,
                 nameof(SetViewAsync),
-                timeoutSeconds,
-                ValidateElementIdentificationRequest
-            );
-        }
-
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetCurrentViewAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
-        {
-            var request = new GetCurrentViewRequest
-            {
-                AutomationId = automationId,
-                Name = name,
-                ControlType = controlType,
-                WindowHandle = windowHandle
-            };
-
-            return await ExecuteServiceOperationAsync<GetCurrentViewRequest, ElementSearchResult>(
-                "GetCurrentView",
-                request,
-                nameof(GetCurrentViewAsync),
-                timeoutSeconds,
-                ValidateElementIdentificationRequest
-            );
-        }
-
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> GetViewNameAsync(string? automationId = null, string? name = null, int viewId = 0, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
-        {
-            var request = new GetViewNameRequest
-            {
-                AutomationId = automationId,
-                Name = name,
-                ViewId = viewId,
-                ControlType = controlType,
-                WindowHandle = windowHandle
-            };
-
-            return await ExecuteServiceOperationAsync<GetViewNameRequest, ElementSearchResult>(
-                "GetViewName",
-                request,
-                nameof(GetViewNameAsync),
                 timeoutSeconds,
                 ValidateElementIdentificationRequest
             );
@@ -122,22 +64,9 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             {
                 metadata.OperationSuccessful = searchResult.Success;
 
-                if (context.MethodName.Contains("GetAvailableViews"))
-                {
-                    metadata.ActionPerformed = "availableViewsRetrieved";
-                    metadata.ViewsCount = searchResult.Elements?.Count ?? 0;
-                }
-                else if (context.MethodName.Contains("SetView"))
+                if (context.MethodName.Contains("SetView"))
                 {
                     metadata.ActionPerformed = "viewSet";
-                }
-                else if (context.MethodName.Contains("GetCurrentView"))
-                {
-                    metadata.ActionPerformed = "currentViewRetrieved";
-                }
-                else if (context.MethodName.Contains("GetViewName"))
-                {
-                    metadata.ActionPerformed = "viewNameRetrieved";
                 }
             }
 

@@ -58,7 +58,7 @@ namespace UIAutomationMCP.Models.Results
     public class SelectTextResult : BaseOperationResult { }
     public class FindTextResult : BaseOperationResult { }
     public class GetTextResult : BaseOperationResult { }
-    public class TextInfoResult : BaseOperationResult
+    public class TextResult : BaseOperationResult
     {
         public string Text { get; set; } = string.Empty;
     }

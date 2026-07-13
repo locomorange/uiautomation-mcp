@@ -162,25 +162,24 @@ namespace UiAutomationMcp.Tests.Requests
             Assert.Equal(request.WindowTitle, deserialized.WindowTitle);
         }
 
-        [Fact(Skip = "GetTextRequest type not available")]
+        [Fact]
         public void JsonSerialization_ShouldWorkForGetTextRequest()
         {
             // Arrange
-            // var request = new GetTextRequest
-            // {
-            //     AutomationId = "text1",
-            //     WindowTitle = "Test Window"
-            // };
-            return; // Skip test body
+            var request = new GetTextRequest
+            {
+                AutomationId = "text1",
+                WindowTitle = "Test Window"
+            };
 
-            // // Act
-            // var json = JsonSerializationHelper.Serialize(request);
-            // var deserialized = JsonSerializationHelper.Deserialize<GetTextRequest>(json);
-            //
-            // // Assert
-            // Assert.NotNull(deserialized);
-            // Assert.Equal(request.AutomationId, deserialized.AutomationId);
-            // Assert.Equal(request.WindowTitle, deserialized.WindowTitle);
+            // Act
+            var json = JsonSerializationHelper.Serialize(request);
+            var deserialized = JsonSerializationHelper.Deserialize<GetTextRequest>(json);
+
+            // Assert
+            Assert.NotNull(deserialized);
+            Assert.Equal(request.AutomationId, deserialized.AutomationId);
+            Assert.Equal(request.WindowTitle, deserialized.WindowTitle);
         }
 
         [Fact]

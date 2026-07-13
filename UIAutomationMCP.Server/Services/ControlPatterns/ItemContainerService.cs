@@ -19,20 +19,28 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
         protected override string GetOperationType() => "itemContainer";
 
-        public async Task<ServerEnhancedResponse<ElementSearchResult>> FindItemByPropertyAsync(string? automationId = null, string? name = null, string? propertyName = null, string? value = null, string? startAfterId = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
+        public async Task<ServerEnhancedResponse<FindItemResult>> FindItemByPropertyAsync(
+            string? automationId = null,
+            string? name = null,
+            string? propertyName = null,
+            string? value = null,
+            string? startAfterId = null,
+            string? controlType = null,
+            long? windowHandle = null,
+            int timeoutSeconds = 30)
         {
             var request = new FindItemByPropertyRequest
             {
                 AutomationId = automationId,
                 Name = name,
-                ControlType = controlType,
                 PropertyName = propertyName ?? "",
                 Value = value ?? "",
                 StartAfterId = startAfterId ?? "",
-                WindowHandle = windowHandle
+                ControlType = controlType,
+                WindowHandle = windowHandle,
             };
 
-            return await ExecuteServiceOperationAsync<FindItemByPropertyRequest, ElementSearchResult>(
+            return await ExecuteServiceOperationAsync<FindItemByPropertyRequest, FindItemResult>(
                 "FindItemByProperty",
                 request,
                 nameof(FindItemByPropertyAsync),
@@ -43,7 +51,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
         private static ValidationResult ValidateElementIdentificationRequest<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(T request) where T : class
         {
-            // Use reflection to check common properties for element identification
             var automationIdProp = typeof(T).GetProperty("AutomationId");
             var nameProp = typeof(T).GetProperty("Name");
 
@@ -52,7 +59,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
             if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                return ValidationResult.Failure("Either AutomationId or Name is required for element identification");
+                return ValidationResult.Failure("Either AutomationId or Name is required to identify the container element");
             }
 
             return ValidationResult.Success;
@@ -62,10 +69,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         {
             var metadata = base.CreateSuccessMetadata(data, context);
 
-            if (data is ElementSearchResult searchResult)
+            if (data is FindItemResult findResult)
             {
-                metadata.OperationSuccessful = searchResult.Success;
-                metadata.ItemsFound = searchResult.Elements?.Count ?? 0;
+                metadata.OperationSuccessful = findResult.Success;
+                metadata.ItemFound = findResult.FoundElement != null;
             }
 
             return metadata;

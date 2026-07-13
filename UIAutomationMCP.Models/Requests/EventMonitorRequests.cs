@@ -58,6 +58,9 @@ namespace UIAutomationMCP.Models.Requests
         [JsonPropertyName("maxCount")]
         public int MaxCount { get; set; } = 100;
 
+        [JsonPropertyName("preserveEvents")]
+        public bool PreserveEvents { get; set; } = false;
+
         /// <summary>
         /// Worker内でのUI Automation操作タイムアウト秒数（デフォルト: 10秒）
         /// </summary>

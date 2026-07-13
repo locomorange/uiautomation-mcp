@@ -1,20 +1,21 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 
 namespace UIAutomationMCP.Models.Serialization
 {
     /// <summary>
-    /// JSON-UTF-8 serialization helper for internal subprocess communication
-    /// Provides UTF-8 byte array serialization to solve Japanese character encoding issues
-    /// while maintaining JSON format compatibility and AOT support
-    /// 
-    /// This helper leverages the existing JsonSerializationHelper and UIAutomationJsonContext
-    /// for complete type support and consistency.
+    /// JSON-UTF-8 serialization helper for internal subprocess communication.
+    /// Uses JsonSerializer's native UTF-8 APIs directly with JsonTypeInfo to avoid
+    /// intermediate string allocations while preserving Japanese character encoding
+    /// (UnsafeRelaxedJsonEscaping is baked into the JsonTypeInfo from UIAutomationJsonContext).
     /// </summary>
     public static class JsonUtf8SerializationHelper
     {
         /// <summary>
-        /// Serialize an object to UTF-8 encoded JSON byte array using existing JsonSerializationHelper
+        /// Serialize an object directly to UTF-8 encoded JSON byte array.
+        /// Uses JsonSerializer.SerializeToUtf8Bytes with AOT-compatible JsonTypeInfo,
+        /// eliminating the intermediate string allocation.
         /// </summary>
         /// <typeparam name="T">The type to serialize</typeparam>
         /// <param name="obj">The object to serialize</param>
@@ -25,7 +26,13 @@ namespace UIAutomationMCP.Models.Serialization
         {
             try
             {
-                // Use existing JsonSerializationHelper for type-safe serialization
+                var typeInfo = JsonSerializationHelper.GetTypeInfo<T>();
+                if (typeInfo != null)
+                {
+                    return JsonSerializer.SerializeToUtf8Bytes(obj, typeInfo);
+                }
+
+                // Fallback for unsupported types: go through string
                 var json = JsonSerializationHelper.Serialize(obj);
                 return Encoding.UTF8.GetBytes(json);
             }
@@ -36,7 +43,9 @@ namespace UIAutomationMCP.Models.Serialization
         }
 
         /// <summary>
-        /// Deserialize UTF-8 encoded JSON byte array to an object using existing JsonSerializationHelper
+        /// Deserialize UTF-8 encoded JSON byte array directly to an object.
+        /// Uses JsonSerializer.Deserialize with ReadOnlySpan&lt;byte&gt; and AOT-compatible JsonTypeInfo,
+        /// eliminating the intermediate string allocation.
         /// </summary>
         /// <typeparam name="T">The type to deserialize to</typeparam>
         /// <param name="utf8JsonBytes">The UTF-8 encoded JSON byte array</param>
@@ -50,7 +59,13 @@ namespace UIAutomationMCP.Models.Serialization
                 if (utf8JsonBytes == null || utf8JsonBytes.Length == 0)
                     throw new ArgumentException("UTF-8 JSON data cannot be null or empty");
 
-                // Convert UTF-8 bytes to string and use existing JsonSerializationHelper
+                var typeInfo = JsonSerializationHelper.GetTypeInfo<T>();
+                if (typeInfo != null)
+                {
+                    return JsonSerializer.Deserialize<T>(utf8JsonBytes.AsSpan(), typeInfo);
+                }
+
+                // Fallback for unsupported types: go through string
                 var json = Encoding.UTF8.GetString(utf8JsonBytes);
                 return JsonSerializationHelper.Deserialize<T>(json);
             }
@@ -62,7 +77,9 @@ namespace UIAutomationMCP.Models.Serialization
         }
 
         /// <summary>
-        /// Deserialize UTF-8 encoded JSON byte array to an object (ReadOnlyMemory version)
+        /// Deserialize UTF-8 encoded JSON byte array directly to an object (ReadOnlyMemory version).
+        /// Uses JsonSerializer.Deserialize with ReadOnlySpan&lt;byte&gt; and AOT-compatible JsonTypeInfo,
+        /// eliminating the intermediate string allocation.
         /// </summary>
         /// <typeparam name="T">The type to deserialize to</typeparam>
         /// <param name="utf8JsonBytes">The UTF-8 encoded JSON byte array</param>
@@ -76,7 +93,13 @@ namespace UIAutomationMCP.Models.Serialization
                 if (utf8JsonBytes.IsEmpty)
                     throw new ArgumentException("UTF-8 JSON data cannot be empty");
 
-                // Convert UTF-8 bytes to string and use existing JsonSerializationHelper
+                var typeInfo = JsonSerializationHelper.GetTypeInfo<T>();
+                if (typeInfo != null)
+                {
+                    return JsonSerializer.Deserialize<T>(utf8JsonBytes.Span, typeInfo);
+                }
+
+                // Fallback for unsupported types: go through string
                 var json = Encoding.UTF8.GetString(utf8JsonBytes.Span);
                 return JsonSerializationHelper.Deserialize<T>(json);
             }

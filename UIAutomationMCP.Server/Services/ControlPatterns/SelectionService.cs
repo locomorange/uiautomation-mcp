@@ -31,7 +31,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<SelectItemRequest, ActionResult>(
@@ -55,7 +55,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<AddToSelectionRequest, ActionResult>(
@@ -79,7 +79,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<RemoveFromSelectionRequest, ActionResult>(
@@ -103,7 +103,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<ClearSelectionRequest, ActionResult>(
@@ -127,7 +127,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<GetSelectionContainerRequest, ActionResult>(
@@ -151,7 +151,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<GetSelectionRequest, SelectionInfoResult>(

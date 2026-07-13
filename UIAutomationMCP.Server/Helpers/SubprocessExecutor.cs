@@ -8,6 +8,7 @@ using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Models.Abstractions;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Logging;
+using UIAutomationMCP.Server.Infrastructure;
 
 namespace UIAutomationMCP.Server.Helpers
 {
@@ -17,6 +18,7 @@ namespace UIAutomationMCP.Server.Helpers
         private readonly string _executablePath;
         private readonly CancellationTokenSource _shutdownCts;
         private Process? _workerProcess;
+        private WindowsJobObject? _jobObject;
         private readonly SemaphoreSlim _semaphore = new(1, 1);
         private bool _disposed = false;
         private readonly object _lockObject = new object();
@@ -149,7 +151,7 @@ namespace UIAutomationMCP.Server.Helpers
                             await RestartWorkerProcessAsync();
                         }
 
-                        throw new TimeoutException($"Worker operation '{operation}' could not complete within {timeoutSeconds} seconds. Consider increasing the timeout duration.");
+                        throw new TimeoutException($"Worker operation '{operation}' timed out after {timeoutSeconds} seconds. Consider increasing the timeout duration.");
                     }
 
                     byte[] responseData;
@@ -237,8 +239,35 @@ namespace UIAutomationMCP.Server.Helpers
 
                     try
                     {
-                        var dataBytes = JsonUtf8SerializationHelper.SerializeToUtf8Bytes(response.Data!);
-                        var result = JsonUtf8SerializationHelper.DeserializeFromUtf8Bytes<TResult>(dataBytes)!;
+                        TResult result;
+                        if (response.Data is JsonElement jsonElement)
+                        {
+                            // Direct conversion from JsonElement without serialize→deserialize round-trip.
+                            // JsonElement retains the original UTF-8 tokens internally, so this is both
+                            // faster and avoids any intermediate string/byte[] allocations.
+                            var typeInfo = JsonSerializationHelper.GetTypeInfo<TResult>();
+                            if (typeInfo != null)
+                            {
+                                result = jsonElement.Deserialize<TResult>(typeInfo)!;
+                            }
+                            else
+                            {
+                                // Fallback: serialize to UTF-8 bytes then deserialize
+                                var dataBytes = JsonUtf8SerializationHelper.SerializeToUtf8Bytes(response.Data!);
+                                result = JsonUtf8SerializationHelper.DeserializeFromUtf8Bytes<TResult>(dataBytes)!;
+                            }
+                        }
+                        else if (response.Data is TResult alreadyTyped)
+                        {
+                            // Already the correct type — no conversion needed
+                            result = alreadyTyped;
+                        }
+                        else
+                        {
+                            // Fallback: serialize→deserialize round-trip for unexpected types
+                            var dataBytes = JsonUtf8SerializationHelper.SerializeToUtf8Bytes(response.Data!);
+                            result = JsonUtf8SerializationHelper.DeserializeFromUtf8Bytes<TResult>(dataBytes)!;
+                        }
                         return result;
                     }
                     catch (JsonException ex)
@@ -258,7 +287,7 @@ namespace UIAutomationMCP.Server.Helpers
                 _logger.LogInformation("Operation '{Operation}' cancelled due to server shutdown", operation);
                 throw new OperationCanceledException("Operation cancelled due to server shutdown", ex);
             }
-            catch (Exception ex) when (!(ex is ArgumentException || ex is ObjectDisposedException))
+            catch (Exception ex) when (ex is not (ArgumentException or ObjectDisposedException or TimeoutException or InvalidOperationException or NotSupportedException or UnauthorizedAccessException))
             {
                 _logger.LogError(ex, "Unexpected error in ExecuteAsync for operation '{Operation}'", operation);
                 throw new InvalidOperationException($"Internal server error occurred while executing operation '{operation}': {ex.Message}", ex);
@@ -429,6 +458,20 @@ namespace UIAutomationMCP.Server.Helpers
                     throw new InvalidOperationException($"Failed to start subprocess: {_executablePath}", ex);
                 }
 
+                // Assign to Job Object for automatic cleanup on parent process exit
+                try
+                {
+                    _jobObject = new WindowsJobObject(killOnClose: true, _logger);
+                    _jobObject.AssignProcess(_workerProcess);
+                }
+                catch (Exception ex)
+                {
+                    // Job Object is a safety net - failure should not prevent operation
+                    _logger.LogWarning(ex, "Failed to assign subprocess to Job Object. Process will rely on manual cleanup.");
+                    _jobObject?.Dispose();
+                    _jobObject = null;
+                }
+
                 // Wait longer for the process to start properly
                 await Task.Delay(500);
 
@@ -439,7 +482,7 @@ namespace UIAutomationMCP.Server.Helpers
                     throw new InvalidOperationException($"Subprocess failed to start (exit code: {exitCode})");
                 }
 
-                _logger.LogInformation("Subprocess started with PID: {ProcessId}", _workerProcess.Id);
+                _logger.LogInformation("Subprocess started with PID: {ProcessId}, Job Object: {HasJobObject}", _workerProcess.Id, _jobObject != null);
             }
             catch (Exception ex) when (!(ex is FileNotFoundException))
             {
@@ -493,6 +536,10 @@ namespace UIAutomationMCP.Server.Helpers
                 {
                     _workerProcess.Dispose();
                     _workerProcess = null;
+
+                    // Dispose old Job Object before restart
+                    _jobObject?.Dispose();
+                    _jobObject = null;
                 }
             }
 
@@ -612,6 +659,17 @@ namespace UIAutomationMCP.Server.Helpers
                     }
                     _workerProcess = null;
                 }
+            }
+
+            // Dispose Job Object (if killOnClose was set, OS already killed assigned processes)
+            try
+            {
+                _jobObject?.Dispose();
+                _jobObject = null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error disposing Job Object");
             }
 
             try

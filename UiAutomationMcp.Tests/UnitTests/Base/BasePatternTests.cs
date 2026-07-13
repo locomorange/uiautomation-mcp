@@ -5,6 +5,7 @@ using UIAutomationMCP.Server.Tools;
 using Xunit.Abstractions;
 using UIAutomationMCP.Models.Abstractions;
 using UIAutomationMCP.Models.Logging;
+using UIAutomationMCP.Server.Abstractions;
 
 namespace UIAutomationMCP.Tests.UnitTests.Base
 {
@@ -38,11 +39,14 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
         protected readonly Mock<IControlTypeService> _mockControlType;
         protected readonly Mock<ITransformService> _mockTransform;
         protected readonly Mock<IVirtualizedItemService> _mockVirtualizedItem;
-        protected readonly Mock<IItemContainerService> _mockItemContainer;
         protected readonly Mock<ISynchronizedInputService> _mockSynchronizedInput;
+        protected readonly Mock<IInteractionService> _mockInteractionService;
+        protected readonly Mock<IGridTableService> _mockGridTableService;
+        protected readonly Mock<IAdvancedPatternService> _mockAdvancedPatternService;
         protected readonly Mock<IEventMonitorService> _mockEventMonitor;
         protected readonly Mock<IFocusService> _mockFocus;
-        protected readonly Mock<IOperationExecutor> _mockSubprocessExecutor;
+        protected readonly Mock<IItemContainerService> _mockItemContainer;
+        protected readonly Mock<IProcessManager> _mockSubprocessExecutor;
         protected readonly Mock<IMcpLogService> _mockMcpLogService;
 
         protected BasePatternTests(ITestOutputHelper output)
@@ -69,12 +73,17 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
             _mockControlType = new Mock<IControlTypeService>();
             _mockTransform = new Mock<ITransformService>();
             _mockVirtualizedItem = new Mock<IVirtualizedItemService>();
-            _mockItemContainer = new Mock<IItemContainerService>();
             _mockSynchronizedInput = new Mock<ISynchronizedInputService>();
             _mockEventMonitor = new Mock<IEventMonitorService>();
             _mockFocus = new Mock<IFocusService>();
-            _mockSubprocessExecutor = new Mock<IOperationExecutor>();
+            _mockItemContainer = new Mock<IItemContainerService>();
+            _mockSubprocessExecutor = new Mock<IProcessManager>();
             _mockMcpLogService = new Mock<IMcpLogService>();
+
+            // Consolidated mocks
+            _mockInteractionService = new Mock<IInteractionService>();
+            _mockGridTableService = new Mock<IGridTableService>();
+            _mockAdvancedPatternService = new Mock<IAdvancedPatternService>();
 
             //                        
             _mockService = CreateServiceMock();
@@ -98,26 +107,17 @@ namespace UIAutomationMCP.Tests.UnitTests.Base
                 _mockScreenshot.Object,
                 _mockElementSearch.Object,
                 _mockTreeNavigation.Object,
-                _mockInvoke.Object,
-                _mockValue.Object,
-                _mockRange.Object,
+                _mockInteractionService.Object,
                 _mockSelection.Object,
                 _mockText.Object,
-                _mockToggle.Object,
-                _mockWindow.Object,
                 GetLayoutService(),
-                _mockGrid.Object,
-                _mockTable.Object,
-                _mockMultipleView.Object,
-                _mockAccessibility.Object,
-                _mockCustomProperty.Object,
-                _mockControlType.Object,
+                _mockGridTableService.Object,
+                _mockAdvancedPatternService.Object,
+                _mockWindow.Object,
                 _mockTransform.Object,
-                _mockVirtualizedItem.Object,
-                _mockItemContainer.Object,
-                _mockSynchronizedInput.Object,
                 _mockEventMonitor.Object,
                 _mockFocus.Object,
+                _mockItemContainer.Object,
                 _mockMcpLogService.Object
             );
         }

@@ -5,6 +5,8 @@ using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Models;
 using UIAutomationMCP.Server.Abstractions;
+using UIAutomationMCP.Models.Results;
+using UIAutomationMCP.Models.Requests;
 using Xunit.Abstractions;
 
 namespace UiAutomationMcp.Tests.Services
@@ -42,8 +44,13 @@ namespace UiAutomationMcp.Tests.Services
         {
             // Arrange
             var elementId = "test-scroll-element";
-            var timeoutSeconds = 1; // Short timeout for fast test
-            // Act - Execute with non-existent worker path
+            var timeoutSeconds = 1;
+
+            _mockProcessManager.Setup(p => p.ExecuteWorkerOperationAsync<ScrollElementIntoViewRequest, ActionResult>(
+                It.IsAny<string>(), It.IsAny<ScrollElementIntoViewRequest>(), It.IsAny<int>()))
+                .ReturnsAsync(new ServiceOperationResult<ActionResult> { Success = false, Error = "Worker executable not found" });
+
+            // Act
             var result = await _layoutService.ScrollElementIntoViewAsync(automationId: elementId, timeoutSeconds: timeoutSeconds);
 
             // Assert - Verify that errors are handled correctly
@@ -122,7 +129,7 @@ namespace UiAutomationMcp.Tests.Services
                 x => x.Log(
                     LogLevel.Error,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v != null && v.ToString()!.Contains("Failed to scroll element into view")),
+                    It.Is<It.IsAnyType>((v, t) => v != null && v.ToString()!.Contains("ScrollElementIntoView failed")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.Once);
@@ -161,9 +168,7 @@ namespace UiAutomationMcp.Tests.Services
 
         public void Dispose()
         {
-            // テストクリーンアップ
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
+            // WindowsJobObject により Worker は自動終了されるため、明示的なクリーンアップは不要
         }
     }
 }

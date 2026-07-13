@@ -37,30 +37,17 @@ namespace UiAutomationMcp.Tests.Integration
             _serviceProvider = services.BuildServiceProvider();
             var logger = _serviceProvider.GetRequiredService<ILogger<SubprocessExecutor>>();
 
-            // Worker.exeのパスを取得
-            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            var possiblePaths = new[]
-            {
-                Path.Combine(baseDir, "UIAutomationMCP.Worker.exe"),
-                Path.Combine(baseDir, "..", "UIAutomationMCP.Worker", "bin", "Debug", "net9.0-windows", "UIAutomationMCP.Worker.exe"),
-                Path.Combine(baseDir, "worker", "UIAutomationMCP.Worker.exe"),
-            };
+            // Resolve Worker path using ExecutablePathResolver
+            var baseDir = ExecutablePathResolver.GetExecutableRealPath();
+            var workerPath = ExecutablePathResolver.ResolveWorkerPath(baseDir);
 
-            _workerPath = null!;
-            foreach (var path in possiblePaths)
+            if (workerPath == null || (!File.Exists(workerPath) && !Directory.Exists(workerPath)))
             {
-                var fullPath = Path.GetFullPath(path);
-                if (File.Exists(fullPath))
-                {
-                    _workerPath = fullPath;
-                    break;
-                }
+                var searchedPaths = ExecutablePathResolver.GetSearchedPaths("UIAutomationMCP.Subprocess.Worker", baseDir);
+                throw new InvalidOperationException($"Worker executable not found. Searched paths: {string.Join(", ", searchedPaths)}");
             }
 
-            if (_workerPath == null)
-            {
-                throw new FileNotFoundException($"Worker executable not found. Searched paths: {string.Join(", ", possiblePaths)}");
-            }
+            _workerPath = workerPath!;
 
             _subprocessExecutor = new SubprocessExecutor(logger, _workerPath, new CancellationTokenSource());
         }
@@ -247,9 +234,8 @@ namespace UiAutomationMcp.Tests.Integration
                 _output.WriteLine($"Service provider disposal warning: {ex.Message}");
             }
 
-            // プロセスクリーンアップ
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
+            // プロセスクリーンアップ - WindowsJobObject により Worker は自動終了されるため、
+            // 明示的な GC.Collect は不要
         }
     }
 }

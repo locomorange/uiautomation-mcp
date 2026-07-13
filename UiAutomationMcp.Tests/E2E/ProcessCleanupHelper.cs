@@ -4,7 +4,12 @@ using Xunit.Abstractions;
 namespace UIAutomationMCP.Tests.E2E
 {
     /// <summary>
-    /// Helper class for robust process cleanup in E2E tests
+    /// Helper class for robust process cleanup in E2E tests.
+    /// 
+    /// Note: With WindowsJobObject (JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE) integrated into SubprocessExecutor,
+    /// Worker/Monitor processes are automatically terminated by the OS when the parent process exits.
+    /// This helper is now primarily used for cleaning up user-launched application processes
+    /// (e.g., Notepad, Calculator) that are started during E2E tests.
     /// </summary>
     public static class ProcessCleanupHelper
     {

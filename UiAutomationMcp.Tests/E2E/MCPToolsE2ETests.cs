@@ -5,11 +5,13 @@ using System.Diagnostics;
 using System.Text.Json;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services;
-using UIAutomationMCP.Server.Services.ControlPatterns;
 using UIAutomationMCP.Server.Tools;
 using Xunit;
 using Xunit.Abstractions;
 using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Server.Abstractions;
+using UIAutomationMCP.Server.Infrastructure;
+using UIAutomationMCP.Models.Logging;
 
 namespace UIAutomationMCP.Tests.E2E
 {
@@ -40,70 +42,49 @@ namespace UIAutomationMCP.Tests.E2E
                 builder.SetMinimumLevel(LogLevel.Information);
             });
 
-            // Register application services
-            services.AddSingleton<IApplicationLauncher, ApplicationLauncher>();
-            services.AddSingleton<IScreenshotService, ScreenshotService>();
+            // Register shutdown CancellationTokenSource
+            var shutdownCts = new CancellationTokenSource();
+            services.AddSingleton(shutdownCts);
 
-            // Register subprocess-based UI Automation services
-            services.AddSingleton<IElementSearchService, ElementSearchService>();
-            services.AddSingleton<ITreeNavigationService, TreeNavigationService>();
-            services.AddSingleton<IInvokeService, InvokeService>();
-            services.AddSingleton<IValueService, ValueService>();
-            services.AddSingleton<IToggleService, ToggleService>();
-            services.AddSingleton<ISelectionService, SelectionService>();
-            services.AddSingleton<IWindowService, WindowService>();
-            services.AddSingleton<ITextService, TextService>();
-            services.AddSingleton<ILayoutService, LayoutService>();
-            services.AddSingleton<IRangeService, RangeService>();
+            // Register all core UIAutomation services (shared with Program.cs)
+            services.AddUIAutomationCoreServices();
 
-            // Register additional subprocess-based UI Automation services
-            services.AddSingleton<IGridService, GridService>();
-            services.AddSingleton<ITableService, TableService>();
-            services.AddSingleton<IMultipleViewService, MultipleViewService>();
-            services.AddSingleton<IAccessibilityService, AccessibilityService>();
-            services.AddSingleton<ICustomPropertyService, CustomPropertyService>();
-            services.AddSingleton<ITransformService, TransformService>();
-            services.AddSingleton<IControlTypeService, ControlTypeService>();
-            services.AddSingleton<IVirtualizedItemService, VirtualizedItemService>();
-            services.AddSingleton<IItemContainerService, ItemContainerService>();
-            services.AddSingleton<ISynchronizedInputService, SynchronizedInputService>();
-
-            // Register subprocess executor
-            services.AddSingleton<SubprocessExecutor>(provider =>
+            // Register ProcessManager for worker and monitor process management
+            services.AddSingleton<ProcessManager>(provider =>
             {
-                var logger = provider.GetRequiredService<ILogger<SubprocessExecutor>>();
-                var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                var logger = provider.GetRequiredService<ILogger<ProcessManager>>();
+                var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+                var baseDir = ExecutablePathResolver.GetExecutableRealPath();
 
-                // Look for Worker.exe in multiple possible locations
-                var possiblePaths = new[]
-                {
-                    Path.Combine(baseDir, "UIAutomationMCP.Worker.exe"),
-                    Path.Combine(baseDir, "..", "..", "..", "..", "UIAutomationMCP.Worker", "bin", "Debug", "net9.0-windows", "UIAutomationMCP.Worker.exe"),
-                    Path.Combine(baseDir, "..", "..", "..", "..", "UIAutomationMCP.Server", "bin", "Debug", "net9.0-windows", "UIAutomationMCP.Worker.exe"),
-                    Path.Combine(baseDir, "worker", "UIAutomationMCP.Worker.exe"),
-                };
+                // Resolve Worker and Monitor paths
+                var workerPath = ExecutablePathResolver.ResolveWorkerPath(baseDir);
+                var monitorPath = ExecutablePathResolver.ResolveMonitorPath(baseDir);
 
-                string? workerPath = null;
-                foreach (var path in possiblePaths)
+                if (workerPath == null || (!File.Exists(workerPath) && !Directory.Exists(workerPath)))
                 {
-                    var fullPath = Path.GetFullPath(path);
-                    if (File.Exists(fullPath))
-                    {
-                        workerPath = fullPath;
-                        break;
-                    }
+                    var searchedPaths = ExecutablePathResolver.GetSearchedPaths("UIAutomationMCP.Subprocess.Worker", baseDir);
+                    throw new InvalidOperationException($"UIAutomationMCP.Subprocess.Worker not found. Searched: {string.Join(", ", searchedPaths)}");
                 }
 
-                if (workerPath == null)
+                if (monitorPath == null || (!File.Exists(monitorPath) && !Directory.Exists(monitorPath)))
                 {
-                    throw new InvalidOperationException($"UIAutomationMCP.Worker not found. Searched paths: {string.Join(", ", possiblePaths.Select(Path.GetFullPath))}");
+                    var searchedPaths = ExecutablePathResolver.GetSearchedPaths("UIAutomationMCP.Subprocess.Monitor", baseDir);
+                    throw new InvalidOperationException($"UIAutomationMCP.Subprocess.Monitor not found. Searched: {string.Join(", ", searchedPaths)}");
                 }
 
-                var shutdownCts = new CancellationTokenSource();
-                return new SubprocessExecutor(logger, workerPath, shutdownCts);
+                var shutdown = provider.GetRequiredService<CancellationTokenSource>();
+                var processManager = new ProcessManager(logger, loggerFactory, shutdown, workerPath, monitorPath);
+
+                // Set MCP log service for subprocess log relay
+                var mcpLogService = provider.GetRequiredService<IMcpLogService>();
+                processManager.SetMcpLogService(mcpLogService);
+
+                return processManager;
             });
 
-            services.AddSingleton<IOperationExecutor>(provider => provider.GetRequiredService<SubprocessExecutor>());
+            // Register ProcessManager as both IProcessManager and IOperationExecutor
+            services.AddSingleton<IProcessManager>(provider => provider.GetRequiredService<ProcessManager>());
+            services.AddSingleton<IOperationExecutor>(provider => provider.GetRequiredService<ProcessManager>());
 
             // Register tools
             services.AddSingleton<UIAutomationTools>();
@@ -146,6 +127,9 @@ namespace UIAutomationMCP.Tests.E2E
                 var appLauncher = _serviceProvider.GetRequiredService<IApplicationLauncher>();
                 var result = await appLauncher.LaunchApplicationAsync("notepad.exe");
                 Assert.NotNull(result);
+                Assert.True(result.Success, "LaunchApplication should succeed for notepad.exe");
+                Assert.True(result.WindowHandle.HasValue, "LaunchApplication should return a window handle for notepad.exe");
+                _output.WriteLine($"UsedEventBasedDetection: {result.UsedEventBasedDetection}");
 
                 _output.WriteLine($"LaunchApplicationByName result: {JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}");
 

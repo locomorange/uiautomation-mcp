@@ -84,11 +84,13 @@ namespace UIAutomationMCP.Models.Serialization
         }
 
         /// <summary>
-        /// Gets the unified JsonTypeInfo for a given type by consolidating all type mappings
+        /// Gets the unified JsonTypeInfo for a given type by consolidating all type mappings.
+        /// Public to allow direct use by JsonUtf8SerializationHelper and SubprocessExecutor
+        /// for zero-intermediate-allocation UTF-8 serialization while preserving AOT compatibility.
         /// </summary>
         /// <typeparam name="T">The type to get JsonTypeInfo for</typeparam>
         /// <returns>JsonTypeInfo for the specified type, or null if not supported</returns>
-        private static JsonTypeInfo<T>? GetTypeInfo<T>()
+        public static JsonTypeInfo<T>? GetTypeInfo<T>()
         {
             return typeof(T) switch
             {
@@ -105,13 +107,17 @@ namespace UIAutomationMCP.Models.Serialization
                 Type t when t == typeof(WorkerResponse<ErrorResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseErrorResult,
                 Type t when t == typeof(WorkerResponse<UniversalResponse>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseUniversalResponse,
                 Type t when t == typeof(WorkerResponse<BooleanResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseBooleanResult,
-                Type t when t == typeof(WorkerResponse<TextInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTextInfoResult,
+                Type t when t == typeof(WorkerResponse<TextResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTextResult,
                 Type t when t == typeof(WorkerResponse<TextAttributesResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTextAttributesResult,
                 Type t when t == typeof(WorkerResponse<TextSearchResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTextSearchResult,
                 Type t when t == typeof(WorkerResponse<ElementTreeResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseElementTreeResult,
                 Type t when t == typeof(WorkerResponse<SearchElementsResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseSearchElementsResult,
                 Type t when t == typeof(WorkerResponse<ElementDetailResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseElementDetailResult,
                 Type t when t == typeof(WorkerResponse<TableInfoResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTableInfoResult,
+                Type t when t == typeof(WorkerResponse<TransformCapabilitiesResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseTransformCapabilitiesResult,
+                Type t when t == typeof(WorkerResponse<WindowInteractionStateResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseWindowInteractionStateResult,
+                Type t when t == typeof(WorkerResponse<WindowCapabilitiesResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseWindowCapabilitiesResult,
+                Type t when t == typeof(WorkerResponse<WaitForInputIdleResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseWaitForInputIdleResult,
                 Type t when t == typeof(WorkerResponse<object>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseObject,
                 Type t when t == typeof(WorkerResponse<EventMonitoringResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseEventMonitoringResult,
                 Type t when t == typeof(WorkerResponse<EventMonitoringStartResult>) => (JsonTypeInfo<T>)(object)_context.WorkerResponseEventMonitoringStartResult,
@@ -132,7 +138,7 @@ namespace UIAutomationMCP.Models.Serialization
                 Type t when t == typeof(TreeNavigationResult) => (JsonTypeInfo<T>)(object)_context.TreeNavigationResult,
                 Type t when t == typeof(BooleanResult) => (JsonTypeInfo<T>)(object)_context.BooleanResult,
                 Type t when t == typeof(ProcessLaunchResponse) => (JsonTypeInfo<T>)(object)_context.ProcessLaunchResponse,
-                Type t when t == typeof(TextInfoResult) => (JsonTypeInfo<T>)(object)_context.TextInfoResult,
+                Type t when t == typeof(TextResult) => (JsonTypeInfo<T>)(object)_context.TextResult,
                 Type t when t == typeof(TextAttributesResult) => (JsonTypeInfo<T>)(object)_context.TextAttributesResult,
                 Type t when t == typeof(TextSearchResult) => (JsonTypeInfo<T>)(object)_context.TextSearchResult,
                 Type t when t == typeof(TextAttributeRange) => (JsonTypeInfo<T>)(object)_context.TextAttributeRange,
@@ -141,6 +147,9 @@ namespace UIAutomationMCP.Models.Serialization
                 Type t when t == typeof(SearchElementsResult) => (JsonTypeInfo<T>)(object)_context.SearchElementsResult,
                 Type t when t == typeof(ElementDetailResult) => (JsonTypeInfo<T>)(object)_context.ElementDetailResult,
                 Type t when t == typeof(TableInfoResult) => (JsonTypeInfo<T>)(object)_context.TableInfoResult,
+                Type t when t == typeof(WindowInteractionStateResult) => (JsonTypeInfo<T>)(object)_context.WindowInteractionStateResult,
+                Type t when t == typeof(WindowCapabilitiesResult) => (JsonTypeInfo<T>)(object)_context.WindowCapabilitiesResult,
+                Type t when t == typeof(WaitForInputIdleResult) => (JsonTypeInfo<T>)(object)_context.WaitForInputIdleResult,
 
                 // EventMonitor Result types
                 Type t when t == typeof(EventMonitoringResult) => (JsonTypeInfo<T>)(object)_context.EventMonitoringResult,
@@ -165,6 +174,7 @@ namespace UIAutomationMCP.Models.Serialization
                 Type t when t == typeof(GetRangeValueRequest) => (JsonTypeInfo<T>)(object)_context.GetRangeValueRequest,
                 Type t when t == typeof(GetRangePropertiesRequest) => (JsonTypeInfo<T>)(object)_context.GetRangePropertiesRequest,
                 Type t when t == typeof(SetTextRequest) => (JsonTypeInfo<T>)(object)_context.SetTextRequest,
+                Type t when t == typeof(GetTextRequest) => (JsonTypeInfo<T>)(object)_context.GetTextRequest,
                 Type t when t == typeof(FindTextRequest) => (JsonTypeInfo<T>)(object)_context.FindTextRequest,
                 Type t when t == typeof(GetTextAttributesRequest) => (JsonTypeInfo<T>)(object)_context.GetTextAttributesRequest,
                 Type t when t == typeof(SelectTextRequest) => (JsonTypeInfo<T>)(object)_context.SelectTextRequest,
@@ -173,6 +183,7 @@ namespace UIAutomationMCP.Models.Serialization
                 Type t when t == typeof(MoveElementRequest) => (JsonTypeInfo<T>)(object)_context.MoveElementRequest,
                 Type t when t == typeof(ResizeElementRequest) => (JsonTypeInfo<T>)(object)_context.ResizeElementRequest,
                 Type t when t == typeof(RotateElementRequest) => (JsonTypeInfo<T>)(object)_context.RotateElementRequest,
+                Type t when t == typeof(GetTransformCapabilitiesRequest) => (JsonTypeInfo<T>)(object)_context.GetTransformCapabilitiesRequest,
                 Type t when t == typeof(WaitForInputIdleRequest) => (JsonTypeInfo<T>)(object)_context.WaitForInputIdleRequest,
                 Type t when t == typeof(GetGridInfoRequest) => (JsonTypeInfo<T>)(object)_context.GetGridInfoRequest,
                 Type t when t == typeof(GetGridItemRequest) => (JsonTypeInfo<T>)(object)_context.GetGridItemRequest,
@@ -250,6 +261,8 @@ namespace UIAutomationMCP.Models.Serialization
                 Type t when t == typeof(ServerEnhancedResponse<EventMonitoringStartResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseEventMonitoringStartResult,
                 Type t when t == typeof(ServerEnhancedResponse<EventMonitoringStopResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseEventMonitoringStopResult,
                 Type t when t == typeof(ServerEnhancedResponse<EventLogResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseEventLogResult,
+                Type t when t == typeof(ServerEnhancedResponse<ScrollInfoResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseScrollInfoResult,
+                Type t when t == typeof(ServerEnhancedResponse<RangeValueResult>) => (JsonTypeInfo<T>)(object)_context.ServerEnhancedResponseRangeValueResult,
 
                 // Basic types
                 Type t when t == typeof(Dictionary<string, object>) => (JsonTypeInfo<T>)(object)_context.DictionaryStringObject,
@@ -301,14 +314,14 @@ namespace UIAutomationMCP.Models.Serialization
     [JsonSerializable(typeof(TreeNavigationResult))]
     [JsonSerializable(typeof(BooleanResult))]
     [JsonSerializable(typeof(FindItemResult))]
-    [JsonSerializable(typeof(TextInfoResult))]
+    [JsonSerializable(typeof(TextResult))]
     [JsonSerializable(typeof(TextAttributesResult))]
     [JsonSerializable(typeof(TextSearchResult))]
     [JsonSerializable(typeof(TextAttributeRange))]
     [JsonSerializable(typeof(TextRangeAttributes))]
     [JsonSerializable(typeof(TextAttributes))]
     [JsonSerializable(typeof(TableInfoResult))]
-    [JsonSerializable(typeof(WorkerResponse<TextInfoResult>))]
+    [JsonSerializable(typeof(WorkerResponse<TextResult>))]
     [JsonSerializable(typeof(WorkerResponse<TextAttributesResult>))]
     [JsonSerializable(typeof(WorkerResponse<TextSearchResult>))]
     [JsonSerializable(typeof(WorkerResponse<EventMonitoringResult>))]
@@ -347,6 +360,7 @@ namespace UIAutomationMCP.Models.Serialization
     [JsonSerializable(typeof(GetRangeValueRequest))]
     [JsonSerializable(typeof(GetRangePropertiesRequest))]
     [JsonSerializable(typeof(SetTextRequest))]
+    [JsonSerializable(typeof(GetTextRequest))]
     [JsonSerializable(typeof(FindTextRequest))]
     [JsonSerializable(typeof(GetTextAttributesRequest))]
     [JsonSerializable(typeof(SelectTextRequest))]
@@ -355,6 +369,7 @@ namespace UIAutomationMCP.Models.Serialization
     [JsonSerializable(typeof(MoveElementRequest))]
     [JsonSerializable(typeof(ResizeElementRequest))]
     [JsonSerializable(typeof(RotateElementRequest))]
+    [JsonSerializable(typeof(GetTransformCapabilitiesRequest))]
     [JsonSerializable(typeof(WaitForInputIdleRequest))]
     [JsonSerializable(typeof(GetGridInfoRequest))]
     [JsonSerializable(typeof(GetGridItemRequest))]
@@ -438,6 +453,8 @@ namespace UIAutomationMCP.Models.Serialization
     [JsonSerializable(typeof(ServerEnhancedResponse<EventMonitoringStartResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<EventMonitoringStopResult>))]
     [JsonSerializable(typeof(ServerEnhancedResponse<EventLogResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<ScrollInfoResult>))]
+    [JsonSerializable(typeof(ServerEnhancedResponse<RangeValueResult>))]
     // EventMonitor Result types
     [JsonSerializable(typeof(EventMonitoringResult))]
     [JsonSerializable(typeof(EventMonitoringStartResult))]
@@ -494,7 +511,6 @@ namespace UIAutomationMCP.Models.Serialization
     [JsonSerializable(typeof(ControlTypeServiceMetadata))]
     [JsonSerializable(typeof(GridServiceMetadata))]
     [JsonSerializable(typeof(InvokeServiceMetadata))]
-    [JsonSerializable(typeof(ItemContainerServiceMetadata))]
     [JsonSerializable(typeof(LayoutServiceMetadata))]
     [JsonSerializable(typeof(MultipleViewServiceMetadata))]
     [JsonSerializable(typeof(RangeServiceMetadata))]
@@ -518,8 +534,13 @@ namespace UIAutomationMCP.Models.Serialization
     [JsonSerializable(typeof(RangeValueResult))]
     [JsonSerializable(typeof(SelectionInfoResult))]
     [JsonSerializable(typeof(TransformCapabilitiesResult))]
+    [JsonSerializable(typeof(WorkerResponse<TransformCapabilitiesResult>))]
     [JsonSerializable(typeof(WindowInteractionStateResult))]
     [JsonSerializable(typeof(WindowCapabilitiesResult))]
+    [JsonSerializable(typeof(WaitForInputIdleResult))]
+    [JsonSerializable(typeof(WorkerResponse<WindowInteractionStateResult>))]
+    [JsonSerializable(typeof(WorkerResponse<WindowCapabilitiesResult>))]
+    [JsonSerializable(typeof(WorkerResponse<WaitForInputIdleResult>))]
     // Action Types
     [JsonSerializable(typeof(ActionParameters))]
     [JsonSerializable(typeof(ElementState))]

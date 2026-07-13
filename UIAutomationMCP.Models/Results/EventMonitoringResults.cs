@@ -32,6 +32,10 @@ namespace UIAutomationMCP.Models.Results
         public List<TypedEventData> Events { get; set; } = new List<TypedEventData>();
         public bool SessionActive { get; set; }
         public int TotalEventCount { get; set; }
+        public int PendingEventCount { get; set; }
+        public int DroppedEventCount { get; set; }
+        public int DiscardedLowConfidenceEventCount { get; set; }
+        public bool PreserveEvents { get; set; }
         public DateTime StartTime { get; set; }
     }
 }

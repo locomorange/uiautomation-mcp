@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
 using UIAutomationMCP.Models.Logging;
 
 namespace UIAutomationMCP.Server.Services
@@ -10,12 +9,18 @@ namespace UIAutomationMCP.Server.Services
     public class LogRelayService : IMcpLogService
     {
         private readonly ILogger<LogRelayService> _logger;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly ILoggerFactory _loggerFactory;
+        private volatile bool _isShuttingDown;
 
-        public LogRelayService(ILogger<LogRelayService> logger, IServiceProvider serviceProvider)
+        public LogRelayService(ILogger<LogRelayService> logger, ILoggerFactory loggerFactory)
         {
             _logger = logger;
-            _serviceProvider = serviceProvider;
+            _loggerFactory = loggerFactory;
+        }
+
+        public void BeginShutdown()
+        {
+            _isShuttingDown = true;
         }
 
         public async Task LogAsync(McpLogMessage message)
@@ -109,6 +114,11 @@ namespace UIAutomationMCP.Server.Services
 
         public async Task ProcessInterProcessLogAsync(string logJson)
         {
+            if (_isShuttingDown)
+            {
+                return;
+            }
+
             try
             {
                 // Parse the subprocess log message
@@ -130,7 +140,7 @@ namespace UIAutomationMCP.Server.Services
                     };
 
                     // Create a logger with the subprocess source info
-                    var subprocessLogger = _serviceProvider.GetService<ILoggerFactory>()?.CreateLogger($"[{logMessage.Source.ToUpper()}] {logMessage.Logger}");
+                    var subprocessLogger = _loggerFactory.CreateLogger($"[{logMessage.Source.ToUpper()}] {logMessage.Logger}");
 
                     if (subprocessLogger != null)
                     {

@@ -57,7 +57,6 @@ namespace UIAutomationMCP.Models.Requests
         /// </summary>
         [JsonPropertyName("windowHandle")]
         public long? WindowHandle { get; set; }
-
     }
 
 }

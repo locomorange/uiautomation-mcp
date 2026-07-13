@@ -27,7 +27,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<GetRowHeadersRequest, ElementSearchResult>(
@@ -46,7 +46,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<GetColumnHeadersRequest, ElementSearchResult>(
@@ -66,7 +66,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<GetColumnHeaderItemsRequest, ElementSearchResult>(
@@ -85,7 +85,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<GetRowHeaderItemsRequest, ElementSearchResult>(
@@ -104,7 +104,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<GetTableInfoRequest, ActionResult>(
@@ -123,7 +123,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<GetTableInfoRequest, TableInfoResult>(

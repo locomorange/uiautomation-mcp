@@ -11,7 +11,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
         Task<ServerEnhancedResponse<ActionResult>> ScrollElementIntoViewAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30);
         Task<ServerEnhancedResponse<ActionResult>> SetScrollPercentAsync(string? automationId = null, string? name = null, double horizontalPercent = -1, double verticalPercent = -1, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30);
         Task<ServerEnhancedResponse<ActionResult>> DockElementAsync(string? automationId = null, string? name = null, string dockPosition = "none", string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30);
-        Task<ServerEnhancedResponse<ScrollInfoResult>> GetScrollInfoAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30);
     }
 }
 

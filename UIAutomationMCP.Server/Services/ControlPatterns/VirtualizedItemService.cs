@@ -26,7 +26,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<RealizeVirtualizedItemRequest, ElementSearchResult>(

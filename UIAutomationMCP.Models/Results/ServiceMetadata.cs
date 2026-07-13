@@ -95,18 +95,6 @@ namespace UIAutomationMCP.Models.Results
     }
 
     /// <summary>
-    /// Item container service metadata
-    /// </summary>
-    public class ItemContainerServiceMetadata : ServiceMetadata
-    {
-        public int ContainerSize { get; set; }
-        public string ContainerType { get; set; } = string.Empty;
-        public bool OperationSuccessful { get; set; }
-        public string ActionPerformed { get; set; } = string.Empty;
-        public int ItemsFound { get; set; }
-    }
-
-    /// <summary>
     /// Layout service metadata
     /// </summary>
     public class LayoutServiceMetadata : ServiceMetadata
@@ -125,11 +113,8 @@ namespace UIAutomationMCP.Models.Results
     /// </summary>
     public class MultipleViewServiceMetadata : ServiceMetadata
     {
-        public int ViewCount { get; set; }
-        public string CurrentView { get; set; } = string.Empty;
         public bool OperationSuccessful { get; set; }
         public string ActionPerformed { get; set; } = string.Empty;
-        public int ViewsCount { get; set; }
     }
 
     /// <summary>
@@ -326,6 +311,18 @@ namespace UIAutomationMCP.Models.Results
     }
 
     /// <summary>
+    /// Item container service metadata
+    /// </summary>
+    public class ItemContainerServiceMetadata : ServiceMetadata
+    {
+        public bool OperationSuccessful { get; set; }
+        public string ActionPerformed { get; set; } = string.Empty;
+        public bool ItemFound { get; set; }
+        public string SearchProperty { get; set; } = string.Empty;
+        public string SearchValue { get; set; } = string.Empty;
+    }
+
+    /// <summary>
     /// Application launcher metadata
     /// </summary>
     public class ApplicationLauncherMetadata : ServiceMetadata
@@ -346,6 +343,7 @@ namespace UIAutomationMCP.Models.Results
         public int WindowsDetectedAfter { get; set; }
         public int NewWindowsFound { get; set; }
         public bool UsedUIAutomationDetection { get; set; }
+        public bool UsedEventBasedDetection { get; set; }
         public TimeSpan WindowDetectionTime { get; set; }
         public int DetectionRetries { get; set; }
     }

@@ -27,7 +27,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Name = name,
                 Action = action,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<ExpandCollapseElementRequest, ActionResult>(
@@ -48,7 +48,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Direction = direction,
                 Amount = amount,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<ScrollElementRequest, ActionResult>(
@@ -67,7 +67,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<ScrollElementIntoViewRequest, ActionResult>(
@@ -88,7 +88,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 HorizontalPercent = horizontalPercent,
                 VerticalPercent = verticalPercent,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<SetScrollPercentRequest, ActionResult>(
@@ -108,7 +108,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Name = name,
                 DockPosition = dockPosition,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<DockElementRequest, ActionResult>(
@@ -117,25 +117,6 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 nameof(DockElementAsync),
                 timeoutSeconds,
                 ValidateDockRequest
-            );
-        }
-
-        public async Task<ServerEnhancedResponse<ScrollInfoResult>> GetScrollInfoAsync(string? automationId = null, string? name = null, string? controlType = null, long? windowHandle = null, int timeoutSeconds = 30)
-        {
-            var request = new GetScrollInfoRequest
-            {
-                AutomationId = automationId,
-                Name = name,
-                ControlType = controlType,
-                WindowHandle = windowHandle
-            };
-
-            return await ExecuteServiceOperationAsync<GetScrollInfoRequest, ScrollInfoResult>(
-                "GetScrollInfo",
-                request,
-                nameof(GetScrollInfoAsync),
-                timeoutSeconds,
-                ValidateElementIdentificationRequest
             );
         }
 

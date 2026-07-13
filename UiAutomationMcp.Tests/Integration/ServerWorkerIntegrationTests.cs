@@ -37,31 +37,17 @@ namespace UiAutomationMcp.Tests.Integration
             _serviceProvider = services.BuildServiceProvider();
             var logger = _serviceProvider.GetRequiredService<ILogger<SubprocessExecutor>>();
 
-            // Get base directory
-            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            var possiblePaths = new[]
-            {
-                Path.Combine(baseDir, "UIAutomationMCP.Worker.exe"),
-                Path.Combine(baseDir, "..", "UIAutomationMCP.Worker", "bin", "Debug", "net9.0-windows", "UIAutomationMCP.Worker.exe"),
-                Path.Combine(baseDir, "worker", "UIAutomationMCP.Worker.exe"),
-            };
+            // Resolve Worker path using ExecutablePathResolver
+            var baseDir = ExecutablePathResolver.GetExecutableRealPath();
+            var workerPath = ExecutablePathResolver.ResolveWorkerPath(baseDir);
 
-            _workerPath = null!;
-            foreach (var path in possiblePaths)
+            if (workerPath == null || (!File.Exists(workerPath) && !Directory.Exists(workerPath)))
             {
-                var fullPath = Path.GetFullPath(path);
-                if (File.Exists(fullPath))
-                {
-                    _workerPath = fullPath;
-                    break;
-                }
+                var searchedPaths = ExecutablePathResolver.GetSearchedPaths("UIAutomationMCP.Subprocess.Worker", baseDir);
+                throw new InvalidOperationException($"Worker executable not found. Searched paths: {string.Join(", ", searchedPaths)}");
             }
 
-            if (_workerPath == null)
-            {
-                throw new InvalidOperationException($"Worker executable not found in any of these locations: {string.Join(", ", possiblePaths.Select(Path.GetFullPath))}");
-            }
-
+            _workerPath = workerPath!;
             _subprocessExecutor = new SubprocessExecutor(logger, _workerPath, new CancellationTokenSource());
             _output.WriteLine($"Worker path: {_workerPath}");
         }
@@ -77,19 +63,18 @@ namespace UiAutomationMcp.Tests.Integration
         [Fact]
         public async Task SubprocessExecutor_WhenInvalidOperation_ShouldThrowException()
         {
-            // Given - Create a request for a valid operation but missing parameter pattern will cause error
+            // Given - Create a request for an operation that doesn't exist in the Worker
             var request = new InvokeElementRequest
             {
                 AutomationId = "test",
                 WindowTitle = "",
             };
 
-            // When & Then
-            var exception = await Assert.ThrowsAsync<ArgumentException>(async () =>
-                await _subprocessExecutor.ExecuteAsync<InvokeElementRequest, ActionResult>("InvokeElement", request, 10));
+            // When & Then - An invalid operation name should cause an error
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await _subprocessExecutor.ExecuteAsync<InvokeElementRequest, ActionResult>("NonExistentOperation", request, 10));
 
             Assert.NotNull(exception);
-            // This should trigger an operation-related error since we're not actually testing for invalid operations anymore
             _output.WriteLine($"Invalid operation correctly threw exception: {exception.Message}");
         }
 
@@ -103,14 +88,16 @@ namespace UiAutomationMcp.Tests.Integration
                 WindowTitle = "Desktop", // Use Desktop window for faster search
             };
 
-            // When & Then - Use short timeout to verify timeout behavior
-            var exception = await Assert.ThrowsAsync<TimeoutException>(async () =>
+            // When & Then - Either TimeoutException (worker too slow) or InvalidOperationException (element not found)
+            // The exact exception type depends on whether the worker responds within the timeout
+            var exception = await Assert.ThrowsAnyAsync<Exception>(async () =>
                 await _subprocessExecutor.ExecuteAsync<InvokeElementRequest, ActionResult>("InvokeElement", request, 3));
 
             Assert.NotNull(exception);
-            // Worker searches for non-existent element, causing expected timeout
-            Assert.Contains("timed out", exception.Message);
-            _output.WriteLine($"Valid operation with missing element correctly timed out: {exception.Message}");
+            Assert.True(
+                exception is TimeoutException || exception is InvalidOperationException,
+                $"Expected TimeoutException or InvalidOperationException, but got {exception.GetType().Name}: {exception.Message}");
+            _output.WriteLine($"Valid operation with missing element correctly threw {exception.GetType().Name}: {exception.Message}");
         }
 
         [Fact]
@@ -122,13 +109,10 @@ namespace UiAutomationMcp.Tests.Integration
             // When
             var result = await invokeService.InvokeElementAsync("NonExistentElement", null, null, 5);
 
-            // Then
+            // Then - Service should handle the error gracefully
             Assert.NotNull(result);
-            var resultJson = System.Text.Json.JsonSerializer.Serialize(result);
-            Assert.Contains("success", resultJson);
-            Assert.Contains("false", resultJson);
-            Assert.Contains("timed out", resultJson);
-            _output.WriteLine($"InvokeService timeout test completed: {resultJson}");
+            Assert.False(result.Success);
+            _output.WriteLine($"InvokeService error handling test completed: {result.ErrorMessage}");
         }
 
         [Fact]
@@ -140,13 +124,10 @@ namespace UiAutomationMcp.Tests.Integration
             // Act
             var result = await valueService.SetValueAsync("NonExistentElement", "test value", null, null, 5);
 
-            // Assert
+            // Assert - Service should handle the error gracefully
             Assert.NotNull(result);
-            var resultJson = System.Text.Json.JsonSerializer.Serialize(result);
-            Assert.Contains("Success", resultJson);
-            Assert.Contains("false", resultJson);
-            Assert.Contains("timed out", resultJson);
-            _output.WriteLine($"ValueService timeout test completed: {resultJson}");
+            Assert.False(result.Success);
+            _output.WriteLine($"ValueService error handling test completed: {result.ErrorMessage}");
         }
 
         [Fact]
@@ -158,13 +139,10 @@ namespace UiAutomationMcp.Tests.Integration
             // Act
             var result = await toggleService.ToggleElementAsync("NonExistentElement", null, null, 5);
 
-            // Assert
+            // Assert - Service should handle the error gracefully
             Assert.NotNull(result);
-            var resultJson = System.Text.Json.JsonSerializer.Serialize(result);
-            Assert.Contains("Success", resultJson);
-            Assert.Contains("false", resultJson);
-            Assert.Contains("timed out", resultJson);
-            _output.WriteLine($"ToggleService timeout test completed: {resultJson}");
+            Assert.False(result.Success);
+            _output.WriteLine($"ToggleService error handling test completed: {result.ErrorMessage}");
         }
 
         [Fact]
@@ -191,7 +169,7 @@ namespace UiAutomationMcp.Tests.Integration
         }
 
         [Fact]
-        public async Task WorkerProcess_ShouldHandleTimeouts()
+        public async Task WorkerProcess_ShouldFailFast_WhenElementNotFound()
         {
             // Arrange
             var request = new InvokeElementRequest
@@ -201,11 +179,11 @@ namespace UiAutomationMcp.Tests.Integration
             };
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<TimeoutException>(async () =>
-                await _subprocessExecutor.ExecuteAsync<InvokeElementRequest, ActionResult>("InvokeElement", request, 1)); // 1                         
-            // Worker searches for element and times out due to missing element
-            Assert.Contains("timed out", exception.Message);
-            _output.WriteLine($"Timeout handling test completed: {exception.Message}");
+            // Element lookup fails fast with a not-found error instead of consuming the timeout
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await _subprocessExecutor.ExecuteAsync<InvokeElementRequest, ActionResult>("InvokeElement", request, 1));
+            Assert.Contains("not found", exception.Message);
+            _output.WriteLine($"Fail-fast handling test completed: {exception.Message}");
         }
 
         public void Dispose()

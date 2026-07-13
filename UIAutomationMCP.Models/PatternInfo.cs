@@ -173,6 +173,11 @@ namespace UIAutomationMCP.Models
 
         [JsonPropertyName("hasSelection")]
         public bool HasSelection { get; set; }
+
+        // TextPattern2 properties (nullable — only set when element supports TextPattern2)
+
+        [JsonPropertyName("caretPosition")]
+        public int? CaretPosition { get; set; }
     }
 
     /// <summary>
@@ -200,6 +205,20 @@ namespace UIAutomationMCP.Models
 
         [JsonPropertyName("currentHeight")]
         public double CurrentHeight { get; set; }
+
+        // TransformPattern2 properties (nullable — only set when element supports TransformPattern2)
+
+        [JsonPropertyName("canZoom")]
+        public bool? CanZoom { get; set; }
+
+        [JsonPropertyName("zoomLevel")]
+        public double? ZoomLevel { get; set; }
+
+        [JsonPropertyName("zoomMinimum")]
+        public double? ZoomMinimum { get; set; }
+
+        [JsonPropertyName("zoomMaximum")]
+        public double? ZoomMaximum { get; set; }
     }
 
     /// <summary>
@@ -369,6 +388,18 @@ namespace UIAutomationMCP.Models
     {
         [JsonPropertyName("supportsSynchronizedInput")]
         public bool SupportsSynchronizedInput { get; set; }
+    }
+
+    /// <summary>
+    /// SelectionItem Pattern詳細情報（個別要素の選択状態）
+    /// </summary>
+    public class SelectionItemDetailInfo
+    {
+        [JsonPropertyName("isSelected")]
+        public bool IsSelected { get; set; }
+
+        [JsonPropertyName("selectionContainer")]
+        public string? SelectionContainer { get; set; }
     }
 
     /// <summary>

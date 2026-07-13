@@ -1,13 +1,15 @@
 using Microsoft.Extensions.DependencyInjection;
-using System.Diagnostics;
-using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Tools;
 using Xunit.Abstractions;
 
 namespace UIAutomationMCP.Tests.E2E
 {
     /// <summary>
-    /// E2E                -                           /// </summary>
+    /// E2E テストの基底クラス - 共通のサービスプロバイダとツール初期化を提供
+    /// 
+    /// WindowsJobObject により Worker プロセスは自動管理されるため、
+    /// 手動の GC.Collect やプロセスクリーンアップは不要。
+    /// </summary>
     public abstract class BaseE2ETest : IDisposable
     {
         protected readonly ITestOutputHelper Output;
@@ -36,18 +38,10 @@ namespace UIAutomationMCP.Tests.E2E
             {
                 try
                 {
-                    // Dispose ServiceProvider if it implements IDisposable
                     if (ServiceProvider is IDisposable serviceProviderDisposable)
                     {
                         serviceProviderDisposable.Dispose();
                     }
-
-                    // SubprocessExecutor      Dispose                                  GC.Collect();
-                    GC.WaitForPendingFinalizers();
-                    GC.Collect();
-
-                    //                Worker                     
-                    CleanupRemainingWorkerProcesses();
                 }
                 catch (Exception ex)
                 {
@@ -56,22 +50,6 @@ namespace UIAutomationMCP.Tests.E2E
             }
 
             _disposed = true;
-        }
-
-        private void CleanupRemainingWorkerProcesses()
-        {
-            try
-            {
-                Output.WriteLine("Starting cleanup of remaining Worker processes...");
-                // Use the new ProcessCleanupHelper for more robust cleanup
-                ProcessCleanupHelper.CleanupProcessesByName("UIAutomationMCP.Worker", Output, 3000)
-                    .GetAwaiter()
-                    .GetResult();
-            }
-            catch (Exception ex)
-            {
-                Output.WriteLine($"Error during Worker process cleanup: {ex.Message}");
-            }
         }
     }
 }

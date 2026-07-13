@@ -33,7 +33,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Name = name,
                 ControlType = controlType,
                 Value = value,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<SetRangeValueRequest, ActionResult>(
@@ -57,7 +57,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<GetRangeValueRequest, RangeValueResult>(

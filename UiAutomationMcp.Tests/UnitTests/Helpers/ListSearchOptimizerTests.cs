@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Windows.Automation;
 using UIAutomationMCP.Subprocess.Worker.Helpers;
 using Xunit;
@@ -10,78 +11,68 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
         [Fact]
         public void GetOptimalMethod_WithNullElement_ReturnsFindAll()
         {
-            // Act
             var result = ListSearchOptimizer.GetOptimalMethod(null!);
-
-            // Assert
             Assert.Equal(ListSearchMethod.FindAll, result);
         }
 
         [Fact]
         public void GetOptimalMethod_WithMockElement_ReturnsValidMethod()
         {
-            // Arrange
-            var mockElement = CreateMockElementWithFramework("WPF");
-
-            // Act
+            var mockElement = CreateMockElement();
             var result = ListSearchOptimizer.GetOptimalMethod(mockElement!);
-
-            // Assert
-            // The mock element will have actual desktop framework, so we just verify it returns a valid method
             Assert.True(Enum.IsDefined(typeof(ListSearchMethod), result));
         }
 
         [Fact]
         public void GetOptimalMethod_MethodSelection_IsConsistent()
         {
-            // Arrange
-            var mockElement = CreateMockElementWithFramework("Test");
-
-            // Act
+            var mockElement = CreateMockElement();
             var result1 = ListSearchOptimizer.GetOptimalMethod(mockElement!);
             var result2 = ListSearchOptimizer.GetOptimalMethod(mockElement!);
-
-            // Assert
             Assert.Equal(result1, result2);
         }
 
         [Fact]
         public void FindListItemByIndex_WithNullElement_ReturnsNull()
         {
-            // Act
             var result = ListSearchOptimizer.FindListItemByIndex(null!, 0);
-
-            // Assert
             Assert.Null(result);
         }
 
         [Fact]
         public void FindListItemByIndex_WithNegativeIndex_ReturnsNull()
         {
-            // Arrange
-            var mockElement = CreateMockElementWithFramework("WPF");
-
-            // Act
+            var mockElement = CreateMockElement();
             var result = ListSearchOptimizer.FindListItemByIndex(mockElement!, -1);
-
-            // Assert
             Assert.Null(result);
         }
 
         [Fact]
-        public void FindAllListItems_WithNullElement_ReturnsNull()
+        public void FindAllListItems_WithNullElement_ReturnsEmpty()
         {
-            // Act
             var result = ListSearchOptimizer.FindAllListItems(null!);
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
 
-            // Assert
-            Assert.Null(result);
+        [Fact]
+        public void FindAllChildrenOptimized_WithNullElement_ReturnsEmpty()
+        {
+            var condition = Condition.TrueCondition;
+            var result = ListSearchOptimizer.FindAllChildrenOptimized(null!, condition);
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public void IsListContainer_WithNullElement_ReturnsFalse()
+        {
+            Assert.False(ListSearchOptimizer.IsListContainer(null!));
         }
 
         [Fact]
         public void ListSearchMethod_Enum_HasExpectedValues()
         {
-            // Assert
             Assert.True(Enum.IsDefined(typeof(ListSearchMethod), ListSearchMethod.FindAll));
             Assert.True(Enum.IsDefined(typeof(ListSearchMethod), ListSearchMethod.TreeWalker));
             Assert.Equal(2, Enum.GetValues<ListSearchMethod>().Length);
@@ -90,66 +81,37 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
         [Fact]
         public void GetOptimalMethod_WithDifferentFrameworks_ReturnsValidMethod()
         {
-            // Arrange & Act & Assert
-            // Test with various framework IDs - the mock won't actually set these,
-            // but the method should handle them gracefully
-            var frameworks = new[] { "", null, "WPF", "Win32", "Unknown" };
+            // All mock elements use RootElement, so we just verify graceful handling
+            var mockElement = CreateMockElement();
+            if (mockElement == null) return;
 
-            foreach (var framework in frameworks)
-            {
-                var mockElement = CreateMockElementWithFramework(framework ?? "");
-                var result = ListSearchOptimizer.GetOptimalMethod(mockElement!);
-
-                Assert.True(Enum.IsDefined(typeof(ListSearchMethod), result));
-            }
+            var result = ListSearchOptimizer.GetOptimalMethod(mockElement);
+            Assert.True(Enum.IsDefined(typeof(ListSearchMethod), result));
         }
 
         [Fact]
         public void GetOptimalMethod_WithExceptionThrown_ReturnsFindAll()
         {
-            // Arrange
-            var mockElement = CreateMockElementThatThrowsException();
-
-            // Act
-            var result = ListSearchOptimizer.GetOptimalMethod(mockElement!);
-
-            // Assert
+            // null causes early return to FindAll
+            var result = ListSearchOptimizer.GetOptimalMethod(null!);
             Assert.Equal(ListSearchMethod.FindAll, result);
         }
 
-        // Helper methods for creating mock elements
-        private AutomationElement? CreateMockElementWithFramework(string frameworkId)
+        private AutomationElement? CreateMockElement()
         {
             try
             {
-                // This is a simplified mock - in a real test environment, 
-                // you would use a mocking framework like Moq or create test doubles
-                // For now, we'll use AutomationElement.RootElement as a base and handle exceptions
-                var rootElement = AutomationElement.RootElement;
-
-                // Note: In practice, you'd mock the Current.FrameworkId property
-                // This is a basic implementation for demonstration
-                return rootElement;
+                return AutomationElement.RootElement;
             }
             catch
             {
-                // Return null if we can't create a test element
                 return null;
             }
-        }
-
-        private AutomationElement? CreateMockElementThatThrowsException()
-        {
-            // This would ideally be a mock that throws when accessing Current.FrameworkId
-            // For this basic implementation, we'll return null which will cause the method
-            // to handle it gracefully
-            return null;
         }
     }
 
     /// <summary>
     /// Integration tests that require actual UI Automation elements
-    /// These tests are marked as requiring UI automation environment
     /// </summary>
     public class ListSearchOptimizerIntegrationTests
     {
@@ -157,51 +119,76 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
         [Trait("Category", "RequiresUIAutomation")]
         public void GetOptimalMethod_WithActualDesktopElement_DoesNotThrow()
         {
-            // Arrange
             try
             {
                 var desktop = AutomationElement.RootElement;
-                if (desktop == null)
-                {
-                    // Skip test if UI Automation is not available
-                    return;
-                }
+                if (desktop == null) return;
 
-                // Act & Assert - Should not throw
                 var result = ListSearchOptimizer.GetOptimalMethod(desktop);
-
-                // Should return a valid enum value
                 Assert.True(Enum.IsDefined(typeof(ListSearchMethod), result));
             }
             catch (Exception ex) when (ex is InvalidOperationException || ex is ElementNotAvailableException)
             {
-                // Skip test if UI Automation is not available in test environment
                 return;
             }
         }
 
         [Fact]
         [Trait("Category", "RequiresUIAutomation")]
-        public void FindAllListItems_WithActualElement_HandlesGracefully()
+        public void FindAllListItems_WithActualElement_ReturnsReadOnlyList()
         {
-            // Arrange
             try
             {
                 var desktop = AutomationElement.RootElement;
-                if (desktop == null)
-                {
-                    return;
-                }
+                if (desktop == null) return;
 
-                // Act & Assert - Should not throw even if no list items found
                 var result = ListSearchOptimizer.FindAllListItems(desktop);
 
-                // Result can be null or empty collection, both are valid
-                // The important thing is that it doesn't throw
+                // Should return a non-null IReadOnlyList (possibly empty)
+                Assert.NotNull(result);
+                Assert.IsAssignableFrom<IReadOnlyList<AutomationElement>>(result);
             }
             catch (Exception ex) when (ex is InvalidOperationException || ex is ElementNotAvailableException)
             {
-                // Skip test if UI Automation is not available in test environment
+                return;
+            }
+        }
+
+        [Fact]
+        [Trait("Category", "RequiresUIAutomation")]
+        public void FindAllChildrenOptimized_WithDesktop_ReturnsResults()
+        {
+            try
+            {
+                var desktop = AutomationElement.RootElement;
+                if (desktop == null) return;
+
+                var condition = Condition.TrueCondition;
+                var result = ListSearchOptimizer.FindAllChildrenOptimized(desktop, condition);
+
+                Assert.NotNull(result);
+                Assert.IsAssignableFrom<IReadOnlyList<AutomationElement>>(result);
+            }
+            catch (Exception ex) when (ex is InvalidOperationException || ex is ElementNotAvailableException)
+            {
+                return;
+            }
+        }
+
+        [Fact]
+        [Trait("Category", "RequiresUIAutomation")]
+        public void IsListContainer_WithDesktop_ReturnsFalse()
+        {
+            try
+            {
+                var desktop = AutomationElement.RootElement;
+                if (desktop == null) return;
+
+                // Desktop (Pane) is not a list container
+                Assert.False(ListSearchOptimizer.IsListContainer(desktop));
+            }
+            catch (Exception ex) when (ex is InvalidOperationException || ex is ElementNotAvailableException)
+            {
                 return;
             }
         }

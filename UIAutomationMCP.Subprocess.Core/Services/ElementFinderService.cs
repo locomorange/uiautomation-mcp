@@ -12,6 +12,10 @@ namespace UIAutomationMCP.Subprocess.Core.Services
     /// </summary>
     public class ElementFinderService
     {
+        private static readonly Lazy<AutomationElementCollection> _emptyCollection = new(() =>
+            AutomationElement.RootElement.FindAll(TreeScope.Children,
+                new PropertyCondition(AutomationElement.AutomationIdProperty, "___NonExistentElement___")));
+
         private readonly ILogger<ElementFinderService> _logger;
 
         public ElementFinderService(ILogger<ElementFinderService> logger)
@@ -138,7 +142,11 @@ namespace UIAutomationMCP.Subprocess.Core.Services
 
         #region Helper Methods
 
-        private AutomationElement? GetSearchRoot(ElementSearchCriteria criteria)
+        /// <summary>
+        /// Resolves the search root element from criteria (WindowHandle, WindowTitle, or RootElement).
+        /// Public to allow callers (e.g., SearchElementsOperation) to inspect the root before searching.
+        /// </summary>
+        public AutomationElement? GetSearchRoot(ElementSearchCriteria criteria)
         {
             // Priority 1: Use WindowHandle if specified and not using it as filter
             if (criteria.WindowHandle.HasValue && !criteria.UseWindowHandleAsFilter)
@@ -324,10 +332,9 @@ namespace UIAutomationMCP.Subprocess.Core.Services
             }
         }
 
-        private AutomationElementCollection GetEmptyElementCollection()
+        private static AutomationElementCollection GetEmptyElementCollection()
         {
-            return AutomationElement.RootElement.FindAll(TreeScope.Children,
-                new PropertyCondition(AutomationElement.AutomationIdProperty, "___NonExistentElement___"));
+            return _emptyCollection.Value;
         }
 
         #endregion

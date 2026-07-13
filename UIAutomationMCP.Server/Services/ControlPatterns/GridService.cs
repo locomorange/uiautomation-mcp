@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using UIAutomationMCP.Models.Abstractions;
 using Microsoft.Extensions.Logging;
@@ -7,6 +8,7 @@ using UIAutomationMCP.Core.Abstractions;
 using UIAutomationMCP.Models.Results;
 using UIAutomationMCP.Models.Requests;
 using UIAutomationMCP.Core.Validation;
+using System.Threading.Tasks;
 
 namespace UIAutomationMCP.Server.Services.ControlPatterns
 {
@@ -35,7 +37,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Row = row,
                 Column = column,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<GetGridItemRequest, ElementSearchResult>(
@@ -61,7 +63,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Name = name,
                 Row = row,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<GetRowHeaderRequest, ElementSearchResult>(
@@ -87,7 +89,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Name = name,
                 Column = column,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<GetColumnHeaderRequest, ElementSearchResult>(
@@ -185,7 +187,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
 
             if (string.IsNullOrWhiteSpace(automationId) && string.IsNullOrWhiteSpace(name))
             {
-                return ValidationResult.Failure("Either AutomationId or Name is required for element identification");
+                if (typeof(T) != typeof(GetGridInfoRequest))
+                {
+                    return ValidationResult.Failure("Either AutomationId or Name is required for element identification");
+                }
             }
 
             return ValidationResult.Success;
@@ -203,17 +208,14 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 if (context.MethodName.Contains("GetGridItem"))
                 {
                     metadata.ActionPerformed = "gridItemRetrieved";
-                    // Extract row/column from request if needed (would require request context)
                 }
                 else if (context.MethodName.Contains("GetRowHeader"))
                 {
                     metadata.ActionPerformed = "rowHeaderRetrieved";
-                    // Extract row from request if needed
                 }
                 else if (context.MethodName.Contains("GetColumnHeader"))
                 {
                     metadata.ActionPerformed = "columnHeaderRetrieved";
-                    // Extract column from request if needed
                 }
             }
             else if (data is GridInfoResult gridResult)

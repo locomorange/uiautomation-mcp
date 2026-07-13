@@ -24,8 +24,8 @@ namespace UIAutomationMCP.Subprocess.Monitor.Operations
 
         protected override Task<EventLogResult> ExecuteOperationAsync(GetEventLogRequest request)
         {
-            _logger.LogInformation("Getting event log - MonitorId: {MonitorId}, MaxCount: {MaxCount}",
-                request.MonitorId, request.MaxCount);
+            _logger.LogInformation("Getting event log - MonitorId: {MonitorId}, MaxCount: {MaxCount}, PreserveEvents: {PreserveEvents}",
+                request.MonitorId, request.MaxCount, request.PreserveEvents);
 
             var session = _sessionManager.GetSession(request.MonitorId);
             if (session == null)
@@ -37,18 +37,27 @@ namespace UIAutomationMCP.Subprocess.Monitor.Operations
                     Success = false,
                     MonitorId = request.MonitorId,
                     Events = new List<TypedEventData>(),
-                    SessionActive = false
+                    SessionActive = false,
+                    PreserveEvents = request.PreserveEvents
                 });
             }
 
-            var typedEvents = session.GetCapturedEvents(request.MaxCount);
+            var typedEvents = request.PreserveEvents
+                ? session.PeekCapturedEvents(request.MaxCount)
+                : session.GetCapturedEvents(request.MaxCount);
 
             var result = new EventLogResult
             {
                 Success = true,
                 MonitorId = request.MonitorId,
                 Events = typedEvents,
-                SessionActive = session.IsActive
+                SessionActive = session.IsActive,
+                TotalEventCount = session.EventCount,
+                PendingEventCount = session.EventCount,
+                StartTime = session.StartTime,
+                DroppedEventCount = session.DroppedEventCount,
+                DiscardedLowConfidenceEventCount = session.DiscardedLowConfidenceEventCount,
+                PreserveEvents = request.PreserveEvents
             };
 
             _logger.LogInformation("Retrieved {EventCount} events for session {SessionId}",

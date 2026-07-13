@@ -28,7 +28,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 X = x,
                 Y = y,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<MoveElementRequest, ActionResult>(
@@ -49,7 +49,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Width = width,
                 Height = height,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<ResizeElementRequest, ActionResult>(
@@ -69,7 +69,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Name = name,
                 Degrees = degrees,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<RotateElementRequest, ActionResult>(
@@ -88,7 +88,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 AutomationId = automationId,
                 Name = name,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<GetTransformCapabilitiesRequest, TransformCapabilitiesResult>(

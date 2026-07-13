@@ -62,4 +62,9 @@ namespace UIAutomationMCP.Models.Requests
         [JsonPropertyName("count")]
         public int Count { get; set; } = 1;
     }
+
+    public class GetTextRequest : ElementTargetRequest
+    {
+        public override string Operation => "GetText";
+    }
 }

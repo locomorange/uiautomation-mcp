@@ -86,6 +86,9 @@ namespace UIAutomationMCP.Subprocess.Worker.Helpers
             // Cache layout for bounding box checks
             cacheRequest.Add(AutomationElement.BoundingRectangleProperty);
 
+            // Cache process information (required by ElementInfoBuilder.CreateElementInfo)
+            cacheRequest.Add(AutomationElement.ProcessIdProperty);
+
             // Cache window handle for window-based searches
             cacheRequest.Add(AutomationElement.NativeWindowHandleProperty);
 

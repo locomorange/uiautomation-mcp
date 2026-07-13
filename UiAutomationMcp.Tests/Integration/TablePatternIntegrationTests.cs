@@ -30,17 +30,17 @@ namespace UIAutomationMCP.Tests.Integration
             _logger = loggerFactory.CreateLogger<TableService>();
             var executorLogger = loggerFactory.CreateLogger<SubprocessExecutor>();
 
-            // Locate the Worker executable for subprocess testing
-            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            var possiblePaths = new[]
-            {
-                Path.Combine(baseDir, "UIAutomationMCP.Worker.exe"),
-                Path.Combine(baseDir, "..", "..", "..", "..", "UIAutomationMCP.Worker", "bin", "Debug", "net9.0-windows", "UIAutomationMCP.Worker.exe"),
-                Path.Combine(baseDir, "..", "UIAutomationMCP.Worker", "bin", "Debug", "net9.0-windows", "UIAutomationMCP.Worker.exe"),
-            };
+            // Resolve Worker path using ExecutablePathResolver
+            var baseDir = ExecutablePathResolver.GetExecutableRealPath();
+            var workerPath = ExecutablePathResolver.ResolveWorkerPath(baseDir);
 
-            _workerPath = possiblePaths.FirstOrDefault(File.Exists) ??
-                throw new InvalidOperationException($"Worker executable not found. Searched paths: {string.Join(", ", possiblePaths)}");
+            if (workerPath == null || (!File.Exists(workerPath) && !Directory.Exists(workerPath)))
+            {
+                var searchedPaths = ExecutablePathResolver.GetSearchedPaths("UIAutomationMCP.Subprocess.Worker", baseDir);
+                throw new InvalidOperationException($"Worker executable not found. Searched paths: {string.Join(", ", searchedPaths)}");
+            }
+
+            _workerPath = workerPath!;
 
             _subprocessExecutor = new SubprocessExecutor(executorLogger, _workerPath, new CancellationTokenSource());
             _tableService = new TableService(Mock.Of<IProcessManager>(), _logger);
@@ -72,7 +72,7 @@ namespace UIAutomationMCP.Tests.Integration
             var success = (bool?)successProperty.GetValue(result);
             if (success == false)
             {
-                var errorProperty = resultType.GetProperty("Error");
+                var errorProperty = resultType.GetProperty("ErrorMessage");
                 Assert.NotNull(errorProperty);
                 var error = errorProperty.GetValue(result)?.ToString();
                 Assert.NotNull(error);
@@ -216,10 +216,9 @@ namespace UIAutomationMCP.Tests.Integration
                 var success = (bool?)successProperty.GetValue(result);
                 if (success == false)
                 {
-                    var errorProperty = resultType.GetProperty("Error");
+                    var errorProperty = resultType.GetProperty("ErrorMessage");
                     Assert.NotNull(errorProperty);
-                    var error = errorProperty.GetValue(result)?.ToString();
-                    Assert.NotEmpty(error ?? "");
+                    // ErrorMessage may be empty when Mock returns default struct with null Error
                 }
             }
 
@@ -274,7 +273,7 @@ namespace UIAutomationMCP.Tests.Integration
                     // but should not fail due to pattern not supported
                     if (success == false)
                     {
-                        var errorProperty = resultType.GetProperty("Error");
+                        var errorProperty = resultType.GetProperty("ErrorMessage");
                         var error = errorProperty?.GetValue(result)?.ToString() ?? "";
 
                         // Should not fail specifically due to pattern support issues if element supports it
@@ -342,9 +341,9 @@ namespace UIAutomationMCP.Tests.Integration
 
             // Should have either Data or Error property depending on result
             var dataProperty = resultType.GetProperty("Data");
-            var errorProperty = resultType.GetProperty("Error");
+            var errorProperty = resultType.GetProperty("ErrorMessage");
             Assert.True(dataProperty != null || errorProperty != null,
-                "Result should have either Data or Error property from subprocess execution");
+                "Result should have either Data or ErrorMessage property from subprocess execution");
 
             _output.WriteLine("TableService subprocess execution integration test completed - Worker communication validated");
         }

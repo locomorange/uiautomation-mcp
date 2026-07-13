@@ -13,6 +13,11 @@ using UIAutomationMCP.Subprocess.Core.Helpers;
 
 namespace UIAutomationMCP.Subprocess.Worker.Operations.Toggle
 {
+    /// <summary>
+    /// Not exposed as a separate MCP tool: the ToggleElement MCP tool provides basic toggle.
+    /// This operation adds targeted state setting (On/Off/Indeterminate) by iterating toggles.
+    /// Registered in Worker DI and usable via IToggleService internally.
+    /// </summary>
     public class SetToggleStateOperation : BaseUIAutomationOperation<SetToggleStateRequest, ToggleActionResult>
     {
         private readonly IOptions<UIAutomationOptions> _options;

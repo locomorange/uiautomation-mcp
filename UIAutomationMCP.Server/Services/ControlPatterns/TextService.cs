@@ -34,7 +34,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 StartIndex = startIndex,
                 Length = length,
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<SelectTextRequest, ActionResult>(
@@ -60,7 +60,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Name = name,
                 Text = text ?? "",
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<SetTextRequest, ActionResult>(
@@ -86,7 +86,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 Name = name,
                 Text = text ?? "",
                 ControlType = controlType,
-                WindowHandle = windowHandle
+                WindowHandle = windowHandle,
             };
 
             return await ExecuteServiceOperationAsync<SetTextRequest, ActionResult>(
@@ -116,7 +116,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 WindowHandle = windowHandle,
                 StartIndex = startIndex,
                 Length = length,
-                AttributeName = attributeName
+                AttributeName = attributeName,
             };
 
             return await ExecuteServiceOperationAsync<UIAutomationMCP.Models.Requests.GetTextAttributesRequest, TextAttributesResult>(
@@ -146,7 +146,7 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 WindowHandle = windowHandle,
                 SearchText = searchText,
                 Backward = backward,
-                IgnoreCase = ignoreCase
+                IgnoreCase = ignoreCase,
             };
 
             return await ExecuteServiceOperationAsync<UIAutomationMCP.Models.Requests.FindTextRequest, TextSearchResult>(
@@ -155,6 +155,30 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 nameof(FindTextAsync),
                 timeoutSeconds,
                 ValidateFindTextRequest
+            );
+        }
+
+        public async Task<ServerEnhancedResponse<TextResult>> GetTextAsync(
+            string? automationId = null,
+            string? name = null,
+            string? controlType = null,
+            long? windowHandle = null,
+            int timeoutSeconds = 30)
+        {
+            var request = new UIAutomationMCP.Models.Requests.GetTextRequest
+            {
+                AutomationId = automationId,
+                Name = name,
+                ControlType = controlType,
+                WindowHandle = windowHandle,
+            };
+
+            return await ExecuteServiceOperationAsync<UIAutomationMCP.Models.Requests.GetTextRequest, TextResult>(
+                "GetText",
+                request,
+                nameof(GetTextAsync),
+                timeoutSeconds,
+                ValidateGetTextRequest
             );
         }
 
@@ -234,6 +258,16 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
             return errors.Count > 0 ? ValidationResult.Failure(errors) : ValidationResult.Success;
         }
 
+        private static ValidationResult ValidateGetTextRequest(UIAutomationMCP.Models.Requests.GetTextRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.AutomationId) && string.IsNullOrWhiteSpace(request.Name))
+            {
+                return ValidationResult.Failure("Either AutomationId or Name is required for get text operation");
+            }
+
+            return ValidationResult.Success;
+        }
+
         protected override TextServiceMetadata CreateSuccessMetadata<TResult>(TResult data, IServiceContext context)
         {
             var metadata = base.CreateSuccessMetadata(data, context);
@@ -259,6 +293,10 @@ namespace UIAutomationMCP.Server.Services.ControlPatterns
                 metadata.ActionPerformed = "textFound";
                 metadata.TextFound = searchResult.Found;
                 metadata.StartIndex = searchResult.StartIndex;
+            }
+            else if (data is TextResult textResult)
+            {
+                metadata.ActionPerformed = "textRetrieved";
             }
 
             return metadata;

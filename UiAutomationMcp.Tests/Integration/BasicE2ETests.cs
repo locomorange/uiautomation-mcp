@@ -6,15 +6,19 @@ using UIAutomationMCP.Core.Options;
 using UIAutomationMCP.Server.Helpers;
 using UIAutomationMCP.Server.Services;
 using UIAutomationMCP.Server.Services.ControlPatterns;
+using UIAutomationMCP.Models.Results;
 using Xunit.Abstractions;
 using System.Diagnostics;
 using Moq;
-
 using UIAutomationMCP.Server.Abstractions;
+using UIAutomationMCP.Models.Abstractions;
+using UIAutomationMCP.Tests.E2E;
+
 namespace UIAutomationMCP.Tests.Integration
 {
     /// <summary>
-    ///        E2E     -                                       /// Process ID                                           /// </summary>
+    /// Basic E2E tests for UI Automation MCP tools.
+    /// </summary>
     [Collection("UIAutomationTestCollection")]
     [Trait("Category", "Integration")]
     public class BasicE2ETests : IDisposable
@@ -38,28 +42,28 @@ namespace UIAutomationMCP.Tests.Integration
             _serviceProvider = services.BuildServiceProvider();
             var logger = _serviceProvider.GetRequiredService<ILogger<SubprocessExecutor>>();
 
-            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            var possiblePaths = new[]
-            {
-                Path.Combine(baseDir, "UIAutomationMCP.Worker.exe"),
-                Path.Combine(baseDir, "..", "UIAutomationMCP.Worker", "bin", "Debug", "net9.0-windows", "UIAutomationMCP.Worker.exe"),
-                Path.Combine(baseDir, "worker", "UIAutomationMCP.Worker.exe"),
-            };
-
-            _workerPath = possiblePaths.FirstOrDefault(File.Exists) ??
+            // Use ExecutablePathResolver for robust path resolution
+            var baseDir = ExecutablePathResolver.GetExecutableRealPath();
+            _workerPath = ExecutablePathResolver.ResolveWorkerPath(baseDir) ?? 
                 throw new InvalidOperationException("Worker executable not found");
+
+            _output.WriteLine($"Using worker path: {_workerPath}");
 
             _subprocessExecutor = new SubprocessExecutor(logger, _workerPath, new CancellationTokenSource());
 
             // Create options
             var options = Options.Create(new UIAutomationOptions());
 
+            var processManagerMock = new Mock<IProcessManager>();
+            processManagerMock.Setup(x => x.ExecuteWorkerOperationAsync<It.IsAnyType, object>(It.IsAny<string>(), It.IsAny<It.IsAnyType>(), It.IsAny<int>()))
+                .ReturnsAsync(ServiceOperationResult<object>.FromSuccess(new object())); // Generalized mock
+
             _elementSearchService = new ElementSearchService(
-                Mock.Of<IProcessManager>(),
+                processManagerMock.Object,
                 _serviceProvider.GetRequiredService<ILogger<ElementSearchService>>(),
                 options);
-            _invokeService = new InvokeService(Mock.Of<IProcessManager>(), _serviceProvider.GetRequiredService<ILogger<InvokeService>>());
-            _valueService = new ValueService(Mock.Of<IProcessManager>(), _serviceProvider.GetRequiredService<ILogger<ValueService>>());
+            _invokeService = new InvokeService(processManagerMock.Object, _serviceProvider.GetRequiredService<ILogger<InvokeService>>());
+            _valueService = new ValueService(processManagerMock.Object, _serviceProvider.GetRequiredService<ILogger<ValueService>>());
         }
 
         [Fact]
@@ -182,38 +186,6 @@ namespace UIAutomationMCP.Tests.Integration
             _output.WriteLine($"Short timeout test completed in {actualTime}s with result: {result}");
         }
 
-        private async Task SafelyTerminateProcessAsync(Process? process, string appName)
-        {
-            if (process == null) return;
-
-            try
-            {
-                if (!process.HasExited)
-                {
-                    _output.WriteLine($"Terminating {appName} with PID: {process.Id}");
-
-                    //                                      process.CloseMainWindow();
-
-                    //                                          if (!process.WaitForExit(2000))
-                    {
-                        _output.WriteLine($"Force killing {appName} with PID: {process.Id}");
-                        process.Kill();
-                        await process.WaitForExitAsync();
-                    }
-
-                    _output.WriteLine($"{appName} with PID: {process.Id} terminated successfully");
-                }
-            }
-            catch (Exception ex)
-            {
-                _output.WriteLine($"Error terminating {appName}: {ex.Message}");
-            }
-            finally
-            {
-                process?.Dispose();
-            }
-        }
-
         [Fact]
         public async Task BasicWorkflow_WithCalculator_ShouldHandleGracefully()
         {
@@ -260,7 +232,8 @@ namespace UIAutomationMCP.Tests.Integration
             }
             finally
             {
-                await SafelyTerminateProcessAsync(calcProcess, "Calculator");
+                if (calcProcess != null)
+                    await ProcessCleanupHelper.CleanupProcess(calcProcess, _output, "Calculator");
             }
         }
 

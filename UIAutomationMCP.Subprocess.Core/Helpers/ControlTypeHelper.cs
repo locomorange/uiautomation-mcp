@@ -19,11 +19,13 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
             ["CheckBox"] = ControlType.CheckBox,
             ["ComboBox"] = ControlType.ComboBox,
             ["Edit"] = ControlType.Edit,
+            ["TextBox"] = ControlType.Edit, // Alias
             ["Hyperlink"] = ControlType.Hyperlink,
             ["Image"] = ControlType.Image,
             ["ListItem"] = ControlType.ListItem,
             ["List"] = ControlType.List,
             ["ListBox"] = ControlType.List, // Alias
+            ["ListView"] = ControlType.List, // Alias
             ["Menu"] = ControlType.Menu,
             ["MenuBar"] = ControlType.MenuBar,
             ["MenuItem"] = ControlType.MenuItem,
@@ -36,18 +38,23 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
             ["Tab"] = ControlType.Tab,
             ["TabItem"] = ControlType.TabItem,
             ["Text"] = ControlType.Text,
+            ["StaticText"] = ControlType.Text, // Alias
             ["ToolBar"] = ControlType.ToolBar,
             ["ToolTip"] = ControlType.ToolTip,
             ["Tree"] = ControlType.Tree,
+            ["TreeView"] = ControlType.Tree, // Alias
             ["TreeItem"] = ControlType.TreeItem,
 
             // Container controls
             ["DataGrid"] = ControlType.DataGrid,
+            ["GridView"] = ControlType.DataGrid, // Alias
             ["DataItem"] = ControlType.DataItem,
             ["Document"] = ControlType.Document,
             ["SplitButton"] = ControlType.SplitButton,
             ["Window"] = ControlType.Window,
             ["Pane"] = ControlType.Pane,
+            ["Canvas"] = ControlType.Pane, // Alias
+            ["WebView"] = ControlType.Pane, // Alias
             ["Header"] = ControlType.Header,
             ["HeaderItem"] = ControlType.HeaderItem,
             ["Table"] = ControlType.Table,
@@ -56,8 +63,11 @@ namespace UIAutomationMCP.Subprocess.Core.Helpers
 
             // Other controls
             ["Group"] = ControlType.Group,
+            ["Grid"] = ControlType.Group, // Layout Grid often maps to Group or Pane
+            ["AppBar"] = ControlType.Group, // Alias
             ["Thumb"] = ControlType.Thumb,
-            ["Custom"] = ControlType.Custom
+            ["Custom"] = ControlType.Custom,
+            ["NavigationViewItem"] = ControlType.ListItem // Often maps to ListItem
         };
 
         /// <summary>

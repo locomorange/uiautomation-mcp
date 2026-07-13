@@ -65,19 +65,6 @@ namespace UIAutomationMCP.Subprocess.Worker.Extensions
             }).ToList();
         }
 
-        public static AutomationElement GetSearchRoot(this ElementFinderService service, int? processId, string? windowTitle)
-        {
-            if (processId.HasValue)
-            {
-                var condition = new PropertyCondition(AutomationElement.ProcessIdProperty, processId.Value);
-                var processWindow = AutomationElement.RootElement.FindFirst(TreeScope.Children, condition);
-                if (processWindow != null)
-                    return processWindow;
-            }
-
-            return AutomationElement.RootElement;
-        }
-
         public static ElementInfo GetElementBasicInfo(this ElementFinderService service, AutomationElement element)
         {
             try
