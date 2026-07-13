@@ -53,6 +53,63 @@ namespace UIAutomationMCP.Tests.E2E
         }
 
         [Fact]
+        public async Task Test_03b_SearchElements_SearchText_ActuallyFilters()
+        {
+            Output.WriteLine("=== Testing SearchElements searchText actually filters results ===");
+
+            // Baseline: an unfiltered search returns the (capped) full element tree.
+            var allJson = (await Tools.SearchElements(maxResults: 1000)).ToJsonElement();
+            int totalAll = GetTotalFound(allJson);
+            Output.WriteLine($"Unfiltered totalFound = {totalAll}");
+            Assert.True(totalAll > 0, "Baseline search should find elements");
+
+            // 1) A token that cannot occur must yield zero results.
+            //    Before the fix, searchText was ignored and this returned the whole tree.
+            const string nonsense = "ZZ_NoSuchElement_QWERTY_123";
+            var nonsenseJson = (await Tools.SearchElements(searchText: nonsense, maxResults: 1000)).ToJsonElement();
+            int totalNonsense = GetTotalFound(nonsenseJson);
+            var nonsenseElements = GetElements(nonsenseJson);
+            Output.WriteLine($"Nonsense searchText totalFound = {totalNonsense}, returned = {nonsenseElements.Count}");
+            Assert.Equal(0, totalNonsense);
+            Assert.Empty(nonsenseElements);
+
+            // 2) A real token taken from an actual element must return only matching elements.
+            var allElements = GetElements(allJson);
+            var token = allElements
+                .Select(e => GetStr(e, "name"))
+                .FirstOrDefault(n => n.Length >= 4 && n.All(c => !char.IsWhiteSpace(c)));
+            if (string.IsNullOrEmpty(token))
+            {
+                token = "Home"; // Fallback to a common navigation item name.
+            }
+
+            Output.WriteLine($"Filtering by real token: '{token}'");
+            var filteredJson = (await Tools.SearchElements(searchText: token, maxResults: 1000)).ToJsonElement();
+            var filteredElements = GetElements(filteredJson);
+            int totalFiltered = GetTotalFound(filteredJson);
+            Output.WriteLine($"Filtered totalFound = {totalFiltered}, returned = {filteredElements.Count}");
+
+            Assert.True(totalFiltered > 0, $"searchText '{token}' should match at least one element");
+            Assert.True(totalFiltered <= totalAll, "Filtered result cannot exceed the unfiltered result");
+
+            foreach (var el in filteredElements)
+            {
+                var name = GetStr(el, "name");
+                var automationId = GetStr(el, "automationId");
+                var className = GetStr(el, "className");
+
+                bool matches =
+                    name.Contains(token, StringComparison.OrdinalIgnoreCase) ||
+                    automationId.Contains(token, StringComparison.OrdinalIgnoreCase) ||
+                    className.Contains(token, StringComparison.OrdinalIgnoreCase);
+
+                Assert.True(matches,
+                    $"Returned element does not contain searchText '{token}': " +
+                    $"name='{name}', automationId='{automationId}', className='{className}'");
+            }
+        }
+
+        [Fact]
         public async Task Test_04_GetElementTree_ShouldShowHierarchy()
         {
             Output.WriteLine("=== Testing GetElementTree ===");
@@ -921,6 +978,47 @@ namespace UIAutomationMCP.Tests.E2E
                 Output.WriteLine($"{operation} result serialization failed: {ex.Message}");
                 Output.WriteLine($"{operation} result type: {result?.GetType().Name ?? "null"}");
             }
+        }
+
+        /// <summary>
+        /// Extracts the data.elements array from a serialized SearchElements response.
+        /// </summary>
+        private static List<JsonElement> GetElements(JsonElement response)
+        {
+            if (response.TryGetPropertyCI("data", out var data) &&
+                data.TryGetPropertyCI("elements", out var elements) &&
+                elements.ValueKind == JsonValueKind.Array)
+            {
+                return elements.EnumerateArray().ToList();
+            }
+            return new List<JsonElement>();
+        }
+
+        /// <summary>
+        /// Extracts data.metadata.totalFound from a serialized SearchElements response (-1 if absent).
+        /// </summary>
+        private static int GetTotalFound(JsonElement response)
+        {
+            if (response.TryGetPropertyCI("data", out var data) &&
+                data.TryGetPropertyCI("metadata", out var metadata) &&
+                metadata.TryGetPropertyCI("totalFound", out var totalFound) &&
+                totalFound.ValueKind == JsonValueKind.Number)
+            {
+                return totalFound.GetInt32();
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Reads a string property (case-insensitive) from a JSON element, or "" when missing.
+        /// </summary>
+        private static string GetStr(JsonElement element, string property)
+        {
+            if (element.TryGetPropertyCI(property, out var value) && value.ValueKind == JsonValueKind.String)
+            {
+                return value.GetString() ?? string.Empty;
+            }
+            return string.Empty;
         }
 
         #endregion
