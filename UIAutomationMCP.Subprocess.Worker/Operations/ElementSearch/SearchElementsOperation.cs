@@ -122,6 +122,20 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
                 bool useCacheOptimization = _options.Value.Performance.EnableCacheOptimization;
                 var foundElementsList = FindElementsWithOptimalMethod(searchCriteria, useCacheOptimization);
 
+                // Cross-property searchText / fuzzyMatch filtering.
+                // UIA PropertyCondition only supports exact matches, so substring/fuzzy filtering
+                // is applied here against the found elements. This runs before sorting and the
+                // MaxResults/totalFound calculation so the metadata counts reflect the filtered set.
+                if (!string.IsNullOrEmpty(request.SearchText))
+                {
+                    var beforeFilter = foundElementsList.Count;
+                    foundElementsList = FilterBySearchText(
+                        foundElementsList, request.SearchText!, request.FuzzyMatch, useCacheOptimization);
+                    _logger?.LogDebug(
+                        "SearchText filter '{SearchText}' (fuzzy={Fuzzy}) matched {Matched} of {Total} elements",
+                        request.SearchText, request.FuzzyMatch, foundElementsList.Count, beforeFilter);
+                }
+
                 // Apply basic filtering and sorting
                 if (!string.IsNullOrEmpty(request.SortBy))
                 {
@@ -344,6 +358,61 @@ namespace UIAutomationMCP.Subprocess.Worker.Operations.ElementSearch
                 return props.BoundingRectangle.Y;
             }
             catch { return 0; }
+        }
+
+        /// <summary>
+        /// Filters elements by the cross-property searchText: keeps an element when its Name,
+        /// AutomationId, or ClassName matches the search text (case-insensitive substring, or
+        /// normalized fuzzy match when <paramref name="fuzzyMatch"/> is true). UIA cannot express
+        /// substring conditions, so this is applied in-process to the already-found elements.
+        /// </summary>
+        private List<AutomationElement> FilterBySearchText(
+            List<AutomationElement> elements, string searchText, bool fuzzyMatch, bool useCached)
+        {
+            var result = new List<AutomationElement>(elements.Count);
+            foreach (var element in elements)
+            {
+                var name = GetSearchableProperty(element, AutomationElement.NameProperty, useCached);
+                var automationId = GetSearchableProperty(element, AutomationElement.AutomationIdProperty, useCached);
+                var className = GetSearchableProperty(element, AutomationElement.ClassNameProperty, useCached);
+
+                if (SearchTextMatcher.IsMatchAny(searchText, fuzzyMatch, name, automationId, className))
+                {
+                    result.Add(element);
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Reads a string property for searchText matching. Prefers the cached value when cache
+        /// optimization is active, falling back to the current value when the property was not
+        /// cached for this element (e.g. elements returned by ListSearchOptimizer, which runs
+        /// outside the CacheRequest scope).
+        /// </summary>
+        private static string GetSearchableProperty(AutomationElement element, AutomationProperty property, bool useCached)
+        {
+            if (useCached)
+            {
+                try
+                {
+                    if (element.GetCachedPropertyValue(property) is string cached)
+                        return cached;
+                }
+                catch
+                {
+                    // Property not cached for this element; fall through to the current value.
+                }
+            }
+
+            try
+            {
+                return element.GetCurrentPropertyValue(property) as string ?? string.Empty;
+            }
+            catch
+            {
+                return string.Empty;
+            }
         }
 
 
