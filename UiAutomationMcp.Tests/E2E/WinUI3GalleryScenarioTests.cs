@@ -88,7 +88,7 @@ namespace UIAutomationMCP.Tests.E2E
                 LogResult("TextBox navigation items", navItems);
 
                 // Step 2: Navigate to TextBox page
-                if (navItems != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(navItems)), out var textBoxNavId))
+                if (navItems != null && TryGetFirstElementId(navItems.ToJsonElement(), out var textBoxNavId))
                 {
                     await _tools.InvokeElement(textBoxNavId!);
                     await Task.Delay(1000);
@@ -138,7 +138,7 @@ namespace UIAutomationMCP.Tests.E2E
                 LogResult("CheckBox navigation items", navItems);
 
                 // Step 2: Navigate to CheckBox page
-                if (navItems != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(navItems)), out var checkBoxNavId))
+                if (navItems != null && TryGetFirstElementId(navItems.ToJsonElement(), out var checkBoxNavId))
                 {
                     await _tools.InvokeElement(checkBoxNavId!);
                     await Task.Delay(1000);
@@ -149,7 +149,7 @@ namespace UIAutomationMCP.Tests.E2E
                 LogResult("CheckBoxes found", checkBoxes);
 
                 // Step 4: Toggle the first checkbox
-                if (checkBoxes != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(checkBoxes)), out var checkBoxId))
+                if (checkBoxes != null && TryGetFirstElementId(checkBoxes.ToJsonElement(), out var checkBoxId))
                 {
                     _output.WriteLine($"Toggling CheckBox: {checkBoxId}");
                     var toggleResult = await _tools.ToggleElement(checkBoxId!);
@@ -177,7 +177,7 @@ namespace UIAutomationMCP.Tests.E2E
                 LogResult("Slider navigation items", navItems);
 
                 // Step 2: Navigate to Slider page
-                if (navItems != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(navItems)), out var sliderNavId))
+                if (navItems != null && TryGetFirstElementId(navItems.ToJsonElement(), out var sliderNavId))
                 {
                     await _tools.InvokeElement(sliderNavId!);
                     await Task.Delay(1000);
@@ -188,7 +188,7 @@ namespace UIAutomationMCP.Tests.E2E
                 LogResult("Sliders found", sliders);
 
                 // Step 4: Get and set range value
-                if (sliders != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(sliders)), out var sliderId))
+                if (sliders != null && TryGetFirstElementId(sliders.ToJsonElement(), out var sliderId))
                 {
                     // GetRangeValue method has been removed - use SearchElements or pattern-specific operations
                     // For range information, use SetRangeValue directly or other available patterns
@@ -220,7 +220,7 @@ namespace UIAutomationMCP.Tests.E2E
                 LogResult("ScrollViewer navigation items", navItems);
 
                 // Step 2: Navigate to ScrollViewer page
-                if (navItems != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(navItems)), out var scrollViewerNavId))
+                if (navItems != null && TryGetFirstElementId(navItems.ToJsonElement(), out var scrollViewerNavId))
                 {
                     await _tools.InvokeElement(scrollViewerNavId!);
                     await Task.Delay(1000);
@@ -231,7 +231,7 @@ namespace UIAutomationMCP.Tests.E2E
                 LogResult("ScrollViewers found", scrollViewers);
 
                 // Step 4: Test scroll operations
-                if (scrollViewers != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(scrollViewers)), out var scrollViewerId))
+                if (scrollViewers != null && TryGetFirstElementId(scrollViewers.ToJsonElement(), out var scrollViewerId))
                 {
                     // GetScrollInfo method has been removed - use direct scroll operations
                     // Scroll info is available through the scroll pattern operations themselves
@@ -272,7 +272,7 @@ namespace UIAutomationMCP.Tests.E2E
 
                 // Step 2: Get control type info for various elements
                 var buttons = await _tools.SearchElements(controlType: "Button", maxResults: 1);
-                if (buttons != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(buttons)), out var buttonId))
+                if (buttons != null && TryGetFirstElementId(buttons.ToJsonElement(), out var buttonId))
                 {
                     // Control type info is already included in SearchElements response
                     LogResult("Button elements (with control type info)", buttons);
@@ -284,7 +284,7 @@ namespace UIAutomationMCP.Tests.E2E
 
                 // Step 3: Check for labeled elements
                 var textBoxes = await _tools.SearchElements(controlType: "Edit", maxResults: 1);
-                if (textBoxes != null && TryGetFirstElementId(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(textBoxes)), out var textBoxId))
+                if (textBoxes != null && TryGetFirstElementId(textBoxes.ToJsonElement(), out var textBoxId))
                 {
                     // GetLabeledBy method has been removed - label relationships can be found through SearchElements
                     // Look for elements with LabelFor relationships or nearby Text elements
@@ -315,18 +315,18 @@ namespace UIAutomationMCP.Tests.E2E
 
             try
             {
-                if (element.TryGetProperty("data", out var dataElement) && dataElement.ValueKind == JsonValueKind.Array)
+                if (element.TryGetPropertyCI("data", out var dataElement) && dataElement.ValueKind == JsonValueKind.Array)
                 {
                     var items = dataElement.EnumerateArray().ToList();
                     if (items.Count > 0)
                     {
                         var firstItem = items[0];
-                        if (firstItem.TryGetProperty("automationId", out var idElement) && !string.IsNullOrEmpty(idElement.GetString()))
+                        if (firstItem.TryGetPropertyCI("automationId", out var idElement) && !string.IsNullOrEmpty(idElement.GetString()))
                         {
                             elementId = idElement.GetString()!;
                             return true;
                         }
-                        if (firstItem.TryGetProperty("name", out var nameElement) && !string.IsNullOrEmpty(nameElement.GetString()))
+                        if (firstItem.TryGetPropertyCI("name", out var nameElement) && !string.IsNullOrEmpty(nameElement.GetString()))
                         {
                             elementId = nameElement.GetString()!;
                             return true;

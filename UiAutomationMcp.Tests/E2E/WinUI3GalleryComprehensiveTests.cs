@@ -132,16 +132,16 @@ namespace UIAutomationMCP.Tests.E2E
                 var navItemsJson = JsonSerializer.Serialize(navItems);
                 var navData = JsonSerializer.Deserialize<JsonElement>(navItemsJson);
 
-                if (navData.TryGetProperty("data", out var dataElement) &&
-                    dataElement.TryGetProperty("elements", out var elementsArray))
+                if (navData.TryGetPropertyCI("data", out var dataElement) &&
+                    dataElement.TryGetPropertyCI("elements", out var elementsArray))
                 {
                     var elements = elementsArray.EnumerateArray().ToList();
                     Output.WriteLine($"Found {elements.Count} navigation items:");
 
                     foreach (var element in elements.Take(10)) // Show first 10
                     {
-                        if (element.TryGetProperty("AutomationId", out var idElement) &&
-                            element.TryGetProperty("Name", out var nameElement))
+                        if (element.TryGetPropertyCI("AutomationId", out var idElement) &&
+                            element.TryGetPropertyCI("Name", out var nameElement))
                         {
                             Output.WriteLine($"  - ID: {idElement.GetString()}, Name: {nameElement.GetString()}");
                         }
@@ -171,8 +171,8 @@ namespace UIAutomationMCP.Tests.E2E
                 Output.WriteLine($"SelectionAction result: {JsonSerializer.Serialize(selectResult, new JsonSerializerOptions { WriteIndented = true })}");
 
                 // Verify the operation returned success
-                var selectData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(selectResult));
-                bool selectSuccess = selectData.TryGetProperty("Success", out var successElement) && successElement.GetBoolean();
+                var selectData = selectResult.ToJsonElement();
+                bool selectSuccess = selectData.TryGetPropertyCI("Success", out var successElement) && successElement.GetBoolean();
                 Output.WriteLine($"SelectElement operation success: {selectSuccess}");
 
                 // Step 6: Wait for navigation
@@ -209,14 +209,14 @@ namespace UIAutomationMCP.Tests.E2E
                 var afterSelected = new { Success = false, Data = false };
 
                 // Parse selection states more carefully
-                var initialSelectData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(initialSelected));
-                var afterSelectData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(afterSelected));
+                var initialSelectData = initialSelected.ToJsonElement();
+                var afterSelectData = afterSelected.ToJsonElement();
 
                 // More robust parsing that handles different data types
                 bool initiallySelected = false;
-                if (initialSelectData.TryGetProperty("Success", out var initSuccessEl) && initSuccessEl.GetBoolean())
+                if (initialSelectData.TryGetPropertyCI("Success", out var initSuccessEl) && initSuccessEl.GetBoolean())
                 {
-                    if (initialSelectData.TryGetProperty("Data", out var initDataEl))
+                    if (initialSelectData.TryGetPropertyCI("Data", out var initDataEl))
                     {
                         if (initDataEl.ValueKind == JsonValueKind.True)
                             initiallySelected = true;
@@ -228,9 +228,9 @@ namespace UIAutomationMCP.Tests.E2E
                 }
 
                 bool finallySelected = false;
-                if (afterSelectData.TryGetProperty("Success", out var finalSuccessEl) && finalSuccessEl.GetBoolean())
+                if (afterSelectData.TryGetPropertyCI("Success", out var finalSuccessEl) && finalSuccessEl.GetBoolean())
                 {
-                    if (afterSelectData.TryGetProperty("Data", out var finalDataEl))
+                    if (afterSelectData.TryGetPropertyCI("Data", out var finalDataEl))
                     {
                         if (finalDataEl.ValueKind == JsonValueKind.True)
                             finallySelected = true;
@@ -250,16 +250,16 @@ namespace UIAutomationMCP.Tests.E2E
                 Output.WriteLine($"Found Iconography text: {JsonSerializer.Serialize(fundamentalsText)}");
 
                 // Count content elements before and after
-                var initialTextData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(initialContent));
-                var afterTextData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(afterContent));
+                var initialTextData = initialContent.ToJsonElement();
+                var afterTextData = afterContent.ToJsonElement();
 
                 int initialTextCount = 0;
                 int afterTextCount = 0;
 
-                if (initialTextData.TryGetProperty("Data", out var initContentData) && initContentData.ValueKind == JsonValueKind.Array)
+                if (initialTextData.TryGetPropertyCI("Data", out var initContentData) && initContentData.ValueKind == JsonValueKind.Array)
                     initialTextCount = initContentData.GetArrayLength();
 
-                if (afterTextData.TryGetProperty("Data", out var afterContentData) && afterContentData.ValueKind == JsonValueKind.Array)
+                if (afterTextData.TryGetPropertyCI("Data", out var afterContentData) && afterContentData.ValueKind == JsonValueKind.Array)
                     afterTextCount = afterContentData.GetArrayLength();
 
                 Output.WriteLine($"Text elements count: Before={initialTextCount}, After={afterTextCount}");
@@ -268,9 +268,9 @@ namespace UIAutomationMCP.Tests.E2E
                 Assert.True(selectSuccess, "SelectElement operation should return success");
 
                 // THE REAL VERIFICATION: Look for Fundamentals-specific content that wasn't there before
-                var iconographyData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(fundamentalsText));
+                var iconographyData = fundamentalsText.ToJsonElement();
                 bool foundIconography = false;
-                if (iconographyData.TryGetProperty("Data", out var iconDataArray) && iconDataArray.ValueKind == JsonValueKind.Array)
+                if (iconographyData.TryGetPropertyCI("Data", out var iconDataArray) && iconDataArray.ValueKind == JsonValueKind.Array)
                 {
                     foundIconography = iconDataArray.GetArrayLength() > 0;
                 }
@@ -285,16 +285,16 @@ namespace UIAutomationMCP.Tests.E2E
                 Output.WriteLine($"Found RichEditBox reference: {JsonSerializer.Serialize(fundamentalsPageElements)}");
 
                 // Parse these results
-                var buttonsData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(buttonsPage));
-                var richEditData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(fundamentalsPageElements));
+                var buttonsData = buttonsPage.ToJsonElement();
+                var richEditData = fundamentalsPageElements.ToJsonElement();
 
                 bool foundButtonsReference = false;
                 bool foundRichEditReference = false;
 
-                if (buttonsData.TryGetProperty("Data", out var buttonsArray) && buttonsArray.ValueKind == JsonValueKind.Array)
+                if (buttonsData.TryGetPropertyCI("Data", out var buttonsArray) && buttonsArray.ValueKind == JsonValueKind.Array)
                     foundButtonsReference = buttonsArray.GetArrayLength() > 0;
 
-                if (richEditData.TryGetProperty("Data", out var richEditArray) && richEditArray.ValueKind == JsonValueKind.Array)
+                if (richEditData.TryGetPropertyCI("Data", out var richEditArray) && richEditArray.ValueKind == JsonValueKind.Array)
                     foundRichEditReference = richEditArray.GetArrayLength() > 0;
 
                 // ACTUAL ASSERTIONS - proving navigation worked!
@@ -331,9 +331,9 @@ namespace UIAutomationMCP.Tests.E2E
                 var buttons = await Tools.SearchElements(controlType: "Button");
 
                 // Parse and find the Minimize button specifically
-                var buttonsData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(buttons));
-                if (buttonsData.TryGetProperty("data", out var dataElement) &&
-                    dataElement.TryGetProperty("elements", out var elementsArray))
+                var buttonsData = buttons.ToJsonElement();
+                if (buttonsData.TryGetPropertyCI("data", out var dataElement) &&
+                    dataElement.TryGetPropertyCI("elements", out var elementsArray))
                 {
                     var buttonElements = elementsArray.EnumerateArray().ToList();
                     Output.WriteLine($"Found {buttonElements.Count} button elements");
@@ -342,9 +342,9 @@ namespace UIAutomationMCP.Tests.E2E
 
                     foreach (var button in buttonElements)
                     {
-                        if (button.TryGetProperty("AutomationId", out var idElement) &&
-                            button.TryGetProperty("Name", out var nameElement) &&
-                            button.TryGetProperty("IsVisible", out var visibleElement))
+                        if (button.TryGetPropertyCI("AutomationId", out var idElement) &&
+                            button.TryGetPropertyCI("Name", out var nameElement) &&
+                            button.TryGetPropertyCI("IsVisible", out var visibleElement))
                         {
                             var automationId = idElement.GetString();
                             var name = nameElement.GetString();
@@ -375,8 +375,8 @@ namespace UIAutomationMCP.Tests.E2E
                                     Output.WriteLine($"Window info after minimize: {JsonSerializer.Serialize(windowInfo)}");
 
                                     // Verify the invoke operation succeeded
-                                    var invokeData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(invokeResult));
-                                    bool invokeSuccess = invokeData.TryGetProperty("Success", out var successEl) && successEl.GetBoolean();
+                                    var invokeData = invokeResult.ToJsonElement();
+                                    bool invokeSuccess = invokeData.TryGetPropertyCI("Success", out var successEl) && successEl.GetBoolean();
 
                                     Assert.True(invokeSuccess, "Minimize button InvokeElement should succeed");
 
@@ -401,8 +401,8 @@ namespace UIAutomationMCP.Tests.E2E
                         // Fall back to testing any visible button
                         foreach (var button in buttonElements.Take(3))
                         {
-                            if (button.TryGetProperty("AutomationId", out var idElement) &&
-                                button.TryGetProperty("IsVisible", out var visibleElement) &&
+                            if (button.TryGetPropertyCI("AutomationId", out var idElement) &&
+                                button.TryGetPropertyCI("IsVisible", out var visibleElement) &&
                                 visibleElement.GetBoolean())
                             {
                                 var automationId = idElement.GetString();
@@ -410,8 +410,8 @@ namespace UIAutomationMCP.Tests.E2E
                                 {
                                     Output.WriteLine($"Testing fallback button: {automationId}");
                                     var invokeResult = await Tools.InvokeElement(automationId);
-                                    var invokeData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(invokeResult));
-                                    bool invokeSuccess = invokeData.TryGetProperty("Success", out var successEl) && successEl.GetBoolean();
+                                    var invokeData = invokeResult.ToJsonElement();
+                                    bool invokeSuccess = invokeData.TryGetPropertyCI("Success", out var successEl) && successEl.GetBoolean();
 
                                     Assert.True(invokeSuccess, $"InvokeElement should succeed on visible button {automationId}");
                                     break;
@@ -442,9 +442,9 @@ namespace UIAutomationMCP.Tests.E2E
                 var textInputs = await Tools.SearchElements(controlType: "Edit");
 
                 // Parse and analyze each element
-                var inputsData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(textInputs));
-                if (inputsData.TryGetProperty("data", out var dataElement) &&
-                    dataElement.TryGetProperty("elements", out var elementsArray))
+                var inputsData = textInputs.ToJsonElement();
+                if (inputsData.TryGetPropertyCI("data", out var dataElement) &&
+                    dataElement.TryGetPropertyCI("elements", out var elementsArray))
                 {
                     var inputElements = elementsArray.EnumerateArray().ToList();
                     Output.WriteLine($"Found {inputElements.Count} text input elements");
@@ -453,10 +453,10 @@ namespace UIAutomationMCP.Tests.E2E
 
                     foreach (var input in inputElements)
                     {
-                        if (input.TryGetProperty("AutomationId", out var idElement) &&
-                            input.TryGetProperty("Name", out var nameElement) &&
-                            input.TryGetProperty("IsVisible", out var visibleElement) &&
-                            input.TryGetProperty("BoundingRectangle", out var rectElement))
+                        if (input.TryGetPropertyCI("AutomationId", out var idElement) &&
+                            input.TryGetPropertyCI("Name", out var nameElement) &&
+                            input.TryGetPropertyCI("IsVisible", out var visibleElement) &&
+                            input.TryGetPropertyCI("BoundingRectangle", out var rectElement))
                         {
                             var automationId = idElement.GetString();
                             var name = nameElement.GetString();
@@ -502,8 +502,8 @@ namespace UIAutomationMCP.Tests.E2E
                                     var afterValue = afterElements;
 
                                     // Verify the operation worked
-                                    var setData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(setValue));
-                                    bool setSuccess = setData.TryGetProperty("Success", out var successEl) && successEl.GetBoolean();
+                                    var setData = setValue.ToJsonElement();
+                                    bool setSuccess = setData.TryGetPropertyCI("Success", out var successEl) && successEl.GetBoolean();
 
                                     if (setSuccess)
                                     {
@@ -574,17 +574,17 @@ namespace UIAutomationMCP.Tests.E2E
                 Output.WriteLine($"Found checkboxes: {JsonSerializer.Serialize(checkboxes)}");
 
                 // Parse and test checkbox toggling
-                var checkboxData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(checkboxes));
-                if (checkboxData.TryGetProperty("data", out var dataElement) &&
-                    dataElement.TryGetProperty("elements", out var elementsArray))
+                var checkboxData = checkboxes.ToJsonElement();
+                if (checkboxData.TryGetPropertyCI("data", out var dataElement) &&
+                    dataElement.TryGetPropertyCI("elements", out var elementsArray))
                 {
                     var checkboxElements = elementsArray.EnumerateArray().ToList();
                     Output.WriteLine($"Found {checkboxElements.Count} checkbox elements");
 
                     foreach (var checkbox in checkboxElements.Take(2)) // Test first 2 checkboxes
                     {
-                        if (checkbox.TryGetProperty("AutomationId", out var idElement) &&
-                            checkbox.TryGetProperty("Name", out var nameElement))
+                        if (checkbox.TryGetPropertyCI("AutomationId", out var idElement) &&
+                            checkbox.TryGetPropertyCI("Name", out var nameElement))
                         {
                             var automationId = idElement.GetString();
                             var name = nameElement.GetString();
@@ -602,8 +602,8 @@ namespace UIAutomationMCP.Tests.E2E
                                     await Task.Delay(500);
 
                                     // Verify the operation worked
-                                    var toggleData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(toggleResult));
-                                    bool toggleSuccess = toggleData.TryGetProperty("Success", out var successEl) && successEl.GetBoolean();
+                                    var toggleData = toggleResult.ToJsonElement();
+                                    bool toggleSuccess = toggleData.TryGetPropertyCI("Success", out var successEl) && successEl.GetBoolean();
 
                                     Assert.True(toggleSuccess, $"ToggleElement should succeed on {name}");
 
@@ -696,7 +696,7 @@ namespace UIAutomationMCP.Tests.E2E
                 var interactionState = windowInfo;
 
                 // Verify operations succeeded
-                var capData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(capabilities));
+                var capData = capabilities.ToJsonElement();
                 bool capSuccess = capData.ValueKind != JsonValueKind.Null;
 
                 Assert.True(capSuccess, "SearchElements(Window) should succeed");
@@ -725,8 +725,8 @@ namespace UIAutomationMCP.Tests.E2E
                 Output.WriteLine($"Screenshot result: {JsonSerializer.Serialize(screenshot)}");
 
                 // Verify screenshot operation
-                var screenshotData = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(screenshot));
-                bool screenshotSuccess = screenshotData.TryGetProperty("Success", out var successEl) && successEl.GetBoolean();
+                var screenshotData = screenshot.ToJsonElement();
+                bool screenshotSuccess = screenshotData.TryGetPropertyCI("Success", out var successEl) && successEl.GetBoolean();
 
                 Assert.True(screenshotSuccess, "TakeScreenshot should succeed");
 
