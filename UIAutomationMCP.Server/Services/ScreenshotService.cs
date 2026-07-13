@@ -370,13 +370,19 @@ namespace UIAutomationMCP.Server.Services
             {
                 _logger.LogInformation("Searching for window using SearchElements: WindowTitle={WindowTitle}, WindowHandle={WindowHandle}", windowTitle, windowHandle);
 
+                // Enumerate the desktop's top-level windows, then match by title/handle in code.
+                // NOTE: do NOT pass WindowTitle here — WindowTitle makes the search descend INTO
+                // the matching window and then look for a child Window (which never exists),
+                // yielding "Window not found". And a Name PropertyCondition at Children scope does
+                // not reliably match top-level window names, so we filter the returned elements
+                // ourselves instead of relying on a server-side Name condition.
                 var searchRequest = new SearchElementsRequest
                 {
                     ControlType = "Window",
                     Scope = "children",
-                    WindowTitle = windowTitle,
                     WindowHandle = windowHandle,
-                    MaxResults = 1,
+                    UseWindowHandleAsFilter = windowHandle.HasValue,
+                    MaxResults = 100,
                     VisibleOnly = true
                 };
 
@@ -384,7 +390,20 @@ namespace UIAutomationMCP.Server.Services
 
                 if (searchResult.Success && searchResult.Data?.Elements != null && searchResult.Data.Elements.Length > 0)
                 {
-                    var windowElement = searchResult.Data.Elements[0];
+                    var elements = searchResult.Data.Elements;
+
+                    // Match by exact window title when provided; otherwise take the first window.
+                    var windowElement = string.IsNullOrEmpty(windowTitle)
+                        ? elements[0]
+                        : (Array.Find(elements, e => string.Equals(e.Name, windowTitle, StringComparison.Ordinal))
+                            ?? Array.Find(elements, e => (e.Name ?? string.Empty).Contains(windowTitle, StringComparison.Ordinal)));
+
+                    if (windowElement == null)
+                    {
+                        _logger.LogWarning("No window matched title '{WindowTitle}' among {Count} top-level windows", windowTitle, elements.Length);
+                        return null;
+                    }
+
                     _logger.LogInformation("Found window element: Name={Name}, AutomationId={AutomationId}",
                         windowElement.Name, windowElement.AutomationId);
 

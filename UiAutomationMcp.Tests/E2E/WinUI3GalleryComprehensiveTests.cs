@@ -11,6 +11,8 @@ namespace UIAutomationMCP.Tests.E2E
     [Trait("Category", "Comprehensive")]
     public class WinUI3GalleryComprehensiveTests : BaseE2ETest
     {
+        private const string WindowTitle = "WinUI 3 Gallery";
+
         public WinUI3GalleryComprehensiveTests(ITestOutputHelper output) : base(output)
         {
         }
@@ -120,194 +122,53 @@ namespace UIAutomationMCP.Tests.E2E
         [Fact]
         public async Task Test_09_ActualNavigationWithVerification()
         {
+            // Verifies that SelectionAction performs REAL navigation, not just returning success:true.
+            // Proof of navigation = the target NavigationView item actually transitions to the
+            // selected state (SelectionItem.IsSelected), observed via includeDetails. This relies
+            // only on working APIs (ControlType filtering + per-element selection detail); it does
+            // NOT depend on searchText filtering, which is currently unimplemented in the worker.
             Output.WriteLine("=== Testing ACTUAL navigation with verification ===");
+
+            const string targetNavId = "FundamentalsItem";
 
             try
             {
-                // Step 1: Find available navigation items and log them in detail
-                Output.WriteLine("1. Finding navigation items...");
-                var navItems = await Tools.SearchElements(controlType: "ListItem");
+                // Step 1: Capture selection state of nav items BEFORE navigating.
+                Output.WriteLine("1. Capturing initial nav selection state...");
+                var beforeNav = await Tools.SearchElements(
+                    controlType: "ListItem", windowTitle: WindowTitle, includeDetails: true);
+                bool foundBefore = TryGetNavItemSelected(beforeNav, targetNavId, out bool selectedBefore);
+                Assert.True(foundBefore, $"Nav item '{targetNavId}' should exist in the WinUI 3 Gallery navigation");
+                Output.WriteLine($"  {targetNavId} selected before navigation: {selectedBefore}");
 
-                // Parse and display available navigation items
-                var navItemsJson = JsonSerializer.Serialize(navItems);
-                var navData = JsonSerializer.Deserialize<JsonElement>(navItemsJson);
+                // Step 2: Perform the ACTUAL navigation.
+                Output.WriteLine($"2. Performing SelectionAction(select) on {targetNavId}...");
+                var selectResult = await Tools.SelectionAction(action: "select", automationId: targetNavId);
+                bool selectSuccess = selectResult.ToJsonElement()
+                    .TryGetPropertyCI("Success", out var successElement) && successElement.GetBoolean();
+                Output.WriteLine($"  SelectionAction success: {selectSuccess}");
+                Assert.True(selectSuccess, "SelectionAction(select) should return success");
 
-                if (navData.TryGetPropertyCI("data", out var dataElement) &&
-                    dataElement.TryGetPropertyCI("elements", out var elementsArray))
+                // Step 3: Poll the selection state until it flips (bounded retry ~5s), so the test
+                // does not depend on a single fixed delay on slower machines.
+                Output.WriteLine("3. Waiting for the nav item to become selected...");
+                bool selectedAfter = false;
+                for (int attempt = 0; attempt < 10; attempt++)
                 {
-                    var elements = elementsArray.EnumerateArray().ToList();
-                    Output.WriteLine($"Found {elements.Count} navigation items:");
-
-                    foreach (var element in elements.Take(10)) // Show first 10
-                    {
-                        if (element.TryGetPropertyCI("AutomationId", out var idElement) &&
-                            element.TryGetPropertyCI("Name", out var nameElement))
-                        {
-                            Output.WriteLine($"  - ID: {idElement.GetString()}, Name: {nameElement.GetString()}");
-                        }
-                    }
+                    await Task.Delay(500);
+                    var afterNav = await Tools.SearchElements(
+                        controlType: "ListItem", windowTitle: WindowTitle, includeDetails: true);
+                    if (TryGetNavItemSelected(afterNav, targetNavId, out selectedAfter) && selectedAfter)
+                        break;
                 }
+                Output.WriteLine($"  {targetNavId} selected after navigation: {selectedAfter}");
 
-                // Step 2: Check initial selection state
-                Output.WriteLine("\n2. Checking initial selection state...");
-                // IsElementSelected method was removed from UIAutomationTools
-                Output.WriteLine("FundamentalsItem selection check skipped (method removed)");
+                // Step 4: THE REAL VERIFICATION — the nav item genuinely transitioned to selected.
+                Assert.True(selectedAfter, $"{targetNavId} should be selected after navigation");
+                Assert.False(selectedBefore, $"{targetNavId} should NOT have been selected before navigation (proves an actual state change)");
 
-                // IsElementSelected method was removed from UIAutomationTools
-                Output.WriteLine("Home selection check skipped (method removed)");
-
-                // Step 3: Get initial page content to compare later
-                Output.WriteLine("\n3. Getting initial page content...");
-                var initialContent = await Tools.SearchElements(controlType: "Text");
-                Output.WriteLine($"Initial content elements found: {JsonSerializer.Serialize(initialContent)}");
-
-                // Step 4: Take screenshot before
-                Output.WriteLine("\n4. Taking screenshot before navigation...");
-                await Tools.TakeScreenshot("WinUI 3 Gallery", @"C:\temp\before_actual_nav.png");
-
-                // Step 5: Perform ACTUAL navigation
-                Output.WriteLine("\n5. Performing SelectionAction on FundamentalsItem...");
-                var selectResult = await Tools.SelectionAction(action: "select", automationId: "FundamentalsItem");
-                Output.WriteLine($"SelectionAction result: {JsonSerializer.Serialize(selectResult, new JsonSerializerOptions { WriteIndented = true })}");
-
-                // Verify the operation returned success
-                var selectData = selectResult.ToJsonElement();
-                bool selectSuccess = selectData.TryGetPropertyCI("Success", out var successElement) && successElement.GetBoolean();
-                Output.WriteLine($"SelectElement operation success: {selectSuccess}");
-
-                // Step 6: Wait for navigation
-                Output.WriteLine("\n6. Waiting for navigation to complete...");
-                await Task.Delay(3000); // Longer wait
-
-                // Step 7: Check selection state after operation
-                Output.WriteLine("\n7. Checking selection state after operation...");
-                // IsElementSelected method was removed from UIAutomationTools
-                Output.WriteLine("FundamentalsItem selection check skipped (method removed)");
-
-                // IsElementSelected method was removed from UIAutomationTools
-                Output.WriteLine("Home selection check skipped (method removed)");
-
-                // Step 8: Get page content after navigation
-                Output.WriteLine("\n8. Getting page content after navigation...");
-                var afterContent = await Tools.SearchElements(controlType: "Text");
-                Output.WriteLine($"After content elements found: {JsonSerializer.Serialize(afterContent)}");
-
-                // Step 9: Take screenshot after
-                Output.WriteLine("\n9. Taking screenshot after navigation...");
-                await Tools.TakeScreenshot("WinUI 3 Gallery", @"C:\temp\after_actual_nav.png");
-
-                // Step 10: Look for specific Fundamentals page content
-                Output.WriteLine("\n10. Looking for Fundamentals page specific content...");
-                var fundamentalsContent = await Tools.SearchElements("Button");
-                Output.WriteLine($"Found buttons (should include Fundamentals page buttons): {JsonSerializer.Serialize(fundamentalsContent)}");
-
-                // Step 11: Verify actual changes occurred
-                Output.WriteLine("\n11. VERIFICATION:");
-
-                // Since IsElementSelected method was removed, create default values for verification
-                var initialSelected = new { Success = false, Data = false };
-                var afterSelected = new { Success = false, Data = false };
-
-                // Parse selection states more carefully
-                var initialSelectData = initialSelected.ToJsonElement();
-                var afterSelectData = afterSelected.ToJsonElement();
-
-                // More robust parsing that handles different data types
-                bool initiallySelected = false;
-                if (initialSelectData.TryGetPropertyCI("Success", out var initSuccessEl) && initSuccessEl.GetBoolean())
-                {
-                    if (initialSelectData.TryGetPropertyCI("Data", out var initDataEl))
-                    {
-                        if (initDataEl.ValueKind == JsonValueKind.True)
-                            initiallySelected = true;
-                        else if (initDataEl.ValueKind == JsonValueKind.False)
-                            initiallySelected = false;
-                        else if (initDataEl.ValueKind == JsonValueKind.String)
-                            initiallySelected = initDataEl.GetString()?.ToLower() == "true";
-                    }
-                }
-
-                bool finallySelected = false;
-                if (afterSelectData.TryGetPropertyCI("Success", out var finalSuccessEl) && finalSuccessEl.GetBoolean())
-                {
-                    if (afterSelectData.TryGetPropertyCI("Data", out var finalDataEl))
-                    {
-                        if (finalDataEl.ValueKind == JsonValueKind.True)
-                            finallySelected = true;
-                        else if (finalDataEl.ValueKind == JsonValueKind.False)
-                            finallySelected = false;
-                        else if (finalDataEl.ValueKind == JsonValueKind.String)
-                            finallySelected = finalDataEl.GetString()?.ToLower() == "true";
-                    }
-                }
-
-                Output.WriteLine($"Selection changed from {initiallySelected} to {finallySelected}");
-
-                // Look for specific content that proves we're on the Fundamentals page
-                Output.WriteLine("\n12. Looking for Fundamentals-specific content...");
-                var fundamentalsSpecific = await Tools.SearchElements("Button");
-                var fundamentalsText = await Tools.SearchElements("Iconography");  // Iconography is mentioned in Fundamentals
-                Output.WriteLine($"Found Iconography text: {JsonSerializer.Serialize(fundamentalsText)}");
-
-                // Count content elements before and after
-                var initialTextData = initialContent.ToJsonElement();
-                var afterTextData = afterContent.ToJsonElement();
-
-                int initialTextCount = 0;
-                int afterTextCount = 0;
-
-                if (initialTextData.TryGetPropertyCI("Data", out var initContentData) && initContentData.ValueKind == JsonValueKind.Array)
-                    initialTextCount = initContentData.GetArrayLength();
-
-                if (afterTextData.TryGetPropertyCI("Data", out var afterContentData) && afterContentData.ValueKind == JsonValueKind.Array)
-                    afterTextCount = afterContentData.GetArrayLength();
-
-                Output.WriteLine($"Text elements count: Before={initialTextCount}, After={afterTextCount}");
-
-                // ACTUAL ASSERTIONS - no cheating!
-                Assert.True(selectSuccess, "SelectElement operation should return success");
-
-                // THE REAL VERIFICATION: Look for Fundamentals-specific content that wasn't there before
-                var iconographyData = fundamentalsText.ToJsonElement();
-                bool foundIconography = false;
-                if (iconographyData.TryGetPropertyCI("Data", out var iconDataArray) && iconDataArray.ValueKind == JsonValueKind.Array)
-                {
-                    foundIconography = iconDataArray.GetArrayLength() > 0;
-                }
-
-                Output.WriteLine($"Found Iconography elements: {foundIconography}");
-
-                // ULTIMATE PROOF: Search for specific Fundamentals page content
-                var buttonsPage = await Tools.SearchElements("Buttons");
-                var fundamentalsPageElements = await Tools.SearchElements("RichEditBox");
-
-                Output.WriteLine($"Found Buttons page reference: {JsonSerializer.Serialize(buttonsPage)}");
-                Output.WriteLine($"Found RichEditBox reference: {JsonSerializer.Serialize(fundamentalsPageElements)}");
-
-                // Parse these results
-                var buttonsData = buttonsPage.ToJsonElement();
-                var richEditData = fundamentalsPageElements.ToJsonElement();
-
-                bool foundButtonsReference = false;
-                bool foundRichEditReference = false;
-
-                if (buttonsData.TryGetPropertyCI("Data", out var buttonsArray) && buttonsArray.ValueKind == JsonValueKind.Array)
-                    foundButtonsReference = buttonsArray.GetArrayLength() > 0;
-
-                if (richEditData.TryGetPropertyCI("Data", out var richEditArray) && richEditArray.ValueKind == JsonValueKind.Array)
-                    foundRichEditReference = richEditArray.GetArrayLength() > 0;
-
-                // ACTUAL ASSERTIONS - proving navigation worked!
-                Assert.True(selectSuccess, "SelectElement operation should return success");
-                Assert.True(foundIconography, "Should find Iconography content after navigating to Fundamentals");
-                Assert.True(foundRichEditReference, "Should find RichEditBox reference after navigating to Fundamentals");
-
-                // If we got here, the navigation actually worked!
-                Output.WriteLine("\n   NAVIGATION VERIFICATION PASSED!   ");
-                Output.WriteLine("  SelectElement successfully performed navigation!");
-                Output.WriteLine("  Found Fundamentals-specific content (Iconography, RichEditBox)!");
-                Output.WriteLine("  MCP UI Automation tools are working correctly!");
-                Output.WriteLine("Check screenshots C:\\temp\\before_actual_nav.png and C:\\temp\\after_actual_nav.png");
+                Output.WriteLine("\n   NAVIGATION VERIFICATION PASSED!");
+                Output.WriteLine($"  {targetNavId} transitioned from unselected -> selected via SelectionAction.");
             }
             catch (Exception ex)
             {
@@ -315,6 +176,40 @@ namespace UIAutomationMCP.Tests.E2E
                 Output.WriteLine($"Stack trace: {ex.StackTrace}");
                 throw; // Don't hide failures
             }
+        }
+
+        /// <summary>
+        /// Finds a navigation item by AutomationId in a SearchElements(includeDetails:true) result
+        /// and reports its SelectionItem.IsSelected state.
+        /// Returns true if the item was found with a selection detail; false if absent.
+        /// </summary>
+        private static bool TryGetNavItemSelected(object searchResult, string automationId, out bool isSelected)
+        {
+            isSelected = false;
+            var root = searchResult.ToJsonElement();
+            if (!root.TryGetPropertyCI("data", out var data))
+                return false;
+            if (!data.TryGetPropertyCI("elements", out var elements) || elements.ValueKind != JsonValueKind.Array)
+                return false;
+
+            foreach (var element in elements.EnumerateArray())
+            {
+                if (!element.TryGetPropertyCI("automationId", out var idElement) ||
+                    idElement.GetString() != automationId)
+                    continue;
+
+                if (element.TryGetPropertyCI("details", out var details) &&
+                    details.TryGetPropertyCI("selectionItem", out var selectionItem) &&
+                    selectionItem.TryGetPropertyCI("isSelected", out var selectedElement))
+                {
+                    isSelected = selectedElement.ValueKind == JsonValueKind.True;
+                    return true;
+                }
+
+                return false; // item found but no selection detail available
+            }
+
+            return false; // item not found
         }
 
         [Fact]

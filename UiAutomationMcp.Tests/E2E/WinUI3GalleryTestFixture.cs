@@ -19,10 +19,9 @@ namespace UIAutomationMCP.Tests.E2E
 
         public async Task InitializeAsync()
         {
-            // Check if WinUI 3 Gallery is already running
-            var existingProcesses = Process.GetProcessesByName("WinUIGallery3")
-                .Concat(Process.GetProcessesByName("WinUI3Gallery"))
-                .Concat(Process.GetProcessesByName("WinUI 3 Gallery"));
+            // Check if WinUI 3 Gallery is already running.
+            // The installed Store package (Microsoft.WinUI3ControlsGallery) runs as process "WinUIGallery".
+            var existingProcesses = Process.GetProcessesByName("WinUIGallery");
 
             if (existingProcesses.Any())
             {
@@ -43,9 +42,7 @@ namespace UIAutomationMCP.Tests.E2E
                 await Task.Delay(3000);
 
                 // Find the launched process
-                _winUI3GalleryProcess = Process.GetProcessesByName("WinUIGallery3")
-                    .Concat(Process.GetProcessesByName("WinUI3Gallery"))
-                    .Concat(Process.GetProcessesByName("WinUI 3 Gallery"))
+                _winUI3GalleryProcess = Process.GetProcessesByName("WinUIGallery")
                     .FirstOrDefault();
             }
             catch (Exception ex)
