@@ -7,6 +7,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
     /// Unit tests for <see cref="SearchTextMatcher"/> - the cross-property substring/fuzzy
     /// matching used by SearchElements to filter found elements by searchText.
     /// </summary>
+    [Trait("Category", "Unit")]
     public class SearchTextMatcherTests
     {
         #region Substring (non-fuzzy) matching

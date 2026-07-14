@@ -4,6 +4,7 @@ using Xunit;
 
 namespace UiAutomationMcp.Tests.UnitTests.Helpers
 {
+    [Trait("Category", "Unit")]
     public class UIAutomationEnvironmentTests
     {
         [Fact]
@@ -56,6 +57,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
     /// <summary>
     /// Performance and stress tests for UIAutomationEnvironment
     /// </summary>
+    [Trait("Category", "Unit")]
     public class UIAutomationEnvironmentPerformanceTests
     {
         [Fact]

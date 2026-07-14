@@ -7,6 +7,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
     /// <summary>
     /// Unit tests for CacheRequestHelper to verify cache optimization functionality
     /// </summary>
+    [Trait("Category", "Unit")]
     public class CacheRequestHelperTests
     {
         [Fact]

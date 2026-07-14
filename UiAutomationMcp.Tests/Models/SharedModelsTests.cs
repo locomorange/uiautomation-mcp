@@ -8,6 +8,7 @@ namespace UiAutomationMcp.Tests.Models
     /// <summary>
     /// SharedModels                  ///                                                                     /// </summary>
     [Collection("UIAutomationTestCollection")]
+    [Trait("Category", "Unit")]
     public class SharedModelsTests
     {
         [Fact]

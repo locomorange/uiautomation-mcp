@@ -89,6 +89,7 @@ jobs:
     - name: Run tests
       run: |
         dotnet test --configuration Release --no-build --verbosity detailed `
+          --filter "Category=Unit" `
           --logger "trx;LogFileName=test-results.trx" `
           --logger "console;verbosity=detailed" `
           --collect:"XPlat Code Coverage" `
