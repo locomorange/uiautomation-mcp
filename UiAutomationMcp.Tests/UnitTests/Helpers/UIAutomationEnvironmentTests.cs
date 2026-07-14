@@ -55,9 +55,12 @@ namespace UiAutomationMcp.Tests.UnitTests.Helpers
     }
 
     /// <summary>
-    /// Performance and stress tests for UIAutomationEnvironment
+    /// Performance and stress tests for UIAutomationEnvironment.
+    /// Tagged "Performance" (not "Unit") because the assertions are wall-clock timing
+    /// based and therefore non-deterministic on shared CI runners — excluded from the
+    /// CI Category=Unit gate; run locally with --filter "Category=Performance".
     /// </summary>
-    [Trait("Category", "Unit")]
+    [Trait("Category", "Performance")]
     public class UIAutomationEnvironmentPerformanceTests
     {
         [Fact]
