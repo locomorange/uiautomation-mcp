@@ -8,6 +8,7 @@ namespace UiAutomationMcp.Tests.Requests
     ///                               (     Tools Level Serialization       )
     /// </summary>
     [Collection("UIAutomationTestCollection")]
+    [Trait("Category", "Unit")]
     public class TypedRequestTests
     {
         [Fact]

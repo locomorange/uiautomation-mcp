@@ -11,6 +11,7 @@ using UIAutomationMCP.Models.Abstractions;
 
 namespace UiAutomationMcp.Tests.Integration;
 
+[Trait("Category", "Integration")]
 public class SynchronizedInputPatternIntegrationTests : IDisposable
 {
     private readonly ServiceProvider _serviceProvider;
@@ -172,9 +173,6 @@ public class SynchronizedInputPatternIntegrationTests : IDisposable
     public async Task WorkerProcessLifecycle_MultipleOperations_ShouldHandleCorrectly()
     {
         // Arrange
-        var startCallCount = 0;
-        var cancelCallCount = 0;
-
         _mockSubprocessExecutor
             .Setup(x => x.ExecuteWorkerOperationAsync<StartSynchronizedInputRequest, ElementSearchResult>(
                 "StartSynchronizedInput",

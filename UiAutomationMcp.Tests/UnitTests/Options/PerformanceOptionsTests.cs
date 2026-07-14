@@ -6,6 +6,7 @@ namespace UiAutomationMcp.Tests.UnitTests.Options
     /// <summary>
     /// Unit tests for PerformanceOptions configuration
     /// </summary>
+    [Trait("Category", "Unit")]
     public class PerformanceOptionsTests
     {
         [Fact]

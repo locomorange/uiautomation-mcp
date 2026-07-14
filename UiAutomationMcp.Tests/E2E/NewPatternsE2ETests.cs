@@ -10,6 +10,7 @@ namespace UIAutomationMCP.Tests.E2E;
 /// These tests require real Windows applications to be available.
 /// </summary>
 [Collection("UIAutomation")]
+[Trait("Category", "E2E")]
 public class NewPatternsE2ETests : BaseE2ETest
 {
     private readonly ITestOutputHelper _output;
